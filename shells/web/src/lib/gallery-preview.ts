@@ -3,11 +3,12 @@
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { FeaturedVariant } from '../components/featured-row.ts';
 import { instanceFetch, instancePath } from './instance.ts';
-import { coverFormats, renderFeaturedVariant } from './featured-render.ts';
+import { coverFormats, lookStoreEmpty, renderFeaturedVariant, storedFeaturedVariant } from './featured-render.ts';
 import { srcStillLive } from './preview-urls.ts';
 import { parseTemplateMotion, type TemplateMotion } from './template-motion.ts';
 import { toolSeedHref } from './seed-url.ts';
 import { bakedCover } from './gallery-covers.ts';
+import { lookDrawReach } from './preview-work-gate.ts';
 
 export interface GalleryPreviewSource {
   id: string;
@@ -34,6 +35,54 @@ export function galleryPreviewPriority(card: HTMLElement, cover: boolean, captur
   // Asked for by the person, so it goes ahead of covers far down the page and of the
   // strip's ambient looks (2), and behind only the covers on the screen.
   return near && wanted ? 0.5 : null;
+}
+
+/** A draw comes after every read: a visit shows its finished looks first. */
+export const DRAW_PRIORITY = 10;
+/** How far past the screen a stored look is read ahead, in screen heights. */
+const READ_AHEAD_SCREENS = 1.5;
+
+function cardRect(card: HTMLElement): DOMRect {
+  return (card.closest('.gtile') ?? card).getBoundingClientRect();
+}
+
+function cardOnScreen(card: HTMLElement): boolean {
+  const rect = cardRect(card);
+  return rect.width > 0 && rect.bottom > 0 && rect.top < window.innerHeight;
+}
+
+/** The galleryPreviewPriority of an extra look the person asked for. */
+const WANTED_EXTRA = 0.5;
+
+/**
+ * When to read a card's stored look, from its galleryPreviewPriority. A cover far down
+ * the page (1) is read once the page comes within {@link READ_AHEAD_SCREENS} screens of
+ * it, so a visit does not turn every stored look into a picture at once; the queue
+ * looks again when the page stops scrolling. An extra look is read while its card is
+ * on the screen: on a touch screen a card stays "wanted" once it has been in view, and
+ * the page can move it below the fold a moment later (the featured row arrives above).
+ */
+export function lookReadPriority(card: HTMLElement, base: number | null): number | null {
+  if (base === WANTED_EXTRA) return cardOnScreen(card) ? base : null;
+  if (base !== 1) return base;
+  const rect = cardRect(card);
+  const ahead = window.innerHeight * READ_AHEAD_SCREENS;
+  return rect.bottom >= -ahead && rect.top <= window.innerHeight + ahead ? 1 : null;
+}
+
+/**
+ * When to draw a card's missing look, from its galleryPreviewPriority: a cover on the
+ * screen or near it (never one far down the page), an extra look while its card is on
+ * the screen, and only as far as the device allows (lib/preview-work-gate.ts
+ * lookDrawReach): on the screen itself when it asks for less work, nowhere under
+ * Performance UI. Whether the page is at rest is the queue's question (its draw gate).
+ */
+export function lookDrawPriority(card: HTMLElement, base: number | null): number | null {
+  if (base === null || base === 1) return null;
+  const reach = lookDrawReach();
+  if (reach === 'none') return null;
+  if ((reach === 'screen' || base === WANTED_EXTRA) && !cardOnScreen(card)) return null;
+  return DRAW_PRIORITY + base;
 }
 
 export function galleryPreviewLooks(tool: GalleryPreviewSource): FeaturedVariant[] {
@@ -90,21 +139,67 @@ export async function renderGalleryLook(
   return thumb;
 }
 
+/**
+ * The look's finished picture, or null when it has not been drawn yet: a baked cover
+ * or a picture in the preview store. Draws nothing and loads no tool code, so a visit
+ * can show every finished look first and leave the missing ones until the page is at
+ * rest (renderGalleryLook draws them).
+ */
+export async function storedGalleryLook(
+  host: HostV1, tool: GalleryPreviewSource,
+  index: number, look: FeaturedVariant,
+): Promise<string | null> {
+  const baked = await bakedCover(host, tool, index, look.templateId);
+  const thumb = baked ?? await (async () => {
+    // An empty store holds no look to find: skip the template file the recipe needs.
+    if (await lookStoreEmpty()) return null;
+    const { values, motion } = await lookInputs(tool, look);
+    return storedFeaturedVariant(host, tool.id, coverFormats(tool), values, galleryScope(tool), motion?.posterMs);
+  })();
+  if (thumb) heldLooks.set(heldKey(tool.id, index), thumb);
+  return thumb;
+}
+
+const galleryScope = (tool: GalleryPreviewSource): string => `gallery@${tool.version ?? 'current'}`;
+
+type TemplateFile = { values?: Record<string, unknown>; motion?: TemplateMotion; gallerySize?: unknown };
+
+/** A template's own file (null when the server has none), fetched once a visit for
+ *  each tool version: the read and the draw of one look both need its values. */
+const templateFiles = new Map<string, Promise<TemplateFile | null>>();
+function templateFile(tool: GalleryPreviewSource, templateId: string): Promise<TemplateFile | null> {
+  const key = `${tool.id}\u0000${tool.version ?? ''}\u0000${templateId}`;
+  let file = templateFiles.get(key);
+  if (!file) {
+    file = instanceFetch(instancePath(`/tools/${encodeURIComponent(tool.id)}/templates/${encodeURIComponent(templateId)}.json`))
+      .then(response => (response.ok ? response.json() as Promise<TemplateFile> : null));
+    templateFiles.set(key, file);
+    // A missing or failed file is asked for again next time.
+    file.then(found => { if (!found) templateFiles.delete(key); }, () => templateFiles.delete(key));
+  }
+  return file;
+}
+
+/** The values (and motion) a look is drawn with: a template's file, else the look's own. */
+async function lookInputs(tool: GalleryPreviewSource, look: FeaturedVariant): Promise<{ values: Record<string, unknown>; motion?: TemplateMotion }> {
+  let values = look.values;
+  let motion = look.motion;
+  if (look.templateId) {
+    const file = await templateFile(tool, look.templateId);
+    if (file) {
+      if (!file.values || typeof file.values !== 'object' || Array.isArray(file.values)) throw new Error('Invalid template values');
+      values = withGallerySize(file.values, file.gallerySize); motion = parseTemplateMotion(file.motion);
+    } else if (!Object.keys(values).length) throw new Error(`Template ${look.templateId} is unavailable`);
+  }
+  return { values, ...(motion ? { motion } : {}) };
+}
+
 async function drawGalleryLook(
   host: HostV1, tool: GalleryPreviewSource,
   index: number, look: FeaturedVariant,
 ): Promise<string> {
   const baked = await bakedCover(host, tool, index, look.templateId);
   if (baked) return baked;
-  let values = look.values;
-  let motion = look.motion;
-  if (look.templateId) {
-    const response = await instanceFetch(instancePath(`/tools/${encodeURIComponent(tool.id)}/templates/${encodeURIComponent(look.templateId)}.json`));
-    if (response.ok) {
-      const file = await response.json() as { values?: Record<string, unknown>; motion?: TemplateMotion; gallerySize?: unknown };
-      if (!file.values || typeof file.values !== 'object' || Array.isArray(file.values)) throw new Error('Invalid template values');
-      values = withGallerySize(file.values, file.gallerySize); motion = parseTemplateMotion(file.motion);
-    } else if (!Object.keys(values).length) throw new Error(`Template ${look.templateId} is unavailable`);
-  }
-  return renderFeaturedVariant(host, tool.id, coverFormats(tool), look.templateId ?? index, values, `gallery@${tool.version ?? 'current'}`, motion?.posterMs);
+  const { values, motion } = await lookInputs(tool, look);
+  return renderFeaturedVariant(host, tool.id, coverFormats(tool), look.templateId ?? index, values, galleryScope(tool), motion?.posterMs);
 }

@@ -2,7 +2,11 @@
 import { markLookFailed, markLookReady } from './gallery-carousel.ts';
 import { previewDeadline } from '../lib/preview-deadline.ts';
 import { bakedCoverSet } from '../lib/gallery-covers.ts';
-import { heldGalleryLook } from '../lib/gallery-preview.ts';
+import { heldGalleryLook, lookDrawPriority, lookReadPriority } from '../lib/gallery-preview.ts';
+import { checkLookStore } from '../lib/featured-render.ts';
+import { drawsEverywhere, lookDrawAllowed, watchPreviewBattery, watchPreviewInput, whenLookDrawMayResume } from '../lib/preview-work-gate.ts';
+import { captureNeutralPinned } from '../lib/capture-neutral.ts';
+import { createPreviewQueue, type PreviewQueue, type PreviewTask } from '../lib/preview-queue.ts';
 
 /** A failed or stalled preview releases the serial queue and stays visibly failed. */
 export async function loadGalleryLook(
@@ -131,4 +135,58 @@ export function withHeldLook<T>(gcar: HTMLElement, slide: HTMLElement, toolId: s
   const held = heldGalleryLook(toolId, index);
   if (held) void showHeldLook(gcar, slide, held);
   return job;
+}
+
+/** A slide that already shows a finished picture (a held stand-in does not count). */
+export function slideFinished(slide: HTMLElement): boolean {
+  const img = slide.querySelector<HTMLImageElement>('.gcar-img');
+  return !!img?.getAttribute('src') && img.dataset.held === undefined;
+}
+
+/**
+ * Show a slide's stored look, if there is one: `stored` reads it (a baked cover or the
+ * preview store, never a render). Resolves false when the look still has to be drawn.
+ */
+export async function readStoredLook(gcar: HTMLElement, slide: HTMLElement, stored: () => Promise<string | null>, href: () => Promise<string>): Promise<boolean> {
+  if (slideFinished(slide)) return true;
+  const thumb = await stored().catch(() => null);
+  if (!thumb) return false;
+  await loadGalleryLook(gcar, slide, async () => ({ thumb, href: await href() }));
+  return true;
+}
+
+/**
+ * One card's look work for the shared queue: read the stored look on the next idle
+ * moment, and when there is none, queue its draw behind every read, for when the page
+ * is at rest and the card is near the screen (lib/gallery-preview.ts says where each
+ * may happen; the queue's draw gate says when). `base` is the card's
+ * galleryPreviewPriority. A capture or a cover bake draws at once, as before, so its
+ * baselines and files hold.
+ */
+export function lookTask(queue: Pick<PreviewQueue, 'add'>, card: HTMLElement, base: () => number | null, work: { read(): Promise<boolean>; draw(): Promise<unknown>; done(): boolean }): PreviewTask {
+  const everywhere = drawsEverywhere(captureNeutralPinned());
+  return {
+    priority: () => (everywhere ? base() : lookReadPriority(card, base())),
+    stale: () => !card.isConnected,
+    run: async () => {
+      if (everywhere) { await work.draw(); return; }
+      if (await work.read()) return;
+      queue.add({
+        draw: true,
+        priority: () => lookDrawPriority(card, base()),
+        stale: () => !card.isConnected || work.done(),
+        run: async () => { await work.draw(); },
+      });
+    },
+  };
+}
+
+/** The gallery's one preview queue: a stored look is read on the next idle moment, a
+ *  missing one drawn only when the page is at rest (lib/preview-work-gate.ts), one at
+ *  a time. */
+export function createLookQueue(): PreviewQueue {
+  watchPreviewInput();
+  watchPreviewBattery();
+  checkLookStore();
+  return createPreviewQueue(undefined, undefined, undefined, { allowed: lookDrawAllowed, whenMayResume: fn => whenLookDrawMayResume(fn) });
 }

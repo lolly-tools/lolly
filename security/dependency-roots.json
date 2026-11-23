@@ -170,6 +170,14 @@
       "owner": "packages/node-shell"
     },
     {
+      "id": "lolly-render-cargo",
+      "ecosystem": "cargo",
+      "directory": "crates/lolly-render",
+      "lockfile": "crates/lolly-render/Cargo.lock",
+      "exposure": "build-toolchain",
+      "owner": "crates/lolly-render"
+    },
+    {
       "id": "tauri-glib-iterator-probe-cargo",
       "ecosystem": "cargo",
       "directory": "shells/tauri-desktop/src-tauri/probes/glib-iterator",
