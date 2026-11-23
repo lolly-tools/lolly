@@ -1,0 +1,243 @@
+# SPDX-License-Identifier: MPL-2.0
+name: lolly-render Node binding
+
+# Plan 371 M3b: builds the lolly-render Node binding (crates/lolly-render-node) for each
+# platform it is packaged for, loads each build where the runner can run it, checks that
+# every core fixture draws to the bytes pinned in crates/lolly-render/tests/render.rs,
+# and packs the npm packages as artefacts.
+#
+# NOTHING IS PUBLISHED HERE. There is no registry token, no id-token permission and no
+# publish step. publish-lolly-render.yml calls this workflow and publishes its packed
+# packages, and only a person can start that one (crates/lolly-render-node/README.md).
+#
+# The Linux glibc builds are made inside the SUSE Linux Enterprise 15 SP7 base container
+# (SLE BCI, pinned by digest), whose glibc 2.38 is the floor: the lower of SLES 15 SP7
+# (2.38) and SLES 16.1 (2.40), the latest point releases of 15 and 16. A build that needs
+# a newer glibc symbol fails the job.
+on:
+  pull_request:
+    paths:
+      - 'crates/lolly-render/**'
+      - 'crates/lolly-render-node/**'
+      - '.github/workflows/lolly-render-addon.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'crates/lolly-render/**'
+      - 'crates/lolly-render-node/**'
+      - '.github/workflows/lolly-render-addon.yml'
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lolly-render-addon-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The highest GLIBC symbol version a Linux gnu build may need: SLES 15 SP7's glibc.
+  GLIBC_FLOOR: '2.38'
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Intel Macs are deprecated here (1.1.0 was the last Intel build), so there is no darwin-x64.
+          - { platform: darwin-arm64, runner: macos-15, target: aarch64-apple-darwin, library: liblolly_render_node.dylib }
+          - { platform: win32-x64-msvc, runner: windows-2025, target: x86_64-pc-windows-msvc, library: lolly_render_node.dll }
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/lolly-render-node
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      # The channel in crates/lolly-render-node/rust-toolchain.toml.
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
+        with:
+          toolchain: 1.96.0
+          targets: ${{ matrix.target }}
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            crates/lolly-render-node/target
+          key: lolly-render-node-${{ matrix.platform }}-${{ hashFiles('crates/lolly-render-node/Cargo.lock', 'crates/lolly-render-node/rust-toolchain.toml') }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+      - name: Build the binding
+        run: |
+          rustc --version
+          cargo build --locked --release --target "${{ matrix.target }}"
+          cp "target/${{ matrix.target }}/release/${{ matrix.library }}" "npm/${{ matrix.platform }}/lolly-render.${{ matrix.platform }}.node"
+          cp "target/${{ matrix.target }}/release/${{ matrix.library }}" "lolly-render.${{ matrix.platform }}.node"
+          cp LICENSES.txt "npm/${{ matrix.platform }}/"
+          wc -c "npm/${{ matrix.platform }}/lolly-render.${{ matrix.platform }}.node"
+      - name: Unit tests
+        run: cargo test --locked --release --target "${{ matrix.target }}"
+      - name: The pinned bytes through the binding
+        run: node test/smoke.cjs
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: lolly-render-node-${{ matrix.platform }}
+          path: crates/lolly-render-node/npm/${{ matrix.platform }}/
+          if-no-files-found: error
+          retention-days: 14
+
+  # Built and loaded inside SLES 15 SP7 (the SLE BCI base image, glibc 2.38), so the
+  # binding links against the floor's glibc and is shown to load there.
+  build-gnu:
+    name: Build ${{ matrix.platform }} (SLES 15 SP7)
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    container:
+      # registry.suse.com/bci/bci-base:15.7, the multi-architecture index, read 2026-11-23.
+      image: registry.suse.com/bci/bci-base:15.7@sha256:8cd100ae2ec5ab23d6ec7aa1c0fe2dc30ca852c609406097797c9d298b7decdd
+      # The image's configuration declares no environment at all, so once a step adds to
+      # GITHUB_PATH (rust-toolchain adds ~/.cargo/bin) the runner's PATH holds only that
+      # entry and bash is no longer found. Declaring the system PATH here keeps bash reachable.
+      env:
+        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { platform: linux-x64-gnu, runner: ubuntu-24.04 }
+          - { platform: linux-arm64-gnu, runner: ubuntu-24.04-arm }
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/lolly-render-node
+    steps:
+      - name: Tools the steps below need
+        working-directory: /
+        run: zypper --non-interactive install --no-recommends gcc binutils curl git-core tar gzip xz
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
+        with:
+          toolchain: 1.96.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+      - name: Build the binding
+        run: |
+          rustc --version --verbose
+          ldd --version | head -1
+          cargo build --locked --release
+          cp target/release/liblolly_render_node.so "npm/${{ matrix.platform }}/lolly-render.${{ matrix.platform }}.node"
+          cp target/release/liblolly_render_node.so "lolly-render.${{ matrix.platform }}.node"
+          cp LICENSES.txt "npm/${{ matrix.platform }}/"
+          wc -c "npm/${{ matrix.platform }}/lolly-render.${{ matrix.platform }}.node"
+      - name: No glibc symbol above the floor
+        run: |
+          need=$(objdump -T "lolly-render.${{ matrix.platform }}.node" | grep -o 'GLIBC_[0-9][0-9.]*' | sed 's/^GLIBC_//' | sort -uV | tail -1)
+          echo "highest GLIBC symbol version the binding needs: ${need:-none}; floor: $GLIBC_FLOOR"
+          if [ -n "$need" ] && [ "$(printf '%s\n%s\n' "$need" "$GLIBC_FLOOR" | sort -V | tail -1)" != "$GLIBC_FLOOR" ]; then
+            echo "::error::the binding needs glibc $need, above the floor $GLIBC_FLOOR"
+            exit 1
+          fi
+      - name: The notices list the crates the pinned Cargo.lock links
+        if: matrix.platform == 'linux-x64-gnu'
+        working-directory: .
+        run: node scripts/build-lolly-render-notices.ts --check
+      - name: Unit tests
+        run: cargo test --locked --release
+      - name: The pinned bytes through the binding, loaded on SLES 15 SP7
+        run: node test/smoke.cjs
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: lolly-render-node-${{ matrix.platform }}
+          path: crates/lolly-render-node/npm/${{ matrix.platform }}/
+          if-no-files-found: error
+          retention-days: 14
+
+  # Built in Alpine itself, so the binding links against musl the way the Node that loads
+  # it does. A musl cdylib needs `-crt-static`. Not run before this workflow was written.
+  build-musl:
+    name: Build linux-x64-musl
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: node:26-alpine@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a
+    defaults:
+      run:
+        shell: sh
+    env:
+      RUSTFLAGS: -C target-feature=-crt-static
+    steps:
+      - name: Tools the steps below need
+        run: apk add --no-cache bash curl gcc musl-dev binutils
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
+        with:
+          toolchain: 1.96.0
+      - name: Build the binding
+        working-directory: crates/lolly-render-node
+        run: |
+          rustc --version --verbose
+          cargo build --locked --release
+          cp target/release/liblolly_render_node.so npm/linux-x64-musl/lolly-render.linux-x64-musl.node
+          cp target/release/liblolly_render_node.so lolly-render.linux-x64-musl.node
+          cp LICENSES.txt npm/linux-x64-musl/
+          wc -c npm/linux-x64-musl/lolly-render.linux-x64-musl.node
+      - name: The pinned bytes through the binding
+        working-directory: crates/lolly-render-node
+        run: node test/smoke.cjs
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: lolly-render-node-linux-x64-musl
+          path: crates/lolly-render-node/npm/linux-x64-musl/
+          if-no-files-found: error
+          retention-days: 14
+
+  pack:
+    name: Pack the npm packages (not published)
+    needs: [build, build-gnu, build-musl]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/lolly-render-node
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '26'
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          pattern: lolly-render-node-*
+          path: crates/lolly-render-node/built
+      - name: Pack each package
+        run: |
+          mkdir -p packed
+          for dir in built/lolly-render-node-*; do
+            platform="${dir#built/lolly-render-node-}"
+            cp "$dir/lolly-render.$platform.node" "$dir/LICENSES.txt" "npm/$platform/"
+            (cd "npm/$platform" && npm pack --pack-destination ../../packed)
+          done
+          npm pack --pack-destination packed
+          ls -l packed
+          sha256sum packed/*.tgz
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: lolly-render-node-packages
+          path: crates/lolly-render-node/packed/
+          if-no-files-found: error
+          retention-days: 14

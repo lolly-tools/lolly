@@ -1516,6 +1516,34 @@
         "fuzzCoverage": "`design-md` mutates a file the writer produced, one with a colour role block and a hand-written one with fenced token blocks",
         "notes": "The format is alpha, so the target version is recorded. Prose is kept as text and never acted on. Scope hints are reported, and a file with no hints can still mislead a reader. A colour role block is bounded at 256 KiB and read field by field: ids against the role id rule, colours as literals only. One that fails costs the roles, and the file's tokens stand."
       }
+    },
+    "crates/lolly-render/src/admit.rs (admit_json)": {
+      "family": "Lolly Design documents, links and agent requests",
+      "fuzzTargets": [
+        "lolly-render-envelope"
+      ],
+      "details": {
+        "inputSource": "The lolly-render envelope (a compiled Design page's drawing operations with its pictures as base64) handed to the Rust crate by a Node shell through `crates/lolly-render-node`, behind `LOLLY_DESIGN_RASTER=lolly-render`; the binding takes any string or Buffer, so the bytes are untrusted",
+        "bounds": "`MAX_INPUT_BYTES = 64 MiB`, checked in the binding before the copy and again by the reader; serde `deny_unknown_fields` and the default recursion limit of 128; output 8192 px a side and 32 Mi pixels; 1,024 operations and 1,024 resources; 1,048,576 path segments; 1 MiB of outline per run and 16 MiB per page; 256 gradient stops; 64 clip points; 4,096 dashes; 10,000 lines and 100,000 runs; coordinates within 1e6, strokes within 1e4, ids of 256 characters; 256 refusals kept; a panic is caught at the binding as the `internal` refusal",
+        "directTests": "`crates/lolly-render/tests/render.rs`, `tests/malformed.rs` (41 malformed inputs, each with its code), `tests/corpus.rs`, `tests/lolly-render-addon.test.ts` and the binding's own unit tests",
+        "fuzzCoverage": "`lolly-render-envelope` sends mutated envelopes (the eight core fixtures at a quarter of their size) through the binding's `admit`, and draws each admitted page of at most 2^20 pixels; the crate's own `render.rs` mutation test runs 400 mutations per fixture in `cargo test`",
+        "notes": "Every input comes back as a value: drawn, or refused with codes from `REFUSAL_CODES`. A refusal with an unlisted code or `internal` is a finding. Recorded run on 2026-11-23: 20,000 mutations, no finding. The binding is native and built with cargo, so the target skips by name where it is not built (tests/expected-skips.json)."
+      }
+    },
+    "crates/lolly-render/src/picture.rs (decode)": {
+      "family": "Images and colour",
+      "fuzzTargets": [
+        "lolly-render-jpeg",
+        "lolly-render-png",
+        "lolly-render-webp"
+      ],
+      "details": {
+        "inputSource": "PNG, JPEG and WebP bytes a Design document places (catalog assets, uploads, pictures inside imported files), carried as envelope resources to the lolly-render crate; the type is read from the bytes, never from the declared type",
+        "bounds": "`MAX_PICTURE_BYTES = 32 MiB` encoded; `MAX_PICTURE_SIDE = 8192`; `MAX_PICTURE_PIXELS = 16 Mi` each and 64 Mi per page; zune-jpeg with its maximum width and height set; image-webp with a memory limit of 8 bytes a pixel; png 0.18 with its default limits; 16-bit, CMYK, profiles other than sRGB, PNG gamma or chromaticities of their own, cICP/mDCV/cLLI, Exif turns and animation each refused by code before decoding",
+        "directTests": "`crates/lolly-render/src/picture.rs` unit tests, `tests/fuzz.rs`, `tests/malformed.rs` (truncated, forged-size, 16-bit, profile, CMYK, turned, animated and wrong-type pictures)",
+        "fuzzCoverage": "`lolly-render-png`, `lolly-render-jpeg` and `lolly-render-webp` send mutated 16 x 12 seed pictures (crates/lolly-render/tests/seeds) placed on a 64 x 48 page through the binding; `tests/fuzz.rs` runs the same seeds straight through `decode` in `cargo test` (1,500 mutations per seed, 50,000 in the recorded run)",
+        "notes": "Pure-Rust decoders built without SIMD: png 0.18.1, zune-jpeg 0.5.15 without its x86 and neon features, image-webp 0.2.4. Recorded runs on 2026-11-23: 20,000 mutations per target through the binding and 50,000 per seed in Rust, no finding."
+      }
     }
   }
 }

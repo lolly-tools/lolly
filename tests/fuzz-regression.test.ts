@@ -80,7 +80,8 @@ test('regression corpus replays without crash / hang / alloc blow-up', async () 
 // 2. A few hundred seeded mutations per target - the same deterministic sequence
 //    the discovery runner uses, so a reintroduced defect surfaces here first.
 for (const target of ALL_TARGETS) {
-  test(`fuzz ${target.name}: ${ITERS} seeded mutations stay bounded`, async () => {
+  // A target whose parser is a native module that is not built here skips by name.
+  test(`fuzz ${target.name}: ${ITERS} seeded mutations stay bounded`, { skip: target.unavailable?.() || false }, async () => {
     const seeds = await target.seeds();
     const rng = mulberry32(BASE_SEED ^ [...target.name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 0));
     for (let iter = 0; iter < ITERS; iter++) {

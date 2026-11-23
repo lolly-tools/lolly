@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:9c4a6e9b-4dd1-44ff-81b9-849b0f71cb1f",
+  "serialNumber": "urn:uuid:eafd0827-769f-46eb-89b3-c3f544c4318a",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-23T15:42:59.089Z",
+    "timestamp": "2026-11-23T17:20:13.548Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -354,6 +354,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/arrayref@0.3.9",
+      "name": "arrayref",
+      "version": "0.3.9",
+      "purl": "pkg:cargo/arrayref@0.3.9",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "76a2e8124351fda1ef8aaaa3bbd7ebbcb486bbcd4225aca0aa0d84bb2db8fecb"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
         }
       ]
     },
@@ -2264,6 +2291,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/convert_case@0.12.0",
+      "name": "convert_case",
+      "version": "0.12.0",
+      "purl": "pkg:cargo/convert_case@0.12.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1af709f1f33454bf52eadfc8c78b3b9ef9cb26fb54d16dc9cd9a7299f899fd1b"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/convert_case@0.8.0",
       "name": "convert_case",
       "version": "0.8.0",
@@ -3042,6 +3096,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/ctor@1.0.14",
+      "name": "ctor",
+      "version": "1.0.14",
+      "purl": "pkg:cargo/ctor@1.0.14",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ea691ed9f36489d087419b8b2ba3ef27d89621380b4178c73e2445a379e4e0f4"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
         }
       ]
     },
@@ -5037,6 +5116,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/futures-channel@0.3.34",
+      "name": "futures-channel",
+      "version": "0.3.34",
+      "purl": "pkg:cargo/futures-channel@0.3.34",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b1f9e3d69d39e4862ffed03ed071a76f9a13ba1d9109d355b0f0aa6b15e393c4"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/futures-core@0.3.32",
       "name": "futures-core",
       "version": "0.3.32",
@@ -5107,6 +5211,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/futures-executor@0.3.34",
+      "name": "futures-executor",
+      "version": "0.3.34",
+      "purl": "pkg:cargo/futures-executor@0.3.34",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "031b47cf1a3c6cc8bc2fc76cd437f521619387907d469316e7c0bc278f1f5432"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
         }
       ]
     },
@@ -5212,6 +5341,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/futures-macro@0.3.34",
+      "name": "futures-macro",
+      "version": "0.3.34",
+      "purl": "pkg:cargo/futures-macro@0.3.34",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9fb9654ba8355388abeb8dcb4fc62f511300867002afc858860463bdd9fe0c44"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/futures-sink@0.3.32",
       "name": "futures-sink",
       "version": "0.3.32",
@@ -5232,6 +5386,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/futures-sink@0.3.34",
+      "name": "futures-sink",
+      "version": "0.3.34",
+      "purl": "pkg:cargo/futures-sink@0.3.34",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1944426bf7d03f1d14f708785e4b33efd750b36d48a157b836b3efc15ede8e1d"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
         }
       ]
     },
@@ -5262,6 +5441,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/futures-task@0.3.34",
+      "name": "futures-task",
+      "version": "0.3.34",
+      "purl": "pkg:cargo/futures-task@0.3.34",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cd417de3d1d015fc3bfd2b1ea46dfc7bab72ef86f1cc7cc9c78e728b34a6d1fd"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/futures-util@0.3.32",
       "name": "futures-util",
       "version": "0.3.32",
@@ -5282,6 +5486,56 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/futures-util@0.3.34",
+      "name": "futures-util",
+      "version": "0.3.34",
+      "purl": "pkg:cargo/futures-util@0.3.34",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0d50a92467f8ba5dd6e3ee5d4bd04d73ab2e4e1c44474a0674821dfce14b79bc"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/futures@0.3.34",
+      "name": "futures",
+      "version": "0.3.34",
+      "purl": "pkg:cargo/futures@0.3.34",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9a31d2a3fbaaeb2af2368bbdd904aa8e812d3c04a1ee10d3171f52d556e5d0a3"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
         }
       ]
     },
@@ -7035,6 +7289,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/image-webp@0.2.4",
+      "name": "image-webp",
+      "version": "0.2.4",
+      "purl": "pkg:cargo/image-webp@0.2.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "525e9ff3e1a4be2fbea1fdf0e98686a6d98b4d8f937e1bf7402245af1909e8c3"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/image@0.25.10",
       "name": "image",
       "version": "0.25.10",
@@ -7920,6 +8199,60 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/libloading@0.9.1",
+      "name": "libloading",
+      "version": "0.9.1",
+      "purl": "pkg:cargo/libloading@0.9.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a1832accd5a4ca2795ace4d05d15c4039be15b62d3b950eff99746a990e3cc10"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/libm@0.2.16",
+      "name": "libm",
+      "version": "0.2.16",
+      "purl": "pkg:cargo/libm@0.2.16",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/libredox@0.1.17",
       "name": "libredox",
       "version": "0.1.17",
@@ -7988,6 +8321,31 @@
         {
           "name": "lolly:source",
           "value": "packages/node-shell/wasm/inpaint/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/link-section@0.19.4",
+      "name": "link-section",
+      "version": "0.19.4",
+      "purl": "pkg:cargo/link-section@0.19.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4d9aae57673c1a235149777a74d152f3210ebd3e3b13346d2cdb6809e566bd3c"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
         }
       ]
     },
@@ -8438,6 +8796,48 @@
         {
           "name": "lolly:source",
           "value": "packages/node-shell/wasm/pdf-a11y/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/lolly-render-node@0.1.0",
+      "name": "lolly-render-node",
+      "version": "0.1.0",
+      "purl": "pkg:cargo/lolly-render-node@0.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/lolly-render@0.1.0",
+      "name": "lolly-render",
+      "version": "0.1.0",
+      "purl": "pkg:cargo/lolly-render@0.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
         }
       ]
     },
@@ -9072,6 +9472,141 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/napi-build@2.6.0",
+      "name": "napi-build",
+      "version": "2.6.0",
+      "purl": "pkg:cargo/napi-build@2.6.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b899b545d3aa6dca985939059f258c5488d34e4ecf39c274e20009748f4b846d"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/napi-derive-backend@7.0.1",
+      "name": "napi-derive-backend",
+      "version": "7.0.1",
+      "purl": "pkg:cargo/napi-derive-backend@7.0.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "314cd6ca42bd978fd8bae84b4137e1322bbf3e83552fca8dbd7d18034188ff3a"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/napi-derive@3.7.0",
+      "name": "napi-derive",
+      "version": "3.7.0",
+      "purl": "pkg:cargo/napi-derive@3.7.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d32eb00f92f84cf462fc328f49082b29c2a7d2eebeb1d447d19c1f9fdd9f89ee"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/napi-sys@3.4.1",
+      "name": "napi-sys",
+      "version": "3.4.1",
+      "purl": "pkg:cargo/napi-sys@3.4.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d153beb7d5c973f4b9395be8a83054a28968b61188f1dd1a2cc2321af22daea2"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/napi@3.16.1",
+      "name": "napi",
+      "version": "3.16.1",
+      "purl": "pkg:cargo/napi@3.16.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "907ff7366fb7182e28edd0f08ef8ac5d6b13b8d65a3c0b3a10bf3ac092437d6b"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/native-tls@0.2.18",
       "name": "native-tls",
       "version": "0.2.18",
@@ -9246,6 +9781,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/nohash-hasher@0.2.0",
+      "name": "nohash-hasher",
+      "version": "0.2.0",
+      "purl": "pkg:cargo/nohash-hasher@0.2.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2bf50223579dc7cdcfb3bfcacf7069ff68243f8c363f62ffa99cf000a6b9c451"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
         }
       ]
     },
@@ -10971,6 +11531,31 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/pin-project-lite@0.2.18",
+      "name": "pin-project-lite",
+      "version": "0.2.18",
+      "purl": "pkg:cargo/pin-project-lite@0.2.18",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c938015719552d665fd0553b90d96cd7ff58e83e4c061ca99e6bb78865a72752"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
         }
       ]
     },
@@ -14578,6 +15163,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/strict-num@0.1.1",
+      "name": "strict-num",
+      "version": "0.1.1",
+      "purl": "pkg:cargo/strict-num@0.1.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6637bab7722d379c8b41ba849228d680cc12d0a45ba1fa2b48f2a30577a06731"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/string_cache@0.9.0",
       "name": "string_cache",
       "version": "0.9.0",
@@ -16333,6 +16945,60 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/tiny-skia-path@0.12.0",
+      "name": "tiny-skia-path",
+      "version": "0.12.0",
+      "purl": "pkg:cargo/tiny-skia-path@0.12.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "edca365c3faccca67d06593c5980fa6c57687de727a03131735bb85f01fdeeb9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/tiny-skia@0.12.0",
+      "name": "tiny-skia",
+      "version": "0.12.0",
+      "purl": "pkg:cargo/tiny-skia@0.12.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "47ffee5eaaf5527f630fb0e356b90ebdec84d5d18d937c5e440350f88c5a91ea"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "crates/lolly-render-node/Cargo.lock"
         }
       ]
     },

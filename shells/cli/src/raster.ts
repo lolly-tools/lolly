@@ -251,7 +251,7 @@ async function renderDesignStill(runtime: Runtime, dom: JSDOM, dims: RenderDims 
   const { designStillDecision, designStillNote, drawDesignStill } = await import('@lolly-tools/node-shell/design-still');
   const { describeDesignExportRoute } = await import('../../../engine/src/design-export-route.ts');
   const decision = designStillDecision(process.env, undefined, accept);
-  if (decision.ignored !== undefined) warn('DESIGN_RASTER_IGNORED', `LOLLY_DESIGN_RASTER=${decision.ignored} is not a value this shell reads (auto or resvg), so the default applies.`);
+  if (decision.ignored !== undefined) warn('DESIGN_RASTER_IGNORED', `LOLLY_DESIGN_RASTER=${decision.ignored} is not a value this shell reads (auto, resvg or lolly-render), so the default applies.`);
   // A page this route chose not to draw (a browser tier is there) is not a refusal; a page
   // it could not draw is, and its reasons reach the failure if the browser tier cannot run.
   if (decision.draw === 'browser') { log(handedToBrowser('Design PNG', [decision.because])); return null; }
@@ -278,12 +278,15 @@ async function renderDesignStill(runtime: Runtime, dom: JSDOM, dims: RenderDims 
     dims,
     accept,
     thorough: !!decision.noBrowser,
+    ...(decision.lollyRender ? { lollyRender: { next: decision.lollyRender.next } } : {}),
   });
   if ('refused' in result) return toBrowser(result.refusals);
   const { drawn } = result;
-  log(`${describeDesignExportRoute('png', drawn.route, [decision.because]).replace(/\.$/, '')}, ${drawn.width} x ${drawn.height} px, with no browser.`);
+  // When lolly-render was asked for and resvg drew the page, the reason resvg was the next route.
+  const because = decision.lollyRender && drawn.lollyRenderRefused ? decision.lollyRender.because : decision.because;
+  log(`${describeDesignExportRoute('png', drawn.route, [because]).replace(/\.$/, '')}, ${drawn.width} x ${drawn.height} px, with no browser.`);
   if (drawn.accepted) warn('BROWSER_FREE_ACCEPTED', acceptedWarning('Design PNG', drawn.accepted), 'gate');
-  else note(`Note: ${designStillNote(decision)}`);
+  else note(`Note: ${designStillNote(decision, drawn)}`);
   return { bytes: drawn.bytes, usedBrowser: false, imprinted: drawn.imprinted, route: drawn.route, ingredients: drawn.ingredients };
 }
 

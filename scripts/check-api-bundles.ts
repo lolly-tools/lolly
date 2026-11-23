@@ -22,7 +22,7 @@ import { pathToFileURL } from 'node:url';
  * builds read, measured from their esbuild inputs on 2026-10-24 (engine, packages,
  * services, schemas, shells/cli and, through the embedded page walk, shells/web/src),
  * plus the build scripts, workspace manifests, lockfiles and compiler settings.
- * Documentation and test files are never bundled.
+ * Documentation and test files, and the Rust crates under crates/, are never bundled.
  */
 const INPUTS = [
   /^api\//,
@@ -33,7 +33,9 @@ const INPUTS = [
   /(?:^|\/)(?:package\.json|tsconfig[^/]*\.json)$/,
   /^(?:pnpm-lock\.yaml|pnpm-workspace\.yaml|\.npmrc)$/,
 ];
-const NEVER_BUNDLED = [/\.md$/, /\.test\.(?:ts|js|mjs)$/, /(?:^|\/)(?:test|tests|fixtures)\//];
+// crates/ holds Rust and the npm packages of the lolly-render binding; the loader reaches
+// those at run time through createRequire, so no bundle reads them.
+const NEVER_BUNDLED = [/\.md$/, /\.test\.(?:ts|js|mjs)$/, /(?:^|\/)(?:test|tests|fixtures)\//, /^crates\//];
 
 /** True when a changed path can change what an api/ bundle contains. */
 export function isBundleInput(path: string): boolean {
