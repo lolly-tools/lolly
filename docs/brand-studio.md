@@ -474,7 +474,7 @@ Open **Settings → Preferences → Design systems** to switch, add or remove sy
 
 **Managed systems are read-only.** A system reads **Managed by this instance** (or **Managed by this app** in the desktop app with no instance) when its catalogue locks the system. You can use and download a managed system. Opening one here shows a read-only note with **Make an editable copy** and **Switch**, then its colour roles and tokens with no editing controls. Your own local systems stay editable, even when the managed one came first. A build with one fixed brand opens Lolly Design System Setup on *This brand is set*, with the brand's tokens and usage rules to read.
 
-**Every other supplied system is yours** to hide, edit and reset, including Lolly Demo and Lolly Starter on lolly.tools. Editing one keeps its name and marks the row **Edited here**. **Reset to original** in its menu discards the changes made on this device. The blank starter is the exception: a first change there starts a design system of your own, and Lolly asks once for its name. [Lolly Demo in use](/info/lolly-demo-in-use.html#switch-to-your-own) shows what your own system replaces.
+**Every other supplied system is yours** to hide, edit and reset, including Lolly Demo and Lolly Starter on lolly.tools. Editing one makes a copy that you own, named after the original with "copy" added, and the original stays in the list unchanged. **Reset to original** in the copy's menu removes the copy and returns you to the original. The blank starter is the exception: a first change there starts a design system of your own, and Lolly asks once for its name. [Lolly Demo in use](/info/lolly-demo-in-use.html#switch-to-your-own) shows what your own system replaces.
 
 ### Removing a design system
 

@@ -30,7 +30,7 @@
 import type { PreparedPicture } from '../bridge/preview-store.ts';
 import type { WriterFacts } from './preview-writer.ts';
 import type { PreviewEncodeReply, PreviewEncodeRequest } from './preview-encode-protocol.ts';
-import { previewDeviceConstrained, previewPageBusy, watchPreviewBattery, whenPreviewWorkMayResume } from './preview-work-gate.ts';
+import { mediaPlaying, previewDeviceConstrained, previewPageBusy, watchPreviewBattery, whenPreviewWorkMayResume } from './preview-work-gate.ts';
 
 export interface EncodeWorker {
   onmessage: ((event: MessageEvent) => unknown) | null;
@@ -181,11 +181,6 @@ export function createPreviewEncoder(o: EncoderOptions) {
   }
 
   return { encode, stats, dispose: () => { worker?.terminate(); worker = null; } };
-}
-
-/** Audio or video playing in the page. */
-function mediaPlaying(): boolean {
-  try { return [...document.querySelectorAll<HTMLMediaElement>('audio, video')].some(media => !media.paused && !media.ended); } catch { return false; }
 }
 
 let firstIdle: Promise<void> | null = null;

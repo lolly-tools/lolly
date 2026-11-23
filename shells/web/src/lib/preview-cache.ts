@@ -75,6 +75,15 @@ export async function storePreview(recipe: string, picture: PreparedPicture): Pr
   return srcForBlob(picture.ref.key, new Blob([picture.bytes.slice()], { type: picture.ref.type }));
 }
 
+/** Whether the cache holds no picture at all: a first visit, or one after "Clear tool
+ *  previews". A store that cannot be read counts as not empty, so reads still run. */
+export async function previewCacheEmpty(): Promise<boolean> {
+  const db = await database();
+  if (!db) return true;
+  try { return (await db.count(PREVIEW_INDEX, IDBKeyRange.bound('cache:', 'cache:\uffff'))) === 0; }
+  catch { return false; }
+}
+
 /** The cache's share of storage: 64 MiB or 5 % of the quota, the smaller. */
 export async function previewCacheBudget(): Promise<number> {
   try {

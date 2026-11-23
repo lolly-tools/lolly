@@ -29,17 +29,20 @@ function deckPageFit(ar: number): { w: number; h: number } {
 // A paged tool (multi-page-pdf): render each page and rebuild the strip's slides +
 // dots from them (page count is unknown until rendered). The track element persists,
 // so its listeners survive; nav/dots are delegated off .gcar (see wireCarousel).
-export async function hydratePaged(host: PagedDeckHost, gcar: HTMLElement, toolId: string, tool: PagedDeckTool): Promise<void> {
-  if (gcar.dataset.pagedDone === '1') return;
-  let urls: string[];
+// `storedOnly` reads pages already stored and draws nothing: false comes back when
+// the pages are still to draw, true once the card is done with (built, or failed).
+export async function hydratePaged(host: PagedDeckHost, gcar: HTMLElement, toolId: string, tool: PagedDeckTool, opts: { storedOnly?: boolean } = {}): Promise<boolean> {
+  if (gcar.dataset.pagedDone === '1') return true;
+  let urls: string[] | null;
   try {
-    urls = await renderFeaturedPages(host, toolId, tool.formats);
+    urls = await renderFeaturedPages(host, toolId, tool.formats, opts);
   } catch (e) {
     host.log?.('warn', `Gallery pages failed for ${toolId}`, { error: String((e as { message?: unknown })?.message ?? e) });
-    return;
+    return true;
   }
+  if (!urls) return false;
   const track = gcar.querySelector<HTMLElement>('.gcar-track');
-  if (!gcar.isConnected || !track || !urls.length) return;
+  if (!gcar.isConnected || !track || !urls.length) return true;
   gcar.dataset.pagedDone = '1';
   const openHref = `#/tool/${esc(toolId)}`;
   // Multi-page content reads as a swipeable STACK, not a flat carousel - the same
@@ -75,4 +78,5 @@ export async function hydratePaged(host: PagedDeckHost, gcar: HTMLElement, toolI
   });
   // The deck is a static preview - it has no per-page nav/dots (unlike the old carousel).
   stripCarouselNav(gcar);
+  return true;
 }

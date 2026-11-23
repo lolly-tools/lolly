@@ -564,28 +564,31 @@ export async function swapBlobUrls(node: Element, skip?: { has(el: Element): boo
  * the resolution it is drawn at gets a downscaled copy, keyed by its live element, for
  * the render's clone (adjustClonedNode). The live canvas keeps its own picture, so
  * nothing on screen softens while the thumbnail is taken. A picture that cannot be
- * decoded here is left to the full inlining, as before.
+ * decoded is left to the full inlining, as before. The sizes are measured here; the
+ * copies are made off the main thread where the browser can (bridge/thumb-downscale.ts).
  */
 export async function thumbnailPictures(node: Element, renderScale: number): Promise<Map<Element, string>> {
   const out = new Map<Element, string>();
   if (!(renderScale > 0) || typeof createImageBitmap !== 'function') return out;
-  await Promise.all([...node.querySelectorAll('img')].map(async img => {
+  // Every layout read first, in one pass, before any picture is fetched.
+  const wanted: Array<{ img: Element; url: string; w: number; h: number }> = [];
+  for (const img of node.querySelectorAll('img')) {
     const url = img.getAttribute('src');
     const { naturalWidth: nw, naturalHeight: nh, offsetWidth: bw, offsetHeight: bh } = img;
-    if (!url?.startsWith('blob:') || !nw || !nh || !bw || !bh) return;
+    if (!url?.startsWith('blob:') || !nw || !nh || !bw || !bh) continue;
     // Covering its box is the largest a picture is drawn; contain and fill draw no larger.
     const k = 2 * renderScale * Math.max(bw / nw, bh / nh);
-    if (k > 0.5) return;
+    if (k > 0.5) continue;
+    wanted.push({ img, url, w: Math.max(1, Math.round(nw * k)), h: Math.max(1, Math.round(nh * k)) });
+  }
+  if (!wanted.length) return out;
+  const { thumbDownscaler } = await import('./thumb-downscale.ts');
+  const downscaler = thumbDownscaler();
+  await Promise.all(wanted.map(async ({ img, url, w, h }) => {
     try {
       const blob = await (await fetch(url)).blob();
       if (!/^image\/(jpeg|png|webp)$/.test(blob.type)) return;
-      const w = Math.max(1, Math.round(nw * k)), h = Math.max(1, Math.round(nh * k));
-      const bitmap = await createImageBitmap(blob, { resizeWidth: w, resizeHeight: h, resizeQuality: 'high' });
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d')?.drawImage(bitmap, 0, 0);
-      bitmap.close();
-      out.set(img, canvas.toDataURL(blob.type === 'image/jpeg' ? 'image/jpeg' : 'image/png', 0.9));
+      out.set(img, await downscaler.downscale(blob, w, h));
     } catch { /* inlined in full by swapBlobUrls */ }
   }));
   return out;

@@ -41,6 +41,10 @@ export const ACTIVE_DESIGN_SYSTEM_KEY = 'active-design-system';
  *  been given (companions.ts), so one a person removed is not seeded again. */
 export const SEEDED_DESIGN_SYSTEMS_KEY = 'seeded-design-systems';
 
+/** Profile-KV mark: the one-time pass that shows a catalog system hidden by an
+ *  edit of it has run on this device (showShippedBesideItsCopy). */
+export const SHIPPED_SHOWN_KEY = 'shipped-design-system-shown';
+
 /** The signature verdict a pack import recorded (lib/pack-store.ts). */
 export type PackSignature = 'verified' | 'unverified' | 'unsigned';
 
@@ -177,8 +181,14 @@ function isRecord(v: unknown): v is DesignSystemRecord {
 /** The rows a person sees. A hidden shipped record stays out only while another
  *  system exists, so the list is never empty. */
 export function visibleDesignSystems(records: DesignSystemRecord[]): DesignSystemRecord[] {
-  const others = records.some(r => r.source.kind !== 'shipped');
-  return records.filter(r => !(others && r.source.kind === 'shipped' && r.hidden));
+  // A copy of the catalog's own system kept for a connection (companions.ts
+  // keepShippedDesignSystem) is the same system while that catalog is the current
+  // one, so only the catalog's row is listed then.
+  const shipped = records.find(r => r.source.kind === 'shipped');
+  const rows = records.filter(r => !(shipped?.headId && r.source.kind === 'local' && r.source.from === 'app'
+    && r.source.companion?.tokens === shipped.headId));
+  const others = rows.some(r => r.source.kind !== 'shipped');
+  return rows.filter(r => !(others && r.source.kind === 'shipped' && r.hidden));
 }
 
 export function createDesignSystemRegistry(db: RegistryDb, probe: RegistryProbe): DesignSystemRegistry {
@@ -246,11 +256,31 @@ export function createDesignSystemRegistry(db: RegistryDb, probe: RegistryProbe)
     await db.put('profile', DEFAULT_DESIGN_SYSTEM_ID, ACTIVE_DESIGN_SYSTEM_KEY);
   }
 
+  /**
+   * Once per device: an edit of the catalog's system used to hide the catalog's
+   * row behind the edited copy. The catalog's system is now always listed, so a
+   * row hidden that way is shown again. A row the person hides afterwards stays
+   * hidden, which is what the stored mark is for.
+   */
+  async function showShippedBesideItsCopy(rows: DesignSystemRecord[]): Promise<void> {
+    if (await db.get('profile', SHIPPED_SHOWN_KEY).catch(() => true)) return;
+    const edited = rows.some(r => r.source.kind === 'local' && r.source.from === 'shipped');
+    const shipped = rows.find(r => r.id === SHIPPED_DESIGN_SYSTEM_ID);
+    if (edited && shipped?.hidden) {
+      const next: DesignSystemRecord = { ...shipped };
+      delete next.hidden;
+      await db.put(DESIGN_SYSTEMS_STORE, next);
+      listMemo = null;
+    }
+    await db.put('profile', true, SHIPPED_SHOWN_KEY);
+  }
+
   const api: DesignSystemRegistry = {
     ensure() {
       ensured ??= (async () => {
         const rows = await readAll();
         if (rows.length === 0) await migrate();
+        else await showShippedBesideItsCopy(rows);
       })().catch(() => { ensured = null; });
       return ensured;
     },

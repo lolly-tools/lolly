@@ -33,6 +33,7 @@ import { flushAddressWrites } from '../lib/url-state.ts';
 import { mountModal } from './modal.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { getInstanceBase, initInstanceBase, setInstanceBase, setInstanceCatalogKeyId, instanceFetch } from '../lib/instance.ts';
+import type { CompanionHost } from '../lib/design-system/companions.ts';
 import { askInstanceKeyId, shortKeyId } from '../catalog/instance-key.ts';
 import { validateInstanceUrl, probeConnection, isAccountInstance, workspaceAppUrl, type ProbeOutcome, type ProbedInstance, type UrlProblem } from '../lib/instance-probe.ts';
 import { wireDeviceCodeSignIn } from '../org/device-sign-in.ts';
@@ -111,9 +112,18 @@ export function openInstanceSheet(host: HostV1, opts: { start?: 'connect' } = {}
     let step: Step = startAtConnect ? { kind: 'connect', url: '', probing: false } : { kind: 'choose' };
     let reloadOnClose = false;
     let stopSignIn: (() => void) | undefined;
+    // The web shell's host carries the design system registry beside the bridge's own surface.
+    const own = host as unknown as Partial<CompanionHost>;
     const useServerBrand = async (): Promise<void> => {
-      const registry = (host as unknown as { designSystems?: { setActive(id: string): Promise<void> } }).designSystems;
-      await registry?.setActive('shipped');
+      await own.designSystems?.setActive('shipped');
+    };
+
+    const keepBundledDesignSystem = async (): Promise<void> => {
+      if (!own.designSystems || !own.assets) return;
+      try {
+        const m = await import('../lib/design-system/companions.ts');
+        await m.keepShippedDesignSystem(own as CompanionHost);
+      } catch (e) { host.log('warn', 'The bundled design system was not kept', { error: String(e) }); }
     };
 
     const modal = mountModal<void>(renderStep(), {
@@ -325,6 +335,8 @@ export function openInstanceSheet(host: HostV1, opts: { start?: 'connect' } = {}
             // Finish the persisted read before writing the choice or a new session.
             await initInstanceBase();
             if (!modal.el.isConnected) return;
+            // The design system this app came with stays on the device beside the instance's.
+            if (!getInstanceBase()) await keepBundledDesignSystem();
             await setInstanceBase(base);
             // The key shown above is the one key this app will take this instance's
             // tools from; with none shown, the app keeps to the key it was built with.
