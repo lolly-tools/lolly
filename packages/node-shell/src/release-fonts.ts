@@ -2,6 +2,7 @@
 import type { TextAPI, TextToPathOpts } from '@lolly-tools/core/host-v1';
 import type { PinnedAsset } from '../../../engine/src/design-version.ts';
 import { pinnedFontAliases, verifyPinnedFontBytes } from '../../../engine/src/token-font-pins.ts';
+import { nodeWoff2Runner } from './woff2-node.ts';
 
 /** Exact release face resolver, including variable weights and subset fallback bytes. */
 export async function releaseTextAPI(base: TextAPI, pins: readonly PinnedAsset[], read: (id: string) => Promise<Uint8Array | null>): Promise<TextAPI> {
@@ -11,7 +12,7 @@ export async function releaseTextAPI(base: TextAPI, pins: readonly PinnedAsset[]
   for (const pin of pins) if (pin.font) {
     let raw = await verifyPinnedFontBytes(pin, await read(pin.frozenId ?? pin.id));
     if (raw.byteLength > 32 * 1024 * 1024) throw new Error('A pinned font exceeds the 32 MB limit.');
-    if (String.fromCharCode(...raw.slice(0, 4)) === 'wOF2') raw = await (await import('./woff2.ts')).decodeWoff2(raw);
+    if (String.fromCharCode(...raw.slice(0, 4)) === 'wOF2') raw = await (await import('./woff2.ts')).decodeWoff2(raw, { runner: nodeWoff2Runner });
     bytes.set(pin.id, `data:font/ttf;base64,${Buffer.from(raw).toString('base64')}`);
   }
   return { ...base,

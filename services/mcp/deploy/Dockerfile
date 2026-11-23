@@ -15,7 +15,7 @@
 
 # glibc base (Debian) is REQUIRED - @resvg/resvg-js prebuilt binaries and Chromium
 # do not run on alpine/musl. Node 24 runs the repo's .ts sources natively.
-FROM node:26-bookworm-slim@sha256:86f07bc9c5dce4578cf37e5a418b7bfc7f817cda25cde66e2b66e95ed86c4567
+FROM node:26-bookworm-slim@sha256:5df79989ed685e09f0a98019db4cebfb22fb9df1a53c0161664a011f7ff6b0f1
 
 ENV NODE_ENV=production \
     LOLLY_MCP_BIND_HOST=0.0.0.0 \

@@ -2581,8 +2581,7 @@ export const fontInspectTarget: FuzzTarget = {
 // collection directory of a WOFF2 file, read before the WebAssembly decoder runs.
 // Contract: facts within the limits, or a Woff2Error; never a hang or an unbounded
 // allocation. Only the preflight runs here: the decoder that follows the preflight is
-// third-party C++ sharing one module instance per process, which a fuzz loop must not
-// wear down.
+// third-party C++ that starts a worker per font, too slow for a fuzz loop.
 export const woff2PreflightTarget: FuzzTarget = {
   name: 'woff2-preflight',
   async seeds() {

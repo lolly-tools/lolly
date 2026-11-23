@@ -487,6 +487,13 @@ beginCommand(
 // The stderr writer the error printer uses, captured BEFORE --quiet can replace it: a
 // quiet run still prints errors, and it must not print them into a sink.
 const writeErr = process.stderr.write.bind(process.stderr);
+// A Node older than the Brotli fix for CVE-2026-111497 on its line: one line to stderr,
+// never stdout, unless --quiet. Not a recorded warning: --strict does not turn this line
+// into a failure.
+if (!args.some(a => /^--quiet(?:=(?!0$|false$|off$|no$).*)?$/i.test(a))) {
+  const { warnIfUnpatchedNode } = await import('@lolly-tools/node-shell/node-patch-level');
+  warnIfUnpatchedNode(line => writeErr(`${line}\n`));
+}
 
 try {
   // --help / -h / --version / -v are recognised ANYWHERE in argv, before anything treats

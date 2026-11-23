@@ -10,20 +10,28 @@
  *
  * - reads the WOFF2 header and table directory first (`preflightWoff2`) with the same
  *   rules the C++ reader applies, and refuses before the decoder runs when the file
- *   is malformed or would need more memory than the decoder's own 30 MiB output
- *   ceiling. The decoder allocates its whole Brotli target up front, from the
- *   directory, at up to 100 times the file size; one crafted 11 MB file used to grow
- *   the shared module by about 1 GB for the rest of the session, and repeated
- *   larger ones stopped every later WOFF2 decode in that process;
+ *   is malformed, declares a decoded size (totalSfntSize) past the limit, or would
+ *   need more memory than the decoder's own 30 MiB output ceiling. The decoder
+ *   allocates its whole Brotli target up front, from the directory, at up to 100
+ *   times the file size;
+ * - runs each decode in its own worker with a fresh copy of the module, ended after
+ *   the one font or when the time limit passes: a Web Worker in browsers
+ *   (`woff2-decode.worker.ts`), a worker thread in Node (`woff2-node.ts` registers
+ *   that runner). With one shared module, a crafted 11 MB file grew it by about
+ *   1 GB for the rest of the session, and repeated larger ones stopped every later
+ *   WOFF2 decode in the process; a damaged heap could also have changed a later
+ *   font's bytes. Each instance now ends with its font;
  * - checks what comes back (`checkSfntOutput`): an sfnt or collection header whose
- *   table records lie inside the returned bytes, at most the caller's limit;
- * - keeps the decoder behind one import, so replacing the module touches this file.
+ *   table records lie inside the returned bytes, no longer than the declared size
+ *   or the end of the last table, with nothing but zeros after that table;
+ * - keeps the decoder behind one module, so replacing it touches this file and the
+ *   two worker entries.
  *
  * What it cannot do: the Brotli stream itself is only read by the decoder, so this
- * does not stop the CVE's out-of-bounds write. That write stays inside the module's
- * linear memory; what it can change is the output of that decode, and the module's
- * heap for later decodes in the same page or process. Callers treat the output as
- * untrusted input to their own font readers, as they would a TTF a person uploaded.
+ * does not stop the CVE's out-of-bounds write. That write stays inside the worker's
+ * copy of the module's linear memory, and can change the output of that one decode.
+ * Callers treat the output as untrusted input to their own font readers, as they
+ * would a TTF a person uploaded.
  */
 
 /** The decoder's own ceilings (google/woff2 `kDefaultMaxSize` and its plausible ratio). */
@@ -38,7 +46,7 @@ export const WOFF2_LIMITS = Object.freeze({
 
 export type Woff2Limits = typeof WOFF2_LIMITS;
 
-export type Woff2ErrorCode = 'not-woff2' | 'too-large' | 'malformed' | 'decode-failed' | 'bad-output';
+export type Woff2ErrorCode = 'not-woff2' | 'too-large' | 'malformed' | 'decode-failed' | 'timed-out' | 'bad-output';
 
 export class Woff2Error extends Error {
   readonly code: Woff2ErrorCode;
@@ -54,7 +62,12 @@ export interface Woff2Facts {
   flavor: number;
   collection: boolean;
   numTables: number;
-  /** The header's totalSfntSize. Advisory: the decoder does not rely on it either. */
+  /**
+   * The header's totalSfntSize. The spec makes the value advisory, but woff2-encoder
+   * 2.0.0 sizes its output buffer from the value (up to 30 MiB), so the value bounds
+   * what comes back: at least that many bytes, and more only when the font's own
+   * tables run past the value.
+   */
   totalSfntSize: number;
   /** The Brotli target size: the sum of every table's stored length. */
   uncompressedSize: number;
@@ -205,6 +218,9 @@ export function preflightWoff2(bytes: Uint8Array, limits: Woff2Limits = WOFF2_LI
   if (uncompressedSize > limits.maxOutputBytes || headerBytes > limits.maxOutputBytes) {
     throw new Woff2Error('too-large', `This WOFF2 font expands past ${sizeText(limits.maxOutputBytes)}.`);
   }
+  if (totalSfntSize > limits.maxOutputBytes) {
+    throw new Woff2Error('too-large', `This WOFF2 font declares a decoded size past ${sizeText(limits.maxOutputBytes)}.`);
+  }
 
   // Layout: compressed data, then optional metadata, then optional private data, each
   // starting on a four-byte boundary, and nothing after.
@@ -224,58 +240,117 @@ export function preflightWoff2(bytes: Uint8Array, limits: Woff2Limits = WOFF2_LI
   return { flavor, collection, numTables, totalSfntSize, uncompressedSize, compressedOffset, compressedLength, headerBytes, fonts };
 }
 
-/** One sfnt offset table and its table records, all inside `bytes`. */
-function checkOffsetTable(view: DataView, at: number, what: string): void {
+/** One sfnt offset table and its table records, all inside `bytes`. Returns where its data ends. */
+function checkOffsetTable(view: DataView, at: number, what: string): number {
   if (at + 12 > view.byteLength) throw new Woff2Error('bad-output', `The decoded ${what} has no complete header.`);
   if (!SFNT_FLAVORS.has(view.getUint32(at))) throw new Woff2Error('bad-output', `The decoded ${what} is not TrueType or OpenType.`);
   const count = view.getUint16(at + 4);
-  if (at + 12 + 16 * count > view.byteLength) throw new Woff2Error('bad-output', `The decoded ${what} has an incomplete table directory.`);
+  let end = at + 12 + 16 * count;
+  if (end > view.byteLength) throw new Woff2Error('bad-output', `The decoded ${what} has an incomplete table directory.`);
   for (let i = 0; i < count; i++) {
     const record = at + 12 + 16 * i;
-    const offset = view.getUint32(record + 8);
-    const size = view.getUint32(record + 12);
-    if (offset + size > view.byteLength) throw new Woff2Error('bad-output', `A table in the decoded ${what} lies outside the file.`);
+    const tableEnd = view.getUint32(record + 8) + view.getUint32(record + 12);
+    if (tableEnd > view.byteLength) throw new Woff2Error('bad-output', `A table in the decoded ${what} lies outside the file.`);
+    end = Math.max(end, tableEnd);
   }
+  return end;
 }
 
 /**
- * Check decoder output before anyone parses it: no larger than `maxBytes`, and an sfnt
- * (or a collection of them) whose table records point inside the returned bytes.
+ * Check decoder output before anyone parses it: no larger than `maxBytes`; an sfnt (or
+ * a collection of them) whose table records point inside the returned bytes; no longer
+ * than the declared totalSfntSize or the padded end of the last table, whichever is
+ * larger; and only zero bytes after that last table (the decoder's own padding).
  */
-export function checkSfntOutput(bytes: Uint8Array, facts: Pick<Woff2Facts, 'collection'>, maxBytes: number = WOFF2_LIMITS.maxOutputBytes): void {
+export function checkSfntOutput(bytes: Uint8Array, facts: Pick<Woff2Facts, 'collection'> & { totalSfntSize?: number }, maxBytes: number = WOFF2_LIMITS.maxOutputBytes): void {
   if (bytes.byteLength > maxBytes) throw new Woff2Error('too-large', `The decoded font is larger than ${sizeText(maxBytes)}.`);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  if (!facts.collection) { checkOffsetTable(view, 0, 'font'); return; }
-  if (bytes.byteLength < 12 || view.getUint32(0) !== TTC_FLAVOR) throw new Woff2Error('bad-output', 'The decoded collection has no collection header.');
-  const fonts = view.getUint32(8);
-  if (12 + 4 * fonts > bytes.byteLength) throw new Woff2Error('bad-output', 'The decoded collection has an incomplete font list.');
-  for (let i = 0; i < fonts; i++) checkOffsetTable(view, view.getUint32(12 + 4 * i), `collection font ${i + 1}`);
+  let dataEnd: number;
+  if (!facts.collection) {
+    dataEnd = checkOffsetTable(view, 0, 'font');
+  } else {
+    if (bytes.byteLength < 12 || view.getUint32(0) !== TTC_FLAVOR) throw new Woff2Error('bad-output', 'The decoded collection has no collection header.');
+    const fonts = view.getUint32(8);
+    dataEnd = 12 + 4 * fonts;
+    if (dataEnd > bytes.byteLength) throw new Woff2Error('bad-output', 'The decoded collection has an incomplete font list.');
+    for (let i = 0; i < fonts; i++) dataEnd = Math.max(dataEnd, checkOffsetTable(view, view.getUint32(12 + 4 * i), `collection font ${i + 1}`));
+  }
+  if (facts.totalSfntSize !== undefined && bytes.byteLength > Math.max(facts.totalSfntSize, round4(dataEnd))) {
+    throw new Woff2Error('bad-output', 'The decoded font is longer than its header declares.');
+  }
+  for (let i = dataEnd; i < bytes.byteLength; i++) {
+    if (bytes[i] !== 0) throw new Woff2Error('bad-output', 'The decoded font has data after its last table.');
+  }
 }
+
+/** How a host runs one decode: in a fresh module instance, within `timeoutMs`. */
+export interface Woff2RunOptions {
+  timeoutMs: number;
+  signal?: AbortSignal;
+}
+export type Woff2Runner = (bytes: Uint8Array, options: Woff2RunOptions) => Promise<Uint8Array>;
+
+/** What a decode worker posts back: the sfnt bytes, or the decoder's error text. */
+export interface Woff2WorkerReply {
+  out?: Uint8Array;
+  error?: string;
+}
+
+let registeredRunner: Woff2Runner | undefined;
+
+/** Node registers its worker-thread runner here (woff2-node.ts); browsers need none. */
+export function setWoff2Runner(runner: Woff2Runner | undefined): void {
+  registeredRunner = runner;
+}
+
+/** The longest one decode may take. The largest public font in the tree takes about 0.25 s. */
+export const WOFF2_TIMEOUT_MS = 20_000;
+
+/** Browsers: one module Web Worker per decode, ended when the font comes back or time runs out. */
+const webWorkerRunner: Woff2Runner = (bytes, { timeoutMs, signal }) => new Promise((resolve, reject) => {
+  signal?.throwIfAborted();
+  const worker = new Worker(new URL('./woff2-decode.worker.ts', import.meta.url), { type: 'module' });
+  let settled = false;
+  const finish = (error: unknown, out?: Uint8Array): void => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', abort);
+    worker.terminate();
+    if (out) resolve(out); else reject(error);
+  };
+  const abort = (): void => finish(signal?.reason ?? new Woff2Error('decode-failed', 'The WOFF2 decode was cancelled.'));
+  const timer = setTimeout(() => finish(new Woff2Error('timed-out', 'This WOFF2 font took too long to decode.')), timeoutMs);
+  signal?.addEventListener('abort', abort, { once: true });
+  worker.onerror = (event) => { event.preventDefault(); finish(new Woff2Error('decode-failed', 'The WOFF2 decoder could not start.')); };
+  worker.onmessage = ({ data }: MessageEvent<Woff2WorkerReply>) => finish(new Woff2Error('decode-failed', data.error ?? 'The WOFF2 decoder returned nothing.'), data.out);
+  const copy = bytes.slice();
+  worker.postMessage(copy, [copy.buffer]);
+});
 
 export interface DecodeWoff2Options {
   /** The caller's own limit on the decoded size, when tighter than 30 MiB. */
   maxOutputBytes?: number;
+  /** The longest the decode may take, where the host can stop the decoder. */
+  timeoutMs?: number;
+  signal?: AbortSignal;
+  /** A runner for this call only, ahead of the registered one. */
+  runner?: Woff2Runner;
 }
 
-type Decompress = (bytes: Uint8Array) => Promise<Uint8Array | ArrayBuffer>;
-let decoder: Promise<Decompress> | undefined;
-
-/** WOFF2 bytes to sfnt bytes (or a TTC), checked before and after the decoder runs. */
+/** WOFF2 bytes to sfnt bytes (or a TTC), checked before and after a fresh decoder runs. */
 export async function decodeWoff2(bytes: Uint8Array, options: DecodeWoff2Options = {}): Promise<Uint8Array> {
   const maxOutputBytes = Math.min(options.maxOutputBytes ?? WOFF2_LIMITS.maxOutputBytes, WOFF2_LIMITS.maxOutputBytes);
   const facts = preflightWoff2(bytes, { ...WOFF2_LIMITS, maxOutputBytes });
-  // A failed chunk load is asked for again next time rather than remembered.
-  decoder ??= import('woff2-encoder/decompress').then(
-    (module) => module.default as Decompress,
-    (error: unknown) => { decoder = undefined; throw error; },
-  );
-  let decoded: Uint8Array | ArrayBuffer;
+  const runner = options.runner ?? registeredRunner ?? (typeof Worker === 'function' ? webWorkerRunner : undefined);
+  if (!runner) throw new Woff2Error('decode-failed', 'No separate WOFF2 decoder is available here, so the font was not decoded.');
+  let out: Uint8Array;
   try {
-    decoded = await (await decoder)(bytes);
+    out = await runner(bytes, { timeoutMs: options.timeoutMs ?? WOFF2_TIMEOUT_MS, signal: options.signal });
   } catch (error) {
+    if (error instanceof Woff2Error || error === options.signal?.reason) throw error;
     throw new Woff2Error('decode-failed', 'This WOFF2 font could not be decoded.', { cause: error });
   }
-  const out = decoded instanceof Uint8Array ? decoded : new Uint8Array(decoded);
   checkSfntOutput(out, facts, maxOutputBytes);
   return out;
 }

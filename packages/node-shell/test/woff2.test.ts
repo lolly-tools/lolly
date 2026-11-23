@@ -9,7 +9,10 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { brotliCompressSync } from 'node:zlib';
-import { checkSfntOutput, decodeWoff2, preflightWoff2, Woff2Error, WOFF2_LIMITS } from '../src/woff2.ts';
+import { checkSfntOutput, decodeWoff2, preflightWoff2, Woff2Error, WOFF2_LIMITS, type Woff2Runner } from '../src/woff2.ts';
+import { nodeWoff2Runner, useNodeWoff2Runner } from '../src/woff2-node.ts';
+
+useNodeWoff2Runner();
 
 const ROOT = new URL('../../../', import.meta.url);
 const read = (path: string): Uint8Array => new Uint8Array(readFileSync(new URL(path, ROOT)));
@@ -170,6 +173,10 @@ test('declared sizes the decoder could not hold are refused, not attempted', asy
   assert.throws(() => preflightWoff2(ratio), refusedWith('too-large'));
   // A caller's tighter limit applies to the preflight and to the output.
   await assert.rejects(decodeWoff2(read(SMALL), { maxOutputBytes: 1024 }), refusedWith('too-large'));
+  // A declared decoded size (totalSfntSize) past the limit is refused before decoding.
+  const declared = new Uint8Array(read(SMALL));
+  new DataView(declared.buffer).setUint32(16, WOFF2_LIMITS.maxOutputBytes + 1);
+  assert.throws(() => preflightWoff2(declared), (error) => refusedWith('too-large')(error) && /declares a decoded size/.test((error as Error).message));
 });
 
 test('decoder output that is not a coherent sfnt is refused', () => {
@@ -183,9 +190,36 @@ test('decoder output that is not a coherent sfnt is refused', () => {
   assert.throws(() => checkSfntOutput(flavor, { collection: false }), refusedWith('bad-output'));
   assert.throws(() => checkSfntOutput(sfnt, { collection: true }), refusedWith('bad-output'));
   assert.throws(() => checkSfntOutput(sfnt, { collection: false }, 1024), refusedWith('too-large'));
+  // Checked against the declared size: zero padding up to the declared size is what the
+  // decoder writes, anything past that or any data after the last table is not.
+  const padded = new Uint8Array(sfnt.length + 64);
+  padded.set(sfnt);
+  checkSfntOutput(padded, { collection: false, totalSfntSize: padded.length });
+  assert.throws(() => checkSfntOutput(padded, { collection: false, totalSfntSize: sfnt.length }), (error) => refusedWith('bad-output')(error) && /longer than its header declares/.test((error as Error).message));
+  padded[padded.length - 1] = 1;
+  assert.throws(() => checkSfntOutput(padded, { collection: false, totalSfntSize: padded.length }), (error) => refusedWith('bad-output')(error) && /data after its last table/.test((error as Error).message));
+});
+
+test('each decode runs in a worker thread that a time limit or an abort ends', async () => {
+  const bytes = read(SMALL);
+  await assert.rejects(decodeWoff2(bytes, { timeoutMs: 1 }), refusedWith('timed-out'));
+  const controller = new AbortController();
+  const pending = decodeWoff2(bytes, { signal: controller.signal });
+  controller.abort(new Error('stopped by the test'));
+  await assert.rejects(pending, /stopped by the test/);
+  // A decode the decoder refuses (a corrupt Brotli stream) ends with its worker; the
+  // next font decodes to its reference bytes in a worker of its own.
+  const corrupt = new Uint8Array(bytes);
+  const { compressedOffset } = preflightWoff2(bytes);
+  corrupt.fill(0xff, compressedOffset + 16, compressedOffset + 64);
+  await assert.rejects(nodeWoff2Runner(corrupt, { timeoutMs: 20_000 }), refusedWith('decode-failed'));
+  assert.equal(sha256(await decodeWoff2(bytes)), corpus.fonts[SMALL]!.sha256);
 });
 
 test('one-byte changes to the header and directory give a checked font or a Woff2Error', async () => {
+  // About 300 decodes: run in this thread's shared decoder to keep the sweep quick. The
+  // guard's checks are the same whichever runner decodes.
+  const inThread: Woff2Runner = async (input) => (await import('woff2-encoder/decompress')).default(input);
   const bytes = read(SMALL);
   const { compressedOffset } = preflightWoff2(bytes);
   let decoded = 0;
@@ -195,7 +229,7 @@ test('one-byte changes to the header and directory give a checked font or a Woff
       const mutated = new Uint8Array(bytes);
       mutated[at] = value;
       try {
-        const out = await decodeWoff2(mutated);
+        const out = await decodeWoff2(mutated, { runner: inThread });
         checkSfntOutput(out, { collection: false });
         decoded++;
       } catch (error) {
@@ -205,6 +239,6 @@ test('one-byte changes to the header and directory give a checked font or a Woff
   }
   // Header fields the decoder ignores (the reserved word, totalSfntSize, versions) still decode.
   assert.ok(decoded > 0);
-  // And the decoder is still healthy afterwards.
-  assert.equal(sha256(await decodeWoff2(bytes)), corpus.fonts[SMALL]!.sha256);
+  // And the shared decoder is still healthy afterwards.
+  assert.equal(sha256(await decodeWoff2(bytes, { runner: inThread })), corpus.fonts[SMALL]!.sha256);
 });

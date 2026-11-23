@@ -180,8 +180,9 @@ function parseFontFile(name: string, family: string): { weight: number; style: '
 async function sfntOf(bytes: Uint8Array, ext: string): Promise<ArrayBuffer> {
   let sfnt = bytes;
   if (ext === 'woff2') {
+    const { nodeWoff2Runner } = await import('../packages/node-shell/src/woff2-node.ts');
     const { decodeWoff2 } = await import('../packages/node-shell/src/woff2.ts');
-    sfnt = await decodeWoff2(bytes);
+    sfnt = await decodeWoff2(bytes, { runner: nodeWoff2Runner });
   } else if (ext === 'woff') {
     sfnt = woffToSfnt(bytes);
   }
