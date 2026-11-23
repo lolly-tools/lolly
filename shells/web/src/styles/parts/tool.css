@@ -324,6 +324,13 @@
     width: 100%;
 }
 
+/* The docked sidebar reaches the top of the screen, so where the system holds a status
+   bar there (an iPad) its first row starts below that. The phone sheet is placed below
+   the inset as a whole and keeps the plain padding. */
+@media (min-width: 641px) {
+  .sidebar-header { padding-top: calc(8px + var(--safe-top)); }
+}
+
 /* The signature ring-plus-drop at panel level (surfaces.css), shown only once
    .sidebar-body has scrolled: --sb-scrolled (0..1) is set by wireActionsPanel
    and ramps over the first 24px, so the shadow fades in as the inputs slide
