@@ -3,7 +3,8 @@
  * The `lolly-render` crate (plan 371, M3b) against the engine: its input envelope
  * carries the engine's current drawing operations, and, where the crate is built, its
  * binary draws engine pages the same bytes twice and refuses what it does not draw by
- * name. No shell calls the crate; it is not a render route yet.
+ * name. A shell reaches the crate only through its Node binding, behind
+ * LOLLY_DESIGN_RASTER=lolly-render (tests/lolly-render-addon.test.ts).
  *
  * A plain clone has no Rust toolchain, so the binary tests skip by name with the
  * command that builds the binary. The fixture check needs no Rust and always runs.

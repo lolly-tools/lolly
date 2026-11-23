@@ -2,7 +2,7 @@
 
 A Rust crate that draws one Lolly Design page from its drawing operations: the engine's `DesignDrawPage` (`engine/src/design-draw.ts`), after the engine has laid out and outlined the words, in a versioned JSON envelope with the page's pictures. The output is RGBA pixels or a plain PNG. The PNG finishing (Imprint, colour profile, metadata, Content Credential) stays in the Node shell.
 
-**No shell links this crate, and no default render route uses it.** It is evidence for plan 371 (milestone M3b) until the maintainer decides otherwise.
+**No default render route uses this crate.** Its Node binding (`crates/lolly-render-node`) is loaded only when `LOLLY_DESIGN_RASTER=lolly-render` asks for it, and a page the crate refuses then goes to the default route (`packages/node-shell/src/design-still.ts`). It is evidence for plan 371 (milestone M3b) until the maintainer decides otherwise.
 
 ## Faithful or refused
 
@@ -35,9 +35,10 @@ The input envelope:
 
 `tests/lolly-render.test.ts` at the repository root draws pages the engine compiles today through the built binary, and skips by name when the binary is not built.
 
+Inputs reach the crate from a shell, so they are treated as untrusted. `tests/malformed.rs` holds 41 small malformed inputs (`tests/malformed/`, written by `tests/make-test-inputs.py`), each with the code it must be refused with, and `tests/fuzz.rs` sends seeded mutations of six small pictures (`tests/seeds/`) through every decoder and onto a page (`LOLLY_RENDER_FUZZ_ITERS` sets the count per seed). The repository's fuzz harness reaches the same code through the binding (`lolly-render-envelope`, `-png`, `-jpeg` and `-webp` in `tests/fuzz/targets.ts`).
+
 ## Not verified
 
-- Linux x64 bytes: `.github/workflows/lolly-render.yml` runs the pinned tests on an ubuntu x64 runner; until that run passes, only macOS arm64 and wasm32 are shown to agree.
+- Bytes beyond macOS arm64, wasm32 and Linux x64: `.github/workflows/lolly-render.yml` passed on an ubuntu x64 runner; Linux arm64 and Windows are built and checked only by `.github/workflows/lolly-render-addon.yml`, which has not run yet.
 - Rounded frames: refused, because the crate cannot match the browser tier's edge there inside the bands.
-- A parser fuzz target: the crate reads untrusted JSON and pictures, and only a native mutation test covers that path so far.
-- Any timing claim: the evidence measures the drawing step alone against the browser tier cold (one process per page) and warm (the browser already open). No route through this crate has been timed.
+- Any timing claim in general: the plan 371 evidence measures this machine only, cold and warm, for the pages the crate draws.

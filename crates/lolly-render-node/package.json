@@ -1,0 +1,28 @@
+{
+  "name": "@lolly-tools/render",
+  "version": "1.2.2",
+  "private": true,
+  "description": "Draws a Lolly Design page's drawing operations to a PNG, or refuses the page with named reasons. The Node binding of the lolly-render crate.",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lolly-tools/lolly.git",
+    "directory": "crates/lolly-render-node"
+  },
+  "main": "index.cjs",
+  "types": "index.d.ts",
+  "files": [
+    "index.cjs",
+    "index.d.ts"
+  ],
+  "engines": {
+    "node": ">= 20"
+  },
+  "optionalDependencies": {
+    "@lolly-tools/render-darwin-arm64": "1.2.2",
+    "@lolly-tools/render-linux-x64-gnu": "1.2.2",
+    "@lolly-tools/render-linux-x64-musl": "1.2.2",
+    "@lolly-tools/render-linux-arm64-gnu": "1.2.2",
+    "@lolly-tools/render-win32-x64-msvc": "1.2.2"
+  }
+}

@@ -57,6 +57,8 @@ const CRATE_DIRS = [
   'packages/node-shell/wasm/indd',
   'packages/node-shell/wasm/camera-raw',
   'packages/node-shell/wasm/affinity',
+  // The lolly-render Node binding (plan 371 M3b): its graph holds the core crate's.
+  'crates/lolly-render-node',
 ];
 
 // First-party workspace crates: no `license` field in Cargo.toml, but they are

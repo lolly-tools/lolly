@@ -35,7 +35,8 @@ test('drift a pull request did not cause is only a warning', () => {
   for (const path of ['docs/using.md', 'tests/url-mode.test.ts', 'engine/src/units.test.ts', 'engine/README.md',
     'shells/web/src/README.md', 'services/mcp/test/hosted.test.ts', 'tests/fixtures/x/package-shape.json',
     'community/qr-code/hooks.js', 'brands/lolly-start/catalog/tools/index.json', '.github/workflows/ci.yml',
-    'scripts/check-api-bundles.ts', 'shells/tauri-desktop/src/main.ts']) {
+    'scripts/check-api-bundles.ts', 'shells/tauri-desktop/src/main.ts', 'crates/lolly-render/src/admit.rs',
+    'crates/lolly-render-node/package.json', 'crates/lolly-render-node/npm/linux-x64-gnu/package.json']) {
     assert.equal(isBundleInput(path), false, path);
     assert.deepEqual(judge(true, 'pull_request', [path]), { status: 'warn', inputs: [] }, path);
   }

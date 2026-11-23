@@ -1,0 +1,29 @@
+[package]
+name = "lolly-render-node"
+version = "0.1.0"
+edition = "2021"
+license = "MPL-2.0"
+publish = false
+description = "The Node binding of lolly-render: a Design page's drawing operations in, PNG or RGBA out, or a typed refusal."
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+lolly-render = { path = "../lolly-render" }
+# napi-rs, pinned to releases at least three weeks old. `dyn-symbols` resolves Node-API at
+# load time, so no platform needs Node's import library to link.
+napi = { version = "=3.16.1", default-features = false, features = ["napi4", "dyn-symbols"] }
+napi-derive = { version = "=3.7.0", default-features = false }
+
+[build-dependencies]
+napi-build = "=2.6.0"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+# Unwind, not abort: a panic inside the renderer is caught at the binding and returned to
+# JavaScript as an `internal` refusal instead of ending the Node process.
+panic = "unwind"
+strip = true

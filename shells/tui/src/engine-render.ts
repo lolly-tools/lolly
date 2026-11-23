@@ -310,7 +310,7 @@ async function designStillHere(runtime: Runtime, dom: JSDOM, dims: ExportDims): 
   const log = (line: string): void => { runtimeHosts.get(runtime)?.log?.('info', line); };
   const accept = allowsBrowserFree(dims);
   const decision = designStillDecision(process.env, undefined, accept);
-  if (decision.ignored !== undefined) log(`LOLLY_DESIGN_RASTER=${decision.ignored} is not a value this shell reads (auto or resvg), so the default applies.`);
+  if (decision.ignored !== undefined) log(`LOLLY_DESIGN_RASTER=${decision.ignored} is not a value this shell reads (auto, resvg or lolly-render), so the default applies.`);
   // A page this route chose not to draw (a browser tier is there) is not a refusal; a page it could not draw is.
   if (decision.draw === 'browser') { log(handedToBrowser('Design PNG', [decision.because])); return null; }
   const toBrowser = (refusals: ResvgRefusal[]): { refusals: ResvgRefusal[] } => { log(handedToBrowser('Design PNG', refusals)); return { refusals }; };
@@ -334,10 +334,12 @@ async function designStillHere(runtime: Runtime, dom: JSDOM, dims: ExportDims): 
     dims,
     accept,
     thorough: !!decision.noBrowser,
+    ...(decision.lollyRender ? { lollyRender: { next: decision.lollyRender.next } } : {}),
   });
   if ('refused' in result) return toBrowser(result.refusals);
-  log(`${describeDesignExportRoute('png', result.drawn.route, [decision.because]).replace(/\.$/, '')}, ${result.drawn.width} x ${result.drawn.height} px, with no browser.`);
-  const notice = result.drawn.accepted ? acceptedWarning('Design PNG', result.drawn.accepted) : designStillNote(decision);
+  const because = decision.lollyRender && result.drawn.lollyRenderRefused ? decision.lollyRender.because : decision.because;
+  log(`${describeDesignExportRoute('png', result.drawn.route, [because]).replace(/\.$/, '')}, ${result.drawn.width} x ${result.drawn.height} px, with no browser.`);
+  const notice = result.drawn.accepted ? acceptedWarning('Design PNG', result.drawn.accepted) : designStillNote(decision, result.drawn);
   log(notice);
   dims.onNote?.(notice);
   return result.drawn;

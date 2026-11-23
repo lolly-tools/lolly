@@ -5,7 +5,8 @@ name: lolly-render same bytes
 # SIMD and with libm so that every machine writes the same PNG bytes. `cargo test` fails
 # when any pinned fixture, or any of the 48 drawn corpus pages in
 # crates/lolly-render/tests/corpus (SHA256SUMS), draws to bytes other than the ones
-# recorded on macOS arm64, and lists every page that differs. No shell links the crate.
+# recorded on macOS arm64, and lists every page that differs. The Node binding is built and
+# checked per platform by lolly-render-addon.yml.
 on:
   pull_request:
     paths:
