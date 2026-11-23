@@ -103,6 +103,11 @@ jobs:
     container:
       # registry.suse.com/bci/bci-base:15.7, the multi-architecture index, read 2026-11-23.
       image: registry.suse.com/bci/bci-base:15.7@sha256:8cd100ae2ec5ab23d6ec7aa1c0fe2dc30ca852c609406097797c9d298b7decdd
+      # The image's configuration declares no environment at all, so once a step adds to
+      # GITHUB_PATH (rust-toolchain adds ~/.cargo/bin) the runner's PATH holds only that
+      # entry and bash is no longer found. Declaring the system PATH here keeps bash reachable.
+      env:
+        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     strategy:
       fail-fast: false
       matrix:
