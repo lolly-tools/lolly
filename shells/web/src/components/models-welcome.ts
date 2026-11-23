@@ -105,7 +105,6 @@ export function welcomeSentence(offered: readonly ModelPartInfo[]): string {
 function renderContent(sizeLabel: string | null, offered: readonly ModelPartInfo[]): string {
   return `
     <span class="mw-icon">${icon('download', { size: 30 })}</span>
-    <p class="mw-eyebrow">${t('Lolly for desktop')}</p>
     <h2 class="mw-title">${t('Unlock the on-device AI tools')}</h2>
     <p class="mw-sub">${escape(welcomeSentence(offered))}</p>
     <div class="mw-actions">
