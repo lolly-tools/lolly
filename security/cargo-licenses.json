@@ -100,7 +100,7 @@
     "const-random-macro@0.1.16": "MIT OR Apache-2.0",
     "const-random@0.1.18": "MIT OR Apache-2.0",
     "convert_case@0.8.0": "MIT",
-    "cookie@0.18.1": "MIT OR Apache-2.0",
+    "cookie@0.18.3": "MIT OR Apache-2.0",
     "core_detect@1.0.0": "MIT OR Apache-2.0",
     "core-foundation-sys@0.8.7": "MIT OR Apache-2.0",
     "core-foundation@0.10.1": "MIT OR Apache-2.0",

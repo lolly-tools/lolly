@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:dec8443d-a2ad-4af1-8c45-29ae4d26b077",
+  "serialNumber": "urn:uuid:9c4a6e9b-4dd1-44ff-81b9-849b0f71cb1f",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-23T15:08:05.376Z",
+    "timestamp": "2026-11-23T15:42:59.089Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -2291,10 +2291,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/cookie@0.18.1",
+      "bom-ref": "pkg:cargo/cookie@0.18.3",
       "name": "cookie",
-      "version": "0.18.1",
-      "purl": "pkg:cargo/cookie@0.18.1",
+      "version": "0.18.3",
+      "purl": "pkg:cargo/cookie@0.18.3",
       "scope": "required",
       "licenses": [
         {
@@ -2304,7 +2304,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ddef33a339a91ea89fb53151bd0a4689cfce27055c291dfa69945475d22c747"
+          "content": "d55f2d6c30eeec7d5c6f98bd4395d4abb1895629eab97ee6522d340623615f8a"
         }
       ],
       "properties": [
