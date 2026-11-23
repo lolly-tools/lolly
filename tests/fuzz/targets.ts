@@ -165,6 +165,7 @@ import { contentSealConsensus, CONTENTSEAL_MESSAGE_BITS } from '../../engine/src
 import { zipSync } from 'fflate';
 import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exists)
 import { invokeLayoutAbi, layoutAbiSeeds, invokePenpotLayoutEvaluation, penpotLayoutSeeds } from './layout-targets.ts';
+import { invokeLollyRenderEnvelope, invokeLollyRenderPicture, lollyRenderEnvelopeSeeds, lollyRenderPictureSeeds, lollyRenderUnavailable } from './lolly-render-targets.ts';
 import { designGuideSeeds, invokeDesignGuides } from './design-guides-target.ts';
 import { designHierarchySeeds, invokeDesignHierarchy } from './design-hierarchy-target.ts';
 import { lollyHierarchySeeds, invokeLollyHierarchy } from './lolly-hierarchy-target.ts';
@@ -175,6 +176,11 @@ export interface FuzzTarget {
   seeds(): Promise<Uint8Array[]>;
   /** Feed one buffer through the parser. Throwing is fine; hanging/alloc is not. */
   invoke(bytes: Uint8Array): Promise<void>;
+  /**
+   * Why the parser cannot run on this machine (a native module that is not built), or
+   * null. A target that says so is skipped by name rather than passed without running.
+   */
+  unavailable?(): string | null;
 }
 
 const bytesOf = (s: string): Uint8Array => Uint8Array.from(s, (c) => c.charCodeAt(0) & 0xff);
@@ -2545,6 +2551,18 @@ export const rondoStagedTarget: FuzzTarget = {
   },
 };
 
+// The lolly-render crate through its Node binding (tests/fuzz/lolly-render-targets.ts):
+// the envelope reader with admission, then each picture decoder on a placed picture.
+export const lollyRenderEnvelopeTarget: FuzzTarget = {
+  name: 'lolly-render-envelope',
+  seeds: lollyRenderEnvelopeSeeds,
+  async invoke(bytes) { invokeLollyRenderEnvelope(bytes); },
+  unavailable: lollyRenderUnavailable,
+};
+export const lollyRenderPngTarget: FuzzTarget = { name: 'lolly-render-png', seeds: lollyRenderPictureSeeds('png'), invoke: invokeLollyRenderPicture('png'), unavailable: lollyRenderUnavailable };
+export const lollyRenderJpegTarget: FuzzTarget = { name: 'lolly-render-jpeg', seeds: lollyRenderPictureSeeds('jpeg'), invoke: invokeLollyRenderPicture('jpeg'), unavailable: lollyRenderUnavailable };
+export const lollyRenderWebpTarget: FuzzTarget = { name: 'lolly-render-webp', seeds: lollyRenderPictureSeeds('webp'), invoke: invokeLollyRenderPicture('webp'), unavailable: lollyRenderUnavailable };
+
 export const layoutAbiTarget: FuzzTarget = {
   name: 'layout-abi',
   seeds: layoutAbiSeeds,
@@ -2764,5 +2782,6 @@ export const ALL_TARGETS: FuzzTarget[] = [
   svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, smfTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
   geomTarget, svgItemsTarget, fontInspectTarget, woff2PreflightTarget, audioDspTarget, imageTraceTarget, intentTarget,
+  lollyRenderEnvelopeTarget, lollyRenderPngTarget, lollyRenderJpegTarget, lollyRenderWebpTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

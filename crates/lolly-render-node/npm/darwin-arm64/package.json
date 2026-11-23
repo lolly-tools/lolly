@@ -1,0 +1,26 @@
+{
+  "name": "@lolly-tools/render-darwin-arm64",
+  "version": "1.2.2",
+  "private": true,
+  "description": "The lolly-render Node binding built for aarch64-apple-darwin. Installed by @lolly-tools/render; not used on its own.",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lolly-tools/lolly.git",
+    "directory": "crates/lolly-render-node/npm/darwin-arm64"
+  },
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "main": "lolly-render.darwin-arm64.node",
+  "files": [
+    "lolly-render.darwin-arm64.node",
+    "LICENSES.txt"
+  ],
+  "engines": {
+    "node": ">= 20"
+  }
+}

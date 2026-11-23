@@ -33,7 +33,9 @@ export type ResvgRefusalCode =
   | 'picture-downscale' | 'gradient-opacity' | 'blend-in-filter' | 'noise-filter' | 'crisp-edges' | 'unreadable'
   // The Design page route's own reasons (design-still.ts).
   | 'vector-picture' | 'clip-edge' | 'blend-mode' | 'missing-text' | 'tool-picture' | 'size' | 'request'
-  | 'css-transform';
+  | 'css-transform'
+  // The lolly-render crate refused a page it was asked to draw first (design-still.ts).
+  | 'lolly-render';
 
 export interface ResvgRefusal { code: ResvgRefusalCode; reason: string }
 
@@ -151,6 +153,8 @@ export const REFUSAL_EFFECT: Readonly<Record<ResvgRefusalCode, 'may-differ' | 'w
   'css-variable': 'wrong', 'html': 'wrong', 'picture-type': 'wrong', 'picture-orientation': 'wrong',
   'picture-in-picture': 'wrong', 'picture-outside': 'wrong', 'unreadable': 'wrong',
   'blend-mode': 'wrong', 'missing-text': 'wrong', 'tool-picture': 'wrong', 'size': 'wrong', 'request': 'wrong',
+  // The crate refuses what it would draw outside the bands; --allow-browser-free does not overrule a refusal.
+  'lolly-render': 'wrong',
 });
 
 let resvgVersionCache: string | null = null;

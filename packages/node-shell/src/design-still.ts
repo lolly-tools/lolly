@@ -19,12 +19,19 @@
  * In every other case the browser render tier draws the page, as before. A page that
  * this route cannot draw faithfully is refused with its reason (`resvgRefusals`, and
  * every finding `designOpsSvgNode` already reports) and goes to the browser tier.
+ *
+ * `LOLLY_DESIGN_RASTER=lolly-render` (plan 371, M3b) asks the lolly-render crate to draw
+ * the page first, from the compiled drawing operations rather than the SVG, through its
+ * Node binding (lolly-render.ts). A page the crate refuses, or a machine without the
+ * binding, goes on as if the variable were unset: to the browser tier where there is
+ * one, else to resvg, and the log and the note say what the crate said.
  */
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { inflateSync } from 'node:zlib';
 import type { ExportMeta, IngredientCredential } from '@lolly-tools/core/host-v1';
 import { designOperationsRenderer, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
+import type { DesignPageDrawing } from '../../../engine/src/design-page-svg.ts';
 import { DESIGN_DRAW_VERSION } from '../../../engine/src/design-draw.ts';
 import { designStrokeSides } from '../../../engine/src/design-stroke.ts';
 import { browserInstalled } from './browsers.ts';
@@ -34,19 +41,23 @@ import { jpegSegmentBody, scanJpegSegments } from '@lolly/engine';
 import { rasterizeSvgToRgba } from './raster.ts';
 import { acceptRefusals, BROWSER_FREE_FLAG, dedupeRefusals, REFUSAL_EFFECT, resvgPackageVersion, vectorPictureFindings, type ResvgRefusal } from './resvg-admission.ts';
 import { acceptedRoute } from './export-route.ts';
+import { encodeDesignPng, lollyRenderEnvelope, lollyRenderState, renderDesignPageRgba, type LollyRenderRefusal } from './lolly-render.ts';
 import { repoRoot } from './repo-root.ts';
 
 /** The environment variable that asks for this route while a browser tier is available. */
 export const DESIGN_RASTER_ENV = 'LOLLY_DESIGN_RASTER';
 
-/** `auto` (unset): this route only when no browser tier is available. `resvg`: this route first. */
-export type DesignRasterChoice = 'auto' | 'resvg';
+/**
+ * `auto` (unset): this route only when no browser tier is available. `resvg`: this route
+ * first. `lolly-render`: the lolly-render crate first, then as `auto`.
+ */
+export type DesignRasterChoice = 'auto' | 'resvg' | 'lolly-render';
 
 /** The choice `LOLLY_DESIGN_RASTER` makes, and the value it ignored when it names neither choice. */
 export function designRasterChoice(env: Record<string, string | undefined> = process.env): { choice: DesignRasterChoice; ignored?: string } {
   const raw = env[DESIGN_RASTER_ENV];
   const value = (raw ?? '').trim().toLowerCase();
-  if (value === 'resvg') return { choice: 'resvg' };
+  if (value === 'resvg' || value === 'lolly-render') return { choice: value };
   return value === '' || value === 'auto' ? { choice: 'auto' } : { choice: 'auto', ignored: raw };
 }
 
@@ -85,6 +96,11 @@ export interface DesignStillDecision {
   ignored?: string;
   /** Set when the page is drawn here because no browser tier is available, so a refusal is final. */
   noBrowser?: true;
+  /**
+   * Set by `LOLLY_DESIGN_RASTER=lolly-render`: the crate is tried first, and a page it does
+   * not draw goes where the default sends it (`next`), for the reason the default gives.
+   */
+  lollyRender?: { next: 'resvg' | 'browser'; because: string };
 }
 
 /**
@@ -92,7 +108,13 @@ export interface DesignStillDecision {
  * drew it, and how to get the browser's own render. One sentence pair, the same on the
  * CLI and in the TUI.
  */
-export function designStillNote(decision: DesignStillDecision): string {
+export function designStillNote(decision: DesignStillDecision, drawn?: Pick<DesignStillDrawn, 'route' | 'lollyRenderRefused'>): string {
+  if (decision.lollyRender && drawn && isLollyRenderRoute(drawn.route)) return `This Design page was drawn without a browser, by lolly-render from its drawing operations, because ${DESIGN_RASTER_ENV}=lolly-render is set. Unset it for the browser's own render.`;
+  if (decision.lollyRender) {
+    // The crate did not draw the page and resvg did: say why, then why resvg and not the browser.
+    const said = `lolly-render did not draw this Design page because ${lollyRenderReason(drawn?.lollyRenderRefused ?? [])}.`;
+    return `${said} ${designStillNote({ draw: 'here', because: decision.lollyRender.because, ...(decision.noBrowser ? { noBrowser: true } : {}) })}`;
+  }
   const what = 'This Design page was drawn without a browser, by resvg from its drawing operations';
   if (decision.because.startsWith(DESIGN_RASTER_ENV)) return `${what}, because ${DESIGN_RASTER_ENV}=resvg is set. Unset it for the browser's own render.`;
   if (decision.because.startsWith(`--${BROWSER_FREE_FLAG}`)) return `${what}, because --${BROWSER_FREE_FLAG} was given. Leave it off for the browser's own render.`;
@@ -102,6 +124,14 @@ export function designStillNote(decision: DesignStillDecision): string {
 export function designStillDecision(env: Record<string, string | undefined> = process.env, tier: () => { available: boolean; reason?: string } = browserTierState, accept = false): DesignStillDecision {
   const { choice, ignored } = designRasterChoice(env);
   const extra = ignored !== undefined ? { ignored } : {};
+  if (choice === 'lolly-render') {
+    const fallback = designStillDecision({ ...env, [DESIGN_RASTER_ENV]: 'auto' }, tier, accept);
+    return {
+      draw: 'here', because: `${DESIGN_RASTER_ENV}=lolly-render asks for this route`,
+      lollyRender: { next: fallback.draw === 'here' ? 'resvg' : 'browser', because: fallback.because },
+      ...(fallback.noBrowser ? { noBrowser: true } : {}), ...extra,
+    };
+  }
   if (choice === 'resvg') return { draw: 'here', because: `${DESIGN_RASTER_ENV}=resvg asks for this route`, ...extra };
   if (accept) return { draw: 'here', because: `--${BROWSER_FREE_FLAG} asks for this route`, ...extra };
   const state = tier();
@@ -124,6 +154,19 @@ export const designResvgRenderer = (): string => `${designOperationsRenderer(DES
  * the renderer naming resvg. The same two credential keys every Design export records.
  */
 export const nodeResvgRoute = (): DesignExportRouteRecord => ({ route: 'operations', renderer: designResvgRenderer() });
+
+/** The route record for a page the lolly-render crate drew: the same `operations` route, the renderer naming the crate's build. */
+export const lollyRenderRoute = (renderer: string): DesignExportRouteRecord => ({ route: 'operations', renderer: `${designOperationsRenderer(DESIGN_DRAW_VERSION)}+${renderer}` });
+
+const isLollyRenderRoute = (route: DesignExportRouteRecord): boolean => /\+lolly-render-/.test(route.renderer ?? '');
+
+/** The crate's reasons in one clause, each with its stable code, the way the log reads them. */
+export function lollyRenderReason(refusals: readonly LollyRenderRefusal[]): string {
+  if (!refusals.length) return 'it gave no reason';
+  if (refusals.length === 1 && refusals[0]!.code === 'absent') return refusals[0]!.detail;
+  const shown = refusals.slice(0, 3).map((r) => `${r.detail}${r.id ? ` (${r.id})` : ''} [${r.code}]`);
+  return `it refused ${shown.join('; ')}${refusals.length > 3 ? `; and ${refusals.length - 3} more` : ''}`;
+}
 
 /** The blend modes the drawing operations write (`BLENDS` in engine/src/design-draw.ts), each of which resvg draws. */
 const RESVG_BLENDS = new Set(['normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity']);
@@ -507,6 +550,8 @@ export interface DesignStillDrawn {
   ingredients: IngredientCredential[];
   /** What the user accepted with `--allow-browser-free`: the page was drawn although these only may differ. */
   accepted?: ResvgRefusal[];
+  /** Why the lolly-render crate did not draw a page it was asked to draw first. */
+  lollyRenderRefused?: LollyRenderRefusal[];
 }
 
 /** One Design page to draw: the shell's own export call and the request's controls. */
@@ -528,6 +573,8 @@ export interface DesignStillRequest {
    * shells ask for this when no browser tier would take the page (`DesignStillDecision.noBrowser`).
    */
   thorough?: boolean;
+  /** `DesignStillDecision.lollyRender`: try the crate first, then go on as `next` says. */
+  lollyRender?: { next: 'resvg' | 'browser' };
 }
 
 /** Errors that say the render itself is broken, which no other renderer may launder. */
@@ -552,6 +599,49 @@ export async function drawDesignStill(req: DesignStillRequest): Promise<{ drawn:
     .filter((row) => (row.layout === 'flex' || row.layout === 'grid') && (String(row.id ?? '') === frameId || String(row.frame ?? '') === frameId))
     .map((row) => String(row.id ?? ''));
   if (laidOut.length) return refuse([{ code: 'layout', reason: `the page lays out ${laidOut.join(', ')} with flex or grid, which the export hook works out after the page is read` }]);
+  if (!req.lollyRender) return drawWithResvg(req, req.page, frameId);
+  const crate = await drawWithLollyRender(req, req.page);
+  if ('drawn' in crate) return crate;
+  const said: ResvgRefusal = { code: 'lolly-render', reason: `lolly-render did not draw the page because ${lollyRenderReason(crate.refusals)}` };
+  if (req.lollyRender.next === 'browser') return refuse([said]);
+  const result = await drawWithResvg(req, req.page, frameId);
+  return 'drawn' in result ? { drawn: { ...result.drawn, lollyRenderRefused: crate.refusals } } : refuse([said, ...result.refusals]);
+}
+
+/**
+ * The page drawn by the lolly-render crate from its compiled operations, finished as
+ * every PNG here is finished, or the crate's own reasons (or `absent`) for not drawing.
+ */
+async function drawWithLollyRender(req: DesignStillRequest, page: Element): Promise<{ drawn: DesignStillDrawn } | { refusals: LollyRenderRefusal[] }> {
+  const state = lollyRenderState();
+  if (!state.present) return { refusals: [{ code: 'absent', id: '', detail: state.reason }] };
+  const ingredients: IngredientCredential[] = [];
+  let drawing: DesignPageDrawing | undefined;
+  try {
+    await req.exportSvg(page, {
+      convertPaths: true,
+      ingredientSink: ingredients,
+      drawingSink: (compiled: DesignPageDrawing) => { drawing = compiled; },
+    });
+  } catch (error) {
+    if (error instanceof Error && FATAL.has(error.name)) throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    return { refusals: [{ code: 'export', id: '', detail: /\bbecause (.+)$/s.exec(message)?.[1]?.replace(/\.$/, '') ?? message }] };
+  }
+  if (!drawing) return { refusals: [{ code: 'export', id: '', detail: 'the export compiled no drawing operations for the page' }] };
+  const size = designStillSize({ width: drawing.frame.width, height: drawing.frame.height }, req.dims);
+  if ('reason' in size) return { refusals: [{ code: 'output-size', id: '', detail: size.reason }] };
+  const drawn = await renderDesignPageRgba(lollyRenderEnvelope(drawing, size));
+  if (!drawn.ok) return { refusals: drawn.refusals };
+  // The crate's encoder writes the pixels (the Imprint may have changed them); the rest of the finishing is the route's own.
+  const encode = (rgba: Uint8Array, width: number, height: number) => encodeDesignPng(rgba, width, height);
+  const { bytes, imprinted } = await finishDesignStill({ data: drawn.rgba, width: drawn.width, height: drawn.height }, size, { imprint: req.dims.imprint, meta: req.meta() ?? null, encode });
+  return { drawn: { bytes, imprinted, width: drawn.width, height: drawn.height, route: lollyRenderRoute(state.renderer), ingredients } };
+}
+
+/** The resvg route: the operations SVG drawn by resvg, or its reasons for not drawing. */
+async function drawWithResvg(req: DesignStillRequest, node: Element, frameId: string): Promise<{ drawn: DesignStillDrawn } | { refused: string[]; refusals: ResvgRefusal[] }> {
+  const refuse = (refusals: ResvgRefusal[]) => ({ refused: refusals.map((r) => r.reason), refusals });
   // What only may differ is gathered as the page is read, so a refusal lists every reason
   // and the advice offers --allow-browser-free only where the flag would draw the page; a
   // reason that would be wrong ends the reading. With the flag, what was gathered is accepted.
@@ -571,7 +661,7 @@ export async function drawDesignStill(req: DesignStillRequest): Promise<{ drawn:
   try {
     // Outlined words whatever the document's Convert paths says: a PNG carries no text,
     // and outlines are what keep the fonts out of the drawing step.
-    const blob = await req.exportSvg(req.page, {
+    const blob = await req.exportSvg(node, {
       convertPaths: true,
       ingredientSink: ingredients,
       onExportRoute: (record: DesignExportRouteRecord) => { drawnFrom = record; },
@@ -617,14 +707,27 @@ export async function drawDesignStill(req: DesignStillRequest): Promise<{ drawn:
 export async function designStillPng(
   svg: string, size: DesignStillSize, opts: { imprint?: boolean | null; meta?: Partial<ExportMeta> | null } = {},
 ): Promise<{ bytes: Uint8Array; imprinted: boolean }> {
-  const engine = await import('@lolly/engine');
   // No font is loaded: the page holds no live text (refused above), so every machine draws the same pixels.
   const frame = await rasterizeSvgToRgba(svg, size.width, size.height, { fonts: false });
+  return finishDesignStill(frame, size, opts);
+}
+
+/**
+ * Straight RGBA8 pixels finished as the web shell finishes a PNG: the Lolly Imprint when
+ * asked for and the picture is large enough to carry one, then the resolution, the
+ * provenance text, the XMP packet and the sRGB profile.
+ */
+export async function finishDesignStill(
+  frame: { data: Uint8Array; width: number; height: number }, size: DesignStillSize,
+  opts: { imprint?: boolean | null; meta?: Partial<ExportMeta> | null; encode?: (rgba: Uint8Array, width: number, height: number) => Promise<Uint8Array | null> } = {},
+): Promise<{ bytes: Uint8Array; imprinted: boolean }> {
+  const engine = await import('@lolly/engine');
   const imprinted = !!opts.imprint && engine.canCarryWatermark(frame.width, frame.height);
   const rgba = imprinted
     ? engine.embedWatermark(frame.data, { width: frame.width, height: frame.height, strength: engine.LOSSLESS_STRENGTH })
     : frame.data;
-  let png: Uint8Array = engine.packPng(rgba, { width: frame.width, height: frame.height, channels: 4, depth: 8 });
+  // A caller's own encoder (the lolly-render crate's) when it has one, else the engine's packer.
+  let png: Uint8Array = (await opts.encode?.(rgba, frame.width, frame.height)) ?? engine.packPng(rgba, { width: frame.width, height: frame.height, channels: 4, depth: 8 });
   // The web shell's finishing order (finishPng): each chunk goes in after IHDR, so the
   // file reads IHDR, iCCP, XMP, the provenance text, pHYs, then the image.
   const meta = (opts.meta ?? null) as ExportMeta | null;

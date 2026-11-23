@@ -138,6 +138,7 @@
     "./text-measure": "./src/text-measure.ts",
     "./design-ops-svg": "./src/design-ops-svg.ts",
     "./design-still": "./src/design-still.ts",
+    "./lolly-render": "./src/lolly-render.ts",
     "./export-route": "./src/export-route.ts",
     "./design-lolly": "./src/design-lolly.ts",
     "./design-compose": "./src/design-compose.ts",
