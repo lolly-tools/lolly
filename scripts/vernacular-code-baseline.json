@@ -458,7 +458,7 @@
   "shells/web/src/bridge/export-svg-walker.ts": 22,
   "shells/web/src/bridge/export-text-emission.test.ts": 2,
   "shells/web/src/bridge/export.ts": 35,
-  "shells/web/src/bridge/font-registry.ts": 8,
+  "shells/web/src/bridge/font-registry.ts": 7,
   "shells/web/src/bridge/fontface-discovery.ts": 1,
   "shells/web/src/bridge/format-support.test.ts": 1,
   "shells/web/src/bridge/format-support.ts": 4,

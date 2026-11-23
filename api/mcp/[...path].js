@@ -53990,9 +53990,9 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest, enrollmentTr
         fail6(C2PA_CHECK.assertionDataHashMismatch, `the file bytes do not match the credential - the file changed after signing${qualifier}`);
       }
     } catch (err) {
-      const malformed = !!err.malformed && !!report4.textBinding;
+      const malformed2 = !!err.malformed && !!report4.textBinding;
       fail6(
-        malformed ? C2PA_CHECK.assertionDataHashMalformed : C2PA_CHECK.assertionDataHashMismatch,
+        malformed2 ? C2PA_CHECK.assertionDataHashMalformed : C2PA_CHECK.assertionDataHashMismatch,
         `hard binding could not be checked: ${err.message}`
       );
     }
@@ -69480,10 +69480,10 @@ async function admitBrandSkill(files) {
   const markdownPaths = paths.filter((p) => /\.md$/i.test(p) && !p.includes("/"));
   const entryPath = paths.includes("SKILL.md") ? "SKILL.md" : paths.length === 1 && markdownPaths.length === 1 ? markdownPaths[0] : null;
   if (!entryPath) return refuse4("entry", "No SKILL.md was found. Supply one Markdown file, or a folder with SKILL.md at its top.");
-  const decoder6 = new TextDecoder("utf-8", { fatal: true });
+  const decoder7 = new TextDecoder("utf-8", { fatal: true });
   const decode = (path) => {
     try {
-      return decoder6.decode(files[path]).replace(/^﻿/, "");
+      return decoder7.decode(files[path]).replace(/^﻿/, "");
     } catch {
       return null;
     }
@@ -104263,14 +104263,14 @@ function decodeDataText(bytes2, encoding) {
       return { text: new TextDecoder("windows-1252").decode(bytes2), encoding: "windows-1252" };
     }
   }
-  let decoder6;
+  let decoder7;
   try {
-    decoder6 = new TextDecoder(encoding, { fatal: true });
+    decoder7 = new TextDecoder(encoding, { fatal: true });
   } catch {
     throw new Error(`This device cannot read ${encoding} text.`);
   }
   try {
-    return { text: decoder6.decode(bytes2), encoding };
+    return { text: decoder7.decode(bytes2), encoding };
   } catch {
     throw new Error(`This file is not valid ${encoding} text. Choose another text encoding.`);
   }
@@ -104523,10 +104523,10 @@ function isValue(v) {
 }
 function createCalcEngine(runner, source) {
   const encoder5 = new TextEncoder();
-  const decoder6 = new TextDecoder();
+  const decoder7 = new TextDecoder();
   const call2 = (operation, body) => {
     const answer = runner(operation, encoder5.encode(JSON.stringify(body)));
-    return JSON.parse(decoder6.decode(answer));
+    return JSON.parse(decoder7.decode(answer));
   };
   function evaluate(request3) {
     if (!request3 || !Array.isArray(request3.sheets)) throw new Error("A calculation needs a list of sheets.");
@@ -176900,6 +176900,237 @@ var init_text_shape = __esm({
   }
 });
 
+// packages/node-shell/src/woff2.ts
+var woff2_exports = {};
+__export(woff2_exports, {
+  WOFF2_LIMITS: () => WOFF2_LIMITS,
+  Woff2Error: () => Woff2Error,
+  checkSfntOutput: () => checkSfntOutput,
+  decodeWoff2: () => decodeWoff2,
+  preflightWoff2: () => preflightWoff2
+});
+function malformed(what) {
+  return new Woff2Error("malformed", `This WOFF2 font is damaged: ${what}.`);
+}
+function preflightWoff2(bytes2, limits = WOFF2_LIMITS) {
+  const length2 = bytes2.byteLength;
+  if (length2 < 4 || bytes2[0] !== 119 || bytes2[1] !== 79 || bytes2[2] !== 70 || bytes2[3] !== 50) {
+    throw new Woff2Error("not-woff2", "This file is not a WOFF2 font.");
+  }
+  if (length2 > limits.maxInputBytes) {
+    throw new Woff2Error("too-large", `This WOFF2 font is larger than ${sizeText(limits.maxInputBytes)}.`);
+  }
+  if (length2 < HEADER_BYTES) throw malformed("the header is incomplete");
+  const view = new DataView(bytes2.buffer, bytes2.byteOffset, length2);
+  const r5 = new Reader2(view);
+  if (r5.u32("the signature") !== WOFF2_SIGNATURE) throw new Woff2Error("not-woff2", "This file is not a WOFF2 font.");
+  const flavor = r5.u32("the flavor");
+  if (r5.u32("the length field") !== length2) throw malformed("the length field does not match the file");
+  const numTables = r5.u16("the table count");
+  if (!numTables) throw malformed("it declares no tables");
+  r5.u16("the reserved field");
+  const totalSfntSize = r5.u32("totalSfntSize");
+  const compressedLength = r5.u32("the compressed length");
+  r5.u16("the major version");
+  r5.u16("the minor version");
+  const metaOffset = r5.u32("the metadata offset");
+  const metaLength = r5.u32("the metadata length");
+  r5.u32("the metadata original length");
+  const privOffset = r5.u32("the private data offset");
+  const privLength = r5.u32("the private data length");
+  if (metaOffset && (metaOffset >= length2 || length2 - metaOffset < metaLength)) throw malformed("the metadata block lies outside the file");
+  if (privOffset && (privOffset >= length2 || length2 - privOffset < privLength)) throw malformed("the private data block lies outside the file");
+  const kinds2 = [];
+  let uncompressedSize = 0;
+  for (let i = 0; i < numTables; i++) {
+    const flags = r5.u8("a table entry");
+    const known3 = flags & 63;
+    const tag3 = known3 === 63 ? r5.u32("a table tag") : -1;
+    const kind = (known3 === 63 ? tag3 === GLYF_TAG : known3 === GLYF_INDEX) ? "glyf" : (known3 === 63 ? tag3 === LOCA_TAG : known3 === LOCA_INDEX) ? "loca" : "other";
+    const version = flags >> 6 & 3;
+    const transformed = kind === "other" ? version !== 0 : version === 0;
+    let stored = r5.base128("a table length");
+    if (transformed) {
+      stored = r5.base128("a transformed table length");
+      if (kind === "loca" && stored) throw malformed("the transformed loca table has a length");
+    }
+    uncompressedSize += stored;
+    if (uncompressedSize > 4294967295) throw malformed("the table lengths overflow");
+    kinds2.push(kind);
+  }
+  if (uncompressedSize < 1) throw malformed("the tables hold no data");
+  let fonts = 1;
+  let headerBytes = 12 + 16 * numTables;
+  const collection = flavor === TTC_FLAVOR;
+  if (collection) {
+    const version = r5.u32("the collection version");
+    if (version !== 65536 && version !== 131072) throw malformed("the collection version is unknown");
+    fonts = r5.u255("the collection font count");
+    if (!fonts) throw malformed("the collection holds no fonts");
+    headerBytes = (version === 131072 ? 12 : 0) + 12 + 4 * fonts + 12 * fonts;
+    for (let f = 0; f < fonts; f++) {
+      const count4 = r5.u255("a collection table count");
+      if (!count4) throw malformed("a collection font holds no tables");
+      r5.u32("a collection font flavor");
+      headerBytes += 16 * count4;
+      if (headerBytes > limits.maxOutputBytes) throw new Woff2Error("too-large", "This WOFF2 collection declares more table records than the decoder can hold.");
+      let glyf = 0;
+      let loca = 0;
+      for (let t = 0; t < count4; t++) {
+        const index2 = r5.u255("a collection table index");
+        if (index2 >= numTables) throw malformed("a collection font points at a missing table");
+        if (kinds2[index2] === "loca") loca = index2;
+        if (kinds2[index2] === "glyf") glyf = index2;
+      }
+      if ((glyf > 0 || loca > 0) && (glyf > loca || loca - glyf !== 1)) throw malformed("a collection font has glyf and loca apart");
+    }
+  }
+  if (uncompressedSize > length2 * limits.maxRatio) throw new Woff2Error("too-large", "This WOFF2 font declares more data than its size allows.");
+  if (uncompressedSize > limits.maxOutputBytes || headerBytes > limits.maxOutputBytes) {
+    throw new Woff2Error("too-large", `This WOFF2 font expands past ${sizeText(limits.maxOutputBytes)}.`);
+  }
+  const compressedOffset = r5.offset;
+  let end = round45(compressedOffset + compressedLength);
+  if (end > length2) throw malformed("the compressed data runs past the end of the file");
+  if (metaOffset) {
+    if (end !== metaOffset) throw malformed("the metadata block is out of place");
+    end = round45(metaOffset + metaLength);
+  }
+  if (privOffset) {
+    if (end !== privOffset) throw malformed("the private data block is out of place");
+    end = round45(privOffset + privLength);
+  }
+  if (end !== round45(length2)) throw malformed("the file has bytes after its last block");
+  return { flavor, collection, numTables, totalSfntSize, uncompressedSize, compressedOffset, compressedLength, headerBytes, fonts };
+}
+function checkOffsetTable(view, at, what) {
+  if (at + 12 > view.byteLength) throw new Woff2Error("bad-output", `The decoded ${what} has no complete header.`);
+  if (!SFNT_FLAVORS.has(view.getUint32(at))) throw new Woff2Error("bad-output", `The decoded ${what} is not TrueType or OpenType.`);
+  const count4 = view.getUint16(at + 4);
+  if (at + 12 + 16 * count4 > view.byteLength) throw new Woff2Error("bad-output", `The decoded ${what} has an incomplete table directory.`);
+  for (let i = 0; i < count4; i++) {
+    const record49 = at + 12 + 16 * i;
+    const offset = view.getUint32(record49 + 8);
+    const size = view.getUint32(record49 + 12);
+    if (offset + size > view.byteLength) throw new Woff2Error("bad-output", `A table in the decoded ${what} lies outside the file.`);
+  }
+}
+function checkSfntOutput(bytes2, facts2, maxBytes = WOFF2_LIMITS.maxOutputBytes) {
+  if (bytes2.byteLength > maxBytes) throw new Woff2Error("too-large", `The decoded font is larger than ${sizeText(maxBytes)}.`);
+  const view = new DataView(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength);
+  if (!facts2.collection) {
+    checkOffsetTable(view, 0, "font");
+    return;
+  }
+  if (bytes2.byteLength < 12 || view.getUint32(0) !== TTC_FLAVOR) throw new Woff2Error("bad-output", "The decoded collection has no collection header.");
+  const fonts = view.getUint32(8);
+  if (12 + 4 * fonts > bytes2.byteLength) throw new Woff2Error("bad-output", "The decoded collection has an incomplete font list.");
+  for (let i = 0; i < fonts; i++) checkOffsetTable(view, view.getUint32(12 + 4 * i), `collection font ${i + 1}`);
+}
+async function decodeWoff2(bytes2, options2 = {}) {
+  const maxOutputBytes = Math.min(options2.maxOutputBytes ?? WOFF2_LIMITS.maxOutputBytes, WOFF2_LIMITS.maxOutputBytes);
+  const facts2 = preflightWoff2(bytes2, { ...WOFF2_LIMITS, maxOutputBytes });
+  decoder6 ??= import("woff2-encoder/decompress").then(
+    (module) => module.default,
+    (error2) => {
+      decoder6 = void 0;
+      throw error2;
+    }
+  );
+  let decoded;
+  try {
+    decoded = await (await decoder6)(bytes2);
+  } catch (error2) {
+    throw new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: error2 });
+  }
+  const out = decoded instanceof Uint8Array ? decoded : new Uint8Array(decoded);
+  checkSfntOutput(out, facts2, maxOutputBytes);
+  return out;
+}
+var WOFF2_LIMITS, Woff2Error, WOFF2_SIGNATURE, TTC_FLAVOR, SFNT_FLAVORS, GLYF_INDEX, LOCA_INDEX, GLYF_TAG, LOCA_TAG, HEADER_BYTES, round45, sizeText, Reader2, decoder6;
+var init_woff2 = __esm({
+  "packages/node-shell/src/woff2.ts"() {
+    "use strict";
+    WOFF2_LIMITS = Object.freeze({
+      /** The largest WOFF2 file read: the font upload limit. */
+      maxInputBytes: 32 * 1024 * 1024,
+      /** The largest sfnt the decoder writes, and the largest Brotli target it is asked for. */
+      maxOutputBytes: 30 * 1024 * 1024,
+      /** Decompressed table bytes per byte of file, as google/woff2 refuses above. */
+      maxRatio: 100
+    });
+    Woff2Error = class extends Error {
+      code;
+      constructor(code, message, options2) {
+        super(message, options2);
+        this.name = "Woff2Error";
+        this.code = code;
+      }
+    };
+    WOFF2_SIGNATURE = 2001684018;
+    TTC_FLAVOR = 1953784678;
+    SFNT_FLAVORS = /* @__PURE__ */ new Set([
+      65536,
+      1330926671,
+      1953658213
+      /* true */
+    ]);
+    GLYF_INDEX = 10;
+    LOCA_INDEX = 11;
+    GLYF_TAG = 1735162214;
+    LOCA_TAG = 1819239265;
+    HEADER_BYTES = 48;
+    round45 = (n7) => n7 + 3 - (n7 + 3) % 4;
+    sizeText = (n7) => n7 >= 1048576 ? `${Math.floor(n7 / 1048576)} MB` : `${n7} bytes`;
+    Reader2 = class {
+      offset = 0;
+      view;
+      constructor(view) {
+        this.view = view;
+      }
+      need(n7, what) {
+        if (this.offset + n7 > this.view.byteLength) throw malformed(`${what} runs past the end of the file`);
+      }
+      u8(what) {
+        this.need(1, what);
+        return this.view.getUint8(this.offset++);
+      }
+      u16(what) {
+        this.need(2, what);
+        const v = this.view.getUint16(this.offset);
+        this.offset += 2;
+        return v;
+      }
+      u32(what) {
+        this.need(4, what);
+        const v = this.view.getUint32(this.offset);
+        this.offset += 4;
+        return v;
+      }
+      /** UIntBase128 as google/woff2 reads it: no leading zero byte, at most five bytes, no overflow. */
+      base128(what) {
+        let result = 0;
+        for (let i = 0; i < 5; i++) {
+          const code = this.u8(what);
+          if (i === 0 && code === 128) throw malformed(`${what} has a leading zero`);
+          if (result >= 33554432) throw malformed(`${what} overflows 32 bits`);
+          result = result * 128 + (code & 127);
+          if ((code & 128) === 0) return result;
+        }
+        throw malformed(`${what} is longer than five bytes`);
+      }
+      /** A 255UInt16 (MicroType Express) value, with google/woff2's rules. */
+      u255(what) {
+        const code = this.u8(what);
+        if (code === 253) return this.u16(what);
+        if (code === 255) return this.u8(what) + 253;
+        if (code === 254) return this.u8(what) + 506;
+        return code;
+      }
+    };
+  }
+});
+
 // packages/node-shell/src/text-fonts.ts
 function validateResource(resource) {
   if (!/^[a-f0-9]{64}$/u.test(resource.sha256) || !Number.isSafeInteger(resource.faceIndex) || resource.faceIndex < 0 || resource.faceIndex > 1023) throw new TextSourceError("font-identity", "The font needs a SHA-256 content identity and face index.");
@@ -176953,7 +177184,11 @@ function createPinnedTextShaper(read, loadHarfBuzz2 = () => import("harfbuzzjs")
       bytes2 = woffToSfnt(input);
     } else if (kind === "woff2") {
       if (input.length < 48 || new DataView(input.buffer, input.byteOffset, input.byteLength).getUint32(16) > MAX_FONT_BYTES2) throw new TextSourceError("font-size", "The expanded font exceeds the supported size.");
-      bytes2 = await (await import("woff2-encoder/decompress")).default(input);
+      try {
+        bytes2 = await (await Promise.resolve().then(() => (init_woff2(), woff2_exports))).decodeWoff2(input, { maxOutputBytes: MAX_FONT_BYTES2 });
+      } catch (error2) {
+        throw new TextSourceError("font-format", error2 instanceof Error ? error2.message : "The WOFF2 font could not be decoded.");
+      }
     }
     const collection = String.fromCharCode(...bytes2.subarray(0, 4)) === "ttcf";
     if (bytes2.length > MAX_FONT_BYTES2 || !collection && !["ttf", "otf"].includes(sfntKind(bytes2) ?? "")) throw new TextSourceError("font-format", "The font container is not supported.");
@@ -177099,8 +177334,7 @@ async function readFace2(fontUrl, repoRoot2, key2) {
   const hb = await loadHarfBuzz();
   let buf = await loadFontBytes(fontUrl, repoRoot2);
   if (buf.length >= 4 && buf[0] === 119 && buf[1] === 79 && buf[2] === 70 && buf[3] === 50) {
-    const decompress = (await import("woff2-encoder/decompress")).default;
-    buf = new Uint8Array(await decompress(buf));
+    buf = await (await Promise.resolve().then(() => (init_woff2(), woff2_exports))).decodeWoff2(buf);
   }
   const blob = new hb.Blob(buf);
   const face = new hb.Face(blob);
@@ -178128,13 +178362,13 @@ function loadStandardWidths() {
   standardWidths ??= (async () => {
     const out = /* @__PURE__ */ new Map();
     const doc = await PDFDocument3.create();
-    const decoder6 = new TextDecoder("windows-1252");
+    const decoder7 = new TextDecoder("windows-1252");
     for (const name of STANDARD_NAMES) {
       const font = await doc.embedFont(name);
       const widths = {};
       for (let code = 32; code < 256; code++) {
         try {
-          widths[code] = font.widthOfTextAtSize(decoder6.decode(Uint8Array.of(code)), 1e3);
+          widths[code] = font.widthOfTextAtSize(decoder7.decode(Uint8Array.of(code)), 1e3);
         } catch {
         }
       }
@@ -180105,7 +180339,7 @@ async function createLayoutKernel(bytes2) {
   }
   if (!(api.memory instanceof WebAssembly.Memory)) throw new Error("Layout kernel lacks memory.");
   const encoder5 = new TextEncoder();
-  const decoder6 = new TextDecoder("utf-8", { fatal: true });
+  const decoder7 = new TextDecoder("utf-8", { fatal: true });
   return (request3) => {
     const input = encoder5.encode(JSON.stringify(request3));
     if (input.length > MAX_BYTES2) throw new Error("Layout request exceeds 8 MiB.");
@@ -180116,7 +180350,7 @@ async function createLayoutKernel(bytes2) {
       const output = api.layout_solve(pointer2, input.length);
       const length2 = api.layout_output_len();
       if (!length2 || length2 > MAX_BYTES2) throw new Error("Layout response exceeds 8 MiB.");
-      const result = JSON.parse(decoder6.decode(new Uint8Array(api.memory.buffer, output, length2)));
+      const result = JSON.parse(decoder7.decode(new Uint8Array(api.memory.buffer, output, length2)));
       if (result.error) throw new Error(String(result.error));
       const vectors = (value2, count4, width) => Array.isArray(value2) && value2.length === count4 && value2.every(
         (row) => Array.isArray(row) && row.length === width && row.every(Number.isFinite)
@@ -180440,7 +180674,7 @@ async function releaseTextAPI(base, pins, read) {
   for (const pin of pins) if (pin.font) {
     let raw = await verifyPinnedFontBytes(pin, await read(pin.frozenId ?? pin.id));
     if (raw.byteLength > 32 * 1024 * 1024) throw new Error("A pinned font exceeds the 32 MB limit.");
-    if (String.fromCharCode(...raw.slice(0, 4)) === "wOF2") raw = new Uint8Array(await (await import("woff2-encoder/decompress")).default(raw));
+    if (String.fromCharCode(...raw.slice(0, 4)) === "wOF2") raw = await (await Promise.resolve().then(() => (init_woff2(), woff2_exports))).decodeWoff2(raw);
     bytes2.set(pin.id, `data:font/ttf;base64,${Buffer.from(raw).toString("base64")}`);
   }
   return {
@@ -184110,9 +184344,9 @@ async function collectProductionMotion(bytes2, contract2, signal, binaries = { p
     facts2.width = width;
     facts2.height = height;
     const versions = await Promise.all([binaries.probe, binaries.decode].map((binary) => run2(binary, ["-version"], { signal, timeout: 5e3, maxBuffer: 64 * 1024 })));
-    const decoder6 = { probe: versions[0].stdout.split("\n")[0].slice(0, 256), decode: versions[1].stdout.split("\n")[0].slice(0, 256) };
+    const decoder7 = { probe: versions[0].stdout.split("\n")[0].slice(0, 256), decode: versions[1].stdout.split("\n")[0].slice(0, 256) };
     const review = await inspectMotionBytes(bytes2, {}, binaries, { signal, timeoutMs: 6e4, strict: true });
-    facts2.records = { motionDecoder: decoder6, motionReview: JSON.parse(JSON.stringify(review)) };
+    facts2.records = { motionDecoder: decoder7, motionReview: JSON.parse(JSON.stringify(review)) };
     const measured = (id3) => review.checks.find((c) => c.id === id3)?.measured;
     const times = contract2.motion.comparison?.times ?? [];
     const sampleBudget = times.length * width * height <= 16e6;
@@ -190531,11 +190765,7 @@ async function toSfnt(bytes2) {
     const kind = sfntKind(bytes2);
     if (kind === "ttf" || kind === "otf") return bytes2;
     if (kind === "woff") return woffToSfnt(bytes2);
-    if (kind === "woff2") {
-      const decompress = (await import("woff2-encoder/decompress")).default;
-      const out = await decompress(bytes2);
-      return out.length <= MAX_FONT_BYTES3 ? out : null;
-    }
+    if (kind === "woff2") return await (await Promise.resolve().then(() => (init_woff2(), woff2_exports))).decodeWoff2(bytes2, { maxOutputBytes: MAX_FONT_BYTES3 });
   } catch {
   }
   return null;
@@ -198174,7 +198404,7 @@ function slidePartCount(bytes2) {
   const size = view.getUint32(end + 12, true);
   const offset = view.getUint32(end + 16, true);
   if (entries === 65535 || offset + size > end) return null;
-  const decoder6 = new TextDecoder();
+  const decoder7 = new TextDecoder();
   let count4 = 0;
   let at = offset;
   for (let index2 = 0; index2 < entries; index2 += 1) {
@@ -198182,7 +198412,7 @@ function slidePartCount(bytes2) {
     const nameLength = view.getUint16(at + 28, true);
     const next2 = at + 46 + nameLength + view.getUint16(at + 30, true) + view.getUint16(at + 32, true);
     if (next2 > offset + size) return null;
-    if (SLIDE_PART.test(decoder6.decode(bytes2.subarray(at + 46, at + 46 + nameLength)))) count4 += 1;
+    if (SLIDE_PART.test(decoder7.decode(bytes2.subarray(at + 46, at + 46 + nameLength)))) count4 += 1;
     at = next2;
   }
   return count4;

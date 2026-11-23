@@ -127,10 +127,9 @@ async function readFace(fontUrl: string, repoRoot: string, key: string): Promise
   let buf = await loadFontBytes(fontUrl, repoRoot);
   // woff2 is not sfnt: HarfBuzz reads it as .notdef for every glyph, a silently blank
   // export. The fallback fonts (community/fallback-fonts) ship as woff2, so decode it
-  // here with the same pinned decoder the web shell uses.
+  // here with the same pinned decoder, and the same checks, the web shell uses.
   if (buf.length >= 4 && buf[0] === 0x77 && buf[1] === 0x4f && buf[2] === 0x46 && buf[3] === 0x32) {
-    const decompress = (await import('woff2-encoder/decompress')).default as (b: Uint8Array) => Promise<Uint8Array>;
-    buf = new Uint8Array(await decompress(buf));
+    buf = await (await import('./woff2.ts')).decodeWoff2(buf);
   }
   const blob = new hb.Blob(buf as unknown as ArrayBuffer);
   const face = new hb.Face(blob);

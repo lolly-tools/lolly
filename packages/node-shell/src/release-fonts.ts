@@ -11,7 +11,7 @@ export async function releaseTextAPI(base: TextAPI, pins: readonly PinnedAsset[]
   for (const pin of pins) if (pin.font) {
     let raw = await verifyPinnedFontBytes(pin, await read(pin.frozenId ?? pin.id));
     if (raw.byteLength > 32 * 1024 * 1024) throw new Error('A pinned font exceeds the 32 MB limit.');
-    if (String.fromCharCode(...raw.slice(0, 4)) === 'wOF2') raw = new Uint8Array(await (await import('woff2-encoder/decompress')).default(raw));
+    if (String.fromCharCode(...raw.slice(0, 4)) === 'wOF2') raw = await (await import('./woff2.ts')).decodeWoff2(raw);
     bytes.set(pin.id, `data:font/ttf;base64,${Buffer.from(raw).toString('base64')}`);
   }
   return { ...base,
