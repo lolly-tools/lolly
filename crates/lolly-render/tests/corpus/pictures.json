@@ -1,0 +1,34 @@
+{
+  "template-brand-starter-frame": [
+    {
+      "ref": "lolly/demo/sample-photo",
+      "type": "image/jpeg",
+      "path": "brands/lolly-demo/catalog/assets/lolly/demo/sample-photo.jpg",
+      "sha256": "cce68cc1b65f2d2beded4f96d0e8302ed8fa245473dd0c798c8f1ad670113592"
+    }
+  ],
+  "template-carousel-page1": [
+    {
+      "ref": "lolly/demo/sample-wide",
+      "type": "image/webp",
+      "path": "brands/lolly-demo/catalog/assets/lolly/demo/sample-wide.webp",
+      "sha256": "b11a6c549693d1696ea83c1cce1f8a00aefffc34d4d4d3ae5fc8965b23e8ab35"
+    }
+  ],
+  "template-pull-quote-frame": [
+    {
+      "ref": "lolly/demo/sample-portrait",
+      "type": "image/webp",
+      "path": "brands/lolly-demo/catalog/assets/lolly/demo/sample-portrait.webp",
+      "sha256": "7bdc1110d4abb2e008cd5ca3ccf7841bf629692a2ee89e3b6e7e4b6c21c5fe59"
+    }
+  ],
+  "template-video-scene1": [
+    {
+      "ref": "lolly/demo/sample-landscape",
+      "type": "image/webp",
+      "path": "brands/lolly-demo/catalog/assets/lolly/demo/sample-landscape.webp",
+      "sha256": "c7da9cb0ccc1c349ec044c0a5aa82e087226a8dfb6a91697d2b0019ca91e0ecd"
+    }
+  ]
+}
