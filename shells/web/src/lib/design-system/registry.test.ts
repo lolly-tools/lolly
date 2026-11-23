@@ -11,7 +11,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  ACTIVE_DESIGN_SYSTEM_KEY, DESIGN_SYSTEMS_STORE, createDesignSystemRegistry, stripTokensSuffix,
+  ACTIVE_DESIGN_SYSTEM_KEY, DESIGN_SYSTEMS_STORE, createDesignSystemRegistry, stripTokensSuffix, visibleDesignSystems,
   type DesignSystemRecord, type RegistryDb, type RegistryProbe,
 } from './registry.ts';
 
@@ -239,4 +239,32 @@ test('choosing the shipped system again shows it, and seeded companions are reme
   assert.deepEqual(await reg.seeded(), ['lolly/tokens/brand']);
   await reg.markSeeded('lolly/tokens/brand', false);
   assert.deepEqual(await reg.seeded(), []);
+});
+
+// Andy, 2026-11-23: the catalog's own system is always listed. An edit used to hide that row.
+test('a catalog system hidden by an earlier edit of it is shown again, once', async () => {
+  const db = memDb();
+  const first = createDesignSystemRegistry(db, probe({ catalog: { id: 'lolly/tokens/demo', name: 'Lolly Demo' } }));
+  await first.ensure();
+  // The state an edit left before this change: an edited copy, and the catalog row hidden.
+  await db.put(DESIGN_SYSTEMS_STORE, { id: 'default', label: 'Lolly Demo', ns: 'user/', headId: 'user/tokens/brand', source: { kind: 'local', from: 'shipped' }, locked: false, createdAt: 1, lastUsedAt: 1 });
+  await db.put(DESIGN_SYSTEMS_STORE, { ...(await db.get(DESIGN_SYSTEMS_STORE, 'shipped') as object), hidden: true });
+  await db.delete('profile', 'shipped-design-system-shown');
+
+  const reg = createDesignSystemRegistry(db, probe({ catalog: { id: 'lolly/tokens/demo', name: 'Lolly Demo' } }));
+  assert.deepEqual((await reg.visible()).map(r => r.id).sort(), ['default', 'shipped']);
+  // Hidden by the person afterwards, it stays hidden on the next start.
+  await reg.setShippedHidden(true);
+  const later = createDesignSystemRegistry(db, probe({ catalog: { id: 'lolly/tokens/demo', name: 'Lolly Demo' } }));
+  assert.deepEqual((await later.visible()).map(r => r.id), ['default']);
+});
+
+test('a kept copy of the catalog system is not listed twice while that catalog is current', () => {
+  const base = { ns: '', locked: false, createdAt: 0, lastUsedAt: 0 };
+  const shipped = { ...base, id: 'shipped', label: 'Lolly Demo', headId: 'lolly/tokens/demo', source: { kind: 'shipped' as const } };
+  const kept = { ...base, id: 'lolly-demo', label: 'Lolly Demo', headId: 'user/ds/lolly-demo/tokens/brand', source: { kind: 'local' as const, from: 'app' as const, companion: { tokens: 'lolly/tokens/demo', label: 'Lolly Demo' } } };
+  assert.deepEqual(visibleDesignSystems([shipped, kept]).map(r => r.id), ['shipped']);
+  // Connected to an instance, the catalog's row is the instance's, and the kept copy is listed.
+  const instance = { ...shipped, label: 'Acme', headId: 'acme/tokens/brand' };
+  assert.deepEqual(visibleDesignSystems([instance, kept]).map(r => r.id), ['shipped', 'lolly-demo']);
 });

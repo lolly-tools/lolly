@@ -154,27 +154,34 @@ test('a first edit of the blank starter is a new brand: a placeholder name to as
   assert.deepEqual((await r.registry.visible()).map(x => x.id), ['shipped', 'default']);
 });
 
-test('a first edit of a shipped brand reads as editing it in place: its name, and the catalogue row hidden', async () => {
+// Andy, 2026-11-23: an edit of the shipped brand makes a new design system; the brand stays.
+test('a first edit of a shipped brand makes a copy with its own name, and the catalogue row stays listed', async () => {
   const r = await rig({ catalog: { id: 'lolly/tokens/demo', name: 'Lolly Demo' } });
   // The studio writes with no label.
   await installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC2);
   const active = await r.tokens.active();
   assert.equal(active?.id, 'default');
-  assert.equal(active?.label, 'Lolly Demo', "the shipped system's name, not 'My design system'");
-  const fork = await r.registry.get('default');
-  assert.deepEqual(fork?.source, { kind: 'local', from: 'shipped' });
-  assert.equal(fork?.createdAt, (await r.registry.get('shipped'))?.createdAt, "the shipped row's place in the list");
+  assert.equal(active?.label, 'Lolly Demo copy');
+  assert.deepEqual((await r.registry.get('default'))?.source, { kind: 'local', from: 'shipped' });
   assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#123456');
-  assert.deepEqual((await r.registry.visible()).map(x => x.id), ['default']);
-  assert.ok(await r.registry.get('shipped'), 'hidden, never deleted');
-  // Choosing the catalogue system again (a ds=shipped link) brings its row back.
+  assert.deepEqual((await r.registry.visible()).map(x => x.id).sort(), ['default', 'shipped']);
+  assert.notEqual((await r.registry.get('shipped'))?.hidden, true);
+});
+
+test('a second edit made from the shipped brand keeps the earlier copy as a system of its own', async () => {
+  const r = await rig({ catalog: { id: 'lolly/tokens/demo', name: 'Lolly Demo' } });
+  await installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC2);
   await r.registry.setActive('shipped');
-  assert.deepEqual((await r.registry.visible()).map(x => x.id).sort(), ['default', 'shipped']);
-  // A second edit from shipped goes to the existing default, which keeps its name,
-  // and the catalogue row stays.
+  r.tokens.bust();
   await installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC);
-  assert.equal((await r.tokens.active())?.label, 'Lolly Demo');
-  assert.deepEqual((await r.registry.visible()).map(x => x.id).sort(), ['default', 'shipped']);
+  // The new copy is the default; the earlier one is still on the device, unchanged.
+  assert.equal((await r.tokens.active())?.id, 'default');
+  assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#30ba78');
+  const kept = (await r.registry.list()).filter(x => x.id !== 'default' && x.id !== 'shipped');
+  assert.equal(kept.length, 1);
+  assert.equal(kept[0]!.label, 'Lolly Demo copy');
+  const doc = JSON.parse(await (await r.assets._getBlob(kept[0]!.headId))!.text());
+  assert.equal(doc.color.brand.jungle.$value, '#123456', "the earlier copy's own colour");
 });
 
 test('a head write with no label keeps the record label - the studio no longer renames the system', async () => {
