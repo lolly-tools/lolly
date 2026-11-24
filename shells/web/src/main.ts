@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { installToolByteVerification } from './catalog/tool-bytes.ts';
+import { installVerifiedToolElements } from './catalog/tool-elements.ts';
 import { installVerifiedPreviews } from './lib/preview-media.ts';
 import { installStaleShellRecovery, looksLikeChunkError } from './lib/stale-shell.ts';
 /**
@@ -1309,6 +1310,8 @@ async function boot(): Promise<void> {
   if (bootRoute.name === 'gallery' || bootRoute.name === 'utilities') void import('./views/gallery.ts').catch(() => {});
   mountViewAsBanner(document, () => stopViewAs(instanceFetch));
   installToolByteVerification();
+  // The tool view reads a tool's files without getTool(), so the element guard is set here too.
+  installVerifiedToolElements();
   installVerifiedPreviews();
   // The view this tab leaves the app from, for the static docs' way back (lib/back-nav.ts).
   rememberViewOnLeave();
