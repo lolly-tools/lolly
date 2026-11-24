@@ -2252,6 +2252,23 @@
       }
     },
     {
+      "slug": "work-kubewarden",
+      "title": "How Lolly uses Kubewarden",
+      "src": "work/kubewarden.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/kubewarden",
+      "icon": "shieldcheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Where Lolly uses Kubewarden, what its policies check on a Lolly Work cluster, what an administrator sees in Setup and which Kubewarden release the policy set is qualified against.",
+      "work": {
+        "slug": "kubewarden",
+        "path": "kubewarden.md",
+        "icon": "overview"
+      }
+    },
+    {
       "slug": "work-admission-policy",
       "title": "Admission policy with Kubewarden",
       "src": "work/admission-policy.md",
