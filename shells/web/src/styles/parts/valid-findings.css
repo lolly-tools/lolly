@@ -31,7 +31,7 @@
     padding: var(--sp-4);
     border-radius: var(--ui-radius-control);
     font-family: var(--ui-type-ui-family);
-    transition: background-color .15s ease;
+    transition: background-color var(--dur-1) var(--ease-out);
   }
   .vf-slot:hover { background: var(--ui-color-surface-muted); }
   .vf-slot:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
@@ -79,7 +79,7 @@
   .vf-mini-slot.is-bad { color: hsl(var(--vf-fail)); }
 
   /* Where a slot's "Show the detail" lands. */
-  .vf-flash { animation: vf-flash 1.4s ease-out 1; scroll-margin-top: calc(var(--chrome-h) + var(--sp-7)); }
+  .vf-flash { animation: vf-flash calc(var(--dur-3) * 4) var(--ease-out) 1; scroll-margin-top: calc(var(--chrome-h) + var(--sp-7)); }
   @keyframes vf-flash { from { box-shadow: 0 0 0 3px hsl(var(--ring) / .55); } to { box-shadow: 0 0 0 3px hsl(var(--ring) / 0); } }
   @media (prefers-reduced-motion: reduce) { .vf-flash { animation: none; } .vf-slot { transition: none; } }
   html[data-a11y-motion="reduce"] .vf-flash { animation: none; }
