@@ -1,6 +1,6 @@
 {
   "name": "Markdownスライド",
-  "description": "MarkdownやJSON仕様を、編集可能なネイティブのPowerPointデッキに数秒で変換します - 本物のテキスト、箇条書き、表、そしてデザインシステムのテーマまでそのまま反映されます。デッキを作る最速のテキスト優先ルートで、スライドを手作業でレイアウトしたりアニメーションを付けたりしたいときはDesignキャンバスを使ってください。チャートや図表は、他のLollyツールから取り込めます。書き出しは編集可能な.pptxのほか、PDFとPNGにも対応します。",
+  "description": "MarkdownやJSON仕様を、編集可能なネイティブのPowerPointデッキに変換します。編集可能な.pptxのほか、PDFとPNGにも書き出せます。",
   "a11yLabel": "{{_slideCount}}枚のスライドを含むプレゼンテーションデッキ",
   "inputs.size.label": "デッキサイズ",
   "inputs.size.help": "デッキ全体で1つのサイズです。PowerPointはすべてのスライドに同じサイズを適用します。",

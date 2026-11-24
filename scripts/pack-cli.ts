@@ -292,6 +292,9 @@ const result = await build({
     tui: join(REPO, 'shells/tui/src/main.tsx'),
     'rebrand-worker': join(REPO, 'shells/cli/src/rebrand-worker.ts'),
     'batch-worker': join(REPO, 'shells/cli/src/batch-worker.ts'),
+    // Each WOFF2 font decodes in a worker thread of its own: woff2-node.ts looks for
+    // `./_woff2-worker.js` beside the chunk that holds its compiled code.
+    '_woff2-worker': join(REPO, 'packages/node-shell/src/woff2-worker.ts'),
     // Its own entry so the bin wrappers can turn the compile cache on BEFORE they load
     // the bundle: a module that is already loaded was compiled without the cache.
     'startup-cache': join(REPO, 'shells/cli/src/startup-cache.ts'),
@@ -314,7 +317,7 @@ const result = await build({
 });
 
 const outputs = Object.keys(result.metafile.outputs);
-for (const name of ['cli', 'tui', 'rebrand-worker', 'startup-cache']) {
+for (const name of ['cli', 'tui', 'rebrand-worker', 'startup-cache', '_woff2-worker']) {
   if (!outputs.some(o => o.endsWith(`/dist/${name}.js`))) {
     throw new Error(`esbuild produced no dist/${name}.js (outputs: ${outputs.join(', ')})`);
   }

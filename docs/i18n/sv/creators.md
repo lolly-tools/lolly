@@ -1,76 +1,88 @@
 # Skapa
 
-Du fyller i några fält och en färdig fil kommer ut, med typsnitt, färger och layout redan bestämda, på din egen enhet. Eftersom varumärkesreglerna finns i verktyget är det aldrig ditt namn på filen som bryter mot varumärket. Välj det spår som passar det du gör i dag.
+Fyll i några fält och få en färdig fil på din egen enhet, med typsnitt, färger och layout redan bestämda. Varumärkesreglerna finns i verktyget, så ditt namn hamnar aldrig på en fil som bryter mot dem.
 
-Ny här? Börja med **[Gör din första fil](/info/make-something.html)**. [Så fungerar Lolly](/info/how-lolly-works.html) visar hur ett verktyg du använder också kan köras från ett skript eller en kollegas telefon, och [Frågor och svar](/info/faq.html) tar upp det folk frågar innan de litar på ett gratisverktyg.
+Börja med **[Skapa din första fil](/info/make-something.html)** om du är ny. [Så fungerar Lolly](/info/how-lolly-works.html) visar hur ett verktyg också kan köras från ett skript eller en kollegas telefon. [Frågor & svar](/info/faq.html) tar upp det folk undrar innan de litar på ett gratisverktyg.
 
+<!--i:eti-pen-tool-->
 ## Skapa
 
-Välj ett verktyg och fyll i det, eller lägg ut en sida fritt på Design-ytan.
+Välj ett verktyg och fyll i det, eller gör en fri sidlayout på ytan i Lolly Design.
 
-- **[Gör din första fil](/info/make-something.html)** - en kort lektion utan något att ställa in: en QR-kod, nedladdad och sparad som en redigerbar kopia.
-- **[Använda Lolly](/info/using.html)** - ytan, kontrollerna, att spara, Projects och mobilanvändning: hur själva appen beter sig.
-- **[Mallar](/info/templates.html)** - börja från en sparad layout i stället för ett tomt verktyg.
-- **[Text i Design](/info/text-composition.html)** - rubriker, löpande text och typ som passar sin ruta.
-- **[3D Studio](/info/3d-studio.html)** - SVG-grafik och 3D-modeller arrangerade, belysta och renderade som en scen.
-- **[Verktyg för filer](/info/utilities.html)** - åtgärda en fil på din enhet: dela den säkert, jämför två versioner, byt format, hämta ut orden eller kontrollera en färg.
-- **[Webbläsartillägg](/info/extension.html)** - ta en skärmbild av en levande webbsida från webbappen, eller läs en webbplats för att starta ett designsystem.
+- **[Skapa din första fil](/info/make-something.html)** - en kort lektion utan förberedelser: en QR-kod, nedladdad och sparad som en redigerbar kopia.
+- **[Använda Lolly](/info/using.html)** - ytan, kontrollerna, att spara, Projects och användning på telefon.
+- **[Lolly Design](/info/design.html)** - den fria ytan för layouter som ingen mall täcker: en affisch, en presentation, ett rörelsestycke.
+- **[Mallar](/info/templates.html)** - börja med en sparad layout i stället för ett tomt verktyg.
+- **[Text i Lolly Design](/info/text-composition.html)** - rubriker, löpande text och typografi som passar i rutan.
+- **[Lolly Chart](/info/chart.html)** - en inklistrad tabell ritad som ett vektordiagram, en statistisk graf, en 3D-scen eller en filmisk flygning.
+- **[Lolly 3D Studio](/info/3d-studio.html)** - SVG-grafik och 3D-modeller arrangerade, belysta och renderade som en enda scen.
+- **[Lolly Darkroom](/info/darkroom.html)** - färgkorrigera foton och video och spara ett utseende som en LUT.
+- **[Lolly Utilities](/info/utilities.html)** - åtgärda en fil på din enhet: dela den säkert, jämför två versioner, ändra formatet, extrahera texten eller kontrollera en färg.
+- **[Webbläsartillägg](/info/extension.html)** - ta en skärmbild av en öppen webbsida från webbappen, eller läs in en webbplats för att börja skapa ett designsystem.
 
+<!--i:eti-palette-->
 ## Gör det till ditt
 
 Ditt designsystem avgör hur varje verktyg ser ut.
 
 - **[Lolly Design System Setup](/info/brand-studio.html)** - logotyper, färger, typografi och resten, inställt en gång på `#/start`.
-- **[Lolly Demo i bruk](/info/lolly-demo-in-use.html)** - färgvarianter på verkligt arbete, och byte till ditt eget designsystem.
+- **[Lolly Demo i bruk](/info/lolly-demo-in-use.html)** - färgvarianter i verkligt arbete och att byta till ditt eget designsystem.
 - **[Varumärkesarkitekturer](/info/brand-architectures.html)** - flera designsystem, eller ett med flera färgvarianter, för en organisation.
-- **[Samarbeta med partners](/info/partners.html)** - dela ditt varumärke med en partner, arbeta i ett varumärke du fått och bygg en sponsorvägg.
-- **[Importera en design](/info/design-import.html)** - en `.fig`-, `.penpot`-, `.ai`-, `.idml`- eller SVG-fil öppnad som en redigerbar layout i stället för en platt bild.
-- **[Rebrand a deck](/info/rebrand.html)** - en PowerPoint-presentation flyttad till ditt designsystem, med diagram och animationer intakta.
+- **[Arbeta med partner](/info/partners.html)** - dela ditt varumärke med en partner, arbeta med ett varumärke du fått och skapa en sponsorvägg.
+- **[Importera en design](/info/design-import.html)** - en fil från Figma, Penpot, Illustrator, InDesign, Affinity, Photoshop eller PowerPoint, eller en SVG-fil, öppnad som en redigerbar layout i stället för en platt bild ([alla format](/info/design-import.html#what-comes-in-from-each-app)).
+- **[Byt varumärke på en presentation](/info/rebrand.html)** - en PowerPoint-presentation överförd till ditt designsystem, med diagram och animationer bevarade.
 - **[Dela en design med regler](/info/create-a-tool.html)** - gör en layout till ett verktyg som andra fyller i.
 
+<!--i:eti-search-->
 ## Hitta och behåll ditt arbete
 
 - **[Hitta och återställ ditt arbete](/info/find-your-work.html)** - vart en sparad, nedladdad eller osparad fil tog vägen.
-- **[Sök](/info/search.html)** och **[Fråga Lolly](/info/ask.html)** - ett fält för dina verktyg, sparade arbete, tillgångar och inställningar, och svar från de här guiderna.
-- **[Lolly Settings](/info/dashboard.html)** - vad den här enheten kan göra, ditt designsystem skrivskyddat och din lagring.
-- **[Dina favoriter](/info/favourites.html)** och **[Profiler](/info/profile.html)** - stjärnmärkta verktyg, uppgifterna som verktyg fyller i på förhand och tillgänglighetsreglagen.
-- **[Synkronisera dina enheter](/info/sync.html)** - samma arbete på din dator och din telefon, via lagring du väljer.
+- **[Lolly Search](/info/search.html)** och **[Fråga Lolly](/info/ask.html)** - ett fält för dina verktyg, sparat arbete, tillgångar och inställningar samt svar från de här guiderna.
+- **[Lolly Settings](/info/dashboard.html)** - vad den här enheten klarar av, ditt designsystem i skrivskyddat läge och din lagring.
+- **[Dina favoriter](/info/favourites.html)** och **[Profiler](/info/profile.html)** - stjärnmärkta verktyg, uppgifterna som verktygen fyller i på förhand och tillgänglighetsväxlarna.
+- **[Synkronisera dina enheter](/info/sync.html)** - samma arbete på datorn och telefonen, via lagring som du väljer.
 
+<!--i:eti-animation-->
 ## Animera
 
-Text som rör sig, scener på en tidslinje och rörelse som håller sig i varumärkets stil. En rörelseexport ritas bildruta för bildruta från en styrd klocka i stället för att spelas in från skärmen, så samma länk ger samma klipp.
+Rörlig text, scener på en tidslinje och rörelse som följer varumärket. En rörelseexport ritas bildruta för bildruta med en styrd klocka, utan att spelas in från skärmen, så samma länk ger samma klipp.
 
-- **[Animera](/info/animating.html)** - nyckelbilder, verkligt djup och en scenkamera.
+- **[Animera](/info/animating.html)** - nyckelbilder, djup och en scenkamera.
 - **[Sekvensredigeraren](/info/sequence-editor.html)** - klipp, överlagringsspår, trimning och delning, övergångar och ljudmixen.
-- **[Wide Colour och HDR](/info/hdr-editing.html)** - färg bortom det vanliga omfånget, på skärmar och i format som kan visa det extra omfånget.
+- **[Brett färgomfång och HDR](/info/hdr-editing.html)** - färg utanför det vanliga omfånget, på skärmar och i format som kan visa det utökade omfånget.
 
+<!--i:eti-mic-->
 ## Spela in och presentera
 
-Spela in en ren tagning med nedräkning och nivåmätare, eller ställ dig framför dina bilder.
+Spela in en ren tagning med inräkning och nivåmätare, eller placera dig själv framför presentationsbilderna.
 
-- **[Design-tidslinjen](/info/design.html#timeline-sequence)** - att spela in ett speakerljud direkt på tidslinjen.
-- **[Gör din första fil](/info/make-something.html#other-first-projects)** - audiogrammet, för när du hellre vill bli hörd än sedd.
-- **[Presentera med kamera](/info/presenting.html)** - din kamera, logotyp och namn över en presentation eller Countdown, med privata kontroller i ett separat fönster.
-- **[Levande sidor som tar klickern](/info/interactive-pages.html)** och **[Agendaskärmar](/info/agenda.html)** - sidor och program för rummet.
+- **[Tidslinjen i Lolly Design](/info/design.html#timeline-sequence)** - spela in en berättarröst på tidslinjen.
+- **[Skapa din första fil](/info/make-something.html#other-first-projects)** - audiogrammet, för att höras utan att synas i bild.
+- **[Musikgenerator](/info/music-generator.html)** - skapa ditt eget spår i valfri genre, fritt att använda med erkännande. [Gratis bakgrundsmusik](/info/background-music.html) har ett exempel på varje genre. [Genererad musik](/info/generated-music.html) förklarar hur musiken skapas.
+- **[Presentera med kamera](/info/presenting.html)** - din kamera, logotyp och ditt namn över en presentation eller Countdown, med privata kontroller i ett separat fönster.
+- **[Levande sidor som styrs med presentationsfjärrkontrollen](/info/interactive-pages.html)** och **[Agendaskärmar](/info/agenda.html)** - sidor och program för rummet.
 
+<!--i:eti-users-->
 ## Samarbeta
 
-Två personer, två enheter, en design, redigerad live, utan konto och utan någon server emellan.
+Två personer på två enheter redigerar en design i realtid, utan konto och utan en server emellan.
 
-- **[Arbeta tillsammans](/info/collaborate.html)** - privata collabs mellan enheter, och arbetscollabs via din organisations Lolly Work.
-- **[Använda Lolly](/info/using.html#sharing-your-work)** - en delningslänk som bär hela tillståndet, eller en enda `.lolly`-fil.
-- **[Använd Lolly i din organisation](/info/organisation.html)** - inloggning, teamprojekt och hanterade inställningar, när din organisation kör Lolly Work.
+- **[Arbeta tillsammans](/info/collaborate.html)** - privata collabs mellan enheter och arbetscollabs via organisationens Lolly Work.
+- **[Använda Lolly](/info/using.html#sharing-your-work)** - en delningslänk som innehåller hela tillståndet, eller en enda `.lolly`-fil.
+- **[Använd Lolly i din organisation](/info/organisation.html)** - inloggning, teamprojekt och hanterade inställningar när organisationen kör Lolly Work.
 
+<!--i:eti-download-->
 ## Publicera
 
-Skicka det dit det efterfrågades: en länk, en tryckriktig PDF, en video, en presentation eller en mapp med varianter, allt från samma källa.
+Skicka en länk, en PDF med korrekta tryckmått, en video, en presentation eller en mapp med varianter, allt från samma källa.
 
 - **[Exportera en fil](/info/exporting.html)** - tryckenheter, utfall och skärmärken, video, batchkörningar och exportpanelen.
-- **[Varje format Lolly kan öppna och göra](/info/formats.html)** - hela listan över in och ut.
-- **[Kreativa rättigheter och krediter](/info/creative-rights.html)** - licenserna för det du använde, och krediterna som följer med filen.
+- **[Alla format som Lolly kan öppna och skapa](/info/formats.html)** - hela listan över in- och utformat.
+- **[Kreativa rättigheter och erkännanden](/info/creative-rights.html)** - licenserna för det du använt och erkännandena som följer med filen.
 
-## Teamhandböcker och jämförelser
+<!--i:eti-clipboard-->
+## Teamhandledningar och jämförelser
 
-- **För ditt team:** [försäljning](/info/sales.html), [marknadsföring](/info/marketing.html), [nyhetsredaktionen](/info/press.html) och [juridik](/info/legal.html).
-- **[Hur Lolly står sig](/info/positioning.html)** - vad Lolly är bra på, och när du ska ta något annat.
-- **[Lolly jämfört, verktyg för verktyg](/info/compare.html)** - Canva, Adobe, Figma, Penpot, varumärkesportaler, renderings-API:er och onlineomvandlare.
+- **För ditt team:** [försäljning](/info/sales.html), [marknadsföring](/info/marketing.html), [redaktionen](/info/press.html) och [juridik](/info/legal.html).
+- **[Lolly i jämförelse](/info/positioning.html)** - vad Lolly är bra på och när du ska använda något annat.
+- **[Lolly jämfört, verktyg för verktyg](/info/compare.html)** - Canva, Adobe, Figma, Penpot, varumärkesportaler, renderings-API:er och konverterare på nätet.

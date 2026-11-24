@@ -1,6 +1,6 @@
 {
   "name": "Certificato",
-  "description": "Attestati di completamento e di merito nel design system attivo e nel suo colourway: quattro stili, formati per stampa e social e movimento per la condivisione, un nome alla volta oppure un intero elenco da un CSV con In blocco da righe.",
+  "description": "Attestati di completamento e di merito: quattro stili, formati per stampa e social e movimento - un nome alla volta oppure un elenco da un CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} per {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Tipo",
   "inputs.certKind.help": "Imposta i testi: il titolo, la riga che introduce il motivo dell'attestato e il simbolo sul sigillo.",

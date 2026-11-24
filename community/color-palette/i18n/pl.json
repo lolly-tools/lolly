@@ -1,6 +1,6 @@
 {
   "name": "Laboratorium palet",
-  "description": "Wygeneruj paletę z jednego koloru bazowego - dodatki harmonijne, percepcyjne rampy OKLab i odznaki czytelności WCAG/APCA, z tokenami DTCG i eksportem CSV.",
+  "description": "Wygeneruj paletę z jednego koloru bazowego - dodatki harmonijne, rampy OKLab i odznaki czytelności WCAG/APCA, z tokenami DTCG i eksportem CSV.",
   "inputs.seed.label": "Kolor bazowy",
   "inputs.seed.help": "Kolor, z którego wyrasta cała paleta - domyślnie podstawowy kolor twojej marki.",
   "inputs.harmony.label": "Harmonia",

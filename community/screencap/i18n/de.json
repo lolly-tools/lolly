@@ -1,6 +1,6 @@
 {
   "name": "Bildschirmaufnahme",
-  "description": "Screenshot oder Aufnahme Ihres gesamten Bildschirms, eines Fensters oder eines Browser-Tabs. Zum Zuschneiden auf der Fläche ziehen - der Export bleibt genau die Pixel, die Sie erfasst haben.",
+  "description": "Screenshot oder Aufnahme Ihres Bildschirms, eines Fensters oder eines Browser-Tabs. Zum Zuschneiden auf der Fläche ziehen - der Export bleibt genau die Pixel, die Sie erfasst haben.",
   "a11yLabel": "Bildschirmaufnahme, bereit zum Zuschneiden und Exportieren",
   "inputs.shot.label": "Screenshot",
   "inputs.shot.help": "Wählen Sie ein Bild zum Zuschneiden, oder verwenden Sie die Schaltfläche Screenshot oberhalb des Canvas, wenn Ihr Browser Bildschirmaufnahmen unterstützt.",

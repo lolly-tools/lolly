@@ -10,7 +10,7 @@ import { aiAllowed, callAiApi } from '../lib/ai-policy.ts';
 
 import { setHostRef } from '../lib/host-ref.ts';
 import { pendingAssetSync } from '../lib/asset-sync.ts';
-import type { HostV1, AssetRef, AssetPickerOpts, RecorderAPI } from '@lolly-tools/core/host-v1';
+import type { HostV1, AssetRef, AssetPickerOpts, CalcAPI, RecorderAPI } from '@lolly-tools/core/host-v1';
 import type { PickerHost } from '../views/picker.ts';
 // Deep engine imports, NOT the `@lolly/engine` barrel: this module is on the
 // boot path, and engine/src/index.ts is one shared facade whose retained export
@@ -25,7 +25,7 @@ import { trackHostChanges } from '../lib/sync-changes.ts';
 // Loads at boot on purpose: it also installs the notice a tab shows when another
 // tab's "Clear all my data" stops it (plan 277 review B6).
 import { guardHostWrites } from '../lib/clear-elsewhere.ts';
-import type { PreviewsAPI } from './previews.ts';
+import type { PreviewCacheAPI } from '../lib/preview-cache.ts';
 import { createAssetsAPI, assertQuotaRoom, captureUserAssetCredentials } from './assets.ts';
 import { provideFallbackFontSource } from './fallback-font-source.ts';
 import type { BrandAdoptionAPI } from './brand-adoption.ts';
@@ -80,7 +80,7 @@ interface WebHost extends HostV1 {
   tokens?: ReturnType<typeof createTokensAPI>;
   readonly shell: 'web';
   identity: Awaited<ReturnType<typeof import('./identity.ts')['createIdentityAPI']>>;
-  previews: PreviewsAPI;
+  previews: PreviewCacheAPI;
   /** The design systems this device holds (plans/186) - web-only host helper,
    *  not part of the tool-facing contract; tools see `host.tokens.list()`. */
   designSystems: DesignSystemRegistry;
@@ -93,6 +93,22 @@ interface WebHost extends HostV1 {
 function memo<T>(load: () => Promise<T>): () => Promise<T> {
   let p: Promise<T> | null = null;
   return () => (p ??= load());
+}
+
+/**
+ * `host.calc` as a facade over a module that loads on the first formula. Awaiting the
+ * import inside createBridge held every boot behind its round trip (181 to 201 ms on
+ * the plan 371 phone profile) for a module most sessions never use. A failed load is
+ * asked again on the next call rather than remembered.
+ */
+export function lazyCalcAPI(load: () => Promise<CalcAPI>): CalcAPI {
+  let pending: Promise<CalcAPI> | null = null;
+  const api = (): Promise<CalcAPI> => (pending ??= load().catch((error: unknown) => { pending = null; throw error; }));
+  return {
+    evaluate: async request => (await api()).evaluate(request),
+    table: async (table, options) => (await api()).table(table, options),
+    functions: async () => (await api()).functions(),
+  };
 }
 
 export async function createBridge(): Promise<WebHost> {
@@ -144,15 +160,12 @@ export async function createBridge(): Promise<WebHost> {
     signer: async () => (await loadIdentity()).signer(),
     forget: async () => (await loadIdentity()).forget(),
   } as WebHost['identity'];
-  // Web-only host-UI helper (not in the tool-facing contract): cache of
-  // profile-personalized gallery thumbnails. The gallery feature-detects it.
-  const loadPreviews = memo(async () => (await import('./previews.ts')).createPreviewsAPI(db));
+  // Web-only host-UI helper (not in the tool-facing contract): the cache side of
+  // the one preview store (plan 373), for Settings > Storage and the dashboard.
+  const loadPreviews = memo(async () => (await import('../lib/preview-cache.ts')).createPreviewCacheAPI());
   host.previews = {
     list: async () => (await loadPreviews()).list(),
     size: async () => (await loadPreviews()).size(),
-    get: async id => (await loadPreviews()).get(id),
-    put: async (id, entry) => (await loadPreviews()).put(id, entry),
-    delete: async id => (await loadPreviews()).delete(id),
     clear: async () => (await loadPreviews()).clear(),
   };
   const loadFileHistory = memo(async () => (await import('../lib/file-history-backup.ts')).createFileHistoryBackup(db));
@@ -325,7 +338,7 @@ export async function createBridge(): Promise<WebHost> {
   };
   // Font files (v1.262): inspection and the Skera worker load on first use.
   // Spreadsheet formulas: the formula module loads on first use.
-  host.calc = (await import('./gridcraft-calc.ts')).createWebCalcAPI();
+  host.calc = lazyCalcAPI(async () => (await import('./gridcraft-calc.ts')).createWebCalcAPI());
   const loadFonts = memo(async () => (await import('./fonts.ts')).createWebFontsAPI());
   host.fonts = {
     inspect: async (bytes) => (await loadFonts()).inspect(bytes),

@@ -1,6 +1,6 @@
 {
   "name": "Titulky",
-  "description": "Titulky ke klipu - přepiš ho přímo v zařízení nebo vlož soubor SRT či VTT, uprav vzhled titulků a exportuj snímky s vypálenými titulky i čisté soubory .srt a .vtt.",
+  "description": "Titulky ke klipu - přepiš ho přímo v zařízení nebo vlož soubor SRT či VTT a exportuj snímky s vypálenými titulky plus .srt a .vtt.",
   "inputs.style.section": "Titulky",
   "inputs.position.section": "Titulky",
   "inputs.fontSize.section": "Titulky",

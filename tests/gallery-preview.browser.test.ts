@@ -223,7 +223,7 @@ test('gallery renders branded templates, preserves their framing, and invalidate
   } finally { await browser.close(); }
 });
 
-test('every gallery tool gets a cover before extra templates, including tools below the fold', {
+test('every tool near the screen gets a cover before an extra template is drawn; a tool below the fold gets one when the page comes near', {
   skip: origin ? false : 'set LOLLY_GALLERY_TEST_URL to a local Vite shell', timeout: 120_000,
 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
@@ -251,8 +251,10 @@ test('every gallery tool gets a cover before extra templates, including tools be
         const index = img.matches('.ftile-img')
           ? [...img.parentElement!.querySelectorAll('.ftile-img')].indexOf(img)
           : Number(img.closest<HTMLElement>('[data-ex-index]')?.dataset.exIndex ?? 0);
-        const win = window as Window & { firstExtra?: { covers: string[]; belowFold: boolean; source: string } };
-        if (index === 0 || win.firstExtra) return;
+        const win = window as Window & { firstExtra?: { covers: string[]; near: string[]; belowFold: boolean; source: string } };
+        // A finished picture (a baked file) is read at once, ahead of any draw (plan 371);
+        // the order under test is covers against the first extra that had to be drawn.
+        if (index === 0 || win.firstExtra || img.currentSrc.includes('/catalog/previews/covers/')) return;
         const tiles = [...document.querySelectorAll<HTMLElement>('.gtile[data-tool-id]:not(.is-filtered)')];
         win.firstExtra = {
           source: img.matches('.ftile-img') ? 'featured' : 'grid',
@@ -260,17 +262,27 @@ test('every gallery tool gets a cover before extra templates, including tools be
             const cover = tile.querySelector<HTMLImageElement>('.gcar-img');
             return cover?.complete && cover.naturalWidth > 0;
           }).map(tile => tile.dataset.toolId!),
+          near: tiles.filter(tile => tile.getBoundingClientRect().top <= innerHeight + 250).map(tile => tile.dataset.toolId!),
           belowFold: tiles.some(tile => tile.getBoundingClientRect().top > innerHeight + 250),
         };
       }, true);
     });
     await page.goto(`${origin}/#/`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => !!(window as Window & { firstExtra?: unknown }).firstExtra, undefined, { timeout: 90_000 });
-    const facts = await page.evaluate(() => (window as Window & { firstExtra?: { covers: string[]; belowFold: boolean; source: string } }).firstExtra);
+    const facts = await page.evaluate(() => (window as Window & { firstExtra?: { covers: string[]; near: string[]; belowFold: boolean; source: string } }).firstExtra);
     assert.ok(facts);
-    assert.equal(facts.source, 'featured', 'exercise the shared strip/grid queue with Cover Flow extras');
+    // Either consumer of the shared queue may draw the first extra: a browser with no hover
+    // (headless Chromium) counts a grid card on the screen as wanted, so its extras come first.
+    assert.ok(['featured', 'grid'].includes(facts.source), `the first extra came from the shared strip/grid queue (${facts.source})`);
     assert.equal(facts.belowFold, true, 'the fixture must include tools outside the lazy-loading margin');
-    assert.deepEqual(facts.covers.sort(), ids.sort(), 'all first covers must be decoded before any extra template');
+    for (const id of facts.near) assert.ok(facts.covers.includes(id), `${id}, near the screen, has its cover before any extra template is drawn`);
+    // A cover far below the fold is drawn when the page comes near it (plan 371), not on arrival.
+    const far = ids.filter(id => !facts.near.includes(id));
+    assert.ok(far.length > 0, 'the fixture keeps a tool beyond the margin');
+    for (const id of far) {
+      await page.locator(`.gtile[data-tool-id="${id}"]`).scrollIntoViewIfNeeded();
+      await page.locator(`.gtile[data-tool-id="${id}"] .gcar-slide.is-loaded`).first().waitFor({ timeout: 60_000 });
+    }
   } finally { await browser.close(); }
 });
 

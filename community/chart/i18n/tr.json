@@ -1,6 +1,6 @@
 {
   "name": "Grafik",
-  "description": "İlk yapıştırmadan gelişmiş görselleştirmeye uzanan grafikler - açıklamalı veri önerileri, net alan eşlemesi, Pareto, hedef çubukları ve aralık çubukları dahil 35 klasik vektör ailesi, on altı istatistiksel ve editoryal çeşitleme, gerçek z eksenli 3D sahneler, sinematik uçuşlar, deterministik hareket, erişilebilir açıklamalar ve etkin tasarım sisteminden derlenen stiller.",
+  "description": "İlk yapıştırmadan gelişmiş görselleştirmeye uzanan grafikler - 35 vektör ailesi, 3D sahneler, uçuşlar, hareket ve tasarım sisteminden stiller.",
   "featured.blurb": "Bir tablo yapıştır - Grafik onu net, erişilebilir ve kesinlikle markana özgü hale getirir",
   "a11yLabel": "{{chartType}} grafiği{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Grafik türü",

@@ -1,5 +1,5 @@
 {
   "name": "Filtre",
-  "description": "Fotoğraf efektleri için tek araç: yarım ton, tarama çizgisi, posterize, voronoi, dither ya da ASCII sanatı (vektör) veya duoton, piksel germe, hatalı baskı ya da glitch (raster) arasından seç. Tasarım sistemi kaplamaları, canlı kamera ve her efektin desteklediği kadar çok formatta dışa aktarma.",
+  "description": "Fotoğraf efektleri: yarım ton, tarama çizgisi, posterize, voronoi, dither ya da ASCII sanatı (vektör) veya duoton, piksel germe, hatalı baskı ya da glitch (raster).",
   "featured.blurb": "On fotoğraf efekti, vektör veya raster, tek bir araçta"
 }

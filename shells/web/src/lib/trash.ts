@@ -35,6 +35,8 @@
  * DOM-free, so the gallery can load this module lazily and a node test can
  * drive the model.
  */
+import { rowPicture } from './session-picture.ts';
+import type { PictureInput, SessionPreviewRef } from '../bridge/preview-store.ts';
 import { createFolderStore, trashEntryKey, TRASH_RETENTION_MS } from '../folders.ts';
 import type { Folder, FolderHost, FolderItem, TrashEntry, TrashedAsset, TrashedFolder, TrashedFont, TrashedSession } from '../folders.ts';
 import { TRASH_SLOT_PREFIX, isTrashedSlot } from './batch-slots.ts';
@@ -97,7 +99,7 @@ function notifyTrashChanged(): void {
 }
 
 /** One state row as the Trash reads it (host.state.list()). */
-interface TrashStateRow { slot: string; toolId?: string; label?: string | null; filename?: string | null; thumb?: string | null; updatedAt?: string; savedAt?: string }
+interface TrashStateRow { slot: string; toolId?: string; label?: string | null; filename?: string | null; thumb?: string | null; preview?: SessionPreviewRef; updatedAt?: string; savedAt?: string }
 
 /** The slice of the host bridge the Trash touches. */
 export interface TrashHost {
@@ -108,10 +110,10 @@ export interface TrashHost {
   state: {
     list(): Promise<ReadonlyArray<TrashStateRow>>;
     load(slot: string): Promise<unknown>;
-    save(slot: string, data: never, thumb?: string | null): Promise<unknown>;
+    save(slot: string, data: never, picture?: PictureInput): Promise<unknown>;
     /** Write a record keeping its own update and save times (the web and Tauri
      *  bridges): a Trash move is not an edit. */
-    restore?(slot: string, data: never, thumb: string | null, updatedAt: string, savedAt?: string): Promise<unknown>;
+    restore?(slot: string, data: never, picture: PictureInput, updatedAt: string, savedAt?: string): Promise<unknown>;
     delete(slot: string): Promise<unknown>;
     sizes?(): Promise<Record<string, number>>;
     /** The web bridge's revision store: moves a record AND its history in one
@@ -209,9 +211,9 @@ export function createTrash(host: TrashHost, opts: { fonts?: FontTrashHooks } = 
         // A move keeps the record's own times (the review's timing fix): without
         // a revision store (the Tauri apps) `restore` writes them as they were.
         const row = (await host.state.list().catch(() => [] as ReadonlyArray<TrashStateRow>)).find(r => r.slot === from);
-        const thumb = row?.thumb ?? null;
-        if (host.state.restore && row?.updatedAt) await host.state.restore(to, data as never, thumb, row.updatedAt, row.savedAt);
-        else await host.state.save(to, data as never, thumb);
+        const picture = rowPicture(row);
+        if (host.state.restore && row?.updatedAt) await host.state.restore(to, data as never, picture, row.updatedAt, row.savedAt);
+        else await host.state.save(to, data as never, picture);
         await host.state.delete(from);
       }
       return await exists(to);

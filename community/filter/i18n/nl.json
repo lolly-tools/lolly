@@ -1,5 +1,5 @@
 {
   "name": "Filter",
-  "description": "Eén tool voor fotoeffecten: kies halftone, scanline, posterize, voronoi, dither of ASCII-art (vector), of duotone, pixel-stretch, misdruk of glitch (raster). Overlays in je huisstijl, live camera en exports naar zoveel formaten als elk effect ondersteunt.",
+  "description": "Fotoeffecten: halftone, scanline, posterize, voronoi, dither of ASCII-art (vector), of duotone, pixel-stretch, misdruk of glitch (raster).",
   "featured.blurb": "Tien foto-effecten, vector of raster, in één tool"
 }

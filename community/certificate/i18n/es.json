@@ -1,6 +1,6 @@
 {
   "name": "Certificado",
-  "description": "Certificados de finalización y de reconocimiento en el sistema de diseño activo y su combinación de color: cuatro estilos, tamaños para imprimir y para redes sociales, y movimiento para compartir. Un nombre cada vez, o toda una lista desde un CSV en En masa desde filas.",
+  "description": "Certificados de finalización y de reconocimiento: cuatro estilos, tamaños para imprimir y para redes sociales, y movimiento - un nombre cada vez o una lista desde un CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} para {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Tipo",
   "inputs.certKind.help": "Define el texto: el título, la línea sobre el motivo del certificado y la marca del sello.",

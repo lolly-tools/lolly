@@ -102,3 +102,26 @@ function seedEach(host: CompanionHost, companions: CompanionDesignSystem[]): Pro
     return made;
   });
 }
+
+/**
+ * Keep the catalog's own design system on this device before the app is pointed
+ * at another catalog (an instance a person connects to). The system is copied
+ * once, as a companion: its colours and type, under its own name, removable like
+ * any other. A locked system, the blank starter and a system this device has
+ * already kept (or the person has since removed) are left alone. Returns the
+ * record made, or null. Its logos are catalog rows and are not copied.
+ */
+export async function keepShippedDesignSystem(host: CompanionHost): Promise<DesignSystemRecord | null> {
+  return exclusively(async () => {
+    const registry = host.designSystems;
+    registry.bust();
+    const shipped = await registry.get('shipped');
+    if (!shipped || shipped.locked || !shipped.headId || shipped.catalog?.available === false) return null;
+    if (shipped.headId === STARTER_TOKENS_ID || (await registry.seeded()).includes(shipped.headId)) return null;
+    const doc = await companionDoc(host, shipped.headId);
+    if (!doc) return null;
+    const record = await createDesignSystem(host, { label: shipped.label, seedDoc: doc, source: { kind: 'local', from: 'app', companion: { tokens: shipped.headId, label: shipped.label } } });
+    await registry.markSeeded(shipped.headId, true);
+    return record;
+  });
+}

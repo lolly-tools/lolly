@@ -118,7 +118,7 @@ export interface EmbedDescribe {
  */
 export type WebToolHost = HostV1 & {
   clipboard: ClipboardAPI & { writeHtml(html: string): Promise<void> };
-  state: StateAPI & { save(slot: string, data: object, thumb?: string | null): Promise<void> };
+  state: StateAPI & { save(slot: string, data: object, picture?: import('../../bridge/preview-store.ts').PictureInput): Promise<void> };
   identity?: { status(): Promise<IdentityStatus> };
   compose?: ComposeAPI & { _describeUrl(url: string): Promise<EmbedDescribe | null> };
   designSystems?: ToolDesignSystemRegistry;

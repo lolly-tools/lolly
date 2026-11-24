@@ -1,6 +1,6 @@
 {
   "name": "Finishes",
-  "description": "I-preview ang foil, spot UV, emboss at soft-touch finishes sa iyong artwork - pagkatapos ay i-export ang printer-ready spot plate. Ang sheen sa screen ay para sa presentasyon lang; ang plate ang tunay na deliverable na kailangan ng iyong print house.",
+  "description": "I-preview ang foil, spot UV, emboss at soft-touch finishes sa iyong artwork - pagkatapos ay i-export ang spot plate. Ang sheen sa screen ay para sa presentasyon lang.",
   "a11yLabel": "Artwork na may simulated na print finish, o ang print-ready na plate sa plate view",
   "inputs.image.label": "Artwork",
   "inputs.image.help": "Piliin ang iyong artwork o mag-upload ng sarili. Pinoproseso ito sa iyong device, hindi kailanman umaalis sa browser ang mga pixel.",

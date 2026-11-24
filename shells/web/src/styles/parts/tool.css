@@ -324,6 +324,13 @@
     width: 100%;
 }
 
+/* The docked sidebar reaches the top of the screen, so where the system holds a status
+   bar there (an iPad) its first row starts below that. The phone sheet is placed below
+   the inset as a whole and keeps the plain padding. */
+@media (min-width: 641px) {
+  .sidebar-header { padding-top: calc(8px + var(--safe-top)); }
+}
+
 /* The signature ring-plus-drop at panel level (surfaces.css), shown only once
    .sidebar-body has scrolled: --sb-scrolled (0..1) is set by wireActionsPanel
    and ramps over the first 24px, so the shadow fades in as the inputs slide
@@ -713,6 +720,13 @@
   background: hsl(var(--destructive) / 0.08);
   border: 1px solid hsl(var(--destructive) / 0.3);
   border-radius: var(--radius);
+}
+/* A notice that only informs (a tool that moved into another one): a primary tint
+   inside a plain edge, where the plain notice warns in the destructive colour. The
+   accent stays off the outline, which is kept for focus and selection. */
+.tool-notice--info {
+  background: hsl(var(--primary) / 0.08);
+  border-color: hsl(var(--border));
 }
 .tool-notice-text { flex: 1; min-width: 0; }
 .tool-notice-text strong { font-weight: 600; }

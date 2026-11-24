@@ -86,7 +86,10 @@ the accepted residual risks are in
 ## Maintainer security checks
 
 `pnpm run audit:all` inventories and audits every authoritative npm and Cargo
-lockfile. `pnpm run secrets:scan` scans the parent repository's complete tracked
+lockfile. Code and data copied into the repository instead of installed by a
+package manager are listed, with how each one is updated, in
+[`security/vendored-upstreams.md`](security/vendored-upstreams.md).
+`pnpm run secrets:scan` scans the parent repository's complete tracked
 history with redacted output; install the pinned Gitleaks 8.29.1 binary and set
 `GITLEAKS_BIN` if it is not on `PATH`. For a pre-commit check, run
 `pnpm run secrets:scan:staged`.

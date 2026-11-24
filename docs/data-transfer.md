@@ -29,7 +29,7 @@ The download is named for its owner: `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>
 |---|---|---|
 | `manifest.json` | yes | Format id, versions, counts and per-part integrity. A reader reads this file first. |
 | `profile.json` | when set | The user's `me` record: name, contact, headshot ref and flags, plus folders, Trash, project blueprints, user templates and user-made tools, favourites, hidden tools, language and emoji choice. Read via `host.profile`. |
-| `sessions.json` | yes | Every saved session: slot, tool id and version, label, thumbnail (data URL) and full input data. Read via `host.state`. |
+| `sessions.json` | yes | Every saved session: slot, tool id and version, label, thumbnail (data URL) and full input data. Read via `host.state`. On the device each picture is stored once, by the hash of its bytes, and the backup writes the same data URL an older build wrote, so an older build restores it unchanged. |
 | `assets.json` | yes | Metadata for each uploaded asset (images, fonts, brand tokens, logos, saved copies of downloads), each pointing at its bytes under `assets/blobs/`. |
 | `assets/blobs/<n>.<ext>` | per asset | The raw asset bytes, stored uncompressed because most are already compressed formats. The extension is cosmetic; the MIME type in `assets.json` is authoritative. |
 | `assets/blobs/<n>.c2pa` | when present | Extracted Content Credentials as exact binary bytes, referenced by `_credentialFile` in the asset record. These are not device signing keys. |
@@ -192,7 +192,7 @@ Two names are reserved for data that does not travel yet:
 The two history parts are optional and have their own versions.
 
 ::: details Creation history (v3)
-Manual backups from a web install with creation history include `revision-history.json`, with its own `{ version: 1, documents, revisions, recoveries }` schema. It carries the kept IDs, canonical input snapshots, version stamps, raster previews and separate writer drafts. The history adapter captures current sessions and their heads in one read transaction, and `sessions.json` uses the same current snapshots for older readers.
+Manual backups from a web install with creation history include `revision-history.json`, with its own `{ version: 1, documents, revisions, recoveries }` schema. It carries the kept IDs, canonical input snapshots, version stamps, raster previews and separate writer drafts. History also keeps SVG previews on the device; those stay out of the archive, so every reader of the format accepts the file. When the archive does not carry a session's current picture, the picture travels beside the session in its `sessions.json` row, as the data URL in `thumb`, and a restore gives the picture back to that session's state. Builds before 1.2.2 skip that row, as they skip every row the archive carries, and restore the session without the picture. The history adapter captures current sessions and their heads in one read transaction, and `sessions.json` uses the same current snapshots for older readers.
 
 Restore checks payload SHA-256 and byte counts, unique identities, document and head relationships, ancestry, timestamps, preview types and limits before committing the archive in one transaction. Compacted parent references may be missing. Existing current work is never replaced silently: when a creation is on both sides, the side not kept current becomes a protected draft.
 

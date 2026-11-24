@@ -2,9 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { galleryPreviewLooks, galleryLookHref } from './gallery-preview.ts';
+import { galleryPreviewLooks, galleryLookHref, lookDrawPriority, lookReadPriority, DRAW_PRIORITY } from './gallery-preview.ts';
 import { coverFormats } from './featured-render.ts';
-import { previewContextSignature } from './preview-context.ts';
+import { previewContextSignature } from './preview-recipe.ts';
 
 test('Design discovery uses the available templates and opens the exact selected template', async () => {
   const index = JSON.parse(await readFile(new URL('../../../../brands/lolly-start/catalog/tools/index.json', import.meta.url), 'utf8'));
@@ -93,4 +93,42 @@ test('a cover size reaches the card render without entering the template values'
   assert.equal(withGallerySize(values, { width: 0, height: 1200 }), values);
   assert.equal(withGallerySize(values, { width: '1600', height: 1200 }), values);
   assert.deepEqual(values, { effect: 'voronoi' });
+});
+
+// ── Where stored looks are read and missing looks drawn (plan 371) ───────────
+
+function cardAt(top: number, height = 300): HTMLElement {
+  const rect = { top, bottom: top + height, width: 300, height } as DOMRect;
+  return { closest: () => null, getBoundingClientRect: () => rect } as unknown as HTMLElement;
+}
+
+test('a stored look far down the page is read once the page is within one and a half screens of it', () => {
+  Object.assign(globalThis, { window: { innerHeight: 800 } });
+  try {
+    assert.equal(lookReadPriority(cardAt(100), 0), 0, 'a cover on the screen keeps its place');
+    assert.equal(lookReadPriority(cardAt(1600), 1), 1, 'a screen below the fold: read ahead');
+    assert.equal(lookReadPriority(cardAt(2100), 1), null, 'further than that: parked until the page comes near');
+    assert.equal(lookReadPriority(cardAt(100), 0.5), 0.5, 'an extra the person asked for, its card on the screen');
+    assert.equal(lookReadPriority(cardAt(900), 0.5), null, 'a card marked wanted that has since moved below the fold');
+    assert.equal(lookReadPriority(cardAt(100), null), null);
+  } finally { delete (globalThis as { window?: unknown }).window; }
+});
+
+test('a missing look is drawn only for a card on the screen or near it, after every read', () => {
+  Object.assign(globalThis, { window: { innerHeight: 800 } });
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { deviceMemory: 8, hardwareConcurrency: 8 } });
+  try {
+    assert.equal(lookDrawPriority(cardAt(100), 0), DRAW_PRIORITY, 'a cover near the screen');
+    assert.equal(lookDrawPriority(cardAt(900), 0), DRAW_PRIORITY, 'just below the fold still counts as near');
+    assert.equal(lookDrawPriority(cardAt(3000), 1), null, 'a cover far down the page waits until the page gets there');
+    assert.equal(lookDrawPriority(cardAt(100), 0.5), DRAW_PRIORITY + 0.5, 'an extra the person asked for');
+    assert.equal(lookDrawPriority(cardAt(900), 0.5), null, 'not once its card has left the screen');
+    assert.ok(DRAW_PRIORITY > 2, 'every read (0 to 2) goes first');
+    Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { deviceMemory: 1, hardwareConcurrency: 8 } });
+    assert.equal(lookDrawPriority(cardAt(100), 0), DRAW_PRIORITY, 'a low-end device draws a card on the screen');
+    assert.equal(lookDrawPriority(cardAt(900), 0), null, 'but not one just below the fold');
+  } finally {
+    delete (globalThis as { window?: unknown }).window;
+    Object.defineProperty(globalThis, 'navigator', { configurable: true, value: {} });
+  }
 });

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Local revision storage (plan 221). No transport, DOM, or global database opens. */
 import type { IDBPDatabase } from 'idb';
-import { indexSavedWork } from './history-index.ts';
+import { putStateRecord } from './state-rows.ts';
+import { ownerDataUrl, revisionOwner, scopeFor, type PictureInput } from './preview-store.ts';
 import type { AppHistoryAPI } from './app-history.ts';
 import type { RevisionArchiveAPI } from './revision-archive-format.ts';
 import type { RevisionFidelityAPI } from './revision-fidelity.ts';
@@ -75,8 +76,12 @@ export interface RevisionStore {
   list(options?: RevisionQuery): Promise<RevisionPage>;
   name(id: string, name: string): Promise<void>;
   read(id: string): Promise<SavedStateData | null>;
+  /** An `<img>` source for a revision's picture: an object URL into the preview
+   *  store, or a legacy data URL that has not moved yet. */
   preview(id: string): Promise<string | null>;
-  attachPreview(id: string, thumb: string): Promise<void>;
+  /** Give a revision its picture (prepared bytes from the preview writer, or a data
+   *  URL from an older caller), and the Projects tile too when it is the head. */
+  attachPreview(id: string, picture: PictureInput): Promise<void>;
   move(from: string, to: string): Promise<void>;
   delete(slot: string): Promise<void>;
   /** Leave without saving: return the document to its last explicit save. */
@@ -123,10 +128,10 @@ export function createRevisionStore(db: IDBPDatabase): RevisionStore {
         ...(needsAdopt(doc) ? { adopt: true } : {}) };
     },
     async open(slot) {
-      const tx = db.transaction(['state', 'revision-documents', 'revisions'], 'readwrite');
+      const tx = db.transaction(scopeFor(db, ['state', 'revision-documents', 'revisions']), 'readwrite');
       const doc = await tx.objectStore('revision-documents').get(slot) as DocumentHead | undefined;
       const record = await tx.objectStore('state').get(slot) as StateRecord | undefined;
-      if (record) await tx.objectStore('state').put(indexSavedWork({ ...record, openedAt: new Date().toISOString() }));
+      if (record) await putStateRecord(tx, { ...record, openedAt: new Date().toISOString() });
       const unsaved = !!record && holdsUnsavedWork(doc, doc ? await savedRevision(tx, doc) : null);
       await tx.done;
       return { record: record ?? null, head: doc?.head ?? null, version: documentVersion(doc), unsaved,
@@ -138,7 +143,9 @@ export function createRevisionStore(db: IDBPDatabase): RevisionStore {
     list: async query => (await import('./revision-query.ts')).queryRevisions(db, query),
     name: async (id, name) => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).name(id, name),
     read: async id => (await import('./revision-read.ts')).readRevision(db, id),
-    async preview(id) { return await db.get('revision-previews', id) ?? null; },
+    async preview(id) {
+      return await ownerDataUrl(db, revisionOwner(id)) ?? (await db.get('revision-previews', id) as string | undefined) ?? null;
+    },
     attachPreview: async (id, thumb) => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).attachPreview(id, thumb),
     move: async (from, to) => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).move(from, to),
     delete: async slot => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).delete(slot),

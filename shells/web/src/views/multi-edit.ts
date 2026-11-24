@@ -32,6 +32,9 @@
  * Send to Print Sheet carries them (plans/319 A6). Before, every cell's canvas drew
  * in the app's own colours whatever its session was saved in.
  */
+import { rowPicture } from '../lib/session-picture.ts';
+import { previewImg, type PictureSource } from '../components/preview-image.ts';
+import type { SessionPreviewRef } from '../bridge/preview-store.ts';
 import { updateRouteParams } from '../lib/url-state.ts';
 import '../styles/parts/tool.css';        // .tool-inputs control styles (shared chunk with the tool view)
 import '../styles/parts/multi-edit.css';
@@ -94,7 +97,11 @@ interface Member {
    *  un-created - the buffer a fanned-out shared edit writes into so it is present when
    *  the runtime is finally built. Once the runtime exists, IT is authoritative. */
   values: Record<string, InputValue>;
-  thumb: string | null;
+  /** The session's stored picture (a reference, or a legacy data URL), kept as it
+   *  is when this view saves the session. */
+  picture: SessionPreviewRef | string | null;
+  /** The list row the picture is read from (components/preview-image.ts). */
+  pictureRow: PictureSource;
   canvasEl: HTMLElement;
   /** Rescale this cell's canvas to its freshly-rendered aspect (set in the cell loop). */
   fit: () => void;
@@ -195,7 +202,8 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
       // Runtime is built lazily (ensureRuntime) - never eagerly for all cells.
       runtime: null,
       creating: null,
-      thumb: entry.thumb ?? null,
+      picture: rowPicture(entry),
+      pictureRow: { preview: entry.preview, thumb: entry.thumb, slot, toolId },
       canvasEl: null as unknown as HTMLElement,
       fit: () => { /* set in the cell loop */ },
       thumbEl: null,
@@ -254,7 +262,7 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
       <figure class="me-cell${single ? ' is-single' : ''}" data-me-cell="${i}" tabindex="0" role="button"
         aria-label="${escape(single ? tRaw('Show the inputs for {label}, or click the preview to interact with it', { label: m.label }) : tRaw('Show the inputs for {label}', { label: m.label }))}">
         <div class="me-stage" style="aspect-ratio:${w} / ${h}">
-          ${m.thumb ? `<img class="me-thumb" data-me-thumb="${i}" src="${escape(m.thumb)}" alt="" aria-hidden="true">` : ''}
+          ${previewImg(m.pictureRow, `class="me-thumb" data-me-thumb="${i}" alt="" aria-hidden="true"`)}
           <div class="me-scale" data-me-scale="${i}" style="width:${w}px;height:${h}px">
             <div class="me-canvas" id="me-c${i}"></div>
           </div>
@@ -913,7 +921,7 @@ export async function mountMultiEdit(viewEl: ViewElement, host: WebToolHost, par
       __export_unit: opts.unit ?? 'px',
       __export_dpi: opts.dpi != null ? String(opts.dpi) : '',
     };
-    await state.save(m.slot, data, m.thumb);
+    await state.save(m.slot, data, m.picture);
     m.data = data;
     m.dirty = false;
   }

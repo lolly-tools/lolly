@@ -1306,7 +1306,7 @@
         "bounds": "96 MiB input, 96 MiB per archive entry and 256 MiB extracted, a 64 MiB zstd window, 32 megapixels of decoded pixel layers, 128 MiB of returned pictures, 48 MiB of model JSON, 128 levels of layers and 384 of object nesting, 500000 layers; 1 GiB WASM memory cap with a 1 MiB stack; a trap retires the instance",
         "directTests": "`tests/affinity.test.ts`, the vendored crate's own `cargo test` unit and property tests, `scripts/affinity-corpus.ts` (51 public documents, SHA-256 pinned)",
         "fuzzCoverage": "`affinity` mutates a header-only container and, when fetched, the four smallest public documents, through the Node loader, running both operations.",
-        "notes": "Pinned vectorcraft-affinity 05d5f99 (MIT OR Apache-2.0). Afread-derived with no specification and AI-assisted; the account is in its UPSTREAM.md and was accepted on 2026-11-02. Every archive entry is CRC-checked. The model JSON is bounded again by the shared TypeScript wrapper and then mapped by the pure engine module design-map-affinity.ts, which caps pages, boxes and canvas size. The reader denies panics and unsafe code."
+        "notes": "Pinned vectorcraft-affinity 1b744ea (0.24.0, MIT OR Apache-2.0). Afread-derived with no specification and AI-assisted; the account is in its UPSTREAM.md and was accepted on 2026-11-02. Every archive entry is CRC-checked. The model JSON is bounded again by the shared TypeScript wrapper and then mapped by the pure engine module design-map-affinity.ts, which caps pages, boxes and canvas size. The reader denies panics and unsafe code."
       }
     },
     "packages/node-shell/src/camera-raw.ts": {
@@ -1478,6 +1478,19 @@
         "notes": "Reads cmap formats 4 and 12 only; other formats report no coverage. Reading stops at the first format 4 end code that does not ascend and at the first format 12 group that overlaps or goes backwards; the spec requires both in ascending order. WOFF2 and collections are refused by name. The subset path refuses before any work on outlines other than TrueType and on restricting fsType values (font-subset-policy.ts), then re-parses the output with the same reader."
       }
     },
+    "packages/node-shell/src/woff2.ts": {
+      "family": "Text and fonts",
+      "fuzzTargets": [
+        "woff2-preflight"
+      ],
+      "details": {
+        "inputSource": "A WOFF2 font a person uploads or a design system imports, a Google Font stored on the device, a fallback font, a face a captured web page loaded, and a font a text document or release pins; every WOFF2 decode in the web app, CLI and MCP server goes through `decodeWoff2`",
+        "bounds": "32 MiB input; the header, table directory and collection directory are read with google/woff2's own rules before the decoder runs; the Brotli target (the sum of stored table lengths), the header area and the declared totalSfntSize at most 30 MiB, the decoder's own output ceiling, and the Brotli target at most 100 times the file size; base128 lengths at most five bytes with no leading zero or overflow; collection indices inside the table directory; each decode in its own Web Worker or worker thread with a fresh decoder instance, at most four at once, ended after the font or after 20 seconds; decoder output at most the caller's limit, no longer than the declared totalSfntSize or the padded end of its last table, zero after that table, and refused unless every table record lies inside the returned bytes",
+        "directTests": "`packages/node-shell/test/woff2.test.ts`, `tests/woff2-decode.browser.test.ts`",
+        "fuzzCoverage": "`woff2-preflight` mutates a real WOFF2 webfont and a crafted collection header through `preflightWoff2`",
+        "notes": "Guards, but does not replace, the woff2-encoder 2.0.0 WebAssembly decoder (google/woff2 4721483 with Brotli 1.0.3, in the range of CVE-2026-111497). The Brotli stream is read only by that decoder, so the preflight cannot stop that out-of-bounds write; the write stays in that decode's own instance, which ends with its font. The preflight stops declared sizes the decoder could not hold, which grew or stopped a shared instance before. A fresh worker per decode costs about 55 ms per font in Node and about 40 ms in Chromium (23-font corpus); twenty faces requested together take about the same time as the shared decoder did, without its main-thread stalls. Where no worker can start, the font is refused; nothing decodes in the page. The fuzz target exercises the preflight only. The reference outputs of every public WOFF2 font in the tree are pinned in `packages/node-shell/test/fixtures/woff2-corpus.json` for the replacement."
+      }
+    },
     "packages/node-shell/src/pdf-redact-keep.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [
@@ -1515,6 +1528,34 @@
         "directTests": "`tests/design-md.test.ts`, `tests/brand-page-cli.test.ts`",
         "fuzzCoverage": "`design-md` mutates a file the writer produced, one with a colour role block and a hand-written one with fenced token blocks",
         "notes": "The format is alpha, so the target version is recorded. Prose is kept as text and never acted on. Scope hints are reported, and a file with no hints can still mislead a reader. A colour role block is bounded at 256 KiB and read field by field: ids against the role id rule, colours as literals only. One that fails costs the roles, and the file's tokens stand."
+      }
+    },
+    "crates/lolly-render/src/admit.rs (admit_json)": {
+      "family": "Lolly Design documents, links and agent requests",
+      "fuzzTargets": [
+        "lolly-render-envelope"
+      ],
+      "details": {
+        "inputSource": "The lolly-render envelope (a compiled Design page's drawing operations with its pictures as base64) handed to the Rust crate by a Node shell through `crates/lolly-render-node`, behind `LOLLY_DESIGN_RASTER=lolly-render`; the binding takes any string or Buffer, so the bytes are untrusted",
+        "bounds": "`MAX_INPUT_BYTES = 64 MiB`, checked in the binding before the copy and again by the reader; serde `deny_unknown_fields` and the default recursion limit of 128; output 8192 px a side and 32 Mi pixels; 1,024 operations and 1,024 resources; 1,048,576 path segments; 1 MiB of outline per run and 16 MiB per page; 256 gradient stops; 64 clip points; 4,096 dashes; 10,000 lines and 100,000 runs; coordinates within 1e6, strokes within 1e4, ids of 256 characters; 256 refusals kept; a panic is caught at the binding as the `internal` refusal",
+        "directTests": "`crates/lolly-render/tests/render.rs`, `tests/malformed.rs` (41 malformed inputs, each with its code), `tests/corpus.rs`, `tests/lolly-render-addon.test.ts` and the binding's own unit tests",
+        "fuzzCoverage": "`lolly-render-envelope` sends mutated envelopes (the eight core fixtures at a quarter of their size) through the binding's `admit`, and draws each admitted page of at most 2^20 pixels; the crate's own `render.rs` mutation test runs 400 mutations per fixture in `cargo test`",
+        "notes": "Every input comes back as a value: drawn, or refused with codes from `REFUSAL_CODES`. A refusal with an unlisted code or `internal` is a finding. Recorded run on 2026-11-23: 20,000 mutations, no finding. The binding is native and built with cargo, so the target skips by name where it is not built (tests/expected-skips.json)."
+      }
+    },
+    "crates/lolly-render/src/picture.rs (decode)": {
+      "family": "Images and colour",
+      "fuzzTargets": [
+        "lolly-render-jpeg",
+        "lolly-render-png",
+        "lolly-render-webp"
+      ],
+      "details": {
+        "inputSource": "PNG, JPEG and WebP bytes a Design document places (catalog assets, uploads, pictures inside imported files), carried as envelope resources to the lolly-render crate; the type is read from the bytes, never from the declared type",
+        "bounds": "`MAX_PICTURE_BYTES = 32 MiB` encoded; `MAX_PICTURE_SIDE = 8192`; `MAX_PICTURE_PIXELS = 16 Mi` each and 64 Mi per page; zune-jpeg with its maximum width and height set; image-webp with a memory limit of 8 bytes a pixel; png 0.18 with its default limits; 16-bit, CMYK, profiles other than sRGB, PNG gamma or chromaticities of their own, cICP/mDCV/cLLI, Exif turns and animation each refused by code before decoding",
+        "directTests": "`crates/lolly-render/src/picture.rs` unit tests, `tests/fuzz.rs`, `tests/malformed.rs` (truncated, forged-size, 16-bit, profile, CMYK, turned, animated and wrong-type pictures)",
+        "fuzzCoverage": "`lolly-render-png`, `lolly-render-jpeg` and `lolly-render-webp` send mutated 16 x 12 seed pictures (crates/lolly-render/tests/seeds) placed on a 64 x 48 page through the binding; `tests/fuzz.rs` runs the same seeds straight through `decode` in `cargo test` (1,500 mutations per seed, 50,000 in the recorded run)",
+        "notes": "Pure-Rust decoders built without SIMD: png 0.18.1, zune-jpeg 0.5.15 without its x86 and neon features, image-webp 0.2.4. Recorded runs on 2026-11-23: 20,000 mutations per target through the binding and 50,000 per seed in Rust, no finding."
       }
     }
   }

@@ -2,8 +2,9 @@
 /**
  * Recent-creations card STACK - an interactive deck of session preview thumbnails.
  *
- * The cards are the SAME rendered previews the Projects / gallery tiles already cache
- * (host.state.list().thumb), so nothing re-renders. The front card sits proud with the
+ * The cards are the SAME stored pictures the Projects / gallery tiles show
+ * (host.state.list() rows, read through components/preview-image.ts), so nothing
+ * re-renders. The front card sits proud with the
  * next few peeking behind it like a hand of cards; the user reorders the stack by:
  *   • dragging / swiping the front card (fling past a threshold → next comes up),
  *   • a horizontal trackpad swipe (wheel deltaX) - vertical scroll still scrolls the page,
@@ -13,8 +14,11 @@
 import './recent-stack.css';
 import { escapeHtml } from './html.ts';
 import { prefersReducedMotion } from './a11y-prefs.ts';
+import { previewImg, type PictureSource } from '../components/preview-image.ts';
 
-export interface StackItem { thumb: string; label: string; href: string }
+/** One card: its picture (a stored reference or a URL, components/preview-image.ts),
+ *  its caption and where it opens. */
+export interface StackItem { picture: PictureSource; label: string; href: string }
 export interface StackHandle { destroy(): void }
 
 /** Build the interactive stack inside `root`. Returns a handle to tear it down. */
@@ -34,7 +38,7 @@ export function createRecentStack(root: HTMLElement, items: StackItem[]): StackH
       ${items.map((it) => `
         ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - callers build this as `#/tool/<id>…` (views/dashboard.ts), so the fixed `#/` prefix makes a scheme impossible */ ''}
         <a class="dash-stack-card" href="${escapeHtml(it.href)}" aria-label="${escapeHtml(it.label)}">
-          <span class="dash-stack-imgwrap"><img class="dash-stack-img" src="${escapeHtml(it.thumb)}" alt="" draggable="false" loading="lazy" decoding="async"></span>
+          <span class="dash-stack-imgwrap">${previewImg(it.picture, 'class="dash-stack-img" alt="" draggable="false" loading="lazy" decoding="async"')}</span>
           <span class="dash-stack-cap">${escapeHtml(it.label)}</span>
         </a>`).join('')}
     </div>

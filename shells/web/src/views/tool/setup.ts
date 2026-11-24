@@ -1201,6 +1201,23 @@ export function mountActions(tview: ToolViewCtx): void {
       }));
     });
   }
+  // A tool that moved into another one says so, and offers to open this document there
+  // (views/tool-retired-notice.ts). The catalog index holds both facts and the names.
+  const successorId = tview.indexEntry?.deprecated === true ? tview.indexEntry.replacedBy : null;
+  const successor = typeof successorId === 'string' ? tview.catalog.tools?.find((entry) => entry.id === successorId) : null;
+  if (successor && !tview.isFull && !tview.autoExport && !tview.autoCopy) {
+    void import('../tool-retired-notice.ts').then((notice) => {
+      if (!viewEl.isConnected) return;
+      const named = successor as { id: string; name?: unknown; en?: { name?: unknown } };
+      mountLifecycle.add('retired tool notice', notice.mountRetiredToolNotice({
+        body: viewEl.querySelector<HTMLElement>('.sidebar-body') ?? tview.stageEl,
+        toolId, name: tview.tool.manifest.name, successorId: successor.id,
+        successorName: typeof named.name === 'string' ? named.name : String(named.en?.name ?? successor.id),
+        values: () => Object.fromEntries(runtime.getModel().map((input) => [input.id, input.value])),
+        open: (href) => { location.hash = href; },
+      }));
+    });
+  }
   if (tview.tool.manifest.designTool && tview.sidebarEl && tview.canvasEl) mountLifecycle.add('locked tool inputs', mountLockedTool({
     view: viewEl, canvas: tview.canvasEl, stage: tview.stageEl, sidebar: tview.sidebarEl,
     runtime, host: tview.host, policy: tview.tool.manifest.designTool, actions: tview.actionsEl,

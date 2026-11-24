@@ -1,6 +1,6 @@
 {
   "name": "Booth",
-  "description": "Gayakan ang isang 3D event booth gamit ang artwork ng sponsor. I-click ang anumang panel para maglagay ng larawan dito, pumili ng disenyo ng booth, at mag-render ng still o turntable para sa sponsor pitch.",
+  "description": "Gayakan ang isang 3D event booth gamit ang artwork ng sponsor. Pumili ng disenyo ng booth at mag-render ng still o turntable para sa sponsor pitch.",
   "a11yLabel": "3D mockup ng {{default design \"an inline\"}} na event booth na dinekorasyunan ng sponsor artwork",
   "inputs.design.label": "Disenyo ng Booth",
   "inputs.design.help": "Ang hugis ng stand. Dala-dala ng iyong panel artwork sa lahat ng disenyo - ang back wall ay nananatiling back wall.",

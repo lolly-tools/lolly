@@ -71,7 +71,13 @@ export async function probeSample(sample: ProbeSample, fetcher = fetch) {
     const expected = cachePolicy(sample.cls, { status: response.status, boundedAgeSec: sample.boundedAgeSec });
     if (headers['cache-control'] !== expected.cacheControl && !(sample.path === '/sw.js' && headers['cache-control'] === 'no-cache, s-maxage=0, no-transform')) failures.push('cache-control');
     if (headers['cdn-cache-control'] !== (sample.path === '/sw.js' ? 'no-store' : expected.cdnCacheControl)) failures.push('cdn-cache-control');
-    if (headers.vary && headers.vary.toLowerCase() !== 'accept-encoding') failures.push('vary');
+    // A public response may vary on its encoding only: anything else splits a shared
+    // cache. A private response is never stored by one, and a Lolly Work server marks
+    // its private answers as varying on the view-as header as well, which says no more
+    // than that the answer depends on who is asking.
+    const variesOn = (headers.vary ?? '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean);
+    const mayVaryOn = PRIVATE.has(sample.cls) ? ['accept-encoding', 'x-lw-view-as'] : ['accept-encoding'];
+    if (variesOn.some(v => !mayVaryOn.includes(v))) failures.push('vary');
     if (sample.requireCors) failures.push(...modelCorsFailures(response.headers, requestOrigin, [...(sample.requireStrongETag ? ['etag'] : []), ...(sample.checkRange ? ['etag', 'content-range', 'accept-ranges'] : [])]));
     if (TAG_HEADERS.some(name => response.headers.has(name))) failures.push('exposed-cache-tags');
     if (PRIVATE.has(sample.cls) || response.status >= 400) {

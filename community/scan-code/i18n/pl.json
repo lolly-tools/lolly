@@ -1,5 +1,5 @@
 {
   "name": "Skanowanie",
-  "description": "Odczytuj kody QR i kody kreskowe na urządzeniu, bez wysyłania niczego do chmury. Czytnik, nie otwieracz: dekoduje, klasyfikuje i wyjaśnia, co niesie kod - linki, Wi-Fi, kontakty, kody produktów - i pozwala działać świadomie. Kopiowanie jest zawsze pierwszą czynnością; otwarcie, dołączenie lub dodanie to jawne, świadome dotknięcie.",
+  "description": "Odczytuj kody QR i kody kreskowe na urządzeniu. Kopiowanie jest zawsze pierwszą czynnością; otwarcie, dołączenie lub dodanie to jawne, świadome dotknięcie.",
   "featured.blurb": "Odczytaj dowolny kod, bezpiecznie i offline"
 }

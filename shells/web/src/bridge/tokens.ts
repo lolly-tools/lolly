@@ -61,7 +61,7 @@ const tokensMod = (): Promise<typeof import('../../../../engine/src/tokens.ts')>
 // and below already follow. See scripts/check-bundle-budget.ts.
 import {
   DESIGN_VERSION_LATEST, applyPinnedAssets, isVersionSlug, pickHeadAssetId, readVersionIndex,
-  resolveDesignVersion, versionAssetId,
+  resolveDesignVersion, stripVersionIndex, versionAssetId,
 } from '../../../../engine/src/design-version.ts';
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { pendingAssetSync } from '../lib/asset-sync.ts';
@@ -72,7 +72,7 @@ import type { DesignSystemSummary, TokensAPI, TokensSnapshot, TokenSet, TokenRes
 // narrow stub (no registry) keeps the legacy discovery below byte for byte.
 import type { DesignSystemRecord, DesignSystemRegistry } from '../lib/design-system/registry.ts';
 import { STARTER_TOKENS_ID } from '../lib/design-system/starter.ts';
-import { DEFAULT_DESIGN_SYSTEM_ID, SHIPPED_DESIGN_SYSTEM_ID, designSystemHeadId, designSystemNamespace } from '../../../../engine/src/design-system.ts';
+import { DEFAULT_DESIGN_SYSTEM_ID, SHIPPED_DESIGN_SYSTEM_ID, designSystemHeadId, designSystemNamespace, slugifyDesignSystemId, withDesignSystemIdentity } from '../../../../engine/src/design-system.ts';
 // The exclusion read lives in its own leaf module (not lib/brand-doc.ts, whose
 // engine-barrel import would drag studio code into this bridge's boot graph).
 import { getExcludedSwatches } from '../lib/brand-exclusions.ts';
@@ -404,12 +404,19 @@ async function headName(host: InstallTokensHost, headId: string, label?: string)
  * material is read-only (the material lock, section 3.5) refuses the write.
  *
  * When the shipped system is a real brand (Lolly Demo, an ingested one), that
- * first `default` reads as the shipped system edited in place: it takes the
- * shipped system's name and place, and the catalog's copy leaves the lists
- * (hidden, not deleted; registry.ts). The blank starter is different: a first
- * edit there is someone starting their own brand, so it keeps a placeholder
- * name for the studio to ask about (views/start/brand.ts) and the starter
- * stays listed. An existing `default` is the person's own and keeps its name.
+ * first `default` is a copy the person owns: it is named "<name> copy" and the
+ * catalog's own system stays listed, unchanged. The blank starter is
+ * different: a first edit there is someone starting their own brand, so it keeps
+ * a placeholder name for the studio to ask about (views/start/brand.ts).
+ *
+ * A `default` that is already here is the person's earlier work. An edit made
+ * with the shipped system active starts a new copy, so that earlier work is
+ * first kept as a system of its own (keepEarlierDefault) and is never written over.
+ *
+ * A system that came with the app or an instance beside the catalog's own (a
+ * companion, companions.ts) is treated the same way: the first edit turns the
+ * edited record into the person's copy, and an untouched twin takes its place
+ * (keepCompanionOriginal). The blank starter companion is edited in place.
  */
 async function writeTarget(
   host: InstallTokensHost, system: string | undefined, label: string | undefined,
@@ -426,22 +433,23 @@ async function writeTarget(
     if (record?.locked || await host.tokens?.isLocked?.()) throw new BrandLockedError();
     const existing = await reg.get(DEFAULT_DESIGN_SYSTEM_ID);
     const now = Date.now();
-    // The shipped system edited in place; never the blank starter (see above).
+    // A real shipped brand; never the blank starter (see above).
     const shipped = record && record.catalog?.available !== false && record.headId !== STARTER_TOKENS_ID ? record : null;
-    record = existing ?? {
+    if (existing) await keepEarlierDefault(host, reg, existing);
+    record = {
       id: DEFAULT_DESIGN_SYSTEM_ID,
-      label: label || shipped?.label || 'My design system',
+      label: label || (shipped ? copyLabel(shipped.label) : 'My design system'),
       ns: designSystemNamespace(DEFAULT_DESIGN_SYSTEM_ID),
       headId: designSystemHeadId(DEFAULT_DESIGN_SYSTEM_ID),
       source: shipped ? { kind: 'local', from: 'shipped' } : { kind: 'local' },
       locked: false,
-      // The shipped row's place in the list, which is sorted by creation.
-      createdAt: shipped?.createdAt ?? now,
+      createdAt: now,
       lastUsedAt: now,
     };
-    if (!existing) await reg.put(record);
+    await reg.put(record);
     await reg.setActive(record.id);
-    if (!existing && shipped) await reg.setShippedHidden?.(true).catch(() => { /* the lists still show both */ });
+  } else if (!system && isCompanionOriginal(record)) {
+    record = await keepCompanionOriginal(host, reg, record);
   }
   // The material lock guards the ACTIVE-system write path - the studio's, which
   // names no system. A write that names its target is the import, the sync or
@@ -449,6 +457,77 @@ async function writeTarget(
   // system gets its bytes in the first place.
   if (record.locked && !system) throw new BrandLockedError();
   return { headId: record.headId, label: record.label, record };
+}
+
+/** The name a person's copy of a system gets. Plain English: a name the person can change. */
+function copyLabel(name: string): string {
+  return `${name} copy`;
+}
+
+/** A system offered beside the catalog's own that still stands for its original. */
+function isCompanionOriginal(record: DesignSystemRecord): boolean {
+  const source = record.source;
+  return source.kind === 'local' && source.from === 'app' && !!source.companion && source.companion.tokens !== STARTER_TOKENS_ID && !record.locked;
+}
+
+/** A JSON document from a stored blob, or null when there is none to read. */
+async function storedDoc(host: InstallTokensHost, id: string): Promise<Record<string, unknown> | null> {
+  try {
+    const blob = await host.assets._getBlob?.(id);
+    const doc: unknown = blob ? JSON.parse(await blob.text()) : null;
+    return typeof doc === 'object' && doc !== null && !Array.isArray(doc) ? doc as Record<string, unknown> : null;
+  } catch { return null; }
+}
+
+/**
+ * A new system holding `doc`, with a free id made from `label`. The pointer is
+ * untouched. A logo the document borrows from another system gets a row of its
+ * own at the next ownership pass (logo-ownership.ts ensureOwnLogos).
+ */
+async function addSystem(
+  host: InstallTokensHost, reg: DesignSystemRegistry,
+  opts: { label: string; doc: Record<string, unknown>; source: DesignSystemRecord['source']; createdAt: number },
+): Promise<DesignSystemRecord> {
+  const taken = new Set((await reg.list()).map(r => r.id));
+  taken.add(DEFAULT_DESIGN_SYSTEM_ID); taken.add(SHIPPED_DESIGN_SYSTEM_ID);
+  const base = slugifyDesignSystemId(opts.label);
+  let id = base;
+  for (let n = 2; taken.has(id) && n < 1000; n++) id = `${base.slice(0, 48 - String(n).length - 1)}-${n}`;
+  if (taken.has(id)) throw new Error('design systems: no free id for that name');
+  const record: DesignSystemRecord = {
+    id, label: opts.label, ns: designSystemNamespace(id), headId: designSystemHeadId(id),
+    source: opts.source, locked: false, createdAt: opts.createdAt, lastUsedAt: Date.now(),
+  };
+  await reg.put(record);
+  await installUserTokens(host, withDesignSystemIdentity(stripVersionIndex(opts.doc), { id, label: opts.label }), { system: id, label: opts.label });
+  return record;
+}
+
+/**
+ * Keep the work in `default` as a system of its own before a new copy takes the
+ * `default` id. A default with no stored document has nothing to keep.
+ */
+async function keepEarlierDefault(host: InstallTokensHost, reg: DesignSystemRegistry, existing: DesignSystemRecord): Promise<void> {
+  const doc = await storedDoc(host, existing.headId);
+  if (doc) await addSystem(host, reg, { label: existing.label, doc, source: existing.source, createdAt: existing.createdAt });
+}
+
+/**
+ * The first edit of a companion: an untouched twin takes the companion's name,
+ * place and "came with" line, and the edited record becomes the person's copy.
+ * The record keeps its id, so the edit being saved and its journal still point there.
+ */
+async function keepCompanionOriginal(host: InstallTokensHost, reg: DesignSystemRegistry, record: DesignSystemRecord): Promise<DesignSystemRecord> {
+  const source = record.source;
+  if (source.kind !== 'local' || !source.companion) return record;
+  // The catalog's own document when it can still be read. Otherwise what this
+  // record holds, which is the original for a record nobody has edited.
+  const doc = await storedDoc(host, source.companion.tokens) ?? await storedDoc(host, record.headId);
+  if (!doc) return record;
+  const twin = await addSystem(host, reg, { label: source.companion.label, doc, source, createdAt: record.createdAt });
+  const copy: DesignSystemRecord = { ...record, label: copyLabel(record.label), source: { kind: 'local', forkedFrom: { id: twin.id } }, createdAt: Date.now() };
+  await reg.put(copy);
+  return copy;
 }
 
 /** Parse a JSON blob, or null when there is nothing readable there. */

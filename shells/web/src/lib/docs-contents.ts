@@ -142,9 +142,13 @@ export function enhanceDocsContents(o: DocsContentsOptions): () => void {
     listen(panel, 'click', (e) => {
       if ((e.target as Element | null)?.closest?.('a')) close(false);
     });
+    // Focus moving to a box that holds the bar has not left the bar. WebKit does not
+    // focus a pressed link: focus moves to the nearest focusable box around the link,
+    // and in the app that box is the view. Closing on that hid the sheet before the
+    // click, so on an iPhone the click reached the article and no link opened.
     listen(control, 'focusout', (e) => {
       const next = (e as FocusEvent).relatedTarget as Node | null;
-      if (next && !control.contains(next)) close(false);
+      if (next && !control.contains(next) && !next.contains(control)) close(false);
     });
   }
 

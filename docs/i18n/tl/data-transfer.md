@@ -1,50 +1,55 @@
-# Data transfer: ang `lolly-backup` bundle
+# Paglipat ng data: ang `lolly-backup` bundle
 
-Iniingatan ng Lolly ang personal mong library sa device. Ang backup bundle ang paraan para lumipat ang library na iyon: i-export sa isang install, dalhin ang file sa anumang paraang gusto mo (USB, AirDrop, email sa sarili o network share) at i-import sa iba. Hindi nangangailangan ng server ang pag-export at pag-import, at puwedeng offline ang target.
+Inililipat ng backup bundle ang personal na library na itinatago ng Lolly sa device: i-export ito sa isang install, dalhin ang file (USB, AirDrop, email sa sarili mo o network share) at i-import ito sa iba. Hindi kailangan ng server sa pag-export at pag-import, at puwedeng offline ang destinasyon.
 
-Ang pahinang ito ay ang format specification, para sa mga taong bumubuo ng shell, tool o script sa paligid ng mga backup: ano ang nasa zip, paano gina-gate ang mga bersyon, paano nagme-merge ang import at ano ang sinusuri. Ang walkthrough para sa mga taong naglilipat ng sarili nilang gawa ay [Ilipat ang gawa mo sa ibang device](/info/find-your-work.html#move-your-work-to-another-device).
+Ito ang format specification para sa mga gumagawa ng shell, tool o script para sa mga backup. Para ilipat ang sarili mong gawa, basahin ang [Ilipat ang gawa mo sa ibang device](/info/find-your-work.html#move-your-work-to-another-device).
 
-![Ang dalawang button na naglilipat ng buong install: ang Export my data ay nagsusulat ng isang zip, ang Import data ay binabasa ito pabalik](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
+![Ang dalawang button na naglilipat ng buong install: nagsusulat ng iisang zip ang Export my data, binabasa ito pabalik ng Import data](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-> **Saklaw.** Ang bundle ay may dalang *user data*, hindi mga catalog tool. Ang mga catalog tool at catalog asset ay hiwalay na sini-sync at ipinapalagay na nasa target na, sa pinakamasama ay nasa mas mataas na bersyon. Ang mga tool na ginawa mismo ng user ay sumasama sa loob ng `profile.json`. Hindi kailanman nag-i-install o nag-a-upgrade ng catalog tool ang pag-import.
-
-## Mga Layunin
-
-- <!--i:box--> **Isang format, bawat shell.** Ang web app, ang mga desktop at mobile app at mga hinaharap na shell ay nagbabahagi ng parehong envelope at part schema. Ang mga opsyonal na bahagi ay nakadepende sa kakayahan ng bawat shell, at iniuulat ang mga hindi sinusuportahang bahagi. Ang bawat capability bridge ay nagbibigay ng storage adapter nito.
-- <!--i:shieldcheck--> **Nakaliligtas sa biyahe.** Ang bundle na nasira o naputol sa daan ay malakas na nabibigo sa pag-import at hindi kailanman bahagyang nagre-restore.
-- <!--i:clock--> **Tumatagal lampas sa bersyong ito.** Ang mas lumang app ay nakakapag-import pa rin ng mga bahagi ng mas bagong bundle na kinikilala nito. Ang tunay na nakakasirang format ay malinis na tinatanggihan.
-- <!--i:check--> **Ligtas i-merge.** Ang pag-import sa install na ginagamit na ay hindi kailanman bumubura ng anumang wala sa bundle.
-
-## Ang Envelope
-
-Ang bundle ay payak na `.zip`, kaya nakaliligtas ito sa anumang transport nang buo at kahit anong unzip tool ay masusuri ang laman.
-
-Pinapangalanan ang download ayon sa taong may-ari nito: `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`, halimbawa `LollyTools-Ada-Lovelace-2026-06-26-1.zip`, kaya nananatiling nababasa ang Downloads folder ng mga backup. Ang una at huling pangalan ay galing sa profile at inaalis kapag hindi nakatakda: ang walang profile ay nagbibigay ng `LollyTools-2026-06-26-1.zip`, at ang unang pangalan lang ay nagbibigay ng `LollyTools-Ada-2026-06-26-1.zip`. Ang bawat pangalan ay binabawasan sa filename-safe na token (iniingatan ang mga Unicode letter at digit, inaalis ang espasyo at bantas, hanggang 32 character). Ang `<n>` ay per-day, per-device na sequence, kaya ang paulit-ulit na export sa isang araw ay hindi nagbabanggaan at nananatiling nakaayos. Binubuo ng `backupFilename()` sa `data-transfer.ts` ang pangalan, at ang laman ng zip ay pareho anuman ang pangalan nito.
-
-| Path | Kinakailangan | Laman |
-|---|---|---|
-| `manifest.json` | oo | Format id, mga bersyon, bilang at integrity bawat bahagi. Ang unang tinitingnan ng reader. |
-| `profile.json` | kapag nakatakda | Ang buong `me` record ng user: pangalan, contact, headshot ref at flag, kasama ang mga folder, Trash, project blueprint, user template at user-made na tool, paborito, nakatagong tool, wika at piniling emoji. Binabasa sa pamamagitan ng `host.profile`. |
-| `sessions.json` | oo | Bawat naka-save na session: slot, tool id at bersyon, label, thumbnail (data URL) at buong input data. Binabasa sa pamamagitan ng `host.state`. |
-| `assets.json` | oo | Metadata para sa bawat na-upload na asset (larawan, font, brand token, logo, naka-save na kopya ng mga download), bawat isa ay tumuturo sa mga byte nito sa ilalim ng `assets/blobs/`. |
-| `assets/blobs/<n>.<ext>` | bawat asset | Ang hilaw na byte ng asset, naka-store nang hindi compressed dahil karamihan ay compressed na format. Pampaganda lang ang extension; ang MIME type sa `assets.json` ang tiyak. |
-| `assets/blobs/<n>.c2pa` | kapag meron | Mga nakuhang Content Credentials bilang eksaktong binary byte, tinutukoy ng `_credentialFile` sa asset record. Hindi ito mga device signing key. |
-| `design-systems.json` | kapag meron | Ang mga design system na ginawa o idinagdag sa install na ito, bilang `{ active, records }`. Tingnan ang [Mga patakaran sa import](#import-rules). |
-| `file-history.json` | opsyonal | Mga versioned na asset snapshot, tapos na ulat ng file-operation at kumpletong batch manifest, na may sarili nitong bersyon. Ibinibigay ng internal na `fileHistory` backup adapter ng shell. |
-| `revision-history.json` | opsyonal, manual na backup | Mga stable na creation ID, itinagong checkpoint, thumbnail at rolling na recovery draft. Ibinibigay ng `host.state.history.backup` kung saan sinusuportahan. |
-| `file-history/versions/` | bawat snapshot | Mga naunang byte ng asset at nakuhang credential, nariyan man o wala pa ang kasalukuyang asset. |
-| `file-history/results/` | bawat tapos na operasyon | Eksaktong output byte. Walang original na file na pinili para sa conversion ang iniingatan o isinasama. |
-| `prefs.json` | oo | Mga lokal na preference na pag-aari ng user: `theme`, `sidebarWidth` at ang `ct-metrics` activity tally. |
-| `lolly.txt` | oo | Nababasang buod ng bundle (mga bilang, profile, filename) para sa sinumang magbubukas ng zip nang walang Lolly. Muling binubuo sa bawat export at kinikilala sa import, kaya hindi ito binibilang na nilaktawang bahagi. Isinusulat ito pagkatapos ng integrity map, kaya hindi sakop ng map ang file na ito. |
-
-::: details Paano isinusulat ng export ang zip
-Isinusulat ng export ang zip nang isang bahagi sa isang pagkakataon (`shells/web/src/lib/zip-stream.ts`). Ang mga upload, naka-save na resulta at naka-save na bersyon ng asset ay binabasa sa 4 MiB na hiwa, hindi kailanman buo, at ang mga naka-save na resulta at bersyon ay unang sinusuri laban sa naitalang SHA-256 nila. Pagkatapos, binabasa ang bawat file para sa checksum at integrity digest nito, at tinutukoy ng zip ito kung nasaan ito.
-
-Walang ine-encode muli, kaya ang file na may Content Credentials ay nag-iingat ng eksaktong byte na sakop ng signature nito, at ang bawat bahagi ay nag-iingat ng eksaktong byte at digest nito. Para sa parehong bahagi at oras, ang zip ay kapareho ng sa naunang in-memory writer, maliban sa history file na higit sa 16 MiB ay kinokompress sa mga piraso. Sinusuri ito ng `tests/backup-streaming.test.ts` laban sa mga naitalang reference digest.
-
-Sa 192 MiB na synthetic library, sinukat sa Node, ang pagtatapos ng backup ay umabot ng mga 125 hanggang 150 MiB bukod sa library, kumpara sa mga 850 MiB para sa in-memory writer (`node scripts/bench-backup-finalise.ts`). Binabasa pa rin ng import ang buong zip sa memory.
+::: note Saklaw
+*Data ng user* ang dala ng bundle, hindi mga tool sa catalog. Hiwalay na sini-sync ang mga tool at asset sa catalog at ipinapalagay na naroon na ang mga ito sa destinasyon, sa mas mataas na bersyon kung sakali. Sumasama ang mga tool na ginawa ng user sa loob ng `profile.json`. Hindi kailanman nag-i-install o nag-a-upgrade ng tool sa catalog ang pag-import.
 :::
 
+<!--i:eti-badge-check-->
+## Mga layunin
+
+- <!--i:box--> **Isang format, bawat shell.** Iisa ang envelope at mga part schema na ginagamit ng web app, mga desktop at mobile app at mga shell sa hinaharap. Nakadepende ang mga opsyonal na bahagi sa kakayahan ng bawat shell, at iniuulat ang mga hindi suportadong bahagi. Nagbibigay ang bawat capability bridge ng storage adapter nito.
+- <!--i:shieldcheck--> **Nananatiling buo sa paglipat.** Ang bundle na nasira o naputol sa paglipat ay hindi mai-import at magbibigay ng error, at hindi kailanman bahagyang mare-restore.
+- <!--i:clock--> **Magagamit lampas sa bersyong ito.** Ini-import ng mas lumang app ang mga bahagi ng mas bagong bundle na nakikilala nito. Maayos na tinatanggihan ang format na hindi tugma.
+- <!--i:check--> **Ligtas pagsamahin.** Ang pag-import sa install na ginagamit na ay hindi kailanman nagbubura ng anumang wala sa bundle.
+
+<!--i:eti-package-->
+## Ang envelope
+
+Karaniwang `.zip` ang bundle. Nananatili itong buo sa anumang paraan ng paglipat, at masusuri ng anumang unzip tool ang mga nilalaman.
+
+Ipinapangalan ang download sa may-ari nito: `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`, halimbawa `LollyTools-Ada-Lovelace-2026-06-26-1.zip`. Galing sa profile ang pangalan at apelyido at hindi isinasama kapag hindi nakatakda: kapag walang profile, `LollyTools-2026-06-26-1.zip`, at kapag pangalan lang, `LollyTools-Ada-2026-06-26-1.zip`. Nagiging token na ligtas para sa filename ang bawat pangalan (pinapanatili ang mga Unicode letter at digit, inaalis ang mga space at bantas, hanggang 32 character). Ang `<n>` ay pagkakasunod-sunod bawat araw, bawat device, kaya hindi nagkakapareho ang paulit-ulit na export sa isang araw at nananatiling sunod-sunod. Binubuo ng `backupFilename()` sa `data-transfer.ts` ang pangalan. Hindi binabago ng pangalan ang mga nilalaman ng zip.
+
+| Path | Kailangan | Mga nilalaman |
+|---|---|---|
+| `manifest.json` | oo | Format id, mga bersyon, bilang at integrity bawat bahagi. Binabasa muna ng reader ang file na ito. |
+| `profile.json` | kapag nakatakda | Ang `me` record ng user: pangalan, contact, headshot ref at mga flag, kasama ang mga folder, Trash, project blueprint, user template at tool na ginawa ng user, paborito, nakatagong tool, wika at piniling emoji. Binabasa sa pamamagitan ng `host.profile`. |
+| `sessions.json` | oo | Bawat na-save na session: slot, tool id at bersyon, label, thumbnail (data URL) at buong input data. Binabasa sa pamamagitan ng `host.state`. |
+| `assets.json` | oo | Metadata para sa bawat in-upload na asset (mga larawan, font, brand token, logo, na-save na kopya ng mga download), bawat isa ay nakaturo sa mga byte nito sa ilalim ng `assets/blobs/`. |
+| `assets/blobs/<n>.<ext>` | bawat asset | Ang mga raw byte ng asset, itinatago nang hindi naka-compress dahil karamihan ay nasa mga compressed na format na. Para sa itsura lang ang extension; ang MIME type sa `assets.json` ang masusunod. |
+| `assets/blobs/<n>.c2pa` | kapag mayroon | Na-extract na Content Credentials bilang eksaktong mga binary byte, na tinutukoy ng `_credentialFile` sa asset record. Hindi ito mga signing key ng device. |
+| `design-systems.json` | kapag mayroon | Ang mga design system na ginawa o idinagdag sa install na ito, bilang `{ active, records }`. Tingnan ang [Mga tuntunin sa pag-import](#import-rules). |
+| `file-history.json` | opsyonal | Mga snapshot ng asset na may bersyon, ulat ng mga tapos na file operation at kumpletong batch manifest, na may sarili nitong bersyon. Ibinibigay ng internal na `fileHistory` backup adapter ng shell. |
+| `revision-history.json` | opsyonal, mga manual na backup | Mga permanenteng creation ID, itinagong checkpoint, thumbnail at patuloy na ina-update na recovery draft. Ibinibigay ng `host.state.history.backup` kung saan suportado. |
+| `file-history/versions/` | bawat snapshot | Mga naunang byte ng asset at na-extract na credential, naroon pa man o wala na ang kasalukuyang asset. |
+| `file-history/results/` | bawat tapos na operation | Eksaktong mga output byte. Walang itinatago o isinasamang orihinal na file na pinili para sa conversion. |
+| `prefs.json` | oo | Mga lokal na preference na pag-aari ng user: `theme`, `sidebarWidth` at ang `ct-metrics` na bilang ng aktibidad. |
+| `lolly.txt` | oo | Nababasa na buod ng bundle (mga bilang, profile, filename) para sa sinumang magbubukas ng zip nang walang Lolly. Muling binubuo sa bawat export at nakikilala sa pag-import, kaya hindi ito kailanman binibilang bilang nilaktawang bahagi. Isinusulat ito pagkatapos ng integrity map, kaya hindi sakop ng map ang file na ito. |
+
+::: details Paano isinusulat ng export ang zip
+Isinusulat ng export ang zip nang paisa-isang bahagi (`shells/web/src/lib/zip-stream.ts`). Binabasa ang mga upload, na-save na resulta at na-save na bersyon ng asset sa mga pirasong 4 MiB, hindi kailanman nang buo. Sinusuri muna ang mga na-save na resulta at bersyon ayon sa naitalang SHA-256 ng mga ito. Pagkatapos, binabasa ang bawat file para sa checksum at integrity digest nito, at tinutukoy ng zip ang file sa kinaroroonan nito.
+
+Walang muling ine-encode. Pinapanatili ng bawat bahagi ang eksaktong mga byte at digest nito, kaya pinapanatili ng file na may Content Credentials ang mga byte na sakop ng pirma nito. Para sa parehong mga bahagi at oras, kapareho ang zip ng mula sa dating writer na gumagamit ng memory, maliban sa history file na lampas 16 MiB na kino-compress nang pira-piraso. Sinusuri ito ng `tests/backup-streaming.test.ts` ayon sa mga naitalang reference digest.
+
+Sa isang 192 MiB na sintetikong library, na sinukat sa Node, ang pagtatapos ng backup ay gumamit ng humigit-kumulang 125 hanggang 150 MiB bukod pa sa library, kumpara sa humigit-kumulang 850 MiB para sa writer na gumagamit ng memory (`node scripts/bench-backup-finalise.ts`). Binabasa pa rin ng pag-import ang buong zip sa memory.
+:::
+
+<!--i:eti-file-->
 ## `manifest.json`
 
 ```json
@@ -70,149 +75,158 @@ Sa 192 MiB na synthetic library, sinukat sa Node, ang pagtatapos ng backup ay um
 
 | Field | Kahulugan |
 |---|---|
-| `format` | Laging `lolly-backup`. Ang file na wala nito ay tinatanggihan bilang "not a Lolly backup". |
-| `formatVersion` | Ang layout na **ginamit sa pagsulat** ng bundle na ito. Tinataasan sa anumang pagbabago sa hanay o hugis ng mga bahagi. **Hindi** nagge-gate ang mga reader sa field na ito. |
-| `minReader` | Ang pinakamababang bersyon ng reader na maaaring mag-import ng bundle na ito nang **ligtas**. Ito ang field na ginagamit ng mga reader sa gate. |
+| `format` | Laging `lolly-backup`. Tinatanggihan ang file na wala nito bilang "hindi Lolly backup". |
+| `formatVersion` | Ang layout na ginamit sa **pagsulat** ng bundle na ito. Tinataasan sa anumang pagbabago sa set o hugis ng mga bahagi. **Hindi** ginagamit ng mga reader ang field na ito para magpasya kung tatanggapin ito. |
+| `minReader` | Ang pinakamababang bersyon ng reader na kayang mag-import ng bundle na ito nang **ligtas**. Ito ang field na ginagamit ng mga reader para magpasya kung tatanggapin ito. |
 | `app` | Id ng app na gumawa, para sa diagnostics. |
 | `exportedAt` | ISO timestamp kung kailan ginawa ang bundle. |
-| `counts` | Kung ano ang inilagay ng writer, para sa display at sanity check. |
-| `integrity` | Opsyonal. Minamapa ang bawat bahagi maliban sa `manifest.json` sa SRI-style na `sha256-<base64>` digest ng **hindi compressed** na mga byte nito. |
+| `counts` | Kung ano ang inilagay ng writer, para ipakita at suriin kung makatwiran. |
+| `integrity` | Opsyonal. Itinatapat ang bawat bahagi maliban sa `manifest.json` sa SRI-style na `sha256-<base64>` digest ng mga byte nitong **hindi naka-compress**. |
 
+<!--i:eti-tag-->
 ## Patakaran sa bersyon
 
-Dalawang numero ng bersyon ang nagpapahintulot sa format na lumaki nang hindi iniiwan ang mas lumang install.
+Dalawang numero ng bersyon ang nagpapahintulot sa format na lumawak nang hindi naiiwan ang mga mas lumang install.
 
-![Ang pagbabago sa bundle format ay additive, na kayang balewalain ng lumang reader, o breaking, kung saan ang maling import ay nakakasira. Ang additive ay nagtataas ng formatVersion at pinananatili ang minReader; ang breaking ay nagtataas ng formatVersion at itinataas ang minReader. Nag-i-import ang reader kapag ang minReader ay hindi hihigit sa sarili nitong bersyon.](/info/diagrams/concepts/backup-version-gate.svg)
+![Ang pagbabago sa format ng bundle ay maaaring dagdag lang, na puwedeng balewalain ng mga lumang reader, o hindi tugma, kung saan nakakasira ang maling pag-import. Tinataasan ng dagdag lang ang formatVersion at pinapanatili ang minReader; tinataasan ng hindi tugma ang formatVersion at minReader. Nag-i-import ang reader kapag hindi mas mataas ang minReader sa sarili nitong bersyon.](/info/diagrams/concepts/backup-version-gate.svg)
 
-- Nag-i-import ang reader ng bundle kapag ang `manifest.minReader` ay hindi hihigit sa sarili nitong reader version. Tumatanggi ito, na may "needs a newer version of the app", kapag humihingi lang ang bundle ng mas bagong reader.
-- Ang **additive** na pagbabago, tulad ng bagong opsyonal na bahagi o bagong opsyonal na manifest field, ay nagtataas ng `formatVersion` at iniiwan ang `minReader`. Nag-i-import pa rin ang mas lumang app ng bawat bahaging kilala nito, at ang mga bahaging hindi nito kilala ay iniuulat bilang nilaktawan, hindi tahimik na ibinabasura.
-- Ang **breaking** na pagbabago, kung saan ang maling import ng isang bahagi ay sumisira ng data o ang opsyonal na bahagi ay nagiging mandatory, ay itinataas ang `minReader`. Malinis na tumatanggi ang mas lumang app sa halip na mag-import ng hindi nito kayang hawakan.
-- Kung magtakda ang hinaharap na bundle ng `formatVersion` pero iwanan ang `minReader`, bumabalik ang mga reader sa pag-gate sa `formatVersion` at itinuturing ang pagbabago bilang breaking.
+- Ini-import ng reader ang bundle kapag hindi mas mataas ang `manifest.minReader` sa sarili nitong bersyon ng reader. Tinatanggihan lang nito, na may "kailangan ng mas bagong bersyon ng app", kapag nangangailangan ang bundle ng mas bagong reader.
+- Ang **dagdag lang** na pagbabago, tulad ng bagong opsyonal na bahagi o bagong opsyonal na manifest field, ay nagtataas ng `formatVersion` at hindi binabago ang `minReader`. Ini-import pa rin ng mga mas lumang app ang bawat bahaging nakikilala nila, at iniuulat bilang nilaktawan ang mga bahaging hindi nila nakikilala, hindi tahimik na inaalis.
+- Ang **hindi tugmang** pagbabago, kung saan nakakasira ng data ang maling pag-import ng isang bahagi o nagiging sapilitan ang opsyonal na bahagi, ay nagtataas ng `minReader`. Maayos na tumatanggi ang mga mas lumang app sa halip na mag-import ng hindi nila kayang hawakan. Maayos na tinatanggihan ng mga mas lumang app ang bundle.
+- Kapag itinakda ng bundle sa hinaharap ang `formatVersion` pero hindi isinama ang `minReader`, bumabalik ang mga reader sa pagpapasya ayon sa `formatVersion` at itinuturing ang pagbabago bilang hindi tugma.
 
-> **Panuntunan para sa mga may-akda:** kung gagawin pa rin ng bawat umiiral na reader ang tama sa pagbalewala sa idinagdag mo, additive ang pagbabago: itaas ang `formatVersion` at iwanan ang `minReader`. Kung hindi, itaas ang `minReader`.
+::: note Gabay para sa mga may-akda
+Kung tama pa rin ang gagawin ng bawat umiiral na reader sa pagbalewala sa idinagdag mo, dagdag lang ang pagbabago: taasan ang `formatVersion` at panatilihin ang `minReader`. Kung hindi, taasan ang `minReader`.
+:::
 
-## Integridad
+<!--i:eti-shield-check-->
+## Integrity
 
-Kapag may `manifest.integrity`, sinusuri ng reader ang SHA-256 ng bawat nakalistang bahagi **bago magsulat ng anuman**. Ang hindi tugma ("failed its integrity check") o nawawalang bahagi ("incomplete") ay humihinto sa buong import, kaya walang bahagyang restore. Nahuhuli nito ang pinsalang kayang gawin ng file transport: naputol na AirDrop, email gateway na nag-encode muli ng attachment, sirang USB sector.
+Kapag naroon ang `manifest.integrity`, sinusuri ng reader ang SHA-256 ng bawat nakalistang bahagi **bago magsulat ng anuman**. Ang hindi pagtutugma ("bumagsak sa integrity check nito") o nawawalang bahagi ("hindi kumpleto") ay nagpapahinto sa pag-import, kaya walang bahagyang pag-restore. Natutukoy nito ang pinsala sa paglipat: naputol na AirDrop, email gateway na muling nag-encode ng attachment, sirang sektor ng USB.
 
-Best effort ang integrity. Isinusulat lang ito kung saan available ang Web Crypto (bawat secure browser context at modernong Node), at sinusuri lang kapag parehong naroon ang map at Web Crypto. Ang bundle na walang map, tulad ng mula bago umiral ang integrity, ay nag-i-import nang walang pagbabago: ang "cannot verify" ay hindi kailanman binibilang bilang "corrupt".
+Ginagawa ang integrity hangga't kaya. Isinusulat lang ito kung saan may Web Crypto (bawat secure na browser context at modernong Node), at sinusuri lang kapag parehong naroon ang map at Web Crypto. Ini-import nang walang pagbabago ang bundle na walang map, tulad ng mula noong wala pang integrity: ang "hindi ma-verify" ay hindi kailanman itinuturing na "sira".
 
-Hindi inililista ng manifest ang sarili nito o ang muling binuong `lolly.txt`. Sakop ng mga digest ang mga bahaging pinatotohanan ng manifest.
+Hindi inililista ng manifest ang sarili nito o ang muling binuong `lolly.txt`.
 
-## Mga patakaran sa import
+<!--i:eti-download-->
+## Mga tuntunin sa pag-import
 
-Ang import ay tumatakbo sa isa sa dalawang mode.
+Tumatakbo ang pag-import sa isa sa dalawang mode.
 
-- Ang **Merge** ang ginagawa ng **Import data…**, at ng unang pagsali ng sync, **Bring it to this device**. Nananatili ang data sa target, at walang gagalawin na wala sa bundle: ang session na meron ang target pero wala ang bundle ay nakakaligtas sa import.
-- Ang **Replace** ang ginagamit ng device sync para panatilihing magkasabay ang mga device: kinukuha nito ang profile record, mga preference, session, larawan at piniling aktibong design system ng na-sync na kopya, at inaalis lang ang mga item na binura ng ibang device mula sa huling sync. Ang pagbabalik ng mas naunang kopya ay mas malayo: ginagawa nitong tugma ang device sa kopyang iyon, inaalis ang lahat ng wala sa kopya, pagkatapos i-save muna ang device. Sinasaklaw ng [Sync your devices](/info/sync.html) ang nakikita ng tao.
+- **Merge** ang ginagawa ng **Import data…** at ng unang pagsali sa sync, **Bring it to this device**. Nananatili ang data sa destinasyon, at walang ginagalaw sa labas ng bundle.
+- **Replace** ang ginagamit ng device sync para panatilihing magkakatugma ang mga device. Kinukuha nito ang profile record, mga preference, session, larawan at piniling aktibong design system ng naka-sync na kopya. Inaalis lang nito ang mga item na binura ng ibang device mula sa huling sync. Ang pag-restore ng mas naunang kopya ay sine-save muna ang device, saka itinutugma ang device sa kopyang iyon at inaalis ang lahat ng wala sa kopya. Sinasaklaw ng [I-sync ang mga device mo](/info/sync.html) kung ano ang nakikita ng isang tao.
 
-Sa merge, anumang nasa target lang ay iniingatan, at ang bawat uri ng data sa bundle ay nakikipagtagpo sa target nang ganito:
+Ganito hinahawakan ng merge ang bawat uri ng data:
 
-| Data | Nasa target na | Nasa bundle lang |
+| Data | Nasa destinasyon na | Nasa bundle lang |
 |---|---|---|
-| Mga session (ayon sa slot) at na-upload na larawan (ayon sa id) | Iniingatan ang kopyang mas kamakailang na-save, kaya hindi kailanman ino-overwrite ng mas lumang backup ang mas bagong gawa. Ang magkapareho o hindi alam na oras ay nag-iingat ng kopya ng target. | Idinaragdag |
-| Mga folder | Iniingatan ang pangalan at parent ng target, at nadaragdagan ang folder ng mga member ng bundle na wala nito. Ang session na naka-file sa folder sa target ay nananatiling naka-file doon. | Idinaragdag |
-| Mga paborito (tool, catalog asset at Projects item) | Pinagsama | Idinaragdag |
-| Mga template, Projects template at user tool (ayon sa id) | Iniingatan ang record ng target. | Idinaragdag |
-| Mga entry sa Trash | Iniingatan ang entry ng target. | Idinaragdag, kaya ang item na maibabalik sa alinmang install ay maibabalik pa rin. Ang entry na ang folder ay ginagamit muli sa target, o ang Trash slot ay ginagamit na ng target, ay iniiwan. |
-| Iba pang profile field (pangalan, mga detalye ng contact, wika, feature flag, nakatagong tool at iba pang setting) | Iniingatan ang value ng target. | Kinukuha kung walang laman ang field ng target |
-| Mga preference (`prefs.json`) | Iniingatan ang value ng target. | Isinusulat kung wala ang target |
-| Mga design system (ayon sa id) | Pinapalitan ng record ng bundle ang sa target. | Idinaragdag. Ang aktibong pagpili ng bundle ay umiiral lang kapag walang sariling design system ang target. |
-| Creation history | Nananatiling kasalukuyan ang kopyang mas kamakailang na-save, at ang isa pa ay iniingatan bilang protektadong draft. | Idinaragdag |
+| Mga session (ayon sa slot) at in-upload na larawan (ayon sa id) | Pinapanatili ang mas kamakailang na-save na kopya, kaya hindi kailanman pinapatungan ng mas lumang backup ang mas bagong gawa. Kapag pareho o hindi alam ang mga oras, pinapanatili ang kopya sa destinasyon. | Idinaragdag |
+| Mga folder | Pinapanatili ang pangalan at parent sa destinasyon, at idinaragdag sa folder ang mga miyembro ng bundle na wala pa rito. Nananatili sa folder na iyon ang session na nakalagay sa folder sa destinasyon. | Idinaragdag |
+| Mga paborito (tool, asset sa catalog at item sa Projects) | Pinagsasama | Idinaragdag |
+| Mga template, template sa Projects at tool ng user (ayon sa id) | Pinapanatili ang record sa destinasyon. | Idinaragdag |
+| Mga entry sa Trash | Pinapanatili ang entry sa destinasyon. | Idinaragdag, kaya mare-restore pa rin ang item na puwedeng i-restore sa alinmang install. Hindi isinasama ang entry na ginagamit muli ang folder sa destinasyon, o ginagamit na ng destinasyon ang Trash slot nito. |
+| Iba pang field ng profile (pangalan, detalye sa pakikipag-ugnayan, wika, feature flag, nakatagong tool at iba pang setting) | Pinapanatili ang value sa destinasyon. | Kinukuha kapag walang laman ang field sa destinasyon |
+| Mga preference (`prefs.json`) | Pinapanatili ang value sa destinasyon. | Isinusulat kapag wala nito sa destinasyon |
+| Mga design system (ayon sa id) | Pinapalitan ng record ng bundle ang nasa destinasyon. | Idinaragdag. Ginagamit lang ang aktibong pinili sa bundle kapag walang sariling design system ang destinasyon. |
+| History ng gawa | Nananatiling kasalukuyan ang mas kamakailang na-save na kopya, at itinatago ang isa pa bilang protektadong draft. | Idinaragdag |
 
-**Ang mga naka-save na session ay awtomatikong nagre-re-link sa mga larawan nila.** Iniingatan ayon sa id ang mga asset reference, at nireresolba muli ng bridge ang mga ito pagkatapos maibalik ang mga larawan, na kailangan nitong gawin pa rin dahil hindi nakaliligtas sa reload ang mga `blob:` URL.
+**Awtomatikong muling naka-link sa mga larawan nila ang mga na-save na session.** Pinapanatili ayon sa id ang mga asset reference. Muling nireresolba ng bridge ang mga ito pagkatapos ma-restore ang mga larawan, dahil hindi nananatili ang mga `blob:` URL pagkatapos ng reload.
 
-**Hindi kailanman nagbabago ang mga history record pagkatapos isulat.** Ang paulit-ulit na import ng mga bersyon ng asset at operation ID ay walang idinaragdag, at ang ID na pinangalanan na ang ibang mga byte o history ay tinatanggihan, hindi ino-overwrite. Ang muling pag-import ng magkaparehong kasalukuyang asset ay nag-iingat ng bersyon nito, at ang nagbagong kasalukuyang asset ay kailangang may ibang bersyon.
+**Hindi kailanman nagbabago ang mga history record matapos isulat.** Walang idinaragdag ang muling pag-import ng mga bersyon ng asset at operation ID, at tinatanggihan ang ID na tumutukoy na sa ibang mga byte o history, hindi pinapatungan. Pinapanatili ng muling pag-import ng kaparehong kasalukuyang asset ang bersyon nito, at kailangang may ibang bersyon ang binagong kasalukuyang asset.
 
-**May ilan pang patakaran ang creation history.** Ang likha na ang slot ay ginagamit ng target para sa ibang likha ay idinaragdag bilang hiwalay na likha, at ang likha sa Trash ng target ay nananatili roon. Ang checkpoint id na pinangalanan ang ibang nilalaman sa target ay nag-iingat sa sa target. Ang archive na nabigo sa sarili nitong mga check ay humihinto sa import bago magbago ang anumang profile, session, asset o preference, at ang magkaparehong paulit-ulit na import ay walang idinaragdag na storage.
+**May ilan pang tuntunin ang history ng gawa.** Ang gawa na ang slot ay ginagamit ng destinasyon para sa ibang gawa ay idinaragdag bilang hiwalay na gawa, at nananatili roon ang gawa na nasa Trash ng destinasyon. Pinapanatili ang nasa destinasyon kapag ibang nilalaman ang tinutukoy roon ng checkpoint id. Pinapahinto ng archive na bumagsak sa sarili nitong mga pagsusuri ang pag-import bago magbago ang anumang profile, session, asset o preference, at walang idinaragdag na storage ang muling pag-import ng kapareho.
 
-**Iniuulat ng buod kung ano ang nangyari.** Bawat import ay nagbabalik ng `profile`, `sessions`, `userAssets`, `prefs`, `skipped` at `failedAssets`.
+**Iniuulat ng buod kung ano ang nangyari.** Ibinabalik ng bawat pag-import ang `profile`, `sessions`, `userAssets`, `prefs`, `skipped` at `failedAssets`.
 
-- Binibilang ng `failedAssets` ang mga na-upload na asset na hindi nai-restore, halimbawa dahil puno ang device storage.
-- Binibilang ng `skipped` ang mga bahagi mula sa mas bagong writer na hindi nakilala ng build na ito. Ipinapakita ito ng app ("… · N newer items skipped"), kaya sinasabi ng restore kung ano ang iniwan nito.
-- Sa file history, idinaragdag ng buod ang `assetVersions`, `fileOperations`, `fileBatches` at `failedHistory`. Ang pagkaubos ng storage o immutable-ID conflict ay maaaring magdulot ng bahagyang restore, at sinasabi ng app sa tao na itago ang source backup.
-- Sa creation history, idinaragdag nito ang `revisions` at `recoveryDrafts`, na binibilang lang ang idinagdag ng import na ito, at `added`, `kept`, `replaced`, `copies` at `hidden` para sa kung paano na-merge ang bawat likha. Binibilang ng `skippedCheckpoints` ang mga checkpoint na ang id ay pinangalanan ang ibang nilalaman sa target, at binibilang ng `historyLeftOut` ang mas lumang checkpoint at draft na hindi kasya sa history space ng device.
-- Ang replace import ay nagdaragdag ng `removed` at `failedRemovals`.
+- Binibilang ng `failedAssets` ang mga in-upload na asset na hindi ma-restore, halimbawa dahil puno ang storage ng device.
+- Binibilang ng `skipped` ang mga bahagi mula sa mas bagong writer na hindi nakilala ng build na ito. Ipinapakita ng app ang bilang ("… · N mas bagong item ang nilaktawan").
+- Kapag may file history, idinaragdag ng buod ang `assetVersions`, `fileOperations`, `fileBatches` at `failedHistory`. Puwedeng magdulot ng bahagyang pag-restore ang pagkaubos ng storage o conflict sa immutable ID, at sinasabi ng app sa tao na itago ang pinagmulang backup.
+- Kapag may history ng gawa, idinaragdag nito ang `revisions` at `recoveryDrafts`, na binibilang lang ang idinagdag ng pag-import na ito, at ang `added`, `kept`, `replaced`, `copies` at `hidden` para sa paraan ng pagsasama ng bawat gawa. Binibilang ng `skippedCheckpoints` ang mga checkpoint na ibang nilalaman sa destinasyon ang tinutukoy ng id, at binibilang ng `historyLeftOut` ang mga mas lumang checkpoint at draft na hindi nagkasya sa espasyo para sa history ng device.
+- Idinaragdag ng replace import ang `removed` at `failedRemovals`.
 
-Hindi iisang transaksyon ang restore sa mga profile, session, asset at history store. **Hindi** pinauuna ng cloud sync ang naapply nitong revision pagkatapos ng bahagyang o hindi sinusuportahang restore, kaya nananatiling available ang kopya para subukan muli.
+Hindi iisang transaksyon ang pag-restore sa mga store ng profile, session, asset at history. **Hindi** inaabante ng cloud sync ang nailapat nitong revision pagkatapos ng bahagya o hindi suportadong pag-restore, kaya nananatiling available ang kopya para subukang muli.
 
-## Ang Hindi Naglalakbay
+<!--i:eti-unlink-->
+## Ano ang hindi kasama sa paglilipat
 
-- **Mga catalog cache** (na-download na asset metadata at blob, ang tool index), na muling sini-sync ng target nang libre.
-- **Mga catalog tool at catalog asset**, na labas sa saklaw at ipinapalagay na nasa target. Ang mga brand token, font at logo na idinagdag ng user ay mga user asset, kaya sumasama ang mga ito.
-- **Mga `blob:` at object URL**, na muling binubuo ng bridge sa pag-load.
-- **Mga conversion original, live execution lease at machine-local na access o signing secret.** Hindi portable na history ang mga ito. Ang naka-save na resulta ay kopya, hindi pangako na na-backup ang orihinal na source.
-- **Ang export sequence counter**, ang per-day na download-naming counter sa `localStorage` (`lolly-export-seq`). Nakatago ito sa `PREF_KEYS`, kaya hindi ito kailanman sumasama sa bundle.
+- **Mga cache ng catalog** (na-download na metadata at blob ng asset, ang index ng tool), na muling sini-sync ng destinasyon.
+- **Mga tool at asset ng catalog**, na ipinapalagay na nasa destinasyon na. Ang mga brand token, font at logo na idinagdag ng user ay mga user asset at kasama sa paglilipat.
+- **Mga `blob:` at object URL**, na muling ginagawa ng bridge sa pag-load.
+- **Mga orihinal na file ng conversion, aktibong execution lease at mga access o signing secret na lokal sa machine.** Hindi portable na history ang mga ito. Kopya ang naka-save na resulta. Hindi nito ibig sabihin na na-back up ang orihinal na source.
+- **Ang export sequence counter**, ang pang-araw-araw na counter sa pagpapangalan ng download sa `localStorage` (`lolly-export-seq`). Hindi ito isinasama sa `PREF_KEYS`, kaya hindi ito kailanman kasama sa bundle.
 
-Ipinapakita ng storage meter ang parehong paghahati. Ang mga naka-save na session, My images at File results & versions ay napupunta sa bundle. Ang asset cache, tool preview at offline pin sa ilalim ng mga ito ay maaaring muling buuin, kaya naiiwan ang mga ito.
+Ipinapakita ng storage meter ang parehong paghahati. Kasama sa bundle ang Saved sessions, My images at File results & versions. Maaaring buuing muli ang asset cache, mga tool preview at offline pin at naiiwan ang mga ito.
 
-![Ang storage meter na naghihiwalay ng data ng device na ito sa mga pinangalanang kategorya, na ang Saved sessions at My images ay hiwalay na sinusubaybayan mula sa Asset cache, dito sa bagong install kung saan walang laman pa ang bawat kategorya](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
+![Ang storage meter na naghahati sa data ng device na ito sa mga pinangalanang kategorya, na hiwalay na sinusubaybayan ang Saved sessions at My images sa Asset cache, dito sa bagong install kung saan wala pang laman ang bawat kategorya](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
+<!--i:eti-building-->
 ## Data ng organisasyon gamit ang Lolly Work
 
-Ang bundle na ito ay nagba-back up ng personal na library ng device. Hindi ito backup ng **Lolly Work** instance: ang mga account ng organisasyon, access policy, shared project, bersyon ng catalog, approval, render job at audit record ay hawak ng serbisyong iyon. Kumonekta muli at mag-sign in para mabawi ang access sa shared work; ang pag-import ng personal na bundle ay hindi nagbibigay ng access na iyon.
+Bina-back up ng bundle na ito ang personal na library ng device. Ang bundle ay hindi backup ng isang **Lolly Work** instance. Hawak ng serbisyong iyon ang mga account ng organisasyon, access policy, shared project, bersyon ng catalog, approval, render job at audit record. Kumonekta muli at mag-sign in para muling ma-access ang shared na gawa. Hindi ibinibigay ng pag-import ng personal na bundle ang access na iyon.
 
-Ang mga operator ang nagba-back up, nag-iingat at nagbubura ng server data gamit ang sariling mga gabay ng Lolly Work: [Backup at restore](/info/work-operations.html#backup-and-restore) at [Lolly Work storage at data lifecycle](/info/work-data-lifecycle.html). Ang pag-clear o pag-export ng device ay hindi gumagawa ng alinman sa mga server operation na iyon.
+Bina-back up, pinapanatili at binubura ng mga operator ang data ng server gamit ang sariling mga gabay ng Lolly Work: [Pag-backup at pag-restore](/info/work-operations.html#backup-and-restore) at [Storage at lifecycle ng data sa Lolly Work](/info/work-data-lifecycle.html). Walang alinman sa mga operasyong iyon sa server ang ginagawa ng pag-clear o pag-export ng device.
 
+<!--i:eti-monitor-->
 ## Sa iba't ibang shell
 
-Ang `data-transfer.ts` ay nagbabasa at nagsusulat lang sa pamamagitan ng capability bridge (`host.profile`, `host.state`, `host.assets`) at ng shared na `localStorage` preference. Ang parehong module ay nagbabasa at nagsusulat ng karaniwang envelope sa web at sa mga desktop at mobile app, sa IndexedDB o filesystem storage. Lumilitaw lang ang mga opsyonal na history part kung saan available ang adapter nila, at ang hindi sinusuportahang bahagi ay iniuulat na nilaktawan sa import. Sinusubok ng headless suite ang mga karaniwang bahagi laban sa in-memory bridge, at ang history transaction ay may mga real-browser test din.
+Nagbabasa at nagsusulat ang `data-transfer.ts` sa pamamagitan lang ng capability bridge (`host.profile`, `host.state`, `host.assets`) at ng mga pinagsasaluhang preference sa `localStorage`. Ang parehong module ang nagbabasa at nagsusulat ng karaniwang envelope sa web at sa mga desktop at mobile app, sa IndexedDB o filesystem storage. Lumalabas lang ang mga opsyonal na bahagi ng history kung available ang adapter ng mga ito. Iniuulat ng import na nilaktawan ang bahaging hindi suportado. Sinusubukan ng headless suite ang mga karaniwang bahagi gamit ang bridge na nasa memory, at may mga test din sa totoong browser ang mga transaksyon ng history.
 
-May dalawang shell na wala sa guarantee na iyon, sa magkaibang dahilan:
+May dalawang shell na hindi sakop ng garantiyang iyon:
 
-- Ang **one-shot CLI** ay walang dadalhin: nasa memory ang state nito at isang invocation lang ang tagal.
-- Ang **TUI** ay nag-iingat ng state sa `~/.lolly` (mga session, folder, profile), at ang Profile view nito ay kayang mag-back up nito, pero nagsusulat ito ng mas simpleng sariling archive: `saved-state/<slot>.json` bawat session kasama ang `profile.json` at `folders.json`, na walang manifest, walang `formatVersion` o `minReader` at walang integrity map. Hindi ito kayang i-import ng format na ito (tinatanggihan ito ng reader bilang "not a Lolly backup"), at nakalilitong magkahawig ang pangalan nito (`lolly-backup-<stamp>.zip`). Kilalang puwang ang pagsasama ng dalawa.
+- Walang ililipat ang **one-shot CLI**: nasa memory ang state nito at tumatagal lang sa isang invocation.
+- Itinatago ng **TUI** ang state sa `~/.lolly` (mga session, folder, profile). Nagsusulat ang Profile view nito ng sarili nitong mas simpleng backup archive: `saved-state/<slot>.json` bawat session kasama ang `profile.json` at `folders.json`, na walang manifest, walang `formatVersion` o `minReader` at walang integrity map. Tinatanggihan ng reader ng format na ito ang archive na iyon bilang "hindi Lolly backup", kahit magkatulad ang mga pangalan (`lolly-backup-<stamp>.zip`). Kilalang kakulangan ang hindi pa pagkakaisa ng dalawa.
 
+<!--i:eti-clock-->
 ## Hindi pa portable
 
-Ang envelope ay manifest kasama ang mga pinangalanang bahagi, kaya ang mga bagong uri ng portable na data ay maaaring sumali sa kalaunan bilang additive na bahagi (bagong `formatVersion`, parehong `minReader`), at nilalaktawan ng mga reader ngayon ang hindi nila kilala. Ganito na naglalakbay ang mga design system, bilang `design-systems.json` kasama ang mga user asset nila.
+Maaaring idagdag sa ibang pagkakataon ang mga bagong uri ng portable na data bilang mga karagdagang bahagi (bagong `formatVersion`, parehong `minReader`). Ganito na inililipat ang mga design system, bilang `design-systems.json` kasama ang mga user asset ng mga ito.
 
-Dalawang pangalan ang nakareserba para sa data na hindi pa naglalakbay:
+May dalawang pangalang nakalaan para sa data na hindi pa kasama sa paglilipat:
 
-- Ang **`tokens.json`** ay magdadala ng buong [W3C DTCG](https://tr.designtokens.org/format/) design-tokens na dokumento kasama ang mga grupo, set at theme nito, ang format na [ini-import at ine-export ng Penpot](https://help.penpot.app/user-guide/design-systems/design-tokens/). Ang mga brand token ng user ay naglalakbay na bilang `user/tokens/brand` asset sa `assets.json`, at ang mga token ng design system ay naglalakbay kasama ang record nito.
-- Ang **`penpot/`** ay nakareserba para sa na-ingest na Penpot file, o ang Lolly-relevant na subset nito, na inilalabas bilang tool.
+- Maglalaman ang **`tokens.json`** ng dokumento ng design token na [W3C DTCG](https://tr.designtokens.org/format/) kasama ang mga group, set at theme nito, ang format na [ini-import at ine-export ng Penpot](https://help.penpot.app/user-guide/design-systems/design-tokens/). Kasama na sa paglilipat ang sariling mga brand token ng user bilang asset na `user/tokens/brand` sa `assets.json`, at kasama sa record ng design system ang mga token nito.
+- Nakalaan ang **`penpot/`** para sa isang na-ingest na Penpot file, o sa subset nito na may kaugnayan sa Lolly, na ipinapakita bilang tool.
 
-Wala pa sa mga reader ngayon ang nakakakilala sa alinmang pangalan. Tulad ng anupamang nasa labas ng mga bahagi sa itaas, ang bawat isa ay hindi kilalang bahagi sa kanila: iniiwang hindi ginagalaw at binibilang sa `skipped`.
+<!--i:eti-history-->
+## Mga bahagi ng history
 
-## Mga history part
+Opsyonal ang dalawang bahagi ng history at may sarili silang mga bersyon.
 
-Opsyonal ang dalawang history part at may sarili silang bersyon. Maaaring laktawan ng karamihan ng reader ang seksyong ito.
+::: details History ng paggawa (v3)
+Kasama sa mga manwal na backup mula sa web install na may history ng paggawa ang `revision-history.json`, na may sarili nitong schema na `{ version: 1, documents, revisions, recoveries }`. Dala nito ang mga pinanatiling ID, canonical na snapshot ng input, version stamp, raster preview at hiwalay na draft ng mga writer. Kinukuha ng history adapter ang mga kasalukuyang session at ang mga head nito sa isang transaksyon ng pagbasa, at ginagamit ng `sessions.json` ang parehong mga kasalukuyang snapshot para sa mas lumang reader.
 
-::: details Creation history (v3)
-Ang mga manual backup mula sa web install na may creation history ay may kasamang `revision-history.json`, na may sarili nitong schemang `{ version: 1, documents, revisions, recoveries }`. Dala nito ang mga itinagong ID, canonical input snapshot, version stamp, raster preview at hiwalay na writer draft. Kinukuha ng history adapter ang mga kasalukuyang session at ang mga head nila sa isang read transaction, at ginagamit ng `sessions.json` ang parehong kasalukuyang snapshot para sa mas lumang reader.
+Sinusuri ng pag-restore ang SHA-256 at bilang ng byte ng payload, mga natatanging identity, ugnayan ng dokumento at head, ancestry, timestamp, mga uri ng preview at limitasyon bago i-commit ang archive sa isang transaksyon. Maaaring wala ang mga reference sa parent na na-compact na. Hindi kailanman pinapalitan nang walang abiso ang umiiral na kasalukuyang gawa: kapag nasa magkabilang panig ang isang gawa, nagiging protektadong draft ang panig na hindi pinanatiling kasalukuyan.
 
-Sinusuri ng restore ang payload SHA-256 at bilang ng byte, natatanging identity, relasyon ng dokumento at head, ancestry, timestamp, uri ng preview at limitasyon bago i-commit ang archive sa isang transaction. Ang mga compacted na parent reference ay maaaring nawawala. Hindi kailanman tahimik na pinapalitan ang kasalukuyang gawa: kapag ang isang likha ay nasa magkabilang panig, ang panig na hindi pinanatiling kasalukuyan ay nagiging protektadong draft.
+May limitasyong 384 MiB sa paglilipat ang archive. Ipinapatupad ang mga limitasyon sa storage nang hindi pinuputol ang mga pinanatiling checkpoint. Isinusulat ng export ang `revision-history.json` at `sessions.json` nang pira-piraso, gamit ang parehong mga byte na ibinibigay ng iisang `JSON.stringify`, kaya hindi kailanman hawak nang buo ang text ng file. Inaalis ang history file sa sandaling lumampas ito sa limitasyon at binibilang na lang mula roon. Pagkatapos, ginagawa muli ang archive nang wala ang pinakaluma nitong mga awtomatikong checkpoint, at binibilang ang mga iyon sa buod ng export bilang `checkpointsLeftOut`, o tinatanggihan ang archive.
 
-Tahasang sinusuri ang 384 MiB na transfer limit ng archive, at ipinapatupad ang mga storage limit nang hindi pinuputol ang mga itinagong checkpoint. Isinusulat ng export ang `revision-history.json` at `sessions.json` sa mga chunk, na may parehong byte na ibinibigay ng iisang `JSON.stringify`, kaya hindi kailanman hawak nang buo ang text ng file. Ang history file na lalampas sa limitasyon ay ibinabasura sa sandaling lumampas at binibilang na lang mula roon. Gagawing muli ang archive nang wala ang pinakaluma nitong awtomatikong checkpoint, at binibilang ng export summary ang mga iyon bilang `checkpointsLeftOut`, o ang archive ay tinatanggihan nang buo.
+Ibinabalik ng shell na walang kakayahang ito ang mga karaniwang session at iniuulat na nilaktawan ang bahagi ng history. Nananatiling hindi suportado ang native na filesystem history hanggang makapagbigay ang adapter nito ng mga transaksyon ng history na nananatili sa storage. Walang history o recovery archive na nananatili sa storage ang mga guest sa pribadong collab.
 
-Ang shell na walang capability na ito ay nagre-restore ng mga karaniwang session at iniuulat ang history part bilang nilaktawan. Nananatiling hindi sinusuportahan ang native filesystem history hanggang magbigay ang adapter nito ng matibay na history transaction. Ang mga guest sa pribadong collab ay walang matibay na history o recovery archive.
+Hindi isinasama ng personal na snapshot sync ang history ng paggawa. Kapag inilapat ang snapshot sa lokal na dokumentong may history, pinananatili nito ang dating working state bilang hiwalay na recovery draft at pinapawalang-bisa ang write token ng anumang bukas na editor. Nananatili sa device ang mga checkpoint nitong hindi nababago. Pinoprotektahan nito ang lokal na history habang nagpapalit ng snapshot. Hindi nito pinagsasama ang magkakasabay na history mula sa mga device.
 
-Iniiwan ng personal snapshot sync ang creation history. Ang paglalapat ng snapshot sa lokal na dokumentong may history ay nag-iingat ng naunang working state nito bilang hiwalay na recovery draft at ginagawang hindi na balido ang write token ng anumang bukas na editor. Nananatili sa device ang mga immutable checkpoint nito. Pinoprotektahan nito ang lokal na history sa pagpapalit ng snapshot; hindi nito minemerge ang mga sabay-sabay na history ng device.
-
-Iniingatan ang mga historical na asset reference, habang ang rendering ay nagreresolba pa rin ng mga asset sa pamamagitan ng umiiral na library ng destinasyon. Hindi pa ginagarantiya ng archive na ito ang eksaktong lumang byte ng asset o lumang render ng tool. Ang mga byte ng bersyon ng asset at resulta ng file ay naglalakbay sa sarili nilang backup part.
+Pinananatili ang mga reference sa dating asset, habang patuloy na hinahanap ng rendering ang mga asset sa umiiral na library ng destinasyon. Hindi pa ginagarantiya ng archive na ito ang eksaktong mga lumang byte ng asset o mga lumang render ng tool. Kasama sa sarili nilang bahagi ng backup ang mga byte ng bersyon ng asset at resulta ng file.
 :::
 
 ::: details Mga naka-save na bersyon at resulta ng file (v2)
-Ang opsyonal na history part ay may hawak ng `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`, at tinatanggap din ng mga reader ang mas naunang history-v1 na hugis na walang batch. Ang bawat snapshot ay nagbibigay ng stable na asset ID at eksaktong bersyon, oras ng pag-save, haba ng byte at hex SHA-256, kasama ang asset record na ang `_file` at opsyonal na `_credentialFile` ay tumuturo sa mga binary part. Ang mga operasyon ay may dalang mga katotohanan ng orihinal na file, request, ulat, timestamp at opsyonal na resultang `_file`. Hindi naglalakbay ang mga pangalan ng storage backend, OPFS handle at execution lease. Ang mga reader na history v1 lang ang alam ay tumatanggi sa bagong history version bago mag-import, sa halip na tahimik na ibasura ang membership ng batch.
+Hawak ng opsyonal na bahagi ng history ang `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`, at tinatanggap din ng mga reader ang naunang anyo ng history-v1 na walang mga batch. Ibinibigay ng bawat snapshot ang matatag na ID at eksaktong bersyon ng asset, ang oras ng pag-save nito, haba sa byte at hex SHA-256, kasama ang isang asset record na may `_file` at opsyonal na `_credentialFile` na tumutukoy sa mga binary na bahagi. Dala ng mga operasyon ang mga detalye ng orihinal na file, request, ulat, timestamp at opsyonal na `_file` ng resulta. Hindi kasama sa paglilipat ang mga pangalan ng storage backend, OPFS handle at execution lease. Tinatanggihan ng mga reader na history v1 lang ang alam ang bagong bersyon ng history bago mag-import, kaya hindi kailanman inaalis nang walang abiso ang pagiging miyembro ng batch.
 
-Itinatala ng mga batch manifest ang bawat napiling source bago ang pagproseso, kasama ang mga file na hindi kailanman nabasa, mga kinanselang member, pagkabigong magreserba ng espasyo para sa resulta at naantalang gawa. Ang bawat member ay may stable na operation ID, source reference at mga katotohanan, hiniling na pangalan ng output at huling ulat. Ang hindi nabasang source ay may mga idineklarang katotohanan, hindi inimbentong digest. Vina-validate ng import ang identity ng member at pagkakatugma sa anumang dalang operation report. Nananatiling available ang mga batch report kahit inalis ang mga indibidwal na resulta, pero ang resibo ay hindi nangangahulugang naka-store pa rin ang mga output byte nito.
+Itinatala ng mga batch manifest ang bawat napiling source bago iproseso, kasama ang mga file na hindi kailanman binasa, mga kinanselang miyembro, mga kabiguang magreserba ng espasyo para sa resulta at naantalang gawain. May matatag na operation ID, reference at mga detalye ng source, hiniling na pangalan ng output at huling ulat ang bawat miyembro. May idineklarang detalye ang source na hindi nabasa, walang inimbentong digest. Bine-validate ng import ang identity ng miyembro at ang pagtutugma nito sa anumang kasamang ulat ng operasyon. Nananatiling available ang mga ulat ng Lolly Batch kapag inalis na ang mga indibidwal na resulta, pero hindi ibig sabihin ng resibo na naka-store pa ang mga byte ng output nito.
 
-- **Validation muna.** Bawat kilalang history record, ulat at tinutukoy na file ay vina-validate bago magsulat ang anumang profile o asset import. Ang nawawalang byte at hindi tugmang SHA-256 ay nabibigo kahit walang integrity map ang envelope. Nananatiling byte array ang mga nakuhang credential, kasama ang mga import mula sa mas lumang writer na nag-serialise ng mga ito bilang numeric-key na object.
-- **Tumatakbong gawa.** Ang mga tumatakbong operasyon ay nagiging mga naantalang record sa backup, na may nagpapaliwanag na failure report at walang resulta. Hindi kailanman nire-restart ng restore ang background work o nag-i-import ng aktibong lease. Ang pagsubok muli ay nangangahulugang pagpili muli sa orihinal na file, sinusuri laban sa naitalang SHA-256 nito kapag available.
-- **Storage.** Ang mga naibalik na resulta ay nagko-commit ng mga byte at metadata nila nang sabay sa IndexedDB. Ang karaniwang bagong resulta ay gumagamit ng OPFS kung available, na may IndexedDB fallback. Ang umiiral na live na operasyon ay hindi kailanman pinapalitan ng import.
-- **Mga limitasyon ng backup.** Ini-stream ng export ang mga byte na ito sa archive, pero ina-unzip pa rin ng restore ang buong backup sa memory, kaya nananatili ang mga limitasyon: **256 MiB ng history payload**, **4 MiB ng history metadata**, hanggang **100 operasyon**, **100 batch** at **2,000 snapshot**. Tahasang tinatanggihan ng export ang sobra ang laki o hindi kumpletong history at hindi kailanman tahimik na iniiwan ito. I-download nang isa-isa ang mahahalagang bersyon at resulta bago alisin ang mas lumang lokal na kopya. Hindi sinusukat na garantiya ng peak memory para sa phone ang mga limitasyong ito.
-- **Mga lokal na budget.** Ang lokal na result history ay may 512 MiB na budget at 100-record na takip. Ang mga asset snapshot ay may hiwalay na 512 MiB na budget at hanggang 20 historical na bersyon bawat asset, at ang mga byte ng nakuhang credential ay bumibilang sa budget na iyon. Iginagalang ng restore ang mga limitasyong ito at hindi kailanman tahimik na nagpapalayas ng umiiral na user data.
-- **Batch metadata.** Ang lokal na batch metadata ay may hiwalay na 4 MiB na budget, hanggang 100 manifest at 20 member bawat batch. Ang mga nakabinbing member ay nagrereserba ng metadata capacity, na may 32 KiB na report ceiling bawat member. Lohikal na budget ito, hindi garantiya sa espasyo ng disk ng browser: ipinapakita ang tunay na quota failure, at nananatiling mada-download ang in-memory na ulat. Ang pagsubok muli sa batch member ay gumagawa ng bagong batch nang hindi ino-overwrite ang lumang ulat. Ang pag-alis ng batch record ay hindi nag-aalis ng indibidwal na byte ng resulta o library asset.
-- **Mga resulta sa library.** Ang mga na-convert na resulta ay maaaring idagdag sa library nang walang normalisation o re-encoding, na may kalakip na source at output hash at ang operation relation. Ang paulit-ulit na pagdagdag ay gumagamit muli ng hindi nagbagong kopya, at ang na-edit na kopya ay hindi kailanman ino-overwrite. Ang mga raster na larawan ay maaaring magsimula ng bagong Design document, na gumagamit ng kasalukuyang library asset ID; ang pagpapatupad ng eksaktong version pin sa buong runtime at URL path ng Design ay hiwalay na gawain. Ang mga resultang SVG, HTML, PDF at ZIP ay iniingatan bilang opaque na file asset, hindi itinataas sa pinagkakatiwalaang interactive o vector na nilalaman.
-- **Kung saan ito nakikita ng mga tao.** Ipinapakita ng **Convert → Recent file operations** ang paggamit ng history, mga ulat, download at ang version manager, na nakakahanap din ng mas naunang bersyon ng mga binurang library asset. Ang pag-restore ng snapshot ay gumagawa ng bagong kasalukuyang bersyon at iniingatan ang napiling snapshot. Binibilang ng **Settings → Preferences → Storage** ang mga resulta at bersyon nang hiwalay sa mga disposable na cache.
-- **Cleanup.** Ang tahasang temporary-file cleanup ay nag-aalis lang ng mga byte na pag-aari ng operasyon at walang reference. Pinoprotektahan ng mga kasalukuyang record ang mga file nila, at ang mga kamakailang OPFS file ay may isang-oras na grace period. Hindi awtomatikong nililinis ang mga naka-save na resulta at asset snapshot.
+- **Validation muna.** Bine-validate ang bawat kilalang history record, ulat at tinutukoy na file bago magsulat ang anumang pag-import ng profile o asset. Nabibigo ang validation kapag may nawawalang byte o hindi tugmang SHA-256 kahit walang integrity map ang envelope. Nananatiling mga byte array ang mga na-extract na credential, kasama ang mga import mula sa mas lumang writer na nag-serialize sa mga ito bilang mga object na may numeric na key.
+- **Kasalukuyang gawain.** Nagiging mga interrupted record sa backup ang mga tumatakbong operasyon, na may ulat ng pagkabigo at walang resulta. Hindi kailanman muling nagsisimula ng background na gawain o nag-i-import ng aktibong lease ang pag-restore. Para subukang muli, kailangang piliin muli ang orihinal na file, na sinusuri laban sa nakatalang SHA-256 nito kung available.
+- **Storage.** Magkasamang kino-commit ng mga na-restore na resulta ang kanilang mga byte at metadata sa IndexedDB. Gumagamit ng OPFS ang mga karaniwang bagong resulta kung available, na may IndexedDB bilang fallback. Hindi kailanman pinapalitan ng import ang isang umiiral na aktibong operasyon.
+- **Mga limitasyon ng backup.** Ini-stream ng export ang mga byte na ito papunta sa archive, pero ina-unzip pa rin ng pag-restore ang buong backup sa memory, kaya nananatili ang mga limitasyon: **256 MiB ng history payload**, **4 MiB ng history metadata**, hanggang **100 operasyon**, **100 batch** at **2,000 snapshot**. Tahasang tinatanggihan ng export ang sobrang laki o hindi kumpletong history at hindi ito kailanman inaalis nang walang abiso. I-download nang paisa-isa ang mahahalagang bersyon at resulta bago alisin ang mas lumang mga lokal na kopya. Ang mga limitasyong ito ay hindi garantiya batay sa pagsukat ng pinakamataas na paggamit ng memory sa mga phone.
+- **Mga lokal na budget.** May budget na 512 MiB at limitasyong 100 record ang lokal na history ng resulta. May hiwalay na budget na 512 MiB ang mga snapshot ng asset at hanggang 20 dating bersyon bawat asset, at kasama sa budget na iyon ang mga byte ng na-extract na credential. Sinusunod ng pag-restore ang mga limitasyong ito at hindi kailanman inaalis nang walang abiso ang umiiral na data ng user.
+- **Metadata ng batch.** May hiwalay na budget na 4 MiB ang lokal na metadata ng batch, hanggang 100 manifest at 20 miyembro bawat batch. Nagrereserba ng kapasidad para sa metadata ang mga nakabinbing miyembro, na may limitasyong 32 KiB sa ulat bawat miyembro. Lohikal na budget ito, hindi garantiya ng espasyo sa disk ng browser: ipinapakita ang aktuwal na pagkabigo sa quota, at nananatiling mada-download ang ulat na nasa memory. Gumagawa ng bagong batch ang muling pagsubok sa isang miyembro ng batch nang hindi pinapatungan ang lumang ulat. Hindi inaalis ng pagtanggal ng batch record ang mga byte ng indibidwal na resulta o mga asset ng library.
+- **Mga resulta sa library.** Maaaring idagdag sa library ang mga na-convert na resulta nang walang normalization o muling pag-encode, na may kalakip na mga hash ng source at output at ang kaugnayan sa operasyon. Ginagamit muli ng paulit-ulit na pagdagdag ang hindi nabagong kopya, at hindi kailanman pinapatungan ang na-edit na kopya. Maaaring magsimula ng bagong dokumento sa Lolly Design ang mga raster na larawan, na gumagamit ng kasalukuyang ID ng asset sa library. Hiwalay na gawain ang pagpapatupad ng pag-pin sa eksaktong bersyon sa buong runtime at URL path ng Lolly Design. Iniingatan ang mga resultang SVG, HTML, PDF at ZIP bilang mga opaque na file asset, hindi itinataas bilang pinagkakatiwalaang interactive o vector na nilalaman.
+- **Saan ito nakikita ng mga tao.** Ipinapakita ng **Convert → Recent file operations** ang paggamit ng history, mga ulat, download at version manager, na nakakahanap din ng mga naunang bersyon ng mga naburang asset sa library. Gumagawa ng bagong kasalukuyang bersyon ang pag-restore ng snapshot at pinapanatili ang napiling snapshot. Hiwalay na binibilang ng **Settings → Preferences → Storage** ang mga resulta at bersyon mula sa mga cache na puwedeng itapon.
+- **Paglilinis.** Ang tahasang paglilinis ng mga pansamantalang file ay nag-aalis lang ng mga byte na pag-aari ng operasyon at walang tumutukoy rito. Pinoprotektahan ng mga kasalukuyang record ang kanilang mga file, at may isang oras na palugit ang mga kamakailang OPFS file. Hindi awtomatikong nililinis ang mga naka-save na resulta at snapshot ng asset.
 
-Tinatanggap pa rin ng mga mas lumang reader ang v2 envelope (`minReader: 1`) at nire-restore ang mga bahaging kilala nila, binibilang ang mga hindi sinusuportahang history part bilang nilaktawan. Ang buong history recovery ay nangangailangan ng shell na may `fileHistory` adapter, isang tahi sa loob ng shell sa halip na bagong tool-facing na `HostV1` capability. Ang tunay na two-device restore ay sakop ng lokal na Chromium gate; ang recovery sa mga naka-install na desktop, iOS at Android app ay hiwalay pang tatanggapin.
+Tinatanggap pa rin ng mas lumang mga reader ang v2 envelope (`minReader: 1`) at ibinabalik ang mga bahaging alam nila, na binibilang bilang nilaktawan ang mga hindi suportadong bahagi ng history. Kailangan ng buong pagbawi ng history ang shell na may `fileHistory` adapter, isang dugtungan sa loob ng shell, hindi isang kakayahan ng `HostV1` na nakaharap sa tool. Sakop ng lokal na Chromium gate ang aktuwal na pag-restore sa dalawang device. Kailangan pang hiwalay na pumasa sa acceptance ang pagbawi sa mga naka-install na desktop, iOS at Android app.
 :::
 
+<!--i:eti-code-->
 ## Sanggunian
 
-- Module: `shells/web/src/data-transfer.ts` (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION`; internal ang `backupFilename()` namer).
-- Contract test: `tests/data-transfer.test.ts`, na sumasaklaw sa round trip, merge, integrity, forward compatibility at ang reader gate.
-- Mga history contract test: `tests/file-history-backup.test.ts`, `tests/file-batch-history.test.ts` at `tests/file-result-library.test.ts`. Browser acceptance: `tests/file-history.browser.test.ts`, `tests/file-batch-history.browser.test.ts` at `tests/file-result-reuse.browser.test.ts`.
-- Bridge surface na ginamit: `host.profile`, `host.state` at `host.assets`; tingnan ang [Host API](/info/host-api.html).
+- Module: `shells/web/src/data-transfer.ts` (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION`; panloob ang tagapagpangalan na `backupFilename()`).
+- Contract test: `tests/data-transfer.test.ts`, na sumasaklaw sa round trip, merge, integrity, forward compatibility at reader gate.
+- Mga contract test ng history: `tests/file-history-backup.test.ts`, `tests/file-batch-history.test.ts` at `tests/file-result-library.test.ts`. Browser acceptance: `tests/file-history.browser.test.ts`, `tests/file-batch-history.browser.test.ts` at `tests/file-result-reuse.browser.test.ts`.
+- Ginamit na bridge surface: `host.profile`, `host.state` at `host.assets`; tingnan ang [Host API](/info/host-api.html).

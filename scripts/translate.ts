@@ -145,6 +145,16 @@ function walkFiles(dir: string, out: string[]): string[] {
 // tRaw only skips param escaping - so a tRaw literal is a key like any other. Until
 // 2026-09-04 only `t(` was scanned, and every tRaw sentence (file-import refusals and
 // the like) shipped English in all 26 locales without ever reporting as pending.
+/**
+ * A string literal's source text has a backslash before a quote of its own kind
+ * (`'composer\\'s'`). The app looks the string up without that backslash, so the
+ * key must not have one either. Only the two quote escapes are undone: other
+ * escapes have never been part of a key and stay as the scanner found them.
+ */
+function unescapeQuotes(literal: string): string {
+  return literal.replace(/\\(['"])/g, '$1');
+}
+
 const T_CALL_RE = /(^|[^A-Za-z0-9_$.])t(?:Raw)?\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g;
 
 // Plural call sites: `tn('1 file', '{n} files', { n })` and `tnRaw(...)`. Both English
@@ -189,7 +199,7 @@ export function extractSpaKeys(): string[] {
     const src = readFileSync(file, 'utf8');
     T_CALL_RE.lastIndex = 0;
     let m: RegExpExecArray | null;
-    while ((m = T_CALL_RE.exec(src))) keys.add((m[2] !== undefined ? m[2] : m[3])!);
+    while ((m = T_CALL_RE.exec(src))) keys.add(unescapeQuotes((m[2] !== undefined ? m[2] : m[3])!));
   }
   for (const { one, other } of extractSpaPluralSources()) { keys.add(other); keys.add(one); }
   const extra = JSON.parse(readFileSync(join(I18N_DIR, 'extra-keys.spa.json'), 'utf8')) as string[];
@@ -394,7 +404,7 @@ export function extractSiteKeys(): string[] {
 
   T_CALL_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
-  while ((m = T_CALL_RE.exec(src))) keys.add((m[2] !== undefined ? m[2] : m[3])!);
+  while ((m = T_CALL_RE.exec(src))) keys.add(unescapeQuotes((m[2] !== undefined ? m[2] : m[3])!));
   if (!keys.size) throw new Error('site corpus: found no literal t() calls in docs/build.ts - the scan is broken, not the file');
 
   const nav = evalDataLiteral<SiteNavLink[][]>(

@@ -1,4 +1,3 @@
-# Lolly - Testi della landing page
+# Lolly - Testi della pagina iniziale
 
-Crea file finiti. Mantieni il controllo dei tuoi contenuti.
-Grafica, documenti, video e stampa nei tuoi colori e font: senza account, senza carta, privato e open source.
+Crea grafica, documenti, video e materiali per la stampa finiti, con i tuoi colori e caratteri. Privato, open source, senza bisogno di un account.

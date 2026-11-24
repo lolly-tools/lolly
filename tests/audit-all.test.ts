@@ -61,6 +61,8 @@ test('every authoritative npm/Cargo lock has an audit owner', () => {
   const inventory = loadInventory();
   assert.doesNotThrow(() => validateCoverage(inventory));
   assert.deepEqual(discoverAuthoritativeLocks(), [
+    'crates/lolly-render-node/Cargo.lock',
+    'crates/lolly-render/Cargo.lock',
     'packages/node-shell/wasm/adobe-psd/Cargo.lock',
     'packages/node-shell/wasm/affinity/Cargo.lock',
     'packages/node-shell/wasm/audio-dsp/Cargo.lock',

@@ -1,6 +1,6 @@
 {
   "name": "Phụ đề",
-  "description": "Phụ đề cho một đoạn clip - phiên âm ngay trên thiết bị hoặc thêm file SRT/VTT có sẵn, tùy chỉnh kiểu cho từng dòng phụ đề, rồi xuất khung hình đã gắn phụ đề cứng cùng với file .srt và .vtt sạch đi kèm.",
+  "description": "Phụ đề cho một đoạn clip - phiên âm giọng nói ngay trên thiết bị hoặc thêm file SRT/VTT, rồi xuất khung hình đã gắn phụ đề cứng cùng file .srt và .vtt.",
   "inputs.style.section": "Phụ đề",
   "inputs.position.section": "Phụ đề",
   "inputs.fontSize.section": "Phụ đề",

@@ -24,6 +24,8 @@
  *   caps          → lib/capabilities-data.ts
  */
 
+import { hasPicture } from '../components/preview-image.ts';
+import type { SessionPreviewRef } from '../bridge/preview-store.ts';
 import { closeButtonHtml } from '../lib/close-button.ts';
 import { bindDisclosureUrl, updateRouteParams } from '../lib/url-state.ts';
 import '../styles/parts/platform.css'; // shared dashboard chrome (.plat-* / .cap-*)
@@ -283,7 +285,7 @@ type DashHost = HostV1 & {
     _blobCacheSize?: () => Promise<number>;
     _userAssetsSize?: () => Promise<number>;
   };
-  previews?: { size?: () => Promise<number>; list?: () => Promise<Array<{ thumb?: { length?: number } }>> };
+  previews?: { size?: () => Promise<number>; list?: () => Promise<Array<{ size?: number }>> };
 };
 
 interface StorageSlice { label: string; bytes: number; key: string; }
@@ -715,17 +717,17 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
     })
     .catch(() => { /* no profile store - the Dashboard stays useful without this convenience */ });
 
-  // Recent creations: reuse the session preview thumbnails the
-  // Projects/gallery tiles already cache (host.state.list().thumb); no
-  // re-render. Tool sessions only (they reopen cleanly via ?slot=), newest
-  // first, into the interactive swipe stack.
-  (host.state.list() as Promise<Array<{ slot: string; toolId?: string; label?: string; thumb?: string | null; updatedAt?: string }>>)
+  // Recent creations: the stored pictures the Projects/gallery tiles show
+  // (host.state.list() rows carry a reference; components/preview-image.ts reads
+  // only the cards it shows); no re-render. Tool sessions only (they reopen cleanly
+  // via ?slot=), newest first, into the interactive swipe stack.
+  (host.state.list() as Promise<Array<{ slot: string; toolId?: string; label?: string; thumb?: string | null; preview?: SessionPreviewRef; updatedAt?: string }>>)
     .then((rows) => {
       const recent = rows
-        .filter((r) => r.thumb && r.toolId)
+        .filter((r) => hasPicture(r) && r.toolId)
         .sort((a, b) => +new Date(b.updatedAt || 0) - +new Date(a.updatedAt || 0))
         .slice(0, 12)
-        .map((r) => ({ thumb: r.thumb!, label: r.label || r.toolId!, href: `#/tool/${r.toolId}?slot=${encodeURIComponent(r.slot)}` }));
+        .map((r) => ({ picture: { preview: r.preview, thumb: r.thumb, slot: r.slot, toolId: r.toolId }, label: r.label || r.toolId!, href: `#/tool/${r.toolId}?slot=${encodeURIComponent(r.slot)}` }));
       const sec = viewEl.querySelector<HTMLElement>('#dash-recent');
       const stackMount = viewEl.querySelector<HTMLElement>('[data-recent-stack]');
       if (isCurrent(stackMount) && sec && recent.length >= 2) {
@@ -741,9 +743,9 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
   import('../lib/export-history.ts')
     .then(({ listExports }) => listExports(12))
     .then((exports) => {
-      const entries = exports.filter((e) => e.thumb);
+      const entries = exports.filter((e) => hasPicture(e));
       const items = entries
-        .map((e) => ({ thumb: e.thumb!, label: e.filename || e.label, href: `#/tool/${e.toolId}${e.query ? '?' + e.query : ''}` }));
+        .map((e) => ({ picture: { preview: e.preview, thumb: e.thumb }, label: e.filename || e.label, href: `#/tool/${e.toolId}${e.query ? '?' + e.query : ''}` }));
       const sec = viewEl.querySelector<HTMLElement>('#dash-exports');
       const stackMount = viewEl.querySelector<HTMLElement>('[data-exports-stack]');
       if (isCurrent(stackMount) && sec && items.length) {

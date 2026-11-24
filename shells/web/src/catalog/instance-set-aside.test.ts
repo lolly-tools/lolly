@@ -32,7 +32,7 @@ test('the note says which instance was set aside, once, and a tap takes it away'
   const note = document.getElementById('lolly-instance-set-aside');
   assert.ok(note);
   assert.equal(note.getAttribute('role'), 'status');
-  assert.equal(note.textContent, 'lolly.example.org is signed with a key this app does not trust. Showing the tools built into this app.');
+  assert.equal(note.textContent, 'lolly.example.org is signed with a key this app has not accepted. Showing the tools built into this app. Connect to it again in Settings to accept its key.');
   assert.equal(document.documentElement.dataset.catalogInstance, 'set-aside');
   // It is not the refusal state: the bundled catalog verified and tools are on screen.
   assert.notEqual(document.documentElement.dataset.catalogTrust, 'refused');

@@ -1,27 +1,31 @@
 # Lolly och Figma
 
-_Senast kontrollerad: 28 september 2026._
+_Senast kontrollerat: 28 september 2026._
 
-Om dina designers arbetar i Figma säger den här sidan hur Lolly sitter vid sidan av det: vad Figma gör som Lolly inte gör, och var Lolly tar över det upprepade arbetet.
+Om dina designer arbetar i Figma säger den här sidan vad Figma gör som Lolly inte gör och var Lolly tar över det återkommande arbetet.
 
+<!--i:eti-award-->
 ## Vad Figma gör bättre
 
-[Figma Design](https://www.figma.com/design/) samlar gränssnittsdesign, komponenter, interaktiva prototyper och överlämning till utvecklare. Dess etablerade produktdesignpraxis och ekosystem spelar roll när ett team behöver designa och specificera en hel applikation, och dess redigering i realtid körs i en skala som Lollys arbetscollabs inte har nått.
+[Figma Design](https://www.figma.com/design/) kombinerar gränssnittsdesign, komponenter, interaktiva prototyper och överlämning till utvecklare. Dess etablerade arbetssätt för produktdesign och ekosystem spelar roll när ett team utformar och specificerar en hel applikation. Dess redigering i realtid körs i en skala som Lollys work collabs inte har nått.
 
+<!--i:eti-blend-->
 ## Där de överlappar
 
-Båda låter dig arrangera typ, former och bilder på en yta och arbeta med andra människor. Figma täcker också mallbaserad varumärkesproduktion: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) gör tillgångar av mallar och fyller dem från CSV- eller XLSX-filer. Lollys [Importera en design](/info/design-import.html) öppnar Figma-filer som redigerbara layouter, så att de två kan dela arbete.
+Båda låter dig ordna text, former och bilder på en yta och arbeta med andra. Figma omfattar också mallbaserad varumärkesproduktion: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) skapar tillgångar från mallar och fyller dem från CSV- eller XLSX-filer. Lollys [Importera en design](/info/design-import.html) öppnar Figma-filer som redigerbara layouter, så de två kan dela arbete.
 
-## Hur Lolly gör det överlappande jobbet
+<!--i:eti-lolly-->
+## Så utför Lolly de gemensamma uppgifterna
 
-Lolly gör en design till ett [återanvändbart verktyg med regler](/info/create-a-tool.html). Verktyget körs i webbläsaren eller CLI och tar sina indata från en länk, ett skript eller ett batchrutnät, så en mall tjänar en person som redigerar en fil och ett team som gör många.
+Lolly gör en design till ett [återanvändbart verktyg med regler](/info/create-a-tool.html). Verktyget körs i webbläsaren eller CLI. Det tar indata från en länk, ett skript eller ett batchrutnät. En mall fungerar för en person som redigerar en fil och ett team som skapar många.
 
 ![Lolly Designs öppna yta, med Import a design i verktygsfältets Lolly-meny](/info/shots/design.svg)
 
-En [privat collab](/info/collaborate.html) parar ihop två enheter direkt, utan konto och utan internet i ett delat nätverk. Fristående Lolly renderar offline. Content Credentials är på som standard för exporter som stöds, och du kan stänga av dem.
+En [privat collab](/info/collaborate.html) kopplar ihop två enheter direkt, utan konto och utan att internet behövs på ett gemensamt nätverk. Fristående Lolly renderar offline. Content Credentials är på som standard för exporter som stöds, och du kan stänga av dem.
 
+<!--i:eti-building-->
 ## Med en organisation
 
-Lolly Work lägger till autentiserade arbetscollabs med delade redigeringar, levande markörer och sparade teamsessioner, plus enkel inloggning, delade kataloger, projektbehörigheter, godkännanden och serverrendering. [Vad som körs var](/info/compare.html#what-runs-where) ställer de två delarna bredvid varandra.
+Lolly Work lägger till autentiserade work collabs med gemensamma ändringar, markörer i realtid och sparade teamsessioner samt enkel inloggning, delade kataloger, projektbehörigheter, godkännanden och serverrendering. [Vad som körs var](/info/compare.html#what-runs-where) ställer de två delarna sida vid sida.
 
-Figma är ett varumärke som tillhör sin ägare. Den här sidan beskriver var de två produkterna överlappar och är inte knuten till Figma.
+Figma är ett varumärke som tillhör sin ägare. Den här sidan beskriver var de två produkterna överlappar och har ingen koppling till Figma.

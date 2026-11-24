@@ -1,63 +1,70 @@
 # Ask Lolly
 
-Mag-type ng tanong at sasagutin ito ng Ask Lolly gamit ang seksyon ng mga gabay na ito na sumasaklaw dito, salita por salita, na may binanggit na page na pinanggalingan at **Open in docs** link diretso sa seksyong iyon. Walang binubuo: kinukuha, sinisipi at binabanggit ang pinagmulan ng sagot, sa device mo.
+Sinasagot ng Ask Lolly ang tanong gamit ang katugmang seksyon ng mga gabay na ito, sinisipi nang salita por salita, na may sanggunian sa page nito at **Open in docs** link papunta sa seksyong iyon. Walang binubuong bago: hinahanap at sinisipi ang sagot sa device mo.
 
-Sa ilalim ng sinipi na seksyon ang mga lugar sa app na tugma sa parehong tanong: tool, utility, naka-save na project, catalogue asset, setting o page ng app. Ang bawat row ay nagna-navigate lang. Walang sagot na nagbabago ng setting, nagbubukas ng file o kumikilos para sa iyo, ang parehong rule na sinusunod ng [Lolly Search](/info/search.html).
+Sa ilalim ng siniping seksyon ay ang mga lugar sa app na tumutugma sa tanong: tool, utility, naka-save na project, asset sa catalog, setting o page ng app. Pang-navigate lang ang bawat row. Walang anumang nasa sagot na nagbabago ng setting, nagbubukas ng file o kumikilos para sa iyo, ang parehong patakaran ng [Lolly Search](/info/search.html).
 
+<!--i:eti-chat-->
 ## Pagtatanong
 
-Mag-type sa question field sa paanan ng view at pindutin ang Enter. Ang anumang mas maikli sa dalawang character ay binabalewala. Nagpapatong-patong ang mga sagot sa itaas ng field, ang pinakabago ang huli, at maaari kang magpatuloy sa pagtatanong.
+Mag-type sa question field sa ibaba ng view at pindutin ang Enter. Binabalewala ang anumang mas maikli sa dalawang character. Nagkakapatong ang mga sagot sa itaas ng field, pinakahuli ang pinakabago.
 
-![Ask Lolly, bukas at walang laman: ang question field sa paanan ng view, na may tala na galing sa docs ang mga sagot](/t/url-shot?url=%2F%23%2Fask&width=1200&height=820&waitMs=2200&format=svg&walker=1&filename=ask-view)
+![Ask Lolly, bukas at walang laman: ang question field sa ibaba ng view, na may talang galing sa docs ang mga sagot](/t/url-shot?url=%2F%23%2Fask&width=1200&height=820&waitMs=2200&format=svg&walker=1&filename=ask-view)
 
-Sinasagot nang mag-isa ang bawat tanong: ang mga naunang tanong ay walang dalang konteksto, kaya ang "what about PDF?" pagkatapos ng tanong tungkol sa pag-export ay binabasa bilang tanong tungkol sa PDF at wala nang iba. Itanong ang buong tanong sa bawat pagkakataon.
+::: note Hiwalay ang bawat tanong
+Walang kontekstong ipinapasa ang mga naunang tanong, kaya ang "paano naman ang PDF?" pagkatapos ng tanong tungkol sa pag-export ay binabasa bilang tanong tungkol lang sa PDF. Itanong ang buong tanong sa bawat pagkakataon.
+:::
 
-Ang unang salita ng tanong mo ang nagpapasya kung ano ang nangunguna sa sagot:
+Ang unang salita ng tanong mo ang nagpapasya kung ano ang mauuna sa sagot:
 
-| Nagsisimula ka sa | Ang nangunguna |
+| Nagsisimula ka sa | Ano ang mauuna |
 |---|---|
-| *where*, *find*, *open*, *show*, *go to*, *goto*, *take*, *jump*, *navigate*, *switch* | ang mga lugar sa app na tugma |
-| *make*, *create*, *generate*, *build*, *design*, *convert*, *resize*, *compress*, *remove*, *strip*, *export*, *render*, *add* | ang mga tool na tugma |
-| anupaman - kasama ang *how do I* at *what is* | ang seksyon ng dokumentasyon, na siyang default |
+| *where*, *find*, *open*, *show*, *go to*, *goto*, *take*, *jump*, *navigate*, *switch* | mga lugar sa app na tumutugma |
+| *make*, *create*, *generate*, *build*, *design*, *convert*, *resize*, *compress*, *remove*, *strip*, *export*, *render*, *add* | mga tool na tumutugma |
+| anupamang iba - kasama ang *how do I* at *what is* | ang seksyon ng dokumentasyon, na siyang default |
 
-Laging kinukuha ang dalawang kalahati, kaya ang maling basa sa tanong ay nagpapalit ng ayos ng sagot sa halip na mawalan ng kalahati ng sagot.
+Laging kinukuha ang parehong bahagi, kaya binabago lang ng maling pagbasa sa tanong ang pagkakasunod ng sagot.
 
-Tinatanggal ng pagtutugma ang mga karaniwang salita ng tanong (*how*, *do*, *I*, *the*, *my*) at niraranggo ang seksyon ayon sa dami ng natitirang salita mo na sakop nito, saka ayon sa kung saan nagtugma: mas mahalaga ang heading kaysa body text. Substring ang pagtutugma, tinitiklop para sa case at accent, kaya hindi itinatama ang typo. Kapag walang tumugma, sinasabi ito ng Ask at itinuturo ka sa index ng dokumentasyon sa halip na mag-imbento ng sagot.
+Inaalis sa pagtutugma ang mga karaniwang salita sa tanong (*how*, *do*, *I*, *the*, *my*). Niraranggo nito ang seksyon ayon sa dami ng iba mo pang salitang saklaw nito, saka ayon sa kung saan tumugma ang mga ito: mas mabigat ang heading kaysa sa text ng katawan. Batay sa substring ang pagtutugma, na binabalewala ang laki ng titik at mga tuldik, kaya hindi itinatama ang typo. Kapag walang tumugma, sinasabi iyon ng Ask at itinuturo ang index ng dokumentasyon.
 
-Opsyonal ang **Better matching**. Pagkatapos ng unang sagot mo, maaaring mag-alok ang Ask ng maliit na matching model, kasama ang laki ng download nito, na tumutulong itugma ang tanong sa gabay na gumagamit ng ibang salita para sa parehong bagay. Nagda-download lang ito kapag pumayag ka, tumatakbo sa device na ito at binabago lang kung aling mga seksyon ang nangunguna: ang sagot ay mga salita pa rin ng dokumentasyon. Puwede mo rin itong i-download mula sa **Settings → Preferences → Available offline**, kung saan nakalista ito bilang **Ask matching model** ([Available offline](/info/dashboard.html#available-offline)).
+**Better matching**: opsyonal ito. Pagkatapos ng unang sagot mo, puwedeng mag-alok ang Ask ng maliit na modelo para sa pagtutugma, kasama ang laki ng download nito. Itinutugma ng modelo ang tanong sa gabay na gumagamit ng ibang salita para sa parehong bagay. Nada-download lang ito kapag pumayag ka, tumatakbo sa device na ito at binabago lang kung aling mga seksyon ang unang niraranggo. Mga salita pa rin ng dokumentasyon mismo ang sagot. Puwede mo rin itong i-download bilang **Ask matching model** sa ilalim ng **Settings → Preferences → Available offline** ([Available offline](/info/dashboard.html#available-offline)).
 
-## Ang bumabalik
+<!--i:eti-clipboard-->
+## Ano ang ibinabalik
 
-Binubuo ang answer card sa nakatakdang pagkakasunod-sunod:
+May nakatakdang pagkakasunod ang answer card:
 
-1. **Ang seksyon mismo**, nire-render mula sa pinagmulan ng dokumentasyon - mga talata, listahan, table, code at quote, na buhay ang in-app at `/info` link. Ang mahabang seksyon ay may takdang haba na may **Show more** na nagbubukas nito sa mismong lugar. Inaalis ang mga larawan, at ang link palabas sa ibang site ay nire-render bilang payak na text sa halip na anchor.
-2. **Ang citation** - *Page › Heading* - at ang **Open in docs** link sa eksaktong seksyong iyon.
-3. **More in the docs** - hanggang apat na ibang seksyong tumugma, bilang mga link.
-4. **Ang mga in-app row**, sa ilalim ng parehong group heading na ginagamit ng Search.
+1. **Ang mismong seksyon**, na ni-render mula sa source ng dokumentasyon: mga talata, listahan, talahanayan, code at sipi, na gumagana ang mga link sa loob ng app at `/info`. Nagtatapos ang mahabang seksyon sa **Show more**, na nagbubukas ng natitira sa parehong lugar. Inaalis ang mga larawan, at ipinapakita bilang plain text ang link sa ibang site.
+2. **Ang sanggunian** - *Page › Heading* - at ang **Open in docs** link sa eksaktong seksyong iyon.
+3. **More in the docs** - hanggang apat pang seksyong tumugma, bilang mga link.
+4. **Ang mga row sa loob ng app**, sa ilalim ng parehong mga heading ng grupo na ginagamit ng Search.
 
-Ang buong text ay galing sa plain-markdown twin na inilalathala ng bawat page ng dokumentasyon sa `/info/<slug>.md`, at English lang ang mga twin na iyon. Sa ibang wika - at sa iilang page na hindi binuo mula sa markdown - bumabalik ang sagot sa maikling extract na hawak sa search index sa halip na sa buong seksyon. Nandoon ang citation at ang **Open in docs** link sa alinmang kaso, na tumuturo sa page sa sarili mong wika.
+Galing ang buong text sa markdown na katumbas na inilalathala ng bawat page ng dokumentasyon sa `/info/<slug>.md`. English lang ang mga katumbas na iyon. Sa ibang wika, at sa iilang page na hindi binuo mula sa markdown, ipinapakita ng sagot ang maikling sipi mula sa search index sa halip. Tumuturo pa rin ang sanggunian at ang **Open in docs** link sa page sa wika mo.
 
-## Kung saan ito nakatira
+<!--i:eti-map-pin-->
+## Saan ito makikita
 
-Ang route ay `#/ask`. Wala itong tab at walang tile sa Utilities grid; ang mga daan papasok ay ang search bar at ang mismong address.
+Ang route ay `#/ask`. Wala itong tab at walang tile sa Utilities grid. Naaabot mo ang view mula sa search bar o sa address nito.
 
-- <!--i:search--> **Mula sa search.** Ang bawat result panel ay may row na **Ask Lolly: *your query*** sa pinakailalim, sa ilalim ng anumang konkretong hit na natagpuan ng ibang grupo. Ipinapasa nito ang tanong bilang `#/ask?q=…`, at tinatanong ng view ang tanong nang minsan pagdating. Dumarating ang ipinasang mga salita sa maliliit na letra na walang bantas, kaya pinuhin ang mga ito sa question field kung kailangan.
-- <!--i:link--> **Mula sa link.** Ang `#/ask?q=how%20do%20I%20export%20a%20transparent%20png` ay nagbubukas ng view na may tanong na iyon na naitanong na. Ang hash ay panimulang binhi lang: ang mga tanong na tina-type mo pagkatapos ay sinasagot sa mismong lugar at hindi kailanman binabago ang address.
+- <!--i:search--> **Mula sa search.** Nagtatapos ang bawat result panel sa **Ask Lolly: *tanong mo*** na row, sa ilalim ng mga resulta ng ibang grupo. Binubuksan ng row ang `#/ask?q=…`, at isang beses na itinatanong ng view ang tanong pagdating. Dumarating ang mga salita sa maliliit na titik na walang bantas, kaya ayusin ang mga ito sa question field kung kailangan mo.
+- <!--i:link--> **Mula sa link.** Binubuksan ng `#/ask?q=how%20do%20I%20export%20a%20transparent%20png` ang view na naitanong na ang tanong na iyon. Itinatakda lang ng hash ang unang tanong. Sinasagot sa parehong lugar ang mga tanong na tina-type mo pagkatapos at hindi kailanman binabago ang address.
 
-Tumatabi ang search bar sa loob ng view na ito, dahil kinukuha ng question field ang Enter, at ibinabalik ka ng back pill kung saan ka nanggaling.
+Nakatago ang search bar sa view na ito dahil ang question field ang tumatanggap ng Enter. Ibinabalik ka ng back pill sa pinanggalingan mo.
 
-Tumatagal ang mga sagot sa screen para sa session na ito: nandoon pa rin ang mga ito kung aalis ka at babalik, at nililinis ng reload ang mga ito. Walang isinusulat sa storage, kaya walang history na pamamahalaan.
+Nananatili ang mga sagot para sa session na ito: naroon pa rin ang mga ito kung umalis ka at bumalik, at inaalis ang mga ito kapag nag-reload. Walang isinusulat sa storage, kaya walang history na kailangang pamahalaan.
 
+<!--i:eti-download-->
 ## Offline
 
-Binubuo ang mga sagot mula sa dalawang static na file na inilalathala na ng documentation site: ang per-language search index at ang markdown twin ng page. Parehong kinukuha ayon sa pangalan, kaya patuloy na gumagana ang Ask nang walang koneksyon kapag na-cache na ang mga ito. Ang pagbabasa ng mga gabay sa app ay nagka-cache sa mga ito habang nagbabasa ka, at ang **Guides & docs** sa ilalim ng [Available offline](/info/dashboard.html#available-offline) ay kinukuha ang buong site, kasama ang mga screenshot, sa isang download.
+Galing ang mga sagot sa dalawang static na file na inilalathala ng site ng dokumentasyon: ang search index sa bawat wika at ang markdown na katumbas ng page. Parehong kinukuha ayon sa pangalan, kaya gumagana ang Ask nang walang koneksyon kapag naka-cache na ang mga ito. Naka-cache ang mga gabay kapag binasa mo ang mga ito sa app. Kinukuha ng **Guides & docs** sa ilalim ng [Available offline](/info/dashboard.html#available-offline) ang buong site, kasama ang mga screenshot, sa isang download.
 
-Kung wala ang mga ito, ang kalahati ng sagot na mula sa dokumentasyon ay hindi lang lumalabas, nang walang error. Lumalabas pa rin ang mga in-app row, dahil itinutugma ang mga iyon sa data na nasa device na.
+Kung wala ang mga file na ito, hindi lumalabas ang bahagi ng sagot mula sa dokumentasyon, at walang ipinapakitang error. Lumalabas pa rin ang mga row sa loob ng app, dahil tumutugma ang mga ito sa data na nasa device na.
 
+<!--i:eti-lock-->
 ## Privacy
 
-Hindi kailanman lumalabas sa device ang tanong mo. Lokal na tumatakbo ang pagtutugma laban sa mga file na kinuha ayon sa pangalan, kaya ang tinype mo ay hindi bahagi ng anumang request; walang server na nakakakita nito, walang account na nakakabit dito at walang talaan nito pagkatapos mong mag-reload. Tingnan ang [Privacy Policy](/info/privacy.html) para sa kumpletong listahan ng lahat ng kinukuha o ipinapadala ng app.
+Hindi kailanman umaalis sa device ang tanong mo. Lokal na tumatakbo ang pagtutugma gamit ang mga file na kinukuha ayon sa pangalan, kaya hindi bahagi ng anumang request ang tinype mo. Walang server na nakakakita ng tanong mo, walang account na may hawak nito at walang naiiwang tala pagkatapos mong mag-reload. Inililista ng [Patakaran sa Privacy](/info/privacy.html) ang lahat ng kinukuha o ipinapadala ng app.
 
 ---
 
-**Kaugnay:** [Lolly Search](/info/search.html) para sa bar na nagpapasa ng mga tanong. [Paggamit ng Lolly](/info/using.html) para sa natitirang bahagi ng app. [Lolly Settings](/info/dashboard.html#available-offline) para dalhin muna offline ang dokumentasyon.
+**Kaugnay:** [Lolly Search](/info/search.html) para sa bar na nagpapasa ng mga tanong. [Paggamit ng Lolly](/info/using.html) para sa ibang bahagi ng app. [Lolly Settings](/info/dashboard.html#available-offline) para gawing available offline muna ang dokumentasyon.

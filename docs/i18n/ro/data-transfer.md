@@ -1,50 +1,55 @@
-# Transferul de date: bundle-ul `lolly-backup`
+# Transfer de date: arhiva `lolly-backup`
 
-Lolly păstrează biblioteca ta personală pe dispozitiv. Un bundle de backup este modul în care se mută acea bibliotecă: exportă-l pe o instalare, transportă fișierul cum vrei (USB, AirDrop, email către tine sau o partajare de rețea) și importă-l pe alta. Exportul și importul nu au nevoie de server, iar ținta poate fi offline.
+O arhivă de backup mută biblioteca personală pe care Lolly o păstrează pe dispozitiv: export-o dintr-o instalare, transferă fișierul (USB, AirDrop, email către tine sau o partajare în rețea) și import-o în alta. Exportul și importul nu au nevoie de server, iar destinația poate fi offline.
 
-Această pagină este specificația formatului, pentru cei care construiesc shell-uri, instrumente sau scripturi în jurul copiilor de siguranță: ce este în zip, cum sunt controlate versiunile, cum se îmbină un import și ce se verifică. Ghidul pentru cei care își mută propria muncă este [Mută-ți munca pe alt dispozitiv](/info/find-your-work.html#move-your-work-to-another-device).
+Aceasta este specificația formatului pentru cei care construiesc interfețe gazdă, instrumente sau scripturi pentru copii de rezervă. Pentru a-ți muta propria muncă, citește [Mută-ți munca pe alt dispozitiv](/info/find-your-work.html#move-your-work-to-another-device).
 
-![Cele două butoane care mută o instalare întreagă: Export my data scrie un zip, Import data îl citește înapoi](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
+![Cele două butoane care mută o instalare întreagă: Export my data scrie un singur zip, Import data îl citește înapoi](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-> **Domeniu.** Un bundle poartă *date de utilizator*, nu instrumente din catalog. Instrumentele și resursele din catalog se sincronizează separat și se presupune că sunt deja prezente pe țintă, cel mult la o versiune mai mare. Instrumentele făcute de utilizator călătoresc în `profile.json`. Importul nu instalează și nu actualizează niciodată un instrument din catalog.
+::: note Domeniu de aplicare
+O arhivă conține *date ale utilizatorului*, nu instrumente din catalog. Instrumentele și resursele din catalog se sincronizează separat și se presupune că sunt prezente la destinație, în cel mai rău caz la o versiune mai nouă. Instrumentele create de un utilizator călătoresc în `profile.json`. Importul nu instalează și nu actualizează niciodată un instrument din catalog.
+:::
 
+<!--i:eti-badge-check-->
 ## Obiective
 
-- <!--i:box--> **Un format, fiecare shell.** Aplicația web, aplicațiile desktop și mobile și viitoarele shell-uri împart același plic și aceleași scheme de părți. Părțile opționale depind de capabilitățile fiecărui shell, iar părțile neacceptate sunt raportate. Fiecare punte de capabilități furnizează adaptorul ei de stocare.
-- <!--i:shieldcheck--> **Supraviețuiește drumului.** Un bundle deformat sau trunchiat în tranzit eșuează zgomotos la import și nu se restaurează niciodată pe jumătate.
-- <!--i:clock--> **Supraviețuiește acestei versiuni.** O aplicație mai veche poate importa în continuare părțile unui bundle mai nou pe care le recunoaște. Un format cu adevărat incompatibil este refuzat curat.
-- <!--i:check--> **Sigur de îmbinat.** Importul pe o instalare deja în uz nu șterge niciodată nimic ce nu era în bundle.
+- <!--i:box--> **Un format, toate interfețele gazdă.** Aplicația web, aplicațiile desktop și mobile și interfețele gazdă viitoare folosesc aceeași structură externă și aceleași scheme ale componentelor. Componentele opționale depind de capabilitățile fiecărei interfețe gazdă, iar componentele neacceptate sunt raportate. Fiecare punte de capabilități furnizează adaptorul său de stocare.
+- <!--i:shieldcheck--> **Rezistă la transfer.** O arhivă deteriorată sau trunchiată în timpul transferului eșuează la import cu o eroare și nu se restaurează niciodată pe jumătate.
+- <!--i:clock--> **Rămâne utilizabilă după această versiune.** O aplicație mai veche importă componentele pe care le recunoaște dintr-o arhivă mai nouă. Un format incompatibil este refuzat fără probleme.
+- <!--i:check--> **Combinare sigură.** Importul într-o instalare deja folosită nu șterge niciodată nimic din ce nu era în arhivă.
 
-## Plicul
+<!--i:eti-package-->
+## Structura externă
 
-Un bundle este un `.zip` simplu, deci supraviețuiește intact oricărui transport, iar orice instrument de dezarhivare îi poate inspecta conținutul.
+O arhivă este un simplu `.zip`. Rămâne intactă prin orice mijloc de transfer, iar orice instrument de dezarhivare îi poate inspecta conținutul.
 
-Descărcarea este numită după persoana căreia îi aparține: `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`, de exemplu `LollyTools-Ada-Lovelace-2026-06-26-1.zip`, deci un dosar Downloads cu copii de siguranță rămâne lizibil. Prenumele și numele vin din profil și sunt omise când nu sunt setate: fără profil dă `LollyTools-2026-06-26-1.zip`, iar doar un prenume dă `LollyTools-Ada-2026-06-26-1.zip`. Fiecare nume este redus la un token sigur pentru nume de fișier (litere și cifre Unicode păstrate, spații și punctuație eliminate, cel mult 32 de caractere). `<n>` este o secvență pe zi și pe dispozitiv, deci exporturile repetate din aceeași zi nu se ciocnesc și rămân în ordine. `backupFilename()` din `data-transfer.ts` construiește numele, iar conținutul zip-ului este același indiferent de nume.
+Descărcarea poartă numele proprietarului ei: `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`, de exemplu `LollyTools-Ada-Lovelace-2026-06-26-1.zip`. Prenumele și numele de familie provin din profil și sunt omise când nu sunt setate: fără profil rezultă `LollyTools-2026-06-26-1.zip`, iar doar cu prenume rezultă `LollyTools-Ada-2026-06-26-1.zip`. Fiecare nume devine un token sigur pentru numele de fișiere (literele și cifrele Unicode sunt păstrate, spațiile și punctuația sunt eliminate, cel mult 32 de caractere). `<n>` este o secvență pentru fiecare zi și dispozitiv, deci exporturile repetate într-o zi nu intră în conflict și rămân în ordine. `backupFilename()` din `data-transfer.ts` construiește numele. Numele nu schimbă conținutul zipului.
 
 | Cale | Obligatoriu | Conținut |
 |---|---|---|
-| `manifest.json` | da | Id-ul formatului, versiuni, numărători și integritate pe părți. Primul lucru la care se uită un cititor. |
-| `profile.json` | când este setat | Întreaga înregistrare `me` a utilizatorului: nume, contact, referința fotografiei și indicatori, plus dosare, Trash, planuri de proiect, șabloane de utilizator și instrumente făcute de utilizator, favorite, instrumente ascunse, limba și alegerea de emoji. Citit prin `host.profile`. |
-| `sessions.json` | da | Fiecare sesiune salvată: slot, id și versiune de instrument, etichetă, miniatură (data URL) și datele complete de intrare. Citit prin `host.state`. |
-| `assets.json` | da | Metadate pentru fiecare resursă încărcată (imagini, fonturi, tokenuri de brand, logouri, copii salvate ale descărcărilor), fiecare indicând octeții ei din `assets/blobs/`. |
-| `assets/blobs/<n>.<ext>` | pe resursă | Octeții bruți ai resursei, stocați necomprimați pentru că cei mai mulți sunt deja formate comprimate. Extensia este cosmetică; tipul MIME din `assets.json` este autoritar. |
-| `assets/blobs/<n>.c2pa` | când există | Content Credentials extrase ca octeți binari exacți, referite prin `_credentialFile` în înregistrarea resursei. Nu sunt chei de semnare ale dispozitivului. |
-| `design-systems.json` | când există | Sistemele de design făcute sau adăugate pe această instalare, ca `{ active, records }`. Vezi [Reguli de import](#import-rules). |
-| `file-history.json` | opțional | Instantanee versionate ale resurselor, rapoarte de operațiuni terminate pe fișiere și manifeste complete de batch, cu o versiune proprie. Furnizat de adaptorul intern de backup `fileHistory` al shell-ului. |
-| `revision-history.json` | opțional, backup-uri manuale | ID-uri stabile de creație, checkpoint-uri păstrate, miniaturi și ciorne de recuperare rulante. Furnizat de `host.state.history.backup` unde este acceptat. |
-| `file-history/versions/` | pe instantaneu | Octeții și credențialele extrase ale resurselor anterioare, indiferent dacă resursa curentă mai există. |
-| `file-history/results/` | pe operațiune terminată | Octeții exacți de ieșire. Niciun fișier original selectat pentru conversie nu este păstrat sau inclus. |
-| `prefs.json` | da | Preferințe locale ale utilizatorului: `theme`, `sidebarWidth` și numărătoarea de activitate `ct-metrics`. |
-| `lolly.txt` | da | Un rezumat lizibil al bundle-ului (numărători, profil, nume de fișier) pentru oricine deschide zip-ul fără Lolly. Regenerat la fiecare export și recunoscut la import, deci nu contează niciodată ca parte omisă. Este scris după harta de integritate, deci harta nu acoperă acest fișier. |
+| `manifest.json` | da | ID-ul formatului, versiunile, numerele de elemente și integritatea fiecărei componente. Un cititor citește mai întâi acest fișier. |
+| `profile.json` | când este setat | Înregistrarea `me` a utilizatorului: nume, contact, referință la fotografia de profil și indicatori, plus foldere, Trash, planuri de proiect, șabloane și instrumente create de utilizator, favorite, instrumente ascunse, limba și alegerea emoji. Citită prin `host.profile`. |
+| `sessions.json` | da | Fiecare sesiune salvată: slot, ID-ul și versiunea instrumentului, etichetă, miniatură (URL de date) și toate datele de intrare. Citită prin `host.state`. |
+| `assets.json` | da | Metadate pentru fiecare resursă încărcată (imagini, fonturi, tokenuri de brand, logouri, copii salvate ale descărcărilor), fiecare indicând octeții săi din `assets/blobs/`. |
+| `assets/blobs/<n>.<ext>` | pentru fiecare resursă | Octeții bruți ai resursei, stocați necomprimați deoarece majoritatea sunt deja în formate comprimate. Extensia este cosmetică; tipul MIME din `assets.json` este autoritatea. |
+| `assets/blobs/<n>.c2pa` | când există | Content Credentials extrase ca octeți binari exacți, referite prin `_credentialFile` în înregistrarea resursei. Acestea nu sunt chei de semnare ale dispozitivului. |
+| `design-systems.json` | când există | Sistemele de design create sau adăugate în această instalare, ca `{ active, records }`. Vezi [Reguli de import](#import-rules). |
+| `file-history.json` | opțional | Instantanee ale resurselor cu versiuni, rapoarte ale operațiilor de fișier terminate și manifeste complete de lot, cu o versiune proprie. Furnizat de adaptorul intern de backup `fileHistory` al interfeței gazdă. |
+| `revision-history.json` | opțional, copii de rezervă manuale | ID-uri stabile ale creațiilor, puncte de control păstrate, miniaturi și ciorne de recuperare reînnoite continuu. Furnizat de `host.state.history.backup` unde este acceptat. |
+| `file-history/versions/` | pentru fiecare instantaneu | Octeții anteriori ai resursei și certificatele extrase, indiferent dacă resursa curentă mai există. |
+| `file-history/results/` | pentru fiecare operație terminată | Octeții exacți ai ieșirii. Niciun fișier original selectat pentru conversie nu este păstrat sau inclus. |
+| `prefs.json` | da | Preferințe locale care aparțin utilizatorului: `theme`, `sidebarWidth` și contorul de activitate `ct-metrics`. |
+| `lolly.txt` | da | Un rezumat lizibil al arhivei (numere de elemente, profil, nume de fișier) pentru oricine deschide zipul fără Lolly. Regenerat la fiecare export și recunoscut la import, deci nu este niciodată numărat ca o componentă omisă. Este scris după harta de integritate, deci harta nu acoperă acest fișier. |
 
-::: details Cum scrie exportul zip-ul
-Exportul scrie zip-ul parte cu parte (`shells/web/src/lib/zip-stream.ts`). Încărcările, rezultatele salvate și versiunile salvate ale resurselor sunt citite în felii de 4 MiB, niciodată întregi, iar rezultatele și versiunile salvate sunt verificate mai întâi față de SHA-256 înregistrat. Apoi fiecare fișier este citit pentru suma de control și digestul de integritate, iar zip-ul se referă la el unde se află.
+::: details Cum scrie exportul zipul
+Exportul scrie zipul componentă cu componentă (`shells/web/src/lib/zip-stream.ts`). Fișierele încărcate, rezultatele salvate și versiunile salvate ale resurselor sunt citite în segmente de 4 MiB, niciodată integral. Rezultatele și versiunile salvate sunt verificate mai întâi față de SHA-256 înregistrat. Fiecare fișier este apoi citit pentru suma de control și amprenta de integritate, iar zipul face referire la fișier în locul în care se află.
 
-Nimic nu este recodificat, deci un fișier cu Content Credentials păstrează octeții exacți pe care îi acoperă semnătura lui, iar fiecare parte își păstrează octeții și digestul exacte. Pentru aceleași părți și aceeași oră, zip-ul este identic cu cel al scriitorului anterior din memorie, cu excepția faptului că un fișier de istoric de peste 16 MiB este comprimat pe bucăți. `tests/backup-streaming.test.ts` verifică asta față de digesturi de referință înregistrate.
+Nimic nu este recodificat. Fiecare componentă își păstrează octeții exacți și amprenta, deci un fișier care conține Content Credentials păstrează octeții acoperiți de semnătura sa. Pentru aceleași componente și același moment, zipul este identic cu cel al vechiului modul de scriere în memorie, cu excepția faptului că un fișier de istoric de peste 16 MiB este comprimat pe bucăți. `tests/backup-streaming.test.ts` verifică asta față de amprente de referință înregistrate.
 
-Pe o bibliotecă sintetică de 192 MiB, măsurat în Node, finalizarea copiei a luat aproximativ 125 până la 150 MiB peste bibliotecă, față de aproximativ 850 MiB pentru scriitorul din memorie (`node scripts/bench-backup-finalise.ts`). Importul citește în continuare întregul zip în memorie.
+Pentru o bibliotecă sintetică de 192 MiB, măsurată în Node, finalizarea copiei de rezervă a folosit aproximativ 125 până la 150 MiB în plus față de bibliotecă, comparativ cu aproximativ 850 MiB pentru modulul de scriere în memorie (`node scripts/bench-backup-finalise.ts`). Importul citește în continuare întregul zip în memorie.
 :::
 
+<!--i:eti-file-->
 ## `manifest.json`
 
 ```json
@@ -70,149 +75,158 @@ Pe o bibliotecă sintetică de 192 MiB, măsurat în Node, finalizarea copiei a 
 
 | Câmp | Semnificație |
 |---|---|
-| `format` | Mereu `lolly-backup`. Un fișier fără el este respins ca „not a Lolly backup”. |
-| `formatVersion` | Layoutul cu care a fost **scris** acest bundle. Crescut la orice schimbare a setului de părți sau a formelor. Cititorii **nu** se bazează pe acest câmp. |
-| `minReader` | Versiunea minimă de cititor care poate importa acest bundle **în siguranță**. Acesta este câmpul pe care se bazează cititorii. |
-| `app` | Id-ul aplicației producătoare, pentru diagnostic. |
-| `exportedAt` | Marcajul de timp ISO al creării bundle-ului. |
-| `counts` | Ce a pus scriitorul înăuntru, pentru afișare și verificări de bun-simț. |
-| `integrity` | Opțional. Mapează fiecare parte, în afară de `manifest.json`, la un digest `sha256-<base64>` de tip SRI al octeților ei **necomprimați**. |
+| `format` | Întotdeauna `lolly-backup`. Un fișier fără el este respins cu mesajul „nu este o copie de rezervă Lolly”. |
+| `formatVersion` | Structura cu care a fost **scrisă** această arhivă. Incrementată la orice schimbare a setului sau structurii componentelor. Cititorii **nu** condiționează importul de acest câmp. |
+| `minReader` | Versiunea minimă a cititorului care poate importa această arhivă **în siguranță**. Acesta este câmpul de care cititorii condiționează importul. |
+| `app` | ID-ul aplicației care a produs arhiva, pentru diagnosticare. |
+| `exportedAt` | Marcajul temporal ISO al creării arhivei. |
+| `counts` | Ce a inclus modulul de scriere, pentru afișare și verificări de coerență. |
+| `integrity` | Opțional. Asociază fiecare componentă, cu excepția `manifest.json`, cu o amprentă `sha256-<base64>` în stil SRI a octeților săi **necomprimați**. |
 
+<!--i:eti-tag-->
 ## Politica de versiuni
 
-Două numere de versiune lasă formatul să crească fără să abandoneze instalările mai vechi.
+Două numere de versiune permit formatului să se dezvolte fără să lase în urmă instalările mai vechi.
 
-![O schimbare a formatului de bundle este fie aditivă, pe care cititorii vechi o pot ignora, fie incompatibilă, unde un import greșit corupe. Aditiva crește formatVersion și păstrează minReader; incompatibila crește formatVersion și ridică minReader. Un cititor importă când minReader este cel mult versiunea lui proprie.](/info/diagrams/concepts/backup-version-gate.svg)
+![O schimbare a formatului arhivei este fie aditivă, pe care cititoarele vechi o pot ignora, fie incompatibilă, caz în care un import greșit corupe datele. O schimbare aditivă incrementează formatVersion și păstrează minReader; una incompatibilă incrementează formatVersion și crește minReader. Un cititor importă când minReader este cel mult egal cu propria sa versiune.](/info/diagrams/concepts/backup-version-gate.svg)
 
-- Un cititor importă un bundle când `manifest.minReader` este cel mult versiunea lui proprie de cititor. Refuză, cu „needs a newer version of the app”, doar când bundle-ul cere un cititor mai nou.
-- O schimbare **aditivă**, precum o parte opțională nouă sau un câmp opțional nou în manifest, crește `formatVersion` și lasă `minReader` în pace. Aplicațiile mai vechi importă în continuare fiecare parte pe care o recunosc, iar părțile pe care nu le recunosc sunt raportate ca omise, nu aruncate în tăcere.
-- O schimbare **incompatibilă**, unde un import greșit al unei părți corupe date sau o parte opțională devine obligatorie, ridică `minReader`. Aplicațiile mai vechi refuză atunci curat, în loc să importe ceva ce nu pot trata.
-- Dacă un bundle viitor setează `formatVersion` dar omite `minReader`, cititorii revin la controlul pe `formatVersion` și tratează schimbarea ca incompatibilă.
+- Un cititor importă o arhivă când `manifest.minReader` este cel mult egal cu propria sa versiune de cititor. Refuză, cu mesajul „necesită o versiune mai nouă a aplicației”, doar când arhiva cere un cititor mai nou.
+- O schimbare **aditivă**, precum o componentă opțională nouă sau un câmp opțional nou în manifest, incrementează `formatVersion` și lasă `minReader` neschimbat. Aplicațiile mai vechi importă în continuare fiecare componentă pe care o recunosc, iar componentele pe care nu le recunosc sunt raportate ca omise, nu eliminate fără avertizare.
+- O schimbare **incompatibilă**, în care importul greșit al unei componente corupe date sau o componentă opțională devine obligatorie, crește `minReader`. Aplicațiile mai vechi refuză atunci fără probleme în loc să importe ceva ce nu pot gestiona. Aplicațiile mai vechi refuză atunci arhiva fără probleme.
+- Dacă o arhivă viitoare setează `formatVersion`, dar omite `minReader`, cititorii recurg la condiționarea importului de `formatVersion` și tratează schimbarea ca incompatibilă.
 
-> **Regulă practică pentru autori:** dacă fiecare cititor existent ar face tot ce trebuie ignorând adăugarea ta, schimbarea este aditivă: crește `formatVersion` și lasă `minReader`. Altfel ridică `minReader`.
+::: note Regulă practică pentru autori
+Dacă fiecare cititor existent ar continua să funcționeze corect ignorând ceea ce adaugi, schimbarea este aditivă: incrementează `formatVersion` și păstrează `minReader`. Altfel, crește `minReader`.
+:::
 
+<!--i:eti-shield-check-->
 ## Integritate
 
-Când `manifest.integrity` este prezent, un cititor verifică SHA-256 al fiecărei părți listate **înainte să scrie ceva**. O nepotrivire („failed its integrity check”) sau o parte lipsă („incomplete”) oprește întregul import, deci nu există restaurare parțială. Asta prinde stricăciunea pe care o poate face un transport de fișiere: un AirDrop trunchiat, un gateway de email care a recodificat atașamentul, un sector USB defect.
+Când `manifest.integrity` este prezent, un cititor verifică SHA-256 al fiecărei componente listate **înainte să scrie ceva**. O nepotrivire („nu a trecut verificarea de integritate”) sau o componentă lipsă („incomplet”) oprește importul, deci nu există restaurare parțială. Astfel sunt detectate deteriorările din timpul transferului: un transfer AirDrop trunchiat, un gateway de email care a recodificat atașamentul, un sector USB defect.
 
-Integritatea este în măsura posibilului. Este scrisă doar unde Web Crypto este disponibil (orice context sigur de browser și Node modern) și verificată doar când atât harta, cât și Web Crypto sunt prezente. Un bundle fără hartă, precum unul de dinainte să existe integritatea, se importă neschimbat: „cannot verify” nu înseamnă niciodată „corrupt”.
+Integritatea este asigurată în limita posibilităților. Este scrisă doar unde Web Crypto este disponibil (orice context securizat de browser și Node modern) și verificată doar când sunt prezente atât harta, cât și Web Crypto. O arhivă fără hartă, precum una de dinaintea introducerii integrității, se importă neschimbată: „nu se poate verifica” nu înseamnă niciodată „corupt”.
 
-Manifestul nu se listează pe sine și nici `lolly.txt` regenerat. Digesturile acoperă părțile pentru care garantează manifestul.
+Manifestul nu se listează nici pe sine, nici fișierul regenerat `lolly.txt`.
 
+<!--i:eti-download-->
 ## Reguli de import
 
-Un import rulează într-unul din două moduri.
+Un import rulează într-unul dintre două moduri.
 
-- **Merge** este ce face **Import data…** și ce face prima aderare la sync, **Bring it to this device**. Datele de pe țintă rămân și nimic ce nu era în bundle nu este atins: o sesiune pe care o avea ținta și bundle-ul nu supraviețuiește importului.
-- **Replace** este ce folosește sincronizarea dispozitivelor pentru a ține dispozitivele în pas: preia înregistrarea de profil a copiei sincronizate, preferințele, sesiunile, imaginile și alegerea sistemului de design activ și elimină doar elementele șterse de alt dispozitiv de la ultima sincronizare. Restaurarea unei copii anterioare merge mai departe și face dispozitivul să se potrivească cu acea copie, eliminând tot ce copia nu conține, după ce salvează mai întâi dispozitivul. [Sincronizează-ți dispozitivele](/info/sync.html) acoperă ce vede o persoană.
+- **Merge** este ceea ce fac **Import data…** și prima conectare la sincronizare, **Bring it to this device**. Datele de la destinație rămân și nimic din afara arhivei nu este atins.
+- **Replace** este ceea ce folosește sincronizarea dispozitivelor pentru a le menține la zi. Preia înregistrarea de profil, preferințele, sesiunile, imaginile și alegerea sistemului de design activ din copia sincronizată. Elimină doar elementele șterse de alt dispozitiv de la ultima sincronizare. Restaurarea unei copii anterioare salvează mai întâi dispozitivul, apoi face dispozitivul să corespundă acelei copii și elimină tot ce copia nu conține. [Sincronizează-ți dispozitivele](/info/sync.html) prezintă ce vede utilizatorul.
 
-Într-un merge, tot ce există doar pe țintă este păstrat, iar fiecare fel de date din bundle întâlnește ținta astfel:
+O combinare tratează fiecare tip de date astfel:
 
-| Date | Deja pe țintă | Doar în bundle |
+| Date | Deja la destinație | Doar în arhivă |
 |---|---|---|
-| Sesiuni (după slot) și imagini încărcate (după id) | Copia salvată mai recent este păstrată, deci o copie de siguranță mai veche nu suprascrie niciodată munca mai nouă. Orele egale sau necunoscute păstrează copia țintei. | Adăugat |
-| Dosare | Numele și părintele țintei sunt păstrate, iar dosarul primește membrii bundle-ului pe care nu îi are. O sesiune arhivată într-un dosar pe țintă rămâne arhivată acolo. | Adăugat |
-| Favorite (instrumente, resurse de catalog și elemente Projects) | Combinate | Adăugat |
-| Șabloane, șabloane Projects și instrumente de utilizator (după id) | Înregistrarea țintei este păstrată. | Adăugat |
-| Intrări Trash | Intrarea țintei este păstrată. | Adăugat, deci un element care putea fi restaurat pe oricare instalare încă poate fi. O intrare al cărei dosar este reîn uz pe țintă sau al cărei slot Trash este deja folosit de țintă este omisă. |
-| Alte câmpuri de profil (nume, date de contact, limbă, feature flags, instrumente ascunse și alte setări) | Valoarea țintei este păstrată. | Preluat unde câmpul țintei este gol |
-| Preferințe (`prefs.json`) | Valoarea țintei este păstrată. | Scris unde ținta nu are |
-| Sisteme de design (după id) | Înregistrarea bundle-ului o înlocuiește pe cea a țintei. | Adăugat. Alegerea activă a bundle-ului se aplică doar când ținta nu are un sistem de design propriu. |
+| Sesiuni (după slot) și imagini încărcate (după ID) | Se păstrează copia salvată mai recent, deci o copie de rezervă mai veche nu suprascrie niciodată munca mai nouă. Momentele egale sau necunoscute păstrează copia de la destinație. | Adăugate |
+| Foldere | Se păstrează numele și părintele de la destinație, iar folderul primește elementele din arhivă care îi lipsesc. O sesiune plasată într-un folder la destinație rămâne acolo. | Adăugate |
+| Favorite (instrumente, resurse din catalog și elemente Projects) | Combinate | Adăugate |
+| Șabloane, șabloane Projects și instrumente ale utilizatorului (după ID) | Se păstrează înregistrarea de la destinație. | Adăugate |
+| Intrări Trash | Se păstrează intrarea de la destinație. | Adăugate, astfel încât un element care putea fi restaurat în oricare dintre instalări să poată fi restaurat în continuare. O intrare al cărei folder este din nou folosit la destinație sau al cărei slot Trash este deja folosit la destinație este omisă. |
+| Alte câmpuri de profil (nume, date de contact, limbă, indicatori de funcții, instrumente ascunse și alte setări) | Se păstrează valoarea de la destinație. | Preluate unde câmpul de la destinație este gol |
+| Preferințe (`prefs.json`) | Se păstrează valoarea de la destinație. | Scrise unde nu există la destinație |
+| Sisteme de design (după ID) | Înregistrarea din arhivă o înlocuiește pe cea de la destinație. | Adăugate. Alegerea activă din arhivă se aplică doar când destinația nu are propriul sistem de design. |
 | Istoricul creațiilor | Copia salvată mai recent rămâne curentă, iar cealaltă este păstrată ca ciornă protejată. | Adăugat |
 
-**Sesiunile salvate se relegă automat la imaginile lor.** Referințele de resurse sunt păstrate după id, iar puntea le rezolvă din nou după restaurarea imaginilor, ceea ce oricum trebuie să facă, deoarece URL-urile `blob:` nu supraviețuiesc unei reîncărcări.
+**Sesiunile salvate se reconectează automat la imaginile lor.** Referințele la resurse sunt păstrate după ID. Puntea le rezolvă din nou după restaurarea imaginilor, deoarece URL-urile `blob:` nu rezistă la reîncărcare.
 
-**Înregistrările de istoric nu se schimbă niciodată după ce sunt scrise.** Un import repetat de versiuni de resurse și ID-uri de operațiuni nu adaugă nimic, iar un ID care denumește deja octeți sau istoric diferiți este refuzat, nu suprascris. Reimportarea unei resurse curente identice îi păstrează versiunea, iar o resursă curentă schimbată trebuie să poarte o versiune diferită.
+**Înregistrările istoricului nu se schimbă niciodată după ce sunt scrise.** Un import repetat al versiunilor de resurse și al ID-urilor de operații nu adaugă nimic, iar un ID care desemnează deja alți octeți sau alt istoric este refuzat, nu suprascris. Reimportarea unei resurse curente identice îi păstrează versiunea, iar o resursă curentă modificată trebuie să aibă o versiune diferită.
 
-**Istoricul creațiilor are câteva reguli în plus.** O creație al cărei slot este folosit de țintă pentru o altă creație este adăugată ca o creație separată, iar o creație din Trash-ul țintei rămâne acolo. Un id de checkpoint care denumește conținut diferit pe țintă păstrează cel al țintei. O arhivă care eșuează propriile verificări oprește importul înainte să se schimbe vreun profil, sesiune, resursă sau preferință, iar un import repetat identic nu adaugă stocare.
+**Istoricul creațiilor mai are câteva reguli.** O creație al cărei slot este folosit la destinație pentru o altă creație este adăugată ca o creație separată, iar o creație din Trash de la destinație rămâne acolo. Dacă un ID de punct de control desemnează alt conținut la destinație, se păstrează conținutul de la destinație. O arhivă care nu trece propriile verificări oprește importul înainte de orice modificare a profilului, sesiunilor, resurselor sau preferințelor, iar un import repetat identic nu ocupă spațiu suplimentar.
 
 **Rezumatul raportează ce s-a întâmplat.** Fiecare import returnează `profile`, `sessions`, `userAssets`, `prefs`, `skipped` și `failedAssets`.
 
-- `failedAssets` numără resursele încărcate care nu au putut fi restaurate, de exemplu pentru că stocarea dispozitivului este plină.
-- `skipped` numără părțile de la un scriitor mai nou pe care acest build nu le-a recunoscut. Aplicația îl arată („… · N newer items skipped”), deci o restaurare spune ce a lăsat în urmă.
-- Cu istoricul fișierelor, rezumatul adaugă `assetVersions`, `fileOperations`, `fileBatches` și `failedHistory`. Epuizarea stocării sau un conflict de ID imuabil pot cauza o restaurare parțială, iar aplicația îi spune atunci persoanei să păstreze copia sursă.
-- Cu istoricul creațiilor, adaugă `revisions` și `recoveryDrafts`, numărând doar ce a adăugat acest import, și `added`, `kept`, `replaced`, `copies` și `hidden` pentru cum a fost îmbinată fiecare creație. `skippedCheckpoints` numără checkpoint-urile al căror id denumește conținut diferit pe țintă, iar `historyLeftOut` numără checkpoint-urile și ciornele mai vechi care nu au încăput în spațiul de istoric al dispozitivului.
-- Un import replace adaugă `removed` și `failedRemovals`.
+- `failedAssets` numără resursele încărcate care nu au putut fi restaurate, de exemplu deoarece spațiul de stocare al dispozitivului este plin.
+- `skipped` numără componentele provenite de la un modul de scriere mai nou pe care această versiune compilată nu le-a recunoscut. Aplicația arată numărul („… · N elemente mai noi omise”).
+- Cu istoricul fișierelor, rezumatul adaugă `assetVersions`, `fileOperations`, `fileBatches` și `failedHistory`. Epuizarea spațiului de stocare sau un conflict de ID imuabil poate cauza o restaurare parțială, iar aplicația îi spune atunci utilizatorului să păstreze copia de rezervă sursă.
+- Cu istoricul creațiilor, adaugă `revisions` și `recoveryDrafts`, numărând doar ceea ce a adăugat acest import, și `added`, `kept`, `replaced`, `copies` și `hidden` pentru modul în care a fost combinată fiecare creație. `skippedCheckpoints` numără punctele de control al căror ID desemnează alt conținut la destinație, iar `historyLeftOut` numără punctele de control și ciornele mai vechi care nu au încăput în spațiul pentru istoric al dispozitivului.
+- Un import prin înlocuire adaugă `removed` și `failedRemovals`.
 
-Restaurarea nu este o singură tranzacție peste depozitele de profil, sesiuni, resurse și istoric. Sincronizarea în cloud **nu** avansează revizia aplicată după o restaurare parțială sau neacceptată, deci copia rămâne disponibilă pentru reîncercare.
+Restaurarea nu este o singură tranzacție pentru depozitele de profil, sesiuni, resurse și istoric. Sincronizarea în cloud **nu** avansează revizia aplicată după o restaurare parțială sau neacceptată, deci copia rămâne disponibilă pentru reîncercare.
 
-## Ce nu călătorește
+<!--i:eti-unlink-->
+## Ce nu se transferă
 
-- **Cache-urile catalogului** (metadate și blob-uri de resurse descărcate, indexul de instrumente), pe care ținta le resincronizează gratis.
-- **Instrumentele și resursele din catalog**, care sunt în afara domeniului și se presupun prezente pe țintă. Tokenurile de brand, fonturile și logourile adăugate de utilizator sunt resurse ale utilizatorului, deci călătoresc.
+- **Cache-urile catalogului** (metadatele și bloburile resurselor descărcate, indexul instrumentelor), pe care destinația le sincronizează din nou.
+- **Instrumentele și resursele din catalog**, presupuse prezente la destinație. Tokenurile de brand, fonturile și logourile adăugate de utilizator sunt resurse ale utilizatorului și se transferă.
 - **URL-urile `blob:` și de obiect**, pe care puntea le regenerează la încărcare.
-- **Originalele conversiilor, leasing-urile active de execuție și secretele de acces sau semnare locale mașinii.** Acestea nu sunt istoric portabil. Un rezultat salvat este o copie, nu o promisiune că sursa originală a fost salvată.
-- **Contorul secvenței de export**, contorul pe zi pentru denumirea descărcărilor din `localStorage` (`lolly-export-seq`). Este ținut în afara `PREF_KEYS`, deci nu călătorește niciodată într-un bundle.
+- **Originalele conversiilor, permisele temporare de execuție active și secretele de acces sau semnare locale dispozitivului.** Acestea nu sunt istoric portabil. Un rezultat salvat este o copie. Nu înseamnă că sursa originală a fost inclusă în copia de rezervă.
+- **Contorul secvenței de export**, contorul zilnic pentru numele descărcărilor din `localStorage` (`lolly-export-seq`). Este exclus din `PREF_KEYS`, deci nu se transferă niciodată într-un pachet.
 
-Indicatorul de stocare arată aceeași împărțire. Saved sessions, My images și File results & versions intră într-un bundle. Cache-ul de resurse, previzualizările instrumentelor și fixările offline de sub ele pot fi toate reconstruite, deci rămân în urmă.
+Indicatorul de stocare arată aceeași împărțire. Saved sessions, My images și File results & versions intră într-un pachet. Cache-ul resurselor, previzualizările instrumentelor și elementele fixate pentru acces offline pot fi reconstruite și rămân în urmă.
 
-![Indicatorul de stocare împărțind datele acestui dispozitiv în categorii cu nume, cu Saved sessions și My images urmărite separat de Asset cache, aici la o instalare nouă unde fiecare categorie este încă goală](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
+![Indicatorul de stocare împarte datele acestui dispozitiv în categorii denumite, urmărind Saved sessions și My images separat de Asset cache, aici într-o instalare nouă în care fiecare categorie este încă goală](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
+<!--i:eti-building-->
 ## Datele organizației cu Lolly Work
 
-Acest bundle salvează biblioteca personală a dispozitivului. Nu este o copie de siguranță a unei instanțe **Lolly Work**: conturile organizației, politicile de acces, proiectele comune, versiunile de catalog, aprobările, joburile de randare și înregistrările de audit sunt ținute de acel serviciu. Reconectează-te și autentifică-te ca să recapeți accesul la munca comună; importul unui bundle personal nu acordă acel acces.
+Acest pachet face o copie de rezervă a bibliotecii personale a dispozitivului. Un pachet nu este o copie de rezervă a unei instanțe **Lolly Work**. Conturile organizației, politicile de acces, proiectele partajate, versiunile catalogului, aprobările, sarcinile de randare și înregistrările de audit sunt păstrate de acel serviciu. Reconectează-te și autentifică-te ca să recapeți accesul la munca partajată. Importul unui pachet personal nu acordă acel acces.
 
-Operatorii salvează, păstrează și șterg datele de pe server cu ghidurile proprii ale Lolly Work: [Backup și restaurare](/info/work-operations.html#backup-and-restore) și [Stocarea Lolly Work și ciclul de viață al datelor](/info/work-data-lifecycle.html). Ștergerea sau exportul unui dispozitiv nu face niciuna dintre acele operațiuni pe server.
+Operatorii fac copii de rezervă, păstrează și șterg datele de pe server folosind ghidurile proprii Lolly Work: [Copiere de rezervă și restaurare](/info/work-operations.html#backup-and-restore) și [Stocarea și ciclul de viață al datelor în Lolly Work](/info/work-data-lifecycle.html). Ștergerea datelor de pe un dispozitiv sau exportul lor nu efectuează niciuna dintre aceste operațiuni pe server.
 
-## Între shell-uri
+<!--i:eti-monitor-->
+## În diferitele interfețe de rulare
 
-`data-transfer.ts` citește și scrie doar prin puntea de capabilități (`host.profile`, `host.state`, `host.assets`) și preferințele `localStorage` comune. Același modul citește și scrie plicul comun pe web și în aplicațiile desktop și mobile, peste stocarea IndexedDB sau sistemul de fișiere. Părțile opționale de istoric apar doar unde adaptorul lor este disponibil, iar o parte neacceptată este raportată ca omisă la import. Suita fără interfață exersează părțile comune față de o punte în memorie, iar tranzacțiile de istoric au și teste în browser real.
+`data-transfer.ts` citește și scrie doar prin puntea de capabilități (`host.profile`, `host.state`, `host.assets`) și preferințele comune din `localStorage`. Același modul citește și scrie anvelopa comună pe web și în aplicațiile desktop și mobile, folosind IndexedDB sau stocarea în sistemul de fișiere. Componentele opționale de istoric apar doar acolo unde adaptorul lor este disponibil. Importul raportează o componentă neacceptată ca omisă. Suita fără interfață grafică testează componentele comune cu o punte în memorie, iar tranzacțiile de istoric au și teste într-un browser real.
 
-Două shell-uri stau în afara acestei garanții, din motive diferite:
+Două interfețe de rulare nu intră sub această garanție:
 
-- **CLI-ul one-shot** nu are ce să transporte: starea lui este în memorie și durează o invocare.
-- **TUI** păstrează starea în `~/.lolly` (sesiuni, dosare, profil), iar vederea lui Profile o poate salva, dar scrie o arhivă mai simplă proprie: `saved-state/<slot>.json` pe sesiune plus `profile.json` și `folders.json`, fără manifest, fără `formatVersion` sau `minReader` și fără hartă de integritate. Acest format nu o poate importa (un cititor o respinge ca „not a Lolly backup”), iar numele ei este confuz de asemănător (`lolly-backup-<stamp>.zip`). Unificarea celor două este un gol cunoscut.
+- **CLI-ul cu o singură execuție** nu are nimic de transferat: starea lui este în memorie și durează o singură invocare.
+- **TUI** păstrează starea în `~/.lolly` (sesiuni, dosare, profil). Vizualizarea sa Profile scrie o arhivă de rezervă proprie, mai simplă: `saved-state/<slot>.json` pentru fiecare sesiune plus `profile.json` și `folders.json`, fără manifest, fără `formatVersion` sau `minReader` și fără hartă de integritate. Un cititor al acestui format respinge acea arhivă ca „nu este o copie de rezervă Lolly”, deși numele sunt similare (`lolly-backup-<stamp>.zip`). Unificarea celor două este o lipsă cunoscută.
 
-## Încă neportabil
+<!--i:eti-clock-->
+## Încă nu sunt portabile
 
-Plicul este un manifest plus părți cu nume, deci noi feluri de date portabile se pot alătura mai târziu ca părți aditive (un nou `formatVersion`, același `minReader`), iar cititorii de azi omit ce nu recunosc. Sistemele de design călătoresc deja astfel, ca `design-systems.json` plus resursele lor de utilizator.
+Tipuri noi de date portabile se pot adăuga ulterior sub formă de componente suplimentare (un nou `formatVersion`, același `minReader`). Sistemele de design se transferă deja astfel, ca `design-systems.json` împreună cu resursele utilizatorului aferente.
 
-Două nume sunt rezervate pentru date care nu călătoresc încă:
+Două nume sunt rezervate pentru date care încă nu se transferă:
 
-- **`tokens.json`** ar purta un document complet [W3C DTCG](https://tr.designtokens.org/format/) de design tokens, cu grupurile, seturile și temele lui, formatul pe care [Penpot îl importă și îl exportă](https://help.penpot.app/user-guide/design-systems/design-tokens/). Tokenurile de brand proprii ale unui utilizator călătoresc deja ca resursa `user/tokens/brand` în `assets.json`, iar tokenurile unui sistem de design călătoresc cu înregistrarea lui.
-- **`penpot/`** este rezervat pentru un fișier Penpot ingerat sau subsetul lui relevant pentru Lolly, expus ca instrument.
+- **`tokens.json`** ar transporta un document de tokenuri de design [W3C DTCG](https://tr.designtokens.org/format/) cu grupurile, seturile și temele sale, formatul pe care [Penpot îl importă și îl exportă](https://help.penpot.app/user-guide/design-systems/design-tokens/). Tokenurile de brand proprii ale unui utilizator se transferă deja ca resursa `user/tokens/brand` din `assets.json`, iar tokenurile unui sistem de design se transferă împreună cu înregistrarea lui.
+- **`penpot/`** este rezervat pentru un fișier Penpot preluat sau pentru subsetul lui relevant pentru Lolly, prezentat ca instrument.
 
-Cititorii de azi nu cunosc încă niciunul dintre nume. Ca orice altceva din afara părților de mai sus, fiecare este pentru ei o parte necunoscută: lăsată neatinsă și numărată în `skipped`.
+<!--i:eti-history-->
+## Componentele de istoric
 
-## Părți de istoric
-
-Cele două părți de istoric sunt opționale și au versiuni proprii. Cei mai mulți cititori pot sări această secțiune.
+Cele două componente de istoric sunt opționale și au propriile versiuni.
 
 ::: details Istoricul creațiilor (v3)
-Backup-urile manuale dintr-o instalare web cu istoric al creațiilor includ `revision-history.json`, cu propria schemă `{ version: 1, documents, revisions, recoveries }`. Poartă ID-urile păstrate, instantaneele canonice ale intrărilor, ștampilele de versiune, previzualizările raster și ciornele separate ale scriitorilor. Adaptorul de istoric captează sesiunile curente și capetele lor într-o singură tranzacție de citire, iar `sessions.json` folosește aceleași instantanee curente pentru cititorii mai vechi.
+Copiile de rezervă manuale dintr-o instalare web cu istoric al creațiilor includ `revision-history.json`, cu propria schemă `{ version: 1, documents, revisions, recoveries }`. Acesta conține ID-urile păstrate, instantaneele canonice ale intrărilor, marcajele de versiune, previzualizările raster și ciornele separate ale autorilor modificărilor. Adaptorul de istoric capturează sesiunile curente și cele mai recente revizii ale lor într-o singură tranzacție de citire, iar `sessions.json` folosește aceleași instantanee curente pentru cititoarele mai vechi.
 
-Restaurarea verifică SHA-256 al conținutului și numărul de octeți, identitățile unice, relațiile document și cap, ascendența, marcajele de timp, tipurile de previzualizare și limitele înainte să confirme arhiva într-o singură tranzacție. Referințele părinte compactate pot lipsi. Munca curentă existentă nu este niciodată înlocuită în tăcere: când o creație există pe ambele părți, partea care nu este păstrată curentă devine o ciornă protejată.
+Restaurarea verifică SHA-256 și numărul de octeți ai conținutului, identitățile unice, relațiile dintre documente și reviziile lor curente, ascendența, marcajele de timp, tipurile și limitele previzualizărilor înainte de a salva definitiv arhiva într-o singură tranzacție. Referințele la părinții eliminați prin compactare pot lipsi. Munca curentă existentă nu este niciodată înlocuită pe ascuns: când o creație există în ambele părți, partea care nu rămâne curentă devine o ciornă protejată.
 
-Limita de transfer a arhivei, 384 MiB, este verificată explicit, iar limitele de stocare sunt impuse fără a trunchia checkpoint-urile păstrate. Exportul scrie `revision-history.json` și `sessions.json` în bucăți, cu aceiași octeți pe care îi dă un singur `JSON.stringify`, deci textul fișierului nu este niciodată ținut întreg. Un fișier de istoric care ar depăși limita este abandonat în clipa în care o depășește și doar numărat de acolo încolo. Arhiva este apoi refăcută fără cele mai vechi checkpoint-uri automate ale ei, iar rezumatul exportului le numără ca `checkpointsLeftOut`, sau arhiva este refuzată în întregime.
+Arhiva are o limită de transfer de 384 MiB. Limitele de stocare sunt aplicate fără a trunchia punctele de control păstrate. Exportul scrie `revision-history.json` și `sessions.json` în fragmente, cu aceiași octeți pe care îi produce un singur `JSON.stringify`, deci textul fișierului nu este niciodată păstrat integral în memorie. Un fișier de istoric care ar depăși limita este abandonat în momentul depășirii și de atunci doar i se numără octeții. Arhiva este apoi refăcută fără cele mai vechi puncte de control automate, iar rezumatul exportului le numără în `checkpointsLeftOut`, sau arhiva este refuzată.
 
-Un shell fără această capabilitate restaurează sesiunile obișnuite și raportează partea de istoric ca omisă. Istoricul nativ în sistemul de fișiere rămâne neacceptat până când adaptorul lui furnizează tranzacții durabile de istoric. Oaspeții dintr-un collab privat nu au istoric durabil sau arhivă de recuperare.
+O interfață de rulare fără această capabilitate restaurează sesiunile obișnuite și raportează componenta de istoric ca omisă. Istoricul nativ din sistemul de fișiere rămâne neacceptat până când adaptorul său oferă tranzacții de istoric durabile. Invitații dintr-o colaborare privată nu au istoric durabil sau arhivă de recuperare.
 
-Sincronizarea personală prin instantanee lasă istoricul creațiilor în afară. Aplicarea unui instantaneu pe un document local cu istoric păstrează starea de lucru anterioară ca ciornă de recuperare separată și invalidează tokenul de scriere al oricărui editor deschis. Checkpoint-urile lui imuabile rămân pe dispozitiv. Asta protejează istoricul local în timpul înlocuirii unui instantaneu; nu îmbină istoricele concurente ale dispozitivelor.
+Sincronizarea instantaneelor personale exclude istoricul creațiilor. Aplicarea unui instantaneu unui document local cu istoric îi păstrează starea de lucru anterioară ca o ciornă de recuperare separată și invalidează tokenul de scriere al oricărui editor deschis. Punctele de control imuabile rămân pe dispozitiv. Acest lucru protejează istoricul local în timpul înlocuirii cu un instantaneu. Nu combină istoricele concurente ale dispozitivelor.
 
-Referințele istorice la resurse sunt păstrate, în timp ce randarea rezolvă în continuare resursele prin biblioteca existentă a destinației. Această arhivă nu garantează încă octeții exacți ai resurselor vechi sau randările vechi ale instrumentelor. Octeții versiunilor de resurse și ai rezultatelor de fișiere călătoresc în propria parte de backup.
+Referințele istorice la resurse sunt păstrate, iar randarea continuă să rezolve resursele prin biblioteca existentă a destinației. Această arhivă nu garantează încă octeții exacți ai resurselor vechi sau randările vechi ale instrumentelor. Octeții versiunilor resurselor și ai rezultatelor fișierelor se transferă în propria componentă a copiei de rezervă.
 :::
 
-::: details Versiuni salvate și rezultate de fișiere (v2)
-Partea opțională de istoric conține `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`, iar cititorii acceptă și forma mai veche history-v1 fără batch-uri. Fiecare instantaneu dă ID-ul stabil al resursei și versiunea exactă, ora salvării, lungimea în octeți și SHA-256 hex, plus o înregistrare de resursă ale cărei `_file` și `_credentialFile` opțional indică părți binare. Operațiunile poartă faptele fișierului original, cererea, raportul, marcajele de timp și `_file` de rezultat opțional. Numele backend-ului de stocare, handle-urile OPFS și leasing-urile de execuție nu călătoresc. Cititorii care cunosc doar history v1 refuză noua versiune de istoric înainte de import, în loc să piardă în tăcere apartenența la batch.
+::: details Versiuni salvate și rezultate ale fișierelor (v2)
+Componenta opțională de istoric conține `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`, iar cititoarele acceptă și structura anterioară history-v1, fără loturi. Fiecare instantaneu indică ID-ul stabil al resursei și versiunea exactă, momentul salvării, lungimea în octeți și SHA-256 în hexazecimal, plus o înregistrare a resursei ale cărei `_file` și `_credentialFile` opțional indică componente binare. Operațiunile conțin datele despre fișierul original, cererea, raportul, marcajele de timp și `_file` opțional al rezultatului. Numele mecanismelor de stocare, referințele OPFS și permisele temporare de execuție nu se transferă. Cititoarele care cunosc doar history v1 refuză noua versiune de istoric înainte de import, deci apartenența la lot nu este niciodată eliminată pe ascuns.
 
-Manifestele batch înregistrează fiecare sursă selectată înainte de procesare, inclusiv fișierele niciodată citite, membrii anulați, eșecurile de rezervare a spațiului pentru rezultat și munca întreruptă. Fiecare membru are un ID de operațiune stabil, o referință de sursă și fapte, numele de ieșire cerut și raportul final. O sursă necitită are fapte declarate, nu un digest inventat. Importul validează identitatea membrului și consistența cu orice raport de operațiune purtat. Rapoartele batch rămân disponibile când rezultatele individuale au fost eliminate, dar o confirmare nu înseamnă că octeții de ieșire sunt încă stocați.
+Manifestele loturilor înregistrează fiecare sursă selectată înainte de procesare, inclusiv fișierele care nu au fost citite niciodată, elementele anulate, eșecurile de rezervare a spațiului pentru rezultate și munca întreruptă. Fiecare element are un ID stabil de operațiune, referința și datele sursei, numele de ieșire cerut și raportul final. O sursă necitită are date declarate, nu un hash inventat. Importul validează identitatea elementului și consecvența cu orice raport de operațiune inclus. Rapoartele Lolly Batch rămân disponibile când rezultatele individuale au fost eliminate, dar o confirmare nu înseamnă că octeții rezultatului sunt încă stocați.
 
-- **Mai întâi validarea.** Fiecare înregistrare de istoric cunoscută, raport și fișier referit este validat înainte ca vreun import de profil sau resurse să scrie. Octeții lipsă și SHA-256 nepotrivit eșuează chiar și când plicul nu are hartă de integritate. Credențialele extrase rămân tablouri de octeți, inclusiv importurile de la scriitori mai vechi care le-au serializat ca obiecte cu chei numerice.
-- **Muncă în desfășurare.** Operațiunile în desfășurare devin înregistrări întrerupte în backup, cu un raport de eșec explicativ și fără rezultat. Restaurarea nu repornește niciodată munca de fundal și nu importă un lease activ. Reîncercarea înseamnă selectarea din nou a fișierului original, verificat față de SHA-256 înregistrat când este disponibil.
-- **Stocare.** Rezultatele restaurate își confirmă octeții și metadatele împreună în IndexedDB. Rezultatele noi obișnuite folosesc OPFS unde este disponibil, cu rezervă IndexedDB. O operațiune live existentă nu este niciodată înlocuită de un import.
-- **Limite de backup.** Exportul transmite acești octeți în arhivă, dar restaurarea încă dezarhivează un backup întreg în memorie, deci limitele rămân: **256 MiB de conținut de istoric**, **4 MiB de metadate de istoric**, cel mult **100 de operațiuni**, **100 de batch-uri** și **2.000 de instantanee**. Exportul refuză explicit istoricul prea mare sau incomplet și nu îl lasă niciodată în tăcere deoparte. Descarcă versiunile și rezultatele importante pe rând înainte să elimini copiile locale mai vechi. Aceste limite nu sunt o garanție măsurată de memorie de vârf pentru telefoane.
-- **Bugete locale.** Istoricul local al rezultatelor are un buget de 512 MiB și un plafon de 100 de înregistrări. Instantaneele de resurse au un buget separat de 512 MiB și cel mult 20 de versiuni istorice pe resursă, iar octeții credențialelor extrase se numără la acel buget. Restaurarea respectă aceste limite și nu elimină niciodată în tăcere datele existente ale utilizatorului.
-- **Metadate batch.** Metadatele batch locale au un buget separat de 4 MiB, cel mult 100 de manifeste și 20 de membri pe batch. Membrii în așteptare rezervă capacitate de metadate, cu un plafon de raport de 32 KiB pe membru. Acesta este un buget logic, nu o garanție de spațiu pe disc al browserului: un eșec real de cotă este arătat, iar raportul din memorie rămâne descărcabil. Reîncercarea unui membru batch creează un batch nou fără a suprascrie vechiul raport. Eliminarea unei înregistrări batch nu elimină octeții rezultatelor individuale sau resursele bibliotecii.
-- **Rezultate în bibliotecă.** Rezultatele convertite pot fi adăugate în bibliotecă fără normalizare sau recodificare, cu hash-urile sursei și ieșirii și relația operațiunii atașate. Adăugările repetate refolosesc o copie neschimbată, iar o copie editată nu este niciodată suprascrisă. Imaginile raster pot porni un document Design nou, care folosește ID-ul curent al resursei din bibliotecă; impunerea fixărilor exacte de versiune în tot runtime-ul Design și în calea URL este o muncă separată. Rezultatele SVG, HTML, PDF și ZIP sunt păstrate ca resurse de fișier opace, nu promovate la conținut interactiv sau vectorial de încredere.
-- **Unde văd oamenii asta.** **Convert → Recent file operations** arată folosirea istoricului, rapoartele, descărcările și managerul de versiuni, care găsește și versiuni anterioare ale resurselor șterse din bibliotecă. Restaurarea unui instantaneu creează o versiune curentă nouă și păstrează instantaneul selectat. **Settings → Preferences → Storage** numără rezultatele și versiunile separat de cache-urile de unică folosință.
-- **Curățare.** Curățarea explicită a fișierelor temporare elimină doar octeții deținuți de operațiuni și nereferiți. Înregistrările curente își protejează fișierele, iar fișierele OPFS recente au o perioadă de grație de o oră. Rezultatele salvate și instantaneele de resurse nu sunt șterse automat.
+- **Mai întâi validarea.** Fiecare înregistrare de istoric cunoscută, raport și fișier referit este validat înainte ca importul profilului sau al resurselor să scrie ceva. Octeții lipsă și valorile SHA-256 nepotrivite provoacă un eșec chiar dacă anvelopa nu are hartă de integritate. Atestările extrase rămân tablouri de octeți, inclusiv la importul din versiuni mai vechi care le serializau ca obiecte cu chei numerice.
+- **Munca în curs.** Operațiunile în curs devin înregistrări întrerupte în copia de rezervă, cu un raport de eșec și fără rezultat. Restaurarea nu repornește niciodată munca în fundal și nu importă un permis temporar activ. Reîncercarea înseamnă selectarea din nou a fișierului original, verificat față de SHA-256 înregistrat când acesta este disponibil.
+- **Stocare.** Rezultatele restaurate își salvează definitiv octeții și metadatele împreună în IndexedDB. Rezultatele noi obișnuite folosesc OPFS unde este disponibil, cu IndexedDB ca alternativă de rezervă. O operațiune activă existentă nu este niciodată înlocuită de un import.
+- **Limitele copiei de rezervă.** Exportul transmite acești octeți în flux în arhivă, dar restaurarea încă dezarhivează o copie de rezervă întreagă în memorie, deci limitele rămân: **256 MiB de conținut de istoric**, **4 MiB de metadate de istoric**, cel mult **100 de operațiuni**, **100 de loturi** și **2.000 de instantanee**. Exportul refuză explicit istoricul supradimensionat sau incomplet și nu îl omite niciodată pe ascuns. Descarcă versiunile și rezultatele importante unul câte unul înainte de a elimina copiile locale mai vechi. Aceste limite nu reprezintă o garanție măsurată a consumului maxim de memorie pe telefoane.
+- **Bugete locale.** Istoricul local al rezultatelor are un buget de 512 MiB și o limită de 100 de înregistrări. Instantaneele resurselor au un buget separat de 512 MiB și cel mult 20 de versiuni istorice pentru fiecare resursă, iar octeții atestărilor extrase intră în acel buget. Restaurarea respectă aceste limite și nu elimină niciodată pe ascuns datele existente ale utilizatorului.
+- **Metadatele loturilor.** Metadatele locale ale loturilor au un buget separat de 4 MiB, cel mult 100 de manifeste și 20 de elemente per lot. Elementele în așteptare rezervă capacitate pentru metadate, cu o limită de 32 KiB pentru raportul fiecărui element. Acesta este un buget logic, nu o garanție a spațiului pe disc al browserului: o depășire reală a cotei este afișată, iar raportul din memorie rămâne disponibil pentru descărcare. Reîncercarea unui element al lotului creează un lot nou fără a suprascrie raportul vechi. Eliminarea unei înregistrări de lot nu elimină octeții rezultatelor individuale sau resursele bibliotecii.
+- **Rezultatele în bibliotecă.** Rezultatele convertite pot fi adăugate în bibliotecă fără normalizare sau recodificare, cu hashurile sursei și rezultatului și relația cu operațiunea atașate. Adăugările repetate refolosesc o copie nemodificată, iar o copie editată nu este niciodată suprascrisă. Imaginile raster pot iniția un document Lolly Design nou, care folosește ID-ul curent al resursei din bibliotecă. Impunerea versiunilor fixate exact în întregul mediu de execuție și în calea URL a Lolly Design este o lucrare separată. Rezultatele SVG, HTML, PDF și ZIP sunt păstrate ca resurse de fișier opace, fără a fi promovate la conținut interactiv sau vectorial de încredere.
+- **Unde se vede acest lucru.** **Convert → Recent file operations** arată spațiul folosit de istoric, rapoartele, descărcările și managerul de versiuni, care găsește și versiunile anterioare ale resurselor șterse din bibliotecă. Restaurarea unui instantaneu creează o versiune curentă nouă și păstrează instantaneul selectat. **Settings → Preferences → Storage** numără rezultatele și versiunile separat de cache-urile dispensabile.
+- **Curățare.** Curățarea explicită a fișierelor temporare elimină doar octeții fără referințe care aparțin operațiunilor. Înregistrările curente își protejează fișierele, iar fișierele OPFS recente au o perioadă de grație de o oră. Rezultatele salvate și instantaneele resurselor nu sunt șterse automat.
 
-Cititorii mai vechi acceptă în continuare plicul v2 (`minReader: 1`) și restaurează părțile pe care le cunosc, numărând părțile de istoric neacceptate ca omise. Recuperarea completă a istoricului necesită un shell cu adaptorul `fileHistory`, o cusătură în interiorul shell-ului, nu o nouă capabilitate `HostV1` orientată spre instrumente. Restaurarea reală pe două dispozitive este acoperită de poarta locală Chromium; recuperarea pe aplicațiile desktop, iOS și Android instalate urmează să fie acceptată separat.
+Cititoarele mai vechi acceptă în continuare anvelopa v2 (`minReader: 1`) și restaurează componentele pe care le cunosc, numărând componentele de istoric neacceptate ca omise. Recuperarea completă a istoricului necesită o interfață de rulare cu adaptorul `fileHistory`, un punct de integrare intern al interfeței de rulare, nu o capabilitate `HostV1` expusă instrumentelor. Restaurarea reală între două dispozitive este acoperită de verificarea locală obligatorie în Chromium. Recuperarea în aplicațiile instalate pentru desktop, iOS și Android trebuie încă validată separat.
 :::
 
+<!--i:eti-code-->
 ## Referință
 
-- Modul: `shells/web/src/data-transfer.ts` (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION`; numitorul `backupFilename()` este intern).
-- Test de contract: `tests/data-transfer.test.ts`, acoperind dus-întors, îmbinare, integritate, compatibilitate înainte și poarta cititorului.
-- Teste de contract pentru istoric: `tests/file-history-backup.test.ts`, `tests/file-batch-history.test.ts` și `tests/file-result-library.test.ts`. Acceptare în browser: `tests/file-history.browser.test.ts`, `tests/file-batch-history.browser.test.ts` și `tests/file-result-reuse.browser.test.ts`.
-- Suprafața de punte folosită: `host.profile`, `host.state` și `host.assets`; vezi [Host API](/info/host-api.html).
+- Modul: `shells/web/src/data-transfer.ts` (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION`; funcția de denumire `backupFilename()` este internă).
+- Test de contract: `tests/data-transfer.test.ts`, care acoperă transferul dus-întors, combinarea, integritatea, compatibilitatea cu versiunile viitoare și verificarea compatibilității cititorului.
+- Teste de contract pentru istoric: `tests/file-history-backup.test.ts`, `tests/file-batch-history.test.ts` și `tests/file-result-library.test.ts`. Teste de acceptanță în browser: `tests/file-history.browser.test.ts`, `tests/file-batch-history.browser.test.ts` și `tests/file-result-reuse.browser.test.ts`.
+- Interfața punții folosită: `host.profile`, `host.state` și `host.assets`; vezi [Host API](/info/host-api.html).

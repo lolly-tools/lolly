@@ -1,6 +1,6 @@
 {
   "name": "Prezentace z Markdownu",
-  "description": "Proměň Markdown nebo specifikaci JSON v nativní, editovatelnou prezentaci PowerPoint - skutečný text, odrážky, tabulky a motiv design systému - během pár vteřin. Nejrychlejší, textově orientovaná cesta k prezentaci; na ruční rozvržení nebo animaci slidů použij plátno Design. Grafy a diagramy pocházejí z tvých dalších nástrojů Lolly. Export do .pptx (editovatelné), a také do PDF a PNG.",
+  "description": "Proměň Markdown nebo specifikaci JSON v nativní, editovatelnou prezentaci PowerPoint. Exportuje .pptx (editovatelný), plus PDF a PNG.",
   "a11yLabel": "Prezentace s {{_slideCount}} snímky",
   "inputs.size.label": "Velikost prezentace",
   "inputs.size.help": "Jedna velikost pro celou prezentaci - PowerPoint dává každému snímku stejnou velikost.",

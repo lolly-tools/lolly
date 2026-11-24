@@ -8,8 +8,10 @@ import type { StateRecord } from './state.ts';
 import { packCapture, type PackedRevisionSnapshot } from './revision-snapshot.ts';
 import { captureRevision } from './revision-capture.ts';
 import { collectAssetRefs } from './asset-ref-collector.ts';
-import { REVISION_STORES as STORES, type DocumentHead, type RevisionTransaction, documentVersion, savedPointer, writeCurrentState } from './revision-records.ts';
-import { indexSavedWork } from './history-index.ts';
+import { REVISION_STORES as STORES, type DocumentHead, type RevisionTransaction, documentVersion, savedPointer, writeCurrentState, pictureOf, withoutPicture, revisionHasPreview } from './revision-records.ts';
+import { putStateRecord } from './state-rows.ts';
+import { bindOwner, revisionOwner, scopeFor, txHasPreviews } from './preview-store.ts';
+import { readPreviewRef, PREVIEW_MAX_BYTES } from '../../../../engine/src/session-preview.ts';
 import {
   DELETIONS_PER_WRITE, EVICTIONS_PER_WRITE, EVICT_AT, EVICT_TO, evictUnopened, keptRevisions, noteWritten, planThinning, plannedBytes,
   quotaLow, readUsage, relieveQuota, retireRevision, retryOnQuota, revisionBudgets, writeUsage, type RevisionBudgets,
@@ -37,7 +39,7 @@ export async function commitRevision(db: IDBPDatabase, recovery: RecoveryStore, 
 
 async function commitOnce(db: IDBPDatabase, recovery: RecoveryStore, record: StateRecord, options: RevisionOptions,
   snapshot: PackedRevisionSnapshot, assetRefs: string[], budgets: RevisionBudgets, low: boolean): Promise<CommitResult> {
-  const tx = db.transaction(STORES, 'readwrite');
+  const tx = db.transaction(scopeFor(db, STORES), 'readwrite');
   const done = tx.done;
   // A deliberate abort must not become an unhandled tx.done rejection.
   void done.catch(() => {});
@@ -64,7 +66,7 @@ async function commitOnce(db: IDBPDatabase, recovery: RecoveryStore, record: Sta
         ...(options.reason === 'save' ? { saved: savedPointer(existing, stamps) } : {}) });
       if (options.adopt) await adoptState(tx, adopted, prior.documentId, existing.id, budgets);
       else {
-        await writeCurrentState(tx, record, snapshot.data, prior.documentId);
+        await writeCurrentState(tx, record, snapshot.data, prior.documentId, snapshot.bytes);
         await recovery.clearCommitted(tx, record.slot);
       }
       await done;
@@ -115,7 +117,7 @@ async function commitOnce(db: IDBPDatabase, recovery: RecoveryStore, record: Sta
     await docs.put({ slot: record.slot, documentId, head: entry.id, hash: entry.hash, workingHash: entry.hash, version: entry.id, ...saved });
     if (options.adopt) await adoptState(tx, adopted, documentId, entry.id, budgets);
     else {
-      await writeCurrentState(tx, record, snapshot.data, documentId);
+      await writeCurrentState(tx, record, snapshot.data, documentId, snapshot.bytes);
       await recovery.clearCommitted(tx, record.slot);
     }
     await done; committed = true;
@@ -143,9 +145,9 @@ async function skipRevision(tx: RevisionTransaction, recovery: RecoveryStore, re
     const state = tx.objectStore('state');
     const current = await state.get(record.slot) as StateRecord | undefined;
     // A creation with no history document stays a plain saved session.
-    const { documentId: _none, ...plain } = record;
-    await state.put(indexSavedWork({ ...plain, data: snapshot.data, thumb: current?.thumb ?? null, openedAt: current?.openedAt,
-      createdAt: current?.createdAt ?? record.createdAt, ...(prior ? { documentId: prior.documentId } : {}) }));
+    const { documentId: _none, ...plain } = withoutPicture(record);
+    await putStateRecord(tx, { ...plain, ...pictureOf(current), data: snapshot.data, openedAt: current?.openedAt,
+      createdAt: current?.createdAt ?? record.createdAt, ...(prior ? { documentId: prior.documentId } : {}) }, snapshot.bytes);
     if (prior) await recovery.clearCommitted(tx, record.slot);
   }
   // Nothing was recorded: the entry's id is the head the document still has.
@@ -154,17 +156,27 @@ async function skipRevision(tx: RevisionTransaction, recovery: RecoveryStore, re
 
 /** An adopted state stays as it was saved: same record, times and thumbnail. The
  * thumbnail also becomes the revision's preview, so a later Leave without saving
- * can put the picture back with the data. Drafts are left for the next write. */
+ * can put the picture back with the data. Drafts are left for the next write.
+ * A picture already in the preview store is shared by reference (stored once); a
+ * legacy data URL is kept in the legacy store, where the idle move picks it up. */
 async function adoptState(tx: RevisionTransaction, current: StateRecord | undefined, documentId: string, revisionId: string, budgets: RevisionBudgets): Promise<void> {
   if (!current) return;
-  if (current.documentId !== documentId) await tx.objectStore('state').put(indexSavedWork({ ...current, documentId }));
+  if (current.documentId !== documentId) await putStateRecord(tx, { ...current, documentId });
+  if (await revisionHasPreview(tx, revisionId)) return;
+  const ref = readPreviewRef(current.preview);
+  if (ref && txHasPreviews(tx)) {
+    const size = ref.bytes ?? 0;
+    if (!size || size > PREVIEW_MAX_BYTES) return;
+    const usage = await readUsage(tx);
+    if (usage.previews + size > budgets.previews) return;
+    if (await bindOwner(tx, revisionOwner(revisionId), 'revision', ref)) await writeUsage(tx, { ...usage, previews: usage.previews + size });
+    return;
+  }
   const thumb = current.thumb;
   if (!thumb || !/^data:image\/(png|jpeg|webp);base64,/.test(thumb) || thumb.length > 256 * 1024) return;
-  const previews = tx.objectStore('revision-previews');
-  if (await previews.get(revisionId)) return;
   const usage = await readUsage(tx);
   const size = new TextEncoder().encode(thumb).byteLength;
   if (usage.previews + size > budgets.previews) return;
-  await previews.put(thumb, revisionId);
+  await tx.objectStore('revision-previews').put(thumb, revisionId);
   await writeUsage(tx, { ...usage, previews: usage.previews + size });
 }

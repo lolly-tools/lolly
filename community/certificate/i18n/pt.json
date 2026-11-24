@@ -1,6 +1,6 @@
 {
   "name": "Certificado",
-  "description": "Certificados de conclusão e premiação no sistema de design ativo e no esquema de cores dele: quatro estilos, tamanhos para impressão e redes sociais e movimento para compartilhar - um nome por vez, ou uma lista inteira de um CSV com Em massa a partir de linhas.",
+  "description": "Certificados de conclusão e premiação: quatro estilos, tamanhos para impressão e redes sociais e movimento - um nome por vez, ou uma lista de um CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} para {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Tipo",
   "inputs.certKind.help": "Define o texto: o título, a linha acima do motivo do certificado e a marca do selo.",

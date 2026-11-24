@@ -1,4 +1,3 @@
-# Lolly - Texto da página inicial
+# Lolly - Texto da página de entrada
 
-Faça arquivos prontos. Mantenha o controle do seu conteúdo.
-Gráficos, documentos, vídeo e impressão nas suas cores e na sua fonte: sem conta, sem cartão, privado e de código aberto.
+Crie gráficos, documentos, vídeos e materiais impressos prontos nas suas próprias cores e tipografia. Privado, de código aberto, sem precisar de conta.

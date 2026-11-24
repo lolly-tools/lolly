@@ -15,7 +15,8 @@ import type { DiscardResult, RevisionEntry } from './revision-history.ts';
 import type { RecoveryStore } from './revision-recovery.ts';
 import type { StateRecord } from './state.ts';
 import { type DocumentHead, type SavedPointer, documentVersion, holdsUnsavedWork, savedRevision } from './revision-records.ts';
-import { indexSavedWork } from './history-index.ts';
+import { putStateRecord } from './state-rows.ts';
+import { ownerRef, revisionOwner, scopeFor, type SessionPreviewRef } from './preview-store.ts';
 import { readRevision } from './revision-read.ts';
 import { MOVE_STORES, moveSlot, purgeDiscarded } from './revision-maintenance.ts';
 import { discardedSlot } from '../lib/batch-slots.ts';
@@ -36,7 +37,7 @@ export async function discardUnsaved(db: IDBPDatabase, recovery: RecoveryStore, 
   const version = documentVersion(doc);
   if (!saved) {
     const to = discardedSlot(slot, now);
-    const tx = db.transaction(MOVE_STORES, 'readwrite');
+    const tx = db.transaction(scopeFor(db, MOVE_STORES), 'readwrite');
     void tx.done.catch(() => {});
     try {
       const current = await tx.objectStore('revision-documents').get(slot) as DocumentHead | undefined;
@@ -54,8 +55,10 @@ export async function discardUnsaved(db: IDBPDatabase, recovery: RecoveryStore, 
   const data = await readRevision(db, saved.id);
   const entry = await db.get('revisions', saved.id) as RevisionEntry | undefined;
   if (!data || !entry) throw refused('The last saved version is no longer available. Your edits were kept.', 'missing');
-  const preview = await db.get('revision-previews', saved.id) as string | undefined;
-  const tx = db.transaction(['state', 'revision-documents', 'revision-recovery'], 'readwrite');
+  // The saved revision's picture in either form: a reference into the preview
+  // store, or (until the idle move reaches it) a legacy data URL.
+  const legacy = await db.get('revision-previews', saved.id) as string | undefined;
+  const tx = db.transaction(scopeFor(db, ['state', 'revision-documents', 'revision-recovery']), 'readwrite');
   void tx.done.catch(() => {});
   try {
     const current = await tx.objectStore('revision-documents').get(slot) as DocumentHead | undefined;
@@ -66,7 +69,8 @@ export async function discardUnsaved(db: IDBPDatabase, recovery: RecoveryStore, 
     const drafts = tx.objectStore('revision-recovery');
     for (const draft of await drafts.index('slot').getAll(slot) as Array<{ id: string; diverged: boolean }>)
       if (!draft.diverged) await drafts.put({ ...draft, diverged: true });
-    await tx.objectStore('state').put(indexSavedWork(restoredRecord(record, data, entry, saved, current.saved !== undefined, preview)));
+    const ref = await ownerRef(tx, revisionOwner(saved.id));
+    await putStateRecord(tx, restoredRecord(record, data, entry, saved, current.saved !== undefined, ref ?? legacy));
     // The saved revision becomes the head again. The discarded checkpoints keep
     // their place in the document's history; the next checkpoint follows the save.
     await tx.objectStore('revision-documents').put({ ...current, head: entry.id, hash: entry.hash, workingHash: entry.hash,
@@ -86,8 +90,8 @@ export async function discardUnsaved(db: IDBPDatabase, recovery: RecoveryStore, 
  * false) cannot say which set was chosen, so the current one stays.
  */
 export function restoredRecord(record: StateRecord, data: StateRecord['data'], entry: RevisionEntry, saved: SavedPointer,
-  known: boolean, preview: string | undefined): StateRecord {
-  const { emoji, rightsDecisions, designSystem: _drop, ...rest } = record;
+  known: boolean, preview: string | SessionPreviewRef | undefined): StateRecord {
+  const { emoji, rightsDecisions, designSystem: _drop, preview: _current, ...rest } = record;
   const stamps = known ? saved : { emoji, rightsDecisions };
   return {
     ...rest,
@@ -95,7 +99,8 @@ export function restoredRecord(record: StateRecord, data: StateRecord['data'], e
     toolId: typeof data.__toolId === 'string' ? data.__toolId : record.toolId,
     toolVersion: typeof data.__toolVersion === 'string' ? data.__toolVersion : record.toolVersion,
     label: typeof data.__label === 'string' ? data.__label : undefined,
-    thumb: preview ?? null,
+    thumb: typeof preview === 'string' ? preview : null,
+    ...(preview && typeof preview === 'object' ? { preview } : {}),
     updatedAt: entry.at,
     formatVersion: entry.formatVersion ?? record.formatVersion,
     engineVersion: entry.engineVersion ?? record.engineVersion,

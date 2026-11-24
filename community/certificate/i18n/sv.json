@@ -1,6 +1,6 @@
 {
   "name": "Diplom",
-  "description": "Intyg för slutförd utbildning och utmärkelser i det aktiva designsystemet och dess färgvariant: fyra stilar, tryck- och skärmformat samt rörelse för delning - ett namn i taget, eller en hel lista från en CSV i Bulk från rader.",
+  "description": "Intyg för slutförd utbildning och utmärkelser: fyra stilar, tryck- och skärmformat samt rörelse - ett namn i taget, eller en lista från en CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} för {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Typ",
   "inputs.certKind.help": "Styr formuleringen: rubriken, raden ovanför det intyget gäller och märket på sigillet.",

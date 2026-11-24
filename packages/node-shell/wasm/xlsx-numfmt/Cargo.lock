@@ -19,7 +19,7 @@ dependencies = [
 
 [[package]]
 name = "gridcraft-core"
-version = "0.14.2"
+version = "0.19.1"
 dependencies = [
  "chrono",
  "serde",
@@ -29,7 +29,7 @@ dependencies = [
 
 [[package]]
 name = "gridcraft-numfmt"
-version = "0.14.2"
+version = "0.19.1"
 dependencies = [
  "gridcraft-core",
 ]

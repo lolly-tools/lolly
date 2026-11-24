@@ -82,6 +82,8 @@ async function main(): Promise<void> {
 
   const all: Finding[] = [];
   for (const target of targets) {
+    const unavailable = target.unavailable?.();
+    if (unavailable) { process.stderr.write(`\n== ${target.name}: skipped, ${unavailable} ==\n`); continue; }
     process.stderr.write(`\n== ${target.name} (${iters} iters) ==\n`);
     const found = await fuzzTarget(target, iters);
     let n = 0;

@@ -19,6 +19,8 @@
 import type { IDBPDatabase } from 'idb';
 import type { RevisionEntry } from './revision-history.ts';
 import type { DocumentHead, RevisionTransaction } from './revision-records.ts';
+import { dropRevisionPreview } from './revision-records.ts';
+import { PREVIEW_INDEX, scopeFor, txHasPreviews, type PreviewIndexRow } from './preview-store.ts';
 import type { RecoveryEntry } from './revision-recovery.ts';
 import type { StateRecord } from './state.ts';
 import { MAX_RECOVERY_BYTES, MAX_REVISION_BYTES, MAX_REVISION_PREVIEWS } from './revision-limits.ts';
@@ -113,7 +115,6 @@ export async function retryOnQuota<T>(write: () => Promise<T>, relieve: () => Pr
   }
 }
 
-const textBytes = (value: string): number => new TextEncoder().encode(value).byteLength;
 const storedBytes = (entry: RevisionEntry): number => entry.stored ?? entry.bytes;
 const oldestFirst = (rows: RevisionEntry[]): RevisionEntry[] => [...rows].sort((a, b) => a.at.localeCompare(b.at) || a.id.localeCompare(b.id));
 
@@ -137,12 +138,21 @@ export async function keptRevisions(tx: RevisionTransaction): Promise<Set<string
 
 /** Remove one checkpoint with its payload and preview, keeping `usage` exact. */
 export async function retireRevision(tx: RevisionTransaction, usage: RevisionUsageRow, entry: RevisionEntry): Promise<void> {
-  const previews = tx.objectStore('revision-previews');
-  const preview = await previews.get(entry.id) as string | undefined;
   usage.bytes -= storedBytes(entry);
   await tx.objectStore('revisions').delete(entry.id);
   await tx.objectStore('revision-payloads').delete(entry.id);
-  if (preview) { usage.previews -= textBytes(preview); await previews.delete(entry.id); }
+  usage.previews -= await dropRevisionPreview(tx, entry.id);
+}
+
+/** The revisions that hold a picture, in either form: the legacy store's keys and
+ *  the preview store's `rev:` rows. */
+async function previewHolders(tx: RevisionTransaction): Promise<string[]> {
+  const ids = new Set(await tx.objectStore('revision-previews').getAllKeys() as string[]);
+  if (txHasPreviews(tx)) {
+    const range = IDBKeyRange.bound('rev:', 'rev:\uffff');
+    for (const row of await tx.objectStore(PREVIEW_INDEX).getAll(range) as PreviewIndexRow[]) ids.add(row.id.slice(4));
+  }
+  return [...ids];
 }
 
 /** Minute detail for an hour (ten-minute detail past the document cap), hourly for
@@ -206,18 +216,17 @@ export const plannedBytes = (rows: RevisionEntry[]): number => rows.reduce((sum,
  * whose checkpoint is gone is dropped first. */
 export async function evictPreviews(tx: RevisionTransaction, usage: RevisionUsageRow, need: number, kept: ReadonlySet<string>, allowance: number): Promise<number> {
   if (need <= 0) return 0;
-  const previews = tx.objectStore('revision-previews'), revisions = tx.objectStore('revisions');
-  const ids = await previews.getAllKeys() as string[];
+  const revisions = tx.objectStore('revisions');
+  const ids = await previewHolders(tx);
   const rows = await Promise.all(ids.map(id => revisions.get(id) as Promise<RevisionEntry | undefined>));
   const orphans = ids.filter((_, i) => !rows[i]);
   const candidates = oldestFirst(rows.filter((row): row is RevisionEntry => !!row && row.reason === 'automatic' && !kept.has(row.id)));
   let freed = 0, used = 0;
   for (const id of [...orphans, ...candidates.map(row => row.id)]) {
     if (freed >= need || used >= allowance) break;
-    const preview = await previews.get(id) as string | undefined;
-    if (!preview) continue;
-    const size = textBytes(preview);
-    await previews.delete(id); usage.previews -= size; freed += size; used++;
+    const size = await dropRevisionPreview(tx, id);
+    if (!size) continue;
+    usage.previews -= size; freed += size; used++;
   }
   return used;
 }
@@ -250,7 +259,7 @@ export const RELIEF_STORES = ['state', 'revision-documents', 'revisions', 'revis
 /** After a QuotaExceededError: previews first, then unopened documents' automatic
  * checkpoints, in a transaction of its own, before the one retry. */
 export async function relieveQuota(db: IDBPDatabase, need: number, busy: string | null): Promise<void> {
-  const tx = db.transaction(RELIEF_STORES, 'readwrite');
+  const tx = db.transaction(scopeFor(db, RELIEF_STORES), 'readwrite');
   const usage = await readUsage(tx), kept = await keptRevisions(tx);
   const before = usage.bytes + usage.previews;
   const target = Math.max(need, 2 * 1024 * 1024);

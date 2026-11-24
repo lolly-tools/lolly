@@ -1,6 +1,6 @@
 {
   "name": "Graf",
-  "description": "Grafy od prvního vložení dat až po pokročilou vizualizaci - vysvětlená doporučení k datům, explicitní mapování polí, 35 klasických vektorových rodin včetně Pareta, bodových cílů a rozsahových pruhů, šestnáct statistických a redakčních podání, scény se skutečným 3D prostorem, kinematické průlety, deterministický pohyb, přístupné popisy a styly sestavené z aktivního design systému.",
+  "description": "Grafy od prvního vložení dat až po pokročilou vizualizaci - 35 vektorových rodin, 3D scény, průlety, pohyb a styly z design systému.",
   "featured.blurb": "Vlož tabulku - Graf ji udělá přehlednou, přístupnou a jednoznačně v souladu se značkou",
   "a11yLabel": "{{chartType}} graf{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Typ grafu",

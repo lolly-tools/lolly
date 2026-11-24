@@ -35,6 +35,32 @@
  * any answer. A network error fails at once (an offline device) and is not
  * retried, so it adds no wait; only a 5xx, the cold start and migration signal,
  * is asked again.
+ *
+ * THE LAST ANSWER (plan 371, decided 2026-11-20). Separately from the six-hour
+ * skip, every definitive answer is written down with its time: "no control
+ * plane" or "a control plane". Boot reads it before the first route: when the
+ * last answer for this origin and instance base was "no control plane", given
+ * within {@link CLEAN_ANSWER_TTL_MS}, the browse routes (gallery, utilities, docs)
+ * paint while the probe runs, every other route waits for its answer, and a gate that
+ * arrives after all replaces the view (lib/late-gate.ts).
+ * Anything else waits as before: no record, a control plane, a damaged or future
+ * time stamp, or a device that has met a control plane anywhere on this origin
+ * (saved work is kept per origin, so it may hold an account's work). A probe that
+ * got no answer writes nothing, so it can never stand in for "no control plane".
+ *
+ * A GATED ORIGIN STAYS GATED (plan 371). A probe that runs out of time, or meets a
+ * server error, says nothing about whether a gate is there. When the last answer for
+ * this origin and base was a control plane that is not open to everyone (gated or
+ * per tool, or a record from before the mode was written down), boot does not take
+ * that silence for "no control plane": it keeps the waiting screen up and asks again,
+ * further apart each time ({@link GATED_RETRY_DELAYS_MS}), with the long budget, until
+ * a real answer arrives. Two tabs that boot together on a slow control plane share
+ * one connection pool, so the second tab's request can wait behind the first tab's
+ * downloads; every definitive answer is therefore also sent to the other tabs of this
+ * origin, and a tab still waiting takes the first answer that arrives, its own or
+ * another tab's. An origin that never had a control plane is not affected: it paints
+ * at once as before. A request that fails at once (an offline device) is not retried
+ * either: it boots as it always has.
  */
 import { getInstanceBase } from '../lib/instance.ts';
 import { fetchWithin, jsonBody } from '../lib/instance-json.ts';
@@ -65,6 +91,176 @@ const AUTH_PROBE_RETRY_DELAY_MS = 250;
 const ABSENT_TTL_MS = 6 * 60 * 60 * 1000; // 6h
 const absentKey = (): string => `lolly:org-absent:${getInstanceBase() || 'same-origin'}`;
 const unansweredKey = (): string => `lolly:org-probe-unanswered:${getInstanceBase() || 'same-origin'}`;
+/**
+ * How long a remembered "no control plane" lets boot paint before the probe answers.
+ * Every boot past the six-hour skip still probes, and a gate replaces the view as soon
+ * as it answers, so this lifetime does not decide how long a new gate can be missed
+ * (one probe round trip at most). It decides how old a prediction may be and still be
+ * acted on: a month covers people who come back weekly or monthly, while a device away
+ * for longer waits for one probe, as every device did before.
+ */
+export const CLEAN_ANSWER_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+/** A stored time further ahead of the clock than this is not believed. */
+const CLOCK_SKEW_MS = 60 * 1000;
+/** localStorage is already per origin; the origin is in the key as well so the record
+ *  says what it is about, beside the instance base that the probe asks. */
+const lastAnswerKey = (): string => `lolly:org-last-answer:${pageOrigin()}|${getInstanceBase() || 'same-origin'}`;
+
+function pageOrigin(): string {
+  try { return globalThis.location?.origin ?? ''; } catch { return ''; }
+}
+
+type ProbeAnswer = 'absent' | 'control-plane';
+/** `auth` is the control plane's public auth config (what `/api/auth/config` answers to
+ *  anyone), written beside a control-plane answer; records from before it was written
+ *  have none. */
+interface LastAnswer { v: 1; answer: ProbeAnswer; at: number; auth?: AuthConfig }
+
+function readLastAnswer(key = lastAnswerKey()): LastAnswer | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const record = JSON.parse(raw) as Partial<LastAnswer> | null;
+    if (!record || typeof record !== 'object' || record.v !== 1) return null;
+    if (record.answer !== 'absent' && record.answer !== 'control-plane') return null;
+    if (typeof record.at !== 'number' || !Number.isFinite(record.at)) return null;
+    if (record.auth !== undefined && (record.answer !== 'control-plane' || !isAuthConfig(record.auth))) return null;
+    return record as LastAnswer;
+  } catch { return null; }
+}
+
+/**
+ * Write down a definitive answer. A control plane always replaces the record. "No
+ * control plane" never replaces a control-plane answer stamped later, so a tab whose
+ * slower probe finishes last cannot undo what a newer probe in another tab learned.
+ */
+function recordAnswer(answer: ProbeAnswer, auth?: AuthConfig, at = Date.now()): void {
+  try {
+    if (answer === 'absent') {
+      const previous = readLastAnswer();
+      if (previous?.answer === 'control-plane' && previous.at > at) return;
+    }
+    const record: LastAnswer = { v: 1, answer, at, ...(answer === 'control-plane' && auth ? { auth } : {}) };
+    localStorage.setItem(lastAnswerKey(), JSON.stringify(record));
+  } catch { /* storage unavailable: nothing remembered, so boot keeps waiting */ }
+}
+
+/**
+ * Whether the last definitive answer for this origin and base was a control plane that
+ * may draw a sign-in gate: gated, per tool, or a record that does not say (written
+ * before the config was kept). Only an open control plane, or no control plane, is not.
+ */
+export function gateRemembered(): boolean {
+  const record = readLastAnswer();
+  return record?.answer === 'control-plane' && record.auth?.mode !== 'open';
+}
+
+/** How recent a control-plane answer written by another tab must be for this tab to
+ *  use it instead of asking again. Tabs a browser restores together boot within a
+ *  few seconds of each other. */
+export const SHARED_ANSWER_FRESH_MS = 15_000;
+
+/** A control-plane answer with its config, written within {@link SHARED_ANSWER_FRESH_MS}
+ *  (by this tab or another), or null. */
+function freshControlPlane(now = Date.now()): AuthConfig | null {
+  const record = readLastAnswer();
+  if (record?.answer !== 'control-plane' || !record.auth) return null;
+  return record.at <= now + CLOCK_SKEW_MS && now - record.at < SHARED_ANSWER_FRESH_MS ? record.auth : null;
+}
+
+// ── Answers shared between the tabs of this origin ───────────────────────────
+
+const ANSWER_CHANNEL = 'lolly:org-answer';
+interface SharedAnswer { v: 1; key: string; answer: ProbeAnswer; auth?: AuthConfig }
+
+let channel: BroadcastChannel | null = null;
+function answerChannel(): BroadcastChannel | null {
+  if (channel) return channel;
+  if (typeof BroadcastChannel !== 'function') return null;
+  try {
+    channel = new BroadcastChannel(ANSWER_CHANNEL);
+    // A test process (Node) must not stay alive for a channel nobody closes.
+    (channel as BroadcastChannel & { unref?: () => void }).unref?.();
+    return channel;
+  } catch { return null; }
+}
+
+/** Tell the other tabs of this origin what the control plane answered. */
+function shareAnswer(answer: ProbeAnswer, auth?: AuthConfig): void {
+  try {
+    answerChannel()?.postMessage({ v: 1, key: lastAnswerKey(), answer, ...(auth ? { auth } : {}) } satisfies SharedAnswer);
+  } catch { /* another tab simply probes for itself */ }
+}
+
+/**
+ * The first definitive answer another tab of this origin hears for the same instance
+ * base, while this tab waits for its own. `stop` ends the wait (the promise then never
+ * settles).
+ */
+function answerFromAnotherTab(): { answer: Promise<AuthProbeResult>; stop(): void } {
+  const ch = answerChannel();
+  if (!ch) return { answer: new Promise(() => {}), stop() {} };
+  let listener: ((event: MessageEvent) => void) | null = null;
+  const answer = new Promise<AuthProbeResult>(resolve => {
+    listener = (event: MessageEvent): void => {
+      const msg = event.data as Partial<SharedAnswer> | null;
+      if (msg?.v !== 1 || msg.key !== lastAnswerKey()) return;
+      if (msg.answer === 'absent') resolve({ auth: null, absent: true });
+      else if (msg.answer === 'control-plane' && isAuthConfig(msg.auth)) resolve({ auth: msg.auth, absent: false });
+    };
+    ch.addEventListener('message', listener);
+  });
+  return { answer, stop() { if (listener) ch.removeEventListener('message', listener); listener = null; } };
+}
+
+/**
+ * Whether this device has ever met a control plane on this origin, under any instance
+ * base. Saved work lives in one database per origin and survives a change of instance,
+ * so the question is asked of the whole origin, not of the current base only: a device
+ * that ever signed in anywhere here may hold that account's work. Storage that cannot be
+ * read counts as yes.
+ */
+function controlPlaneSeenHere(): boolean {
+  if (knownManagedAi()) return true;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+      if (key.startsWith('lolly:managed-ai:') && localStorage.getItem(key) === '1') return true;
+      if (key.startsWith('lolly:org-last-answer:') && readLastAnswer(key)?.answer === 'control-plane') return true;
+    }
+  } catch { return true; }
+  return false;
+}
+
+/**
+ * Whether the last definitive probe answer for this origin and instance base was "no
+ * control plane", recent enough to act on, on a device that has never met a control
+ * plane on this origin. Read after the instance base has loaded.
+ */
+export function cleanAnswerRemembered(now = Date.now()): boolean {
+  if (controlPlaneSeenHere()) return false;
+  const record = readLastAnswer();
+  if (!record || record.answer !== 'absent') return false;
+  if (record.at > now + CLOCK_SKEW_MS) return false;
+  return now - record.at < CLEAN_ANSWER_TTL_MS;
+}
+
+let gateListener: ((gate: Element | null) => void) | null = null;
+
+/**
+ * Hear about the sign-in gate at the moment it is drawn into the view. Boot sets this
+ * only when it painted before the probe answered, so the view underneath can be stopped
+ * in the same task as the gate is drawn. Pass null to stop listening.
+ */
+export function onGateShown(listener: ((gate: Element | null) => void) | null): void {
+  gateListener = listener;
+}
+
+/** Called by the gate's renderer (org/index.ts) right after it writes the gate. */
+export function noteGateShown(gate: Element | null): void {
+  try { gateListener?.(gate); } catch (error) { console.error('[org] gate listener failed', error); }
+}
 
 function isAuthConfig(v: unknown): v is AuthConfig {
   return !!v && typeof v === 'object'
@@ -102,23 +298,66 @@ async function readProbeResponse(res: Response | null): Promise<AuthProbeResult 
  * that got no answer, the budget is {@link PROBE_TIMEOUT_MS} instead.
  */
 export async function probeInstance(): Promise<AuthProbeResult> {
-  const long = !recentlyUnanswered();
-  const budget = long ? AUTH_PROBE_BUDGET_MS : PROBE_TIMEOUT_MS;
+  const { auth, absent } = await probeOnce();
+  return { auth, absent };
+}
+
+/** One probe, with its retry after a 5xx. `silent` is true when the control plane
+ *  gave no answer that says anything: the budget ran out, or it kept answering
+ *  with a server error. A request that fails at once (offline) is not silent. */
+async function probeOnce(opts: { budgetMs?: number; signal?: AbortSignal } = {}): Promise<AuthProbeResult & { silent: boolean }> {
+  const long = opts.budgetMs !== undefined || !recentlyUnanswered();
+  const budget = opts.budgetMs ?? (long ? AUTH_PROBE_BUDGET_MS : PROBE_TIMEOUT_MS);
   const deadline = Date.now() + budget;
-  let attempt = await fetchWithin('/api/auth/config', undefined, budget);
+  const init = opts.signal ? { signal: opts.signal } : undefined;
+  let attempt = await fetchWithin('/api/auth/config', init, budget);
   let r = await readProbeResponse(attempt.res);
-  if (r.retry && deadline - Date.now() - AUTH_PROBE_RETRY_DELAY_MS >= AUTH_PROBE_RETRY_MIN_MS) {
+  if (r.retry && !opts.signal?.aborted && deadline - Date.now() - AUTH_PROBE_RETRY_DELAY_MS >= AUTH_PROBE_RETRY_MIN_MS) {
     await new Promise(resolve => setTimeout(resolve, AUTH_PROBE_RETRY_DELAY_MS));
     // Measured again after the pause: a busy page can run the timer late.
     const left = deadline - Date.now();
-    if (left >= AUTH_PROBE_RETRY_MIN_MS / 2) {
-      attempt = await fetchWithin('/api/auth/config', undefined, left);
+    if (left >= AUTH_PROBE_RETRY_MIN_MS / 2 && !opts.signal?.aborted) {
+      attempt = await fetchWithin('/api/auth/config', init, left);
       r = await readProbeResponse(attempt.res);
     }
   }
   if (attempt.res) forgetUnanswered();
   else if (attempt.timedOut && long) rememberUnanswered();
-  return { auth: r.auth, absent: r.absent };
+  // Only a definitive answer is written down; anything else leaves the last one.
+  if (r.auth) { recordAnswer('control-plane', r.auth); shareAnswer('control-plane', r.auth); }
+  else if (r.absent) { recordAnswer('absent'); shareAnswer('absent'); }
+  return { auth: r.auth, absent: r.absent, silent: !r.auth && !r.absent && (attempt.timedOut || r.retry) };
+}
+
+/** How long a tab on a gated origin waits before each further probe when the
+ *  control plane stays silent. The last delay repeats until it answers. */
+export const GATED_RETRY_DELAYS_MS: readonly number[] = [1000, 2000, 4000, 8000, 15000];
+
+/**
+ * The boot probe's answer, shared with the other tabs of this origin. The first
+ * definitive answer wins, whether this tab's request or another tab's brought the answer.
+ * On a gated origin a silent control plane is asked again until it answers, so the
+ * page stays on its waiting screen instead of booting without the gate.
+ */
+export async function probeForBoot(): Promise<AuthProbeResult> {
+  // Another tab of this origin has just asked: its answer stands for this boot too.
+  const recent = freshControlPlane();
+  if (recent) return { auth: recent, absent: false };
+  const other = answerFromAnotherTab();
+  const cancel = new AbortController();
+  const shared = other.answer.then(answer => { cancel.abort(); return { ...answer, silent: false }; });
+  try {
+    let result = await Promise.race([probeOnce({ signal: cancel.signal }), shared]);
+    for (let i = 0; result.silent && gateRemembered(); i++) {
+      const delay = GATED_RETRY_DELAYS_MS[Math.min(i, GATED_RETRY_DELAYS_MS.length - 1)]!;
+      const ask = new Promise<void>(resolve => setTimeout(resolve, delay)).then(() =>
+        cancel.signal.aborted ? new Promise<never>(() => {}) : probeOnce({ budgetMs: AUTH_PROBE_BUDGET_MS, signal: cancel.signal }));
+      result = await Promise.race([ask, shared]);
+    }
+    return { auth: result.auth, absent: result.absent };
+  } finally {
+    other.stop();
+  }
 }
 
 function recentlyUnanswered(): boolean {
@@ -183,7 +422,7 @@ export async function initOrgProbeFirst(): Promise<OrgState | null> {
 async function probeAndInit(): Promise<OrgState | null> {
   try {
     if (!knownManagedAi() && isRecentlyAbsent()) { finishAiProbe(false); return null; }
-    const { auth, absent } = await probeInstance();
+    const { auth, absent } = await probeForBoot();
     if (!auth) { finishAiProbe(false); if (absent) rememberAbsent(); return null; }
     finishAiProbe(true);
     const org = await import('./index.ts');

@@ -3604,21 +3604,21 @@ function validateManifest(manifest) {
 }
 function formatError(err) {
   const path = err.instancePath || "/";
-  let message = err.message ?? "invalid";
+  let message2 = err.message ?? "invalid";
   const params2 = err.params ?? {};
   const allowedValues = params2.allowedValues;
   if (err.keyword === "enum" && Array.isArray(allowedValues)) {
-    message += `: ${allowedValues.join(", ")}`;
+    message2 += `: ${allowedValues.join(", ")}`;
   }
   const missingProperty = params2.missingProperty;
   if (err.keyword === "required" && typeof missingProperty === "string") {
-    message = `missing required property "${missingProperty}"`;
+    message2 = `missing required property "${missingProperty}"`;
   }
   const additionalProperty = params2.additionalProperty;
   if (err.keyword === "additionalProperties" && typeof additionalProperty === "string") {
-    message = `unknown property "${additionalProperty}"`;
+    message2 = `unknown property "${additionalProperty}"`;
   }
-  return { path, message };
+  return { path, message: message2 };
 }
 var ajv, validateTool, rateCardValidator, validateRateCard;
 var init_validate = __esm({
@@ -4170,7 +4170,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.349.0";
+    ENGINE_VERSION = "1.352.0";
   }
 });
 
@@ -4774,8 +4774,8 @@ var init_loader = __esm({
     warnedUnsignedCatalog = false;
     ToolLoadError = class extends Error {
       validationErrors;
-      constructor(message, validationErrors) {
-        super(message);
+      constructor(message2, validationErrors) {
+        super(message2);
         this.name = "ToolLoadError";
         this.validationErrors = validationErrors;
       }
@@ -8280,8 +8280,8 @@ function resolveChartTheme(brand = {}, style = "brand-default", overrides = {}) 
     }
   };
 }
-function finding(findings, id3, severity, message, path) {
-  findings.push({ id: id3, severity, message, ...path ? { path } : {} });
+function finding(findings, id3, severity, message2, path) {
+  findings.push({ id: id3, severity, message: message2, ...path ? { path } : {} });
 }
 function validateChartSpec(spec) {
   const findings = [];
@@ -9212,8 +9212,8 @@ function contains(outer, inner) {
   const epsilon = 0.01;
   return inner.x >= outer.x - epsilon && inner.y >= outer.y - epsilon && inner.x + inner.width <= outer.x + outer.width + epsilon && inner.y + inner.height <= outer.y + outer.height + epsilon;
 }
-function finding2(findings, id3, severity, path, message, refs = {}) {
-  findings.push({ id: id3, severity, path, message, ...refs });
+function finding2(findings, id3, severity, path, message2, refs = {}) {
+  findings.push({ id: id3, severity, path, message: message2, ...refs });
 }
 function inspectDesignV1(boxes2, opts = {}) {
   const findings = [];
@@ -9946,8 +9946,8 @@ var init_color_faces = __esm({
 // engine/src/token-axes.ts
 function parseThemeGroups(doc) {
   const diagnostics = [];
-  const issue2 = (message) => {
-    diagnostics.push({ code: "selection", path: "", message });
+  const issue2 = (message2) => {
+    diagnostics.push({ code: "selection", path: "", message: message2 });
   };
   const raw = record(doc) && Array.isArray(doc.$themes) ? doc.$themes : [];
   if (raw.length > MAX_THEME_ENTRIES) diagnostics.push({ code: "limit", path: "", message: `Only the first ${MAX_THEME_ENTRIES} themes were inspected.` });
@@ -10002,8 +10002,8 @@ function rootAxes(doc) {
 }
 function describeAxes(doc, groups) {
   const diagnostics = [];
-  const issue2 = (code, message) => {
-    diagnostics.push({ code, path: "", message });
+  const issue2 = (code, message2) => {
+    diagnostics.push({ code, path: "", message: message2 });
   };
   const root2 = rootAxes(doc);
   const axes = [];
@@ -10120,8 +10120,8 @@ function resolveTokenSelection(doc, opts = {}) {
   const { groups } = parsed;
   const described2 = describeAxes(d, groups);
   const diagnostics = [...parsed.diagnostics, ...described2.diagnostics];
-  const issue2 = (message) => {
-    diagnostics.push({ code: "selection", path: "", message });
+  const issue2 = (message2) => {
+    diagnostics.push({ code: "selection", path: "", message: message2 });
   };
   const stored = record2(meta.activeThemeSelection) ? meta.activeThemeSelection : void 0;
   const requested = opts.selection ?? stored;
@@ -10902,7 +10902,7 @@ function normaliseRow(row, index2, metadataField, fields2, set, colorTarget, opt
   const refresh = opts.refresh !== false;
   if (!mayNeedNormalising(row, fields2, metadataField, refresh)) return row;
   const at = (key2) => `${opts.pointer ?? ""}/${index2}/${seg(key2)}`;
-  const issue2 = (pointer2, code, message) => opts.onIssue?.({ pointer: pointer2, code, message });
+  const issue2 = (pointer2, code, message2) => opts.onIssue?.({ pointer: pointer2, code, message: message2 });
   const links = readBlockTokenBindings(row[metadataField]);
   let runs2 = readBlockRunBindings(row[metadataField]);
   const next2 = { ...row };
@@ -12382,8 +12382,8 @@ function designToolPolicy(d) {
 }
 function validateDesignTool(d, reserved = []) {
   const issues = [];
-  const add3 = (code, message, inputId, layerId) => {
-    issues.push({ code, message, inputId, layerId });
+  const add3 = (code, message2, inputId, layerId) => {
+    issues.push({ code, message: message2, inputId, layerId });
   };
   if (d.schemaVersion !== 1) add3("version", "This rules version is not supported.");
   if (!/^[a-z0-9][a-z0-9-]{2,95}$/.test(d.id)) add3("identity", "Use a valid permanent tool id.");
@@ -12509,8 +12509,8 @@ function validateDesignValues(p, values, required = false) {
     const i = f.input;
     if (selection.fixed.has(i.id)) continue;
     const v = own(values, i.id) ? values[i.id] : own(selection.defaults, i.id) ? selection.defaults[i.id] : i.default;
-    const bad = (message) => {
-      result.push({ code: "value", message: `${i.label || i.id}: ${message}`, inputId: i.id });
+    const bad = (message2) => {
+      result.push({ code: "value", message: `${i.label || i.id}: ${message2}`, inputId: i.id });
     };
     if (v === void 0 || v === null || v === "") {
       if (required && i.required) bad("add a value.");
@@ -36063,7 +36063,7 @@ var init_emoji_pack = __esm({
     admitted = /* @__PURE__ */ new WeakMap();
     clone = (value2) => structuredClone(value2);
     immutableVersion = (version) => !/^(latest|head|main|master|default)$/i.test(version);
-    failure = (code, message) => ({ ok: false, issue: { code, message } });
+    failure = (code, message2) => ({ ok: false, issue: { code, message: message2 } });
     meaningKey = (meaning) => meaning.kind === "unicode" ? `unicode:${meaning.key}` : `custom:${meaning.id}`;
   }
 });
@@ -37162,7 +37162,7 @@ var init_emoji_style = __esm({
     VERSION_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._+-]*$/;
     NEUTRAL_CHROMA2 = 0.03;
     PALETTE_MAX = 64;
-    issue = (message, code = "invalid-style") => ({ code, message });
+    issue = (message2, code = "invalid-style") => ({ code, message: message2 });
     lastTwo = (id3) => id3.split("/").slice(-2).join("/");
     chromaOf2 = (hex4) => {
       const lab = emojiOklab(hex4);
@@ -38693,6 +38693,18 @@ var init_framing = __esm({
 
 // engine/src/template.ts
 import Handlebars from "handlebars";
+function mdCells(line2) {
+  const inner = line2.trim().replace(/^\|/, "").replace(/(?<!\\)\|$/, "");
+  return inner.split(/(?<!\\)\|/).map((cell2) => cell2.replace(/\\\|/g, "|").trim());
+}
+function mdTableStart(lines, from) {
+  for (let i = from; i + 1 < lines.length; i++) {
+    const rule = lines[i + 1];
+    if (!lines[i].includes("|") || !rule.includes("|") || !MD_TABLE_RULE.test(rule)) continue;
+    if (mdCells(lines[i]).length === mdCells(rule).length) return i;
+  }
+  return -1;
+}
 function mdUrl(raw, allowed) {
   const s = raw.trim();
   if (!s) return "";
@@ -38848,7 +38860,7 @@ function hydrate(templateSource, values, { raw = false, data } = {}) {
   }
   return output;
 }
-var ARROW_GLYPHS, ARROW_CLASSES, LEADING_ARROW, MD_ESCAPE, MD_BULLET, MD_ORDERED, MD_HEADING, MD_IMAGE, MD_LINK, MD_LINK_SCHEMES, MD_IMAGE_SCHEMES, FIT_VALUES, PAINT_ATTR, PAINT_CSS, COMPILE_CACHE_MAX, COMPILE_CACHE_SOURCE_BYTES, compileCache, compileCacheBytes;
+var ARROW_GLYPHS, ARROW_CLASSES, LEADING_ARROW, MD_ESCAPE, MD_BULLET, MD_ORDERED, MD_HEADING, MD_TABLE_RULE, MD_IMAGE, MD_LINK, MD_LINK_SCHEMES, MD_IMAGE_SCHEMES, FIT_VALUES, PAINT_ATTR, PAINT_CSS, COMPILE_CACHE_MAX, COMPILE_CACHE_SOURCE_BYTES, compileCache, compileCacheBytes;
 var init_template = __esm({
   "engine/src/template.ts"() {
     "use strict";
@@ -38878,6 +38890,7 @@ var init_template = __esm({
     MD_BULLET = /^\s*([-*<>^v])\s+/;
     MD_ORDERED = /^\s*\d+[.)]\s+/;
     MD_HEADING = /^\s*(#{1,6})\s+(\S.*)$/;
+    MD_TABLE_RULE = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
     MD_IMAGE = /!\[([^\]]*)\]\(([^)\s]+)\)/g;
     MD_LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
     MD_LINK_SCHEMES = /^(https?|mailto|tel):/i;
@@ -38896,7 +38909,24 @@ var init_template = __esm({
           return safe ? `<a href="${park(safe)}">${label5}</a>` : label5;
         }).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/~~(.+?)~~/g, "<del>$1</del>").replace(/\*([^*\n]+?)\*/g, "<em>$1</em>").replace(/\u0000(\d+)\u0000/g, (_, i) => urls[Number(i)] ?? "");
       };
-      const renderRun = (lines) => {
+      const renderTable = (rows2) => {
+        const head2 = mdCells(rows2[0]);
+        const aligns = mdCells(rows2[1]).map((rule) => rule.startsWith(":") && rule.endsWith(":") ? "center" : rule.endsWith(":") ? "right" : rule.startsWith(":") ? "left" : "");
+        const cell2 = (tag3, text14, c) => `<${tag3}${aligns[c] ? ` class="md-align-${aligns[c]}"` : ""}>${inline(text14)}</${tag3}>`;
+        const body = rows2.slice(2).map((row) => {
+          const cells = mdCells(row);
+          return `<tr>${head2.map((_, c) => cell2("td", cells[c] ?? "", c)).join("")}</tr>`;
+        }).join("");
+        return `<table class="md-table"><thead><tr>${head2.map((text14, c) => cell2("th", text14, c)).join("")}</tr></thead>${body ? `<tbody>${body}</tbody>` : ""}</table>`;
+      };
+      const renderRun = (all) => {
+        const at = mdTableStart(all, 0);
+        if (at >= 0) {
+          let end = at + 2;
+          while (end < all.length && all[end].includes("|")) end += 1;
+          return (at > 0 ? renderRun(all.slice(0, at)) : "") + renderTable(all.slice(at, end)) + (end < all.length ? renderRun(all.slice(end)) : "");
+        }
+        const lines = all;
         if (lines.every((l) => MD_BULLET.test(l))) {
           const items2 = lines.map((l) => {
             const arrowClass = ARROW_CLASSES[l.match(MD_BULLET)?.[1] ?? ""];
@@ -41200,8 +41230,8 @@ var init_text_source = __esm({
     TEXT_SOURCE_MAX_UNITS = EMOJI_TEXT_MAX_UNITS;
     TextSourceError = class extends Error {
       code;
-      constructor(code, message) {
-        super(message);
+      constructor(code, message2) {
+        super(message2);
         this.name = "TextSourceError";
         this.code = code;
       }
@@ -41352,8 +41382,8 @@ var init_text_story_document = __esm({
     init_text_source();
     init_css_color();
     TEXT_DOCUMENT_MAX_BYTES = 8 * 1024 * 1024;
-    error = (code, message) => {
-      throw new TextSourceError(code, message);
+    error = (code, message2) => {
+      throw new TextSourceError(code, message2);
     };
   }
 });
@@ -41801,8 +41831,8 @@ async function resolveNestedRenders(tool, model2, extras, host, composeStack = [
         memo2.delete(spec.id);
       }
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      host.log?.("warn", `compose "${spec.tool}": ${message}`, { toolId: tool.manifest.id });
+      const message2 = e instanceof Error ? e.message : String(e);
+      host.log?.("warn", `compose "${spec.tool}": ${message2}`, { toolId: tool.manifest.id });
       out[spec.id] = null;
       memo2.delete(spec.id);
     }
@@ -42105,8 +42135,8 @@ function isBakedRef(v) {
   const meta = v.meta;
   return !!meta && typeof meta === "object" && meta.baked === true;
 }
-function bakeError(code, message) {
-  const err = new Error(message);
+function bakeError(code, message2) {
+  const err = new Error(message2);
   err.code = code;
   throw err;
 }
@@ -42167,8 +42197,8 @@ var init_bake = __esm({
       code;
       /** The offending compose path, ancestors first, the rejected tool last. */
       path;
-      constructor(code, path, message) {
-        super(message);
+      constructor(code, path, message2) {
+        super(message2);
         this.name = "ComposeGuardError";
         this.code = code;
         this.path = path;
@@ -42268,8 +42298,8 @@ var init_captions = __esm({
     "use strict";
     SENTENCE_END = /[.!?…][)\]"'”’]*$/;
     CaptionFormatError = class extends Error {
-      constructor(message) {
-        super(message);
+      constructor(message2) {
+        super(message2);
         this.name = "CaptionFormatError";
       }
     };
@@ -42427,11 +42457,11 @@ function ttmlToCues(source, parse2, opts = {}) {
   const timing = readTiming(root2);
   const issues = [];
   const seen = /* @__PURE__ */ new Set();
-  const note2 = (code, message, once = false) => {
-    if (opts.strict) throw new CaptionFormatError(message);
+  const note2 = (code, message2, once = false) => {
+    if (opts.strict) throw new CaptionFormatError(message2);
     if (once && seen.has(code)) return;
     seen.add(code);
-    issues.push({ code, message });
+    issues.push({ code, message: message2 });
   };
   const cues = [];
   const noteStyle = (el) => {
@@ -42614,13 +42644,13 @@ function sccToCues(text13, opts = {}) {
   }
   const issues = [];
   const seen = /* @__PURE__ */ new Set();
-  const note2 = (code, message, once = false) => {
-    if (opts.strict && code !== "parity" && code !== "style") throw new CaptionFormatError(message);
+  const note2 = (code, message2, once = false) => {
+    if (opts.strict && code !== "parity" && code !== "style") throw new CaptionFormatError(message2);
     if (once) {
       if (seen.has(code)) return;
       seen.add(code);
     }
-    issues.push({ code, message });
+    issues.push({ code, message: message2 });
   };
   const cues = [];
   let displayed = newGrid();
@@ -47446,8 +47476,8 @@ function inflateRaw(data, sizeHint) {
       at = end;
     }
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    throw message.startsWith("inflate:") ? err : new Error(`inflate: ${message}`);
+    const message2 = err instanceof Error ? err.message : String(err);
+    throw message2.startsWith("inflate:") ? err : new Error(`inflate: ${message2}`);
   }
   return out.take();
 }
@@ -47769,9 +47799,9 @@ function catalogSource(bin, info) {
 function catalogWithAttachment(src, fsRef, update = false) {
   const efEntry = `/EmbeddedFiles << /Names [(manifest.c2pa) ${fsRef}] >>`;
   const entries = dictEntries(src);
-  const find = (k) => entries.find((e) => e.key === k);
+  const find2 = (k) => entries.find((e) => e.key === k);
   const edits = [];
-  const names = find("Names");
+  const names = find2("Names");
   let priorRef = null;
   if (names) {
     const val = src.slice(names.valStart, names.valEnd);
@@ -47788,7 +47818,7 @@ function catalogWithAttachment(src, fsRef, update = false) {
       edits.push({ at: names.valEnd - 2, text: ` ${efEntry} ` });
     }
   }
-  const af = find("AF");
+  const af = find2("AF");
   if (af) {
     if (src[af.valStart] !== "[") throw new Error("C2PA embed: catalog /AF is not an inline array; cannot attach");
     const afSrc = src.slice(af.valStart, af.valEnd);
@@ -51119,6 +51149,120 @@ lwo/CoR2mDAKBggqhkjOPQQDAwNpADBmAjEAwp2Jie8k6/haTc/df3QsX+Ttg7Wp
 ARtYTwJSP4Z+ggpf39sZ+7QPOE50BqBj9Q6zAjEAjZ+5glED9tav6r3jWuMOmKTB
 kobBXzvjqTDLGG570BbSQfNmS3HRC6u5YTIpElpb
 -----END CERTIFICATE-----
+
+Subject	CN=RealReel C2PA Root CA, O=Whole Earth Labs LLC, C=US
+-----BEGIN CERTIFICATE-----
+MIICPzCCAcWgAwIBAgIUK7g4QvDKVbdq1t88l76ZMwiegK0wCgYIKoZIzj0EAwMw
+TDELMAkGA1UEBhMCVVMxHTAbBgNVBAoMFFdob2xlIEVhcnRoIExhYnMgTExDMR4w
+HAYDVQQDDBVSZWFsUmVlbCBDMlBBIFJvb3QgQ0EwIBcNMjYwNzI0MDAyNzAyWhgP
+MjA1MTA3MjQwMDI3MDJaMEwxCzAJBgNVBAYTAlVTMR0wGwYDVQQKDBRXaG9sZSBF
+YXJ0aCBMYWJzIExMQzEeMBwGA1UEAwwVUmVhbFJlZWwgQzJQQSBSb290IENBMHYw
+EAYHKoZIzj0CAQYFK4EEACIDYgAEJVWLUwyoBcqwmv3cUuX4/fpVanvQdjJKG4Ca
+zLx5XO/eu7qgxCurzpLTuRAC3Lr+tY4LA5shXTSFYqNRRlQnxkYugqEfqDJcUhks
+1evDAlYZdBB3X134zjk9DHQElntEo2YwZDASBgNVHRMBAf8ECDAGAQH/AgEBMA4G
+A1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUoaV/7ghFZ89nsoENzOrkL+Pmwg0wHwYD
+VR0jBBgwFoAUoaV/7ghFZ89nsoENzOrkL+Pmwg0wCgYIKoZIzj0EAwMDaAAwZQIw
+F8nY6P9IvWgtd9dKjnelTOZwICUuxVHbd/uHvU9hjwez+B33zyL1iP+8E/HUe9yD
+AjEAmUnK720BAi3UXkj8kZHs74wnIy4oh8buxmiecO1akF4I3B+0+18SkclV6ytF
++Zms
+-----END CERTIFICATE-----
+
+Subject	CN=Castlabs C2PA ECC P-384 Root CA, OU=C2PA Trust Infrastructure, O=Castlabs, L=Berlin, ST=Berlin, C=DE
+-----BEGIN CERTIFICATE-----
+MIICyDCCAk2gAwIBAgIUN5SkK2Lb2Ts/j1AC3K8Y3eVydFQwCgYIKoZIzj0EAwMw
+gZAxKDAmBgNVBAMMH0Nhc3RsYWJzIEMyUEEgRUNDIFAtMzg0IFJvb3QgQ0ExCzAJ
+BgNVBAYTAkRFMQ8wDQYDVQQHDAZCZXJsaW4xETAPBgNVBAoMCENhc3RsYWJzMSIw
+IAYDVQQLDBlDMlBBIFRydXN0IEluZnJhc3RydWN0dXJlMQ8wDQYDVQQIDAZCZXJs
+aW4wHhcNMjYwNzA4MDE0NDMwWhcNMzYwNzA1MDE0NDMwWjCBkDEoMCYGA1UEAwwf
+Q2FzdGxhYnMgQzJQQSBFQ0MgUC0zODQgUm9vdCBDQTELMAkGA1UEBhMCREUxDzAN
+BgNVBAcMBkJlcmxpbjERMA8GA1UECgwIQ2FzdGxhYnMxIjAgBgNVBAsMGUMyUEEg
+VHJ1c3QgSW5mcmFzdHJ1Y3R1cmUxDzANBgNVBAgMBkJlcmxpbjB2MBAGByqGSM49
+AgEGBSuBBAAiA2IABPXhd9L+pjQVnUXH6I7+oFSrd6JpO4A+CYDm/AuDZgJvwiuJ
+lrM9dC3CAE7UAK8IcQEo85qzuak0TfLdPaJWD26+q3tJ/S7NW4sOKhH09KRN7iFq
+XbsOe8FOxaQql/UrMqNmMGQwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYB
+Af8CAQIwHQYDVR0OBBYEFHNKe2PoAANQBj4/25eRv2VY4Fy7MB8GA1UdIwQYMBaA
+FHNKe2PoAANQBj4/25eRv2VY4Fy7MAoGCCqGSM49BAMDA2kAMGYCMQDUlNJD49Ux
+zwBccYHiz0wgmbIXBDdgpVrLfWTQnbi21BhfPBQ6j0HJ24FY36L5oj8CMQCv5+bK
+gBIkJq9USBx2FjjDkukYjQMI/WDD6SH6QGTdotsH3cQQ6bjr9C+0ruxxx08=
+-----END CERTIFICATE-----
+
+Subject	CN=Samsung C2PA Root CA G1, O=Samsung Electronics Co., Ltd., C=KR
+-----BEGIN CERTIFICATE-----
+MIICUzCCAdmgAwIBAgIUXYQuBuXdYI7lHAxAHCcQPNLbvUYwCgYIKoZIzj0EAwMw
+VzELMAkGA1UEBhMCS1IxJjAkBgNVBAoMHVNhbXN1bmcgRWxlY3Ryb25pY3MgQ28u
+LCBMdGQuMSAwHgYDVQQDDBdTYW1zdW5nIEMyUEEgUm9vdCBDQSBHMTAeFw0yNjEw
+MjYwODI2MzBaFw00NjEwMjYwODI2MzBaMFcxCzAJBgNVBAYTAktSMSYwJAYDVQQK
+DB1TYW1zdW5nIEVsZWN0cm9uaWNzIENvLiwgTHRkLjEgMB4GA1UEAwwXU2Ftc3Vu
+ZyBDMlBBIFJvb3QgQ0EgRzEwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAAQKoAWtthbv
+aezZVGq//i5MADN5FbBoMmmzt48j2zbNiLVKZ83zrlimCmgW9jLUbC1KTMtz7XEE
+GKsdADE92gyWLceNJMEzVv8ZYV1lQfFlBZTJdwZ+9/cnIODo8S6ubeSjZjBkMBIG
+A1UdEwEB/wQIMAYBAf8CAQIwDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBT1OqZ3
+1TlXJV9yI+zIpgq43qZbmDAfBgNVHSMEGDAWgBT1OqZ31TlXJV9yI+zIpgq43qZb
+mDAKBggqhkjOPQQDAwNoADBlAjAlw7I2OKSx3Rlg/G0eAr22h01Yjs9myWE54q9z
+90s734WjMmAPH6Q8civjRsm2FbgCMQCi0Glq+IS0sINBpSFXKA8tY7D7O3ZIkDPW
+5McRmLTjdqTJbGhOWCPqObOM4GQE55M=
+-----END CERTIFICATE-----
+
+Subject	CN=Aretiico C2PA Issuing CA G1, O=Aretiico Group PLC, C=GB
+-----BEGIN CERTIFICATE-----
+MIIDVDCCAtqgAwIBAgIUejr4pSWVtCHFbGMVtRDquUDaNZowCgYIKoZIzj0EAwMw
+WTELMAkGA1UEBhMCR0IxGzAZBgNVBAoMEkFyZXRpaWNvIEdyb3VwIFBMQzEtMCsG
+A1UEAwwkQXJldGlpY28gRG9jdW1lbnQgU2lnbmluZyBSb290IENBIEcxMB4XDTI2
+MDkyMzE0NTA0MFoXDTMxMDkyMjE0NTAzOVowUDELMAkGA1UEBhMCR0IxGzAZBgNV
+BAoMEkFyZXRpaWNvIEdyb3VwIFBMQzEkMCIGA1UEAwwbQXJldGlpY28gQzJQQSBJ
+c3N1aW5nIENBIEcxMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEnmBVo/e923vIs2X3
+gbPMEQwDcpa8MZRhSXTcw6x/tX8cbaEYfhkc4+n2P+g70ldLK74K9O41D/x+kV7z
+XULa3V0SD2ZV53FDu3bs1RWJZpZ148/cUeQqS1hnSZyCNfE4o4IBajCCAWYwEgYD
+VR0TAQH/BAgwBgEB/wIBADAfBgNVHSMEGDAWgBSvUdrhp9w7mZprN2YpdbRcLzqp
+SzBDBggrBgEFBQcBAQQ3MDUwMwYIKwYBBQUHMAKGJ2h0dHA6Ly9hc3NldHMuYXJl
+dGlpY28uY29tL3BraS9kcmcxLmRlcjBnBgNVHSAEYDBeMAwGCisGAQQBg+heAQEw
+TgYLKwYBBAGD1zwBAQEwPzA9BggrBgEFBQcCARYxaHR0cHM6Ly9hc3NldHMuYXJl
+dGlpY28uY29tL0FyZXRpaWNvLUMyUEEtQ1BTLnBkZjAfBgNVHSUEGDAWBgorBgEE
+AYPoXgIBBggrBgEFBQcDJDAxBgNVHR8EKjAoMCagJKAihiBodHRwOi8vY3JsLmFy
+ZXRpaWNvLmNvbS9kcmcxLmNybDAdBgNVHQ4EFgQUxGEIEB/dRJvy1NfroLndr30v
+UAowDgYDVR0PAQH/BAQDAgEGMAoGCCqGSM49BAMDA2gAMGUCMF6t1hMBguFz4xaP
+hi79x4ZLoY1fw3qsmXCMSho/ALRdW5gfleqe0ws6FXgQmoiptAIxAKNtOE58vtZK
+0PPKgABMaFTStRff9hqCqbcca5uKzwrMv/gP9QHtT7cDFP0Fcblm5Q==
+-----END CERTIFICATE-----
+
+Subject	CN=Verimago Root CA, O=Verimago LLC, ST=Washington, C=US
+-----BEGIN CERTIFICATE-----
+MIICTzCCAdSgAwIBAgIVAN6RLP4V2hQWoOEHD68GpRzFEka/MAoGCCqGSM49BAMD
+MFQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpXYXNoaW5ndG9uMRUwEwYDVQQKEwxW
+ZXJpbWFnbyBMTEMxGTAXBgNVBAMTEFZlcmltYWdvIFJvb3QgQ0EwHhcNMjYxMTEy
+MDMzNDU2WhcNNDYxMTEyMDMzNDU2WjBUMQswCQYDVQQGEwJVUzETMBEGA1UECBMK
+V2FzaGluZ3RvbjEVMBMGA1UEChMMVmVyaW1hZ28gTExDMRkwFwYDVQQDExBWZXJp
+bWFnbyBSb290IENBMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE2LLaL/n8AOrruWLE
+bn6RxNckhVAvF/uQNR3IO81edSvDv4GEUGtYPXQbJivQbS+S/qmEDwaZiIfzL2E1
+TBxRXgcQkPvC7AYRZelN/tmOAWrG5JLI3rlIV6oxMkpqkzEdo2YwZDASBgNVHRMB
+Af8ECDAGAQH/AgECMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUt4F2npFGZASk
+W/XniK4dkEATyQQwHwYDVR0jBBgwFoAUt4F2npFGZASkW/XniK4dkEATyQQwCgYI
+KoZIzj0EAwMDaQAwZgIxAI6Fqw5ACGdslD3ZEzIqRPjmPMzXa0xc3YoIO1/i0048
+HrKVGYVmpWE58sp6F6YHqwIxAKDvpzF5VRT/3PUiKtMuXmN6D9GNOF8C6aa1HtpR
+jT5NYtryImktxyjDfMPeinXnzA==
+-----END CERTIFICATE-----
+
+Subject	CN=Verimago Claim Signing Issuing CA, O=Verimago LLC, ST=Washington, C=US
+-----BEGIN CERTIFICATE-----
+MIIDTTCCAtOgAwIBAgIUeMpXy1Z0CwByN+W2+PFYYqoqD1QwCgYIKoZIzj0EAwMw
+VDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCldhc2hpbmd0b24xFTATBgNVBAoTDFZl
+cmltYWdvIExMQzEZMBcGA1UEAxMQVmVyaW1hZ28gUm9vdCBDQTAeFw0yNjExMTIw
+MzM0NThaFw0zMTExMTIwOTM0NThaMGUxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpX
+YXNoaW5ndG9uMRUwEwYDVQQKEwxWZXJpbWFnbyBMTEMxKjAoBgNVBAMTIVZlcmlt
+YWdvIENsYWltIFNpZ25pbmcgSXNzdWluZyBDQTB2MBAGByqGSM49AgEGBSuBBAAi
+A2IABC9hdIQStbZ98anuhoFbxF+CEytyp3UjlyERYFn8VQJnj7X6q+bz9nfMh86X
+3fZnrK5Onm/x7KNYPnOkSeUEFITh/sUHkwJcaVioj/kGp7mJ/yxbvDQha1KpIvEA
+S8vvp6OCAVMwggFPMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEG
+MCkGA1UdJQQiMCAGCisGAQQBg+heAgEGCCsGAQUFBwMEBggrBgEFBQcDJDAXBgNV
+HSAEEDAOMAwGCisGAQQBg+heAQEwHQYDVR0OBBYEFNOJg/XyExxEf8tcyaDIqJhO
+twg1MB8GA1UdIwQYMBaAFLeBdp6RRmQEpFv154iuHZBAE8kEMDsGA1UdHwQ0MDIw
+MKAuoCyGKmh0dHA6Ly9jYS52ZXJpbWFnby5pby9jcmwvaW50ZXJtZWRpYXRlLmNy
+bDBoBggrBgEFBQcBAQRcMFowJgYIKwYBBQUHMAGGGmh0dHA6Ly9jYS52ZXJpbWFn
+by5pby9vY3NwMDAGCCsGAQUFBzAChiRodHRwOi8vY2EudmVyaW1hZ28uaW8vY2Vy
+dHMvcm9vdC5wZW0wCgYIKoZIzj0EAwMDaAAwZQIwNAacHt99jEIvu9aJHKdOY2mI
+vjxVcjeOx1sCo4VG3xOJZCxB3Ghp0jC7KImqf6S4AjEAz64v2HVKHkb47yh37dRH
+mXC2PxCxpyl/lFI0nJ9l0jixKhquUDgoOQI92c1ajZEB
+-----END CERTIFICATE-----
 `;
     cache = null;
   }
@@ -53846,9 +53990,9 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest, enrollmentTr
         fail6(C2PA_CHECK.assertionDataHashMismatch, `the file bytes do not match the credential - the file changed after signing${qualifier}`);
       }
     } catch (err) {
-      const malformed = !!err.malformed && !!report4.textBinding;
+      const malformed2 = !!err.malformed && !!report4.textBinding;
       fail6(
-        malformed ? C2PA_CHECK.assertionDataHashMalformed : C2PA_CHECK.assertionDataHashMismatch,
+        malformed2 ? C2PA_CHECK.assertionDataHashMalformed : C2PA_CHECK.assertionDataHashMismatch,
         `hard binding could not be checked: ${err.message}`
       );
     }
@@ -57765,11 +57909,11 @@ var init_preflight2 = __esm({
       const { intent, floor, hard, longEdge } = dpiIntent(trim2);
       if (dpi >= floor) return;
       const L = num4(longEdge.value), U = longEdge.unit;
-      const message = intent === "offset" ? dpi < hard ? `This page is ${dpi} DPI at ${L} ${U}, below the 150 DPI floor for offset. It will look visibly soft.` : `This page is ${dpi} DPI at ${L} ${U}. Offset presses want 250 to 300 DPI, so this will look soft.` : `This page is ${dpi} DPI at ${L} ${U}. Large-format print tolerates 72 to 150 DPI at viewing distance; below 72 it softens even at distance.`;
+      const message2 = intent === "offset" ? dpi < hard ? `This page is ${dpi} DPI at ${L} ${U}, below the 150 DPI floor for offset. It will look visibly soft.` : `This page is ${dpi} DPI at ${L} ${U}. Offset presses want 250 to 300 DPI, so this will look soft.` : `This page is ${dpi} DPI at ${L} ${U}. Large-format print tolerates 72 to 150 DPI at viewing distance; below 72 it softens even at distance.`;
       c.add({
         id: "print.effective-dpi",
         severity: "warn",
-        message,
+        message: message2,
         evidence: { dpi, intent, floor, longEdge: Math.round(dpiIntent(trim2).longEdgeIn * 100) / 100, unit: U, format: c.fmt }
       });
     };
@@ -58198,7 +58342,7 @@ var init_preflight2 = __esm({
         evidence: { status: "experimental" }
       });
     };
-    refusal = (id3, needs, message, evidence) => ({ id: id3, severity: "info", needs, message, ...evidence ? { evidence } : {} });
+    refusal = (id3, needs, message2, evidence) => ({ id: id3, severity: "info", needs, message: message2, ...evidence ? { evidence } : {} });
     checkRefusals = (c) => {
       const separating = SEPARATING_FORMATS.has(c.fmt);
       const motion = MOTION_FORMATS.has(c.fmt);
@@ -61035,8 +61179,8 @@ var init_file_metadata = __esm({
 });
 
 // engine/src/strip-audio.ts
-function stripRefusal(message) {
-  throw new Error(message);
+function stripRefusal(message2) {
+  throw new Error(message2);
 }
 function putBe32(b, o, v) {
   b[o] = v >>> 24 & 255;
@@ -64225,8 +64369,8 @@ var init_operations = __esm({
     init_intersect();
     GeometryOperationError = class extends Error {
       code;
-      constructor(code, message) {
-        super(message);
+      constructor(code, message2) {
+        super(message2);
         this.name = "GeometryOperationError";
         this.code = code;
       }
@@ -66537,7 +66681,7 @@ function finiteContour(c) {
 }
 function buildOffset(c, d, opts) {
   const tol = opts.tol ?? DEFAULT_TOL2;
-  const join39 = opts.join ?? "miter";
+  const join40 = opts.join ?? "miter";
   const miterLimit = opts.miterLimit ?? DEFAULT_MITER_LIMIT;
   const seq = [];
   const corners3 = [];
@@ -66566,7 +66710,7 @@ function buildOffset(c, d, opts) {
     const pivot = corners3[i] ?? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     const t0 = cur.dirEnd ?? endTangent2(cur.curve);
     const t1 = next2.dirStart ?? startTangent2(next2.curve);
-    out.push(...joinPieces(a, b, pivot, t0, t1, d, join39, miterLimit));
+    out.push(...joinPieces(a, b, pivot, t0, t1, d, join40, miterLimit));
   }
   return out;
 }
@@ -67449,7 +67593,7 @@ function hbSystem(pts, wrap3, startTh, endTh, ths) {
   const a = new Array(m2).fill(0);
   const b = new Array(m2).fill(1);
   const c = new Array(m2).fill(0);
-  const join39 = (k, prevIx, nextIx) => {
+  const join40 = (k, prevIx, nextIx) => {
     const prev = segs[prevIx], next2 = segs[nextIx];
     const j = hbJoin(prev, next2);
     r5[k] = j.r;
@@ -67458,10 +67602,10 @@ function hbSystem(pts, wrap3, startTh, endTh, ths) {
     c[k] = j.dB * -next2.d01;
   };
   if (wrap3) {
-    for (let k = 0; k < m2; k++) join39(k, (k - 1 + m2) % m2, k);
+    for (let k = 0; k < m2; k++) join40(k, (k - 1 + m2) % m2, k);
     return { r: r5, a, b, c, segs };
   }
-  for (let k = 1; k < m2 - 1; k++) join39(k, k - 1, k);
+  for (let k = 1; k < m2 - 1; k++) join40(k, k - 1, k);
   const first = segs[0];
   if (startTh !== null) {
     r5[0] = mod2pi3(ths[0] - startTh);
@@ -68168,8 +68312,8 @@ var init_geom_nearest_cache = __esm({
 });
 
 // engine/src/geom-api.ts
-function fail2(code, message) {
-  return { ok: false, code, message };
+function fail2(code, message2) {
+  return { ok: false, code, message: message2 };
 }
 function isFail(v) {
   return typeof v === "object" && v !== null && v.ok === false;
@@ -69890,8 +70034,8 @@ function tokenRoleNames(doc, cw) {
 }
 function readColourRoles(doc) {
   const issues = [];
-  const issue2 = (code, message, subject) => {
-    if (issues.length < 64) issues.push({ code, message, ...subject !== void 0 ? { subject: subject.slice(0, 80) } : {} });
+  const issue2 = (code, message2, subject) => {
+    if (issues.length < 64) issues.push({ code, message: message2, ...subject !== void 0 ? { subject: subject.slice(0, 80) } : {} });
   };
   const raw = rawSystem(doc);
   const recordState = raw === void 0 ? "absent" : readBrandSystem(raw) ? "readable" : "unreadable";
@@ -71057,7 +71201,7 @@ function introspectHost(host) {
 }
 function gatherHostSeeds(host) {
   const h = host;
-  const call2 = (ns2, method, ...args) => {
+  const call3 = (ns2, method, ...args) => {
     try {
       const o = h[ns2];
       return o && typeof o[method] === "function" ? o[method](...args) : void 0;
@@ -71066,14 +71210,14 @@ function gatherHostSeeds(host) {
     }
   };
   return {
-    "media.isAvailable": call2("media", "isAvailable"),
-    "recorder.isAvailable": { audio: call2("recorder", "isAvailable", "audio"), video: call2("recorder", "isAvailable", "video"), screen: call2("recorder", "isAvailable", "screen") },
-    "audio.isAvailable": call2("audio", "isAvailable"),
-    "viz.isAvailable": call2("viz", "isAvailable"),
-    "speech.isAvailable": call2("speech", "isAvailable"),
-    "speech.transcribeAvailable": call2("speech", "transcribeAvailable"),
-    "upscale.isAvailable": call2("upscale", "isAvailable"),
-    "matte.isAvailable": call2("matte", "isAvailable")
+    "media.isAvailable": call3("media", "isAvailable"),
+    "recorder.isAvailable": { audio: call3("recorder", "isAvailable", "audio"), video: call3("recorder", "isAvailable", "video"), screen: call3("recorder", "isAvailable", "screen") },
+    "audio.isAvailable": call3("audio", "isAvailable"),
+    "viz.isAvailable": call3("viz", "isAvailable"),
+    "speech.isAvailable": call3("speech", "isAvailable"),
+    "speech.transcribeAvailable": call3("speech", "transcribeAvailable"),
+    "upscale.isAvailable": call3("upscale", "isAvailable"),
+    "matte.isAvailable": call3("matte", "isAvailable")
   };
 }
 function makeColocatedApis(geom) {
@@ -73489,8 +73633,8 @@ var init_psd = __esm({
     MAX_CMYK_CACHE = 1 << 20;
     PsdUnsupportedError = class extends Error {
       code;
-      constructor(code, message) {
-        super(message);
+      constructor(code, message2) {
+        super(message2);
         this.name = "PsdUnsupportedError";
         this.code = code;
       }
@@ -74337,8 +74481,8 @@ var init_xcf = __esm({
     TILE = 64;
     XcfUnsupportedError = class extends Error {
       code;
-      constructor(code, message) {
-        super(message);
+      constructor(code, message2) {
+        super(message2);
         this.name = "XcfUnsupportedError";
         this.code = code;
       }
@@ -78509,7 +78653,7 @@ function contentSealConsensus(views, opts = {}) {
   }
   const pairCount = V * (V - 1) / 2;
   const pairAgree = new Array(pairCount).fill(0);
-  const message = new Array(bits);
+  const message2 = new Array(bits);
   let unanimous = 0;
   for (let i = 0; i < bits; i++) {
     let ones = 0;
@@ -78523,7 +78667,7 @@ function contentSealConsensus(views, opts = {}) {
       }
     }
     if (ones === 0 || ones === V) unanimous++;
-    message[i] = ones * 2 > V ? 1 : ones * 2 < V ? 0 : views[0][i] ? 1 : 0;
+    message2[i] = ones * 2 > V ? 1 : ones * 2 < V ? 0 : views[0][i] ? 1 : 0;
   }
   const minPairAgreement = pairAgree.length ? Math.min(...pairAgree) : bits;
   return {
@@ -78533,7 +78677,7 @@ function contentSealConsensus(views, opts = {}) {
     tau,
     views: V,
     minPairAgreement,
-    messageHex: bitsToHex(message)
+    messageHex: bitsToHex(message2)
   };
 }
 var CONTENTSEAL_MESSAGE_BITS, CONTENTSEAL_REQUIRED_VIEWS, CONTENTSEAL_DEFAULT_TAU;
@@ -81669,15 +81813,15 @@ function clusterLeaves(idx, boxes2, gapScale = 1, sizeRatio = Infinity) {
   const alone = idx.filter((i) => !boxes2[i]).map((i) => [i]);
   if (measurable.length < 2) return [...alone, ...measurable.map((i) => [i])];
   const parent = measurable.map((_, i) => i);
-  const find = (i) => {
+  const find2 = (i) => {
     while (parent[i] !== i) {
       parent[i] = parent[parent[i]];
       i = parent[i];
     }
     return i;
   };
-  const join39 = (a, b) => {
-    const ra = find(a), rb = find(b);
+  const join40 = (a, b) => {
+    const ra = find2(a), rb = find2(b);
     if (ra !== rb) parent[ra] = rb;
   };
   const typical = median(measurable.map((i) => Math.min(boxes2[i].w, boxes2[i].h)));
@@ -81687,18 +81831,18 @@ function clusterLeaves(idx, boxes2, gapScale = 1, sizeRatio = Infinity) {
     const ba = boxes2[measurable[a]];
     const grown = expandBox(ba, gap);
     for (let b = a + 1; b < measurable.length; b++) {
-      if (find(a) === find(b)) continue;
+      if (find2(a) === find2(b)) continue;
       const bb = boxes2[measurable[b]];
       if (Number.isFinite(sizeRatio)) {
         const [lo, hi] = area2(ba) < area2(bb) ? [area2(ba), area2(bb)] : [area2(bb), area2(ba)];
         if (hi > lo * sizeRatio) continue;
       }
-      if (boxesOverlap2(grown, bb)) join39(a, b);
+      if (boxesOverlap2(grown, bb)) join40(a, b);
     }
   }
   const byRoot = /* @__PURE__ */ new Map();
   for (let a = 0; a < measurable.length; a++) {
-    const r5 = find(a);
+    const r5 = find2(a);
     const got = byRoot.get(r5);
     if (got) got.push(measurable[a]);
     else byRoot.set(r5, [measurable[a]]);
@@ -82332,8 +82476,8 @@ var init_svg_layers = __esm({
 });
 
 // engine/src/zzfxm.ts
-function budgetError(message) {
-  throw new RangeError(`zzfxm: ${message}`);
+function budgetError(message2) {
+  throw new RangeError(`zzfxm: ${message2}`);
 }
 function instrumentSampleCount(params2, label5) {
   if (params2.length > ZZFXM_MAX_INSTRUMENT_PARAMS) budgetError(`${label5} has too many parameters`);
@@ -83467,13 +83611,13 @@ function cleanAudioPcm(input, sampleRate, opts = {}) {
   const right = channels[1] ?? left;
   const [headL, headR] = limiter.process(left, right);
   const [tailL, tailR] = limiter.flush();
-  const join39 = (a, b) => {
+  const join40 = (a, b) => {
     const out = new Float32Array(a.length + b.length);
     out.set(a);
     out.set(b, a.length);
     return out;
   };
-  const limited3 = [join39(headL, tailL), join39(headR, tailR)];
+  const limited3 = [join40(headL, tailL), join40(headR, tailR)];
   channels = channels.length === 1 ? [limited3[0]] : limited3;
   if (limiter.engaged()) operations.push("Limited true peak to -1 dBTP");
   return {
@@ -86338,8 +86482,8 @@ var init_smf = __esm({
       code;
       /** Byte offset in the input (or the event index for a write error). */
       offset;
-      constructor(code, message, offset = 0) {
-        super(`${message} (at byte ${offset})`);
+      constructor(code, message2, offset = 0) {
+        super(`${message2} (at byte ${offset})`);
         this.code = code;
         this.offset = offset;
       }
@@ -88511,8 +88655,8 @@ var init_connectors2 = __esm({
 });
 
 // engine/src/design-path-author.ts
-function refuse2(code, message) {
-  throw Object.assign(new Error(message.startsWith("geom: ") ? message : `geom: ${message}`), { code });
+function refuse2(code, message2) {
+  throw Object.assign(new Error(message2.startsWith("geom: ") ? message2 : `geom: ${message2}`), { code });
 }
 function coord(v, where) {
   const n7 = typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : Number.NaN;
@@ -88580,7 +88724,7 @@ function paintPad(paint2, paths, notes) {
     return v;
   };
   const cap = word(paint2.strokeCap, CAPS2, "strokeCap", "round");
-  const join39 = word(paint2.strokeJoin, JOINS2, "strokeJoin", "round");
+  const join40 = word(paint2.strokeJoin, JOINS2, "strokeJoin", "round");
   const headStart = word(paint2.headStart, HEADS, "headStart", "none");
   const headEnd = word(paint2.headEnd, HEADS, "headEnd", "none");
   const asked = [headStart, headEnd].filter((h) => h !== "none");
@@ -88592,7 +88736,7 @@ function paintPad(paint2, paths, notes) {
     else headReach = pathHeadSize(sw) * 0.7 + sw / 2;
     if (asked.includes("bar")) notes.push("a bar head has no PowerPoint line end, so a .pptx leaves it off");
   }
-  const reach2 = Math.max(cap === "square" ? Math.SQRT2 / 2 : 0.5, join39 === "miter" ? MITER_LIMIT / 2 : 0.5);
+  const reach2 = Math.max(cap === "square" ? Math.SQRT2 / 2 : 0.5, join40 === "miter" ? MITER_LIMIT / 2 : 0.5);
   return Math.ceil(Math.max(stroke && sw > 0 ? sw * reach2 : 0, headReach));
 }
 function designPathPlacement(geometry3, opts = {}) {
@@ -88681,8 +88825,8 @@ function designHierarchyIndex(boxes2, pages = emptyPages) {
   const saved = cache2.get(boxes2)?.get(pages);
   if (saved) return saved;
   const result = { byId: /* @__PURE__ */ new Map(), children: /* @__PURE__ */ new Map(), parent: /* @__PURE__ */ new Map(), pageById: /* @__PURE__ */ new Map(), pages: resolveDesignPages(pages), rootsByPage: /* @__PURE__ */ new Map(), findings: [], flags: /* @__PURE__ */ new Map(), rowsByPage: /* @__PURE__ */ new Map() };
-  const add3 = (id3, code, message) => {
-    if (result.findings.length < 256) result.findings.push({ id: id3, code: `hierarchy.${code}`, message });
+  const add3 = (id3, code, message2) => {
+    if (result.findings.length < 256) result.findings.push({ id: id3, code: `hierarchy.${code}`, message: message2 });
   };
   if (!Array.isArray(boxes2) || !Array.isArray(pages) || boxes2.length > DESIGN_HIERARCHY_LIMITS.layers || pages.length > DESIGN_HIERARCHY_LIMITS.pages) {
     add3("", "limit", "A document supports up to 20,000 layers and 256 pages.");
@@ -89589,7 +89733,7 @@ function placePath(ctx, source, origin, paint2, at) {
     const named = /^(\w+) /.exec(reason2)?.[1];
     throw new Error(`${at(named && Object.hasOwn(PATH_ERROR_FIELDS, named) ? PATH_ERROR_FIELDS[named] : key2)}: ${reason2}`);
   }
-  for (const message of placement2.notes) ctx.notes.push({ path: at(key2), code: "authoring.path", message });
+  for (const message2 of placement2.notes) ctx.notes.push({ path: at(key2), code: "authoring.path", message: message2 });
   return { x: placement2.x, y: placement2.y, w: placement2.w, h: placement2.h, path: placement2.path };
 }
 function lowerRow(ctx, row, pointer2, placed2, keyAt) {
@@ -90123,8 +90267,8 @@ function expandDesignAuthoringDocument(doc, opts = {}) {
   return { values, rows: r5.rows, notes: r5.notes, expanded: r5.expanded || stripped };
 }
 function rethrowAt(err, from, to) {
-  const message = err instanceof Error ? err.message : String(err);
-  throw new Error(from.test(message) ? message.replace(from, to) : message);
+  const message2 = err instanceof Error ? err.message : String(err);
+  throw new Error(from.test(message2) ? message2.replace(from, to) : message2);
 }
 function applyAuthoredLayerOperations(rows2, ops, fieldDefault = (_field, fallback) => fallback, opts = {}) {
   const base = opts.pointer ?? "/layerOperations";
@@ -95166,14 +95310,14 @@ function makeWarnSink() {
   const byKey = /* @__PURE__ */ new Map();
   return {
     list: list4,
-    add(code, message, slideIndex) {
-      const key2 = `${code}|${slideIndex ?? ""}|${message}`;
+    add(code, message2, slideIndex) {
+      const key2 = `${code}|${slideIndex ?? ""}|${message2}`;
       const hit = byKey.get(key2);
       if (hit) {
         hit.count = (hit.count ?? 1) + 1;
         return;
       }
-      const entry2 = { code, message, count: 1 };
+      const entry2 = { code, message: message2, count: 1 };
       if (slideIndex !== void 0) entry2.slideIndex = slideIndex;
       byKey.set(key2, entry2);
       if (list4.length < MAX_WARNINGS - 1) {
@@ -95915,7 +96059,7 @@ function walkCtx(env, rels, slideIndex) {
   return {
     ...env,
     rels,
-    warn: (code, message) => env.sink.add(code, message, slideIndex)
+    warn: (code, message2) => env.sink.add(code, message2, slideIndex)
   };
 }
 function readHref(rPr, rels) {
@@ -99996,10 +100140,10 @@ async function importSealKey(spki, keyAlg, digestAlg) {
   if (!ec) throw new Error("seal: unrecognised EC curve (only P-256/384/521 are supported)");
   return subtle8.importKey("spki", asBufferSource(spki), { name: "ECDSA", namedCurve: ec.curve }, false, ["verify"]);
 }
-async function verifySealSignature(message, signature2, publicKey, keyAlg, digestAlg) {
+async function verifySealSignature(message2, signature2, publicKey, keyAlg, digestAlg) {
   try {
     if (keyAlg === "rsa") {
-      return await subtle8.verify({ name: "RSASSA-PKCS1-v1_5" }, publicKey, asBufferSource(signature2), asBufferSource(message));
+      return await subtle8.verify({ name: "RSASSA-PKCS1-v1_5" }, publicKey, asBufferSource(signature2), asBufferSource(message2));
     }
     const named = publicKey.algorithm.namedCurve;
     const size = named === "P-384" ? 48 : named === "P-521" ? 66 : 32;
@@ -100010,7 +100154,7 @@ async function verifySealSignature(message, signature2, publicKey, keyAlg, diges
       } catch {
       }
     }
-    return await subtle8.verify({ name: "ECDSA", hash: digestAlg }, publicKey, asBufferSource(raw), asBufferSource(message));
+    return await subtle8.verify({ name: "ECDSA", hash: digestAlg }, publicKey, asBufferSource(raw), asBufferSource(message2));
   } catch {
     return false;
   }
@@ -100073,7 +100217,7 @@ async function verifyOneRecord(bytes2, rec2, recordCount, resolveKey) {
   } catch (e) {
     return { ...base, keySource, reason: `could not import the ${rec2.keyAlg.toUpperCase()} public key (${e.message})` };
   }
-  let message;
+  let message2;
   try {
     const rangeMsg = assembleSealMessage(bytes2, rec2.ranges);
     if (rec2.id || rec2.timestamp) {
@@ -100081,14 +100225,14 @@ async function verifyOneRecord(bytes2, rec2, recordCount, resolveKey) {
       let prepend = "";
       if (rec2.timestamp) prepend += rec2.timestamp + ":";
       if (rec2.id) prepend += rec2.id + ":";
-      message = concatBytes([te9.encode(prepend), digest1]);
+      message2 = concatBytes([te9.encode(prepend), digest1]);
     } else {
-      message = rangeMsg;
+      message2 = rangeMsg;
     }
   } catch (e) {
     return { ...base, keySource, reason: `could not assemble the signed bytes (${e.message})` };
   }
-  const valid2 = await verifySealSignature(message, rec2.signature, key2, rec2.keyAlg, rec2.digestAlg);
+  const valid2 = await verifySealSignature(message2, rec2.signature, key2, rec2.keyAlg, rec2.digestAlg);
   return {
     ...base,
     keySource,
@@ -101294,8 +101438,8 @@ var init_bmp = __esm({
     "use strict";
     BmpUnsupportedError = class extends Error {
       code;
-      constructor(code, message) {
-        super(message);
+      constructor(code, message2) {
+        super(message2);
         this.name = "BmpUnsupportedError";
         this.code = code;
       }
@@ -101463,8 +101607,8 @@ var init_ico_decode = __esm({
     "use strict";
     IcoDecodeError = class extends Error {
       code;
-      constructor(code, message) {
-        super(message);
+      constructor(code, message2) {
+        super(message2);
         this.name = "IcoDecodeError";
         this.code = code;
       }
@@ -102498,8 +102642,8 @@ var init_font_subset_policy = __esm({
 });
 
 // engine/src/font-inspect.ts
-function fontError(code, message) {
-  return Object.assign(new Error(message), { code });
+function fontError(code, message2) {
+  return Object.assign(new Error(message2), { code });
 }
 function sfntOf(bytes2) {
   if (bytes2.length > MAX_INSPECT_BYTES) throw fontError("too-large", "This font is larger than 64 MB.");
@@ -104064,12 +104208,12 @@ async function convertDataFile(kind, bytes2, targetId, options2, sourceName) {
     try {
       read = readWorksheet(book, { ...options2, sheet: sheet.index });
     } catch (error2) {
-      const message = error2 instanceof Error ? error2.message : String(error2);
-      if (/has no cells/.test(message)) {
+      const message2 = error2 instanceof Error ? error2.message : String(error2);
+      if (/has no cells/.test(message2)) {
         skipped.push({ sheet: sheet.name, index: sheet.index, reason: "No cells (an empty sheet or a chart sheet)." });
         continue;
       }
-      throw new Error(`Worksheet \u201C${sheet.name}\u201D: ${message}`);
+      throw new Error(`Worksheet \u201C${sheet.name}\u201D: ${message2}`);
     }
     let out;
     try {
@@ -104380,7 +104524,7 @@ function isValue(v) {
 function createCalcEngine(runner, source) {
   const encoder5 = new TextEncoder();
   const decoder6 = new TextDecoder();
-  const call2 = (operation, body) => {
+  const call3 = (operation, body) => {
     const answer = runner(operation, encoder5.encode(JSON.stringify(body)));
     return JSON.parse(decoder6.decode(answer));
   };
@@ -104392,7 +104536,7 @@ function createCalcEngine(runner, source) {
       cells: sheet.cells.map(({ legacy, ...cell2 }) => legacy === true ? { ...cell2, l: true } : cell2)
     }));
     const wire = { now: clock.now, seed: clock.seed, date1904: request3.date1904 === true, sheets };
-    const answer = call2(CALC_OP_EVALUATE, wire);
+    const answer = call3(CALC_OP_EVALUATE, wire);
     if (!Array.isArray(answer.sheets) || answer.sheets.length !== request3.sheets.length) throw new Error("The calculation module returned the wrong number of sheets.");
     for (const sheet of answer.sheets) {
       if (!Array.isArray(sheet.cells)) throw new Error("The calculation module returned a malformed sheet.");
@@ -104448,7 +104592,7 @@ function createCalcEngine(runner, source) {
     return { table: { columns: columns.slice(), rows: out }, values, errors, formulas: formulaCount, volatile: result.volatile, clock: result.clock };
   }
   function functions() {
-    const list4 = call2(CALC_OP_FUNCTIONS, {});
+    const list4 = call3(CALC_OP_FUNCTIONS, {});
     if (!Array.isArray(list4)) throw new Error("The calculation module returned a malformed function list.");
     return list4;
   }
@@ -108098,15 +108242,15 @@ function median2(xs) {
 }
 function cluster(items2) {
   const parent = items2.map((_, i) => i);
-  const find = (i) => {
+  const find2 = (i) => {
     while (parent[i] !== i) {
       parent[i] = parent[parent[i]];
       i = parent[i];
     }
     return i;
   };
-  const join39 = (a, b) => {
-    const ra = find(a), rb = find(b);
+  const join40 = (a, b) => {
+    const ra = find2(a), rb = find2(b);
     if (ra !== rb) parent[ra] = rb;
   };
   const typical = median2(items2.map((it) => Math.min(it.rect.w, it.rect.h)));
@@ -108114,14 +108258,14 @@ function cluster(items2) {
   for (let i = 0; i < items2.length; i++) {
     const a = expand(items2[i].rect, gap);
     for (let j = i + 1; j < items2.length; j++) {
-      if (find(i) === find(j)) continue;
-      if (overlaps(a, items2[j].rect)) join39(i, j);
+      if (find2(i) === find2(j)) continue;
+      if (overlaps(a, items2[j].rect)) join40(i, j);
     }
   }
   const collect4 = () => {
     const m2 = /* @__PURE__ */ new Map();
     for (let i = 0; i < items2.length; i++) {
-      const root2 = find(i);
+      const root2 = find2(i);
       const it = items2[i];
       const got = m2.get(root2);
       if (got) {
@@ -108149,10 +108293,10 @@ function cluster(items2) {
         for (let b = a + 1; b < list4.length; b++) {
           const [ra, rectA] = list4[a];
           const [rb, rectB] = list4[b];
-          if (find(ra) === find(rb)) continue;
+          if (find2(ra) === find2(rb)) continue;
           const reach2 = Math.min(diagonal(rectA), diagonal(rectB)) * GROUP_REACH;
           if (gapBetween(rectA, rectB) <= Math.max(gap, reach2)) {
-            join39(ra, rb);
+            join40(ra, rb);
             merged = true;
           }
         }
@@ -109789,8 +109933,8 @@ function normaliseLanguage(raw) {
   return [parts[0].toLowerCase(), ...parts.slice(1)].join("-");
 }
 function parseSurface(raw, path, errors) {
-  const fail6 = (code, message) => {
-    errors.push({ code, path, message });
+  const fail6 = (code, message2) => {
+    errors.push({ code, path, message: message2 });
     return null;
   };
   if (!isRecord2(raw)) return fail6("intent.surfaces-invalid", "A surface is an object with an id, or a width and a height.");
@@ -109837,16 +109981,16 @@ function parseSurface(raw, path, errors) {
 }
 function parseVisualIntent(value2) {
   const errors = [];
-  const add3 = (code, path, message) => {
-    errors.push({ code, path, message });
+  const add3 = (code, path, message2) => {
+    errors.push({ code, path, message: message2 });
   };
   if (!isRecord2(value2)) {
     return { ok: false, errors: [{ code: "intent.not-object", path: "", message: "An intent is a JSON object." }] };
   }
   const safety = checkValue(value2, 0);
   if (safety) {
-    const message = safety === "depth" ? `An intent nests at most ${INTENT_LIMITS.depth} levels.` : safety === "key" ? "An intent cannot use a key that names a prototype." : "An intent holds JSON values only.";
-    return { ok: false, errors: [{ code: "intent.content-invalid", path: "", message }] };
+    const message2 = safety === "depth" ? `An intent nests at most ${INTENT_LIMITS.depth} levels.` : safety === "key" ? "An intent cannot use a key that names a prototype." : "An intent holds JSON values only.";
+    return { ok: false, errors: [{ code: "intent.content-invalid", path: "", message: message2 }] };
   }
   if (canonicalJson(value2).length > INTENT_LIMITS.totalChars) {
     return { ok: false, errors: [{ code: "intent.too-large", path: "", message: `An intent is at most ${INTENT_LIMITS.totalChars} characters.` }] };
@@ -110030,7 +110174,7 @@ function inputForRole(tool, entry2, role) {
   return (INTENT_ROLES[role] ?? []).includes(input.type) ? input : null;
 }
 function evaluateTool(tool, intent, purpose, surface) {
-  const refuse4 = (code, message) => ({ refusal: { toolId: tool.id, code, message } });
+  const refuse4 = (code, message2) => ({ refusal: { toolId: tool.id, code, message: message2 } });
   const entry2 = (tool.intents ?? []).find((i) => i.purpose === purpose);
   if (!entry2) return refuse4("purpose-other", `Declares ${(tool.intents ?? []).map((i) => i.purpose).join(", ")}, not ${purpose}.`);
   if (tool.deprecated === true) return refuse4("deprecated", "The tool is deprecated.");
@@ -110244,7 +110388,7 @@ async function resolveIntent(request3, tools) {
   };
 }
 function parseToolIntents(text13) {
-  const fail6 = (path, message) => ({ ok: false, errors: [{ path, message }] });
+  const fail6 = (path, message2) => ({ ok: false, errors: [{ path, message: message2 }] });
   if (text13.length > INTENT_LIMITS.toolIntentsChars) return fail6("", `intents.json is at most ${INTENT_LIMITS.toolIntentsChars} characters.`);
   let value2;
   try {
@@ -110300,8 +110444,8 @@ function checkToolIntents(tool) {
   const issues = [];
   const entries = tool.intents ?? [];
   if (!entries.length) return issues;
-  const add3 = (path, message) => {
-    issues.push({ path, message });
+  const add3 = (path, message2) => {
+    issues.push({ path, message: message2 });
   };
   if (tool.render?.export === false || !tool.render?.formats?.length) add3("intents", "A tool that exports no file cannot declare an intent.");
   const inputs = new Map((tool.inputs ?? []).map((input) => [input.id, input]));
@@ -112809,7 +112953,7 @@ function validateDesignLayout(boxes2, tracks = []) {
       }
     ];
   const findings = [];
-  const add3 = (r5, code, message) => findings.push({ id: id(r5), code, message });
+  const add3 = (r5, code, message2) => findings.push({ id: id(r5), code, message: message2 });
   const byId = /* @__PURE__ */ new Map();
   if (boxes2.length > MAX_LAYOUT_LAYERS || tracks.length > MAX_LAYOUT_TRACKS)
     return [
@@ -113603,7 +113747,7 @@ function topLeft(row) {
 function importPenpotLayouts(boxes2, sourceIds, shapes2, options2 = {}) {
   const findings = [], tracks = [];
   if (!penpotHasLayout(shapes2) && !options2.preserveHierarchy && !boxes2.some((box4) => box4.kind === "group")) return { boxes: boxes2, tracks, findings };
-  const add3 = (id3, code, message) => findings.push({ id: String(id3 || ""), code, message });
+  const add3 = (id3, code, message2) => findings.push({ id: String(id3 || ""), code, message: message2 });
   if (sourceIds.length !== boxes2.length || new Set(sourceIds).size !== sourceIds.length) {
     add3("", "penpot.layout.identity", "Penpot source identities are not aligned with imported layers.");
     return { boxes: boxes2, tracks, findings };
@@ -118640,7 +118784,7 @@ function solveUses(input, pinned) {
   }
   for (const id3 of unresolved.keys()) constrained.delete(id3);
   const parent = /* @__PURE__ */ new Map();
-  const find = (id3) => {
+  const find2 = (id3) => {
     let root2 = id3;
     let hop = parent.get(root2);
     while (hop !== void 0 && hop !== root2) {
@@ -118651,8 +118795,8 @@ function solveUses(input, pinned) {
   };
   const union5 = (a, b) => {
     if (!constrained.has(a) || !constrained.has(b)) return;
-    const ra = find(a);
-    const rb = find(b);
+    const ra = find2(a);
+    const rb = find2(b);
     if (ra === rb) return;
     if (ra < rb) parent.set(rb, ra);
     else parent.set(ra, rb);
@@ -118665,7 +118809,7 @@ function solveUses(input, pinned) {
   for (const edge of contrast3) union5(edge.fg, edge.bg);
   const components = /* @__PURE__ */ new Map();
   for (const id3 of [...constrained].sort()) {
-    const root2 = find(id3);
+    const root2 = find2(id3);
     const members = components.get(root2) ?? [];
     members.push(id3);
     components.set(root2, members);
@@ -121019,9 +121163,9 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     if (rule === "evenodd" || rule === "nonzero") own4.fillRule = rule;
     const cap = get4("stroke-linecap");
     if (cap === "butt" || cap === "round" || cap === "square") own4.cap = cap;
-    const join39 = get4("stroke-linejoin");
-    if (join39 === "miter" || join39 === "round" || join39 === "bevel") own4.join = join39;
-    else if (join39 === "miter-clip" || join39 === "arcs") own4.join = "miter";
+    const join40 = get4("stroke-linejoin");
+    if (join40 === "miter" || join40 === "round" || join40 === "bevel") own4.join = join40;
+    else if (join40 === "miter-clip" || join40 === "arcs") own4.join = "miter";
     const dash = get4("stroke-dasharray");
     if (dash !== void 0) {
       const list4 = dash === "none" ? [] : dash.split(/[\s,]+/).map((v) => lengthOf(v, own4.fontSize)).filter((v) => v !== void 0 && v >= 0);
@@ -123317,14 +123461,14 @@ function pourItems(placements, mode3) {
     y1: p.object.box.y + Math.max(0, p.object.box.h)
   });
   const parent = placements.map((_, i) => i);
-  const find = (i) => {
+  const find2 = (i) => {
     let at = i;
     while (parent[at] !== at) at = parent[at];
     return at;
   };
-  const join39 = (a, b) => {
-    const ra = find(a);
-    const rb = find(b);
+  const join40 = (a, b) => {
+    const ra = find2(a);
+    const rb = find2(b);
     if (ra !== rb) parent[Math.max(ra, rb)] = Math.min(ra, rb);
   };
   for (let i = 0; i < placements.length; i += 1) {
@@ -123334,24 +123478,24 @@ function pourItems(placements, mode3) {
       const ba = boxOf7(a);
       const bb = boxOf7(b);
       if (mode3 === "rows") {
-        if (spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) join39(i, j);
+        if (spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) join40(i, j);
       } else if (mode3 === "columns") {
-        if (spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5) join39(i, j);
+        if (spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5) join40(i, j);
       } else {
         const [upper, lower3, top, bottom] = ba.y0 <= bb.y0 ? [a, b, ba, bb] : [b, a, bb, ba];
         const gap = bottom.y0 - top.y1;
-        if (lower3 !== upper && isLabelText(upper) && !isMarkerText(upper) && !isMarkerText(lower3) && (lower3.text ?? "").trim().length > (upper.text ?? "").trim().length * 1.5 && spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5 && gap > -0.25 * (top.y1 - top.y0) && gap <= 1.5 * (top.y1 - top.y0)) join39(i, j);
+        if (lower3 !== upper && isLabelText(upper) && !isMarkerText(upper) && !isMarkerText(lower3) && (lower3.text ?? "").trim().length > (upper.text ?? "").trim().length * 1.5 && spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5 && gap > -0.25 * (top.y1 - top.y0) && gap <= 1.5 * (top.y1 - top.y0)) join40(i, j);
         const marker = isMarkerText(a) ? ba : isMarkerText(b) ? bb : void 0;
         if (marker && spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) {
           const across = Math.max(ba.x0, bb.x0) - Math.min(ba.x1, bb.x1);
-          if (across <= 2 * Math.max(marker.x1 - marker.x0, marker.y1 - marker.y0)) join39(i, j);
+          if (across <= 2 * Math.max(marker.x1 - marker.x0, marker.y1 - marker.y0)) join40(i, j);
         }
       }
     }
   }
   const byRoot = /* @__PURE__ */ new Map();
   placements.forEach((p, i) => {
-    const root2 = find(i);
+    const root2 = find2(i);
     const list4 = byRoot.get(root2) ?? [];
     list4.push(p);
     byRoot.set(root2, list4);
@@ -124044,25 +124188,25 @@ function compileRenovated(input) {
     units2.slice(0, build2.cells.length).forEach((unit2, k) => {
       const cell2 = build2.cells[k];
       if (!cell2) return;
-      const find = (test) => cell2.slots.find((slot) => free(slot) && test(slot));
+      const find2 = (test) => cell2.slots.find((slot) => free(slot) && test(slot));
       unit2.members.forEach((member, m2) => {
         member.pour = order;
         order += 1;
         let slot;
         if (member.content === "image" || member.content === "placeholder" && needOf(member) === "image") {
-          slot = find((s) => s.kind === "image") ?? find((s) => s.role === "body");
+          slot = find2((s) => s.kind === "image") ?? find2((s) => s.role === "body");
         } else {
-          const label5 = find((s) => s.role === "label" && s.kind === "text");
-          const body = label5 ? find((s) => s.role === "body" && s.kind === "text") : void 0;
+          const label5 = find2((s) => s.role === "label" && s.kind === "text");
+          const body = label5 ? find2((s) => s.role === "body" && s.kind === "text") : void 0;
           const parts = label5 && body ? headingSplit(member) : void 0;
           if (label5 && body && parts) {
             placed2.set(member.object.id, [...takeSlot2(build2, label5, parts.head), ...takeSlot2(build2, body, parts.rest)]);
             return;
           }
           const textAfter = unit2.members.slice(m2 + 1).some((next2) => next2.content === "text");
-          if (isMarkerText(member)) slot = find((s) => s.role === "number");
-          if (!slot && textAfter && isLabelText(member)) slot = find((s) => s.role === "label");
-          slot ??= find((s) => s.role === "body") ?? find((s) => s.role === "label") ?? find((s) => s.role === "caption") ?? find((s) => s.role === "number" && isMarkerText(member)) ?? find((s) => s.kind === "image");
+          if (isMarkerText(member)) slot = find2((s) => s.role === "number");
+          if (!slot && textAfter && isLabelText(member)) slot = find2((s) => s.role === "label");
+          slot ??= find2((s) => s.role === "body") ?? find2((s) => s.role === "label") ?? find2((s) => s.role === "caption") ?? find2((s) => s.role === "number" && isMarkerText(member)) ?? find2((s) => s.kind === "image");
           if (!slot) {
             const joinable = cell2.slots.find((s) => s.kind === "text" && !s.taken && s.members.length > 0 && (s.role === "body" || s.role === "label" || s.role === "caption"));
             if (joinable) {
@@ -124247,14 +124391,14 @@ function compileRenovated(input) {
       const layerId = `${prefix}.${slug3(object4.id)}`;
       const produced = [];
       let code = placement2.code;
-      let message = placement2.message;
+      let message2 = placement2.message;
       let disposition = placement2.disposition;
       if (placement2.content === "brand-logo" && build2.logoLayerId) {
         produced.push(build2.logoLayerId);
       } else if (placement2.content === "brand-logo") {
         code = "object.removed";
         disposition = "removed";
-        message = `The mark on slide ${slide.index + 1} was to be replaced by the design system's own, and this slide shows no logo, so the source mark did not travel.`;
+        message2 = `The mark on slide ${slide.index + 1} was to be replaced by the design system's own, and this slide shows no logo, so the source mark did not travel.`;
       } else if (placement2.content === "none") {
       } else if (carriesItems(object4) && object4.vectorItems && (placement2.content === "image" || placement2.content === "shape")) {
         const rows2 = vectorItemsToRows(object4.vectorItems, placeBox(object4, at), { idPrefix: layerId, group: vectorGroupOf(layerId), frame: frameId, fit: "fill" });
@@ -124272,7 +124416,7 @@ function compileRenovated(input) {
           vectorMade.set(object4.id, rows2.rows.length);
           code = "object.transformed";
           disposition = "transformed";
-          message = vectorCarriedMessage(nounFor(entry2.class, object4.kind), slide.index + 1, rows2.rows.length, object4.vectorItems.desc);
+          message2 = vectorCarriedMessage(nounFor(entry2.class, object4.kind), slide.index + 1, rows2.rows.length, object4.vectorItems.desc);
         } else {
           const why = "rows" in rows2 ? frameRoom ? "document-cap" : "frame-cap" : rows2.refused === "cap-reached" ? "cap-reached" : "not-read";
           const image = object4.media ?? object4.fidelity.fallbackAssetRef;
@@ -124334,7 +124478,7 @@ function compileRenovated(input) {
       }
       addEntry(report4, {
         code,
-        message,
+        message: message2,
         slideId: slide.id,
         objectId: object4.id,
         ...produced[0] ? { layerId: produced[0] } : {},
@@ -126585,8 +126729,8 @@ var init_design_text_measure = __esm({
     init_text_source();
     TextMeasureError = class extends Error {
       code;
-      constructor(code, message) {
-        super(message);
+      constructor(code, message2) {
+        super(message2);
         this.name = "TextMeasureError";
         this.code = code;
       }
@@ -132395,6 +132539,85 @@ var init_fs_token = __esm({
   }
 });
 
+// engine/src/session-preview.ts
+function readPreviewRef(value2) {
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return null;
+  const { key: key2, type, width, height, route, recipe, bytes: bytes2 } = value2;
+  if (typeof key2 !== "string" || !HEX32.test(key2)) return null;
+  if (typeof type !== "string" || !PREVIEW_TYPES.includes(type)) return null;
+  const side2 = (n7) => typeof n7 === "number" && Number.isInteger(n7) && n7 >= 0 && n7 <= MAX_SIDE;
+  if (!side2(width) || !side2(height)) return null;
+  const ref2 = { key: key2, type, width, height };
+  if (typeof route === "string" && PREVIEW_ROUTES.includes(route)) ref2.route = route;
+  if (typeof recipe === "string" && HEX32.test(recipe)) ref2.recipe = recipe;
+  if (typeof bytes2 === "number" && Number.isInteger(bytes2) && bytes2 > 0 && bytes2 <= 64 * 1024 * 1024) ref2.bytes = bytes2;
+  return ref2;
+}
+async function previewContentKey(bytes2) {
+  return bytesToHex((await sha256(bytes2)).subarray(0, 16));
+}
+function previewFileExt(type) {
+  return type === "image/svg+xml" ? "svg" : type === "image/jpeg" ? "jpg" : type.slice("image/".length);
+}
+function sessionWork(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return JSON.stringify(data ?? null);
+  const { __label: _label, __export_filename: _filename, ...work } = data;
+  return JSON.stringify(work);
+}
+async function sessionWorkKey(data) {
+  return previewContentKey(new TextEncoder().encode(sessionWork(data)));
+}
+function previewLinkName(workKey) {
+  return `w-${workKey}.ref`;
+}
+function readPreviewLinks(text13) {
+  if (typeof text13 !== "string" || text13.length > 64 * 1024) return null;
+  let parsed;
+  try {
+    parsed = JSON.parse(text13);
+  } catch {
+    return null;
+  }
+  const entries = parsed?.slots;
+  if (parsed?.v !== 1 || !Array.isArray(entries)) return null;
+  const out = [];
+  for (const entry2 of entries.slice(-PREVIEW_LINK_ENTRIES)) {
+    if (!Array.isArray(entry2) || typeof entry2[0] !== "string" || !entry2[0] || entry2[0].length > 1024) continue;
+    const ref2 = readPreviewRef(entry2[1]);
+    if (ref2) out.push({ slot: entry2[0], ref: ref2 });
+  }
+  return out;
+}
+function readPreviewLink(text13, slot) {
+  const entries = readPreviewLinks(text13);
+  if (!entries?.length) return null;
+  return entries.find((entry2) => entry2.slot === slot)?.ref ?? entries[entries.length - 1].ref;
+}
+function withPreviewLink(text13, slot, ref2) {
+  const kept2 = (readPreviewLinks(text13) ?? []).filter((entry2) => entry2.slot !== slot);
+  const plain = { key: ref2.key, type: ref2.type, width: ref2.width, height: ref2.height, ...ref2.route ? { route: ref2.route } : {} };
+  const slots = [...kept2.map((entry2) => [entry2.slot, entry2.ref]), [slot, plain]].slice(-PREVIEW_LINK_ENTRIES);
+  return JSON.stringify({ v: 1, slots });
+}
+function mayHaveLostPicture(record49) {
+  if (!record49 || readPreviewRef(record49.preview)) return false;
+  if (typeof record49.thumb === "string" && record49.thumb) return false;
+  return typeof record49.formatVersion !== "number" || record49.formatVersion < 5;
+}
+var PREVIEW_TYPES, PREVIEW_ROUTES, PREVIEW_MAX_BYTES, MAX_SIDE, HEX32, PREVIEW_LINK_ENTRIES;
+var init_session_preview = __esm({
+  "engine/src/session-preview.ts"() {
+    "use strict";
+    init_bytes();
+    PREVIEW_TYPES = ["image/svg+xml", "image/webp", "image/png", "image/jpeg", "image/gif", "image/avif"];
+    PREVIEW_ROUTES = ["export-svg", "export-raster", "baked", "operations-svg", "tool-svg", "received", "legacy", "stand-in"];
+    PREVIEW_MAX_BYTES = 256 * 1024;
+    MAX_SIDE = 32768;
+    HEX32 = /^[0-9a-f]{32}$/;
+    PREVIEW_LINK_ENTRIES = 16;
+  }
+});
+
 // engine/src/session-record.ts
 function sessionVersionStamp() {
   return { formatVersion: SESSION_FORMAT_VERSION, engineVersion: ENGINE_VERSION };
@@ -132424,6 +132647,9 @@ function sessionEmojiStamp(record49) {
   if (typeof emoji !== "string" || !emoji.trim()) return null;
   return { emoji: emoji.trim(), emojifx: typeof emojifx === "string" ? emojifx.trim() : "", ...typeof emojistyle === "string" ? { emojistyle } : {} };
 }
+function sessionPreviewRef(record49) {
+  return readPreviewRef(record49?.preview);
+}
 function migrateSessionRecord(record49, log) {
   if (!record49 || typeof record49 !== "object") return null;
   const data = record49.data;
@@ -132445,8 +132671,9 @@ var init_session_record = __esm({
   "engine/src/session-record.ts"() {
     "use strict";
     init_version();
-    SESSION_FORMAT_VERSION = 4;
-    SESSION_READER_VERSION = 4;
+    init_session_preview();
+    SESSION_FORMAT_VERSION = 5;
+    SESSION_READER_VERSION = 5;
     DECISION_KINDS = /* @__PURE__ */ new Set(["output-licence", "separate-permission", "acknowledged"]);
   }
 });
@@ -133971,9 +134198,9 @@ function comparisonBudget(options2, signal) {
       if (budget3.changes.length < maxChanges) budget3.changes.push(change);
       else budget3.detailsTruncated = true;
     },
-    limit(message) {
+    limit(message2) {
       budget3.partial = true;
-      budget3.limitations.add(message);
+      budget3.limitations.add(message2);
     }
   };
   return budget3;
@@ -134248,9 +134475,9 @@ function compareVisualSources(request3, signal) {
   const options2 = { alignment: request3.options?.alignment === "fit" ? "fit" : "native", threshold: Number.isFinite(threshold) ? Math.max(0, Math.min(255, Math.round(threshold))) : 0 };
   const limitations = /* @__PURE__ */ new Set(["Previews use nearest-neighbour samples on white, at most 768 pixels per edge. Matching previews do not establish original pixel or structural equality."]);
   let partial = false;
-  const limit3 = (message) => {
+  const limit3 = (message2) => {
     partial = true;
-    limitations.add(message);
+    limitations.add(message2);
   };
   for (const source of [before, after]) {
     if (!Number.isInteger(source.totalPages) || source.totalPages < 1 || source.pages.length > MAX_PAGES || source.pages.some((p) => !validPage(p) || p.page > source.totalPages) || new Set(source.pages.map((p) => p.page)).size !== source.pages.length || source.pages.reduce((sum, p) => sum + p.pixelWidth * p.pixelHeight, 0) > MAX_PIXELS) throw new Error("Invalid or oversized comparison preview.");
@@ -134258,7 +134485,7 @@ function compareVisualSources(request3, signal) {
       partial = true;
       if (!source.fidelity.limitations.length) limitations.add("A source preview has incomplete fidelity.");
     }
-    for (const message of source.fidelity?.limitations ?? []) limitations.add(message);
+    for (const message2 of source.fidelity?.limitations ?? []) limitations.add(message2);
   }
   const total = Math.max(before.totalPages, after.totalPages), pages = [];
   if (total > MAX_PAGES) limit3("Only the first 12 pages were compared.");
@@ -136307,7 +136534,7 @@ function checkLearningModule(module) {
   if (!module.lessons.some((l) => l.required))
     findings.push({ severity: "error", message: "Add at least one required lesson." });
   for (const lesson of module.lessons) {
-    const add3 = (severity, message, blockId) => findings.push({ severity, message, lessonId: lesson.id, ...blockId ? { blockId } : {} });
+    const add3 = (severity, message2, blockId) => findings.push({ severity, message: message2, lessonId: lesson.id, ...blockId ? { blockId } : {} });
     if (!lesson.title.trim()) add3("error", "Give this lesson a title.");
     if (!lesson.blocks.length) add3("error", "Add content to this lesson.");
     for (const block of lesson.blocks) {
@@ -139379,7 +139606,7 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
   const marks = layers.filter(isMark);
   const findings = [];
   let dropped = 0;
-  const add3 = (mark, rule, part, message, extra = {}) => {
+  const add3 = (mark, rule, part, message2, extra = {}) => {
     if (findings.length >= MAX_FINDINGS) {
       dropped++;
       return;
@@ -139392,7 +139619,7 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
       label: mark.label,
       field: rule === "clear-space" ? void 0 : "image",
       rule,
-      message,
+      message: message2,
       company,
       ...extra
     });
@@ -139444,8 +139671,8 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
         const exact = near2.filter((l) => l.reach === "exact");
         if (exact.length && placed2.exact) {
           const first = exact[0];
-          const message = exact.length === 1 ? `\u201C${first.label}\u201D sits inside ${company}'s clear space.` : `\u201C${first.label}\u201D and ${exact.length - 1} other ${exact.length === 2 ? "layer sit" : "layers sit"} inside ${company}'s clear space.`;
-          add3(mark, "clear-space", "", message, { value: first.label, expected: `${rules.clearSpace.value} of the mark's height`, related: exact.map((l) => l.id).filter(Boolean) });
+          const message2 = exact.length === 1 ? `\u201C${first.label}\u201D sits inside ${company}'s clear space.` : `\u201C${first.label}\u201D and ${exact.length - 1} other ${exact.length === 2 ? "layer sit" : "layers sit"} inside ${company}'s clear space.`;
+          add3(mark, "clear-space", "", message2, { value: first.label, expected: `${rules.clearSpace.value} of the mark's height`, related: exact.map((l) => l.id).filter(Boolean) });
         } else if (near2.some((l) => l.reach !== "exact")) note2("clear-space-unmodelled");
         else if (near2.length) note2("clear-space");
       }
@@ -141621,8 +141848,8 @@ var init_contract = __esm({
     "use strict";
     init_bytes();
     productionDigest = (value2) => sha256Hex(new TextEncoder().encode(productionJson(value2)));
-    fail4 = (message) => {
-      throw new Error(`Invalid production contract: ${message}`);
+    fail4 = (message2) => {
+      throw new Error(`Invalid production contract: ${message2}`);
     };
   }
 });
@@ -144088,8 +144315,8 @@ var init_text_lines = __esm({
 });
 
 // engine/src/text-wrap.ts
-function fail5(message) {
-  throw new TextSourceError("text-wrap", message);
+function fail5(message2) {
+  throw new TextSourceError("text-wrap", message2);
 }
 function pose2(item2) {
   if (!item2 || typeof item2.id !== "string" || typeof item2.scope !== "string" || item2.id.length > 128 || item2.scope.length > 128 || ![item2.x, item2.y, item2.width, item2.height, item2.rotation].every((value2) => Number.isFinite(value2) && Math.abs(value2) <= 1e6) || item2.width <= 0 || item2.height <= 0) fail5("A text wrap placement is invalid.");
@@ -144576,7 +144803,7 @@ async function composePathText(story, frame, prepared3, result) {
   result.resources = [...prepared3.resources];
   for (const piece of shaped.pieces) if (piece.artwork && !result.resources.some((item2) => item2.id === piece.artwork.id)) result.resources.push({ id: piece.artwork.id, sha256: piece.artwork.sha256 });
   result.frames = [{ id: frame.id, start: 0, end: consumed, columnEnds: [consumed], width: frame.width, height: frame.height, geometryKey: textFrameKey(frame), appliedScale: scale, ...path.guide ? { guide: path.d } : {} }];
-  const notice = (code, severity, message) => result.diagnostics.push({ code, severity, storyId: story.id, frameId: frame.id, start: 0, end: story.source.length, message });
+  const notice = (code, severity, message2) => result.diagnostics.push({ code, severity, storyId: story.id, frameId: frame.id, start: 0, end: story.source.length, message: message2 });
   if (result.overset) result.diagnostics.push({ ...result.overset, code: "overset", severity: "error", storyId: story.id, frameId: frame.id, message: "Text continues beyond the path endpoint. Extend the interval, change its size, or choose Fit to path." });
   if (tight) notice("path-tight", "warning", "The guide turns sharply within a shaped cluster. Soften the curve or reduce the text size.");
   if (spacingFailure) notice("word-spacing", "warning", "This line cannot reach both endpoints within the chosen word-spacing limits.");
@@ -144896,13 +145123,13 @@ function deleteTextStory(snapshot, id3) {
   current.frames = current.frames.filter((frame) => frame.storyId !== id3);
   return admitted2(current);
 }
-function linkTextFrames(snapshot, sourceId, targetId, join39, fresh) {
+function linkTextFrames(snapshot, sourceId, targetId, join40, fresh) {
   const current = admitted2(snapshot), source = owner2(current, sourceId), target2 = owner2(current, targetId);
   if (source.id === target2.id) throw new TextSourceError("thread-cycle", "These frames already belong to the same story.");
   const affected = [...source.frameIds, ...target2.frameIds];
   mutable(current, affected);
   if (current.frames.some((frame) => affected.includes(frame.id) && frame.mode === "path")) throw new TextSourceError("thread-path", "Detach text from its path before linking frames.");
-  if ((target2.source || target2.frameIds.length > 1) && !join39) throw new TextSourceError("join-required", "Preview and join these stories to retain both sources.");
+  if ((target2.source || target2.frameIds.length > 1) && !join40) throw new TextSourceError("join-required", "Preview and join these stories to retain both sources.");
   if (target2.frameIds[0] !== targetId) throw new TextSourceError("thread-target", "Choose the first frame of the target story.");
   let merged = source;
   if (target2.source) {
@@ -146556,15 +146783,15 @@ function autoMatchReportEntries(plan, master, source) {
     const { archetype, exact } = archetypeForRead(master, structure);
     const used = layoutArchetype(master, slide.layout) ?? archetype;
     const agrees = !slide.layoutMatch || !archetype || !used || archetype.id === used.id;
-    let message;
+    let message2;
     if (!agrees) {
-      message = `Slide ${n7}: the ${archetypeName(used)} layout stays from an earlier Auto-match; the slide now reads as ${structureName(structure)}.`;
+      message2 = `Slide ${n7}: the ${archetypeName(used)} layout stays from an earlier Auto-match; the slide now reads as ${structureName(structure)}.`;
     } else if (exact || !slide.layoutMatch) {
-      message = `Slide ${n7}: Auto-match set the ${archetypeName(used)} layout, ${BAND_WORDS[band]}.`;
+      message2 = `Slide ${n7}: Auto-match set the ${archetypeName(used)} layout, ${BAND_WORDS[band]}.`;
     } else {
-      message = `Slide ${n7}: Auto-match read ${structureName(structure)}, ${BAND_WORDS[band]}; this design system has no such layout, so ${archetypeName(used)} was used.`;
+      message2 = `Slide ${n7}: Auto-match read ${structureName(structure)}, ${BAND_WORDS[band]}; this design system has no such layout, so ${archetypeName(used)} was used.`;
     }
-    out.push({ code: "layout.auto-matched", message, slideId: slide.id, reason: `${structure}:${band}` });
+    out.push({ code: "layout.auto-matched", message: message2, slideId: slide.id, reason: `${structure}:${band}` });
   });
   return out;
 }
@@ -147749,8 +147976,8 @@ function sizeOf(spec) {
   checkKeys(spec.size, /* @__PURE__ */ new Set(["width", "height"]), "/size", "size");
   const width = Math.round(numberAt2(spec.size.width, "/size/width"));
   const height = Math.round(numberAt2(spec.size.height, "/size/height"));
-  if (!(width > 0) || width > MAX_SIDE) throw new Error(`/size/width: expected a page width from 1 to ${MAX_SIDE} px.`);
-  if (!(height > 0) || height > MAX_SIDE) throw new Error(`/size/height: expected a page height from 1 to ${MAX_SIDE} px.`);
+  if (!(width > 0) || width > MAX_SIDE2) throw new Error(`/size/width: expected a page width from 1 to ${MAX_SIDE2} px.`);
+  if (!(height > 0) || height > MAX_SIDE2) throw new Error(`/size/height: expected a page height from 1 to ${MAX_SIDE2} px.`);
   return { width, height };
 }
 function distance2(a, b) {
@@ -148028,7 +148255,7 @@ function composeDesignSlides(spec, ctx) {
   const theme = groundAt(raw.theme, "/theme") ?? "light";
   const surfaceAuto = themesAt(raw.themes, "/themes").length > 1;
   const gap = raw.gap === void 0 ? DEFAULT_GAP : numberAt2(raw.gap, "/gap");
-  if (gap < 0 || gap > MAX_SIDE) throw new Error(`/gap: expected a number from 0 to ${MAX_SIDE} px.`);
+  if (gap < 0 || gap > MAX_SIDE2) throw new Error(`/gap: expected a number from 0 to ${MAX_SIDE2} px.`);
   if (raw.footer !== void 0 && typeof raw.footer !== "string") throw new Error("/footer: expected the footer text.");
   if (raw.pageNumbers !== void 0 && typeof raw.pageNumbers !== "boolean") throw new Error("/pageNumbers: expected true or false.");
   if (raw.transition !== void 0 && (typeof raw.transition !== "string" || !DESIGN_COMPOSE_TRANSITIONS.includes(raw.transition))) {
@@ -149082,7 +149309,7 @@ function composeArchetypeCatalog(master) {
     return entry2;
   });
 }
-var DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_GAP, MAX_SLIDES2, MAX_SIDE, PER_ROW, SPEC_KEYS, SLIDE_KEYS, FURNITURE_KEYS, RESERVED2, CONTENT_KEYS, EMPHASIS_MODES, CASE_MODES, HEADLINE_SLOT_ROLES, HEADLINE_RULE_ROLES, PHOTO_COVER, ACCENT_CONTRAST, FURNITURE_KINDS2, COUNTER, REWORDED, STYLE_ROW_FIELDS2, record36, seg4, plural3, strings3, luminanceContrast, LARGE_TEXT_ROLES, NOTES_EMPTY_LINE, COMPOSE_COLOUR_FIELDS, SURFACE_TOKENS, INK_TOKENS, ACCENT_TOKENS, THEME_INK_CONTRAST, varies;
+var DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_GAP, MAX_SLIDES2, MAX_SIDE2, PER_ROW, SPEC_KEYS, SLIDE_KEYS, FURNITURE_KEYS, RESERVED2, CONTENT_KEYS, EMPHASIS_MODES, CASE_MODES, HEADLINE_SLOT_ROLES, HEADLINE_RULE_ROLES, PHOTO_COVER, ACCENT_CONTRAST, FURNITURE_KINDS2, COUNTER, REWORDED, STYLE_ROW_FIELDS2, record36, seg4, plural3, strings3, luminanceContrast, LARGE_TEXT_ROLES, NOTES_EMPTY_LINE, COMPOSE_COLOUR_FIELDS, SURFACE_TOKENS, INK_TOKENS, ACCENT_TOKENS, THEME_INK_CONTRAST, varies;
 var init_design_compose = __esm({
   "engine/src/design-compose.ts"() {
     "use strict";
@@ -149106,7 +149333,7 @@ var init_design_compose = __esm({
     DEFAULT_HEIGHT = 1080;
     DEFAULT_GAP = 160;
     MAX_SLIDES2 = 500;
-    MAX_SIDE = 1e5;
+    MAX_SIDE2 = 1e5;
     PER_ROW = 4;
     SPEC_KEYS = /* @__PURE__ */ new Set(["size", "theme", "themes", "slides", "$styles", "footer", "pageNumbers", "transition", "gap", "furniture", "emphasis", "case"]);
     SLIDE_KEYS = /* @__PURE__ */ new Set(["archetype", "id", "name", "ground", "source", "slots", "cells", "notes", "furniture", "under", "over", "intent", "emphasis", "case"]);
@@ -150707,7 +150934,7 @@ function runPass(pass, page3, maxCandidates) {
     const reachX = rx * cell2;
     const reachY = ry * cell2;
     const owner3 = rest2.map((_, i) => i);
-    const find = (i) => {
+    const find2 = (i) => {
       let r5 = i;
       while ((owner3[r5] ?? r5) !== r5) r5 = owner3[r5] ?? r5;
       return r5;
@@ -150718,12 +150945,12 @@ function runPass(pass, page3, maxCandidates) {
       const grown = { x: a.x - reachX, y: a.y - reachY, w: a.w + 2 * reachX, h: a.h + 2 * reachY };
       for (let j = i + 1; j < rest2.length; j++) {
         const b = rest2[j]?.box;
-        if (b && intersects(grown, b)) owner3[find(j)] = find(i);
+        if (b && intersects(grown, b)) owner3[find2(j)] = find2(i);
       }
     }
     const groups = /* @__PURE__ */ new Map();
     rest2.forEach((p, i) => {
-      const r5 = find(i);
+      const r5 = find2(i);
       const list4 = groups.get(r5);
       if (list4) list4.push(p);
       else groups.set(r5, [p]);
@@ -151544,7 +151771,7 @@ function inkAbove(image, area2, under, lineHeight, threshold, maxLines) {
 function outlinedBoxes(regions) {
   const tolX = OUTLINE_TOLERANCE * regions.width;
   const tolY = OUTLINE_TOLERANCE * regions.height;
-  const join39 = (horizontal) => {
+  const join40 = (horizontal) => {
     const parts = regions.regions.filter((r5) => r5.kind === "rule" && r5.evidence.orientation === (horizontal ? "horizontal" : "vertical")).map((r5) => ({
       from: horizontal ? r5.box.x : r5.box.y,
       to: horizontal ? r5.box.x + r5.box.w : r5.box.y + r5.box.h,
@@ -151574,8 +151801,8 @@ function outlinedBoxes(regions) {
     }
     return out;
   };
-  const rows2 = join39(true);
-  const cols = join39(false);
+  const rows2 = join40(true);
+  const cols = join40(false);
   const found = [];
   for (const top of rows2) {
     for (const bottom of rows2) {
@@ -152412,7 +152639,7 @@ function assembleLines(input, opts) {
     box: { x: l.box.x, y: l.box.y, w: Math.max(0, l.box.w), h: Math.max(0, l.box.h) }
   }));
   const parent = items2.map((_, i) => i);
-  const find = (i) => {
+  const find2 = (i) => {
     let r5 = i;
     while ((parent[r5] ?? r5) !== r5) r5 = parent[r5] ?? r5;
     return r5;
@@ -152427,13 +152654,13 @@ function assembleLines(input, opts) {
         const vOverlap = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
         const gap = Math.max(a.x, b.x) - Math.min(a.x + a.w, b.x + b.w);
         const oneRow = vOverlap >= JOIN_OVERLAP * lo && Math.max(a.h, b.h) / lo <= JOIN_SIZE && gap <= JOIN_GAP * Math.max(a.h, b.h);
-        if (oneRow || bulletBeside(items2[i], items2[j]) || bulletBeside(items2[j], items2[i])) parent[find(j)] = find(i);
+        if (oneRow || bulletBeside(items2[i], items2[j]) || bulletBeside(items2[j], items2[i])) parent[find2(j)] = find2(i);
       }
     }
   }
   const groups = /* @__PURE__ */ new Map();
   items2.forEach((item2, i) => {
-    const r5 = find(i);
+    const r5 = find2(i);
     const list4 = groups.get(r5);
     if (list4) list4.push(item2);
     else groups.set(r5, [item2]);
@@ -152475,7 +152702,7 @@ function divided(a, b, barriers) {
 function ocrTextBlocks(input, barriers = []) {
   const items2 = input.map((l, index2) => ({ l, index: index2 })).filter(({ l }) => typeof l.text === "string" && l.text.trim() !== "" && l.box.w > 0 && l.box.h > 0);
   const parent = items2.map((_, i) => i);
-  const find = (i) => {
+  const find2 = (i) => {
     let r5 = i;
     while ((parent[r5] ?? r5) !== r5) r5 = parent[r5] ?? r5;
     return r5;
@@ -152494,12 +152721,12 @@ function ocrTextBlocks(input, barriers = []) {
       const vGap = Math.max(a.y, b.y) - Math.min(a.y + a.h, b.y + b.h);
       const aligned = Math.abs(a.x - b.x) <= BLOCK_LEFT_EDGE * lo || Math.abs(a.x + a.w / 2 - (b.x + b.w / 2)) <= BLOCK_OTHER_EDGE * lo || Math.abs(a.x + a.w - (b.x + b.w)) <= BLOCK_OTHER_EDGE * lo;
       const stacked = aligned && xOverlap(a, b) > 0 && vGap <= BLOCK_STACK_GAP * lo && vOverlap < JOIN_OVERLAP * lo;
-      if ((oneRow || stacked) && !divided(a, b, barriers)) parent[find(j)] = find(i);
+      if ((oneRow || stacked) && !divided(a, b, barriers)) parent[find2(j)] = find2(i);
     }
   }
   const groups = /* @__PURE__ */ new Map();
   items2.forEach((item2, i) => {
-    const r5 = find(i);
+    const r5 = find2(i);
     const list4 = groups.get(r5);
     if (list4) list4.push(item2.index);
     else groups.set(r5, [item2.index]);
@@ -152583,7 +152810,7 @@ function typesetOcrLines(input, opts = {}) {
   }
   const boxes2 = paras.map((p) => unionBox(p.items.map((w) => w.line.box)));
   const parent = paras.map((_, i) => i);
-  const find = (i) => {
+  const find2 = (i) => {
     let r5 = i;
     while ((parent[r5] ?? r5) !== r5) r5 = parent[r5] ?? r5;
     return r5;
@@ -152595,22 +152822,22 @@ function typesetOcrLines(input, opts = {}) {
     for (let j = i + 1; j < paras.length; j++) {
       const a = boxes2[i];
       const b = boxes2[j];
-      if (a && b && !spans[i] && !spans[j] && xOverlap(a, b) > 0) parent[find(j)] = find(i);
+      if (a && b && !spans[i] && !spans[j] && xOverlap(a, b) > 0) parent[find2(j)] = find2(i);
     }
   }
   const rootLeft = /* @__PURE__ */ new Map();
   paras.forEach((_, i) => {
     if (spans[i]) return;
-    const r5 = find(i);
+    const r5 = find2(i);
     const left = boxes2[i]?.x ?? 0;
     rootLeft.set(r5, Math.min(rootLeft.get(r5) ?? left, left));
   });
   const roots2 = [...rootLeft.entries()].sort((a, b) => a[1] - b[1] || a[0] - b[0]).map(([r5]) => r5);
   const columnOf = paras.map((_, i) => {
-    if (!spans[i]) return roots2.indexOf(find(i));
+    if (!spans[i]) return roots2.indexOf(find2(i));
     const box4 = boxes2[i];
     const covered = paras.map((_2, j) => j).filter((j) => !spans[j] && box4 && boxes2[j] && xOverlap(box4, boxes2[j] ?? box4) > 0);
-    return covered.length ? Math.min(...covered.map((j) => roots2.indexOf(find(j)))) : 0;
+    return covered.length ? Math.min(...covered.map((j) => roots2.indexOf(find2(j)))) : 0;
   });
   const textIndent = (para) => {
     const first = para.items[0]?.line;
@@ -154638,8 +154865,8 @@ function flattenedWarning(slide, number11) {
   const ocr = slide.ocr?.state ?? "not-run";
   const layer = slide.ocr?.state === "text-found" && slide.ocr.model === TEXT_LAYER_MODEL;
   const says = layer ? "its words come from the text layer the scan carries" : OCR_SAYS[ocr] ?? `OCR state ${ocr}`;
-  const message = slide.recovery ? `Slide ${number11} was one picture of its text and was rebuilt from its regions; ${says}.` : `Slide ${number11} is one picture of its text, kept as that picture; ${says}.`;
-  return { code: "slide-flattened", message };
+  const message2 = slide.recovery ? `Slide ${number11} was one picture of its text and was rebuilt from its regions; ${says}.` : `Slide ${number11} is one picture of its text, kept as that picture; ${says}.`;
+  return { code: "slide-flattened", message: message2 };
 }
 function unavailableWhy(reason2) {
   if (reason2 === "media-missing") return "its picture part is missing from the file";
@@ -155284,8 +155511,8 @@ var init_read_extract = __esm({
     init_src();
     ReadExtractError = class extends Error {
       code;
-      constructor(code, message) {
-        super(message);
+      constructor(code, message2) {
+        super(message2);
         this.name = "ReadExtractError";
         this.code = code;
       }
@@ -155731,10 +155958,10 @@ var init_timeline_common = __esm({
     rateFps = (rate3) => rate3.numerator / rate3.denominator;
     LossReport = class {
       items = /* @__PURE__ */ new Map();
-      add(category, message) {
+      add(category, message2) {
         const item2 = this.items.get(category);
         if (item2) item2.count++;
-        else this.items.set(category, { message, count: 1 });
+        else this.items.set(category, { message: message2, count: 1 });
       }
       get notes() {
         return [...this.items.values()].map((i) => i.count > 1 ? `${i.message} (${i.count} occurrences in total)` : i.message);
@@ -160897,10 +161124,10 @@ function varCall(s) {
 function resolveDeckColorValue(v, resolve8) {
   let s = (typeof v === "string" ? v : "").trim();
   for (let hop = 0; hop < MAX_VAR_HOPS; hop++) {
-    const call2 = varCall(s);
-    if (!call2) return s;
-    const got = resolve8?.(call2.name);
-    const next2 = (typeof got === "string" ? got.trim() : "") || call2.fallback;
+    const call3 = varCall(s);
+    if (!call3) return s;
+    const got = resolve8?.(call3.name);
+    const next2 = (typeof got === "string" ? got.trim() : "") || call3.fallback;
     if (!next2 || next2 === s) return "";
     s = next2;
   }
@@ -165469,7 +165696,7 @@ async function readPage(picture, ocr, opts) {
     }
   }
   const parent = all.map((_, i) => i);
-  const find = (i) => {
+  const find2 = (i) => {
     let r5 = i;
     while ((parent[r5] ?? r5) !== r5) r5 = parent[r5] ?? r5;
     return r5;
@@ -165485,12 +165712,12 @@ async function readPage(picture, ocr, opts) {
       const centres = Math.abs(a.y + a.h / 2 - (b.y + b.h / 2));
       const oneRow = Math.max(a.h, b.h) / lo <= SAME_LINE_SIZE && vOverlap >= 0.6 * lo && centres <= SAME_LINE_CENTRES * lo && hOverlap > 0;
       const within = vOverlap >= 0.8 * lo && hOverlap >= 0.8 * Math.min(a.w, b.w) && centres <= SAME_LINE_CENTRES * Math.max(a.h, b.h);
-      if (oneRow || within) parent[find(j)] = find(i);
+      if (oneRow || within) parent[find2(j)] = find2(i);
     }
   }
   const groups = /* @__PURE__ */ new Map();
   all.forEach((l, i) => {
-    const r5 = find(i);
+    const r5 = find2(i);
     const list4 = groups.get(r5);
     if (list4) list4.push(l);
     else groups.set(r5, [l]);
@@ -168488,11 +168715,11 @@ function refuseMissing(family2, model2, approxBytes, env = process.env) {
     approxBytes
   );
 }
-function abortError(message = "The run was aborted.") {
+function abortError(message2 = "The run was aborted.") {
   try {
-    return new DOMException(message, "AbortError");
+    return new DOMException(message2, "AbortError");
   } catch {
-    return Object.assign(new Error(message), { name: "AbortError" });
+    return Object.assign(new Error(message2), { name: "AbortError" });
   }
 }
 function checkSignal(signal) {
@@ -168663,8 +168890,8 @@ var init_session = __esm({
       family;
       model;
       approxBytes;
-      constructor(message, family2, model2, approxBytes) {
-        super(message);
+      constructor(message2, family2, model2, approxBytes) {
+        super(message2);
         this.name = "ModelNotInstalledError";
         this.family = family2;
         this.model = model2;
@@ -169074,9 +169301,9 @@ async function readPptxSource(input, sink) {
   try {
     parts = await inflatePptx(bytes2);
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    const code = /too large/i.test(message) ? "source.too-large" : "source.unreadable";
-    throw new RebrandPipelineError(code, `${name}: ${message}`);
+    const message2 = err instanceof Error ? err.message : String(err);
+    const code = /too large/i.test(message2) ? "source.too-large" : "source.unreadable";
+    throw new RebrandPipelineError(code, `${name}: ${message2}`);
   }
   if (!parts["ppt/presentation.xml"]) {
     throw new RebrandPipelineError("source.unreadable", `${name} is a zip file but not a PowerPoint presentation.`);
@@ -169193,8 +169420,8 @@ async function handleFlattenedSlides(source, media, input) {
       if (outcome === "rebuilt" && out2.recovery?.fromObjectId) entry2.replaced = out2.recovery.fromObjectId;
       reports.push(entry2);
     };
-    const keep2 = (reason2, message, objectIds = pic ? [pic.id] : []) => {
-      report4(keptSlide(slide, pic, missing, message ? { message, objectIds } : void 0), "kept", reason2);
+    const keep2 = (reason2, message2, objectIds = pic ? [pic.id] : []) => {
+      report4(keptSlide(slide, pic, missing, message2 ? { message: message2, objectIds } : void 0), "kept", reason2);
     };
     const tooLarge3 = (width, height) => {
       keep2("too-large", `The picture of ${slide.id} is ${width} by ${height} pixels, over the ${FLATTENED_MAX_PIXELS} pixel limit for a rebuild, so it stays one picture.`);
@@ -169714,8 +169941,8 @@ var init_pipeline = __esm({
     init_source_pptx();
     RebrandPipelineError = class extends Error {
       code;
-      constructor(code, message) {
-        super(message);
+      constructor(code, message2) {
+        super(message2);
         this.name = "RebrandPipelineError";
         this.code = code;
       }
@@ -170873,8 +171100,8 @@ function isPng2(bytes2) {
 function isJpeg(bytes2) {
   return bytes2.length > 3 && bytes2[0] === 255 && bytes2[1] === 216 && bytes2[2] === 255;
 }
-function refusal2(message) {
-  const err = new Error(`pdf: ${message}`);
+function refusal2(message2) {
+  const err = new Error(`pdf: ${message2}`);
   err.name = "PdfTransformError";
   return err;
 }
@@ -171722,7 +171949,9 @@ var init_resvg_admission = __esm({
       "missing-text": "wrong",
       "tool-picture": "wrong",
       "size": "wrong",
-      "request": "wrong"
+      "request": "wrong",
+      // The crate refuses what it would draw outside the bands; --allow-browser-free does not overrule a refusal.
+      "lolly-render": "wrong"
     });
     resvgVersionCache = null;
     BROWSER_FREE_FLAG = "allow-browser-free";
@@ -172022,8 +172251,8 @@ var init_raster3 = __esm({
     PRINT_PREP_FORMATS = /* @__PURE__ */ new Set(["pdf", "pdf-cmyk", "cmyk-tiff"]);
     NON_DRAWABLE = /* @__PURE__ */ new Set(["script", "style", "template", "link", "meta"]);
     DeepSourceError = class extends Error {
-      constructor(message) {
-        super(message);
+      constructor(message2) {
+        super(message2);
         this.name = "DeepSourceError";
       }
     };
@@ -172085,15 +172314,15 @@ async function nodeCanvas() {
 function hostedDecodeLimits() {
   return { maxPixels: HOSTED_DECODE_MAX_PIXELS, budgetPixels: HOSTED_DECODE_BUDGET_PIXELS, used: 0, refusals: [], refused: [] };
 }
-function refuse3(limits, pic, record49, message) {
-  limits.refusals?.push(message);
+function refuse3(limits, pic, record49, message2) {
+  limits.refusals?.push(message2);
   if (limits.refused) {
     const key2 = createHash5("sha256").update(pic.bytes).digest("hex");
     const seen = limits.refused.find((r5) => r5.key === key2 && r5.limit === record49.limit);
     if (!seen) limits.refused.push({ ...record49, key: key2, ...pic.source ? { source: pic.source } : {} });
     else if (!seen.source && pic.source) seen.source = pic.source;
   }
-  throw new ImagePixelLimitError(message);
+  throw new ImagePixelLimitError(message2);
 }
 function admit2(limits, pic, w, h) {
   if (!limits) return;
@@ -172690,8 +172919,8 @@ async function waitForExport(page3, format, idleMs = exportIdleTimeout(format)) 
   };
   const closed = () => fail6(new Error("The export page closed before producing a file."));
   const crashed = () => fail6(new Error("The export page crashed before producing a file."));
-  const exportError = (message) => {
-    const text13 = message.text();
+  const exportError = (message2) => {
+    const text13 = message2.text();
     if (/^(?:(?:\[warn\] )?Auto-export (?:failed|did not start)|\[lolly\] WebGPU is required and unavailable):/.test(text13)) fail6(new Error(text13));
   };
   sink.current = onProgress;
@@ -173928,8 +174157,8 @@ var init_content_inventory2 = __esm({
       code;
       /** The files concerned. */
       files;
-      constructor(code, message, files = []) {
-        super(message);
+      constructor(code, message2, files = []) {
+        super(message2);
         this.name = "ContentInventoryError";
         this.code = code;
         this.files = files;
@@ -174460,8 +174689,8 @@ var init_design_lolly = __esm({
       code;
       /** What the code is about, for a caller that lists it (layer ids, refs, keys). */
       detail;
-      constructor(code, message, detail) {
-        super(message);
+      constructor(code, message2, detail) {
+        super(message2);
         this.name = "DesignPackageError";
         this.code = code;
         if (detail) this.detail = detail;
@@ -174777,8 +175006,8 @@ async function checksInOpenedPage(page3, base, bytes2, name, tokenSelection, tim
   step("measure text over pictures");
   return { kind: "answered", value: await sampleContrastReviews(page3, value2) };
 }
-function shortenUrls(message, max = 2e3) {
-  return message.replace(/(?:https?|data):[^\s"'<>]+/g, (url) => url.length > max ? `${url.slice(0, 200)}... (${url.length.toLocaleString("en")} characters)` : url);
+function shortenUrls(message2, max = 2e3) {
+  return message2.replace(/(?:https?|data):[^\s"'<>]+/g, (url) => url.length > max ? `${url.slice(0, 200)}... (${url.length.toLocaleString("en")} characters)` : url);
 }
 var OPEN_ROUTE_PREFIX, OPEN_ROUTE_MAX_BYTES, OpenSessionError, OPEN_ROUTE_ASK_MS, OPEN_ROUTE_PROBE_MS, ROUTE_MOUNTING_ATTR;
 var init_open_session = __esm({
@@ -174792,8 +175021,8 @@ var init_open_session = __esm({
     OPEN_ROUTE_PREFIX = "/__lolly-open/";
     OPEN_ROUTE_MAX_BYTES = 64e6;
     OpenSessionError = class extends Error {
-      constructor(message) {
-        super(message);
+      constructor(message2) {
+        super(message2);
         this.name = "OpenSessionError";
       }
     };
@@ -174865,7 +175094,7 @@ function runWorker(request3, signal) {
     worker.on("exit", (code) => {
       if (!settled) finish3(new Error(`JPEG XL worker stopped (${code}).`));
     });
-    worker.on("message", (message) => finish3(message.error ? new Error(message.error) : message.result ? void 0 : new Error("No JPEG XL result was returned."), message.result));
+    worker.on("message", (message2) => finish3(message2.error ? new Error(message2.error) : message2.result ? void 0 : new Error("No JPEG XL result was returned."), message2.result));
   });
 }
 var queue, pending2;
@@ -175419,8 +175648,8 @@ async function compressPdf(bytes2, opts = {}) {
   if (out.length < before) return { bytes: out, before, after: out.length, images };
   return { bytes: input, before, after: before, images: 0 };
 }
-function pdfRefusal(message) {
-  const err = new Error(`pdf: ${message}`);
+function pdfRefusal(message2) {
+  const err = new Error(`pdf: ${message2}`);
   err.name = "PdfTransformError";
   return err;
 }
@@ -175430,8 +175659,8 @@ async function loadEditablePdf(bytes2) {
   try {
     doc = await PDFDocument5.load(bytes2, { updateMetadata: false });
   } catch (error2) {
-    const message = String(error2?.message || error2);
-    if (/encrypt|password/i.test(message)) {
+    const message2 = String(error2?.message || error2);
+    if (/encrypt|password/i.test(message2)) {
       throw pdfRefusal("this PDF is encrypted; unlock it with its password before using this utility");
     }
     throw error2;
@@ -176673,6 +176902,314 @@ var init_text_shape = __esm({
   }
 });
 
+// packages/node-shell/src/woff2.ts
+var woff2_exports = {};
+__export(woff2_exports, {
+  WOFF2_LIMITS: () => WOFF2_LIMITS,
+  WOFF2_TIMEOUT_MS: () => WOFF2_TIMEOUT_MS,
+  WOFF2_WORKER_LIMIT: () => WOFF2_WORKER_LIMIT,
+  Woff2Error: () => Woff2Error,
+  checkSfntOutput: () => checkSfntOutput,
+  decodeWoff2: () => decodeWoff2,
+  preflightWoff2: () => preflightWoff2,
+  setWoff2Runner: () => setWoff2Runner,
+  woff2Slots: () => woff2Slots
+});
+function malformed(what) {
+  return new Woff2Error("malformed", `This WOFF2 font is damaged: ${what}.`);
+}
+function preflightWoff2(bytes2, limits = WOFF2_LIMITS) {
+  const length2 = bytes2.byteLength;
+  if (length2 < 4 || bytes2[0] !== 119 || bytes2[1] !== 79 || bytes2[2] !== 70 || bytes2[3] !== 50) {
+    throw new Woff2Error("not-woff2", "This file is not a WOFF2 font.");
+  }
+  if (length2 > limits.maxInputBytes) {
+    throw new Woff2Error("too-large", `This WOFF2 font is larger than ${sizeText(limits.maxInputBytes)}.`);
+  }
+  if (length2 < HEADER_BYTES) throw malformed("the header is incomplete");
+  const view = new DataView(bytes2.buffer, bytes2.byteOffset, length2);
+  const r5 = new Reader2(view);
+  if (r5.u32("the signature") !== WOFF2_SIGNATURE) throw new Woff2Error("not-woff2", "This file is not a WOFF2 font.");
+  const flavor = r5.u32("the flavor");
+  if (r5.u32("the length field") !== length2) throw malformed("the length field does not match the file");
+  const numTables = r5.u16("the table count");
+  if (!numTables) throw malformed("it declares no tables");
+  r5.u16("the reserved field");
+  const totalSfntSize = r5.u32("totalSfntSize");
+  const compressedLength = r5.u32("the compressed length");
+  r5.u16("the major version");
+  r5.u16("the minor version");
+  const metaOffset = r5.u32("the metadata offset");
+  const metaLength = r5.u32("the metadata length");
+  r5.u32("the metadata original length");
+  const privOffset = r5.u32("the private data offset");
+  const privLength = r5.u32("the private data length");
+  if (metaOffset && (metaOffset >= length2 || length2 - metaOffset < metaLength)) throw malformed("the metadata block lies outside the file");
+  if (privOffset && (privOffset >= length2 || length2 - privOffset < privLength)) throw malformed("the private data block lies outside the file");
+  const kinds2 = [];
+  let uncompressedSize = 0;
+  for (let i = 0; i < numTables; i++) {
+    const flags = r5.u8("a table entry");
+    const known3 = flags & 63;
+    const tag3 = known3 === 63 ? r5.u32("a table tag") : -1;
+    const kind = (known3 === 63 ? tag3 === GLYF_TAG : known3 === GLYF_INDEX) ? "glyf" : (known3 === 63 ? tag3 === LOCA_TAG : known3 === LOCA_INDEX) ? "loca" : "other";
+    const version = flags >> 6 & 3;
+    const transformed = kind === "other" ? version !== 0 : version === 0;
+    let stored = r5.base128("a table length");
+    if (transformed) {
+      stored = r5.base128("a transformed table length");
+      if (kind === "loca" && stored) throw malformed("the transformed loca table has a length");
+    }
+    uncompressedSize += stored;
+    if (uncompressedSize > 4294967295) throw malformed("the table lengths overflow");
+    kinds2.push(kind);
+  }
+  if (uncompressedSize < 1) throw malformed("the tables hold no data");
+  let fonts = 1;
+  let headerBytes = 12 + 16 * numTables;
+  const collection = flavor === TTC_FLAVOR;
+  if (collection) {
+    const version = r5.u32("the collection version");
+    if (version !== 65536 && version !== 131072) throw malformed("the collection version is unknown");
+    fonts = r5.u255("the collection font count");
+    if (!fonts) throw malformed("the collection holds no fonts");
+    headerBytes = (version === 131072 ? 12 : 0) + 12 + 4 * fonts + 12 * fonts;
+    for (let f = 0; f < fonts; f++) {
+      const count4 = r5.u255("a collection table count");
+      if (!count4) throw malformed("a collection font holds no tables");
+      r5.u32("a collection font flavor");
+      headerBytes += 16 * count4;
+      if (headerBytes > limits.maxOutputBytes) throw new Woff2Error("too-large", "This WOFF2 collection declares more table records than the decoder can hold.");
+      let glyf = 0;
+      let loca = 0;
+      for (let t = 0; t < count4; t++) {
+        const index2 = r5.u255("a collection table index");
+        if (index2 >= numTables) throw malformed("a collection font points at a missing table");
+        if (kinds2[index2] === "loca") loca = index2;
+        if (kinds2[index2] === "glyf") glyf = index2;
+      }
+      if ((glyf > 0 || loca > 0) && (glyf > loca || loca - glyf !== 1)) throw malformed("a collection font has glyf and loca apart");
+    }
+  }
+  if (uncompressedSize > length2 * limits.maxRatio) throw new Woff2Error("too-large", "This WOFF2 font declares more data than its size allows.");
+  if (uncompressedSize > limits.maxOutputBytes || headerBytes > limits.maxOutputBytes) {
+    throw new Woff2Error("too-large", `This WOFF2 font expands past ${sizeText(limits.maxOutputBytes)}.`);
+  }
+  if (totalSfntSize > limits.maxOutputBytes) {
+    throw new Woff2Error("too-large", `This WOFF2 font declares a decoded size past ${sizeText(limits.maxOutputBytes)}.`);
+  }
+  const compressedOffset = r5.offset;
+  let end = round45(compressedOffset + compressedLength);
+  if (end > length2) throw malformed("the compressed data runs past the end of the file");
+  if (metaOffset) {
+    if (end !== metaOffset) throw malformed("the metadata block is out of place");
+    end = round45(metaOffset + metaLength);
+  }
+  if (privOffset) {
+    if (end !== privOffset) throw malformed("the private data block is out of place");
+    end = round45(privOffset + privLength);
+  }
+  if (end !== round45(length2)) throw malformed("the file has bytes after its last block");
+  return { flavor, collection, numTables, totalSfntSize, uncompressedSize, compressedOffset, compressedLength, headerBytes, fonts };
+}
+function checkOffsetTable(view, at, what) {
+  if (at + 12 > view.byteLength) throw new Woff2Error("bad-output", `The decoded ${what} has no complete header.`);
+  if (!SFNT_FLAVORS.has(view.getUint32(at))) throw new Woff2Error("bad-output", `The decoded ${what} is not TrueType or OpenType.`);
+  const count4 = view.getUint16(at + 4);
+  let end = at + 12 + 16 * count4;
+  if (end > view.byteLength) throw new Woff2Error("bad-output", `The decoded ${what} has an incomplete table directory.`);
+  for (let i = 0; i < count4; i++) {
+    const record49 = at + 12 + 16 * i;
+    const tableEnd = view.getUint32(record49 + 8) + view.getUint32(record49 + 12);
+    if (tableEnd > view.byteLength) throw new Woff2Error("bad-output", `A table in the decoded ${what} lies outside the file.`);
+    end = Math.max(end, tableEnd);
+  }
+  return end;
+}
+function checkSfntOutput(bytes2, facts2, maxBytes = WOFF2_LIMITS.maxOutputBytes) {
+  if (bytes2.byteLength > maxBytes) throw new Woff2Error("too-large", `The decoded font is larger than ${sizeText(maxBytes)}.`);
+  const view = new DataView(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength);
+  let dataEnd;
+  if (!facts2.collection) {
+    dataEnd = checkOffsetTable(view, 0, "font");
+  } else {
+    if (bytes2.byteLength < 12 || view.getUint32(0) !== TTC_FLAVOR) throw new Woff2Error("bad-output", "The decoded collection has no collection header.");
+    const fonts = view.getUint32(8);
+    dataEnd = 12 + 4 * fonts;
+    if (dataEnd > bytes2.byteLength) throw new Woff2Error("bad-output", "The decoded collection has an incomplete font list.");
+    for (let i = 0; i < fonts; i++) dataEnd = Math.max(dataEnd, checkOffsetTable(view, view.getUint32(12 + 4 * i), `collection font ${i + 1}`));
+  }
+  if (facts2.totalSfntSize !== void 0 && bytes2.byteLength > Math.max(facts2.totalSfntSize, round45(dataEnd))) {
+    throw new Woff2Error("bad-output", "The decoded font is longer than its header declares.");
+  }
+  for (let i = dataEnd; i < bytes2.byteLength; i++) {
+    if (bytes2[i] !== 0) throw new Woff2Error("bad-output", "The decoded font has data after its last table.");
+  }
+}
+function setWoff2Runner(runner) {
+  registeredRunner = runner;
+}
+function woff2Slots(limit3) {
+  let active = 0;
+  const waiting = [];
+  const release = () => {
+    active--;
+    waiting.shift()?.();
+  };
+  return (signal) => new Promise((resolve8, reject) => {
+    signal?.throwIfAborted();
+    const take = () => {
+      signal?.removeEventListener("abort", abort);
+      active++;
+      resolve8(release);
+    };
+    const abort = () => {
+      const at = waiting.indexOf(take);
+      if (at >= 0) waiting.splice(at, 1);
+      reject(signal?.reason);
+    };
+    if (active < limit3) {
+      take();
+      return;
+    }
+    waiting.push(take);
+    signal?.addEventListener("abort", abort, { once: true });
+  });
+}
+async function decodeWoff2(bytes2, options2 = {}) {
+  const maxOutputBytes = Math.min(options2.maxOutputBytes ?? WOFF2_LIMITS.maxOutputBytes, WOFF2_LIMITS.maxOutputBytes);
+  const facts2 = preflightWoff2(bytes2, { ...WOFF2_LIMITS, maxOutputBytes });
+  const runner = options2.runner ?? registeredRunner ?? (typeof Worker === "function" ? webWorkerRunner : void 0);
+  if (!runner) throw new Woff2Error("decode-failed", "No separate WOFF2 decoder is available here, so the font was not decoded.");
+  let out;
+  try {
+    out = await runner(bytes2, { timeoutMs: options2.timeoutMs ?? WOFF2_TIMEOUT_MS, signal: options2.signal });
+  } catch (error2) {
+    if (error2 instanceof Woff2Error || error2 === options2.signal?.reason) throw error2;
+    throw new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: error2 });
+  }
+  checkSfntOutput(out, facts2, maxOutputBytes);
+  return out;
+}
+var WOFF2_LIMITS, Woff2Error, WOFF2_SIGNATURE, TTC_FLAVOR, SFNT_FLAVORS, GLYF_INDEX, LOCA_INDEX, GLYF_TAG, LOCA_TAG, HEADER_BYTES, round45, sizeText, Reader2, registeredRunner, WOFF2_TIMEOUT_MS, WOFF2_WORKER_LIMIT, webSlot, webWorkerRunner, runInWebWorker;
+var init_woff2 = __esm({
+  "packages/node-shell/src/woff2.ts"() {
+    "use strict";
+    WOFF2_LIMITS = Object.freeze({
+      /** The largest WOFF2 file read: the font upload limit. */
+      maxInputBytes: 32 * 1024 * 1024,
+      /** The largest sfnt the decoder writes, and the largest Brotli target it is asked for. */
+      maxOutputBytes: 30 * 1024 * 1024,
+      /** Decompressed table bytes per byte of file, as google/woff2 refuses above. */
+      maxRatio: 100
+    });
+    Woff2Error = class extends Error {
+      code;
+      constructor(code, message2, options2) {
+        super(message2, options2);
+        this.name = "Woff2Error";
+        this.code = code;
+      }
+    };
+    WOFF2_SIGNATURE = 2001684018;
+    TTC_FLAVOR = 1953784678;
+    SFNT_FLAVORS = /* @__PURE__ */ new Set([
+      65536,
+      1330926671,
+      1953658213
+      /* true */
+    ]);
+    GLYF_INDEX = 10;
+    LOCA_INDEX = 11;
+    GLYF_TAG = 1735162214;
+    LOCA_TAG = 1819239265;
+    HEADER_BYTES = 48;
+    round45 = (n7) => n7 + 3 - (n7 + 3) % 4;
+    sizeText = (n7) => n7 >= 1048576 ? `${Math.floor(n7 / 1048576)} MB` : `${n7} bytes`;
+    Reader2 = class {
+      offset = 0;
+      view;
+      constructor(view) {
+        this.view = view;
+      }
+      need(n7, what) {
+        if (this.offset + n7 > this.view.byteLength) throw malformed(`${what} runs past the end of the file`);
+      }
+      u8(what) {
+        this.need(1, what);
+        return this.view.getUint8(this.offset++);
+      }
+      u16(what) {
+        this.need(2, what);
+        const v = this.view.getUint16(this.offset);
+        this.offset += 2;
+        return v;
+      }
+      u32(what) {
+        this.need(4, what);
+        const v = this.view.getUint32(this.offset);
+        this.offset += 4;
+        return v;
+      }
+      /** UIntBase128 as google/woff2 reads it: no leading zero byte, at most five bytes, no overflow. */
+      base128(what) {
+        let result = 0;
+        for (let i = 0; i < 5; i++) {
+          const code = this.u8(what);
+          if (i === 0 && code === 128) throw malformed(`${what} has a leading zero`);
+          if (result >= 33554432) throw malformed(`${what} overflows 32 bits`);
+          result = result * 128 + (code & 127);
+          if ((code & 128) === 0) return result;
+        }
+        throw malformed(`${what} is longer than five bytes`);
+      }
+      /** A 255UInt16 (MicroType Express) value, with google/woff2's rules. */
+      u255(what) {
+        const code = this.u8(what);
+        if (code === 253) return this.u16(what);
+        if (code === 255) return this.u8(what) + 253;
+        if (code === 254) return this.u8(what) + 506;
+        return code;
+      }
+    };
+    WOFF2_TIMEOUT_MS = 2e4;
+    WOFF2_WORKER_LIMIT = 4;
+    webSlot = woff2Slots(WOFF2_WORKER_LIMIT);
+    webWorkerRunner = async (bytes2, options2) => {
+      const release = await webSlot(options2.signal);
+      try {
+        return await runInWebWorker(bytes2, options2);
+      } finally {
+        release();
+      }
+    };
+    runInWebWorker = (bytes2, { timeoutMs, signal }) => new Promise((resolve8, reject) => {
+      signal?.throwIfAborted();
+      const worker = new Worker(new URL("./woff2-decode.worker.ts", import.meta.url), { type: "module" });
+      let settled = false;
+      const finish3 = (error2, out) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", abort);
+        worker.terminate();
+        if (out) resolve8(out);
+        else reject(error2);
+      };
+      const abort = () => finish3(signal?.reason ?? new Woff2Error("decode-failed", "The WOFF2 decode was cancelled."));
+      const timer = setTimeout(() => finish3(new Woff2Error("timed-out", "This WOFF2 font took too long to decode.")), timeoutMs);
+      signal?.addEventListener("abort", abort, { once: true });
+      worker.onerror = (event) => {
+        event.preventDefault();
+        finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: event.message || "the decoder worker did not start" }));
+      };
+      worker.onmessage = ({ data }) => finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: data.error ?? "no reply" }), data.out);
+      const copy = bytes2.slice();
+      worker.postMessage(copy, [copy.buffer]);
+    });
+  }
+});
+
 // packages/node-shell/src/text-fonts.ts
 function validateResource(resource) {
   if (!/^[a-f0-9]{64}$/u.test(resource.sha256) || !Number.isSafeInteger(resource.faceIndex) || resource.faceIndex < 0 || resource.faceIndex > 1023) throw new TextSourceError("font-identity", "The font needs a SHA-256 content identity and face index.");
@@ -176726,7 +177263,11 @@ function createPinnedTextShaper(read, loadHarfBuzz2 = () => import("harfbuzzjs")
       bytes2 = woffToSfnt(input);
     } else if (kind === "woff2") {
       if (input.length < 48 || new DataView(input.buffer, input.byteOffset, input.byteLength).getUint32(16) > MAX_FONT_BYTES2) throw new TextSourceError("font-size", "The expanded font exceeds the supported size.");
-      bytes2 = await (await import("woff2-encoder/decompress")).default(input);
+      try {
+        bytes2 = await (await Promise.resolve().then(() => (init_woff2(), woff2_exports))).decodeWoff2(input, { maxOutputBytes: MAX_FONT_BYTES2 });
+      } catch (error2) {
+        throw new TextSourceError("font-format", error2 instanceof Error ? error2.message : "The WOFF2 font could not be decoded.");
+      }
     }
     const collection = String.fromCharCode(...bytes2.subarray(0, 4)) === "ttcf";
     if (bytes2.length > MAX_FONT_BYTES2 || !collection && !["ttf", "otf"].includes(sfntKind(bytes2) ?? "")) throw new TextSourceError("font-format", "The font container is not supported.");
@@ -176818,11 +177359,80 @@ var init_text_composition = __esm({
   }
 });
 
+// packages/node-shell/src/woff2-node.ts
+import { existsSync as existsSync7 } from "node:fs";
+import { fileURLToPath as fileURLToPath5 } from "node:url";
+import { Worker as Worker3 } from "node:worker_threads";
+function workerUrl() {
+  const candidates2 = [new URL("./woff2-worker.ts", import.meta.url), new URL("./_woff2-worker.js", import.meta.url)];
+  for (const url of candidates2) {
+    if (url.protocol === "file:" && existsSync7(fileURLToPath5(url))) return url;
+  }
+  throw new Woff2Error("decode-failed", "The WOFF2 decoder is missing from this installation, so the font was not decoded.");
+}
+function useNodeWoff2Runner() {
+  setWoff2Runner(nodeWoff2Runner);
+}
+var nodeSlot, nodeWoff2Runner, runInThread;
+var init_woff2_node = __esm({
+  "packages/node-shell/src/woff2-node.ts"() {
+    "use strict";
+    init_woff2();
+    nodeSlot = woff2Slots(WOFF2_WORKER_LIMIT);
+    nodeWoff2Runner = async (bytes2, options2) => {
+      const release = await nodeSlot(options2.signal);
+      try {
+        return await runInThread(bytes2, options2);
+      } finally {
+        release();
+      }
+    };
+    runInThread = (bytes2, { timeoutMs, signal }) => new Promise((resolve8, reject) => {
+      signal?.throwIfAborted();
+      const copy = bytes2.slice();
+      let worker;
+      try {
+        worker = new Worker3(workerUrl(), {
+          workerData: copy,
+          transferList: [copy.buffer],
+          env: {},
+          execArgv: [],
+          // Kept off this process's stdout, which is the payload (CLI) or the JSON-RPC
+          // channel (MCP over stdio); the decoder prints to stderr when it aborts.
+          stdout: true,
+          stderr: true
+        });
+      } catch (error2) {
+        reject(error2 instanceof Woff2Error ? error2 : new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: error2 }));
+        return;
+      }
+      worker.stdout.resume();
+      worker.stderr.resume();
+      let settled = false;
+      const finish3 = (error2, out) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", abort);
+        void worker.terminate();
+        if (out) resolve8(out);
+        else reject(error2);
+      };
+      const abort = () => finish3(signal?.reason ?? new Woff2Error("decode-failed", "The WOFF2 decode was cancelled."));
+      const timer = setTimeout(() => finish3(new Woff2Error("timed-out", "This WOFF2 font took too long to decode.")), timeoutMs);
+      signal?.addEventListener("abort", abort, { once: true });
+      worker.once("message", (reply) => finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: reply.error ?? "no reply" }), reply.out));
+      worker.once("error", (error2) => finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: error2 })));
+      worker.once("exit", (code) => finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: `the decoder thread exited (${code})` })));
+    });
+  }
+});
+
 // packages/node-shell/src/text.ts
 import { readFile as readFile9, readdir as readdir3 } from "node:fs/promises";
-import { existsSync as existsSync7 } from "node:fs";
+import { existsSync as existsSync8 } from "node:fs";
 import { join as join13 } from "node:path";
-import { fileURLToPath as fileURLToPath5 } from "node:url";
+import { fileURLToPath as fileURLToPath6 } from "node:url";
 async function loadHarfBuzz() {
   if (!_hb) _hb = await import("harfbuzzjs");
   return _hb;
@@ -176843,11 +177453,11 @@ async function loadFontBytes(fontUrl, repoRoot2) {
   }
   let filePath;
   if (fontUrl.startsWith("file://")) {
-    filePath = fileURLToPath5(fontUrl);
+    filePath = fileURLToPath6(fontUrl);
   } else if (fontUrl.startsWith("/")) {
     const roots2 = rootsFor3(repoRoot2);
     filePath = (roots2 ? contentUrlFile(fontUrl, roots2) : null) ?? join13(repoRoot2, fontUrl.slice(1));
-    if (!existsSync7(filePath) && fontUrl.startsWith("/fonts/")) {
+    if (!existsSync8(filePath) && fontUrl.startsWith("/fonts/")) {
       filePath = join13(repoRoot2, "shells", "web", "public", fontUrl.slice(1));
     }
   } else {
@@ -176872,8 +177482,7 @@ async function readFace2(fontUrl, repoRoot2, key2) {
   const hb = await loadHarfBuzz();
   let buf = await loadFontBytes(fontUrl, repoRoot2);
   if (buf.length >= 4 && buf[0] === 119 && buf[1] === 79 && buf[2] === 70 && buf[3] === 50) {
-    const decompress = (await import("woff2-encoder/decompress")).default;
-    buf = new Uint8Array(await decompress(buf));
+    buf = await (await Promise.resolve().then(() => (init_woff2(), woff2_exports))).decodeWoff2(buf, { runner: nodeWoff2Runner });
   }
   const blob = new hb.Blob(buf);
   const face = new hb.Face(blob);
@@ -176973,7 +177582,7 @@ function scanDiskFaces(repoRoot2) {
       const faces = [];
       for (const dir of fontDirs2(repoRoot2)) {
         const abs = dir.abs;
-        if (!existsSync7(abs)) continue;
+        if (!existsSync8(abs)) continue;
         let names;
         try {
           names = await readdir3(abs);
@@ -177015,6 +177624,7 @@ function clustersFrom(pieces, textLength) {
   });
 }
 function createNodeTextAPI({ repoRoot: repoRoot2, assets, parseXml }) {
+  useNodeWoff2Runner();
   const composition = createTextCompositionAPI(async (font) => {
     if (font.source.kind === "embedded") return base64ToBytes(font.source.base64);
     if (font.source.kind === "bundled") return loadFontBytes(font.source.path, repoRoot2);
@@ -177153,6 +177763,7 @@ var init_text3 = __esm({
     init_fallback_fonts();
     init_text_composition();
     init_text_glyphs();
+    init_woff2_node();
     init_text_decoration();
     _hb = null;
     faceCache = /* @__PURE__ */ new Map();
@@ -177185,7 +177796,7 @@ var init_text3 = __esm({
 
 // packages/node-shell/src/browsers.ts
 import { join as join16 } from "node:path";
-import { existsSync as existsSync9 } from "node:fs";
+import { existsSync as existsSync10 } from "node:fs";
 import { homedir as homedir2 } from "node:os";
 function playwrightUserCacheDir(env = process.env, platform = process.platform, home = homedir2()) {
   if (platform === "darwin") return join16(home, "Library", "Caches", "ms-playwright");
@@ -177194,10 +177805,10 @@ function playwrightUserCacheDir(env = process.env, platform = process.platform, 
 }
 function resolveBrowsersDir() {
   if (process.env.PLAYWRIGHT_BROWSERS_PATH) return process.env.PLAYWRIGHT_BROWSERS_PATH;
-  if (existsSync9(INSTALL_BROWSERS_DIR)) return INSTALL_BROWSERS_DIR;
-  if (existsSync9(SIBLING_BROWSERS_DIR)) return SIBLING_BROWSERS_DIR;
+  if (existsSync10(INSTALL_BROWSERS_DIR)) return INSTALL_BROWSERS_DIR;
+  if (existsSync10(SIBLING_BROWSERS_DIR)) return SIBLING_BROWSERS_DIR;
   const userCache = playwrightUserCacheDir();
-  if (existsSync9(userCache)) return userCache;
+  if (existsSync10(userCache)) return userCache;
   return INSTALL_BROWSERS_DIR;
 }
 function chromiumLaunchArgs(graphics = "software", platform = process.platform) {
@@ -177246,7 +177857,7 @@ async function getBrowser({ graphics = "software" } = {}) {
 }
 function browserInstalled() {
   if (process.env.LOLLY_BROWSER_CHANNEL || process.env.LOLLY_BROWSER_PATH) return true;
-  return existsSync9(resolveBrowsersDir());
+  return existsSync10(resolveBrowsersDir());
 }
 var INSTALL_BROWSERS_DIR, SIBLING_BROWSERS_DIR, BrowserError, browserPromise;
 var init_browsers = __esm({
@@ -177836,16 +178447,16 @@ var init_pdf_a11y = __esm({
     STATUSES2 = /* @__PURE__ */ new Set(["passed", "failed", "manual", "skipped"]);
     PdfAccessibilityError = class extends Error {
       code;
-      constructor(code, message) {
-        super(message);
+      constructor(code, message2) {
+        super(message2);
         this.name = "PdfAccessibilityError";
         this.code = code;
       }
     };
     PdfKeepTextError = class extends Error {
       code;
-      constructor(code, message, options2) {
-        super(message, options2);
+      constructor(code, message2, options2) {
+        super(message2, options2);
         this.name = "PdfKeepTextError";
         this.code = code;
       }
@@ -178293,7 +178904,7 @@ var init_pdf_redact_keep = __esm({
 // packages/node-shell/src/state-dir.ts
 import { homedir as homedir3 } from "node:os";
 import { join as join19 } from "node:path";
-import { existsSync as existsSync10 } from "node:fs";
+import { existsSync as existsSync11 } from "node:fs";
 function desktopAppDataDir(env = process.env, probe = {}) {
   const platform = probe.platform ?? process.platform;
   const home = probe.home ?? homedir3();
@@ -178316,7 +178927,7 @@ function resolveStateDir(env = process.env, onNote = (m2) => process.stderr.writ
     }
     return { dir: old, explicit: true, deprecated: true, source: "env-deprecated", shared: false };
   }
-  const exists = probe.exists ?? existsSync10;
+  const exists = probe.exists ?? existsSync11;
   const app = desktopAppDataDir(env, probe);
   if (app && exists(app)) return { dir: app, explicit: false, deprecated: false, source: "app", shared: true };
   const home = probe.home ?? homedir3();
@@ -178973,8 +179584,8 @@ var init_geometry_kernel_contract = __esm({
     "use strict";
     GeometryKernelError = class extends Error {
       code;
-      constructor(code, message) {
-        super(message);
+      constructor(code, message2) {
+        super(message2);
         this.name = "GeometryKernelError";
         this.code = code;
       }
@@ -179091,8 +179702,8 @@ var init_geometry_host = __esm({
 });
 
 // packages/node-shell/src/geometry-clipping.ts
-function invalid2(message) {
-  throw new GeometryKernelError("invalid-argument", message);
+function invalid2(message2) {
+  throw new GeometryKernelError("invalid-argument", message2);
 }
 async function createGeometryClipping(bytes2, mathBackend = "retained") {
   if (mathBackend !== "retained") invalid2("Unknown clipping maths backend.");
@@ -179240,16 +179851,16 @@ var init_geometry_clipping = __esm({
 });
 
 // packages/node-shell/src/geometry-wasm-node.ts
-import { existsSync as existsSync12 } from "node:fs";
+import { existsSync as existsSync13 } from "node:fs";
 import { readFile as readFile18 } from "node:fs/promises";
 import { dirname as dirname6, join as join23 } from "node:path";
-import { fileURLToPath as fileURLToPath9 } from "node:url";
+import { fileURLToPath as fileURLToPath10 } from "node:url";
 async function readGeometryWasm(name) {
-  const adjacent = fileURLToPath9(new URL(`../wasm/geometry-kernel/${name}`, import.meta.url));
-  if (existsSync12(adjacent)) return readFile18(adjacent);
+  const adjacent = fileURLToPath10(new URL(`../wasm/geometry-kernel/${name}`, import.meta.url));
+  if (existsSync13(adjacent)) return readFile18(adjacent);
   for (let dir = dirname6(adjacent); ; dir = dirname6(dir)) {
     const candidate = join23(dir, "packages/node-shell/wasm/geometry-kernel", name);
-    if (existsSync12(candidate)) return readFile18(candidate);
+    if (existsSync13(candidate)) return readFile18(candidate);
     if (dirname6(dir) === dir) break;
   }
   throw new Error(`The geometry kernel ${name} is not installed.`);
@@ -179273,8 +179884,8 @@ var init_geometry_clipping_node = __esm({
 });
 
 // packages/node-shell/src/geometry-fitting.ts
-function invalid3(message) {
-  throw new GeometryKernelError("invalid-argument", message);
+function invalid3(message2) {
+  throw new GeometryKernelError("invalid-argument", message2);
 }
 function coordinate2(value2) {
   if (!Number.isFinite(value2) || Math.abs(value2) > 1e9)
@@ -179509,16 +180120,16 @@ var fonts_exports = {};
 __export(fonts_exports, {
   createNodeFontsAPI: () => createNodeFontsAPI
 });
-import { existsSync as existsSync13 } from "node:fs";
+import { existsSync as existsSync14 } from "node:fs";
 import { readFile as readFile19 } from "node:fs/promises";
 import { dirname as dirname7, join as join24 } from "node:path";
-import { fileURLToPath as fileURLToPath10 } from "node:url";
+import { fileURLToPath as fileURLToPath11 } from "node:url";
 function skeraPath() {
-  const adjacent = fileURLToPath10(new URL("../wasm/skera/skera.wasm", import.meta.url));
-  if (existsSync13(adjacent)) return adjacent;
+  const adjacent = fileURLToPath11(new URL("../wasm/skera/skera.wasm", import.meta.url));
+  if (existsSync14(adjacent)) return adjacent;
   for (let dir = dirname7(adjacent); dirname7(dir) !== dir; dir = dirname7(dir)) {
     const candidate = join24(dir, "packages/node-shell/wasm/skera/skera.wasm");
-    if (existsSync13(candidate)) return candidate;
+    if (existsSync14(candidate)) return candidate;
   }
   throw new Error("The font subset runtime is not installed.");
 }
@@ -179661,7 +180272,7 @@ __export(text_measure_exports, {
   sfntVerticalMetrics: () => sfntVerticalMetrics,
   textMeasureSpecOfRow: () => textMeasureSpecOfRow
 });
-import { existsSync as existsSync14, readdirSync as readdirSync2, readFileSync as readFileSync10 } from "node:fs";
+import { existsSync as existsSync15, readdirSync as readdirSync2, readFileSync as readFileSync10 } from "node:fs";
 import { join as join26 } from "node:path";
 function firstFamily2(value2) {
   if (typeof value2 !== "string") return void 0;
@@ -179705,7 +180316,7 @@ function variableFaces(root2) {
   if (hit) return hit;
   const dir = join26(root2, "shells", "web", "public", "fonts");
   const faces = [];
-  if (existsSync14(dir)) {
+  if (existsSync15(dir)) {
     for (const name of readdirSync2(dir)) {
       const m2 = /^(.+?)(-Italic)?\[[^\]]+\]\.(ttf|otf)$/i.exec(name);
       if (m2) faces.push({ url: `/fonts/${name}`, family: normFamily2(m2[1]), italic: Boolean(m2[2]) });
@@ -179912,16 +180523,16 @@ var init_layout_kernel = __esm({
 });
 
 // packages/node-shell/src/layout-kernel-node.ts
-import { existsSync as existsSync15 } from "node:fs";
+import { existsSync as existsSync16 } from "node:fs";
 import { readFile as readFile21 } from "node:fs/promises";
 import { dirname as dirname8, join as join27 } from "node:path";
-import { fileURLToPath as fileURLToPath11 } from "node:url";
+import { fileURLToPath as fileURLToPath12 } from "node:url";
 async function loadLayoutKernel() {
-  const adjacent = fileURLToPath11(new URL("../wasm/layout-kernel/layout-kernel.wasm", import.meta.url));
-  if (existsSync15(adjacent)) return createLayoutKernel(new Uint8Array(await readFile21(adjacent)));
+  const adjacent = fileURLToPath12(new URL("../wasm/layout-kernel/layout-kernel.wasm", import.meta.url));
+  if (existsSync16(adjacent)) return createLayoutKernel(new Uint8Array(await readFile21(adjacent)));
   for (let dir = dirname8(adjacent); ; dir = dirname8(dir)) {
     const candidate = join27(dir, "packages/node-shell/wasm/layout-kernel/layout-kernel.wasm");
-    if (existsSync15(candidate)) return createLayoutKernel(new Uint8Array(await readFile21(candidate)));
+    if (existsSync16(candidate)) return createLayoutKernel(new Uint8Array(await readFile21(candidate)));
     if (dirname8(dir) === dir) break;
   }
   throw new Error("The layout kernel is not installed.");
@@ -179990,7 +180601,7 @@ var text_tools_exports = {};
 __export(text_tools_exports, {
   createNodeTextTools: () => createNodeTextTools
 });
-import { Worker as Worker4 } from "node:worker_threads";
+import { Worker as Worker5 } from "node:worker_threads";
 function createNodeTextTools() {
   return {
     async operations() {
@@ -180001,7 +180612,7 @@ function createNodeTextTools() {
     },
     run(request3) {
       return new Promise((resolve8, reject) => {
-        const worker = new Worker4(new URL("./text-tools-worker.ts", import.meta.url), {
+        const worker = new Worker5(new URL("./text-tools-worker.ts", import.meta.url), {
           workerData: request3
         });
         const timer = setTimeout(() => {
@@ -180049,20 +180660,20 @@ __export(emoji_exports, {
   EMOJI_PACK_TAG: () => EMOJI_PACK_TAG,
   createNodeEmojiAPI: () => createNodeEmojiAPI
 });
-import { readFile as readFile22, stat as stat3 } from "node:fs/promises";
+import { readFile as readFile22, stat as stat4 } from "node:fs/promises";
 import { resolve as resolve3, sep } from "node:path";
 import { gunzip as gunzip2 } from "node:zlib";
 import { promisify } from "node:util";
 async function bundleText(file) {
   try {
-    if ((await stat3(file)).size > BUNDLE_MAX_BYTES) return null;
+    if ((await stat4(file)).size > BUNDLE_MAX_BYTES) return null;
     return await readFile22(file, "utf8");
   } catch (error2) {
     if (error2.code !== "ENOENT") return null;
   }
   try {
     const compressed = `${file}.gz`;
-    if ((await stat3(compressed)).size > BUNDLE_MAX_BYTES) return null;
+    if ((await stat4(compressed)).size > BUNDLE_MAX_BYTES) return null;
     const bytes2 = await inflateBundle(await readFile22(compressed), { maxOutputLength: BUNDLE_MAX_BYTES });
     return bytes2.toString("utf8");
   } catch {
@@ -180213,7 +180824,7 @@ async function releaseTextAPI(base, pins, read) {
   for (const pin of pins) if (pin.font) {
     let raw = await verifyPinnedFontBytes(pin, await read(pin.frozenId ?? pin.id));
     if (raw.byteLength > 32 * 1024 * 1024) throw new Error("A pinned font exceeds the 32 MB limit.");
-    if (String.fromCharCode(...raw.slice(0, 4)) === "wOF2") raw = new Uint8Array(await (await import("woff2-encoder/decompress")).default(raw));
+    if (String.fromCharCode(...raw.slice(0, 4)) === "wOF2") raw = await (await Promise.resolve().then(() => (init_woff2(), woff2_exports))).decodeWoff2(raw, { runner: nodeWoff2Runner });
     bytes2.set(pin.id, `data:font/ttf;base64,${Buffer.from(raw).toString("base64")}`);
   }
   return {
@@ -180241,11 +180852,12 @@ var init_release_fonts = __esm({
   "packages/node-shell/src/release-fonts.ts"() {
     "use strict";
     init_token_font_pins();
+    init_woff2_node();
   }
 });
 
 // packages/node-shell/src/desktop-renderer.ts
-import { constants, existsSync as existsSync16, accessSync, statSync as statSync4, lstatSync, openSync as openSync2, fstatSync as fstatSync2, readSync as readSync2, closeSync as closeSync2 } from "node:fs";
+import { constants, existsSync as existsSync17, accessSync, statSync as statSync4, lstatSync, openSync as openSync2, fstatSync as fstatSync2, readSync as readSync2, closeSync as closeSync2 } from "node:fs";
 import { homedir as homedir4, tmpdir } from "node:os";
 import { basename as basename3, delimiter, join as join28 } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
@@ -180335,7 +180947,7 @@ function windowsInstallLocations(env) {
 }
 function executable(path) {
   try {
-    if (!existsSync16(path)) return false;
+    if (!existsSync17(path)) return false;
     if (process.platform !== "win32") accessSync(path, constants.X_OK);
     return true;
   } catch {
@@ -180602,8 +181214,8 @@ var init_desktop_renderer = __esm({
     "use strict";
     init_state_dir();
     DesktopRendererError = class extends Error {
-      constructor(message) {
-        super(message);
+      constructor(message2) {
+        super(message2);
         this.name = "DesktopRendererError";
       }
     };
@@ -180627,6 +181239,140 @@ var init_desktop_renderer = __esm({
   }
 });
 
+// packages/node-shell/src/lolly-render.ts
+import { existsSync as existsSync18 } from "node:fs";
+import { createRequire as createRequire7 } from "node:module";
+import { join as join29 } from "node:path";
+function cargoLibrary() {
+  if (process.platform === "win32") return "lolly_render_node.dll";
+  return process.platform === "darwin" ? "liblolly_render_node.dylib" : "liblolly_render_node.so";
+}
+function asBinding(exports, from) {
+  const candidate = exports;
+  const missing = FUNCTIONS.filter((name) => typeof candidate?.[name] !== "function");
+  if (missing.length) return { reason: `${from} is not the lolly-render binding (no ${missing.join(", ")})` };
+  let renderer;
+  try {
+    renderer = candidate.renderer();
+  } catch (error2) {
+    return { reason: `${from} did not name its renderer (${message(error2)})` };
+  }
+  if (typeof renderer !== "string" || !renderer.startsWith("lolly-render-")) return { reason: `${from} names an unknown renderer (${String(renderer)})` };
+  return { binding: candidate, renderer };
+}
+function loadFile(path) {
+  if (!existsSync18(path)) return { reason: `${path} does not exist` };
+  const module = { exports: {} };
+  try {
+    process.dlopen(module, path);
+  } catch (error2) {
+    return { reason: `${path} could not be loaded (${message(error2)})` };
+  }
+  return asBinding(module.exports, path);
+}
+function find(env) {
+  const named = env[LOLLY_RENDER_ADDON_ENV]?.trim() ?? "";
+  const known3 = loaded.get(named);
+  if (known3) return known3;
+  let found;
+  if (named) {
+    const result = loadFile(named);
+    found = "binding" in result ? { ...result, from: named } : { reason: `${LOLLY_RENDER_ADDON_ENV} names a binding that is not usable: ${result.reason}` };
+  } else {
+    const tried = [];
+    found = { reason: "" };
+    try {
+      const result = asBinding(createRequire7(import.meta.url)("@lolly-tools/render"), "@lolly-tools/render");
+      if ("binding" in result) found = { ...result, from: "@lolly-tools/render" };
+      else tried.push(result.reason);
+    } catch (error2) {
+      tried.push(`@lolly-tools/render is not installed (${message(error2)})`);
+    }
+    if (!("binding" in found)) {
+      let local2 = null;
+      try {
+        local2 = join29(repoRoot(), "crates", "lolly-render-node", "target", "release", cargoLibrary());
+      } catch {
+      }
+      const result = local2 ? loadFile(local2) : { reason: "this is not a Lolly checkout, so there is no local build" };
+      if ("binding" in result) found = { ...result, from: local2 };
+      else tried.push(result.reason);
+    }
+    if (!("binding" in found)) found = { reason: `the lolly-render addon is not installed here: ${tried.join("; ")}` };
+  }
+  loaded.set(named, found);
+  return found;
+}
+function lollyRenderState(env = process.env) {
+  const found = find(env);
+  return "binding" in found ? { present: true, from: found.from, renderer: found.renderer } : { present: false, reason: found.reason };
+}
+function refusalOf(raw, fallback) {
+  const refusals = Array.isArray(raw?.refusals) && raw.refusals.length ? raw.refusals.map((r5) => ({ code: String(r5.code), id: String(r5.id ?? ""), detail: String(r5.detail ?? "") })) : [{ code: fallback.code, id: "", detail: fallback.detail }];
+  return { ok: false, code: refusals[0].code, detail: refusals[0].detail, refusals };
+}
+function inputOf(envelope2) {
+  if (typeof envelope2 === "string") return envelope2;
+  if (envelope2 instanceof Uint8Array) return Buffer.isBuffer(envelope2) ? envelope2 : Buffer.from(envelope2.buffer, envelope2.byteOffset, envelope2.byteLength);
+  return JSON.stringify(envelope2);
+}
+async function call2(kind, envelope2, env) {
+  const found = find(env);
+  if (!("binding" in found)) return absent(found.reason);
+  let input;
+  try {
+    input = inputOf(envelope2);
+  } catch (error2) {
+    return refusalOf(null, { code: "input-json", detail: `the envelope could not be written as JSON (${message(error2)})` });
+  }
+  try {
+    return await (kind === "png" ? found.binding.renderPngAsync(input) : found.binding.renderRgbaAsync(input));
+  } catch (error2) {
+    return refusalOf(null, { code: "unusable", detail: `the binding did not take the envelope (${message(error2)})` });
+  }
+}
+async function renderDesignPageRgba(envelope2, env = process.env) {
+  const raw = await call2("rgba", envelope2, env);
+  if (raw.ok && "rgba" in raw && raw.rgba instanceof Uint8Array && typeof raw.width === "number" && typeof raw.height === "number" && raw.rgba.length === raw.width * raw.height * 4) {
+    return { ok: true, rgba: raw.rgba, width: raw.width, height: raw.height };
+  }
+  return refusalOf(raw.ok ? null : raw, { code: "unusable", detail: "the binding returned no pixels of the size it named" });
+}
+async function encodeDesignPng(rgba2, width, height, env = process.env) {
+  const found = find(env);
+  if (!("binding" in found)) return null;
+  try {
+    const raw = await found.binding.encodePngAsync(Buffer.isBuffer(rgba2) ? rgba2 : Buffer.from(rgba2.buffer, rgba2.byteOffset, rgba2.byteLength), width, height);
+    return raw.ok && raw.png instanceof Uint8Array ? raw.png : null;
+  } catch {
+    return null;
+  }
+}
+function lollyRenderEnvelope(drawing, output) {
+  return {
+    format: LOLLY_RENDER_INPUT_FORMAT,
+    version: LOLLY_RENDER_INPUT_VERSION,
+    drawVersion: drawing.page.version,
+    output: { width: output.width, height: output.height, ...output.dpi ? { dpi: output.dpi } : {} },
+    page: drawing.page,
+    resources: [...drawing.pictures].map(([ref2, picture]) => ({ ref: ref2, type: picture.mime, data: Buffer.from(picture.bytes).toString("base64") }))
+  };
+}
+var LOLLY_RENDER_ADDON_ENV, LOLLY_RENDER_INPUT_FORMAT, LOLLY_RENDER_INPUT_VERSION, FUNCTIONS, message, loaded, absent;
+var init_lolly_render = __esm({
+  "packages/node-shell/src/lolly-render.ts"() {
+    "use strict";
+    init_repo_root();
+    LOLLY_RENDER_ADDON_ENV = "LOLLY_RENDER_ADDON";
+    LOLLY_RENDER_INPUT_FORMAT = "lolly-render-input";
+    LOLLY_RENDER_INPUT_VERSION = 1;
+    FUNCTIONS = ["renderer", "refusalCodes", "admit", "renderPng", "renderRgba", "renderPngAsync", "renderRgbaAsync", "encodePng", "encodePngAsync"];
+    message = (error2) => (error2 instanceof Error ? error2.message : String(error2)).split("\n")[0] ?? "";
+    loaded = /* @__PURE__ */ new Map();
+    absent = (reason2) => refusalOf(null, { code: "absent", detail: reason2 });
+  }
+});
+
 // packages/node-shell/src/design-still.ts
 var design_still_exports = {};
 __export(design_still_exports, {
@@ -180640,19 +181386,22 @@ __export(design_still_exports, {
   designStillSize: () => designStillSize,
   designSvgRefusals: () => designSvgRefusals,
   drawDesignStill: () => drawDesignStill,
+  finishDesignStill: () => finishDesignStill,
+  lollyRenderReason: () => lollyRenderReason,
+  lollyRenderRoute: () => lollyRenderRoute,
   nodeResvgRoute: () => nodeResvgRoute,
   premultipliedGradients: () => premultipliedGradients,
   resvgRefusals: () => resvgRefusals,
   resvgVersion: () => resvgVersion,
   roundedFrameClips: () => roundedFrameClips
 });
-import { existsSync as existsSync17 } from "node:fs";
-import { join as join29 } from "node:path";
+import { existsSync as existsSync19 } from "node:fs";
+import { join as join30 } from "node:path";
 import { inflateSync as inflateSync3 } from "node:zlib";
 function designRasterChoice(env = process.env) {
   const raw = env[DESIGN_RASTER_ENV];
   const value2 = (raw ?? "").trim().toLowerCase();
-  if (value2 === "resvg") return { choice: "resvg" };
+  if (value2 === "resvg" || value2 === "lolly-render") return { choice: value2 };
   return value2 === "" || value2 === "auto" ? { choice: "auto" } : { choice: "auto", ignored: raw };
 }
 function browserTierState() {
@@ -180662,8 +181411,8 @@ function browserTierState() {
   } catch {
     return { available: true };
   }
-  const dist2 = process.env.LOLLY_WEB_DIST || join29(repoRoot(), "shells", "web", "dist");
-  const webShell = Boolean(process.env.LOLLY_WEB_BASE) || existsSync17(join29(dist2, "index.html"));
+  const dist2 = process.env.LOLLY_WEB_DIST || join30(repoRoot(), "shells", "web", "dist");
+  const webShell = Boolean(process.env.LOLLY_WEB_BASE) || existsSync19(join30(dist2, "index.html"));
   const chromium = browserInstalled();
   if (preference !== "desktop" && chromium && webShell) return { available: true };
   if (preference !== "chromium" && (readRenderServer() || desktopInstalled())) return { available: true };
@@ -180674,7 +181423,12 @@ function browserTierState() {
   ].filter((line2) => line2 !== null);
   return { available: false, reason: missing.join("; ") };
 }
-function designStillNote(decision2) {
+function designStillNote(decision2, drawn2) {
+  if (decision2.lollyRender && drawn2 && isLollyRenderRoute(drawn2.route)) return `This Design page was drawn without a browser, by lolly-render from its drawing operations, because ${DESIGN_RASTER_ENV}=lolly-render is set. Unset it for the browser's own render.`;
+  if (decision2.lollyRender) {
+    const said = `lolly-render did not draw this Design page because ${lollyRenderReason(drawn2?.lollyRenderRefused ?? [])}.`;
+    return `${said} ${designStillNote({ draw: "here", because: decision2.lollyRender.because, ...decision2.noBrowser ? { noBrowser: true } : {} })}`;
+  }
   const what = "This Design page was drawn without a browser, by resvg from its drawing operations";
   if (decision2.because.startsWith(DESIGN_RASTER_ENV)) return `${what}, because ${DESIGN_RASTER_ENV}=resvg is set. Unset it for the browser's own render.`;
   if (decision2.because.startsWith(`--${BROWSER_FREE_FLAG}`)) return `${what}, because --${BROWSER_FREE_FLAG} was given. Leave it off for the browser's own render.`;
@@ -180683,11 +181437,27 @@ function designStillNote(decision2) {
 function designStillDecision(env = process.env, tier = browserTierState, accept = false) {
   const { choice: choice3, ignored } = designRasterChoice(env);
   const extra = ignored !== void 0 ? { ignored } : {};
+  if (choice3 === "lolly-render") {
+    const fallback = designStillDecision({ ...env, [DESIGN_RASTER_ENV]: "auto" }, tier, accept);
+    return {
+      draw: "here",
+      because: `${DESIGN_RASTER_ENV}=lolly-render asks for this route`,
+      lollyRender: { next: fallback.draw === "here" ? "resvg" : "browser", because: fallback.because },
+      ...fallback.noBrowser ? { noBrowser: true } : {},
+      ...extra
+    };
+  }
   if (choice3 === "resvg") return { draw: "here", because: `${DESIGN_RASTER_ENV}=resvg asks for this route`, ...extra };
   if (accept) return { draw: "here", because: `--${BROWSER_FREE_FLAG} asks for this route`, ...extra };
   const state = tier();
   if (!state.available) return { draw: "here", because: `no browser render tier is available (${state.reason ?? "none found"})`, noBrowser: true, ...extra };
   return { draw: "browser", because: `a browser render tier is available and ${DESIGN_RASTER_ENV}=resvg was not given`, ...extra };
+}
+function lollyRenderReason(refusals) {
+  if (!refusals.length) return "it gave no reason";
+  if (refusals.length === 1 && refusals[0].code === "absent") return refusals[0].detail;
+  const shown = refusals.slice(0, 3).map((r5) => `${r5.detail}${r5.id ? ` (${r5.id})` : ""} [${r5.code}]`);
+  return `it refused ${shown.join("; ")}${refusals.length > 3 ? `; and ${refusals.length - 3} more` : ""}`;
 }
 function base64Bytes(body) {
   try {
@@ -180936,7 +181706,7 @@ function designStillSize(page3, dims) {
   const dpi = physical ? dims.dpi && dims.dpi > 0 ? dims.dpi : 300 : 96;
   const given2 = (v) => typeof v === "number" && v > 0;
   if (!given2(dims.width) && !given2(dims.height)) {
-    return page3.width > MAX_SIDE2 || page3.height > MAX_SIDE2 ? { reason: `the page is over ${MAX_SIDE2} px a side` } : { width: Math.round(page3.width), height: Math.round(page3.height), dpi };
+    return page3.width > MAX_SIDE3 || page3.height > MAX_SIDE3 ? { reason: `the page is over ${MAX_SIDE3} px a side` } : { width: Math.round(page3.width), height: Math.round(page3.height), dpi };
   }
   if (!given2(dims.width) || !given2(dims.height)) return { reason: "the export gives one side of its size only" };
   const toPx = (v) => {
@@ -180946,7 +181716,7 @@ function designStillSize(page3, dims) {
   };
   const width = toPx(dims.width), height = toPx(dims.height);
   if (!(width > 0 && height > 0)) return { reason: `the export's unit "${unit2}" is not one this route reads` };
-  if (!Number.isFinite(width) || !Number.isFinite(height) || width > MAX_SIDE2 || height > MAX_SIDE2) return { reason: `the requested size is over ${MAX_SIDE2} px a side` };
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width > MAX_SIDE3 || height > MAX_SIDE3) return { reason: `the requested size is over ${MAX_SIDE3} px a side` };
   if (Math.abs(height - page3.height * (width / page3.width)) > 0.5) return { reason: `the requested size changes the page's proportions (the page is ${Math.round(page3.width)} x ${Math.round(page3.height)})` };
   return { width, height, dpi };
 }
@@ -180965,6 +181735,43 @@ async function drawDesignStill(req) {
   const frameId = req.page.getAttribute("data-frame-id") ?? "";
   const laidOut = (req.rows ?? []).filter((row) => !!row && typeof row === "object").filter((row) => (row.layout === "flex" || row.layout === "grid") && (String(row.id ?? "") === frameId || String(row.frame ?? "") === frameId)).map((row) => String(row.id ?? ""));
   if (laidOut.length) return refuse4([{ code: "layout", reason: `the page lays out ${laidOut.join(", ")} with flex or grid, which the export hook works out after the page is read` }]);
+  if (!req.lollyRender) return drawWithResvg(req, req.page, frameId);
+  const crate = await drawWithLollyRender(req, req.page);
+  if ("drawn" in crate) return crate;
+  const said = { code: "lolly-render", reason: `lolly-render did not draw the page because ${lollyRenderReason(crate.refusals)}` };
+  if (req.lollyRender.next === "browser") return refuse4([said]);
+  const result = await drawWithResvg(req, req.page, frameId);
+  return "drawn" in result ? { drawn: { ...result.drawn, lollyRenderRefused: crate.refusals } } : refuse4([said, ...result.refusals]);
+}
+async function drawWithLollyRender(req, page3) {
+  const state = lollyRenderState();
+  if (!state.present) return { refusals: [{ code: "absent", id: "", detail: state.reason }] };
+  const ingredients = [];
+  let drawing;
+  try {
+    await req.exportSvg(page3, {
+      convertPaths: true,
+      ingredientSink: ingredients,
+      drawingSink: (compiled3) => {
+        drawing = compiled3;
+      }
+    });
+  } catch (error2) {
+    if (error2 instanceof Error && FATAL.has(error2.name)) throw error2;
+    const message2 = error2 instanceof Error ? error2.message : String(error2);
+    return { refusals: [{ code: "export", id: "", detail: /\bbecause (.+)$/s.exec(message2)?.[1]?.replace(/\.$/, "") ?? message2 }] };
+  }
+  if (!drawing) return { refusals: [{ code: "export", id: "", detail: "the export compiled no drawing operations for the page" }] };
+  const size = designStillSize({ width: drawing.frame.width, height: drawing.frame.height }, req.dims);
+  if ("reason" in size) return { refusals: [{ code: "output-size", id: "", detail: size.reason }] };
+  const drawn2 = await renderDesignPageRgba(lollyRenderEnvelope(drawing, size));
+  if (!drawn2.ok) return { refusals: drawn2.refusals };
+  const encode = (rgba2, width, height) => encodeDesignPng(rgba2, width, height);
+  const { bytes: bytes2, imprinted } = await finishDesignStill({ data: drawn2.rgba, width: drawn2.width, height: drawn2.height }, size, { imprint: req.dims.imprint, meta: req.meta() ?? null, encode });
+  return { drawn: { bytes: bytes2, imprinted, width: drawn2.width, height: drawn2.height, route: lollyRenderRoute(state.renderer), ingredients } };
+}
+async function drawWithResvg(req, node, frameId) {
+  const refuse4 = (refusals) => ({ refused: refusals.map((r5) => r5.reason), refusals });
   const accepted = [];
   const weigh = (found) => {
     accepted.splice(0, accepted.length, ...dedupeRefusals([...accepted, ...found]));
@@ -180978,7 +181785,7 @@ async function drawDesignStill(req) {
   let drawnFrom;
   let svg;
   try {
-    const blob = await req.exportSvg(req.page, {
+    const blob = await req.exportSvg(node, {
       convertPaths: true,
       ingredientSink: ingredients,
       onExportRoute: (record49) => {
@@ -180991,8 +181798,8 @@ async function drawDesignStill(req) {
       if (!req.accept && accepted.length) return refuse4([...accepted]);
       throw error2;
     }
-    const message = error2 instanceof Error ? error2.message : String(error2);
-    return refuse4([...accepted, { code: "request", reason: /\bbecause (.+)$/s.exec(message)?.[1]?.replace(/\.$/, "") ?? message }]);
+    const message2 = error2 instanceof Error ? error2.message : String(error2);
+    return refuse4([...accepted, { code: "request", reason: /\bbecause (.+)$/s.exec(message2)?.[1]?.replace(/\.$/, "") ?? message2 }]);
   }
   if (drawnFrom?.route !== "operations") return refuse4([...accepted, { code: "request", reason: "the page was not written from the drawing operations" }]);
   const page3 = viewBoxSize(svg);
@@ -181016,11 +181823,14 @@ async function drawDesignStill(req) {
   return { drawn: { bytes: bytes2, imprinted, width: size.width, height: size.height, route, ingredients, ...accepted.length ? { accepted: [...accepted] } : {} } };
 }
 async function designStillPng(svg, size, opts = {}) {
-  const engine = await Promise.resolve().then(() => (init_src2(), src_exports));
   const frame = await rasterizeSvgToRgba(svg, size.width, size.height, { fonts: false });
+  return finishDesignStill(frame, size, opts);
+}
+async function finishDesignStill(frame, size, opts = {}) {
+  const engine = await Promise.resolve().then(() => (init_src2(), src_exports));
   const imprinted = !!opts.imprint && engine.canCarryWatermark(frame.width, frame.height);
   const rgba2 = imprinted ? engine.embedWatermark(frame.data, { width: frame.width, height: frame.height, strength: engine.LOSSLESS_STRENGTH }) : frame.data;
-  let png = engine.packPng(rgba2, { width: frame.width, height: frame.height, channels: 4, depth: 8 });
+  let png = await opts.encode?.(rgba2, frame.width, frame.height) ?? engine.packPng(rgba2, { width: frame.width, height: frame.height, channels: 4, depth: 8 });
   const meta = opts.meta ?? null;
   png = engine.insertPngPhys(png, size.dpi) ?? png;
   png = engine.insertPngMeta(png, meta);
@@ -181029,7 +181839,7 @@ async function designStillPng(svg, size, opts = {}) {
   if (icc) png = await engine.insertPngIcc(png, icc, "sRGB");
   return { bytes: png, imprinted };
 }
-var DESIGN_RASTER_ENV, resvgVersion, designResvgRenderer, nodeResvgRoute, RESVG_BLENDS, hasElement, blendsThroughOpacity, GRADIENT_SAMPLES, MAX_SIDE2, FATAL;
+var DESIGN_RASTER_ENV, resvgVersion, designResvgRenderer, nodeResvgRoute, lollyRenderRoute, isLollyRenderRoute, RESVG_BLENDS, hasElement, blendsThroughOpacity, GRADIENT_SAMPLES, MAX_SIDE3, FATAL;
 var init_design_still = __esm({
   "packages/node-shell/src/design-still.ts"() {
     "use strict";
@@ -181043,16 +181853,19 @@ var init_design_still = __esm({
     init_raster3();
     init_resvg_admission();
     init_export_route();
+    init_lolly_render();
     init_repo_root();
     DESIGN_RASTER_ENV = "LOLLY_DESIGN_RASTER";
     resvgVersion = () => resvgPackageVersion();
     designResvgRenderer = () => `${designOperationsRenderer(DESIGN_DRAW_VERSION)}+resvg-js-${resvgVersion()}`;
     nodeResvgRoute = () => ({ route: "operations", renderer: designResvgRenderer() });
+    lollyRenderRoute = (renderer) => ({ route: "operations", renderer: `${designOperationsRenderer(DESIGN_DRAW_VERSION)}+${renderer}` });
+    isLollyRenderRoute = (route) => /\+lolly-render-/.test(route.renderer ?? "");
     RESVG_BLENDS = /* @__PURE__ */ new Set(["normal", "multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"]);
     hasElement = (markup, name) => new RegExp(`<(?:[^\\s<>/:="']+:)?${name}[\\s/>]`, "iu").test(markup);
     blendsThroughOpacity = (a, b) => a.opacity !== b.opacity && (a.rgb[0] !== b.rgb[0] || a.rgb[1] !== b.rgb[1] || a.rgb[2] !== b.rgb[2]);
     GRADIENT_SAMPLES = 32;
-    MAX_SIDE2 = 16384;
+    MAX_SIDE3 = 16384;
     FATAL = /* @__PURE__ */ new Set(["RenderIntegrityError", "ExportHookError"]);
   }
 });
@@ -183198,7 +184011,7 @@ async function designOpsPdfNode(node, opts, host, ctx) {
   try {
     const finished = await finishPdfX(out.pdf, opts, {
       intentKind: "srgb",
-      log: (level2, message) => host.log?.(level2, message),
+      log: (level2, message2) => host.log?.(level2, message2),
       ...hasGeo ? { geos, space: "rgb", labels } : {}
     });
     const pdf = opts.strongPassword ? await encryptPdfStrong(finished, opts.strongPassword) : finished;
@@ -183230,9 +184043,10 @@ var init_design_ops_pdf = __esm({
 // packages/node-shell/src/design-ops-svg.ts
 var design_ops_svg_exports = {};
 __export(design_ops_svg_exports, {
+  designOpsDrawingNode: () => designOpsDrawingNode,
   designOpsSvgNode: () => designOpsSvgNode
 });
-async function designOpsSvgNode(node, opts, host, ctx) {
+async function opsPage(node, opts, host, ctx) {
   const doc = opts.sourceDocument;
   if (doc?.toolId !== "design") return null;
   if (nodeExportRouteChoice() === "legacy") return { reason: "the compatibility route is forced (LOLLY_EXPORT_ROUTE=legacy)" };
@@ -183241,33 +184055,58 @@ async function designOpsSvgNode(node, opts, host, ctx) {
   if (opts.watermark) return { reason: "the export carries a watermark" };
   const use = await designOpsNodeHost(host, ctx, opts.convertPaths !== false);
   if (!use) return { reason: "this shell has no text host" };
+  const dpi = opts.dpi > 0 ? opts.dpi : 96;
+  return { values: doc.values, frameId, use, dpi };
+}
+function compileReason(error2) {
+  if (error2 instanceof Error && error2.name === "RenderIntegrityError") throw error2;
+  return { reason: `the drawing could not be compiled (${error2 instanceof Error ? error2.message : String(error2)})` };
+}
+async function designOpsSvgNode(node, opts, host, ctx) {
+  const found = await opsPage(node, opts, host, ctx);
+  if (!found || "reason" in found) return found;
+  const { values, frameId, use, dpi } = found;
   const width = parseDimension(opts.width) ?? void 0;
   const height = parseDimension(opts.height) ?? void 0;
-  const dpi = opts.dpi > 0 ? opts.dpi : 96;
   const { designFrames: designFrames2, designPageSvg: designPageSvg2 } = await Promise.resolve().then(() => (init_design_page_svg(), design_page_svg_exports));
-  const frame = designFrames2(doc.values).find((f) => f.id === frameId);
+  const frame = designFrames2(values).find((f) => f.id === frameId);
   if (!frame) return { reason: `there is no visible frame "${frameId}"` };
   const w = width ?? { value: frame.width, unit: "px" }, h = height ?? { value: frame.height, unit: "px" };
   let page3;
   try {
-    page3 = await designPageSvg2(doc.values, frameId, use.drawing, {
+    page3 = await designPageSvg2(values, frameId, use.drawing, {
       dpi,
       size: { width: toCssLength(w), height: toCssLength(h), px: { w: toCssPx(w), h: toCssPx(h) } },
       ...opts.meta ? { meta: opts.meta } : {}
     });
   } catch (error2) {
-    if (error2 instanceof Error && error2.name === "RenderIntegrityError") throw error2;
-    return { reason: `the drawing could not be compiled (${error2 instanceof Error ? error2.message : String(error2)})` };
+    return compileReason(error2);
   }
-  if (page3.findings.length) return { reason: `the page holds features the drawing operations do not carry yet: ${[...new Set(page3.findings.map((f) => `${f.feature} (${f.id})`))].join(", ")}` };
-  return { svg: page3.svg, ingredients: await use.ingredients(doc.values) };
+  if (page3.findings.length) return findingsReason(page3.findings);
+  return { svg: page3.svg, ingredients: await use.ingredients(values) };
 }
+async function designOpsDrawingNode(node, opts, host, ctx) {
+  const found = await opsPage(node, opts, host, ctx);
+  if (!found || "reason" in found) return found;
+  const { values, frameId, use, dpi } = found;
+  const { designFrames: designFrames2, designPageDrawing: designPageDrawing2 } = await Promise.resolve().then(() => (init_design_page_svg(), design_page_svg_exports));
+  if (!designFrames2(values).some((f) => f.id === frameId)) return { reason: `there is no visible frame "${frameId}"` };
+  let drawing;
+  try {
+    drawing = await designPageDrawing2(values, frameId, use.drawing, { dpi });
+  } catch (error2) {
+    return compileReason(error2);
+  }
+  return { drawing, ingredients: await use.ingredients(values) };
+}
+var findingsReason;
 var init_design_ops_svg = __esm({
   "packages/node-shell/src/design-ops-svg.ts"() {
     "use strict";
     init_src2();
     init_design_ops_host();
     init_export_route();
+    findingsReason = (findings) => ({ reason: `the page holds features the drawing operations do not carry yet: ${[...new Set(findings.map((f) => `${f.feature} (${f.id})`))].join(", ")}` });
   }
 });
 
@@ -183588,8 +184427,8 @@ var init_signing_identity = __esm({
     };
     SigningIdentityError = class extends Error {
       code;
-      constructor(message, code) {
-        super(message);
+      constructor(message2, code) {
+        super(message2);
         this.name = "SigningIdentityError";
         this.code = code;
       }
@@ -183608,9 +184447,9 @@ __export(raster_child_exports, {
   rasterInChild: () => rasterInChild
 });
 import { spawn as spawn3 } from "node:child_process";
-import { createRequire as createRequire7 } from "node:module";
+import { createRequire as createRequire8 } from "node:module";
 function resolveResvg() {
-  resvgPath ??= createRequire7(import.meta.url).resolve("@resvg/resvg-js");
+  resvgPath ??= createRequire8(import.meta.url).resolve("@resvg/resvg-js");
   return resvgPath;
 }
 function rasterInChild(job) {
@@ -183738,11 +184577,11 @@ import { execFile } from "node:child_process";
 import { promisify as promisify2 } from "node:util";
 import { mkdtemp, writeFile as writeFile4, rm as rm3 } from "node:fs/promises";
 import { tmpdir as tmpdir2 } from "node:os";
-import { join as join31 } from "node:path";
+import { join as join32 } from "node:path";
 async function inspectMotionBytes(bytes2, target2 = {}, binaries = { probe: "ffprobe", decode: "ffmpeg" }, options2 = {}) {
   options2.signal?.throwIfAborted();
   if (!bytes2.length || bytes2.length > 256 * 1024 * 1024) throw new Error("Motion inspection accepts 1 byte to 256 MiB.");
-  const directory = await mkdtemp(join31(tmpdir2(), "lolly-motion-check-")), path = join31(directory, "delivery");
+  const directory = await mkdtemp(join32(tmpdir2(), "lolly-motion-check-")), path = join32(directory, "delivery");
   const facts2 = {}, checks = [];
   try {
     await writeFile4(path, bytes2);
@@ -183838,7 +184677,7 @@ import { execFile as execFile2 } from "node:child_process";
 import { promisify as promisify3 } from "node:util";
 import { mkdtemp as mkdtemp2, writeFile as writeFile5, rm as rm4 } from "node:fs/promises";
 import { tmpdir as tmpdir3 } from "node:os";
-import { join as join32 } from "node:path";
+import { join as join33 } from "node:path";
 async function collectProductionMotion(bytes2, contract2, signal, binaries = { probe: "ffprobe", decode: "ffmpeg" }) {
   signal?.throwIfAborted();
   const facts2 = { limitations: ["motion-appearance-between-samples-unmeasured", "decoded-rgb8-not-hdr-or-cross-device-conformance", "encoded-pixels-do-not-prove-text-or-chart-semantics"] };
@@ -183854,7 +184693,7 @@ async function collectProductionMotion(bytes2, contract2, signal, binaries = { p
     facts2.limitations.push("unsupported-motion-container");
     return facts2;
   }
-  const directory = await mkdtemp2(join32(tmpdir3(), "lolly-production-motion-")), path = join32(directory, "delivery");
+  const directory = await mkdtemp2(join33(tmpdir3(), "lolly-production-motion-")), path = join33(directory, "delivery");
   try {
     await writeFile5(path, bytes2);
     const { stdout } = await run2(binaries.probe, ["-v", "error", "-protocol_whitelist", "file,pipe", "-show_streams", "-show_format", "-of", "json", path], { signal, timeout: 3e4, maxBuffer: 2 * 1024 * 1024 });
@@ -183983,13 +184822,13 @@ var init_production_motion = __esm({
 import { execFile as execFile3 } from "node:child_process";
 import { mkdtemp as mkdtemp3, readFile as readFile27, rm as rm5, writeFile as writeFile6 } from "node:fs/promises";
 import { tmpdir as tmpdir4 } from "node:os";
-import { join as join33 } from "node:path";
+import { join as join34 } from "node:path";
 import { promisify as promisify4 } from "node:util";
 async function collectProductionPdf(bytes2, contract2, signal) {
   const facts2 = { format: "pdf", limitations: ["pdf-print-colour-and-overprint-unchecked", "pdf-font-identity-unchecked"] };
-  const dir = await mkdtemp3(join33(tmpdir4(), "lolly-production-"));
+  const dir = await mkdtemp3(join34(tmpdir4(), "lolly-production-"));
   try {
-    const file = join33(dir, "input.pdf");
+    const file = join34(dir, "input.pdf");
     await writeFile6(file, bytes2);
     const opts = { encoding: "utf8", timeout: 1e4, maxBuffer: 2 * 1024 * 1024, signal, env: { ...process.env, LC_ALL: "C" } };
     const { stdout } = await exec("pdfinfo", ["-box", "-f", "1", "-l", "100", file], opts);
@@ -184020,8 +184859,8 @@ async function collectProductionPdf(bytes2, contract2, signal) {
     if (contract2.comparison || contract2.alpha !== "any") {
       if (pages !== 1 || !facts2.width || !facts2.height || Math.ceil(facts2.width) * Math.ceil(facts2.height) > PRODUCTION_MAX_PIXELS) facts2.limitations.push("pdf-pixel-budget-or-multiple-pages");
       else {
-        await exec("pdftoppm", ["-f", "1", "-singlefile", "-cropbox", "-scale-dimension-before-rotation", "-r", "96", "-png", file, join33(dir, "page")], opts);
-        const raster = await productionRaster(new Uint8Array(await readFile27(join33(dir, "page.png"))), signal);
+        await exec("pdftoppm", ["-f", "1", "-singlefile", "-cropbox", "-scale-dimension-before-rotation", "-r", "96", "-png", file, join34(dir, "page")], opts);
+        const raster = await productionRaster(new Uint8Array(await readFile27(join34(dir, "page.png"))), signal);
         facts2.pixels = raster.pixels;
         facts2.opaque = raster.opaque;
       }
@@ -184215,9 +185054,9 @@ __export(webshell_render_exports, {
   transformViaWebShell: () => transformViaWebShell
 });
 import { createServer as createServer2 } from "node:http";
-import { readFile as readFile30, stat as stat6 } from "node:fs/promises";
-import { existsSync as existsSync21, writeFileSync as writeFileSync2 } from "node:fs";
-import { join as join35, resolve as resolve7, extname as extname3, normalize as normalize3 } from "node:path";
+import { readFile as readFile30, stat as stat7 } from "node:fs/promises";
+import { existsSync as existsSync23, writeFileSync as writeFileSync2 } from "node:fs";
+import { join as join36, resolve as resolve7, extname as extname3, normalize as normalize3 } from "node:path";
 async function webShellBase2() {
   const remote = process.env.LOLLY_WEB_BASE;
   if (remote) return remote.replace(/\/$/, "");
@@ -184245,14 +185084,14 @@ function activeContentResponse(urlPath) {
   try {
     if (head2 === "catalog" && rest2.join("/") === "assets/index.json") return { json: JSON.stringify(readAssetIndex()) };
     const file = head2 === "catalog" ? catalogFile(rest2.join("/")) : head2 === "tools" && rest2.length > 1 ? toolFile(rest2[0], rest2.slice(1).join("/")) : null;
-    return file && existsSync21(file) ? { file } : null;
+    return file && existsSync23(file) ? { file } : null;
   } catch {
     return null;
   }
 }
 function serveDist2() {
-  const dist2 = process.env.LOLLY_WEB_DIST || join35(repoRoot(), "shells", "web", "dist");
-  if (!existsSync21(join35(dist2, "index.html"))) {
+  const dist2 = process.env.LOLLY_WEB_DIST || join36(repoRoot(), "shells", "web", "dist");
+  if (!existsSync23(join36(dist2, "index.html"))) {
     throw new BrowserError(
       `No built web shell at ${dist2}. Run \`pnpm run build:web\` (or set LOLLY_WEB_DIST to a prebuilt shell / LOLLY_WEB_BASE to a running one). Raster/PDF/video export needs it; svg and data formats render without it.`
     );
@@ -184273,8 +185112,8 @@ function serveDist2() {
         res.writeHead(403).end();
         return;
       }
-      if (!live2 && (urlPath === "/" || !existsSync21(filePath) || !(await stat6(filePath)).isFile())) {
-        filePath = join35(root2, "index.html");
+      if (!live2 && (urlPath === "/" || !existsSync23(filePath) || !(await stat7(filePath)).isFile())) {
+        filePath = join36(root2, "index.html");
       }
       const data = await readFile30(filePath);
       res.setHeader("Content-Type", MIME4[extname3(filePath)] ?? "application/octet-stream");
@@ -184391,7 +185230,7 @@ function startDebug() {
         ...network.length ? network.map((l) => `  ${l}`) : ["  (nothing)"],
         ""
       ];
-      const path = tierBDebugConfig.outPath ? `${tierBDebugConfig.outPath}.tier-b-debug.log` : join35(process.cwd(), `lolly-tier-b-debug-${label5.replace(/[^a-z0-9.-]+/gi, "-")}.log`);
+      const path = tierBDebugConfig.outPath ? `${tierBDebugConfig.outPath}.tier-b-debug.log` : join36(process.cwd(), `lolly-tier-b-debug-${label5.replace(/[^a-z0-9.-]+/gi, "-")}.log`);
       try {
         writeFileSync2(path, lines.join("\n"), "utf8");
         writtenPath = path;
@@ -184566,9 +185405,9 @@ async function renderViaChromiumShell(toolId, query2, format, dims = {}) {
     }, ["lolly.exportRoute", route]);
     const observeInputs = await observeProductionInputs(page3, toolId, dims.productionInputIds ?? []);
     debug.attach(page3);
-    page3.on("console", (message) => {
-      const line2 = sessionExportNote(message.type(), message.text());
-      if (line2 && (PICTURE_NOTES.some((note2) => message.text().startsWith(note2)) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line2}
+    page3.on("console", (message2) => {
+      const line2 = sessionExportNote(message2.type(), message2.text());
+      if (line2 && (PICTURE_NOTES.some((note2) => message2.text().startsWith(note2)) || message2.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line2}
 `);
     });
     waiting = await waitForExport(page3, format);
@@ -184793,8 +185632,8 @@ async function openLollyViaWebShell(bytes2, opts) {
 async function exportOpenedSession(page3, base, query2, format, dims, debug, label5) {
   const waiting = await waitForExport(page3, format);
   const notes = [];
-  const onConsole = (message) => {
-    const line2 = sessionExportNote(message.type(), message.text());
+  const onConsole = (message2) => {
+    const line2 = sessionExportNote(message2.type(), message2.text());
     if (line2 && !notes.includes(line2)) notes.push(line2);
   };
   page3.on("console", onConsole);
@@ -184862,9 +185701,9 @@ function fitsDesktopRequest(toolUrl) {
 }
 function assertDurableEncoder(dims, remote) {
   if (!dims.durable || remote) return;
-  const dist2 = process.env.LOLLY_WEB_DIST || join35(repoRoot(), "shells", "web", "dist");
-  const model2 = join35(dist2, "models", "trustmark", "encoder_Q.onnx");
-  if (!existsSync21(model2)) {
+  const dist2 = process.env.LOLLY_WEB_DIST || join36(repoRoot(), "shells", "web", "dist");
+  const model2 = join36(dist2, "models", "trustmark", "encoder_Q.onnx");
+  if (!existsSync23(model2)) {
     throw new BrowserError(
       `The durable credential needs the TrustMark encoder model, which isn't in the built web shell (${model2}). Rebuild it with \`pnpm run build:web\` (the model ships in shells/web/public), or export without --durable.`
     );
@@ -186687,8 +187526,8 @@ var init_check = __esm({
     };
     CheckInputError = class extends Error {
       code;
-      constructor(code, message) {
-        super(message);
+      constructor(code, message2) {
+        super(message2);
         this.name = "CheckInputError";
         this.code = code;
       }
@@ -187361,8 +188200,8 @@ var init_design_compose2 = __esm({
     init_compose_photo_surface();
     DesignComposeError = class extends Error {
       code;
-      constructor(code, message) {
-        super(message);
+      constructor(code, message2) {
+        super(message2);
         this.name = "DesignComposeError";
         this.code = code;
       }
@@ -187460,14 +188299,14 @@ var ERR = {
 function ok(id3, result) {
   return { jsonrpc: "2.0", id: id3, result };
 }
-function fail(id3, code, message, data) {
-  return { jsonrpc: "2.0", id: id3, error: { code, message, ...data !== void 0 ? { data } : {} } };
+function fail(id3, code, message2, data) {
+  return { jsonrpc: "2.0", id: id3, error: { code, message: message2, ...data !== void 0 ? { data } : {} } };
 }
 
 // services/mcp/package.json
 var package_default = {
   name: "@lolly/mcp-server",
-  version: "1.2.1",
+  version: "1.2.2",
   private: true,
   description: "Lolly MCP server - exposes the on-brand tool catalog + render path to AI agents over the Model Context Protocol. Runtime deps: node:http + jsdom + @resvg/resvg-js + playwright-core (Tier B, Chromium via `pnpm run install:browser`) + @lolly/engine.",
   license: "MPL-2.0",
@@ -188099,8 +188938,8 @@ init_runtime();
 var RenderIntegrityError = class extends Error {
   reason;
   hookErrors;
-  constructor(reason2, message, hookErrors = []) {
-    super(message);
+  constructor(reason2, message2, hookErrors = []) {
+    super(message2);
     this.name = "RenderIntegrityError";
     this.reason = reason2;
     this.hookErrors = hookErrors;
@@ -188250,9 +189089,9 @@ function needsBrowserTier(err) {
     const e = err;
     if (e.code === NEEDS_BROWSER || e.needsBrowser === true) return true;
   }
-  const message = typeof err === "string" ? err : err?.message;
-  if (typeof message !== "string") return false;
-  return PROSE.test(message);
+  const message2 = typeof err === "string" ? err : err?.message;
+  if (typeof message2 !== "string") return false;
+  return PROSE.test(message2);
 }
 
 // services/mcp/src/render.ts
@@ -188262,8 +189101,8 @@ init_production_browser();
 init_export_wait();
 init_export_lock();
 init_open_session();
-import { readFile as readFile28, stat as stat5 } from "node:fs/promises";
-import { existsSync as existsSync19 } from "node:fs";
+import { readFile as readFile28, stat as stat6 } from "node:fs/promises";
+import { existsSync as existsSync21 } from "node:fs";
 
 // shells/cli/src/bridge.ts
 init_token_context();
@@ -188343,8 +189182,8 @@ var PUBLIC_IMAGE_TYPES = /* @__PURE__ */ new Set([
 var MAX_PUBLIC_ASSET_BYTES = 25 * 1024 * 1024;
 var PublicHttpError = class extends Error {
   code;
-  constructor(code, message) {
-    super(message);
+  constructor(code, message2) {
+    super(message2);
     this.code = code;
   }
 };
@@ -188806,8 +189645,8 @@ function parseSvgDropShadow(filt) {
     const v = Number.parseFloat(el?.getAttribute(attr7) ?? "");
     return Number.isFinite(v) ? v : dflt;
   };
-  const find = (name) => Array.from(filt.children).find((c) => c.tagName.toLowerCase().replace(/^svg:/, "") === name);
-  const ds = find("fedropshadow");
+  const find2 = (name) => Array.from(filt.children).find((c) => c.tagName.toLowerCase().replace(/^svg:/, "") === name);
+  const ds = find2("fedropshadow");
   if (ds) {
     const rgb4 = parseColor2(ds.getAttribute("flood-color") ?? "#000");
     if (!rgb4) return null;
@@ -188820,12 +189659,12 @@ function parseSvgDropShadow(filt) {
       alpha: num23(ds, "flood-opacity", 1)
     };
   }
-  const blur2 = find("fegaussianblur");
+  const blur2 = find2("fegaussianblur");
   if (!blur2) return null;
   const sd = (blur2.getAttribute("stdDeviation") ?? "0").trim().split(/[\s,]+/).map(Number.parseFloat);
   const stdDeviation = Math.max(...sd.filter(Number.isFinite), 0);
-  const off = find("feoffset");
-  const flood = find("feflood");
+  const off = find2("feoffset");
+  const flood = find2("feflood");
   let rgb3 = flood ? parseColor2(flood.getAttribute("flood-color") ?? "#000") : null;
   const alpha = flood ? num23(flood, "flood-opacity", 1) : 1;
   if (!flood) {
@@ -189350,7 +190189,7 @@ init_text3();
 init_src2();
 init_content_roots();
 import { readFile as readFile11 } from "node:fs/promises";
-import { fileURLToPath as fileURLToPath7 } from "node:url";
+import { fileURLToPath as fileURLToPath8 } from "node:url";
 import { isAbsolute, join as join15 } from "node:path";
 
 // packages/node-shell/src/audio-dsp-node.ts
@@ -189534,9 +190373,9 @@ function loadAudioDspKernel() {
 }
 
 // packages/node-shell/src/rondo.ts
-import { Worker as Worker3 } from "node:worker_threads";
-import { existsSync as existsSync8 } from "node:fs";
-import { fileURLToPath as fileURLToPath6 } from "node:url";
+import { Worker as Worker4 } from "node:worker_threads";
+import { existsSync as existsSync9 } from "node:fs";
+import { fileURLToPath as fileURLToPath7 } from "node:url";
 import { createHash as createHash12 } from "node:crypto";
 
 // packages/rondo/src/limits.ts
@@ -189604,8 +190443,8 @@ var RondoAudioError = class extends Error {
   name = "RondoAudioError";
   code;
   diagnostics;
-  constructor(message, code, diagnostics = []) {
-    super(message);
+  constructor(message2, code, diagnostics = []) {
+    super(message2);
     this.code = code;
     this.diagnostics = diagnostics;
   }
@@ -189695,21 +190534,21 @@ async function acquire(caps, waitMs) {
   });
   return release;
 }
-function workerUrl() {
+function workerUrl2() {
   const candidates2 = [new URL("./rondo-worker.ts", import.meta.url), new URL("./_rondo-worker.js", import.meta.url)];
   for (const url of candidates2) {
-    if (url.protocol === "file:" && existsSync8(fileURLToPath6(url))) return url;
+    if (url.protocol === "file:" && existsSync9(fileURLToPath7(url))) return url;
   }
   throw new RondoAudioError("The song renderer is missing from this installation, so the song was not rendered.", "rondo.vm.unavailable");
 }
 var STDERR_KEEP = 2048;
 var live = /* @__PURE__ */ new Set();
 function runWorker2(job, caps, timeoutMs, limitText) {
-  const url = workerUrl();
+  const url = workerUrl2();
   return new Promise((resolve8, reject) => {
     let worker;
     try {
-      worker = new Worker3(url, {
+      worker = new Worker4(url, {
         workerData: job,
         // Nothing in this process's environment is the song's business.
         env: {},
@@ -189946,7 +190785,7 @@ async function bytesOf2(src, repoRoot2, readSource2) {
     if (!res.ok) throw new Error(`audio: fetch failed (${res.status})`);
     return new Uint8Array(await res.arrayBuffer());
   }
-  if (url.startsWith("file:")) return new Uint8Array(await readFile11(fileURLToPath7(url)));
+  if (url.startsWith("file:")) return new Uint8Array(await readFile11(fileURLToPath8(url)));
   const roots2 = url.startsWith("/") ? rootsFor4(repoRoot2) : void 0;
   const content2 = roots2 ? contentUrlFile(url, roots2) : null;
   const path = content2 ?? (isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join15(repoRoot2, url.replace(/^\//, "")));
@@ -190255,22 +191094,22 @@ async function outlinePageText(svg, runs2, fonts, deps) {
       chain2 = pickFaces(faces.filter((f) => f.family.toLowerCase() === family2.toLowerCase()), { fontStyle: run3.style, fontWeight: run3.weight }, run3.text);
       if (chain2.length) break;
     }
-    const loaded = [];
+    const loaded2 = [];
     for (const c of chain2) {
       const fontUrl = await faceUrl(c.face);
       const variations = runVariations(run3, c.variations);
-      if (fontUrl) loaded.push({ fontUrl, ...variations.length ? { variations } : {} });
+      if (fontUrl) loaded2.push({ fontUrl, ...variations.length ? { variations } : {} });
     }
-    if (!loaded.length) continue;
+    if (!loaded2.length) continue;
     try {
       const r5 = await deps.toPath({
         text: run3.text,
-        fontUrl: loaded[0].fontUrl,
+        fontUrl: loaded2[0].fontUrl,
         fontSize: run3.fontSize,
         features: run3.features,
         letterSpacing: run3.letterSpacing,
-        ...loaded[0].variations ? { variations: loaded[0].variations } : {},
-        ...loaded.length > 1 ? { fallbackFonts: loaded.slice(1) } : {}
+        ...loaded2[0].variations ? { variations: loaded2[0].variations } : {},
+        ...loaded2.length > 1 ? { fallbackFonts: loaded2.slice(1) } : {}
       });
       if (r5.d && !r5.notdef) drawn2.set(id3, r5.d);
     } catch {
@@ -190304,11 +191143,7 @@ async function toSfnt(bytes2) {
     const kind = sfntKind(bytes2);
     if (kind === "ttf" || kind === "otf") return bytes2;
     if (kind === "woff") return woffToSfnt(bytes2);
-    if (kind === "woff2") {
-      const decompress = (await import("woff2-encoder/decompress")).default;
-      const out = await decompress(bytes2);
-      return out.length <= MAX_FONT_BYTES3 ? out : null;
-    }
+    if (kind === "woff2") return await (await Promise.resolve().then(() => (init_woff2(), woff2_exports))).decodeWoff2(bytes2, { maxOutputBytes: MAX_FONT_BYTES3 });
   } catch {
   }
   return null;
@@ -192196,7 +193031,7 @@ import { readFileSync as readFileSync8 } from "node:fs";
 import { readFile as readFile14 } from "node:fs/promises";
 import { createRequire as createRequire5 } from "node:module";
 import { isAbsolute as isAbsolute2, join as join18 } from "node:path";
-import { fileURLToPath as fileURLToPath8 } from "node:url";
+import { fileURLToPath as fileURLToPath9 } from "node:url";
 
 // packages/node-shell/src/tts-blend.ts
 init_src2();
@@ -192387,9 +193222,9 @@ function downloadMeter(total, onProgress) {
   return (p) => {
     if (!onProgress || p.status !== "progress" || !p.file || typeof p.loaded !== "number") return;
     loadedByFile.set(p.file, p.loaded);
-    let loaded = 0;
-    for (const v of loadedByFile.values()) loaded += v;
-    onProgress({ phase: "download", loaded, total, fraction: Math.min(1, loaded / total) });
+    let loaded2 = 0;
+    for (const v of loadedByFile.values()) loaded2 += v;
+    onProgress({ phase: "download", loaded: loaded2, total, fraction: Math.min(1, loaded2 / total) });
   };
 }
 function pointAtLocal(env, modelsDir) {
@@ -192460,17 +193295,17 @@ function voiceMatrix(modelsDir, voice) {
   voiceMatrices.set(key2, data);
   return data;
 }
-function abortError2(message) {
-  return typeof DOMException !== "undefined" ? new DOMException(message, "AbortError") : Object.assign(new Error(message), { name: "AbortError" });
+function abortError2(message2) {
+  return typeof DOMException !== "undefined" ? new DOMException(message2, "AbortError") : Object.assign(new Error(message2), { name: "AbortError" });
 }
-function withAbort(signal, message, work) {
+function withAbort(signal, message2, work) {
   if (!signal) return work(() => false);
-  if (signal.aborted) return Promise.reject(abortError2(message));
+  if (signal.aborted) return Promise.reject(abortError2(message2));
   let stop = false;
   return new Promise((resolve8, reject) => {
     const onAbort = () => {
       stop = true;
-      reject(abortError2(message));
+      reject(abortError2(message2));
     };
     signal.addEventListener("abort", onAbort, { once: true });
     work(() => stop || signal.aborted).then(resolve8, reject).finally(() => signal.removeEventListener("abort", onAbort));
@@ -192496,7 +193331,7 @@ async function bytesOf3(src, root2) {
     if (!res.ok) throw new Error(`speech: audio fetch failed (${res.status})`);
     return new Uint8Array(await res.arrayBuffer());
   }
-  if (url.startsWith("file:")) return new Uint8Array(await readFile14(fileURLToPath8(url)));
+  if (url.startsWith("file:")) return new Uint8Array(await readFile14(fileURLToPath9(url)));
   const path = isAbsolute2(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join18(root2, url.replace(/^\//, ""));
   return new Uint8Array(await readFile14(path));
 }
@@ -192881,10 +193716,14 @@ init_state_dir();
 // packages/node-shell/src/session-store.ts
 init_fs_token();
 init_session_record();
-import { mkdir as mkdir2, readdir as readdir4, readFile as readFile16, rm as rm2, writeFile as writeFile2, rename as rename2 } from "node:fs/promises";
+init_session_preview();
+import { mkdir as mkdir2, readdir as readdir4, readFile as readFile16, rm as rm2, writeFile as writeFile2, rename as rename2, stat as stat3 } from "node:fs/promises";
 import { join as join20 } from "node:path";
 import { randomUUID as randomUUID2 } from "node:crypto";
 var SESSION_SUBDIR = "saved-state";
+function sessionPicturePath(stateDir2, ref2) {
+  return join20(sessionsDir(stateDir2), "previews", `${ref2.key}.${previewFileExt(ref2.type)}`);
+}
 function sessionsDir(stateDir2) {
   return join20(stateDir2, SESSION_SUBDIR);
 }
@@ -192894,9 +193733,37 @@ function sessionFilePath(stateDir2, slot) {
 async function readSessionRecord(stateDir2, slot) {
   try {
     const raw = JSON.parse(await readFile16(sessionFilePath(stateDir2, slot), "utf8"));
-    return normalise5(raw);
+    const record49 = normalise5(raw);
+    return record49 ? withFoundPicture(stateDir2, record49) : null;
   } catch {
     return null;
+  }
+}
+var linkFile = (stateDir2, workKey) => join20(sessionsDir(stateDir2), "previews", previewLinkName(workKey));
+async function withFoundPicture(stateDir2, record49) {
+  if (!mayHaveLostPicture(record49)) return record49;
+  try {
+    const ref2 = readPreviewLink(await readFile16(linkFile(stateDir2, await sessionWorkKey(record49.data)), "utf8"), record49.slot);
+    if (ref2 && (await stat3(sessionPicturePath(stateDir2, ref2))).isFile()) return { ...record49, thumb: null, preview: ref2 };
+  } catch {
+  }
+  return record49;
+}
+async function writeLink(stateDir2, slot, data, ref2) {
+  try {
+    const path = linkFile(stateDir2, await sessionWorkKey(data));
+    const prior = await readFile16(path, "utf8").catch(() => null);
+    const text13 = withPreviewLink(prior, slot, ref2);
+    if (prior === text13) return;
+    await mkdir2(join20(sessionsDir(stateDir2), "previews"), { recursive: true });
+    const temp = `${path}.${randomUUID2()}.tmp`;
+    try {
+      await writeFile2(temp, text13, { mode: 384, flag: "wx" });
+      await rename2(temp, path);
+    } finally {
+      await rm2(temp, { force: true });
+    }
+  } catch {
   }
 }
 async function loadSessionData(stateDir2, slot) {
@@ -192942,7 +193809,9 @@ async function writeSessionRecord(stateDir2, write) {
     toolVersion: write.toolVersion ?? write.data.__toolVersion,
     label: write.label ?? write.data.__label,
     data: write.data,
-    thumb: write.thumb ?? prior?.thumb ?? null,
+    // The picture given replaces the record's; none given keeps the prior one, in
+    // whichever form it had (a session saved by the desktop app keeps its file).
+    ...write.thumb !== void 0 || write.preview !== void 0 ? { thumb: write.preview ? null : write.thumb ?? null, ...write.preview ? { preview: write.preview } : {} } : { thumb: prior?.preview ? null : prior?.thumb ?? null, ...prior?.preview ? { preview: prior.preview } : {} },
     updatedAt: write.updatedAt ?? now2,
     createdAt: prior?.createdAt ?? now2,
     emoji: write.emoji === void 0 ? prior?.emoji : write.emoji ?? void 0,
@@ -192961,6 +193830,7 @@ async function writeSessionRecord(stateDir2, write) {
   } finally {
     await rm2(temp, { force: true });
   }
+  if (record49.preview) await writeLink(stateDir2, record49.slot, record49.data, record49.preview);
   return record49;
 }
 async function deleteSessionRecord(stateDir2, slot) {
@@ -192987,6 +193857,7 @@ function normalise5(raw) {
     label: typeof raw.label === "string" && raw.label ? raw.label : typeof data.__label === "string" ? data.__label : void 0,
     data,
     thumb: typeof raw.thumb === "string" ? raw.thumb : null,
+    ...sessionPreviewRef(raw) ? { preview: sessionPreviewRef(raw) } : {},
     updatedAt: typeof raw.updatedAt === "string" ? raw.updatedAt : "",
     ...typeof raw.createdAt === "string" ? { createdAt: raw.createdAt } : {},
     ...typeof raw.formatVersion === "number" ? { formatVersion: raw.formatVersion } : {},
@@ -193040,7 +193911,7 @@ init_text_bidi();
 // packages/node-shell/src/fallback-fonts-node.ts
 init_content_roots();
 init_fallback_fonts();
-import { existsSync as existsSync11, readFileSync as readFileSync9 } from "node:fs";
+import { existsSync as existsSync12, readFileSync as readFileSync9 } from "node:fs";
 import { join as join22 } from "node:path";
 var listed = /* @__PURE__ */ new Map();
 function diskFallbackPacks(roots2 = contentRoots()) {
@@ -193050,7 +193921,7 @@ function diskFallbackPacks(roots2 = contentRoots()) {
   const entries = [];
   for (const shared of roots2.assetRoots) {
     const path = join22(shared.dir, "index.json");
-    if (!existsSync11(path)) continue;
+    if (!existsSync12(path)) continue;
     try {
       entries.push(...JSON.parse(readFileSync9(path, "utf8")).assets ?? []);
     } catch {
@@ -193297,25 +194168,25 @@ var CliError = class extends Error {
   exit;
   kind;
   detail;
-  constructor(message, exit, kind, detail) {
-    super(message);
+  constructor(message2, exit, kind, detail) {
+    super(message2);
     this.name = "CliError";
     this.exit = exit;
     this.kind = kind;
     if (detail !== void 0) this.detail = detail;
   }
 };
-var unavailableHere = (message, kind = "UNAVAILABLE_HERE") => new CliError(message, EXIT.UNAVAILABLE_HERE, kind);
+var unavailableHere = (message2, kind = "UNAVAILABLE_HERE") => new CliError(message2, EXIT.UNAVAILABLE_HERE, kind);
 
 // shells/cli/src/output.ts
 var quiet = false;
 var warnings = [];
-function note(message) {
-  if (!quiet) process.stderr.write(message.endsWith("\n") ? message : message + "\n");
+function note(message2) {
+  if (!quiet) process.stderr.write(message2.endsWith("\n") ? message2 : message2 + "\n");
 }
-function warn(code, message, kind = "usage", extra) {
-  warnings.push({ code, message, kind, ...extra ? { extra } : {} });
-  if (!quiet) process.stderr.write(`Warning: ${message}
+function warn(code, message2, kind = "usage", extra) {
+  warnings.push({ code, message: message2, kind, ...extra ? { extra } : {} });
+  if (!quiet) process.stderr.write(`Warning: ${message2}
 `);
 }
 
@@ -194122,14 +194993,26 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       let designOpsReason;
       if ((format === "svg" || format === "svgz") && opts.sourceDocument?.toolId === "design") {
         if (String(opts.sourceDocument.values.textDocument ?? "").trim()) throw new Error(`This Design page needs a browser engine for ${format.toUpperCase()} because the document composes text stories`);
-        const { designOpsSvgNode: designOpsSvgNode2 } = await Promise.resolve().then(() => (init_design_ops_svg(), design_ops_svg_exports));
-        const page3 = await designOpsSvgNode2(node, opts, host, { repoRoot: REPO_ROOT2 });
-        if (page3 && "svg" in page3) {
-          await noteDesignOps(opts, page3.ingredients);
-          const bytes2 = new TextEncoder().encode(page3.svg);
-          return new Blob([format === "svgz" ? gzip(bytes2) : bytes2], { type: "image/svg+xml" });
+        const drawingSink = opts.drawingSink;
+        if (typeof drawingSink === "function") {
+          const { designOpsDrawingNode: designOpsDrawingNode2 } = await Promise.resolve().then(() => (init_design_ops_svg(), design_ops_svg_exports));
+          const compiled3 = await designOpsDrawingNode2(node, opts, host, { repoRoot: REPO_ROOT2 });
+          if (compiled3 && "drawing" in compiled3) {
+            await noteDesignOps(opts, compiled3.ingredients);
+            drawingSink(compiled3.drawing);
+            return new Blob([], { type: "image/svg+xml" });
+          }
+          if (compiled3) designOpsReason = compiled3.reason;
+        } else {
+          const { designOpsSvgNode: designOpsSvgNode2 } = await Promise.resolve().then(() => (init_design_ops_svg(), design_ops_svg_exports));
+          const page3 = await designOpsSvgNode2(node, opts, host, { repoRoot: REPO_ROOT2 });
+          if (page3 && "svg" in page3) {
+            await noteDesignOps(opts, page3.ingredients);
+            const bytes2 = new TextEncoder().encode(page3.svg);
+            return new Blob([format === "svgz" ? gzip(bytes2) : bytes2], { type: "image/svg+xml" });
+          }
+          if (page3) designOpsReason = page3.reason;
         }
-        if (page3) designOpsReason = page3.reason;
       }
       if (format === "svg" || format === "svgz") {
         const svg = rootSvgOf(node);
@@ -194262,7 +195145,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
           format,
           hdr: opts.hdr ?? null,
           depth: opts.depth,
-          log: (level2, message) => host.log(level2, message)
+          log: (level2, message2) => host.log(level2, message2)
         });
         return new Blob([bytes2], { type: mime2 || deepFormatMime2(format) });
       }
@@ -194798,9 +195681,9 @@ function withHost(profile2, fn, opts = {}) {
 // services/mcp/src/webshell.ts
 import { createServer } from "node:http";
 import { spawn as spawn2 } from "node:child_process";
-import { readFile as readFile26, stat as stat4 } from "node:fs/promises";
-import { existsSync as existsSync18 } from "node:fs";
-import { join as join30, resolve as resolve4, extname, normalize as normalize2 } from "node:path";
+import { readFile as readFile26, stat as stat5 } from "node:fs/promises";
+import { existsSync as existsSync20 } from "node:fs";
+import { join as join31, resolve as resolve4, extname, normalize as normalize2 } from "node:path";
 
 // services/mcp/src/egress.ts
 import { lookup as lookup2 } from "node:dns/promises";
@@ -194921,18 +195804,18 @@ async function webShellBase() {
 }
 function webShellReady(env = process.env) {
   if (env.LOLLY_WEB_BASE) return true;
-  return existsSync18(join30(env.LOLLY_WEB_DIST || join30(REPO_ROOT, "shells", "web", "dist"), "index.html"));
+  return existsSync20(join31(env.LOLLY_WEB_DIST || join31(REPO_ROOT, "shells", "web", "dist"), "index.html"));
 }
 async function buildAndServe() {
-  const dist2 = process.env.LOLLY_WEB_DIST || join30(REPO_ROOT, "shells", "web", "dist");
-  if (!existsSync18(join30(dist2, "index.html"))) {
-    if (!existsSync18(join30(REPO_ROOT, "shells", "web", "package.json"))) {
+  const dist2 = process.env.LOLLY_WEB_DIST || join31(REPO_ROOT, "shells", "web", "dist");
+  if (!existsSync20(join31(dist2, "index.html"))) {
+    if (!existsSync20(join31(REPO_ROOT, "shells", "web", "package.json"))) {
       throw new Error(
         `No built web shell at ${dist2}. Set LOLLY_WEB_DIST to a prebuilt shell, or LOLLY_WEB_BASE to a running one. Tier-B (pdf/video/HTML-raster) needs it; SVG/data formats render without it.`
       );
     }
     await buildWebShell();
-    if (!existsSync18(join30(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
+    if (!existsSync20(join31(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
   }
   return serveDist(dist2);
 }
@@ -194957,8 +195840,8 @@ function serveDist(dist2) {
         res.writeHead(403).end();
         return;
       }
-      if (urlPath === "/" || !existsSync18(filePath) || !(await stat4(filePath)).isFile()) {
-        filePath = join30(root2, "index.html");
+      if (urlPath === "/" || !existsSync20(filePath) || !(await stat5(filePath)).isFile()) {
+        filePath = join31(root2, "index.html");
       }
       const data = await readFile26(filePath);
       res.setHeader("Content-Type", MIME3[extname(filePath)] ?? "application/octet-stream");
@@ -194982,15 +195865,15 @@ function serveDist(dist2) {
 // services/mcp/src/browser-jobs.ts
 var BrowserQueueFullError = class extends Error {
   code = "browser-queue-full";
-  constructor(message = "Browser render queue is full") {
-    super(message);
+  constructor(message2 = "Browser render queue is full") {
+    super(message2);
     this.name = "BrowserQueueFullError";
   }
 };
 var BrowserQueueTimeoutError = class extends Error {
   code = "browser-queue-timeout";
-  constructor(message = "Browser render queue wait timed out") {
-    super(message);
+  constructor(message2 = "Browser render queue wait timed out") {
+    super(message2);
     this.name = "BrowserQueueTimeoutError";
   }
 };
@@ -195355,8 +196238,8 @@ async function renderTierA(toolId, values, fmt6, opts, profile2, emoji, producti
     const svgSized = !!size.svg && !!drawnRootSvg(canvas)?.hasAttribute("viewBox");
     const sized = svgSized ? { ...opts, width: size.svg.width, height: size.svg.height } : opts;
     if (isDeepFormat(fmt6)) {
-      const loaded = await loadToolCached(toolId);
-      Object.assign(sized, { toolStyles: loaded.styles ?? null, resvgTool: toolAdmission(loaded), resvgPaged: !!loaded.manifest.render?.paged });
+      const loaded2 = await loadToolCached(toolId);
+      Object.assign(sized, { toolStyles: loaded2.styles ?? null, resvgTool: toolAdmission(loaded2), resvgPaged: !!loaded2.manifest.render?.paged });
     }
     let productionInputs;
     if (productionContract?.requirements.some((requirement) => requirement.kind === "input")) {
@@ -195482,7 +196365,7 @@ async function withBrowserJob(job) {
   }
 }
 async function readBoundedDownload(filename) {
-  const info = await stat5(filename);
+  const info = await stat6(filename);
   if (info.size > MAX_BROWSER_OUTPUT_BYTES) {
     throw new RenderError(`Browser export exceeds the ${MAX_BROWSER_OUTPUT_BYTES}-byte output limit.`);
   }
@@ -195513,13 +196396,13 @@ function pinBrowsersPath() {
   }
 }
 async function browserInstalled2(env = process.env) {
-  if (env.LOLLY_BROWSER_PATH) return existsSync19(env.LOLLY_BROWSER_PATH);
+  if (env.LOLLY_BROWSER_PATH) return existsSync21(env.LOLLY_BROWSER_PATH);
   if (env.LOLLY_BROWSER_CHANNEL) return true;
   pinBrowsersPath();
   try {
     const { chromium } = await import("playwright-core");
     const path = chromium.executablePath();
-    return !!path && existsSync19(path);
+    return !!path && existsSync21(path);
   } catch {
     return false;
   }
@@ -196125,15 +197008,15 @@ init_design_system2();
 init_src();
 init_content_roots();
 init_state_dir();
-import { existsSync as existsSync20, readFileSync as readFileSync11 } from "node:fs";
-import { isAbsolute as isAbsolute3, join as join34, resolve as resolve5 } from "node:path";
+import { existsSync as existsSync22, readFileSync as readFileSync11 } from "node:fs";
+import { isAbsolute as isAbsolute3, join as join35, resolve as resolve5 } from "node:path";
 var PRESET_ASSET_TAGS = ["slides", "rebrand-preset"];
 var PRESET_FILE_VERSION = 1;
 var PERSONAL_PRESETS_FILE = "rebrand-presets.json";
 var RebrandPresetError = class extends Error {
   code;
-  constructor(code, message) {
-    super(message);
+  constructor(code, message2) {
+    super(message2);
     this.name = "RebrandPresetError";
     this.code = code;
   }
@@ -196321,7 +197204,7 @@ function packPresetFiles(roots2) {
   });
 }
 function personalPresetsFile(opts = {}) {
-  return opts.personalFile ?? join34(stateDir(opts.env ?? process.env), PERSONAL_PRESETS_FILE);
+  return opts.personalFile ?? join35(stateDir(opts.env ?? process.env), PERSONAL_PRESETS_FILE);
 }
 function listPresets(opts = {}) {
   const presets = [];
@@ -196357,7 +197240,7 @@ function listPresets(opts = {}) {
       }
     }
   }
-  if (existsSync20(personalFile)) {
+  if (existsSync22(personalFile)) {
     try {
       const sorted = sortEntries(readPresetFile(personalFile), { origin: "personal", file: personalFile });
       const packIds = /* @__PURE__ */ new Set([
@@ -197493,8 +198376,8 @@ var REBRAND_TOOL_CODES = [
 ];
 var RebrandToolError = class extends Error {
   code;
-  constructor(code, message) {
-    super(message);
+  constructor(code, message2) {
+    super(message2);
     this.name = "RebrandToolError";
     this.code = code;
   }
@@ -197504,9 +198387,9 @@ function isToolCode(code) {
 }
 function asToolError(err, fallback) {
   if (err instanceof RebrandToolError) return err;
-  const message = err instanceof Error ? err.message : String(err);
-  if ((err instanceof RebrandPipelineError || err instanceof RebrandPresetError) && isToolCode(err.code)) return new RebrandToolError(err.code, message);
-  return new RebrandToolError(fallback, message);
+  const message2 = err instanceof Error ? err.message : String(err);
+  if ((err instanceof RebrandPipelineError || err instanceof RebrandPresetError) && isToolCode(err.code)) return new RebrandToolError(err.code, message2);
+  return new RebrandToolError(fallback, message2);
 }
 var INT = { type: "integer", minimum: 0 };
 var STR = { type: "string" };
@@ -198427,7 +199310,7 @@ init_src2();
 init_raster_child();
 import { readFile as readFile29 } from "node:fs/promises";
 import { extname as extname2, resolve as resolve6, sep as sep2 } from "node:path";
-import { fileURLToPath as fileURLToPath12 } from "node:url";
+import { fileURLToPath as fileURLToPath13 } from "node:url";
 var B642 = /^[A-Za-z0-9+/]*={0,2}$/;
 var RASTER_DATA = /^data:image\/(png|jpeg|gif|webp);base64,([A-Za-z0-9+/=\s]*)$/i;
 var SVG_DATA = /^data:image\/svg\+xml(;charset=[\w-]+)?(;base64)?,([\s\S]*)$/i;
@@ -198436,7 +199319,7 @@ var MAX_INLINE_BYTES = 16 * 1024 * 1024;
 var MAX_NESTING = 3;
 function localPath(href) {
   try {
-    if (/^file:\/\//i.test(href)) return fileURLToPath12(href);
+    if (/^file:\/\//i.test(href)) return fileURLToPath13(href);
     if (href.startsWith("/")) return decodeURIComponent(href);
   } catch {
   }
@@ -198730,8 +199613,8 @@ async function lookSource(args, renderFn) {
 function lookContext() {
   return { fontDirs: [fontsDir()], areaCap: maxRasterPixelsFor(process.env, isHostedServer()) ?? 16e6 };
 }
-function errorResult(message) {
-  return { content: [{ type: "text", text: message }], isError: true };
+function errorResult(message2) {
+  return { content: [{ type: "text", text: message2 }], isError: true };
 }
 async function callLookTool(name, args, renderFn) {
   const source = await lookSource(args, renderFn);
@@ -199530,8 +200413,8 @@ function requestRoom(ctx) {
 }
 var ToolCodeError = class extends Error {
   code;
-  constructor(code, message) {
-    super(message);
+  constructor(code, message2) {
+    super(message2);
     this.name = "ToolCodeError";
     this.code = code;
   }
@@ -199690,12 +200573,12 @@ var READ_TOOL_DEF = {
 };
 function asReadError(err) {
   if (err instanceof ToolCodeError && Object.hasOwn(CODES2, err.code)) return err;
-  const message = err instanceof Error ? err.message : String(err);
+  const message2 = err instanceof Error ? err.message : String(err);
   if (err instanceof RebrandPipelineError) {
     const code = Object.hasOwn(CODES2, err.code) ? err.code : "source.unreadable";
-    return new ToolCodeError(code, message);
+    return new ToolCodeError(code, message2);
   }
-  return new ToolCodeError("internal", message);
+  return new ToolCodeError("internal", message2);
 }
 function tooManySlides2(count4, max) {
   return new ToolCodeError("source.too-large", `The deck has ${count4} slides and this server reads up to ${max} in one call; run lolly read on the CLI for this deck.`);
@@ -200552,7 +201435,7 @@ function asCheckError(err) {
   if (err instanceof CheckInputError) return new ToolCodeError(err.code, err.message);
   return new ToolCodeError("internal", err instanceof Error ? err.message : String(err));
 }
-async function inputOf(args, resolveDesign, ctx) {
+async function inputOf2(args, resolveDesign, ctx) {
   const given2 = [args.file !== void 0 && "file", args.toolId !== void 0 && "toolId", args.document !== void 0 && "document"].filter(Boolean);
   if (given2.length === 0)
     throw new ToolCodeError("input.missing", 'Give one input: file (a Design document, a .lolly or an export), toolId "design" with its inputs, or document.');
@@ -200655,7 +201538,7 @@ async function callCheck(args, resolveDesign, env = process.env, limits = struct
       if (carried > requestRoom(ctx))
         throw new ToolCodeError("source.too-large", `The file and the source come to ${carried} bytes of base64 and one request here carries ${requestRoom(ctx)}; pass the lolly_read inventory as inventory instead of the source deck.`);
     }
-    const input = await inputOf(args, resolveDesign, ctx);
+    const input = await inputOf2(args, resolveDesign, ctx);
     const source = await sourceOf(args, ctx);
     const edits = editsOf(args);
     const kind = checkInputKind(input.name);
@@ -201195,10 +202078,10 @@ async function profileBrief(theme) {
 }
 function asMeasureError(err) {
   if (err instanceof ToolCodeError && Object.hasOwn(CODES4, err.code)) return err;
-  const message = err instanceof Error ? err.message : String(err);
+  const message2 = err instanceof Error ? err.message : String(err);
   const code = err?.code;
-  if (err instanceof Error && err.name === "TextMeasureError") return new ToolCodeError(code === "font.unavailable" ? "font.unavailable" : "request.invalid", message);
-  return new ToolCodeError("internal", message);
+  if (err instanceof Error && err.name === "TextMeasureError") return new ToolCodeError(code === "font.unavailable" ? "font.unavailable" : "request.invalid", message2);
+  return new ToolCodeError("internal", message2);
 }
 async function boxSpec(args, brief2) {
   if (typeof args.text !== "string") throw new ToolCodeError("request.invalid", "text is required: the text to measure, or pass document for a whole document.");
@@ -201329,8 +202212,8 @@ var TOKEN_REPORT_LIMITS = Object.freeze({
 });
 var TokenReportError = class extends Error {
   code;
-  constructor(code, message) {
-    super(message);
+  constructor(code, message2) {
+    super(message2);
     this.name = "TokenReportError";
     this.code = code;
   }
@@ -201558,7 +202441,7 @@ var TOKEN_INSPECT_TOOL_DEF = {
   outputSchema: TOKEN_INSPECT_OUTPUT_SCHEMA
 };
 var isTokenRecord = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-var invalidTokenRequest = (message) => new ToolCodeError("request.invalid", message);
+var invalidTokenRequest = (message2) => new ToolCodeError("request.invalid", message2);
 function textArg(args, key2, max = 1024) {
   const value2 = args[key2];
   if (value2 === void 0) return void 0;
@@ -202429,10 +203312,10 @@ var NODE_CODE = {
 };
 function asComposeError2(err) {
   if (err instanceof ToolCodeError && Object.hasOwn(CODES5, err.code)) return err;
-  const message = err instanceof Error ? err.message : String(err);
+  const message2 = err instanceof Error ? err.message : String(err);
   const code = err?.code;
-  if (err instanceof Error && err.name === "DesignComposeError" && typeof code === "string") return new ToolCodeError(NODE_CODE[code] ?? "internal", message);
-  return new ToolCodeError("internal", message);
+  if (err instanceof Error && err.name === "DesignComposeError" && typeof code === "string") return new ToolCodeError(NODE_CODE[code] ?? "internal", message2);
+  return new ToolCodeError("internal", message2);
 }
 function sizeArg(value2, parse2) {
   if (value2 === void 0 || value2 === null) return void 0;
@@ -203524,7 +204407,7 @@ init_delivery_v1();
 import { createHash as createHash16, createHmac, randomUUID as randomUUID3 } from "node:crypto";
 import { mkdtemp as mkdtemp4, readFile as readFile33, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
-import { join as join36 } from "node:path";
+import { join as join37 } from "node:path";
 var RESULT_LINK_THRESHOLD = 1024 * 1024;
 var RESULT_TTL_SEC = 300;
 var OWNER_LIMIT = 64 * 1024 * 1024;
@@ -203592,8 +204475,8 @@ var ResultFiles = class {
     try {
       const base = new URL(origin);
       const expires = Math.floor(this.now() / 1e3) + this.lifetimeSeconds;
-      this.directory ??= mkdtemp4(join36(tmpdir5(), "lolly-mcp-results-"));
-      file = join36(await this.directory, id3);
+      this.directory ??= mkdtemp4(join37(tmpdir5(), "lolly-mcp-results-"));
+      file = join37(await this.directory, id3);
       await writeFile7(file, bytes2, { flag: "wx", mode: 384 });
       const digest2 = createHash16("sha256").update(bytes2).digest("hex");
       const dt = await signDeliveryToken({ v: 1, kid: "mcp1", exp: expires, cls: "person-private" }, path, { canonicalHost: base.host, subject: owner3 }, await this.key(base.host, secret));
@@ -204074,8 +204957,8 @@ var TOOL_ID_RE = /^[a-z0-9-]+$/;
 function textOnly2(text13) {
   return { content: [{ type: "text", text: text13 }] };
 }
-function errorResult2(message) {
-  return { content: [{ type: "text", text: message }], isError: true };
+function errorResult2(message2) {
+  return { content: [{ type: "text", text: message2 }], isError: true };
 }
 function inputObject(value2) {
   if (value2 === void 0) return {};
@@ -204806,7 +205689,7 @@ init_design_brief();
 init_colour_roles();
 init_design_brief2();
 import { readFile as readFile34 } from "node:fs/promises";
-import { join as join37 } from "node:path";
+import { join as join38 } from "node:path";
 init_brand_skill_v1();
 init_src2();
 init_schema();
@@ -204862,9 +205745,9 @@ async function assetsListing(uri) {
   }));
   return { uri, mimeType: "application/json", text: JSON.stringify({ count: assets.length, assets }, null, 2) };
 }
-var PREVIEW_TYPES = { svg: "image/svg+xml", webp: "image/webp", png: "image/png" };
+var PREVIEW_TYPES2 = { svg: "image/svg+xml", webp: "image/webp", png: "image/png" };
 function previewCandidates(id3, indexed) {
-  const catalog = Object.keys(PREVIEW_TYPES).map((ext) => `/catalog/previews/${id3}.${ext}`);
+  const catalog = Object.keys(PREVIEW_TYPES2).map((ext) => `/catalog/previews/${id3}.${ext}`);
   const cards = ["svg", "png"].map((ext) => `/tools/${id3}/card.${ext}`);
   const plain = typeof indexed === "string" ? indexed.replace(/^\/tools\/([a-z0-9-]+)@[0-9a-f]{16}\//, "/tools/$1/").replace(/^(\/catalog\/previews\/[a-z0-9-]+)\.[0-9a-f]{16}(\.[a-z]+)$/, "$1$2") : null;
   const first = plain !== null && [...cards, ...catalog].includes(plain) ? [plain] : [];
@@ -204875,7 +205758,7 @@ async function previewResource(uri, id3) {
   for (const url of previewCandidates(id3, entry2?.preview)) {
     const file = contentUrl(url);
     if (!file) continue;
-    const mimeType = PREVIEW_TYPES[url.slice(url.lastIndexOf(".") + 1)];
+    const mimeType = PREVIEW_TYPES2[url.slice(url.lastIndexOf(".") + 1)];
     try {
       const bytes2 = await readFile34(file);
       return mimeType === "image/svg+xml" ? { uri, mimeType, text: bytes2.toString("utf8") } : { uri, mimeType, blob: bytes2.toString("base64") };
@@ -204932,12 +205815,12 @@ async function readResource(uri) {
     const skill = await brandSkillResource(uri);
     if (skill) return skill;
   }
-  if (uri === "lolly://skill") return { uri, mimeType: "text/markdown", text: await readFile34(join37(REPO_ROOT, "skills/lolly/SKILL.md"), "utf8") };
+  if (uri === "lolly://skill") return { uri, mimeType: "text/markdown", text: await readFile34(join38(REPO_ROOT, "skills/lolly/SKILL.md"), "utf8") };
   const sharedSkillMatch = /^lolly:\/\/skill\/((?:reference|examples)\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:md|json))$/.exec(uri);
   if (sharedSkillMatch) return {
     uri,
     mimeType: uri.endsWith(".json") ? "application/json" : "text/markdown",
-    text: await readFile34(join37(REPO_ROOT, "skills/lolly", sharedSkillMatch[1]), "utf8")
+    text: await readFile34(join38(REPO_ROOT, "skills/lolly", sharedSkillMatch[1]), "utf8")
   };
   const skillMatch = /^lolly:\/\/tool\/([a-z0-9-]+)\/skill$/.exec(uri);
   if (skillMatch) {
@@ -204973,7 +205856,7 @@ async function readResource(uri) {
 // services/mcp/src/file-resources.ts
 import { mkdtemp as mkdtemp5, writeFile as writeFile8, unlink as unlink2, rm as rm7 } from "node:fs/promises";
 import { tmpdir as tmpdir6 } from "node:os";
-import { join as join38 } from "node:path";
+import { join as join39 } from "node:path";
 import { randomUUID as randomUUID4 } from "node:crypto";
 
 // packages/node-shell/src/file-operations.ts
@@ -205033,7 +205916,7 @@ async function encodeToTargetBytes(encode, options2, signal) {
   return best;
 }
 function conversionFindings(kind, target2, options2 = {}) {
-  const warning = (code, message) => ({ code, severity: "warning", message });
+  const warning = (code, message2) => ({ code, severity: "warning", message: message2 });
   if (target2 === "jxl-recompress") return [warning("jpeg-reconstruction", "The complete original JPEG, including metadata, is retained. Restoration is checked byte for byte before the copy is saved. Compression savings are not guaranteed.")];
   if (target2 === "jpeg-original") return [warning("jpeg-restored", "Restores the original encoded JPEG and its metadata without rendering new pixels.")];
   if (kind === "jxl") return [warning("jxl-sdr-view", "This conversion uses the oriented 8-bit sRGB view of the JPEG XL source. The original file remains unchanged."), ...conversionFindings("raster", target2)];
@@ -205064,8 +205947,8 @@ function conversionFindings(kind, target2, options2 = {}) {
   return [];
 }
 function dataConversionFindings(kind, target2, options2) {
-  const warning = (code, message) => ({ code, severity: "warning", message });
-  const info = (code, message) => ({ code, severity: "info", message });
+  const warning = (code, message2) => ({ code, severity: "warning", message: message2 });
+  const info = (code, message2) => ({ code, severity: "info", message: message2 });
   const findings = [];
   if (kind === "xlsx") {
     findings.push(options2.cells === "formulas" ? warning("values-only", "Converts cell contents, not formatting, charts or comments. Formula cells keep their formula text, starting with =, instead of their saved results. A shared formula is rewritten for each cell; a cell that cannot be rewritten safely keeps its saved result. Spreadsheet apps may recalculate formula text when they open the copy.") : warning("values-only", "Converts cell values, not formatting, charts or comments. Formula cells become the results last saved in the workbook; they are not recalculated."));
@@ -205097,9 +205980,9 @@ var NODE_FILE_TARGETS = { image: ["png", "jpeg", "webp", "avif", "jxl", "jxl-los
 async function readOperationFile(path) {
   const handle = await open2(path, "r");
   try {
-    const stat7 = await handle.stat();
-    if (!stat7.isFile()) throw new Error("Choose a regular file.");
-    validateConvertFiles([stat7]);
+    const stat8 = await handle.stat();
+    if (!stat8.isFile()) throw new Error("Choose a regular file.");
+    validateConvertFiles([stat8]);
     const chunks = [];
     let total = 0;
     while (true) {
@@ -205243,8 +206126,8 @@ var PrivateFileResources = class {
     const id3 = randomUUID4();
     let path;
     try {
-      this.directory ??= mkdtemp5(join38(tmpdir6(), "lolly-private-files-"));
-      path = join38(await this.directory, id3);
+      this.directory ??= mkdtemp5(join39(tmpdir6(), "lolly-private-files-"));
+      path = join39(await this.directory, id3);
       const facts2 = await describeOperationFile(file);
       await writeFile8(path, Buffer.from(await file.arrayBuffer()), { flag: "wx", mode: 384 });
       const ref2 = { id: id3, version: facts2.sha256, role, facts: facts2, ...source ? { derivedFrom: { id: source.ref.id, version: source.ref.version, sha256: source.ref.facts.sha256 } } : {} };
@@ -205723,9 +206606,9 @@ async function dispatch(req, context = {}) {
         return fail(id3, ERR.METHOD_NOT_FOUND, `Method not found: ${req.method}`);
     }
   } catch (e) {
-    const message = e.message;
-    const missingResource = req.method === "resources/read" && (e instanceof URIError || /^(Unknown (resource|asset)|Tool not found|Resource not found|File handle not found|Invalid file resource URI)/.test(message));
-    return fail(id3, missingResource ? ERR.INVALID_PARAMS : ERR.INTERNAL, message);
+    const message2 = e.message;
+    const missingResource = req.method === "resources/read" && (e instanceof URIError || /^(Unknown (resource|asset)|Tool not found|Resource not found|File handle not found|Invalid file resource URI)/.test(message2));
+    return fail(id3, missingResource ? ERR.INVALID_PARAMS : ERR.INTERNAL, message2);
   }
 }
 
@@ -205737,8 +206620,8 @@ import { createHash as createHash19 } from "node:crypto";
 import { createHash as createHash18 } from "node:crypto";
 var RateLimitUnavailableError = class extends Error {
   code = "rate-limit-unavailable";
-  constructor(message = "Durable rate limiter is unavailable") {
-    super(message);
+  constructor(message2 = "Durable rate limiter is unavailable") {
+    super(message2);
     this.name = "RateLimitUnavailableError";
   }
 };
@@ -206819,8 +207702,8 @@ function consentPage(params2, error2) {
       <button type="submit">Allow</button>
     </form>`);
 }
-function errorPage(message) {
-  return page2("Cannot connect", `<div class="dot">L</div><h1>Cannot connect</h1><p>${esc6(message)}</p>`);
+function errorPage(message2) {
+  return page2("Cannot connect", `<div class="dot">L</div><h1>Cannot connect</h1><p>${esc6(message2)}</p>`);
 }
 
 // services/mcp/src/gateway.ts
@@ -207065,16 +207948,16 @@ function createGateway(env = process.env, options2 = {}) {
       const refusal3 = await limited2(limiter, "agents", clientIp(req, env), positiveInt(env.LOLLY_AGENT_RPM, 120)) || await limited2(limiter, "agents-all", "all", positiveInt(env.LOLLY_AGENT_GLOBAL_RPM, 1200)) || await overBudget(budget3);
       if (refusal3) return send(res, refusal3);
       if (!String(req.headers["content-type"] ?? "").toLowerCase().startsWith("application/json")) return send(res, { status: 415, json: { error: "Use application/json." } });
-      let message;
+      let message2;
       try {
-        message = JSON.parse(await readBody(req, LIVE_LIMITS.maxRequestBytes));
+        message2 = JSON.parse(await readBody(req, LIVE_LIMITS.maxRequestBytes));
       } catch (error2) {
         return send(res, bodyFailure(error2, "body is not JSON"));
       }
-      if (!validRequest(message)) return send(res, { status: 400, json: fail(null, ERR.INVALID_REQUEST, "Invalid JSON-RPC request") });
-      const headerError = validateHttpHeaders(message, req.headers);
+      if (!validRequest(message2)) return send(res, { status: 400, json: fail(null, ERR.INVALID_REQUEST, "Invalid JSON-RPC request") });
+      const headerError = validateHttpHeaders(message2, req.headers);
       if (headerError) return send(res, { status: 400, json: headerError });
-      const response = await dispatch(message, { invitedLive: true, protocolVersion: typeof req.headers["mcp-protocol-version"] === "string" ? req.headers["mcp-protocol-version"] : void 0 });
+      const response = await dispatch(message2, { invitedLive: true, protocolVersion: typeof req.headers["mcp-protocol-version"] === "string" ? req.headers["mcp-protocol-version"] : void 0 });
       if (!response) {
         await budget3.record(0);
         res.writeHead(202, { ...CORS, "cache-control": "no-store" });
@@ -207082,7 +207965,7 @@ function createGateway(env = process.env, options2 = {}) {
         return;
       }
       let body = JSON.stringify(response);
-      if (Buffer.byteLength(body) > responseMax) body = JSON.stringify(ok(message.id ?? null, { isError: true, content: [{ type: "text", text: "Read fewer layers or fields, or request a smaller preview. This result exceeds the hosted response limit." }] }));
+      if (Buffer.byteLength(body) > responseMax) body = JSON.stringify(ok(message2.id ?? null, { isError: true, content: [{ type: "text", text: "Read fewer layers or fields, or request a smaller preview. This result exceeds the hosted response limit." }] }));
       await budget3.record(Buffer.byteLength(body));
       res.writeHead(200, { ...CORS, "content-type": "application/json", "cache-control": "no-store" });
       res.end(body);
@@ -207261,8 +208144,8 @@ function createGateway(env = process.env, options2 = {}) {
       let body = JSON.stringify(response);
       if (Buffer.byteLength(body) > responseMax) {
         const mb2 = (Buffer.byteLength(body) / 1e6).toFixed(1);
-        const message = `The result is ${mb2} MB, over the ${(responseMax / 1e6).toFixed(1)} MB this hosted endpoint can return. Ask for svg, a smaller size, or run Lolly locally for large files.`;
-        body = JSON.stringify(msg3.method === "tools/call" ? ok(response.id ?? null, { content: [{ type: "text", text: message }], isError: true }) : fail(response.id ?? null, ERR.INTERNAL, message));
+        const message2 = `The result is ${mb2} MB, over the ${(responseMax / 1e6).toFixed(1)} MB this hosted endpoint can return. Ask for svg, a smaller size, or run Lolly locally for large files.`;
+        body = JSON.stringify(msg3.method === "tools/call" ? ok(response.id ?? null, { content: [{ type: "text", text: message2 }], isError: true }) : fail(response.id ?? null, ERR.INTERNAL, message2));
       }
       await budget3.record(Buffer.byteLength(body));
       res.writeHead(status, { ...CORS, "content-type": "application/json", "cache-control": "no-store" });

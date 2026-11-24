@@ -31,6 +31,7 @@ import { fillSegments } from './fallback-fonts.ts';
 import type { AssetsAPI, TextAPI, TextPathCluster } from '@lolly-tools/core/host-v1';
 import { createTextCompositionAPI } from './text-composition.ts';
 import { createGlyphCache } from './text-glyphs.ts';
+import { nodeWoff2Runner, useNodeWoff2Runner } from './woff2-node.ts';
 import { strikeMetricsFact, type StrikeMetrics } from '../../../engine/src/text-decoration.ts';
 import type { Blob as HbBlob, Face as HbFace, Font as HbFont, Feature as HbFeature } from 'harfbuzzjs';
 
@@ -127,10 +128,9 @@ async function readFace(fontUrl: string, repoRoot: string, key: string): Promise
   let buf = await loadFontBytes(fontUrl, repoRoot);
   // woff2 is not sfnt: HarfBuzz reads it as .notdef for every glyph, a silently blank
   // export. The fallback fonts (community/fallback-fonts) ship as woff2, so decode it
-  // here with the same pinned decoder the web shell uses.
+  // here with the same pinned decoder, and the same checks, the web shell uses.
   if (buf.length >= 4 && buf[0] === 0x77 && buf[1] === 0x4f && buf[2] === 0x46 && buf[3] === 0x32) {
-    const decompress = (await import('woff2-encoder/decompress')).default as (b: Uint8Array) => Promise<Uint8Array>;
-    buf = new Uint8Array(await decompress(buf));
+    buf = await (await import('./woff2.ts')).decodeWoff2(buf, { runner: nodeWoff2Runner });
   }
   const blob = new hb.Blob(buf as unknown as ArrayBuffer);
   const face = new hb.Face(blob);
@@ -336,6 +336,9 @@ function clustersFrom(
 }
 
 export function createNodeTextAPI({ repoRoot, assets, parseXml }: { repoRoot: string; assets?: AssetsAPI; parseXml?: (source: string) => Document }): TextAPI {
+  // Every WOFF2 decode in this process, including page-text's and text-fonts', gets a
+  // worker thread with its own decoder instance.
+  useNodeWoff2Runner();
   const composition = createTextCompositionAPI(async font => {
     if(font.source.kind==='embedded')return base64ToBytes(font.source.base64);
     if (font.source.kind === 'bundled') return loadFontBytes(font.source.path, repoRoot);

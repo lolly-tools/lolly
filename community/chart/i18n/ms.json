@@ -1,6 +1,6 @@
 {
   "name": "Carta",
-  "description": "Carta daripada tampalan pertama hingga visualisasi lanjutan - cadangan data yang dijelaskan, pemetaan medan eksplisit, 35 keluarga vektor klasik termasuk Pareto, sasaran peluru dan bar julat, enam belas artikulasi statistik dan editorial, adegan 3D-z sebenar, penerbangan sinematik, gerakan deterministik, penerangan mesra akses dan gaya yang dihimpun daripada sistem reka bentuk aktif.",
+  "description": "Carta daripada tampalan pertama hingga visualisasi lanjutan - 35 keluarga vektor, adegan 3D, penerbangan, gerakan dan gaya daripada sistem reka bentuk.",
   "featured.blurb": "Tampal jadual - Carta menjadikannya jelas, mudah diakses dan pastinya kekal berjenama",
   "a11yLabel": "Carta {{chartType}}{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Jenis carta",

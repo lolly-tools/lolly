@@ -1898,8 +1898,9 @@ function englishAudienceH2s(): string[] {
  *
  * A tile with a `file` links STRAIGHT at that file on lolli.li - the stable
  * `lolly-latest.*` alias, overwritten in place on each release, so the link never
- * rots on a version bump. A tile without one (iPhone and iPad, YunoHost, Arch)
- * has nothing to hand out as a single file, so it opens its section of
+ * rots on a version bump. The iPhone and iPad tile has a `url`: the app's App
+ * Store listing, which installs and updates the app. A tile with neither (YunoHost,
+ * Arch) has nothing to hand out as a single file, so it opens its section of
  * /info/install.html instead, shows an arrow rather than the download glyph, and
  * says so in its accessible name. The "more" link opens the same page for
  * everything without a tile, and the checksum step.
@@ -1920,7 +1921,7 @@ function englishAudienceH2s(): string[] {
 type DownloadTile = {
   id: string; logo?: string; icon?: string;
   os: string; name: string; ext: string; note: string;
-  file?: string; slug?: string; hash?: string; version?: string; rail?: boolean;
+  file?: string; url?: string; slug?: string; hash?: string; version?: string; rail?: boolean;
 };
 type DownloadsContent = {
   label: string; lead: string;
@@ -1938,13 +1939,16 @@ function downloadsRail(lang: Lang): string {
   // label says the same thing once, so the internals are all aria-hidden.
   const tile = (it: DownloadTile): string => {
     const link = links.get(it.id) ?? it;
-    if (!link.file && !link.hash) throw new Error(`downloads.json tile "${it.id}" has neither a file nor an install-page anchor`);
-    const href = link.file ? `${RELEASE}/${link.file}` : `${localeHref(lang, link.slug ?? 'install')}#${link.hash}`;
+    if (!link.file && !link.hash && !link.url) throw new Error(`downloads.json tile "${it.id}" has neither a file, a store address nor an install-page anchor`);
+    const href = link.file ? `${RELEASE}/${link.file}` : link.url ?? `${localeHref(lang, link.slug ?? 'install')}#${link.hash}`;
     const named = link.version ? `${it.name} ${link.version}` : it.name;
     // A file-less tile opens a section of a docs page: the install guide for an app
     // store or a repository, the page's own guide for the terminal and automation row.
+    // A store tile is named from the tile's own words (its note says which store), so
+    // every language reads it without a new string.
     const label = link.file
       ? t('Install for {os}: {name}, {ext} file').replace('{os}', it.os).replace('{name}', named).replace('{ext}', it.ext)
+      : link.url ? `${it.os}: ${named}. ${it.note}`
       : (link.slug ?? 'install') === 'install'
         ? t('{os}: {name}. Opens the install guide').replace('{os}', it.os).replace('{name}', named)
         : t('{os}: {name}. Opens the guide').replace('{os}', it.os).replace('{name}', named);

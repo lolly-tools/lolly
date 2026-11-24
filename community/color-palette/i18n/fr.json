@@ -1,6 +1,6 @@
 {
   "name": "Labo Palette",
-  "description": "Faites pousser une palette à partir d'une couleur de départ - accents harmoniques, rampes perceptuelles OKLab et badges de lisibilité WCAG/APCA, avec jetons DTCG et export CSV.",
+  "description": "Faites pousser une palette à partir d'une couleur de départ - accents harmoniques, rampes OKLab et badges de lisibilité WCAG/APCA, avec tokens DTCG et export CSV.",
   "inputs.seed.label": "Couleur de départ",
   "inputs.seed.help": "La couleur dont part toute la palette - par défaut, ta couleur de marque principale.",
   "inputs.harmony.label": "Harmonie",

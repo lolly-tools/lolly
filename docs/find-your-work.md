@@ -219,7 +219,7 @@ When the app starts, Lolly asks the browser not to clear its storage when the de
 
 If the browser did not agree, it may clear saved work as well as downloads when space runs low, so keep a recent **Export my data** file.
 
-**Settings → Storage** shows how much space each kind of data uses. Its **History** row counts automatic checkpoints, their previews and recovery drafts. **Remove automatic checkpoints older than 30 days** frees that space and keeps saved and named versions. **Clear cache** drops downloaded catalogue files, which download again when needed. **Clear all my data** asks you to type a word, turns off Sync, then removes everything Lolly keeps in this browser: your profile and settings, saved sessions with their history and the Trash, uploads, fonts and design systems, the download log, Convert results, downloaded AI models and offline copies. Files you downloaded stay where you saved them. The app then starts as on a first visit.
+**Settings → Storage** shows how much space each kind of data uses. Each saved session keeps one picture of its work, stored once however many copies, versions and downloads share the picture; **Tool previews** are the pictures the gallery drew for its cards, which draw again when needed. Its **History** row counts automatic checkpoints, their previews and recovery drafts. **Remove automatic checkpoints older than 30 days** frees that space and keeps saved and named versions. **Clear cache** drops downloaded catalogue files, which download again when needed. **Clear all my data** asks you to type a word, turns off Sync, then removes everything Lolly keeps in this browser: your profile and settings, saved sessions with their history and the Trash, uploads, fonts and design systems, the download log, Convert results, downloaded AI models and offline copies. Files you downloaded stay where you saved them. The app then starts as on a first visit.
 
 ![The storage card on a phone-width screen: every category of on-device data named, with the Clear all my data button at the bottom](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -233,7 +233,7 @@ One file per saved session, in a `saved-state` folder:
 - Linux: `~/.local/share/tools.lolly.Desktop/saved-state/`, or the same path under `$XDG_DATA_HOME`
 - iPhone, iPad and Android: inside the app's own storage, which the Files app does not show
 
-Pictures, design systems and the list of recent downloads stay in the app's internal storage, not in these folders. The terminal app and the command line read the same `saved-state` folder: see [Where saved sessions live](/info/cli-reference.html#where-saved-sessions-live).
+Each session's picture is a file in `saved-state/previews/`, stored once however many copies of the session there are. Uploaded pictures, design systems and the list of recent downloads stay in the app's internal storage, not in these folders. The terminal app and the command line read the same `saved-state` folder: see [Where saved sessions live](/info/cli-reference.html#where-saved-sessions-live).
 :::
 
 <!--i:eti-trash-->

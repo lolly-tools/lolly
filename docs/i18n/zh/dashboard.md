@@ -1,142 +1,170 @@
-# 设置
+# 設定
 
-Settings 是你更改 Lolly 如何为你工作的地方：你的详细信息、你使用的设计系统、无障碍、这台设备上存储了什么，以及哪些内容可离线使用。通过主屏幕底部栏中的 **Settings** 或你的头像菜单打开它。它默认打开 **Preferences**，旁边还有另外四个标签页。
+Settings 包含你的個人資料、設計系統、無障礙功能、此裝置上的儲存空間與離線下載。從首頁底部的列或頭像選單開啟 **Settings**，就會進入 **Preferences**。
 
-| 标签页 | 地址 | 包含内容 |
+| 分頁 | 位址 | 內容 |
 |---|---|---|
-| **Preferences** | `#/settings` | 你的详细信息、设计系统、外观、emoji、无障碍、连接、存储和离线下载 |
-| **This device** | `#/settings?tab=device` | 这个浏览器和机器的实时读数，以及声音和只读的存储视图 |
-| **Design system** | `#/settings?tab=brand` | 以封面和页面形式显示的当前设计系统，以及用于切换系统的封面条 |
-| **Capabilities** | `#/settings?tab=caps` | Lolly 能做的一切，以可搜索卡片的形式呈现 |
-| **Activity & stats** | `#/settings?tab=activity` | 目录、你的本地计数器和最近的作品 |
+| **Preferences** | `#/settings` | 你的個人資料、設計系統、外觀、emoji、無障礙功能、連線、儲存空間與離線下載 |
+| **This device** | `#/settings?tab=device` | 此瀏覽器與電腦的即時資訊，以及音效與唯讀的儲存空間檢視 |
+| **Design system** | `#/settings?tab=brand` | 以封面與頁面呈現目前使用的設計系統，並有一列封面可切換系統 |
+| **Capabilities** | `#/settings?tab=caps` | 以可搜尋的卡片列出 Lolly 能做的一切 |
+| **Activity & stats** | `#/settings?tab=activity` | 目錄、你的本機計數與最近的作品 |
 
-每个标签页都有自己的地址，旧的 `#/profile` 和 `#/d` 链接仍会打开正确的位置，精确到单项设置。
+舊的 `#/profile` 與 `#/d` 連結仍會開啟正確位置，甚至能直接到個別設定。
 
-## Preferences
+<!--i:eti-sliders-->
+## 偏好設定
 
-Preferences 是一个长页面，侧边有一条**设置栏**，栏上方的 **Search settings** 输入框会随你输入进行筛选。每个部分都可以通过形如 `#/settings?focus=<section-id>` 的链接直接打开，例如 `#/settings?focus=storage-section`。
+Preferences 是一個長頁面，側邊有一條**設定側欄**。側欄上方的 **Search settings** 欄位會隨你輸入篩選側欄。每個區段都有 `#/settings?focus=<section-id>` 形式的連結，例如 `#/settings?focus=storage-section`。
 
-- <!--i:usercheck--> **Your details** - 你的姓名、联系方式和头像，以及 **Use my details to create** 开关。[个人资料](/info/profile.html)解释了工具如何使用它们。
-- <!--i:seal--> **Content Credentials** - 为你的导出签名的可选已验证身份。参见 [Content Credentials](/info/content-credentials-identity.html)。
-- <!--i:palette--> **Design systems** - 切换、添加、隐藏或移除设计系统。[Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) 介绍了每个操作。
-- <!--i:moon--> **Appearance** - 主题（Light、Dark 或用你的调色板为应用着色的 Brand）、当设计系统提供多种配色方案时的 **Your colourway**（[让配色方案成为你自己的](/info/colourways.html#make-a-colourway-your-own)）以及 **Interface follows the design system**。
-- <!--i:sparkle--> **Emoji** - 你开始新作品时 emoji 所取自的集合及其素材许可协议，以及你的调色板为它们重新着色的强度（**Off**、**Subtle**、**Strong**、**Full**、**Mono** 或 **Duotone**）。**Keep skin tones and flags** 让这些保持自己的颜色。你已经完成的作品保留制作时所用的集合。
-- <!--i:eyeoff--> **Accessibility** - 四个舒适度开关，外加 Sound 和 Neurospicy Mode。参见[无障碍](#accessibility)。
-- <!--i:link--> **Connected services** - 你连接的存储，例如 Dropbox、Google Drive、OneDrive、Nextcloud 或 S3，以及 **Sync across devices**。参见[同步你的设备](/info/sync.html)。
-- <!--i:globe--> **Trusted sites** - Design 网页方框或 Sandbox 演示可以不经询问就联系的网站，以及在服务器提供时的 **Allow pages from any site**。[隐私政策](/info/privacy.html)列出了每个请求发送的内容。
-- <!--i:download--> **Your renders** - **Save my renders to my library** 会把你下载的每张图片、音频片段和视频的副本保存在 Assets 中，带有 Renders 标签。
-- <!--i:database--> **Storage** - Lolly 在这台设备上保存的内容，以及清除或携带你的数据的按钮。参见[存储](#storage)。
-- <!--i:cpu--> **Available offline** - 在失去连接之前下载你需要的内容。参见[离线可用](#available-offline)。
-- <!--i:folder--> **Hot folder** - 在桌面应用中监视一个文件夹，并把丢入其中的任何内容通过与拖放相同的选择器拉入 Lolly。
-- <!--i:clock--> **Your activity** - 你在这台设备上制作了什么，在本地统计。
-- <!--i:sliders--> **Feature flags** - 开启或关闭应用的部分功能，例如 **Print preflight** 或 **Strip metadata from uploads**。
-- <!--i:server--> **Lolly instance** - 这次安装从哪里获取工具和目录。参见 [Lolly instance](#lolly-instance)。
+- <!--i:usercheck--> **Your details** - 你的姓名、聯絡資料與頭像，以及 **Use my details to create** 開關。[個人資料](/info/profile.html)說明工具如何使用它們。
+- <!--i:seal--> **Content Credentials** - 選用的已驗證身分，用來簽署匯出檔案。請見 [Content Credentials](/info/content-credentials-identity.html)。
+- <!--i:palette--> **Design systems** - 切換、新增、隱藏或移除設計系統。[Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) 說明各項操作。
+- <!--i:moon--> **Appearance** - 主題（Light、Dark 或以你的色盤為應用程式上色的 Brand）、設計系統提供多種配色方案時的 **Your colourway**（[使用自己的配色方案](/info/colourways.html#make-a-colourway-your-own)），以及 **Interface follows the design system**。
+- <!--i:sparkle--> **Emoji** - 新作品使用的 emoji 圖集及其圖稿授權，以及用你的色盤為 emoji 重新上色的強度（**Off**、**Subtle**、**Strong**、**Full**、**Mono** 或 **Duotone**）。**Keep skin tones and flags** 會保留膚色與旗幟原本的色彩。已製作的作品保留原本的圖集。
+- <!--i:eyeoff--> **Accessibility** - 四個提升舒適度的開關，以及 Sound 與 Neurospicy Mode。請見[無障礙功能](#accessibility)。
+- <!--i:link--> **Connected services** - 你連接的儲存服務，例如 Dropbox、Google Drive、OneDrive、Nextcloud 或 S3，以及 **Sync across devices**。請見[同步你的裝置](/info/sync.html)。
+- <!--i:globe--> **Trusted sites** - Lolly Design 網頁方塊或 Lolly Sandbox 示範可不經詢問就連線的網站，以及伺服器提供時的 **Allow pages from any site**。[隱私權政策](/info/privacy.html)列出每個請求會傳送什麼。
+- <!--i:download--> **Your renders** - **Save my renders to my library** 將你下載的每張圖片、每段音訊與影片保留一份副本，放在 Assets 中的 Renders 標籤下。
+- <!--i:database--> **Storage** - Lolly 保存在此裝置上的內容，以及清除或攜帶資料的按鈕。請見[儲存空間](#storage)。
+- <!--i:cpu--> **Available offline** - 在失去連線前下載需要的內容。請見[離線可用](#available-offline)。
+- <!--i:folder--> **Hot folder** - 在桌面應用程式中，Lolly 監看一個資料夾，並透過與拖放相同的選擇器匯入放進去的任何內容。
+- <!--i:clock--> **Your activity** - 你在此裝置上製作的內容，在本機計數。
+- <!--i:sliders--> **Feature flags** - 開啟或關閉應用程式的部分功能，例如 **Print preflight** 或 **Strip metadata from uploads**。**Performance UI** 為應用程式提供較簡單、繪製負擔較低的外觀。Lolly 可以在較慢的裝置上自行開啟 Performance UI。此時開關下方會說明何時開啟及原因，並提供 **Allow again**（[判斷方式](/info/configuration.html#curating-what-people-see)）。
+- <!--i:server--> **Lolly instance** - 這個安裝實例取得工具與目錄的來源。請見 [Lolly 實例](#lolly-instance)。
 
-主题卡片是实时预览，选中的瞬间就会应用，仅限这台设备。
+主題卡片是即時預覽。選取主題後會立即套用，僅限此裝置。
 
-![三张主题卡片,各自预览自身的字体和颜色,当前使用的那张会被标出](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![三張主題卡片，各自預覽其字體與色彩，並標示目前使用的主題](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
-### 无障碍
+### 無障礙功能
 
-**Settings → Preferences → Accessibility** 包含围绕你的作品的应用的四项舒适度设置。每一项在你开启之前都是关闭的，没有任何一项会作用到工具画布或导出内容里面，所以更平静的应用绝不会移动你所交付文件的一个像素。
+**Settings → Preferences → Accessibility** 包含四項讓應用程式使用起來更舒適的設定。每項都在你開啟前保持關閉，而且都不會影響工具畫布或匯出，因此更平靜的應用程式不會動到你交付檔案中的任何像素。每項預設都是關閉的。它們都不會更改工具畫布或匯出。
 
-- <!--i:pause--> **Reduce motion** 关闭应用的过渡、滑动和装饰动画。你的画布和任何动画导出仍按设计运动。
-- <!--i:photos--> **Hide colourful previews** 把图库的预览图换成平静的图标加文字卡片，并让项目缩略图安静下来，使它们仍然可辨认而不喧闹。
-- <!--i:sliders--> **High contrast** 加强应用的边框、文字和焦点环。你的品牌颜色和画布保持你设定的样子。
-- <!--i:font--> **Large text** 放大应用的标签、菜单和按钮文字。你设计内部的文字不受影响，所以你导出的内容不会重新排版。
+- <!--i:pause--> **Reduce motion** 關閉應用程式的轉場、滑動與裝飾動畫。
+- <!--i:photos--> **Hide colourful previews** 將工具庫的預覽圖稿換成圖示與文字卡片，並淡化專案縮圖，但仍能辨識。
+- <!--i:sliders--> **High contrast** 加強應用程式的邊框、文字與焦點框。品牌色彩與畫布保持你的設定。
+- <!--i:font--> **Large text** 放大應用程式的標籤、選單與按鈕文字。
 
-这些设置保存在你的个人资料上，所以它们随个人资料导出一起传递，并连同你的姓名和会话一起到达下一次安装。一小份仅限设备的副本会在首次绘制之前应用它们。
+**Dominant hand**（Right 或 Left）設定 Lolly 在摺疊裝置或接近正方形的平板電腦上顯示兩個窗格時，控制項位於哪一側。窗格標題列中的 **Swap sides** 也能更改這項設定。
 
-同一张卡片还包含 **Sound**，为你的操作提供一层柔和的辅助音效（进入图库、Content Credentials 结果、关闭面板），以及 **Neurospicy Mode**，一首平静的专注曲目。开启 Neurospicy 会在角落打开一个小播放器，并在整个应用中跟随你。在那里你可以选择曲目、跳过、设置音量，以及最小化或关闭播放器。曲目包括程序化的 *Lolly Sings* 曲调、环境循环和节拍、你自己的音频，以及需要联网的网络电台。两者默认都是关闭的，并且会被记住，关闭 Sound 也会让专注曲目静音。个人资料菜单和 **This device** 带有同样的开关。
+這些設定保存在你的個人資料中，因此匯出個人資料時，會連同姓名與工作階段一起帶上。僅限此裝置的副本會在首次繪製畫面前套用設定。
 
-界面可以用键盘导航，自定义控制项带有供屏幕阅读器使用的标签，每个工具的实时预览都作为一张带标签的图片暴露出来，描述它显示的内容。
+同一張卡片有 **Sound**，為進入工具庫、取得 Content Credentials 結果或關閉面板等動作提供柔和的輔助音效。也有 **Neurospicy Mode**，提供平靜的專注音樂。開啟 Neurospicy 後，角落會出現小型播放器，在應用程式各處都會跟著你。在播放器中，你可以選擇曲目、跳過、設定音量，以及最小化或關閉播放器。曲目包含 Lolly 的生成電台、循環環境音與節拍、你自己的音訊，以及需要連線的網路廣播電台。兩者預設皆關閉，並會記住設定。關閉 Sound 也會將專注音樂靜音。個人資料選單與 **This device** 中都有相同的開關。
 
-### 存储
+Sound 開關下的滑桿設定聲音的質地。往圓潤的 **Bouba** 團塊移動，聲音會變成柔和的水滴、氣泡與少量低音。往尖銳的 **Kiki** 星形移動，則變成乾脆的滴答聲、刮擦聲與金屬聲。中間保留 Lolly 的鈴聲與音符。如果其中一端的聲音讓你難以忍受，就往另一端移動。Sound 關閉時滑桿仍可使用，放開滑桿會播放一小段範例。
 
-存储计量表按类别逐一统计这次安装持有的每一个字节，并与浏览器报告的数值对照。
+::: details 生成電台
+生成電台在播放時譜寫音樂，不使用取樣或錄製的人聲。每首曲子都有自己的樂器、律動與播放順序。
 
-![存储计量表，把已保存的会话、图片和缓存分项列出，并与浏览器实际报告的数值对照](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+- **Lolly Sings** 是一系列電台。原版 Lolly Sings 明亮且富有旋律：大調、每首曲子都有主奏，以及 bossa、shuffle 與 chiptune 的風格。每種曲風也有自己的電台，從 Sugar、K-pop 到 Country、Jazz、Metal 與 D&B。
+- **Lofi stations**（Warm、Late night 與 Rainy）提供無盡的 lo-fi 節拍。
 
-计量表下方：
+在生成電台中，下一首與上一首會在曲子之間切換。每首曲子都來自一個種子，因此無論在哪裡分享或儲存，播放的曲子都相同（請見[生成音樂](/info/generated-music.html)）。播放控制項下方的 **Mood** 可在 Lofi 電台之間切換，**Drums** 可移除鼓組，**Texture** 則從清晰音質調整到帶有老唱片的沙沙聲。接著是一列圖示按鈕。將指標停在按鈕上或長按，即可查看名稱：
 
-- **Move to another device** 包含 **Export my data**、**Import data…** 和 **Export my data & render everything**。[把你的作品迁移到另一台设备](/info/find-your-work.html#move-your-work-to-another-device)逐一介绍了它们。
-- **Clear cache** 会清除已下载的目录文件，需要时它们会再次下载。
-- **Remove automatic checkpoints older than 30 days** 会释放 History 空间，并保留已保存和已命名的版本。
-- **Clear all my data** 会在你输入一个词确认后，移除 Lolly 在这个浏览器中保存的一切。[如果你清除了浏览器数据](/info/find-your-work.html#if-you-clear-your-browser-data)列出了会丢失什么。
+- 音符 **Open in the music generator** 在 `#/music` 開啟曲子，你可以逐段更改樂器。
+- 連結 **Share this tune or moment** 提供播放同一首曲子的連結，或也會從目前位置開始、並以目前預設與色彩顯示視覺化效果的連結。
+- 資料夾 **Save to library** 將曲子保存在你的素材中。
+- 閃電 **Light visualiser** 是開關，下文有說明。
 
-### 离线可用
+已儲存的曲子會列在其電台群組下，按調性與速度標示。選擇已儲存的曲子，就會再次播放同一首曲子，像其他曲目一樣重複播放，或在向前播放模式中接著播放下一首。它只儲存電台與曲目編號，僅幾個位元組，播放時會重新譜寫音樂。你可以在素材中重新命名或刪除已儲存的曲子，並將它用作影片的背景音樂。Lolly Demo 與 Lolly Start 各附有六首已儲存的曲子。
 
-Lolly 会在你访问时缓存界面，但这只涵盖你已经去过的地方。**Available offline** 适用于你能预见的行程：下载你将需要的部分，看着一条进度条，你带走的一切在没有网络时都能继续工作。
+視覺化效果以穩定的電平接收每首曲目，因此無論音量如何，安靜與大聲的曲目都會讓畫面產生相同程度的變化。每種 Lolly Sings 曲風，以及從中儲存的曲子，都提供 **Light visualiser**：簡單的電平條，將所需的處理時間留給音樂。在觸控螢幕，以及核心數為四個以下或記憶體為 4 GB 以下的裝置上，Light visualiser 預設開啟。
+:::
 
-- <!--i:monitor--> **App, catalogue and guides** - **The app**（每个视图、编辑器和字体，包括你从未打开过的界面）、**Catalogue**（全部，或 **Choose by tag**）以及 **Guides & docs**（你所用语言的本文档，包括截图）。
-- <!--i:cpu--> **AI models** - 每个设备端模型各占一行并标有大小：Speech voices、Upscaling models、Background removal、Text recognition、Verify deep scan、Durable credential、Rewriter model、Ask matching model、AI text detector 和 Singing voices。超过 50 MB 的模型会标记为 **large download**。
-- <!--i:wrench--> **Tools** - 每个工具单独下载，或用 **Download all** 获取所有工具。打钩表示已可离线使用。
+你可以用鍵盤操作介面。自訂控制項帶有供螢幕閱讀器使用的標籤。每個工具的即時預覽都是一張帶有標籤的圖片，描述畫面顯示的內容。
 
-顶部的 **Download everything** 会获取应用、你选择的目录范围、指南和所有工具。勾选 **Include all the AI models** 可加入模型，也可以在模型自己的那一行下载；歌声只能从其自己的那一行下载。组织的政策可以关闭 AI 下载，此时这些行会告诉你。
+### 儲存空間
 
-如果你取消或失去连接，下载会从中断处恢复，并在你重新联网时自动刷新，只获取某个版本更改过的内容。如果浏览器没有授予持久存储，**Protect downloads** 会请求它：这就是“已下载”与“已下载，直到浏览器要收回空间”之间的区别。
+儲存空間計量表按類別顯示此安裝實例保存的每個位元組，並與瀏覽器回報的數值對照。
 
-### Lolly instance
+![儲存空間計量表，分列已儲存的工作階段、圖片與快取，並與瀏覽器實際回報的數值對照](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
-**Lolly instance** 说明这次安装从哪里获取工具和目录：某个实例的地址，或者当一切都内置在构建中时显示 *Bundled with this app*。
+計量表下方：
 
-- **Design-system source** 显示所提供的设计系统来自哪里。
-- **Instance console** 打开部署的管理页面（如果部署提供的话）。
-- **Change** 让桌面应用指向另一个实例。浏览器无法跨源加载工具和素材，所以在网页上该部分提供 **Open a workspace**。
-- **Leave** 会移除该实例的设计系统、工具和目录，你自己的作品保留。参见[在你的组织中使用 Lolly](/info/organisation.html#leaving)。
-- 当你登录到某个组织时，**Sign out** 结束本次会话，**Sign out everywhere** 结束你在每台设备（包括这一台）上的会话。
+- **Move to another device** 包含 **Export my data**、**Import data…** 與 **Export my data & render everything**。[將作品移到另一部裝置](/info/find-your-work.html#move-your-work-to-another-device)逐一說明。
+- **Clear cache** 刪除已下載的目錄檔案，需要時會再次下載。
+- **Remove automatic checkpoints older than 30 days** 釋放 History 空間，並保留已儲存與已命名的版本。
+- **Clear all my data** 在你輸入一個詞確認後，移除 Lolly 保存在此瀏覽器中的所有內容。[如果你清除瀏覽器資料](/info/find-your-work.html#if-you-clear-your-browser-data)列出會移除的內容。
 
-## 此设备
+### 離線可用
 
-- <!--i:monitor--> **This Machine** - 屏幕、输入、图形、内存、编解码器、存储后端等，从当前会话实时读取。不存储任何内容，也不发送任何内容。在宽屏上它会自动展开，这时该标签页以两列排布。
-- <!--i:neurobeat--> **Sound** - 界面音效和 Neurospicy 专注循环，是该标签页上唯一会写入任何内容的开关。
-- <!--i:database--> **Storage** - [Preferences](#storage) 中计量表的只读视图，清除或携带你的数据要在那里进行。
+Lolly 只快取你造訪過的畫面。**Available offline** 以單一進度列下載你需要的部分，讓它們在沒有連線時也能繼續運作。
 
-## 设计系统
+- <!--i:monitor--> **App, catalogue and guides** - **The app**（每個檢視、編輯器與字型，包括你從未開啟的畫面）、**Catalogue**（全部，或 **Choose by tag**）以及 **Guides & docs**（以你的語言顯示的這份文件，包含螢幕截圖）。
+- <!--i:cpu--> **AI models** - 每個裝置端模型各佔一列，並顯示大小：語音聲音、放大模型、背景移除、文字辨識、Lolly Verify 深度掃描、持久憑證、改寫模型、Ask 比對模型、AI 文字偵測器與歌唱聲音。超過 50 MB 的模型會標示 **large download**。
+- <!--i:wrench--> **Tools** - 每個工具可分別下載，或使用 **Download all** 下載所有工具。勾號代表已可離線使用。
 
-当前的设计系统，排版得便于阅读。当这个浏览器持有两个或更多设计系统时，顶部的一条小封面条会列出它们：选择一个使其成为当前系统，随后通知中的 **Undo** 会恢复之前的那个。
+**Download everything** 位於頂端，會下載應用程式、你選擇的目錄範圍、指南與所有工具。勾選 **Include all the AI models** 可加入模型，或從模型各自的列下載。歌唱聲音只能從各自的列下載。組織的政策可以關閉 AI 下載，這些列也會顯示此狀態。
 
-![Lolly Demo 上的 Design system 标签页：用于切换系统的封面条，然后是带有徽标、名称、说明和可打开各页面的计数的封面](/t/url-shot?url=%2F%23%2Fsettings%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=2400&format=svg&walker=1&dark=1&filename=settings-design-system)
+如果你取消下載或連線中斷，下載會從停止的位置接續。重新連線後，它們會更新，並只擷取新版本變更的內容。如果瀏覽器尚未授予持續性儲存空間，**Protect downloads** 會要求該權限。沒有此權限時，瀏覽器可能會在需要騰出空間時刪除下載的內容。
 
-该标签页以一张用系统自己的颜色绘制的封面打开，上面有它的徽标、以展示字体书写的名称，以及其作者写的说明。封面上的一行计数链接到每个页面：
+### Lolly 實例
 
-- <!--i:palette--> **Colour** - 浅色和深色外观的表面、文字、主色和次色，每个命名颜色都是带名称和十六进制值的色块，每条色调渐变各占一条带，图表色谱，以及折叠中的颜色角色。选择一个值即可复制十六进制值。
-- <!--i:font--> **Type** - Headings、Text、Emphasis 和 Code，各自使用自己的字体书写。
-- <!--i:photos--> **Logos** - 每个徽标文件，放在它所设计的底色上。
-- <!--i:layers--> **Colourways** - 当系统有多个配色方案时，每种配色方案的浅色与深色一对。
-- <!--i:sliders--> **Tokens** - 圆角、间距、效果和渐变。
-- <!--i:document--> **Print & CMYK** - 锁定为确切油墨的颜色，以及 CMYK PDF 可以声明的印刷条件。
+**Lolly instance** 說明此安裝從哪裡取得工具與目錄：顯示實例的位址，或在所有內容都隨建置版本提供時顯示 *Bundled with this app*。
 
-切换是这个标签页唯一会做的更改。你在 `#/start` 的 [Lolly Design System Setup](/info/brand-studio.html) 中编辑设计系统，封面链接到那里。只读系统会在封面上注明；你创建的本地系统保持可编辑。`/b` 和 `/brand` 是直达这个标签页的短链接。
+- **Design-system source** 顯示隨附設計系統的來源。
+- **Instance console** 會開啟部署環境提供的管理頁面（若有提供）。
+- **Change** 讓桌面應用程式指向另一個實例。瀏覽器無法跨來源載入工具與素材，因此網頁版的此區段改為提供 **Open a workspace**。
+- **Leave** 會移除實例的設計系統、工具與目錄。你自己的作品會保留。請見[在你的組織使用 Lolly](/info/organisation.html#leaving)。
+- 登入組織後，**Sign out** 會結束此工作階段，**Sign out everywhere** 則會結束你在所有裝置上的工作階段，包括這部裝置。
 
-## Capabilities
+<!--i:eti-monitor-->
+## 這部裝置
 
-平台的每个部分都写成一张卡片，分为十二组：Experiences、Platforms & runtimes、Accessibility & languages、Export formats、Import formats、Print production、Automation & AI、Determinism & reproducibility、Brand & design system、Privacy & data ownership、Security & access control 和 Architecture (for builders)。每一组都可以折叠，并显示其卡片数量。卡片会展开为一个对话框，列出该能力的功能，其中约一半还附有本文档使用的截图。
+- <!--i:monitor--> **This Machine** - 從此工作階段即時讀取螢幕、輸入、圖形、記憶體、編解碼器、儲存後端等資訊。不會儲存或傳送任何內容。在寬螢幕上，此面板會自行展開，分頁採用兩欄配置。
+- <!--i:neurobeat--> **Sound** - 介面音效與 Neurospicy 專注循環音軌。Sound 是此分頁中唯一會寫入內容的開關。
+- <!--i:database--> **Storage** - 儲存空間計量表的唯讀檢視。在[偏好設定](#storage)中清除或攜出你的資料。
 
-各组上方的搜索框会随你输入筛选卡片，并展开仍有匹配项的各组。它会说明正在搜索多少项能力，没有匹配的查询则会用文字说明。
+<!--i:eti-palette-->
+## 設計系統
 
-这个标签页是对 Lolly 能做什么的书面文档，与这些指南保持同步。它不会探测你所用的机器；那是 **This device** 的工作。
+呈現目前啟用的設計系統，供你查看。當此瀏覽器存有兩個以上的設計系統時，頂端會以一排封面列出它們。選擇其中一個即可啟用。隨後出現的通知中的 **Undo** 會還原先前的設計系統。
 
-## Activity & stats
+![Lolly Demo 的 Design system 分頁：先是一排用來切換系統的封面，再來是封面本身，包含標誌、名稱、備註與可開啟各頁面的數量](/t/url-shot?url=%2F%23%2Fsettings%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=2400&format=svg&walker=1&dark=1&filename=settings-design-system)
 
-先是构建本身：加载了多少工具、有多少导出格式、平台运行在多少个界面上，以及目录携带了多少品牌素材，另有一个 **Catalogue** 面板，分项说明这个构建中附带的内容。
+分頁開啟時會顯示以系統本身色彩繪製的封面，附有標誌、以其展示字型呈現的名稱，以及作者寫的備註。封面上的一列數量可連到各個頁面：
 
-然后是你自己这一侧：**Your activity** 统计你在这台设备上制作了什么，**Recent creations** 和 **Latest exports** 是可以滑动浏览的堆叠，各自在有内容可显示时才出现。两者都会按原样打开某个项目。这些计数器留在设备上；可选的 Lolly Work 实例保存自己的[组织遥测和审计记录](/info/privacy.html#organisation-services-with-lolly-work)。
+- <!--i:palette--> **Colour** - 淺色與深色外觀的表面、文字、主要與次要色彩；每個命名色彩以色塊呈現，附上名稱與十六進位值；每組淡色階與圖表色譜各佔一條色帶；色彩角色則放在可摺疊區塊中。選取數值即可複製十六進位值。
+- <!--i:font--> **Type** - Headings、Text、Emphasis 與 Code，各自使用對應的字型呈現。
+- <!--i:photos--> **Logos** - 每個標誌檔案都放在原先設計搭配的底色上。
+- <!--i:layers--> **Colourways** - 當系統有多個配色方案時，顯示每個配色方案的淺色與深色配對。
+- <!--i:sliders--> **Tokens** - 半徑、間距、效果與漸層。
+- <!--i:document--> **Print & CMYK** - 鎖定為精確油墨的色彩，以及 CMYK PDF 可宣告的印刷條件。
 
-## 深度链接
+切換是此分頁唯一會做的變更。若要編輯設計系統，請前往 `#/start` 的 [Lolly Design System Setup](/info/brand-studio.html)，封面也有連結。唯讀系統會在封面上註明。你建立的本機系統仍可編輯。`/b` 與 `/brand` 是此分頁的短連結。
 
-Settings 的每个标签页和部分都有自己的链接，你可以收藏或粘贴。[搜索](/info/search.html)把其 **Settings** 结果指向与 Settings 渲染所用的同一份注册表，所以某个部分不会在搜索结果底下被改名。
+<!--i:eti-grid-->
+## 功能
 
-::: details 链接的所有形式
+平台的每個部分都有一張卡片，分成十二組：使用體驗、平台與執行環境、無障礙與語言、匯出格式、匯入格式、印刷製作、自動化與 AI、確定性與可重現性、品牌與設計系統、隱私與資料所有權、安全性與存取控制，以及架構（供建置者參考）。每組皆可摺疊，並顯示卡片數量。卡片會開啟對話框，列出該功能的特點，其中約半數卡片也會顯示這份文件使用的螢幕截圖。
 
-- **一个标签页：**`#/settings?tab=brand`、`#/settings?tab=caps`、`#/settings?tab=device`、`#/settings?tab=activity`。
-- **一个 Preferences 部分：**`#/settings?focus=<section-id>`，例如 `#/settings?focus=offline-section`。
-- **精确指向一个部分：**将其 ID 作为裸标志，例如 `#/settings?dash-storage`、`#/settings?dash-logos`、`#/settings?dash-colourways` 或 `#/settings?cap-formats`。较旧的 `#/settings?dash-lock` 和 `#/settings?dash-palette-wheel` 链接会打开封面和 Colour 页面。
-- **按关键词指向一个部分：**`#/settings?print`、`#/settings?formats`、`#/settings?palette`（Colour 页面）或 `#/settings?tokens`。关键词可以共用：`print` 同时属于品牌标签页的印刷参考和 Print production 组，页面顺序靠前者优先。如果需要明确指向哪一个，请使用 ID。
+群組上方的搜尋欄位會在你輸入時篩選卡片，並展開含有相符項目的群組。欄位會顯示搜尋涵蓋多少項功能。沒有相符結果時，會以文字明確說明。
 
-深度链接会切换到拥有目标的标签页，打开它所在的任何折叠组，然后滚动到它，并在其上方各部分完成布局时稍作停留。已停用的 `#/platform` 和 `#/capabilities` 地址会并入 Settings，并保留其深度链接标志。
+此分頁記錄 Lolly 能做的事，與這些指南保持同步。它不會偵測你正在使用的裝置；這由 **This device** 負責。
+
+<!--i:eti-gauge-->
+## 活動與統計
+
+首先是建置版本：已載入的工具數量、匯出格式、平台可執行的環境，以及目錄中的品牌素材。**Catalogue** 面板會逐項列出此建置版本隨附的內容。
+
+接著是你自己的作品：**Your activity** 統計你在這部裝置上製作的內容。**Recent creations** 與 **Latest exports** 是可滑動瀏覽的堆疊，有內容後才會顯示。兩者都會以項目當時的狀態開啟。這些計數留在裝置上。選用的 Lolly Work 實例會保留自己的[組織遙測與稽核記錄](/info/privacy.html#organisation-services-with-lolly-work)。
+
+<!--i:eti-link-->
+## 深層連結
+
+Settings 的每個分頁與區段都有自己的連結，可加入書籤或貼上。[Lolly Search](/info/search.html) 使用與 Settings 相同的登錄資料建立 **Settings** 結果，因此區段重新命名絕不會讓搜尋結果失效。
+
+::: details 各種連結形式
+
+- **分頁：** `#/settings?tab=brand`、`#/settings?tab=caps`、`#/settings?tab=device`、`#/settings?tab=activity`。
+- **Preferences 區段：** `#/settings?focus=<section-id>`，例如 `#/settings?focus=offline-section`。
+- **精確指定區段：** 將其 id 作為獨立旗標，例如 `#/settings?dash-storage`、`#/settings?dash-logos`、`#/settings?dash-colourways` 或 `#/settings?cap-formats`。舊版的 `#/settings?dash-lock` 與 `#/settings?dash-palette-wheel` 連結會開啟封面與 Colour 頁面。
+- **以關鍵字指定區段：** `#/settings?print`、`#/settings?formats`、`#/settings?palette`（Colour 頁面）或 `#/settings?tokens`。兩個區段可以共用一個關鍵字：`print` 同時屬於品牌分頁的印刷參考資料與印刷製作群組，會以頁面順序中的第一個為準。使用 id 可指定其中一個。
+
+深層連結會切換到包含目標的分頁，並展開目標所在的任何摺疊群組。接著，等上方區段完成版面配置後，就會捲動到目標。已停用的 `#/platform` 與 `#/capabilities` 位址會在 Settings 中開啟，保留原本的深層連結旗標。
 :::
 
 ---
 
-**相关内容：**[个人资料](/info/profile.html)，了解你的详细信息以及你创作时所处的情境。[Lolly Design System Setup](/info/brand-studio.html)，用于编辑 Design system 标签页所显示的内容。[查找和恢复你的作品](/info/find-your-work.html)，了解存储、备份和更换设备。
+**相關內容：** [個人資料](/info/profile.html)介紹你的詳細資料與創作情境。[Lolly Design System Setup](/info/brand-studio.html)用來編輯 Design system 分頁顯示的內容。[尋找並復原你的作品](/info/find-your-work.html)介紹儲存、備份與更換裝置。

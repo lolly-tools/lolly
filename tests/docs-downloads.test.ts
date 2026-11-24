@@ -32,7 +32,7 @@ const read = (p: string) => readFileSync(resolve(repoRoot, p), 'utf-8');
 type Tile = {
   id: string; logo?: string; icon?: string;
   os: string; name: string; ext: string; note: string;
-  file?: string; slug?: string; hash?: string;
+  file?: string; url?: string; slug?: string; hash?: string;
 };
 type Downloads = { label: string; lead: string; rows: { id: string; label: string; items: Tile[] }[]; more: { label: string; slug: string } };
 
@@ -92,13 +92,14 @@ test('the terminal and automation row opens docs pages, not files', () => {
   }
 });
 
-test('the iPhone and iPad tile points at the App Store section, not a file', () => {
-  // The iPhone and iPad app comes from the App Store (see the "iPhone and iPad"
-  // section of docs/install.md). The tile links to that section and shows the
-  // store. It offers no file, because the store installs and updates the app.
+test('the iPhone and iPad tile opens the App Store listing, not a file', () => {
+  // The iPhone and iPad app comes from the App Store, which installs and updates
+  // the app, so the tile offers no file. It opens the listing itself, and keeps the
+  // install page's section as the place the guide explains the store.
   const ios = tiles.find((t) => t.id === 'ios');
   assert.ok(ios, 'the apps row has an iPhone and iPad tile');
   assert.equal(ios.file, undefined);
+  assert.match(ios.url ?? '', /^https:\/\/apps\.apple\.com\/app\/id\d+$/, 'the tile opens the listing, with no storefront in the address');
   assert.equal(ios.hash, 'iphone-and-ipad');
   assert.match(ios.note, /app store/i, 'the tile names the App Store');
   assert.match(read('docs/install.md'), /apps\.apple\.com\/app\/id\d+/, 'the install page links the App Store listing');

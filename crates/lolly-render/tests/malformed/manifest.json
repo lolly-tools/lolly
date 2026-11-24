@@ -1,0 +1,292 @@
+{
+ "about": "Small malformed inputs and the refusal codes each must give, the first code first. Written by ../make-test-inputs.py; each file is the whole input.",
+ "cases": [
+  {
+   "file": "empty.json",
+   "codes": [
+    "input-json"
+   ],
+   "why": "no bytes at all"
+  },
+  {
+   "file": "not-utf8.json",
+   "codes": [
+    "input-json"
+   ],
+   "why": "bytes that are not UTF-8 JSON"
+  },
+  {
+   "file": "array.json",
+   "codes": [
+    "input-json"
+   ],
+   "why": "JSON, but not an object"
+  },
+  {
+   "file": "truncated.json",
+   "codes": [
+    "input-json"
+   ],
+   "why": "the envelope cut short"
+  },
+  {
+   "file": "deep.json",
+   "codes": [
+    "input-json"
+   ],
+   "why": "nesting far past the reader's recursion limit"
+  },
+  {
+   "file": "huge-number.json",
+   "codes": [
+    "input-json"
+   ],
+   "why": "a number too large for a float"
+  },
+  {
+   "file": "unknown-field.json",
+   "codes": [
+    "input-field"
+   ],
+   "why": "a field the envelope does not have"
+  },
+  {
+   "file": "format.json",
+   "codes": [
+    "input-format"
+   ],
+   "why": "another format's envelope"
+  },
+  {
+   "file": "version.json",
+   "codes": [
+    "input-version"
+   ],
+   "why": "an envelope version this build does not read"
+  },
+  {
+   "file": "draw-version.json",
+   "codes": [
+    "draw-version"
+   ],
+   "why": "drawing operations of another version"
+  },
+  {
+   "file": "output-zero.json",
+   "codes": [
+    "output-size"
+   ],
+   "why": "a zero size"
+  },
+  {
+   "file": "output-huge.json",
+   "codes": [
+    "output-size"
+   ],
+   "why": "a side over 8192 pixels"
+  },
+  {
+   "file": "output-fraction.json",
+   "codes": [
+    "output-size"
+   ],
+   "why": "a size in part pixels"
+  },
+  {
+   "file": "output-dpi.json",
+   "codes": [
+    "output-dpi"
+   ],
+   "why": "a negative resolution"
+  },
+  {
+   "file": "output-proportions.json",
+   "codes": [
+    "output-proportions"
+   ],
+   "why": "a size of other proportions than the page"
+  },
+  {
+   "file": "page-size.json",
+   "codes": [
+    "page-size"
+   ],
+   "why": "a page with no width"
+  },
+  {
+   "file": "finding.json",
+   "codes": [
+    "finding"
+   ],
+   "why": "a page the engine reports it cannot carry"
+  },
+  {
+   "file": "unknown-op.json",
+   "codes": [
+    "unknown-op"
+   ],
+   "why": "an operation of an unknown kind"
+  },
+  {
+   "file": "long-id.json",
+   "codes": [
+    "id"
+   ],
+   "why": "an id over 256 characters"
+  },
+  {
+   "file": "lottie-path.json",
+   "codes": [
+    "compatibility-reading"
+   ],
+   "why": "a path that keeps Lottie commands"
+  },
+  {
+   "file": "bad-colour.json",
+   "codes": [
+    "colour"
+   ],
+   "why": "a colour left unresolved"
+  },
+  {
+   "file": "nan-box.json",
+   "codes": [
+    "geometry"
+   ],
+   "why": "a box far outside the coordinate bound"
+  },
+  {
+   "file": "picture-missing.json",
+   "codes": [
+    "picture-missing"
+   ],
+   "why": "an operation naming a picture the input does not carry"
+  },
+  {
+   "file": "picture-duplicate.json",
+   "codes": [
+    "picture"
+   ],
+   "why": "two pictures under one ref"
+  },
+  {
+   "file": "picture-base64.json",
+   "codes": [
+    "picture-unreadable"
+   ],
+   "why": "picture data that is not base64"
+  },
+  {
+   "file": "png-truncated.json",
+   "codes": [
+    "picture-unreadable"
+   ],
+   "why": "a PNG cut short"
+  },
+  {
+   "file": "png-bad-crc.json",
+   "codes": [
+    "picture-unreadable"
+   ],
+   "why": "a PNG whose header checksum is wrong"
+  },
+  {
+   "file": "png-huge.json",
+   "codes": [
+    "picture-size"
+   ],
+   "why": "a PNG claiming 70000 x 70000 pixels"
+  },
+  {
+   "file": "png-sixteen-bit.json",
+   "codes": [
+    "picture-depth"
+   ],
+   "why": "a PNG of 16 bits a channel"
+  },
+  {
+   "file": "png-own-gamma.json",
+   "codes": [
+    "picture-colour"
+   ],
+   "why": "a PNG with a gamma of its own"
+  },
+  {
+   "file": "png-own-profile.json",
+   "codes": [
+    "picture-colour"
+   ],
+   "why": "a PNG with a colour profile that is not sRGB"
+  },
+  {
+   "file": "png-animated.json",
+   "codes": [
+    "picture-motion"
+   ],
+   "why": "an animated PNG"
+  },
+  {
+   "file": "jpeg-truncated.json",
+   "codes": [
+    "picture-unreadable"
+   ],
+   "why": "a JPEG cut short"
+  },
+  {
+   "file": "jpeg-cmyk.json",
+   "codes": [
+    "picture-type"
+   ],
+   "why": "a CMYK JPEG"
+  },
+  {
+   "file": "jpeg-turned.json",
+   "codes": [
+    "picture-orientation"
+   ],
+   "why": "a JPEG whose Exif says to turn it"
+  },
+  {
+   "file": "webp-truncated.json",
+   "codes": [
+    "picture-unreadable"
+   ],
+   "why": "a WebP cut short"
+  },
+  {
+   "file": "webp-animated.json",
+   "codes": [
+    "picture-motion"
+   ],
+   "why": "an animated WebP"
+  },
+  {
+   "file": "webp-huge.json",
+   "codes": [
+    "picture-size"
+   ],
+   "why": "a lossless WebP of 16384 x 16384 pixels"
+  },
+  {
+   "file": "gif.json",
+   "codes": [
+    "picture-type"
+   ],
+   "why": "a GIF"
+  },
+  {
+   "file": "svg.json",
+   "codes": [
+    "picture-vector"
+   ],
+   "why": "a vector picture"
+  },
+  {
+   "file": "unknown-type.json",
+   "codes": [
+    "picture-type"
+   ],
+   "why": "bytes of no known picture type"
+  }
+ ]
+}

@@ -68,7 +68,7 @@ export function fallbackPackUrl(pack: FallbackFontPack): Promise<string | null> 
     const bytes = source ? await source.bytes(pack.id) : null;
     if (!bytes?.length) return null;
     const woff2 = bytes[0] === 0x77 && bytes[1] === 0x4f && bytes[2] === 0x46 && bytes[3] === 0x32;
-    const sfnt = woff2 ? await (await import('woff2-encoder/decompress')).default(bytes) : bytes;
+    const sfnt = woff2 ? await (await import('@lolly-tools/node-shell/woff2')).decodeWoff2(bytes) : bytes;
     void source?.hold([pack.id]).catch(() => {});
     return URL.createObjectURL(new Blob([sfnt as BlobPart], { type: 'font/ttf' }));
   })().catch(() => null);

@@ -1310,14 +1310,28 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
       if ((format === 'svg' || format === 'svgz') && opts.sourceDocument?.toolId === 'design') {
         // The snapshot precedes the story-composition hook; the browser owns that page.
         if (String(opts.sourceDocument.values.textDocument ?? '').trim()) throw new Error(`This Design page needs a browser engine for ${format.toUpperCase()} because the document composes text stories`);
-        const { designOpsSvgNode } = await import('@lolly-tools/node-shell/design-ops-svg');
-        const page = await designOpsSvgNode(node, opts, host, { repoRoot: REPO_ROOT });
-        if (page && 'svg' in page) {
-          await noteDesignOps(opts, page.ingredients);
-          const bytes = new TextEncoder().encode(page.svg);
-          return new Blob([format === 'svgz' ? gzip(bytes) as BlobPart : bytes], { type: 'image/svg+xml' });
+        // A caller that draws the operations itself (the lolly-render route in
+        // design-still.ts) takes the compiled page through the sink; the SVG is not written.
+        const drawingSink = (opts as { drawingSink?: unknown }).drawingSink;
+        if (typeof drawingSink === 'function') {
+          const { designOpsDrawingNode } = await import('@lolly-tools/node-shell/design-ops-svg');
+          const compiled = await designOpsDrawingNode(node, opts, host, { repoRoot: REPO_ROOT });
+          if (compiled && 'drawing' in compiled) {
+            await noteDesignOps(opts, compiled.ingredients);
+            drawingSink(compiled.drawing);
+            return new Blob([], { type: 'image/svg+xml' });
+          }
+          if (compiled) designOpsReason = compiled.reason;
+        } else {
+          const { designOpsSvgNode } = await import('@lolly-tools/node-shell/design-ops-svg');
+          const page = await designOpsSvgNode(node, opts, host, { repoRoot: REPO_ROOT });
+          if (page && 'svg' in page) {
+            await noteDesignOps(opts, page.ingredients);
+            const bytes = new TextEncoder().encode(page.svg);
+            return new Blob([format === 'svgz' ? gzip(bytes) as BlobPart : bytes], { type: 'image/svg+xml' });
+          }
+          if (page) designOpsReason = page.reason;
         }
-        if (page) designOpsReason = page.reason;
       }
       if (format === 'svg' || format === 'svgz') {
         const svg = rootSvgOf(node);

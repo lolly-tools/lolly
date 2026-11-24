@@ -1,6 +1,6 @@
 {
   "name": "QR Code",
-  "description": "QR-codes voor een link, contactkaart, Wi-Fi-netwerk, agenda-afspraak, locatie of platte tekst.",
+  "description": "Scanbare codes van elke soort: QR, Micro QR, Data Matrix, Aztec en PDF417 - plus retail- en logistieke barcodes van EAN-13 tot MaxiCode.",
   "featured.blurb": "QR-codes in elke merkkleur",
   "a11yLabel": "QR-code die linkt naar {{default url \"(no URL set)\"}}",
   "inputs.url.label": "URL",

@@ -1,6 +1,6 @@
 {
   "name": "Finiture",
-  "description": "Visualizza in anteprima finiture in foil, UV a rilievo, goffratura e soft-touch sulla tua grafica - poi esporta il piano di stampa pronto per la tipografia. La brillantezza a schermo è solo dimostrativa; il piano è il deliverable reale richiesto dalla tua tipografia.",
+  "description": "Visualizza in anteprima finiture in foil, UV a rilievo, goffratura e soft-touch sulla tua grafica, poi esporta il piano di stampa. La brillantezza a schermo è solo dimostrativa.",
   "a11yLabel": "Artwork con una finitura di stampa simulata, o la lastra pronta per la stampa nella vista lastra",
   "inputs.image.label": "Artwork",
   "inputs.image.help": "Scegli il tuo artwork o caricane uno. Viene elaborato sul tuo dispositivo, i pixel non lasciano mai il browser.",

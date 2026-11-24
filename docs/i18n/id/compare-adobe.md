@@ -2,24 +2,28 @@
 
 _Terakhir diperiksa: 28 September 2026._
 
-Jika Anda memakai Photoshop, Illustrator, atau InDesign untuk file sehari-hari, halaman ini menyatakan pekerjaan mana di antaranya yang dapat diambil alih Lolly dan mana yang tetap bersama Adobe.
+Jika Anda menggunakan Photoshop, Illustrator atau InDesign untuk file sehari-hari, halaman ini menjelaskan pekerjaan mana yang dapat diambil alih Lolly dan mana yang tetap dilakukan di Adobe.
 
-## Apa yang dilakukan Adobe lebih baik
+<!--i:eti-award-->
+## Yang lebih baik dilakukan Adobe
 
-Aplikasi spesialis Adobe mencakup pekerjaan kreatif yang mendalam. [Photoshop](https://www.adobe.com/products/photoshop.html), misalnya, menyediakan penyuntingan foto, seleksi, masking, dan komposit yang mendetail. Retouch yang rumit dan aset brand yang berulang memiliki kebutuhan berbeda: bandingkan operasi penyuntingan yang dibutuhkan pekerjaan Anda sebelum memindahkan pekerjaan itu.
+Aplikasi khusus Adobe mencakup pekerjaan kreatif yang mendalam. [Photoshop](https://www.adobe.com/products/photoshop.html) menyediakan penyuntingan foto terperinci, seleksi, masking dan pengomposisian. Retouch yang kompleks dan aset merek yang dibuat berulang memiliki kebutuhan berbeda. Sebelum memindahkan pekerjaan, bandingkan operasi penyuntingan yang diperlukan pekerjaan tersebut.
 
-## Di mana keduanya beririsan
+<!--i:eti-blend-->
+## Kesamaan kemampuannya
 
-Keduanya mengubah ukuran gambar, menyusun tata letak, dan mengekspor format profesional. Lolly mendukung PDF/X, CMYK, dan keluaran raster bit-depth tinggi, dengan [kapabilitas khusus format](/info/formats.html), dan utilitas di perangkatnya mengonversi dan membersihkan file tanpa mengunggahnya.
+Keduanya mengubah ukuran gambar, menyusun tata letak dan mengekspor format profesional. Lolly mendukung PDF/X, CMYK dan keluaran raster dengan kedalaman bit tinggi, dengan [kemampuan khusus per format](/info/formats.html). Utilitas di perangkatnya mengonversi dan membersihkan file tanpa mengunggahnya. [Impor desain](/info/design-import.html) membuka file Photoshop, Illustrator dan InDesign di perangkat sebagai tata letak yang dapat Anda sunting.
 
-## Bagaimana Lolly mengerjakan pekerjaan yang tumpang tindih
+<!--i:eti-lolly-->
+## Cara Lolly mengerjakan tugas yang sama
 
-Lolly mandiri tidak memerlukan akun Adobe dan tidak memerlukan akun Lolly, dan menjalankan engine yang sama di browser, aplikasi desktop, dan CLI. Templat dan token desain menjaga setiap file tetap konsisten, dan [Share with rules](/info/create-a-tool.html) mengubah desain menjadi alat yang diisi orang lain.
+Lolly mandiri tidak memerlukan akun Adobe maupun akun Lolly. Aplikasi ini menjalankan engine yang sama di browser, aplikasi desktop dan CLI. Templat dan token desain menjaga konsistensi setiap file. [Berbagi dengan aturan](/info/create-a-tool.html) mengubah desain menjadi alat yang diisi orang lain.
 
-Lolly menandatangani ekspor yang didukung dengan Content Credentials di perangkat, aktif secara default; Anda dapat mematikannya. Kunci perangkat membuktikan file tidak berubah sejak ditandatangani. Organisasi dapat memakai otoritas sertifikat sendiri, sehingga verifier-nya memercayai penandatangan; [Content Credentials Identity](/info/content-credentials-identity.html) menjelaskan perbedaannya. Utilitas transformasi di perangkat tidak menambahkan watermark Lolly atau Content Credentials.
+Lolly menandatangani ekspor yang didukung dengan Content Credentials di perangkat. Penandatanganan aktif secara default dan dapat dimatikan. Kunci perangkat membuktikan bahwa file tidak berubah sejak ditandatangani. Organisasi dapat menggunakan otoritas sertifikatnya sendiri agar verifikatornya memercayai penandatangan. [Identitas Content Credentials](/info/content-credentials-identity.html) menjelaskan perbedaannya. Utilitas transformasi di perangkat tidak menambahkan watermark Lolly atau Content Credentials.
 
-## Dengan organisasi
+<!--i:eti-building-->
+## Bersama organisasi
 
-Lolly Work menambahkan login organisasi, aset bersama, persetujuan, dan produksi server, dengan [penandatanganan server](/info/work-c2pa.html) di bawah sertifikat organisasi. [What runs where](/info/compare.html#what-runs-where) menyandingkan kedua bagian itu.
+Lolly Work menambahkan proses masuk organisasi, aset bersama, persetujuan dan produksi server, dengan [penandatanganan server](/info/work-c2pa.html) menggunakan sertifikat organisasi. [Apa yang berjalan di mana](/info/compare.html#what-runs-where) menyandingkan kedua bagian tersebut.
 
-Adobe, Photoshop, dan Creative Cloud adalah merek dagang Adobe. Halaman ini menjelaskan di mana produk-produk itu tumpang tindih dan tidak berafiliasi dengan Adobe.
+Adobe, Photoshop dan Creative Cloud adalah merek dagang Adobe. Halaman ini menjelaskan kesamaan kemampuan produk-produk tersebut dan tidak berafiliasi dengan Adobe.

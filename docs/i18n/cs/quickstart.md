@@ -1,88 +1,91 @@
 # Začni
 
-Na konci této stránky budou tvé nástroje nosit tvé vlastní barvy a písma a práce, kterou už máš, bude připravená k opětovnému použití. Nepotřebuješ žádný účet a tvorba i export běží na tvém zařízení.
+Nastav nástrojům vlastní barvy a písma a znovu využij práci, kterou už máš. Nepotřebuješ účet a tvorba i export běží na tvém zařízení.
 
-::: timeline
-- <!--i:sparkle--> **Vytvoř jeden soubor.** [Vytvoř svůj první soubor](/info/make-something.html) tě za pár minut provede QR kódem.
-- <!--i:palette--> **Vlož svou značku.** Začni od jedné barvy, souboru s tokeny nebo hotového návrhu.
-- <!--i:layers--> **Dělej víc téhož.** Sdílej odkaz, vyplň tabulku nebo spusť nástroj ze skriptu.
+::: steps
+- <!--i:eti-sparkles--> **[Vytvoř jeden soubor](/info/make-something.html)** QR kód za pár minut s ukázkou každého kroku.
+- <!--i:eti-palette--> **[Přidej svou značku](#put-your-brand-in)** Začni jednou barvou, souborem tokenů nebo hotovým návrhem.
+- <!--i:eti-folder-move--> **[Přenes svou práci](#bring-in-what-you-already-have)** Návrhy, sady snímků a data, které už máš, načtené na tvém zařízení.
+- <!--i:eti-repeat--> **[Vytvoř další podobné výstupy](#make-many-share-and-automate)** Sdílej odkaz, vyplň tabulku nebo spusť nástroj ze skriptu.
 :::
 
-Je ti samotná myšlenka nová? [Co je Lolly?](/info/what-is-lolly.html) je pětiminutový úvod a [Jak Lolly funguje](/info/how-lolly-works.html) ukazuje, kdo co dělá.
+[Co je Lolly?](/info/what-is-lolly.html) je pětiminutový úvod. [Jak Lolly funguje](/info/how-lolly-works.html) ukazuje, kdo co dělá.
 
-## Vlož svou značku
+<!--i:eti-palette-->
+## Přidej svou značku
 
-lolly.tools se otevře v **Lolly Demo**, vlastním ukázkovém designovém systému Lolly; [Poznej Lolly Demo](/info/lolly-demo.html) ukazuje, na co se díváš. Tvůj designový systém ho nahradí: malá sada designových tokenů, tedy barev, písem a několika pravidel, ze které kreslí každý nástroj. Nastav ho jednou a vše, co vytvoříš, začíná ve tvé značce.
+lolly.tools se otevírá s **Lolly Demo**, vlastním ukázkovým designovým systémem Lolly ([Seznam se s Lolly Demo](/info/lolly-demo.html)). Tvůj designový systém nahradí Lolly Demo. Je to malá sada designových tokenů (barev, písem a několika pravidel), se kterými každý nástroj kreslí. Nastav ji jednou a vše, co vytvoříš, bude od začátku odpovídat tvé značce.
 
-Vyber cestu, která odpovídá tomu, co máš:
+Vyber cestu podle toho, co máš:
 
-- <!--i:palette--> **Jedna barva.** Otevři **Design System Setup** (`#/start`), pojmenuj svůj designový systém a vyber primární barvu. Lolly z ní odvodí kompletní, přístupnou paletu se světlými a tmavými povrchy, textem a akcenty. Vyber písmo a máš fungující značku.
-- <!--i:upload--> **Soubor s tokeny.** **Add from…** v horní liště Design System Setup přijme soubor tokenů DTCG, Tokens Studio nebo Penpot, SVG nebo balíček `LollyBrand`. Přetáhni ho a paleta se vyplní. Dokud je designový systém prázdný, stejný výběr otevře **Start from a reference** v místnosti Board.
-- <!--i:pentool--> **Hotový návrh.** V Design zvol **Import a design** a přetáhni soubor `.fig`, `.penpot`, `.ai`, `.idml` nebo SVG. Viz [Přines, co už máš](#bring-in-what-you-already-have) níže.
+- <!--i:palette--> **Jedna barva.** Otevři zobrazení **Design System Setup** (`#/start`), pojmenuj svůj designový systém a vyber primární barvu. Lolly z této barvy odvodí přístupnou paletu se světlými a tmavými plochami, textem a akcenty. Vyber písmo a máš funkční značku.
+- <!--i:upload--> **Soubor tokenů.** **Add from…** nahoře v Lolly Design System Setup přijímá soubor tokenů DTCG, Tokens Studio nebo Penpot, SVG nebo balíček `LollyBrand`. Paleta se vyplní ze souboru. Dokud je designový systém prázdný, **Start from a reference** na Board otevírá stejný výběr.
+- <!--i:pentool--> **Hotový návrh.** V Lolly Design zvol **Import a design** a přetáhni soubor Figma, Penpot, Illustrator, InDesign, Affinity, Photoshop, PowerPoint nebo SVG ([všechny formáty](/info/design-import.html#what-comes-in-from-each-app)). Viz níže [Přenes, co už máš](#bring-in-what-you-already-have).
 
-Při prvním otevření galerie krátké uvítání nabídne stejné volby: **Make it yours** otevře Design System Setup, **Bring your design** otevře výběr souboru pro návrh a **Explore the community tools** uvítání zavře.
+Při prvním otevření galerie nabídne uvítání nahoře jeden další krok. Na lolly.tools otevře **Start making** Lolly Design s plakátem Launch. V nové instalaci otevře **Make it yours** Lolly Design System Setup. Pod tímto tlačítkem otevře **Bring a file** výběr souboru s návrhem a druhá z těchto dvou možností se zobrazí jako odkaz. Kterákoli z nich nebo tlačítko zavření uvítání natrvalo skryje.
 
-![Místnost Colours v Lolly Design System Setup u nového designového systému: jeden živý čip, jedno pole a celé první rozhodnutí](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
+![Sekce Colours v Lolly Design System Setup u nového designového systému: jeden živý vzorek barvy, jedno pole a celé první rozhodnutí](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
-Odtud tě osm místností dovede tak daleko, jak chceš, v libovolném pořadí: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** a **Skills**. Každý náhled v aplikaci se aktualizuje při psaní. Každou místnost popisuje [Lolly Design System Setup](/info/brand-studio.html).
+Osm sekcí, které můžeš použít v libovolném pořadí, rozvíjí designový systém dál: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** a **Skills**. Každý náhled v aplikaci se aktualizuje při psaní. [Lolly Design System Setup](/info/brand-studio.html) popisuje každou sekci.
 
-Písma se uchovávají na tvém zařízení. Vyber Google Font a Lolly uloží soubor jako asset značky, takže tvé písmo cestuje offline a při kreslení nástroje se nic nestahuje.
+Písma se uchovávají na tvém zařízení. Vybrané písmo z Google Fonts se uloží jako asset značky, takže tvá typografie funguje offline a při kreslení nástroje se nic nenačítá.
 
-### Prohlížej, přepínej a sdílej designový systém
+### Prohlížení, přepínání a sdílení designového systému
 
-- **Zobraz aktivní.** **Settings → Design system** ukazuje aktivní designový systém jako obálku a stránky, jen pro čtení.
-- **Přepínej mezi nimi.** **Settings → Preferences → Design systems** vypisuje každý designový systém na tomto zařízení. Jedna organizace může provozovat několik designových systémů nebo jeden s několika colourways; uspořádání mapují [Architektury značek](/info/brand-architectures.html).
-- **Sdílej jeden.** Exportuj designový systém jako balíček `LollyBrand`: jeden soubor, který kolega naimportuje, aby získal stejnou paletu, písma a pravidla.
+- **Prohlédni si aktivní systém.** **Settings → Design system** zobrazuje aktivní designový systém jako obálku a stránky, jen ke čtení.
+- **Přepínej mezi systémy.** **Settings → Preferences → Design systems** vypisuje všechny designové systémy na tomto zařízení. Jedna organizace může provozovat několik designových systémů nebo jeden s několika colourways. [Architektury značek](/info/brand-architectures.html) mapují tato uspořádání.
+- **Sdílej systém.** Exportuj designový systém jako balíček `LollyBrand`: jeden soubor, který kolega importuje, aby získal stejnou paletu, písma a pravidla.
 
-Designový systém, který dodá tvé sestavení nebo organizace, je **spravovaný**: ukazuje zámek a zůstává jen pro čtení. Chceš-li jej změnit, vytvoř upravitelnou kopii v **Settings → Preferences → Design systems**.
+Designový systém dodaný se sestavením aplikace nebo tvou organizací je **spravovaný**: zobrazuje zámek a zůstává jen pro čtení. Pokud ho chceš změnit, vytvoř upravitelnou kopii v **Settings → Preferences → Design systems**.
 
 ![Karta Design system v Settings: aktivní designový systém jako obálka a stránky](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D)
 
-Tvůj designový systém jsou tokeny DTCG, formát, který Penpot čte a zapisuje a Tokens Studio přináší do Figmy, takže paleta, se kterou navrhuješ, a paleta, kterou Lolly uplatňuje, jsou jeden dokument. Podrobnosti jsou v [Design Tokens](/info/design-tokens.html).
+Tvůj designový systém tvoří tokeny DTCG, formát, který Penpot čte i zapisuje a který Tokens Studio přenáší do Figma. Paleta, se kterou navrhuješ, a paleta, kterou Lolly používá, jsou jeden dokument. Podrobnosti najdeš v [Designových tokenech](/info/design-tokens.html).
 
-::: details Pro vývojáře: sestav balíček značky z příkazového řádku
-K založení opakovaně použitelného balíčku značky v checkoutu přijímá `ingest:brand` tři kontejnery, které exportují Penpot a Tokens Studio: jediný `tokens.json`, adresář souborů po sadách s `$metadata.json` nebo archiv `project.penpot`.
+::: details Pro vývojáře: vytvoř balíček značky z příkazového řádku
+`ingest:brand` vytvoří v pracovní kopii repozitáře znovupoužitelný balíček značky. Přijímá tři podoby exportu z Penpot a Tokens Studio: samostatný `tokens.json`, adresář se soubory jednotlivých sad a `$metadata.json` nebo archiv `project.penpot`.
 
 ```bash
 pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
-`--activate` zaregistruje značku jako profil a sestaví a ověří její katalog. Nikdy nezmění výchozí profil: spusť s `LOLLY_PROFILE=acme`, abys použil nový balíček. [Konfigurace](/info/configuration.html) vysvětluje, jak do sebe balíčky značek a profily zapadají.
+`--activate` zaregistruje značku jako profil a sestaví a ověří její katalog. Výchozí profil nikdy nemění: nový balíček použiješ spuštěním s `LOLLY_PROFILE=acme`. [Konfigurace](/info/configuration.html) vysvětluje vztah mezi balíčky značek a profily.
 :::
 
-## Přines, co už máš
+<!--i:eti-folder-move-->
+## Přenes sem, co už máš
 
-Nezačínáš od prázdné stránky.
+**Soubory Lolly Design.** Hotová práce z Figma, Penpot, Illustrator, InDesign nebo jakékoli aplikace pro SVG se v Lolly Design otevře jako upravitelné rozvržení. Text můžeš dál přepisovat, tvary zůstávají tvary a obrázky se uloží do tvé knihovny. Soubor se načítá v prohlížeči a nic se nenahrává na server. [Import návrhu](/info/design-import.html) uvádí jednotlivé formáty a co se z nich zachová.
 
-**Návrhové soubory.** Hotová práce z Figmy, Penpotu, Illustratoru, InDesignu nebo jakékoli aplikace SVG se v Design otevře jako živé rozvržení: text zůstane přepisovatelný, tvary zůstanou tvary a obrázky skončí v tvé knihovně. Soubor se čte v tvém prohlížeči a nic se nenahrává. [Import návrhu](/info/design-import.html) vypisuje každý formát a co se přenese.
+**Sady snímků.** Přetáhni na Lolly soubor PowerPoint `.pptx` a jeho snímky se uloží jako assety. Novou sadu snímků napiš v Markdown v **Lolly Markdown Slides**. [Převedení sady snímků na jinou značku](/info/rebrand.html) přizpůsobí sadu tvému designovému systému.
 
-**Prezentace.** Přetáhni na Lolly PowerPoint `.pptx`, aby se jeho snímky založily jako assety, napiš novou prezentaci z Markdownu v **Markdown Slides** nebo použij [Rebrand prezentace](/info/rebrand.html), abys celou prezentaci přenesl do svého designového systému.
+**Data.** Vlož nebo přetáhni tabulku CSV či JSON a vyplň tak opakující se pole nástroje. [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) vytvoří pro každý řádek jeden hotový soubor.
 
-**Data.** Vlož nebo přetáhni tabulku CSV či JSON a opakující se pole nástroje se z ní vyplní, nebo [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) vytvoří jeden hotový soubor na řádek.
+### Od jednorázového návrhu k šabloně
 
-### Od jednorázovky k šabloně
+Importované rozvržení je běžná relace Lolly Design. **Share with rules** tuto relaci promění v nástroj. Vybereš části, které ostatní smějí měnit, a oni vyplní jen ty.
 
-Importované rozvržení je běžná relace Design. **Share with rules** z něj udělá nástroj: ty vybereš, které části mohou ostatní měnit, a oni vyplní jen ty.
+![Ponech si předlohu v Lolly Design, v autorské kopii vyber vstupy a omezení a pak sdílej znovupoužitelný nástroj .lolly, který příjemci vyplní](/info/diagrams/concepts/share-with-rules.svg)
 
-![Ponech mistr v Design, vyber vstupy a limity v autorské kopii, pak sdílej opakovaně použitelný nástroj .lolly, který příjemci vyplňují](/info/diagrams/concepts/share-with-rules.svg)
+[Sdílení návrhu s pravidly](/info/create-a-tool.html) tě provede jednotlivými kroky.
 
-[Sdílej návrh s pravidly](/info/create-a-tool.html) provede každým krokem.
+<!--i:eti-repeat-->
+## Vytvářej ve velkém, sdílej a automatizuj
 
-## Dělej mnoho, sdílej a automatizuj
+- <!--i:download--> **Export.** Nástroje vytvářejí SVG, PDF, PNG, JPG, WebP, video a další formáty, podle potřeby ve skutečných tiskových rozměrech. Každý nástroj nabízí vlastní formáty. Viz [Export souboru](/info/exporting.html).
+- <!--i:link--> **Sdílej odkaz.** Nastavení nástroje se přenáší v jeho odkazu, takže odkaz kdekoli znovu otevře stejný soubor.
+- <!--i:layers--> **Vytvoř jeden soubor pro každý řádek.** Ovládej nástroj tabulkou v [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:cpu--> **Automatizuj.** Stejné vykreslení spustíš přes [CLI](/info/cli.html) i prostřednictvím [AI agenta](/info/ai-agents.html).
 
-- <!--i:download--> **Export.** Nástroje vytvářejí SVG, PDF, PNG, JPG, WebP, video a další, ve formátech, které každý nástroj nabízí, ve skutečných tiskových velikostech, když je potřebuješ. Viz [Export souboru](/info/exporting.html).
-- <!--i:link--> **Sdílej odkaz.** Nastavení nástroje putuje v jeho odkazu, takže odkaz kdekoli znovu otevře stejný soubor.
-- <!--i:layers--> **Jeden na řádek.** Řiď nástroj z tabulky v [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
-- <!--i:cpu--> **Automatizuj.** Stejné vykreslení běží z [CLI](/info/cli.html) i od [AI agenta](/info/ai-agents.html).
+Odkaz je úplný požadavek. Typ, nadpis i datová tabulka následujícího grafu byly zadány do adresního řádku.
 
-Odkaz je úplný požadavek. Graf níže nikdo nenakreslil: jeho typ, nadpis i celá tabulka dat byly napsány do adresního řádku a stejný odkaz nakreslí stejný graf na jakémkoli zařízení.
+![Sloupcový graf měsíčních registrací podle kanálu v barvách designového systému, do kterého každá hodnota přišla jako parametr dotazu místo kliknutí](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26sty%3Dposter%26pl%3Droles%26transparentBg%3Dfalse%26d%3DMonth%2CWeb%2CApp%2CPartners%250AJan%2C120%2C60%2C25%250AFeb%2C180%2C95%2C40%250AMar%2C265%2C150%2C70%250AApr%2C340%2C210%2C110%250AMay%2C455%2C290%2C160%250AJun%2C560%2C380%2C230%26t%3DSignups%2520this%2520year%26st%3DBy%2520channel%252C%2520January%2520to%2520June%26full&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
-![Sloupcový graf měsíčních registrací podle kanálů v barvách designového systému, kde každá hodnota přišla jako parametr dotazu, a ne jako kliknutí](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26sty%3Dposter%26pl%3Droles%26transparentBg%3Dfalse%26d%3DMonth%2CWeb%2CApp%2CPartners%250AJan%2C120%2C60%2C25%250AFeb%2C180%2C95%2C40%250AMar%2C265%2C150%2C70%250AApr%2C340%2C210%2C110%250AMay%2C455%2C290%2C160%250AJun%2C560%2C380%2C230%26t%3DSignups%2520this%2520year%26st%3DBy%2520channel%252C%2520January%2520to%2520June%26full&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
-
+<!--i:eti-map-pin-->
 ## Kam dál
 
-- <!--i:people--> **[Tvoř](/info/creators.html)**: tvorba, animace, nahrávání, sdílení a export.
-- <!--i:code--> **[Automatizuj](/info/builders.html)**: designové systémy, tvorba nástrojů, příkazový řádek, odkazy a agenti.
-- <!--i:usercheck--> **[Spravuj](/info/operators.html)**: provoz Lolly pro tým s Lolly Work.
-- <!--i:server--> **[Nasazuj](/info/operate.html)**: hostování Lolly a Lolly Work.
-- <!--i:shieldcheck--> **[Důvěřuj](/info/trust.html)**: soukromí, bezpečnost a ověření souboru sám.
+- <!--i:people--> **[Tvorba](/info/creators.html)**: tvoření, animování, nahrávání, sdílení a export.
+- <!--i:code--> **[Automatizace](/info/builders.html)**: designové systémy, tvorba nástrojů, příkazový řádek, odkazy a agenti.
+- <!--i:usercheck--> **[Správa](/info/operators.html)**: provoz Lolly pro tým pomocí Lolly Work.
+- <!--i:server--> **[Nasazení](/info/operate.html)**: hostování Lolly a Lolly Work.
+- <!--i:shieldcheck--> **[Důvěra](/info/trust.html)**: soukromí, zabezpečení a vlastní ověření souboru.

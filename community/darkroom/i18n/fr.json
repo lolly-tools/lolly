@@ -1,5 +1,5 @@
 {
   "name": "Chambre noire",
-  "description": "Étalonne photos et vidéo avec des looks de film, des préréglages XMP Adobe, des LUT .cube et les couleurs de ton design system. Réutilise un look via l'export LUT ou Étalonner une vidéo. Ouvre des calques Photoshop et GIMP pour positionner, mélanger et exporter l'image.",
+  "description": "Étalonne photos et vidéo avec des looks de film, des préréglages XMP Adobe, des LUT .cube et les couleurs de ton design system. Ouvre les calques Photoshop et GIMP.",
   "featured.blurb": "Étalonnez vos photos avec looks film, LUT et les couleurs de votre marque"
 }

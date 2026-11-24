@@ -1,6 +1,6 @@
 {
   "name": "Audiogramma",
-  "description": "Trasforma una clip vocale o una canzone in un video nei colori del tuo sistema di design che si muove davvero con il suono - barre, spettro, anello, ridgeline o oscilloscopio, pronto per i social.",
+  "description": "Trasforma una clip vocale o una canzone in un video nei colori del tuo sistema di design che si muove con il suono.",
   "a11yLabel": "Scheda audiogramma per {{default title \"an audio clip\"}} con una forma d'onda animata",
   "inputs.audio.label": "Audio",
   "inputs.audio.help": "Scegli una traccia dalla tua libreria o carica una clip. Viene decodificata sul tuo dispositivo per disegnare la forma d'onda - l'audio non lascia mai il browser. Lascia vuoto per una forma d'onda segnaposto. Per sentirla nell'esportazione, scegli \"Audio di questo strumento\" come traccia Audio nelle opzioni di download.",

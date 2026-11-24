@@ -1,6 +1,6 @@
 {
   "name": "Chart",
-  "description": "Mga chart mula sa unang paste hanggang advanced na visualisasyon - ipinaliwanag na mga rekomendasyon sa data, malinaw na field mapping, 35 klasikong vector family kasama ang Pareto, bullet target at range bar, labing-anim na statistical at editorial na paraan ng paglalahad, tunay na 3D scene na may z-depth, cinematic na flight, deterministic na motion, accessible na paglalarawan at mga style na binuo mula sa aktibong design system.",
+  "description": "Mga chart mula sa unang paste hanggang advanced na visualisasyon - 35 vector family, 3D scene, flight, motion at mga style mula sa design system.",
   "featured.blurb": "I-paste ang isang table - gagawin itong malinaw, accessible at tiyak na naaayon sa design system ng Chart",
   "a11yLabel": "{{chartType}} chart{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Uri ng chart",

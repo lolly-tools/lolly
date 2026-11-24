@@ -1,6 +1,6 @@
 {
   "name": "Stand",
-  "description": "Allestisci uno stand 3D per un evento con la grafica dello sponsor. Clicca su un pannello qualsiasi per rilasciarvi un'immagine, scegli un design per lo stand e renderizza un fermo immagine o un turntable per il pitch dello sponsor.",
+  "description": "Allestisci uno stand 3D per un evento con la grafica dello sponsor. Scegli un design per lo stand e renderizza un fermo immagine o un turntable per il pitch dello sponsor.",
   "a11yLabel": "Mockup 3D di uno stand fieristico {{default design \"an inline\"}} allestito con la grafica dello sponsor",
   "inputs.design.label": "Design dello stand",
   "inputs.design.help": "La forma dello stand. La tua grafica dei pannelli si mantiene tra i design - una parete di fondo resta una parete di fondo.",

@@ -1,6 +1,6 @@
 {
   "name": "证书",
-  "description": "用当前设计系统及其配色方案生成结业和获奖证书：四种样式、打印和社交尺寸，以及用于分享的动效，一次一个姓名，或通过“按行批量生成”从 CSV 生成整份名单。",
+  "description": "结业和获奖证书：四种样式、打印和社交尺寸，以及动效，一次一个姓名，或从 CSV 生成整份名单。",
   "a11yLabel": "{{default titleText \"Certificate\"}} 授予 {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "类型",
   "inputs.certKind.help": "决定文字内容：标题、说明证书用途的上方一行，以及印章上的标记。",

@@ -1,4 +1,3 @@
-# Lolly - Kopya ng landing page
+# Lolly - Teksto ng landing page
 
-Gumawa ng mga tapos na file. Hawak mo ang iyong content.
-Graphics, dokumento, video at print sa sarili mong mga kulay at font: walang account, walang card, pribado at open source.
+Gumawa ng mga tapos na graphic, dokumento, video at print gamit ang sarili mong mga kulay at type. Pribado, open source, hindi kailangan ng account.

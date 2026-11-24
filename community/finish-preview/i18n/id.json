@@ -1,6 +1,6 @@
 {
   "name": "Finishing",
-  "description": "Pratinjau foil, spot UV, emboss dan sentuhan lembut pada karya Anda - lalu ekspor plat spot siap cetak. Kilau di layar hanya untuk presentasi; plat adalah hasil sesungguhnya yang dibutuhkan percetakan Anda.",
+  "description": "Pratinjau foil, spot UV, emboss dan sentuhan lembut pada karya Anda, lalu ekspor plat spot. Kilau di layar hanya untuk presentasi.",
   "a11yLabel": "Karya dengan finishing cetak tersimulasi, atau pelat siap cetak dalam tampilan pelat",
   "inputs.image.label": "Karya",
   "inputs.image.help": "Pilih karya Anda atau unggah milik sendiri. Diproses di perangkat Anda, piksel tidak pernah meninggalkan browser.",

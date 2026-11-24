@@ -1,6 +1,6 @@
 {
   "name": "Markdown Slides",
-  "description": "Ubah Markdown atau spesifikasi JSON menjadi deck PowerPoint asli yang dapat diedit - teks sungguhan, poin-poin, tabel dan tema sistem desain - dalam hitungan detik. Jalur cepat berbasis teks menuju sebuah deck; gunakan kanvas Design saat Anda ingin menata slide secara manual atau menganimasikannya. Grafik dan diagram berasal dari alat Lolly Anda yang lain. Mengekspor .pptx (dapat diedit), plus PDF dan PNG.",
+  "description": "Ubah Markdown atau spesifikasi JSON menjadi deck PowerPoint asli yang dapat diedit. Mengekspor .pptx (dapat diedit), plus PDF dan PNG.",
   "a11yLabel": "Dek presentasi dengan {{_slideCount}} slide",
   "inputs.size.label": "Ukuran presentasi",
   "inputs.size.help": "Satu ukuran untuk seluruh dek - PowerPoint memberi setiap slide ukuran yang sama.",

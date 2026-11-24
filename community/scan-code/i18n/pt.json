@@ -1,5 +1,5 @@
 {
   "name": "Scan",
-  "description": "Leia códigos QR e códigos de barras no dispositivo, sem enviar nada para a nuvem. Um leitor, não um abridor: ele decodifica, classifica e explica o que um código carrega - links, Wi-Fi, contatos, códigos de produto - e deixa você agir de forma deliberada. Copiar é sempre a primeira ação; abrir, entrar ou adicionar é um toque explícito e informado.",
+  "description": "Leia códigos QR e códigos de barras no dispositivo. Copiar é sempre a primeira ação; abrir, entrar ou adicionar é um toque explícito e informado.",
   "featured.blurb": "Leia qualquer código, com segurança e offline"
 }

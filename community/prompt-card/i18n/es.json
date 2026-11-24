@@ -1,6 +1,6 @@
 {
   "name": "Tarjeta de prompt",
-  "description": "Compone un prompt largo en una imagen compacta y legible para un modelo multimodal - la entrada de imagen suele ser más barata que las mismas palabras como tokens de texto.",
+  "description": "Compone un prompt largo en una imagen para un modelo multimodal - la entrada de imagen suele ser más barata que las mismas palabras como tokens de texto.",
   "a11yLabel": "Prompt a imagen - pega o suelta texto en el lienzo y se organiza para encajar dentro de una imagen pequeña",
   "inputs.text.label": "Texto",
   "inputs.text.help": "Pega o suelta en cualquier parte del lienzo para rellenar esto.",

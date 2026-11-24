@@ -1,4 +1,4 @@
 {
   "name": "Timezone",
-  "description": "Gawing artwork ang mga lugar at timezone na sumusunod sa design system. I-rotate ang isang vector atlas o isang detalyadong WebGL globe, i-unfold ang mga projection, lagyan ng label ang iyong mga tao at lugar, pagkatapos ay mag-export ng artwork, camera tour o structured na iskedyul."
+  "description": "Gawing artwork ang mga lugar at timezone. I-rotate ang isang vector atlas o isang WebGL globe, pagkatapos ay mag-export ng artwork, camera tour o structured na iskedyul."
 }

@@ -6,7 +6,7 @@
 
 Pick a tool, add your words, pictures or data and download a finished file. Lolly is free and open source. It runs in your browser and you need no account.
 
-[Open Lolly](https://lolly.tools) · [Make your first file](https://lolly.tools/info/start/make-something.html) · [Downloads](https://github.com/lolly-tools/lolly/releases) · [Documentation](https://lolly.tools/info/)
+[Open Lolly](https://lolly.tools) · [Make your first file](https://lolly.tools/info/start/make-something.html) · [Install](https://lolly.tools/info/install.html) · [iPhone and iPad](https://apps.apple.com/app/id6836763603) · [Releases](https://github.com/lolly-tools/lolly/releases) · [Documentation](https://lolly.tools/info/)
 
 ## How it works
 

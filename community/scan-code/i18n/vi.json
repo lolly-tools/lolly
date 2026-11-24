@@ -1,5 +1,5 @@
 {
   "name": "Quét",
-  "description": "Đọc mã QR và mã vạch ngay trên thiết bị, không gửi gì lên đám mây. Đây là một trình đọc, không phải trình mở: nó giải mã, phân loại và giải thích những gì mã chứa - liên kết, Wi-Fi, danh bạ, mã sản phẩm - và để bạn chủ động quyết định hành động. Sao chép luôn là hành động đầu tiên; mở, tham gia hoặc thêm vào là một thao tác chạm rõ ràng, có hiểu biết.",
+  "description": "Đọc mã QR và mã vạch ngay trên thiết bị. Sao chép luôn là hành động đầu tiên; mở, tham gia hoặc thêm vào là một thao tác chạm rõ ràng, có hiểu biết.",
   "featured.blurb": "Đọc mọi mã, an toàn và không cần mạng"
 }

@@ -1,25 +1,29 @@
 # Lolly y Adobe
 
-_Última revisión: 28 de septiembre de 2026._
+_Última comprobación: 28 de septiembre de 2026._
 
-Si recurres a Photoshop, Illustrator o InDesign para archivos cotidianos, esta página dice cuáles de esos trabajos puede asumir Lolly y cuáles se quedan con Adobe.
+Si usas Photoshop, Illustrator o InDesign para los archivos del día a día, esta página indica qué tareas puede asumir Lolly y cuáles se quedan en Adobe.
 
+<!--i:eti-award-->
 ## Lo que Adobe hace mejor
 
-Las aplicaciones especializadas de Adobe cubren el trabajo creativo profundo. [Photoshop](https://www.adobe.com/products/photoshop.html), por ejemplo, ofrece edición fotográfica detallada, selección, enmascarado y composición. Un retoque complejo y un recurso de marca recurrente tienen necesidades distintas: compara las operaciones de edición que requiere tu trabajo antes de mover ese trabajo.
+Las aplicaciones especializadas de Adobe cubren el trabajo creativo avanzado. [Photoshop](https://www.adobe.com/products/photoshop.html) ofrece edición fotográfica detallada, selección, máscaras y composición. Un retoque complejo y un recurso de marca recurrente tienen necesidades distintas. Antes de trasladar el trabajo, compara las operaciones de edición que requiere.
 
+<!--i:eti-blend-->
 ## Dónde coinciden
 
-Ambos redimensionan imágenes, componen maquetas y exportan formatos profesionales. Lolly admite PDF/X, CMYK y salida de trama de alta profundidad de bits, con [capacidades específicas de cada formato](/info/formats.html), y sus utilidades en el dispositivo convierten y limpian archivos sin subirlos.
+Ambos redimensionan imágenes, componen diseños y exportan formatos profesionales. Lolly admite PDF/X, CMYK y salida de trama de alta profundidad de bits, con [capacidades específicas por formato](/info/formats.html). Sus utilidades en el dispositivo convierten y limpian archivos sin subirlos. [Importar un diseño](/info/design-import.html) abre archivos de Photoshop, Illustrator e InDesign en el dispositivo como diseños que puedes editar.
 
-## Cómo hace Lolly el trabajo que se solapa
+<!--i:eti-lolly-->
+## Cómo hace Lolly las tareas que comparten
 
-Lolly independiente no necesita cuenta de Adobe ni cuenta de Lolly, y ejecuta el mismo motor en el navegador, la aplicación de escritorio y la CLI. Las plantillas y los design tokens mantienen coherente cada archivo, y [Share with rules](/info/create-a-tool.html) convierte un diseño en una herramienta que otras personas rellenan.
+Lolly independiente no necesita una cuenta de Adobe ni una de Lolly. Ejecuta el mismo motor en el navegador, la aplicación de escritorio y la CLI. Las plantillas y los tokens de diseño mantienen la coherencia de cada archivo. [Compartir con reglas](/info/create-a-tool.html) convierte un diseño en una herramienta que otras personas rellenan.
 
-Lolly firma las exportaciones admitidas con Content Credentials en el dispositivo, activado por defecto; puedes desactivarlo. Una clave del dispositivo prueba que el archivo no ha cambiado desde que se firmó. Una organización puede usar su propia autoridad de certificación, de modo que sus verificadores confíen en el firmante; [Content Credentials Identity](/info/content-credentials-identity.html) explica la diferencia. Las utilidades de transformación en el dispositivo no añaden marca de agua de Lolly ni Content Credentials.
+Lolly firma las exportaciones compatibles con Content Credentials en el dispositivo. La firma está activada de forma predeterminada y se puede desactivar. Una clave del dispositivo demuestra que el archivo no ha cambiado desde que se firmó. Una organización puede usar su propia autoridad de certificación para que sus verificadores confíen en el firmante. [Identidad de Content Credentials](/info/content-credentials-identity.html) explica la diferencia. Las utilidades de transformación en el dispositivo no añaden marca de agua de Lolly ni Content Credentials.
 
+<!--i:eti-building-->
 ## Con una organización
 
-Lolly Work añade inicio de sesión de la organización, recursos compartidos, aprobaciones y producción en servidor, con [firma en servidor](/info/work-c2pa.html) bajo un certificado de la organización. [What runs where](/info/compare.html#what-runs-where) pone las dos partes lado a lado.
+Lolly Work añade inicio de sesión de la organización, recursos compartidos, aprobaciones y producción en servidor, con [firma en servidor](/info/work-c2pa.html) bajo un certificado de la organización. [Qué se ejecuta dónde](/info/compare.html#what-runs-where) presenta las dos partes una junto a la otra.
 
-Adobe, Photoshop y Creative Cloud son marcas registradas de Adobe. Esta página describe dónde se solapan los productos y no está afiliada a Adobe.
+Adobe, Photoshop y Creative Cloud son marcas comerciales de Adobe. Esta página describe dónde coinciden los productos y no está afiliada a Adobe.

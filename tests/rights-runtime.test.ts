@@ -349,8 +349,9 @@ test('an export with no recorded source promises nothing and receipts nothing', 
 });
 
 test('a saved session remembers the decisions, and an older record opens without them', () => {
-  assert.equal(SESSION_FORMAT_VERSION, 4);
-  assert.equal(SESSION_READER_VERSION, 4);
+  // v5 (plan 373) added the picture reference; the decisions are a v4 field, unchanged.
+  assert.equal(SESSION_FORMAT_VERSION, 5);
+  assert.equal(SESSION_READER_VERSION, 5);
 
   const decisions = [{ work: 'community/emoji/openmoji/color/1f600', kind: 'output-licence' as const, licence: 'CC-BY-SA-4.0' }];
   assert.deepEqual(sessionRightsDecisions({ rightsDecisions: decisions }), decisions);
