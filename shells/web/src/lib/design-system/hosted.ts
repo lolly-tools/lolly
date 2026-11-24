@@ -36,6 +36,8 @@ import { createDesignSystem, uniqueDesignSystemId } from './manage.ts';
 export interface HostedManifest {
   name: string;
   engineVersion?: string;
+  /** `gated` and `per-tool` instances answer only to people who are signed in. */
+  accessMode?: string;
   packUrl: string | null;
   brand: {
     profile: string | null;
@@ -65,6 +67,21 @@ export const HOSTED_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 const str = (v: unknown): string | null => (typeof v === 'string' && v ? v : null);
 
+/**
+ * The instance answers only to people who are signed in, so its design system cannot
+ * be copied from outside. The caller offers the connect step, which has the sign-in
+ * (components/instance-sheet.ts); once connected, the instance's design system is the
+ * app's own.
+ */
+export class InstanceSignInNeeded extends Error {
+  readonly base: string;
+  constructor(base: string, name: string) {
+    super(`${name} asks people to sign in. Connect to ${base} as your Lolly instance to use its design system.`);
+    this.name = 'InstanceSignInNeeded';
+    this.base = base;
+  }
+}
+
 /** Shape a manifest body. Null when it is not a Lolly instance manifest. */
 export function shapeHostedManifest(body: unknown): HostedManifest | null {
   if (!body || typeof body !== 'object') return null;
@@ -77,6 +94,7 @@ export function shapeHostedManifest(body: unknown): HostedManifest | null {
   return {
     name,
     ...(str(m.engineVersion) ? { engineVersion: str(m.engineVersion)! } : {}),
+    ...(str(m.accessMode) ? { accessMode: str(m.accessMode)! } : {}),
     packUrl,
     brand: b ? {
       profile: str(b.profile), label: str(b.label), version: str(b.version), checksum: str(b.checksum),
@@ -116,6 +134,7 @@ interface CatalogCore {
 
 async function readCatalogCore(base: string): Promise<CatalogCore> {
   const resp = await instanceFetch(`${base}/catalog/assets/index.json?paged=1`, { cache: 'no-cache' });
+  if (resp.status === 401 || resp.status === 403) throw new InstanceSignInNeeded(base, base.replace(/^https?:\/\//, ''));
   if (!resp.ok) throw new Error(`${base} hosts no catalog (${resp.status}).`);
   const idx = await resp.json() as { brandTokens?: string | null; assets?: CatalogCore['assets'] };
   const assets = idx.assets ?? [];
@@ -221,6 +240,12 @@ export async function addHostedDesignSystem(host: HostedHost, url: string): Prom
     if (r.source.kind === 'hosted' && r.source.instance === base) throw new Error(`${r.label} is already on this device from ${base}.`);
   }
   const manifest = await fetchHostedManifest(base);
+  // A gated instance refuses its catalog to an anonymous reader, so this stops before anything is made.
+  if (manifest.accessMode === 'gated' || manifest.accessMode === 'per-tool') throw new InstanceSignInNeeded(base, manifest.name);
+  // An instance that says nothing of its access can still refuse its catalog. Ask once
+  // before a record exists, so a refusal leaves nothing to take back out.
+  const anonymous = await instanceFetch(`${base}/catalog/assets/index.json?paged=1`, { cache: 'no-cache' }).catch(() => null);
+  if (anonymous && (anonymous.status === 401 || anonymous.status === 403)) throw new InstanceSignInNeeded(base, manifest.name);
   const label = manifest.brand?.label || manifest.name || base.replace(/^https?:\/\//, '');
   const record = await createDesignSystem(host as unknown as Parameters<typeof createDesignSystem>[0], {
     label,
