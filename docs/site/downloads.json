@@ -13,7 +13,7 @@
           "name": "Apple silicon",
           "ext": "DMG",
           "note": "M1 and later",
-          "version": "1.2.1",
+          "version": "1.2.2",
           "file": "lolly-latest.dmg"
         },
         {
