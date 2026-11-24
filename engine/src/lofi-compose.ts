@@ -3531,6 +3531,31 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
         } else if ((((mood === 'synthwave' || mood === 'italo') && keysV === 'pluck') || keysV === 'chiparp') && part.section !== 'intro' && part.section !== 'outro') {
           // Synthwave's and chiptune's arpeggio: the chord's tones up and down in sixteenths.
           const arp = [...voicing, ...[...voicing].reverse().slice(1, -1)];
+          // A console fakes a chord on one channel by running its notes faster than the ear can
+          // separate them (measured in classic chip music, 2026-11-21: arpeggios near 16 notes a
+          // second, where these ran at 9). So a chiptune drop's arpeggio is one of four figures,
+          // picked for the tune and swapped in its second drop: thirty-second notes climbing
+          // two octaves, the same falling, sixteenths leaping an octave on every other note, or a
+          // gallop of a sixteenth and two thirty-seconds. Verses and builds keep the sixteenths.
+          const fast = mood === 'chiptune' && keysV === 'chiparp' && part.section === 'drop';
+          if (fast) {
+            const figure = (((seed >>> 5) ^ (seed >>> 13) ^ 0x2b) + (part.alt ? 1 : 0)) % 4;
+            const wide = [...voicing, ...voicing.map(m => m + 12)];
+            const put = (beat: number, midi: number, len: number, strong: boolean): void => { notes.push({ voice: 'keys', midi: midi > 88 ? midi - 12 : midi, beat, dur: len, vel: strong ? 0.5 : 0.36 }); };
+            if (figure === 0 || figure === 1) {
+              const run = figure === 0 ? wide : [...wide].reverse();
+              for (let n = 0; n < 32; n++) put(n / 8, run[n % run.length]!, 0.11, n % 8 === 0);
+            } else if (figure === 2) {
+              for (let n = 0; n < 16; n++) put(n / 4, arp[n % arp.length]! + (n % 2 ? 12 : 0), 0.2, n % 4 === 0);
+            } else {
+              for (let beat = 0; beat < 4; beat += 0.5) {
+                const at = Math.round(beat * 2) * 3;
+                put(beat, wide[at % wide.length]!, 0.2, beat % 1 === 0);
+                put(beat + 0.25, wide[(at + 1) % wide.length]!, 0.11, false);
+                put(beat + 0.375, wide[(at + 2) % wide.length]!, 0.11, false);
+              }
+            }
+          } else
           for (let s = 0; s < 16; s++) notes.push({ voice: 'keys', midi: arp[s % arp.length]!, beat: s / 4, dur: 0.22, vel: s % 4 === 0 ? 0.55 : 0.4 });
         } else if (house && HOUSE_STABBED.has(keysV) && part.section !== 'break') {
           // Lofi house's stabs: the chord cut short on the tune's two bars of rhythm, its first

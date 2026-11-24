@@ -106,16 +106,17 @@
       "bpm": 117,
       "key": "G minor",
       "file": "sugar.m4a",
-      "bytes": 204599,
-      "sha256": "292eb86da9fe981c53a3579a44dc64101814563a49a70f1852fc4767a679b8bf",
+      "bytes": 205094,
+      "sha256": "beaed713a0d878e4cbb47117da94be7008e4342490f75a36c0a9977743fb0445",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Sugar, seed 1.",
       "measured": {
-        "rmsDb": -19.7,
-        "peakDb": -3,
-        "dipDb": -2,
-        "liftDb": 5.3,
-        "lowDb": -2.8,
-        "stereo": 0.99
+        "scratches": 0,
+        "rmsDb": -16.5,
+        "peakDb": -2.2,
+        "dipDb": -1.9,
+        "liftDb": 4.4,
+        "lowDb": -3,
+        "stereo": 0.96
       },
       "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0."
     },
@@ -283,16 +284,17 @@
       "bpm": 143,
       "key": "A♭ minor",
       "file": "chiptune.m4a",
-      "bytes": 203887,
-      "sha256": "58781231a996d897114deca099eced72bbc7b5f2ada476cb7c4b62ee6d42b720",
+      "bytes": 203866,
+      "sha256": "0c3e128bf8529c82bac6fe0f88e759f7166ea896ece132a7e20f0275b184baa0",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Chiptune, seed 3.",
       "measured": {
-        "rmsDb": -23.7,
-        "peakDb": -4.2,
-        "dipDb": -4,
-        "liftDb": 1,
-        "lowDb": -3,
-        "stereo": 0.99
+        "scratches": 0,
+        "rmsDb": -18,
+        "peakDb": -4.3,
+        "dipDb": -3.2,
+        "liftDb": 0,
+        "lowDb": -4.6,
+        "stereo": 0.97
       },
       "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0."
     },
@@ -705,16 +707,17 @@
       "bpm": 99,
       "key": "A♭ minor",
       "file": "synthwave.m4a",
-      "bytes": 205643,
-      "sha256": "e026351181b01e805488599fc3128fb075cc18df5a02830d5d6ba844cd7e306f",
+      "bytes": 204972,
+      "sha256": "686ea29f7b63bb5e07c782c6e4c34a621657e4dfb2843ff737a2f8a7bc6e6ae6",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Synthwave, seed 5.",
       "measured": {
-        "rmsDb": -22.2,
-        "peakDb": -4.8,
-        "dipDb": -2.3,
-        "liftDb": 3.6,
-        "lowDb": -2.8,
-        "stereo": 0.99
+        "scratches": 0,
+        "rmsDb": -17.8,
+        "peakDb": -3,
+        "dipDb": -2.1,
+        "liftDb": 3.2,
+        "lowDb": -3.2,
+        "stereo": 0.98
       },
       "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0."
     },

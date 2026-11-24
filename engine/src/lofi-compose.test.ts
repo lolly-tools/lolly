@@ -42,7 +42,7 @@ function fingerprint(bars: unknown): number {
  *  place of the coin that ended the breakdown's last phrase, so that coin is gone; every
  *  other note is as it was. */
 const FINGERPRINTS: Record<string, number> = {
-  'sugar.2024': 2077140644, 'sugar.2654435761': 3925230420, 'chiptune.2024': 3361767685, 'chiptune.2654435761': 2547177282,
+  'sugar.2024': 2077140644, 'sugar.2654435761': 3925230420, 'chiptune.2024': 912753587, 'chiptune.2654435761': 1547362000,
   'kpop.2024': 1245126060, 'kpop.2654435761': 1409581692,
   'jazz.2024': 4242884971, 'jazz.2654435761': 1166250726, 'sings.2024': 2251072788, 'sings.2654435761': 419362352,
   'warm.2024': 3837958448, 'warm.2654435761': 1921851039,
@@ -399,7 +399,7 @@ test('every note is playable', () => {
         // The dance basses sit lower (a sub register), and a slap bass pops up to a twelfth above.
         // Salsa's montuno is the grand piano's two hands in octaves, up to a B5. Straya's
         // didgeridoo plays its drone's pitch in every role.
-        const [lo, hi] = n.voice === 'bass' || n.voice === 'didge' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? (mood === 'salsa' ? [52, 84] : [52, 76]) : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' || n.voice === 'tag' ? [55, 66] : n.voice === 'soar' ? [40, 60]
+        const [lo, hi] = n.voice === 'bass' || n.voice === 'didge' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? (mood === 'salsa' ? [52, 84] : mood === 'chiptune' ? [52, 88] : [52, 76]) : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' || n.voice === 'tag' ? [55, 66] : n.voice === 'soar' ? [40, 60]
           : n.voice === 'bwah' ? [28, 60] : n.voice === 'layer' ? [28, 66] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96]
           // A scratch's record is heard at a chord tone: a bass's low, a voice's or a horn's middle (a break's carries no pitch, 0).
           : n.voice === 'scratch' ? [0, 73]
@@ -1226,4 +1226,22 @@ test('Italo disco: a sequenced bass in octaves and synth toms running into every
     const bass = drop.flatMap(b => b.notes.filter(n => n.voice === 'bass'));
     assert.ok(bass.length > 60, `italo ${seed}: a running bass`);
   }
+});
+
+test('chiptune: a drop\'s arpeggio runs faster than its verses, in one of four figures that changes for the second drop', () => {
+  const figures = new Set<string>();
+  for (const seed of SEEDS.slice(0, 12)) {
+    const bars = composeLofiTune(seed, 'chiptune');
+    if (bars[0]!.tune.style.keys !== 'chiparp') continue;
+    const count = (b: LofiBar): number => b.notes.filter(n => n.voice === 'keys').length;
+    const drops = bars.filter(b => b.section === 'drop' && count(b) > 0);
+    assert.ok(drops.length > 0, `chiptune ${seed}: an arpeggio in the drop`);
+    for (const b of drops) {
+      assert.ok(count(b) >= 16, `chiptune ${seed} bar ${b.index}: ${count(b)} notes`);
+      figures.add(`${count(b)}:${b.notes.filter(n => n.voice === 'keys').slice(0, 4).map(n => Math.round(n.beat * 8)).join(',')}`);
+    }
+    assert.ok(drops.some(b => count(b) > 16) || drops.some(b => b.notes.some(n => n.voice === 'keys' && n.midi > 76)), `chiptune ${seed}: faster or wider than the sixteenths`);
+    for (const b of bars) for (const n of b.notes) if (n.voice === 'keys') assert.ok(n.midi <= 88, `chiptune ${seed}: an arpeggio note at ${n.midi}`);
+  }
+  assert.ok(figures.size >= 3, `the figures vary from tune to tune (${figures.size})`);
 });

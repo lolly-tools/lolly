@@ -382,7 +382,7 @@ function bells(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   mod.connect(index).connect(car.frequency);
   const amp = ctx.createGain();
   amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.09 * vel, t + 0.002);
+  amp.gain.exponentialRampToValueAtTime(0.18 * vel, t + 0.002);
   amp.gain.exponentialRampToValueAtTime(EPS, t + ring);
   car.connect(amp).connect(out);
 }
@@ -585,8 +585,9 @@ function chipArp(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
   lp.frequency.value = 7000;
   const amp = ctx.createGain();
   amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.045 * vel, t + 0.002);
-  amp.gain.setValueAtTime(0.045 * vel, t + len * 0.6);
+  // The arpeggio is half the sound of a console tune: it sat 12 dB lower, 12 dB under the drums (2026-11-21).
+  amp.gain.exponentialRampToValueAtTime(0.18 * vel, t + 0.002);
+  amp.gain.setValueAtTime(0.18 * vel, t + len * 0.6);
   amp.gain.exponentialRampToValueAtTime(EPS, t + len);
   lp.connect(amp).connect(out);
   pulseOsc(k, 0.25, mtof(midi), t, t + len + 0.02).connect(lp);

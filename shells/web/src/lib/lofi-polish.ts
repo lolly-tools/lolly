@@ -19,6 +19,8 @@ interface Finish {
   /** A shelf over `airFrom` (dB). */
   air: number;
   airFrom: number;
+  /** A broad lift or cut of the middle (dB at Hz), where a chip or a synth lead carries the tune. */
+  mid?: readonly [number, number];
   /** How far the whole mix is raised (dB) into a soft ceiling, for the styles whose records are loud; 0 is the ceiling alone. */
   lift?: number;
 }
@@ -38,6 +40,16 @@ const FINISH: Partial<Record<LofiMood, Finish>> = {
   dnbLiquid: { side: 6, from: 500, air: 2.5, airFrom: 5500, lift: 2 },
   dnbDeep: { side: 4, from: 600, air: 1, airFrom: 5500, lift: 2 },
   dnbRave: { side: 5, from: 600, air: 2, airFrom: 5500, lift: 3 },
+  // The chip and retro styles, measured 2026-11-21 against classic chip and console music
+  // (measurement only). There the octave from 500 Hz to 1 kHz is the loudest thing in the
+  // mix (2 to 7 dB under the whole), the top octave is rolled away (21 to 29 dB under), the
+  // mix is close to one channel, and it sits near -15 dBFS. Chiptune measured 11 dB down in
+  // that octave, 16 dB down at the top (brighter than a console) and 10 dB quieter;
+  // synthwave 14 to 16 dB down in the middle. Sugar is the modern side of the same family:
+  // its top was 5 dB duller and its sides 12 dB narrower than produced records of its kind.
+  chiptune: { side: 0, from: 500, air: -5, airFrom: 7000, mid: [3, 750], lift: 6 },
+  synthwave: { side: 2, from: 500, air: 0, airFrom: 7000, mid: [3, 900], lift: 4 },
+  sugar: { side: 5, from: 500, air: 3, airFrom: 5500, mid: [1.5, 800], lift: 3 },
   // Italo disco and Balearic measured nearly one channel (correlation 0.97): their chords and echoes are opened out.
   italo: { side: 4, from: 400, air: 1.5, airFrom: 6000, lift: 0 },
   balearic: { side: 5, from: 300, air: 1.5, airFrom: 6000, lift: 0 },
@@ -58,7 +70,8 @@ const CEILING = ((): Float32Array<ArrayBuffer> => {
 /** The finish for `mood` in front of `into`: returns where the station's compressor connects (`into` itself for a style with none). */
 export function finish(ctx: BaseAudioContext, mood: LofiMood, into: AudioNode): AudioNode {
   const f = FINISH[mood];
-  if (!f) return into;
+  // A context with no channel splitter (a test's stand-in, an old engine) plays the mix as it is.
+  if (!f || typeof ctx.createChannelSplitter !== 'function') return into;
   const input = ctx.createBiquadFilter();
   input.type = 'highshelf';
   input.frequency.value = f.airFrom;
@@ -66,7 +79,14 @@ export function finish(ctx: BaseAudioContext, mood: LofiMood, into: AudioNode): 
   // Left and right pass straight through; the side above `from` is added to the left and taken from the right.
   const split = ctx.createChannelSplitter(2);
   const merge = ctx.createChannelMerger(2);
-  input.connect(split);
+  if (f.mid) {
+    const mid = ctx.createBiquadFilter();
+    mid.type = 'peaking';
+    mid.frequency.value = f.mid[1];
+    mid.Q.value = 0.8;
+    mid.gain.value = f.mid[0];
+    input.connect(mid).connect(split);
+  } else input.connect(split);
   split.connect(merge, 0, 0);
   split.connect(merge, 1, 1);
   const side = ctx.createGain();
