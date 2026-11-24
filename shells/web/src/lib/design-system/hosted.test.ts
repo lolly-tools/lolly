@@ -15,7 +15,7 @@ import { createAssetsAPI } from '../../bridge/assets.ts';
 import { withRecordedBrandPage } from '../../../../../engine/src/brand-page-address.ts';
 import { createTokensAPI } from '../../bridge/tokens.ts';
 import { createDesignSystemRegistry, type RegistryDb } from './registry.ts';
-import { addHostedDesignSystem, checkHostedDesignSystems, refreshHostedDesignSystem, shapeHostedManifest } from './hosted.ts';
+import { InstanceSignInNeeded, addHostedDesignSystem, checkHostedDesignSystems, refreshHostedDesignSystem, shapeHostedManifest } from './hosted.ts';
 import { readDesignSystemIdentity } from '../../../../../engine/src/design-system.ts';
 
 const realFetch = globalThis.fetch;
@@ -232,4 +232,31 @@ test('a managed system records the address from its manager\'s source, and a cop
   await r.registry.setActive(copy.id);
   r.host.tokens!.bust({ lock: true });
   assert.equal((await r.host.tokens!.snapshot()).brandPage, undefined);
+});
+
+// Andy, 2026-11-24: "From an instance" answered "hosts no catalog (401)" for lolly.ing.
+test('a sign-in gated instance is said to need sign-in, before anything is made or its catalog is asked for', async () => {
+  const r = await rig();
+  const log: string[] = [];
+  stubFetch({ 'https://gated.example.com/api/v1/instance': manifest({ name: 'Acme Work', accessMode: 'gated' }) }, log);
+  const before = (await r.registry.list()).length;
+  await assert.rejects(
+    () => addHostedDesignSystem(r.host as unknown as Parameters<typeof addHostedDesignSystem>[0], 'https://gated.example.com'),
+    (e: unknown) => e instanceof InstanceSignInNeeded && e.base === 'https://gated.example.com' && /sign in/.test(e.message) && !/hosts no catalog/.test(e.message),
+  );
+  assert.equal((await r.registry.list()).length, before, 'no half record');
+  assert.ok(!log.some(url => url.includes('/catalog/')), 'the catalog it would refuse is not asked for');
+});
+
+test('an instance that refuses its catalog with 401 needs sign-in too, whatever its manifest says, and leaves no record', async () => {
+  const r = await rig();
+  stubFetch({
+    'https://quiet.example.com/api/v1/instance': manifest({ name: 'Quiet' }),
+    'https://quiet.example.com/catalog/assets/index.json': () => new Response('{"error":{"code":"UNAUTHORIZED"}}', { status: 401, headers: { 'content-type': 'application/json' } }),
+  });
+  await assert.rejects(
+    () => addHostedDesignSystem(r.host as unknown as Parameters<typeof addHostedDesignSystem>[0], 'https://quiet.example.com'),
+    (e: unknown) => e instanceof InstanceSignInNeeded,
+  );
+  assert.deepEqual((await r.registry.list()).map(x => x.id), ['shipped'], 'the record made for the attempt is taken back out');
 });
