@@ -1200,6 +1200,8 @@ const EXPECTED: readonly string[] = [
   'sniffVideoContainer',
   'softwareName',
   'softwareOrigins',
+  'VERIFY_FINDING_IDS', 'verifyFindings', 'verifyHashFailed', 'verifyRights', 'verifySoftware', 'fillFindingText',
+  'VerifyEvidence', 'VerifyFinding', 'VerifyFindingId', 'VerifyFindingsInput', 'VerifyFindingsReport', 'VerifyRights', 'VerifySoftware', 'VerifyStrength', 'VerifyTone',
   'solidPointOklch',
   'sortedLangs',
   'sourceIngredientsFor',

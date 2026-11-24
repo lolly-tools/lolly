@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.354.0
+
+- `verify-findings.ts` (new) turns a file check into six findings in one fixed order: credential, made with, AI, licence, personal data and hidden content. `verifyFindings(input)` takes a C2PA report, the file's metadata and what a shell read on the device (the Imprint, a SEAL result, third-party marks, the text analysis) and always returns all six, so a slot with nothing found says so. Each finding carries a state code, a tone, the strength of its evidence (`signed`, `unverified`, `stated`, `hint`, `estimated`), English wording with placeholders and its evidence rows. `verifySoftware` and `verifyRights` list every product, device, signer and rights statement a file names, each with the strength of the evidence that named it; a known licence named twice folds into one entry and two different known licences are reported as disagreeing. `verifyHashFailed` and `fillFindingText` are exported with them. The input is structural, so a shell's own mirror of the report fits. No method of the bridge changed. Additive.
+
 ## 1.353.0
 
 - `createHookBudget(ms, onExpire)` is the execution budget both worker executors now give an isolated hook. It counts only while the hook's own code can be running: the time a `host.*` call takes to answer is the owner's work and is not charged. Before this, the web Worker and the Node thread were ended when a hook's first host call took longer than the hook's budget, so a tool with `isolate: true` that asks the host for slow work never received its result. Audiogram was the visible case: analysing a tune takes longer than `onInit`'s five seconds, the worker was ended, and no style drew, MilkDrop included. A hook that runs past its budget without waiting on the host still loses its worker. Additive.

@@ -1,0 +1,87 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+@layer views {
+  /* Verify's answer: one surface, six slots, no rules between them. A slot's
+     state is its words; colour only supports them. */
+  .vf-answer {
+    display: grid; gap: var(--ui-space-panel);
+    margin-bottom: var(--ui-space-panel);
+  }
+  .vf-answer-file .valid-fmt { margin-left: var(--sp-2); }
+  .vf-answer-head { display: flex; align-items: center; gap: var(--ui-space-panel); min-width: 0; }
+  .vf-answer-copy { display: grid; gap: var(--sp-2); min-width: 0; }
+  .vf-answer-file { margin: 0; color: var(--ui-color-text-muted); font-size: var(--ui-type-label); overflow-wrap: anywhere; }
+  .vf-answer-verdict { margin: 0; font-size: var(--ui-type-heading); line-height: 1.15; letter-spacing: var(--ui-type-tracking-tight); text-wrap: balance; }
+  .vf-answer-sub { margin: 0; color: var(--ui-color-text-muted); font-size: var(--ui-type-body); max-width: 68ch; }
+  .vf-answer-sub strong { color: var(--ui-color-text-default); }
+
+  .vf-findings { display: grid; gap: var(--sp-3); min-width: 0; }
+  .vf-slots {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; gap: var(--sp-2);
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  @container (max-width: 980px) { .vf-slots { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 980px) { .vf-slots { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .vf-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  .vf-slot {
+    all: unset; box-sizing: border-box; cursor: pointer;
+    display: grid; align-content: start; gap: var(--sp-2);
+    width: 100%; height: 100%; min-height: calc(5.25rem * var(--a11y-fs));
+    padding: var(--sp-4);
+    border-radius: var(--ui-radius-control);
+    font-family: var(--ui-type-ui-family);
+    transition: background-color .15s ease;
+  }
+  .vf-slot:hover { background: var(--ui-color-surface-muted); }
+  .vf-slot:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .vf-slot[aria-expanded="true"] { background: var(--ui-color-surface-muted); }
+  .vf-slot-label { display: flex; align-items: center; gap: var(--sp-2); color: var(--ui-color-text-muted); font-size: var(--ui-type-label); }
+  .vf-slot-label svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); flex: 0 0 auto; }
+  .vf-slot-word { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); min-width: 0; font-size: var(--ui-type-title); line-height: 1.25; color: var(--ui-color-text-default); }
+  .vf-slot-word strong { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+  .vf-slot.is-quiet .vf-slot-word strong { font-weight: 400; color: var(--ui-color-text-muted); }
+  .vf-slot.is-good .vf-slot-label svg { color: hsl(var(--vf-pass)); }
+  .vf-slot.is-warn .vf-slot-label svg { color: hsl(var(--vf-warn)); }
+  .vf-slot.is-bad .vf-slot-label svg { color: hsl(var(--vf-fail)); }
+  .vf-slot.is-bad .vf-slot-word strong { color: hsl(var(--vf-fail)); }
+  .vf-slot[data-finding="ai"]:not(.is-quiet) .vf-slot-label svg { color: hsl(var(--vf-ai-1)); }
+
+  .vf-mark { display: inline-flex; }
+  .vf-mark .valid-vendor-mark { width: calc(20px * var(--a11y-fs)); height: calc(20px * var(--a11y-fs)); }
+
+  /* Evidence strength, in words. One list for the slots and the evidence rows. */
+  .vf-slot-strength { font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); }
+  .vf-slot-strength.is-signed { color: hsl(var(--vf-pass)); }
+  .vf-slot-strength.is-unverified { color: hsl(var(--vf-warn)); }
+
+  .vf-detail-pane {
+    display: grid; gap: var(--sp-4);
+    padding: var(--sp-5);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-color-surface-muted);
+  }
+  .vf-detail-pane[hidden] { display: none; }
+  .vf-detail-sentence { margin: 0; font-size: var(--ui-type-title); max-width: 72ch; }
+  .vf-evidence { margin: 0; display: grid; gap: var(--sp-3) var(--ui-space-panel); grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); }
+  .vf-evidence > div { display: grid; gap: 2px; min-width: 0; }
+  .vf-evidence dt { color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); }
+  .vf-evidence dd { margin: 0; font-family: var(--ui-type-mono-family); font-size: var(--ui-type-label); overflow-wrap: anywhere; }
+  .vf-evidence dd.vf-evidence-source { display: flex; flex-wrap: wrap; gap: var(--sp-2); font-family: var(--ui-type-ui-family); font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); }
+  .vf-detail-jump { justify-self: start; display: inline-flex; align-items: center; gap: var(--ui-space-control-inline); }
+  .vf-detail-jump svg { width: 1rem; height: 1rem; }
+
+  .vf-mini { display: inline-flex; align-items: center; gap: var(--sp-2); }
+  .vf-mini-slot { display: inline-flex; color: var(--ui-color-text-muted); }
+  .vf-mini-slot svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+  .vf-mini-slot.is-good { color: hsl(var(--vf-pass)); }
+  .vf-mini-slot.is-warn { color: hsl(var(--vf-warn)); }
+  .vf-mini-slot.is-bad { color: hsl(var(--vf-fail)); }
+
+  /* Where a slot's "Show the detail" lands. */
+  .vf-flash { animation: vf-flash 1.4s ease-out 1; scroll-margin-top: calc(var(--chrome-h) + var(--sp-7)); }
+  @keyframes vf-flash { from { box-shadow: 0 0 0 3px hsl(var(--ring) / .55); } to { box-shadow: 0 0 0 3px hsl(var(--ring) / 0); } }
+  @media (prefers-reduced-motion: reduce) { .vf-flash { animation: none; } .vf-slot { transition: none; } }
+  html[data-a11y-motion="reduce"] .vf-flash { animation: none; }
+  html[data-a11y-motion="reduce"] .vf-slot { transition: none; }
+}
