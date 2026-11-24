@@ -979,6 +979,7 @@ supports tool rendering; qualify preview behavior with the paired shell release.
 | `DATABASE_URL` | - | Postgres. Unset ⇒ in-memory store (evaluation only) |
 | `DATABASE_URL_UNPOOLED` | - | a direct (unpooled) Postgres URL that migrations run over when set; otherwise they use `DATABASE_URL` |
 | `LW_AUTO_MIGRATE` | `true` when unset | boot-time DDL. `false`/`0`/`off`/`no`/empty ⇒ no DDL and refuse to start on a pending schema (the HA invariant) |
+| `LW_ADMISSION_REPORT_FILE` | unset | path of a Kubewarden preflight record (`scripts/kubewarden-preflight.ts --report`). Setup shows the record as one check, with its date and the Kubewarden version; unset shows nothing. The chart sets the path when `admissionReport.existingConfigMap` is set. See [Admission policy with Kubewarden](admission-policy.md#show-kubewarden-s-answers-to-administrators) |
 | `LW_SEED_CONFIG` | - | path to a governance document applied at boot; trusted and idempotent ([governance](governance.md)) |
 | `LW_ALLOW_STALE_SHELL` | - | `1` downgrades the stale-shell boot refusal to a warning |
 | `LW_BACKGROUND_POLL_MS` | `1000` | how often the durable render and automation runners look for queued work. `0` sets no timer: work still runs at boot and on submission, so a database that scales to zero can sleep. See [deployment](deployment.md) |

@@ -226,6 +226,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Put a CDN in front of Lolly Work | [work/edge-cdn.md](work/edge-cdn.md) |
 | Run Lolly Work on AWS or MulgaDC Spinifex | [work/aws-compatible.md](work/aws-compatible.md) |
 | WebAssembly and Kubewarden choices | [work/wasm-deployment.md](work/wasm-deployment.md) |
+| How Lolly uses Kubewarden | [work/kubewarden.md](work/kubewarden.md) |
 | Admission policy with Kubewarden | [work/admission-policy.md](work/admission-policy.md) |
 | Configure connector origins | [connector-origins.md](connector-origins.md) |
 | Set up enterprise identity | [work/enterprise-identity.md](work/enterprise-identity.md) |

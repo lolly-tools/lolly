@@ -20,6 +20,9 @@ Kubewarden evaluates Kubernetes admission requests. It does not run the Lolly Wo
 PostgreSQL or the browser render worker, so keep the policy decision separate from the
 application runtime decision.
 
+[How Lolly uses Kubewarden](kubewarden.md) says what the policies check and what an
+administrator sees.
+
 <!--i:eti-shield-check-->
 ## Evaluate Kubewarden
 
@@ -29,9 +32,9 @@ installs an admission webhook as a side effect.
 
 Start in audit mode, with curated image verification policies:
 
-- the [Application Collection verification guide](https://docs.kubewarden.io/admission-controller/1.38/en/howtos/application-collection/01-verify-images.html)
-  for selected dependency images;
-- the [secure supply chain guidance](https://docs.kubewarden.io/admission-controller/1.38/en/howtos/security-hardening/secure-supply-chain.html)
+- [Verifying Kubewarden](https://docs.kubewarden.io/admission-controller/1.39/en/tutorials/verifying-kubewarden.html)
+  for the controller, Policy Server and `kwctl` you install;
+- the [secure supply chain guidance](https://docs.kubewarden.io/admission-controller/1.39/en/howtos/security-hardening/secure-supply-chain.html)
   for policy and image provenance;
 - Lolly's own publisher identity, configured separately from the Application Collection
   publisher. The [Kubewarden policy set for Lolly Work](admission-policy.md) includes it, with

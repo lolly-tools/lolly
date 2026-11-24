@@ -90,18 +90,18 @@ The requirements file lists every range.
 | Policy | Published policy | What it enforces |
 |---|---|---|
 | `lolly-work-privileged` | `pod-privileged` v1.0.14 | No privileged container |
-| `lolly-work-privilege-escalation` | `allow-privilege-escalation-psp` v1.0.15 | `allowPrivilegeEscalation: false` in every container |
-| `lolly-work-capabilities` | `capabilities-psp` v1.0.15 | Drop `ALL` and add nothing, in every pod except the render worker |
-| `lolly-work-capabilities-render-worker` | `capabilities-psp` v1.0.15 | The same for the render worker |
+| `lolly-work-privilege-escalation` | `allow-privilege-escalation-psp` v1.0.16 | `allowPrivilegeEscalation: false` in every container |
+| `lolly-work-capabilities` | `capabilities-psp` v1.0.16 | Drop `ALL` and add nothing, in every pod except the render worker |
+| `lolly-work-capabilities-render-worker` | `capabilities-psp` v1.0.16 | The same for the render worker |
 | `lolly-work-user-group` | `user-group-psp` v1.1.5 | UID and GID 1000, supplemental groups within 1000 |
-| `lolly-work-fsgroup` | `allowed-fsgroups-psp` v1.0.14 | `fsGroup` 1000 |
-| `lolly-work-host-namespaces` | `host-namespaces-psp` v1.1.13 | No host network, PID, IPC or ports |
+| `lolly-work-fsgroup` | `allowed-fsgroups-psp` v1.0.15 | `fsGroup` 1000 |
+| `lolly-work-host-namespaces` | `host-namespaces-psp` v1.1.14 | No host network, PID, IPC or ports |
 | `lolly-work-volumes` | `volumes-psp` v1.1.12 | `configMap`, `emptyDir`, `persistentVolumeClaim` and `secret` only |
-| `lolly-work-readonly-root` | `readonly-root-filesystem-psp` v1.0.15 | A read-only root filesystem in every container |
+| `lolly-work-readonly-root` | `readonly-root-filesystem-psp` v1.0.16 | A read-only root filesystem in every container |
 | `lolly-work-seccomp` | `seccomp-psp` v1.0.16 | `RuntimeDefault`, or `Localhost` with `lolly/chromium.json` |
-| `lolly-work-apparmor` | `cel-policy` v1.6.5 | Unset, `RuntimeDefault`, or `Localhost` with `lolly-chromium`, in the field and in the older annotation |
-| `lolly-work-image-sources` | `trusted-repos` v2.1.6 | Only the two Lolly Work images |
-| `lolly-work-image-signatures` | `verify-image-signatures` v1.0.13 | Both images carry a signature from the release workflow; each pod runs the digest that was verified |
+| `lolly-work-apparmor` | `cel-policy` v1.6.6 | Unset, `RuntimeDefault`, or `Localhost` with `lolly-chromium`, in the field and in the older annotation |
+| `lolly-work-image-sources` | `trusted-repos` v2.1.7 | Only the two Lolly Work images |
+| `lolly-work-image-signatures` | `verify-image-signatures` v1.0.14 | Both images carry a signature from the release workflow; each pod runs the digest that was verified |
 
 Every module is pinned by tag and digest in `policies.yaml`. Two policies mutate pods:
 `lolly-work-user-group` fills an unset container UID or GID with 1000, and
@@ -146,10 +146,55 @@ the policy's message for each, and exits with status 1 when a Lolly Work pod is 
 a probe is admitted. A probe refused for another reason, such as a quota or a missing
 namespace, prints `ERROR` and also fails the run.
 
+A Policy Server that takes longer than its evaluation limit, 2 seconds by default,
+refuses the request without deciding anything. Kubewarden words that as "exceeded the
+allowed execution time" or as a refusal "without explanation". The preflight asks
+again, up to three times, and prints `TIMEOUT` when no decision came. A timeout points
+to a Policy Server short of CPU, most often just after it restarted, and says nothing
+about the pod.
+
 ::: check A clean preflight
 Every Lolly Work pod prints `ADMITTED`, each of the nine probes prints `REFUSED` with the
 message of the policy for its rule, and the script exits with status 0.
 :::
+
+### Show Kubewarden's answers to administrators
+
+Lolly Work has no access to the Kubernetes API, so it cannot ask Kubewarden about its
+own pods. The preflight can write down what Kubewarden answered, and Setup can show
+that record to owners. Add `--report`, then store the file in a ConfigMap:
+
+```sh
+helm template lolly-work deploy/helm -n lolly-work -f my-values.yaml \
+  | node scripts/kubewarden-preflight.ts --namespace lolly-work --probes --report report.json
+kubectl create configmap lolly-work-admission -n lolly-work \
+  --from-file=report.json --dry-run=client -o yaml | kubectl apply -f -
+```
+
+Set `admissionReport.existingConfigMap: lolly-work-admission` in the chart values and
+upgrade. Setup then shows one line under its remaining deployment checks:
+
+> **Pod admission, from Kubewarden: pass.** Reported by Kubewarden 1.39.0 for namespace
+> lolly-work on 2026-11-24: 13 of 13 policies active and enforcing, 3 of 3 Lolly Work
+> pods admitted, 9 of 9 test pods refused. This is the record your platform team made
+> with the preflight, not a live reading.
+
+The record holds Kubewarden's version, each policy's name, module, mode and state, the
+pods it admitted and the test pods it refused with the policy that refused each. It
+holds names and fixed words only, never a webhook's message.
+
+| The line shows | When |
+|---|---|
+| `pass` | Every policy was active and in `protect` mode, every Lolly Work pod was admitted and every test pod was refused by a policy |
+| `warning` | A policy was pending or in `monitor` mode, a pod was refused, a test pod was admitted, the file cannot be read, or the record is more than 90 days old |
+| Nothing | No ConfigMap is named, which is the default |
+
+Lolly Work counts the answers again when it reads the record, so a record that calls
+itself clean while a policy was pending is shown with a warning. Run the preflight
+again after a cluster, chart or policy change. An updated ConfigMap reaches the running
+pod without a restart. The `--report` option needs read access to Kubewarden's
+`policyservers` and `clusteradmissionpolicies`; Lolly Work's own pods still mount no
+ServiceAccount token.
 
 ### Options
 
@@ -192,11 +237,27 @@ Qualifying the set turned up four things about the published policies that shape
 <!--i:eti-badge-check-->
 ## Qualification
 
-::: note Recorded for Lolly Work 1.1.2
-The run below is the set's recorded qualification. The
-[1.2.0 release notes](release-1-2-0.md#deployment) record the policy set as unchanged since
-1.1.3, and the requirements file now has chart 1.2.0; no later run is recorded.
-:::
+On 2026-11-24 the set ran on Kubewarden 1.39.0 (`admission-controller` chart 6.2.0)
+with K3s 1.35.5 in k3d, on arm64, after eight modules moved to their newer releases.
+The pods of chart 1.2.1 with the render worker were sent as server-side dry runs;
+Lolly Work itself was not installed in this run.
+
+| Check | Result |
+|---|---|
+| Three preflight runs with probes | Each time the control plane, the render worker and the migration Job were admitted, and Kubewarden verified the release signatures of both 1.2.1 images |
+| The nine preflight probes, in each run | Each refused, by the policy for its rule |
+| The record written by `--report` | Kubewarden 1.39.0, 13 of 13 policies active and enforcing; Setup's check read the record as `pass` |
+| The user-namespace worker, without and with the option file | Refused, then admitted |
+| A Policy Server short of CPU just after a restart | Single evaluations passed the 2-second limit and were refused with no decision. The preflight asks again and prints `TIMEOUT` for these |
+
+Kubewarden 1.39 needs Kubernetes 1.31 or later. It also fixes a certificate reload
+fault that affects Kubewarden 1.32.0 to 1.38.0 with mutual TLS turned on
+([GHSA-g62h-p6qf-949g](https://github.com/kubewarden/kubewarden-controller/security/advisories/GHSA-g62h-p6qf-949g)).
+[How Lolly uses Kubewarden](kubewarden.md#which-kubewarden-version) lists what else
+changed.
+
+A real install, the unreviewed AppArmor profile and the pod that borrows the worker's
+label were not run again. The earlier run covers them:
 
 On 2026-10-27 the set ran on Kubewarden 1.38.2 (`admission-controller` chart 6.1.0)
 with K3s 1.35.5 in k3d, on arm64. Lolly Work 1.1.2 and its render worker, pinned by digest,
