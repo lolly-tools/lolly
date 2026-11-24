@@ -13,7 +13,7 @@
           "name": "Apple silicon",
           "ext": "DMG",
           "note": "M1 and later",
-          "version": "1.2.1",
+          "version": "1.2.2",
           "file": "lolly-latest.dmg"
         },
         {
@@ -34,6 +34,8 @@
           "name": "iPhone, iPad",
           "ext": "APP",
           "note": "App Store",
+          "version": "1.2.1",
+          "url": "https://apps.apple.com/app/id6836763603",
           "slug": "install",
           "hash": "iphone-and-ipad"
         },
