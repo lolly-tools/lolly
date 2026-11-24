@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.353.0
+
+- `createHookBudget(ms, onExpire)` is the execution budget both worker executors now give an isolated hook. It counts only while the hook's own code can be running: the time a `host.*` call takes to answer is the owner's work and is not charged. Before this, the web Worker and the Node thread were ended when a hook's first host call took longer than the hook's budget, so a tool with `isolate: true` that asks the host for slow work never received its result. Audiogram was the visible case: analysing a tune takes longer than `onInit`'s five seconds, the worker was ended, and no style drew, MilkDrop included. A hook that runs past its budget without waiting on the host still loses its worker. Additive.
+
 ## 1.352.0
 
 - The `{{markdown}}` helper reads a GFM table: a row of pipes over a `| --- |` delimiter row becomes `<table class="md-table">` with a `<thead>` and a `<tbody>`, and a column the delimiter row aligns takes `md-align-left`, `md-align-center` or `md-align-right` on its cells. The look is the tool's stylesheet's, as with `md-index` and the arrow classes. Cells go through the same inline pass as other text, so a cell is escaped and may hold bold, italic, links and images; `\|` is a pipe inside a cell; a short row is padded and a long one cut. Text with no such table gives the same output as before, byte for byte: a line of pipes with no delimiter row under it, or a delimiter row with a different number of cells, stays a paragraph (lolly-tools/lolly#275).

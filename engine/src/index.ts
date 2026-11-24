@@ -32,13 +32,13 @@ export { DOCUMENT_API_VERSION, compileDocument, validateDocument, documentSchema
 export type { CompiledDocument, DocumentInspection, DocumentDiff, DocumentMeasurement } from './document-api.ts';
 export { createRuntime, HOOK_BUDGET_MS, inRealmHookExecutor } from './runtime.ts';
 export {
-  createHookWorkerCore, lockDownAmbientCapabilities, workerRpcMethods, introspectHost, gatherHostSeeds,
+  createHookWorkerCore, createHookBudget, lockDownAmbientCapabilities, workerRpcMethods, introspectHost, gatherHostSeeds,
   STRICT_AMBIENT_GLOBALS, STRICT_NAVIGATOR_PROPERTIES, WORKER_HOOK_NAMES, IN_REALM_ONLY_HOOK_NAMES,
 } from './hook-worker-core.ts';
 export type {
   HostShape, HostSeeds, HookInitMsg, HookInvokeMsg, HookHostReplyMsg, HookDisposeMsg, HookWorkerIn, WorkerHookName,
   InRealmOnlyHookName, HookInitDoneMsg, HookInvokeDoneMsg, HookReportMsg, HookHostCallMsg, HookLogMsg, HookWorkerOut,
-  HookWorkerPort, HookWorkerCoreOpts,
+  HookWorkerPort, HookWorkerCoreOpts, HookBudget,
 } from './hook-worker-core.ts';
 export type { HookExecutor, Hooks, RuntimeViewState, CanvasSize } from './runtime.ts';
 // Emoji (1.196): the runtime draws every emoji in a rendered tree from the

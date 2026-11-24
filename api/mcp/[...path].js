@@ -4170,7 +4170,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.352.0";
+    ENGINE_VERSION = "1.353.0";
   }
 });
 
@@ -71222,6 +71222,42 @@ function gatherHostSeeds(host) {
 }
 function makeColocatedApis(geom) {
   return { color: makeColorApi(), geom: geom ?? makeGeomApi() };
+}
+function createHookBudget(ms, onExpire) {
+  let left = ms;
+  let inFlight2 = 0;
+  let since = 0;
+  let timer = null;
+  let done = false;
+  const run3 = () => {
+    since = Date.now();
+    timer = setTimeout(() => {
+      timer = null;
+      if (!done) {
+        done = true;
+        onExpire();
+      }
+    }, Math.max(0, left));
+  };
+  run3();
+  return {
+    hostCallStarted() {
+      if (done) return;
+      if (inFlight2++ > 0 || timer === null) return;
+      clearTimeout(timer);
+      timer = null;
+      left -= Date.now() - since;
+    },
+    hostCallEnded() {
+      if (done || inFlight2 === 0) return;
+      if (--inFlight2 === 0) run3();
+    },
+    clear() {
+      done = true;
+      if (timer !== null) clearTimeout(timer);
+      timer = null;
+    }
+  };
 }
 function createHookWorkerCore(port, opts = {}) {
   const runs2 = /* @__PURE__ */ new Map();
@@ -158393,6 +158429,7 @@ __export(src_exports, {
   createDesignLayoutMeasurer: () => createDesignLayoutMeasurer,
   createEnrollmentCsr: () => createEnrollmentCsr,
   createFontsAPI: () => createFontsAPI,
+  createHookBudget: () => createHookBudget,
   createHookWorkerCore: () => createHookWorkerCore,
   createHostTextShaper: () => createHostTextShaper,
   createLoudnessMeter: () => createLoudnessMeter,
