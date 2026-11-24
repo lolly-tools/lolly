@@ -535,9 +535,8 @@ export async function installFontFromBytes(
     if (!withinCap(stored.byteLength)) return null;
   } else if (format === 'woff2') {
     try {
-      const decompress = (await import('woff2-encoder/decompress')).default;
-      const out = await decompress(new Uint8Array(original)) as Uint8Array | ArrayBuffer;
-      const u8 = out instanceof Uint8Array ? out : new Uint8Array(out);
+      const { decodeWoff2 } = await import('@lolly-tools/node-shell/woff2');
+      const u8 = await decodeWoff2(new Uint8Array(original));
       sfnt = u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength) as ArrayBuffer;
     } catch { return null; }
     if (!withinCap(sfnt.byteLength)) return null;

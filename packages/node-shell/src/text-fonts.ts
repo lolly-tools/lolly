@@ -59,7 +59,8 @@ export function createPinnedTextShaper(read: (font: TextFontResourceV1) => Promi
     }
     else if (kind === 'woff2') {
       if (input.length < 48 || new DataView(input.buffer, input.byteOffset, input.byteLength).getUint32(16) > MAX_FONT_BYTES) throw new TextSourceError('font-size', 'The expanded font exceeds the supported size.');
-      bytes = await (await import('woff2-encoder/decompress')).default(input);
+      try { bytes = await (await import('./woff2.ts')).decodeWoff2(input, { maxOutputBytes: MAX_FONT_BYTES }); }
+      catch (error) { throw new TextSourceError('font-format', error instanceof Error ? error.message : 'The WOFF2 font could not be decoded.'); }
     }
     const collection = String.fromCharCode(...bytes.subarray(0, 4)) === 'ttcf';
     if (bytes.length > MAX_FONT_BYTES || (!collection && !['ttf', 'otf'].includes(sfntKind(bytes) ?? ''))) throw new TextSourceError('font-format', 'The font container is not supported.');

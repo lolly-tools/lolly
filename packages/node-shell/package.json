@@ -87,6 +87,8 @@
     "./fallback-fonts": "./src/fallback-fonts.ts",
     "./fallback-fonts-node": "./src/fallback-fonts-node.ts",
     "./page-text": "./src/page-text.ts",
+    "./woff2": "./src/woff2.ts",
+    "./node-patch-level": "./src/node-patch-level.ts",
     "./svg-ir": "./src/svg-ir.ts",
     "./render-integrity": "./src/render-integrity.ts",
     "./url-capture": "./src/url-capture.ts",

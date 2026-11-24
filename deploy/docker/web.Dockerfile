@@ -5,7 +5,7 @@
 # Supply the reviewed source SHA, profile and public pin as build arguments.
 # No dependency installation, compiler or private signing material runs here.
 
-FROM node:26-bookworm@sha256:f1233c415b41ffcf237c717b3dea92e9d4ea006e0e4c71edcb790605d74f5404 AS verify
+FROM node:26-bookworm@sha256:b7087bc4d973034b30854b378ba107f9fab622b47514cb7e2592e41b8bab8d49 AS verify
 WORKDIR /src
 ARG LOLLY_PROFILE=lolly-start
 ARG LOLLY_RELEASE_SOURCE

@@ -9,6 +9,7 @@
  */
 
 import { dispatch } from '../src/server.ts';
+import { warnIfUnpatchedNode } from '@lolly-tools/node-shell/node-patch-level';
 import { LiveBridge } from '../src/live-bridge.ts';
 import type { JsonRpcRequest } from '../src/protocol.ts';
 
@@ -57,3 +58,5 @@ async function handleLine(line: string): Promise<void> {
 }
 
 process.stderr.write('lolly-mcp (stdio) ready\n');
+// Stderr only: stdout is the JSON-RPC channel.
+warnIfUnpatchedNode((line) => process.stderr.write(`${line}\n`));

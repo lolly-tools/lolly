@@ -27,7 +27,7 @@
 # Keep Tier B disabled for this image's initial hosted scope.
 # ============================================================================
 
-FROM node:26-alpine@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a AS build
+FROM node:26-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS build
 WORKDIR /src
 RUN apk add --no-cache 'libcrypto3>=3.5.8-r0' 'libssl3>=3.5.8-r0'
 # Neutral by default; a public image must not ship the private SUSE pack.
@@ -72,7 +72,7 @@ RUN node --input-type=module -e "import { materializeInto } from './packages/nod
 RUN rm -rf services/mcp/deploy services/mcp/test
 
 # ── runtime stage ───────────────────────────────────────────────────────────
-FROM node:26-alpine@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a AS runtime
+FROM node:26-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS runtime
 WORKDIR /app
 RUN apk add --no-cache 'libcrypto3>=3.5.8-r0' 'libssl3>=3.5.8-r0'
 ENV NODE_ENV=production

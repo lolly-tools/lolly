@@ -62,6 +62,7 @@ import { createTokenSet } from '../../engine/src/tokens.ts';
  *   - design-guides : v1/v2 guide text/JSON, canonical reparse and finite snap targets without DOM
  *   - dxf           : the DXF reader (WASM tag reader, entity list), then the flattener and Design boxes over what it returns
  *   - font-inspect  : inspectFont + glyphsForText over a real variable TTF, its WOFF wrapper and crafted overlapping cmap 4/12 tables (sfnt directory, name, fvar, cmap 4/12)
+ *   - woff2-preflight: preflightWoff2 over a real WOFF2 webfont and a crafted collection header (the bounds checked before the WOFF2 decoder runs)
  */
 
 import { storeZip } from '../../engine/src/zip.ts';
@@ -2594,6 +2595,37 @@ export const fontInspectTarget: FuzzTarget = {
   async invoke(bytes) { inspectFont(bytes); glyphsForText(bytes, 'Hello, Wörld'); },
 };
 
+// WOFF2 preflight (packages/node-shell/src/woff2.ts): the header, table directory and
+// collection directory of a WOFF2 file, read before the WebAssembly decoder runs.
+// Contract: facts within the limits, or a Woff2Error; never a hang or an unbounded
+// allocation. Only the preflight runs here: the decoder that follows the preflight is
+// third-party C++ that starts a worker per font, too slow for a fuzz loop.
+export const woff2PreflightTarget: FuzzTarget = {
+  name: 'woff2-preflight',
+  async seeds() {
+    const webfont = new Uint8Array(readFileSync(new URL('../../shells/web/public/fonts/Outfit-latin-ext[wght].woff2', import.meta.url)));
+    // A collection header: two fonts sharing head (0) and pointing at glyf (1) and loca (2).
+    const collection = concat([
+      u32be(0x774f4632), u32be(0x74746366), u32be(0), Uint8Array.of(0, 3, 0, 0), u32be(0), u32be(8),
+      new Uint8Array(24),
+      Uint8Array.of(0x01, 54, 0x0a, 100, 80, 0x0b, 20, 0),
+      u32be(0x00010000), Uint8Array.of(2), Uint8Array.of(3), u32be(0x00010000), Uint8Array.of(0, 1, 2), Uint8Array.of(3), u32be(0x00010000), Uint8Array.of(0, 1, 2),
+      new Uint8Array(8 + 3), // eight bytes of compressed data, padded to a four-byte boundary
+    ]);
+    new DataView(collection.buffer).setUint32(8, collection.length);
+    return [webfont, collection];
+  },
+  async invoke(bytes) {
+    const { preflightWoff2, Woff2Error } = await import('../../packages/node-shell/src/woff2.ts');
+    try {
+      const facts = preflightWoff2(bytes);
+      if (facts.uncompressedSize > 30 * 1024 * 1024 || facts.headerBytes > 30 * 1024 * 1024) throw new Error('preflight accepted a size over its limit');
+    } catch (error) {
+      if (!(error instanceof Woff2Error)) throw error;
+    }
+  },
+};
+
 // Audio DSP module (packages/node-shell/wasm/audio-dsp): the raw byte ABI that the decoded PCM
 // of an untrusted recording reaches through the shell. Contract: a status 0 or 1 reply with a
 // bounded result; never a trap, hang or unbounded allocation. Each call gets a fresh instance
@@ -2749,7 +2781,7 @@ export const ALL_TARGETS: FuzzTarget[] = [
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, smfTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
-  geomTarget, svgItemsTarget, fontInspectTarget, audioDspTarget, imageTraceTarget, intentTarget,
+  geomTarget, svgItemsTarget, fontInspectTarget, woff2PreflightTarget, audioDspTarget, imageTraceTarget, intentTarget,
   lollyRenderEnvelopeTarget, lollyRenderPngTarget, lollyRenderJpegTarget, lollyRenderWebpTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

@@ -53990,9 +53990,9 @@ async function verifyC2pa(bytes2, { trustAnchors, externalManifest, enrollmentTr
         fail6(C2PA_CHECK.assertionDataHashMismatch, `the file bytes do not match the credential - the file changed after signing${qualifier}`);
       }
     } catch (err) {
-      const malformed = !!err.malformed && !!report4.textBinding;
+      const malformed2 = !!err.malformed && !!report4.textBinding;
       fail6(
-        malformed ? C2PA_CHECK.assertionDataHashMalformed : C2PA_CHECK.assertionDataHashMismatch,
+        malformed2 ? C2PA_CHECK.assertionDataHashMalformed : C2PA_CHECK.assertionDataHashMismatch,
         `hard binding could not be checked: ${err.message}`
       );
     }
@@ -176902,6 +176902,314 @@ var init_text_shape = __esm({
   }
 });
 
+// packages/node-shell/src/woff2.ts
+var woff2_exports = {};
+__export(woff2_exports, {
+  WOFF2_LIMITS: () => WOFF2_LIMITS,
+  WOFF2_TIMEOUT_MS: () => WOFF2_TIMEOUT_MS,
+  WOFF2_WORKER_LIMIT: () => WOFF2_WORKER_LIMIT,
+  Woff2Error: () => Woff2Error,
+  checkSfntOutput: () => checkSfntOutput,
+  decodeWoff2: () => decodeWoff2,
+  preflightWoff2: () => preflightWoff2,
+  setWoff2Runner: () => setWoff2Runner,
+  woff2Slots: () => woff2Slots
+});
+function malformed(what) {
+  return new Woff2Error("malformed", `This WOFF2 font is damaged: ${what}.`);
+}
+function preflightWoff2(bytes2, limits = WOFF2_LIMITS) {
+  const length2 = bytes2.byteLength;
+  if (length2 < 4 || bytes2[0] !== 119 || bytes2[1] !== 79 || bytes2[2] !== 70 || bytes2[3] !== 50) {
+    throw new Woff2Error("not-woff2", "This file is not a WOFF2 font.");
+  }
+  if (length2 > limits.maxInputBytes) {
+    throw new Woff2Error("too-large", `This WOFF2 font is larger than ${sizeText(limits.maxInputBytes)}.`);
+  }
+  if (length2 < HEADER_BYTES) throw malformed("the header is incomplete");
+  const view = new DataView(bytes2.buffer, bytes2.byteOffset, length2);
+  const r5 = new Reader2(view);
+  if (r5.u32("the signature") !== WOFF2_SIGNATURE) throw new Woff2Error("not-woff2", "This file is not a WOFF2 font.");
+  const flavor = r5.u32("the flavor");
+  if (r5.u32("the length field") !== length2) throw malformed("the length field does not match the file");
+  const numTables = r5.u16("the table count");
+  if (!numTables) throw malformed("it declares no tables");
+  r5.u16("the reserved field");
+  const totalSfntSize = r5.u32("totalSfntSize");
+  const compressedLength = r5.u32("the compressed length");
+  r5.u16("the major version");
+  r5.u16("the minor version");
+  const metaOffset = r5.u32("the metadata offset");
+  const metaLength = r5.u32("the metadata length");
+  r5.u32("the metadata original length");
+  const privOffset = r5.u32("the private data offset");
+  const privLength = r5.u32("the private data length");
+  if (metaOffset && (metaOffset >= length2 || length2 - metaOffset < metaLength)) throw malformed("the metadata block lies outside the file");
+  if (privOffset && (privOffset >= length2 || length2 - privOffset < privLength)) throw malformed("the private data block lies outside the file");
+  const kinds2 = [];
+  let uncompressedSize = 0;
+  for (let i = 0; i < numTables; i++) {
+    const flags = r5.u8("a table entry");
+    const known3 = flags & 63;
+    const tag3 = known3 === 63 ? r5.u32("a table tag") : -1;
+    const kind = (known3 === 63 ? tag3 === GLYF_TAG : known3 === GLYF_INDEX) ? "glyf" : (known3 === 63 ? tag3 === LOCA_TAG : known3 === LOCA_INDEX) ? "loca" : "other";
+    const version = flags >> 6 & 3;
+    const transformed = kind === "other" ? version !== 0 : version === 0;
+    let stored = r5.base128("a table length");
+    if (transformed) {
+      stored = r5.base128("a transformed table length");
+      if (kind === "loca" && stored) throw malformed("the transformed loca table has a length");
+    }
+    uncompressedSize += stored;
+    if (uncompressedSize > 4294967295) throw malformed("the table lengths overflow");
+    kinds2.push(kind);
+  }
+  if (uncompressedSize < 1) throw malformed("the tables hold no data");
+  let fonts = 1;
+  let headerBytes = 12 + 16 * numTables;
+  const collection = flavor === TTC_FLAVOR;
+  if (collection) {
+    const version = r5.u32("the collection version");
+    if (version !== 65536 && version !== 131072) throw malformed("the collection version is unknown");
+    fonts = r5.u255("the collection font count");
+    if (!fonts) throw malformed("the collection holds no fonts");
+    headerBytes = (version === 131072 ? 12 : 0) + 12 + 4 * fonts + 12 * fonts;
+    for (let f = 0; f < fonts; f++) {
+      const count4 = r5.u255("a collection table count");
+      if (!count4) throw malformed("a collection font holds no tables");
+      r5.u32("a collection font flavor");
+      headerBytes += 16 * count4;
+      if (headerBytes > limits.maxOutputBytes) throw new Woff2Error("too-large", "This WOFF2 collection declares more table records than the decoder can hold.");
+      let glyf = 0;
+      let loca = 0;
+      for (let t = 0; t < count4; t++) {
+        const index2 = r5.u255("a collection table index");
+        if (index2 >= numTables) throw malformed("a collection font points at a missing table");
+        if (kinds2[index2] === "loca") loca = index2;
+        if (kinds2[index2] === "glyf") glyf = index2;
+      }
+      if ((glyf > 0 || loca > 0) && (glyf > loca || loca - glyf !== 1)) throw malformed("a collection font has glyf and loca apart");
+    }
+  }
+  if (uncompressedSize > length2 * limits.maxRatio) throw new Woff2Error("too-large", "This WOFF2 font declares more data than its size allows.");
+  if (uncompressedSize > limits.maxOutputBytes || headerBytes > limits.maxOutputBytes) {
+    throw new Woff2Error("too-large", `This WOFF2 font expands past ${sizeText(limits.maxOutputBytes)}.`);
+  }
+  if (totalSfntSize > limits.maxOutputBytes) {
+    throw new Woff2Error("too-large", `This WOFF2 font declares a decoded size past ${sizeText(limits.maxOutputBytes)}.`);
+  }
+  const compressedOffset = r5.offset;
+  let end = round45(compressedOffset + compressedLength);
+  if (end > length2) throw malformed("the compressed data runs past the end of the file");
+  if (metaOffset) {
+    if (end !== metaOffset) throw malformed("the metadata block is out of place");
+    end = round45(metaOffset + metaLength);
+  }
+  if (privOffset) {
+    if (end !== privOffset) throw malformed("the private data block is out of place");
+    end = round45(privOffset + privLength);
+  }
+  if (end !== round45(length2)) throw malformed("the file has bytes after its last block");
+  return { flavor, collection, numTables, totalSfntSize, uncompressedSize, compressedOffset, compressedLength, headerBytes, fonts };
+}
+function checkOffsetTable(view, at, what) {
+  if (at + 12 > view.byteLength) throw new Woff2Error("bad-output", `The decoded ${what} has no complete header.`);
+  if (!SFNT_FLAVORS.has(view.getUint32(at))) throw new Woff2Error("bad-output", `The decoded ${what} is not TrueType or OpenType.`);
+  const count4 = view.getUint16(at + 4);
+  let end = at + 12 + 16 * count4;
+  if (end > view.byteLength) throw new Woff2Error("bad-output", `The decoded ${what} has an incomplete table directory.`);
+  for (let i = 0; i < count4; i++) {
+    const record49 = at + 12 + 16 * i;
+    const tableEnd = view.getUint32(record49 + 8) + view.getUint32(record49 + 12);
+    if (tableEnd > view.byteLength) throw new Woff2Error("bad-output", `A table in the decoded ${what} lies outside the file.`);
+    end = Math.max(end, tableEnd);
+  }
+  return end;
+}
+function checkSfntOutput(bytes2, facts2, maxBytes = WOFF2_LIMITS.maxOutputBytes) {
+  if (bytes2.byteLength > maxBytes) throw new Woff2Error("too-large", `The decoded font is larger than ${sizeText(maxBytes)}.`);
+  const view = new DataView(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength);
+  let dataEnd;
+  if (!facts2.collection) {
+    dataEnd = checkOffsetTable(view, 0, "font");
+  } else {
+    if (bytes2.byteLength < 12 || view.getUint32(0) !== TTC_FLAVOR) throw new Woff2Error("bad-output", "The decoded collection has no collection header.");
+    const fonts = view.getUint32(8);
+    dataEnd = 12 + 4 * fonts;
+    if (dataEnd > bytes2.byteLength) throw new Woff2Error("bad-output", "The decoded collection has an incomplete font list.");
+    for (let i = 0; i < fonts; i++) dataEnd = Math.max(dataEnd, checkOffsetTable(view, view.getUint32(12 + 4 * i), `collection font ${i + 1}`));
+  }
+  if (facts2.totalSfntSize !== void 0 && bytes2.byteLength > Math.max(facts2.totalSfntSize, round45(dataEnd))) {
+    throw new Woff2Error("bad-output", "The decoded font is longer than its header declares.");
+  }
+  for (let i = dataEnd; i < bytes2.byteLength; i++) {
+    if (bytes2[i] !== 0) throw new Woff2Error("bad-output", "The decoded font has data after its last table.");
+  }
+}
+function setWoff2Runner(runner) {
+  registeredRunner = runner;
+}
+function woff2Slots(limit3) {
+  let active = 0;
+  const waiting = [];
+  const release = () => {
+    active--;
+    waiting.shift()?.();
+  };
+  return (signal) => new Promise((resolve8, reject) => {
+    signal?.throwIfAborted();
+    const take = () => {
+      signal?.removeEventListener("abort", abort);
+      active++;
+      resolve8(release);
+    };
+    const abort = () => {
+      const at = waiting.indexOf(take);
+      if (at >= 0) waiting.splice(at, 1);
+      reject(signal?.reason);
+    };
+    if (active < limit3) {
+      take();
+      return;
+    }
+    waiting.push(take);
+    signal?.addEventListener("abort", abort, { once: true });
+  });
+}
+async function decodeWoff2(bytes2, options2 = {}) {
+  const maxOutputBytes = Math.min(options2.maxOutputBytes ?? WOFF2_LIMITS.maxOutputBytes, WOFF2_LIMITS.maxOutputBytes);
+  const facts2 = preflightWoff2(bytes2, { ...WOFF2_LIMITS, maxOutputBytes });
+  const runner = options2.runner ?? registeredRunner ?? (typeof Worker === "function" ? webWorkerRunner : void 0);
+  if (!runner) throw new Woff2Error("decode-failed", "No separate WOFF2 decoder is available here, so the font was not decoded.");
+  let out;
+  try {
+    out = await runner(bytes2, { timeoutMs: options2.timeoutMs ?? WOFF2_TIMEOUT_MS, signal: options2.signal });
+  } catch (error2) {
+    if (error2 instanceof Woff2Error || error2 === options2.signal?.reason) throw error2;
+    throw new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: error2 });
+  }
+  checkSfntOutput(out, facts2, maxOutputBytes);
+  return out;
+}
+var WOFF2_LIMITS, Woff2Error, WOFF2_SIGNATURE, TTC_FLAVOR, SFNT_FLAVORS, GLYF_INDEX, LOCA_INDEX, GLYF_TAG, LOCA_TAG, HEADER_BYTES, round45, sizeText, Reader2, registeredRunner, WOFF2_TIMEOUT_MS, WOFF2_WORKER_LIMIT, webSlot, webWorkerRunner, runInWebWorker;
+var init_woff2 = __esm({
+  "packages/node-shell/src/woff2.ts"() {
+    "use strict";
+    WOFF2_LIMITS = Object.freeze({
+      /** The largest WOFF2 file read: the font upload limit. */
+      maxInputBytes: 32 * 1024 * 1024,
+      /** The largest sfnt the decoder writes, and the largest Brotli target it is asked for. */
+      maxOutputBytes: 30 * 1024 * 1024,
+      /** Decompressed table bytes per byte of file, as google/woff2 refuses above. */
+      maxRatio: 100
+    });
+    Woff2Error = class extends Error {
+      code;
+      constructor(code, message2, options2) {
+        super(message2, options2);
+        this.name = "Woff2Error";
+        this.code = code;
+      }
+    };
+    WOFF2_SIGNATURE = 2001684018;
+    TTC_FLAVOR = 1953784678;
+    SFNT_FLAVORS = /* @__PURE__ */ new Set([
+      65536,
+      1330926671,
+      1953658213
+      /* true */
+    ]);
+    GLYF_INDEX = 10;
+    LOCA_INDEX = 11;
+    GLYF_TAG = 1735162214;
+    LOCA_TAG = 1819239265;
+    HEADER_BYTES = 48;
+    round45 = (n7) => n7 + 3 - (n7 + 3) % 4;
+    sizeText = (n7) => n7 >= 1048576 ? `${Math.floor(n7 / 1048576)} MB` : `${n7} bytes`;
+    Reader2 = class {
+      offset = 0;
+      view;
+      constructor(view) {
+        this.view = view;
+      }
+      need(n7, what) {
+        if (this.offset + n7 > this.view.byteLength) throw malformed(`${what} runs past the end of the file`);
+      }
+      u8(what) {
+        this.need(1, what);
+        return this.view.getUint8(this.offset++);
+      }
+      u16(what) {
+        this.need(2, what);
+        const v = this.view.getUint16(this.offset);
+        this.offset += 2;
+        return v;
+      }
+      u32(what) {
+        this.need(4, what);
+        const v = this.view.getUint32(this.offset);
+        this.offset += 4;
+        return v;
+      }
+      /** UIntBase128 as google/woff2 reads it: no leading zero byte, at most five bytes, no overflow. */
+      base128(what) {
+        let result = 0;
+        for (let i = 0; i < 5; i++) {
+          const code = this.u8(what);
+          if (i === 0 && code === 128) throw malformed(`${what} has a leading zero`);
+          if (result >= 33554432) throw malformed(`${what} overflows 32 bits`);
+          result = result * 128 + (code & 127);
+          if ((code & 128) === 0) return result;
+        }
+        throw malformed(`${what} is longer than five bytes`);
+      }
+      /** A 255UInt16 (MicroType Express) value, with google/woff2's rules. */
+      u255(what) {
+        const code = this.u8(what);
+        if (code === 253) return this.u16(what);
+        if (code === 255) return this.u8(what) + 253;
+        if (code === 254) return this.u8(what) + 506;
+        return code;
+      }
+    };
+    WOFF2_TIMEOUT_MS = 2e4;
+    WOFF2_WORKER_LIMIT = 4;
+    webSlot = woff2Slots(WOFF2_WORKER_LIMIT);
+    webWorkerRunner = async (bytes2, options2) => {
+      const release = await webSlot(options2.signal);
+      try {
+        return await runInWebWorker(bytes2, options2);
+      } finally {
+        release();
+      }
+    };
+    runInWebWorker = (bytes2, { timeoutMs, signal }) => new Promise((resolve8, reject) => {
+      signal?.throwIfAborted();
+      const worker = new Worker(new URL("./woff2-decode.worker.ts", import.meta.url), { type: "module" });
+      let settled = false;
+      const finish3 = (error2, out) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", abort);
+        worker.terminate();
+        if (out) resolve8(out);
+        else reject(error2);
+      };
+      const abort = () => finish3(signal?.reason ?? new Woff2Error("decode-failed", "The WOFF2 decode was cancelled."));
+      const timer = setTimeout(() => finish3(new Woff2Error("timed-out", "This WOFF2 font took too long to decode.")), timeoutMs);
+      signal?.addEventListener("abort", abort, { once: true });
+      worker.onerror = (event) => {
+        event.preventDefault();
+        finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: event.message || "the decoder worker did not start" }));
+      };
+      worker.onmessage = ({ data }) => finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: data.error ?? "no reply" }), data.out);
+      const copy = bytes2.slice();
+      worker.postMessage(copy, [copy.buffer]);
+    });
+  }
+});
+
 // packages/node-shell/src/text-fonts.ts
 function validateResource(resource) {
   if (!/^[a-f0-9]{64}$/u.test(resource.sha256) || !Number.isSafeInteger(resource.faceIndex) || resource.faceIndex < 0 || resource.faceIndex > 1023) throw new TextSourceError("font-identity", "The font needs a SHA-256 content identity and face index.");
@@ -176955,7 +177263,11 @@ function createPinnedTextShaper(read, loadHarfBuzz2 = () => import("harfbuzzjs")
       bytes2 = woffToSfnt(input);
     } else if (kind === "woff2") {
       if (input.length < 48 || new DataView(input.buffer, input.byteOffset, input.byteLength).getUint32(16) > MAX_FONT_BYTES2) throw new TextSourceError("font-size", "The expanded font exceeds the supported size.");
-      bytes2 = await (await import("woff2-encoder/decompress")).default(input);
+      try {
+        bytes2 = await (await Promise.resolve().then(() => (init_woff2(), woff2_exports))).decodeWoff2(input, { maxOutputBytes: MAX_FONT_BYTES2 });
+      } catch (error2) {
+        throw new TextSourceError("font-format", error2 instanceof Error ? error2.message : "The WOFF2 font could not be decoded.");
+      }
     }
     const collection = String.fromCharCode(...bytes2.subarray(0, 4)) === "ttcf";
     if (bytes2.length > MAX_FONT_BYTES2 || !collection && !["ttf", "otf"].includes(sfntKind(bytes2) ?? "")) throw new TextSourceError("font-format", "The font container is not supported.");
@@ -177047,11 +177359,80 @@ var init_text_composition = __esm({
   }
 });
 
+// packages/node-shell/src/woff2-node.ts
+import { existsSync as existsSync7 } from "node:fs";
+import { fileURLToPath as fileURLToPath5 } from "node:url";
+import { Worker as Worker3 } from "node:worker_threads";
+function workerUrl() {
+  const candidates2 = [new URL("./woff2-worker.ts", import.meta.url), new URL("./_woff2-worker.js", import.meta.url)];
+  for (const url of candidates2) {
+    if (url.protocol === "file:" && existsSync7(fileURLToPath5(url))) return url;
+  }
+  throw new Woff2Error("decode-failed", "The WOFF2 decoder is missing from this installation, so the font was not decoded.");
+}
+function useNodeWoff2Runner() {
+  setWoff2Runner(nodeWoff2Runner);
+}
+var nodeSlot, nodeWoff2Runner, runInThread;
+var init_woff2_node = __esm({
+  "packages/node-shell/src/woff2-node.ts"() {
+    "use strict";
+    init_woff2();
+    nodeSlot = woff2Slots(WOFF2_WORKER_LIMIT);
+    nodeWoff2Runner = async (bytes2, options2) => {
+      const release = await nodeSlot(options2.signal);
+      try {
+        return await runInThread(bytes2, options2);
+      } finally {
+        release();
+      }
+    };
+    runInThread = (bytes2, { timeoutMs, signal }) => new Promise((resolve8, reject) => {
+      signal?.throwIfAborted();
+      const copy = bytes2.slice();
+      let worker;
+      try {
+        worker = new Worker3(workerUrl(), {
+          workerData: copy,
+          transferList: [copy.buffer],
+          env: {},
+          execArgv: [],
+          // Kept off this process's stdout, which is the payload (CLI) or the JSON-RPC
+          // channel (MCP over stdio); the decoder prints to stderr when it aborts.
+          stdout: true,
+          stderr: true
+        });
+      } catch (error2) {
+        reject(error2 instanceof Woff2Error ? error2 : new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: error2 }));
+        return;
+      }
+      worker.stdout.resume();
+      worker.stderr.resume();
+      let settled = false;
+      const finish3 = (error2, out) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        signal?.removeEventListener("abort", abort);
+        void worker.terminate();
+        if (out) resolve8(out);
+        else reject(error2);
+      };
+      const abort = () => finish3(signal?.reason ?? new Woff2Error("decode-failed", "The WOFF2 decode was cancelled."));
+      const timer = setTimeout(() => finish3(new Woff2Error("timed-out", "This WOFF2 font took too long to decode.")), timeoutMs);
+      signal?.addEventListener("abort", abort, { once: true });
+      worker.once("message", (reply) => finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: reply.error ?? "no reply" }), reply.out));
+      worker.once("error", (error2) => finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: error2 })));
+      worker.once("exit", (code) => finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: `the decoder thread exited (${code})` })));
+    });
+  }
+});
+
 // packages/node-shell/src/text.ts
 import { readFile as readFile9, readdir as readdir3 } from "node:fs/promises";
-import { existsSync as existsSync7 } from "node:fs";
+import { existsSync as existsSync8 } from "node:fs";
 import { join as join13 } from "node:path";
-import { fileURLToPath as fileURLToPath5 } from "node:url";
+import { fileURLToPath as fileURLToPath6 } from "node:url";
 async function loadHarfBuzz() {
   if (!_hb) _hb = await import("harfbuzzjs");
   return _hb;
@@ -177072,11 +177453,11 @@ async function loadFontBytes(fontUrl, repoRoot2) {
   }
   let filePath;
   if (fontUrl.startsWith("file://")) {
-    filePath = fileURLToPath5(fontUrl);
+    filePath = fileURLToPath6(fontUrl);
   } else if (fontUrl.startsWith("/")) {
     const roots2 = rootsFor3(repoRoot2);
     filePath = (roots2 ? contentUrlFile(fontUrl, roots2) : null) ?? join13(repoRoot2, fontUrl.slice(1));
-    if (!existsSync7(filePath) && fontUrl.startsWith("/fonts/")) {
+    if (!existsSync8(filePath) && fontUrl.startsWith("/fonts/")) {
       filePath = join13(repoRoot2, "shells", "web", "public", fontUrl.slice(1));
     }
   } else {
@@ -177101,8 +177482,7 @@ async function readFace2(fontUrl, repoRoot2, key2) {
   const hb = await loadHarfBuzz();
   let buf = await loadFontBytes(fontUrl, repoRoot2);
   if (buf.length >= 4 && buf[0] === 119 && buf[1] === 79 && buf[2] === 70 && buf[3] === 50) {
-    const decompress = (await import("woff2-encoder/decompress")).default;
-    buf = new Uint8Array(await decompress(buf));
+    buf = await (await Promise.resolve().then(() => (init_woff2(), woff2_exports))).decodeWoff2(buf, { runner: nodeWoff2Runner });
   }
   const blob = new hb.Blob(buf);
   const face = new hb.Face(blob);
@@ -177202,7 +177582,7 @@ function scanDiskFaces(repoRoot2) {
       const faces = [];
       for (const dir of fontDirs2(repoRoot2)) {
         const abs = dir.abs;
-        if (!existsSync7(abs)) continue;
+        if (!existsSync8(abs)) continue;
         let names;
         try {
           names = await readdir3(abs);
@@ -177244,6 +177624,7 @@ function clustersFrom(pieces, textLength) {
   });
 }
 function createNodeTextAPI({ repoRoot: repoRoot2, assets, parseXml }) {
+  useNodeWoff2Runner();
   const composition = createTextCompositionAPI(async (font) => {
     if (font.source.kind === "embedded") return base64ToBytes(font.source.base64);
     if (font.source.kind === "bundled") return loadFontBytes(font.source.path, repoRoot2);
@@ -177382,6 +177763,7 @@ var init_text3 = __esm({
     init_fallback_fonts();
     init_text_composition();
     init_text_glyphs();
+    init_woff2_node();
     init_text_decoration();
     _hb = null;
     faceCache = /* @__PURE__ */ new Map();
@@ -177414,7 +177796,7 @@ var init_text3 = __esm({
 
 // packages/node-shell/src/browsers.ts
 import { join as join16 } from "node:path";
-import { existsSync as existsSync9 } from "node:fs";
+import { existsSync as existsSync10 } from "node:fs";
 import { homedir as homedir2 } from "node:os";
 function playwrightUserCacheDir(env = process.env, platform = process.platform, home = homedir2()) {
   if (platform === "darwin") return join16(home, "Library", "Caches", "ms-playwright");
@@ -177423,10 +177805,10 @@ function playwrightUserCacheDir(env = process.env, platform = process.platform, 
 }
 function resolveBrowsersDir() {
   if (process.env.PLAYWRIGHT_BROWSERS_PATH) return process.env.PLAYWRIGHT_BROWSERS_PATH;
-  if (existsSync9(INSTALL_BROWSERS_DIR)) return INSTALL_BROWSERS_DIR;
-  if (existsSync9(SIBLING_BROWSERS_DIR)) return SIBLING_BROWSERS_DIR;
+  if (existsSync10(INSTALL_BROWSERS_DIR)) return INSTALL_BROWSERS_DIR;
+  if (existsSync10(SIBLING_BROWSERS_DIR)) return SIBLING_BROWSERS_DIR;
   const userCache = playwrightUserCacheDir();
-  if (existsSync9(userCache)) return userCache;
+  if (existsSync10(userCache)) return userCache;
   return INSTALL_BROWSERS_DIR;
 }
 function chromiumLaunchArgs(graphics = "software", platform = process.platform) {
@@ -177475,7 +177857,7 @@ async function getBrowser({ graphics = "software" } = {}) {
 }
 function browserInstalled() {
   if (process.env.LOLLY_BROWSER_CHANNEL || process.env.LOLLY_BROWSER_PATH) return true;
-  return existsSync9(resolveBrowsersDir());
+  return existsSync10(resolveBrowsersDir());
 }
 var INSTALL_BROWSERS_DIR, SIBLING_BROWSERS_DIR, BrowserError, browserPromise;
 var init_browsers = __esm({
@@ -178522,7 +178904,7 @@ var init_pdf_redact_keep = __esm({
 // packages/node-shell/src/state-dir.ts
 import { homedir as homedir3 } from "node:os";
 import { join as join19 } from "node:path";
-import { existsSync as existsSync10 } from "node:fs";
+import { existsSync as existsSync11 } from "node:fs";
 function desktopAppDataDir(env = process.env, probe = {}) {
   const platform = probe.platform ?? process.platform;
   const home = probe.home ?? homedir3();
@@ -178545,7 +178927,7 @@ function resolveStateDir(env = process.env, onNote = (m2) => process.stderr.writ
     }
     return { dir: old, explicit: true, deprecated: true, source: "env-deprecated", shared: false };
   }
-  const exists = probe.exists ?? existsSync10;
+  const exists = probe.exists ?? existsSync11;
   const app = desktopAppDataDir(env, probe);
   if (app && exists(app)) return { dir: app, explicit: false, deprecated: false, source: "app", shared: true };
   const home = probe.home ?? homedir3();
@@ -179469,16 +179851,16 @@ var init_geometry_clipping = __esm({
 });
 
 // packages/node-shell/src/geometry-wasm-node.ts
-import { existsSync as existsSync12 } from "node:fs";
+import { existsSync as existsSync13 } from "node:fs";
 import { readFile as readFile18 } from "node:fs/promises";
 import { dirname as dirname6, join as join23 } from "node:path";
-import { fileURLToPath as fileURLToPath9 } from "node:url";
+import { fileURLToPath as fileURLToPath10 } from "node:url";
 async function readGeometryWasm(name) {
-  const adjacent = fileURLToPath9(new URL(`../wasm/geometry-kernel/${name}`, import.meta.url));
-  if (existsSync12(adjacent)) return readFile18(adjacent);
+  const adjacent = fileURLToPath10(new URL(`../wasm/geometry-kernel/${name}`, import.meta.url));
+  if (existsSync13(adjacent)) return readFile18(adjacent);
   for (let dir = dirname6(adjacent); ; dir = dirname6(dir)) {
     const candidate = join23(dir, "packages/node-shell/wasm/geometry-kernel", name);
-    if (existsSync12(candidate)) return readFile18(candidate);
+    if (existsSync13(candidate)) return readFile18(candidate);
     if (dirname6(dir) === dir) break;
   }
   throw new Error(`The geometry kernel ${name} is not installed.`);
@@ -179738,16 +180120,16 @@ var fonts_exports = {};
 __export(fonts_exports, {
   createNodeFontsAPI: () => createNodeFontsAPI
 });
-import { existsSync as existsSync13 } from "node:fs";
+import { existsSync as existsSync14 } from "node:fs";
 import { readFile as readFile19 } from "node:fs/promises";
 import { dirname as dirname7, join as join24 } from "node:path";
-import { fileURLToPath as fileURLToPath10 } from "node:url";
+import { fileURLToPath as fileURLToPath11 } from "node:url";
 function skeraPath() {
-  const adjacent = fileURLToPath10(new URL("../wasm/skera/skera.wasm", import.meta.url));
-  if (existsSync13(adjacent)) return adjacent;
+  const adjacent = fileURLToPath11(new URL("../wasm/skera/skera.wasm", import.meta.url));
+  if (existsSync14(adjacent)) return adjacent;
   for (let dir = dirname7(adjacent); dirname7(dir) !== dir; dir = dirname7(dir)) {
     const candidate = join24(dir, "packages/node-shell/wasm/skera/skera.wasm");
-    if (existsSync13(candidate)) return candidate;
+    if (existsSync14(candidate)) return candidate;
   }
   throw new Error("The font subset runtime is not installed.");
 }
@@ -179890,7 +180272,7 @@ __export(text_measure_exports, {
   sfntVerticalMetrics: () => sfntVerticalMetrics,
   textMeasureSpecOfRow: () => textMeasureSpecOfRow
 });
-import { existsSync as existsSync14, readdirSync as readdirSync2, readFileSync as readFileSync10 } from "node:fs";
+import { existsSync as existsSync15, readdirSync as readdirSync2, readFileSync as readFileSync10 } from "node:fs";
 import { join as join26 } from "node:path";
 function firstFamily2(value2) {
   if (typeof value2 !== "string") return void 0;
@@ -179934,7 +180316,7 @@ function variableFaces(root2) {
   if (hit) return hit;
   const dir = join26(root2, "shells", "web", "public", "fonts");
   const faces = [];
-  if (existsSync14(dir)) {
+  if (existsSync15(dir)) {
     for (const name of readdirSync2(dir)) {
       const m2 = /^(.+?)(-Italic)?\[[^\]]+\]\.(ttf|otf)$/i.exec(name);
       if (m2) faces.push({ url: `/fonts/${name}`, family: normFamily2(m2[1]), italic: Boolean(m2[2]) });
@@ -180141,16 +180523,16 @@ var init_layout_kernel = __esm({
 });
 
 // packages/node-shell/src/layout-kernel-node.ts
-import { existsSync as existsSync15 } from "node:fs";
+import { existsSync as existsSync16 } from "node:fs";
 import { readFile as readFile21 } from "node:fs/promises";
 import { dirname as dirname8, join as join27 } from "node:path";
-import { fileURLToPath as fileURLToPath11 } from "node:url";
+import { fileURLToPath as fileURLToPath12 } from "node:url";
 async function loadLayoutKernel() {
-  const adjacent = fileURLToPath11(new URL("../wasm/layout-kernel/layout-kernel.wasm", import.meta.url));
-  if (existsSync15(adjacent)) return createLayoutKernel(new Uint8Array(await readFile21(adjacent)));
+  const adjacent = fileURLToPath12(new URL("../wasm/layout-kernel/layout-kernel.wasm", import.meta.url));
+  if (existsSync16(adjacent)) return createLayoutKernel(new Uint8Array(await readFile21(adjacent)));
   for (let dir = dirname8(adjacent); ; dir = dirname8(dir)) {
     const candidate = join27(dir, "packages/node-shell/wasm/layout-kernel/layout-kernel.wasm");
-    if (existsSync15(candidate)) return createLayoutKernel(new Uint8Array(await readFile21(candidate)));
+    if (existsSync16(candidate)) return createLayoutKernel(new Uint8Array(await readFile21(candidate)));
     if (dirname8(dir) === dir) break;
   }
   throw new Error("The layout kernel is not installed.");
@@ -180219,7 +180601,7 @@ var text_tools_exports = {};
 __export(text_tools_exports, {
   createNodeTextTools: () => createNodeTextTools
 });
-import { Worker as Worker4 } from "node:worker_threads";
+import { Worker as Worker5 } from "node:worker_threads";
 function createNodeTextTools() {
   return {
     async operations() {
@@ -180230,7 +180612,7 @@ function createNodeTextTools() {
     },
     run(request3) {
       return new Promise((resolve8, reject) => {
-        const worker = new Worker4(new URL("./text-tools-worker.ts", import.meta.url), {
+        const worker = new Worker5(new URL("./text-tools-worker.ts", import.meta.url), {
           workerData: request3
         });
         const timer = setTimeout(() => {
@@ -180442,7 +180824,7 @@ async function releaseTextAPI(base, pins, read) {
   for (const pin of pins) if (pin.font) {
     let raw = await verifyPinnedFontBytes(pin, await read(pin.frozenId ?? pin.id));
     if (raw.byteLength > 32 * 1024 * 1024) throw new Error("A pinned font exceeds the 32 MB limit.");
-    if (String.fromCharCode(...raw.slice(0, 4)) === "wOF2") raw = new Uint8Array(await (await import("woff2-encoder/decompress")).default(raw));
+    if (String.fromCharCode(...raw.slice(0, 4)) === "wOF2") raw = await (await Promise.resolve().then(() => (init_woff2(), woff2_exports))).decodeWoff2(raw, { runner: nodeWoff2Runner });
     bytes2.set(pin.id, `data:font/ttf;base64,${Buffer.from(raw).toString("base64")}`);
   }
   return {
@@ -180470,11 +180852,12 @@ var init_release_fonts = __esm({
   "packages/node-shell/src/release-fonts.ts"() {
     "use strict";
     init_token_font_pins();
+    init_woff2_node();
   }
 });
 
 // packages/node-shell/src/desktop-renderer.ts
-import { constants, existsSync as existsSync16, accessSync, statSync as statSync4, lstatSync, openSync as openSync2, fstatSync as fstatSync2, readSync as readSync2, closeSync as closeSync2 } from "node:fs";
+import { constants, existsSync as existsSync17, accessSync, statSync as statSync4, lstatSync, openSync as openSync2, fstatSync as fstatSync2, readSync as readSync2, closeSync as closeSync2 } from "node:fs";
 import { homedir as homedir4, tmpdir } from "node:os";
 import { basename as basename3, delimiter, join as join28 } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
@@ -180564,7 +180947,7 @@ function windowsInstallLocations(env) {
 }
 function executable(path) {
   try {
-    if (!existsSync16(path)) return false;
+    if (!existsSync17(path)) return false;
     if (process.platform !== "win32") accessSync(path, constants.X_OK);
     return true;
   } catch {
@@ -180857,7 +181240,7 @@ var init_desktop_renderer = __esm({
 });
 
 // packages/node-shell/src/lolly-render.ts
-import { existsSync as existsSync17 } from "node:fs";
+import { existsSync as existsSync18 } from "node:fs";
 import { createRequire as createRequire7 } from "node:module";
 import { join as join29 } from "node:path";
 function cargoLibrary() {
@@ -180878,7 +181261,7 @@ function asBinding(exports, from) {
   return { binding: candidate, renderer };
 }
 function loadFile(path) {
-  if (!existsSync17(path)) return { reason: `${path} does not exist` };
+  if (!existsSync18(path)) return { reason: `${path} does not exist` };
   const module = { exports: {} };
   try {
     process.dlopen(module, path);
@@ -181012,7 +181395,7 @@ __export(design_still_exports, {
   resvgVersion: () => resvgVersion,
   roundedFrameClips: () => roundedFrameClips
 });
-import { existsSync as existsSync18 } from "node:fs";
+import { existsSync as existsSync19 } from "node:fs";
 import { join as join30 } from "node:path";
 import { inflateSync as inflateSync3 } from "node:zlib";
 function designRasterChoice(env = process.env) {
@@ -181029,7 +181412,7 @@ function browserTierState() {
     return { available: true };
   }
   const dist2 = process.env.LOLLY_WEB_DIST || join30(repoRoot(), "shells", "web", "dist");
-  const webShell = Boolean(process.env.LOLLY_WEB_BASE) || existsSync18(join30(dist2, "index.html"));
+  const webShell = Boolean(process.env.LOLLY_WEB_BASE) || existsSync19(join30(dist2, "index.html"));
   const chromium = browserInstalled();
   if (preference !== "desktop" && chromium && webShell) return { available: true };
   if (preference !== "chromium" && (readRenderServer() || desktopInstalled())) return { available: true };
@@ -184672,7 +185055,7 @@ __export(webshell_render_exports, {
 });
 import { createServer as createServer2 } from "node:http";
 import { readFile as readFile30, stat as stat7 } from "node:fs/promises";
-import { existsSync as existsSync22, writeFileSync as writeFileSync2 } from "node:fs";
+import { existsSync as existsSync23, writeFileSync as writeFileSync2 } from "node:fs";
 import { join as join36, resolve as resolve7, extname as extname3, normalize as normalize3 } from "node:path";
 async function webShellBase2() {
   const remote = process.env.LOLLY_WEB_BASE;
@@ -184701,14 +185084,14 @@ function activeContentResponse(urlPath) {
   try {
     if (head2 === "catalog" && rest2.join("/") === "assets/index.json") return { json: JSON.stringify(readAssetIndex()) };
     const file = head2 === "catalog" ? catalogFile(rest2.join("/")) : head2 === "tools" && rest2.length > 1 ? toolFile(rest2[0], rest2.slice(1).join("/")) : null;
-    return file && existsSync22(file) ? { file } : null;
+    return file && existsSync23(file) ? { file } : null;
   } catch {
     return null;
   }
 }
 function serveDist2() {
   const dist2 = process.env.LOLLY_WEB_DIST || join36(repoRoot(), "shells", "web", "dist");
-  if (!existsSync22(join36(dist2, "index.html"))) {
+  if (!existsSync23(join36(dist2, "index.html"))) {
     throw new BrowserError(
       `No built web shell at ${dist2}. Run \`pnpm run build:web\` (or set LOLLY_WEB_DIST to a prebuilt shell / LOLLY_WEB_BASE to a running one). Raster/PDF/video export needs it; svg and data formats render without it.`
     );
@@ -184729,7 +185112,7 @@ function serveDist2() {
         res.writeHead(403).end();
         return;
       }
-      if (!live2 && (urlPath === "/" || !existsSync22(filePath) || !(await stat7(filePath)).isFile())) {
+      if (!live2 && (urlPath === "/" || !existsSync23(filePath) || !(await stat7(filePath)).isFile())) {
         filePath = join36(root2, "index.html");
       }
       const data = await readFile30(filePath);
@@ -185320,7 +185703,7 @@ function assertDurableEncoder(dims, remote) {
   if (!dims.durable || remote) return;
   const dist2 = process.env.LOLLY_WEB_DIST || join36(repoRoot(), "shells", "web", "dist");
   const model2 = join36(dist2, "models", "trustmark", "encoder_Q.onnx");
-  if (!existsSync22(model2)) {
+  if (!existsSync23(model2)) {
     throw new BrowserError(
       `The durable credential needs the TrustMark encoder model, which isn't in the built web shell (${model2}). Rebuild it with \`pnpm run build:web\` (the model ships in shells/web/public), or export without --durable.`
     );
@@ -188719,7 +189102,7 @@ init_export_wait();
 init_export_lock();
 init_open_session();
 import { readFile as readFile28, stat as stat6 } from "node:fs/promises";
-import { existsSync as existsSync20 } from "node:fs";
+import { existsSync as existsSync21 } from "node:fs";
 
 // shells/cli/src/bridge.ts
 init_token_context();
@@ -189806,7 +190189,7 @@ init_text3();
 init_src2();
 init_content_roots();
 import { readFile as readFile11 } from "node:fs/promises";
-import { fileURLToPath as fileURLToPath7 } from "node:url";
+import { fileURLToPath as fileURLToPath8 } from "node:url";
 import { isAbsolute, join as join15 } from "node:path";
 
 // packages/node-shell/src/audio-dsp-node.ts
@@ -189990,9 +190373,9 @@ function loadAudioDspKernel() {
 }
 
 // packages/node-shell/src/rondo.ts
-import { Worker as Worker3 } from "node:worker_threads";
-import { existsSync as existsSync8 } from "node:fs";
-import { fileURLToPath as fileURLToPath6 } from "node:url";
+import { Worker as Worker4 } from "node:worker_threads";
+import { existsSync as existsSync9 } from "node:fs";
+import { fileURLToPath as fileURLToPath7 } from "node:url";
 import { createHash as createHash12 } from "node:crypto";
 
 // packages/rondo/src/limits.ts
@@ -190151,21 +190534,21 @@ async function acquire(caps, waitMs) {
   });
   return release;
 }
-function workerUrl() {
+function workerUrl2() {
   const candidates2 = [new URL("./rondo-worker.ts", import.meta.url), new URL("./_rondo-worker.js", import.meta.url)];
   for (const url of candidates2) {
-    if (url.protocol === "file:" && existsSync8(fileURLToPath6(url))) return url;
+    if (url.protocol === "file:" && existsSync9(fileURLToPath7(url))) return url;
   }
   throw new RondoAudioError("The song renderer is missing from this installation, so the song was not rendered.", "rondo.vm.unavailable");
 }
 var STDERR_KEEP = 2048;
 var live = /* @__PURE__ */ new Set();
 function runWorker2(job, caps, timeoutMs, limitText) {
-  const url = workerUrl();
+  const url = workerUrl2();
   return new Promise((resolve8, reject) => {
     let worker;
     try {
-      worker = new Worker3(url, {
+      worker = new Worker4(url, {
         workerData: job,
         // Nothing in this process's environment is the song's business.
         env: {},
@@ -190402,7 +190785,7 @@ async function bytesOf2(src, repoRoot2, readSource2) {
     if (!res.ok) throw new Error(`audio: fetch failed (${res.status})`);
     return new Uint8Array(await res.arrayBuffer());
   }
-  if (url.startsWith("file:")) return new Uint8Array(await readFile11(fileURLToPath7(url)));
+  if (url.startsWith("file:")) return new Uint8Array(await readFile11(fileURLToPath8(url)));
   const roots2 = url.startsWith("/") ? rootsFor4(repoRoot2) : void 0;
   const content2 = roots2 ? contentUrlFile(url, roots2) : null;
   const path = content2 ?? (isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join15(repoRoot2, url.replace(/^\//, "")));
@@ -190760,11 +191143,7 @@ async function toSfnt(bytes2) {
     const kind = sfntKind(bytes2);
     if (kind === "ttf" || kind === "otf") return bytes2;
     if (kind === "woff") return woffToSfnt(bytes2);
-    if (kind === "woff2") {
-      const decompress = (await import("woff2-encoder/decompress")).default;
-      const out = await decompress(bytes2);
-      return out.length <= MAX_FONT_BYTES3 ? out : null;
-    }
+    if (kind === "woff2") return await (await Promise.resolve().then(() => (init_woff2(), woff2_exports))).decodeWoff2(bytes2, { maxOutputBytes: MAX_FONT_BYTES3 });
   } catch {
   }
   return null;
@@ -192652,7 +193031,7 @@ import { readFileSync as readFileSync8 } from "node:fs";
 import { readFile as readFile14 } from "node:fs/promises";
 import { createRequire as createRequire5 } from "node:module";
 import { isAbsolute as isAbsolute2, join as join18 } from "node:path";
-import { fileURLToPath as fileURLToPath8 } from "node:url";
+import { fileURLToPath as fileURLToPath9 } from "node:url";
 
 // packages/node-shell/src/tts-blend.ts
 init_src2();
@@ -192952,7 +193331,7 @@ async function bytesOf3(src, root2) {
     if (!res.ok) throw new Error(`speech: audio fetch failed (${res.status})`);
     return new Uint8Array(await res.arrayBuffer());
   }
-  if (url.startsWith("file:")) return new Uint8Array(await readFile14(fileURLToPath8(url)));
+  if (url.startsWith("file:")) return new Uint8Array(await readFile14(fileURLToPath9(url)));
   const path = isAbsolute2(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join18(root2, url.replace(/^\//, ""));
   return new Uint8Array(await readFile14(path));
 }
@@ -193532,7 +193911,7 @@ init_text_bidi();
 // packages/node-shell/src/fallback-fonts-node.ts
 init_content_roots();
 init_fallback_fonts();
-import { existsSync as existsSync11, readFileSync as readFileSync9 } from "node:fs";
+import { existsSync as existsSync12, readFileSync as readFileSync9 } from "node:fs";
 import { join as join22 } from "node:path";
 var listed = /* @__PURE__ */ new Map();
 function diskFallbackPacks(roots2 = contentRoots()) {
@@ -193542,7 +193921,7 @@ function diskFallbackPacks(roots2 = contentRoots()) {
   const entries = [];
   for (const shared of roots2.assetRoots) {
     const path = join22(shared.dir, "index.json");
-    if (!existsSync11(path)) continue;
+    if (!existsSync12(path)) continue;
     try {
       entries.push(...JSON.parse(readFileSync9(path, "utf8")).assets ?? []);
     } catch {
@@ -195303,7 +195682,7 @@ function withHost(profile2, fn, opts = {}) {
 import { createServer } from "node:http";
 import { spawn as spawn2 } from "node:child_process";
 import { readFile as readFile26, stat as stat5 } from "node:fs/promises";
-import { existsSync as existsSync19 } from "node:fs";
+import { existsSync as existsSync20 } from "node:fs";
 import { join as join31, resolve as resolve4, extname, normalize as normalize2 } from "node:path";
 
 // services/mcp/src/egress.ts
@@ -195425,18 +195804,18 @@ async function webShellBase() {
 }
 function webShellReady(env = process.env) {
   if (env.LOLLY_WEB_BASE) return true;
-  return existsSync19(join31(env.LOLLY_WEB_DIST || join31(REPO_ROOT, "shells", "web", "dist"), "index.html"));
+  return existsSync20(join31(env.LOLLY_WEB_DIST || join31(REPO_ROOT, "shells", "web", "dist"), "index.html"));
 }
 async function buildAndServe() {
   const dist2 = process.env.LOLLY_WEB_DIST || join31(REPO_ROOT, "shells", "web", "dist");
-  if (!existsSync19(join31(dist2, "index.html"))) {
-    if (!existsSync19(join31(REPO_ROOT, "shells", "web", "package.json"))) {
+  if (!existsSync20(join31(dist2, "index.html"))) {
+    if (!existsSync20(join31(REPO_ROOT, "shells", "web", "package.json"))) {
       throw new Error(
         `No built web shell at ${dist2}. Set LOLLY_WEB_DIST to a prebuilt shell, or LOLLY_WEB_BASE to a running one. Tier-B (pdf/video/HTML-raster) needs it; SVG/data formats render without it.`
       );
     }
     await buildWebShell();
-    if (!existsSync19(join31(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
+    if (!existsSync20(join31(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
   }
   return serveDist(dist2);
 }
@@ -195461,7 +195840,7 @@ function serveDist(dist2) {
         res.writeHead(403).end();
         return;
       }
-      if (urlPath === "/" || !existsSync19(filePath) || !(await stat5(filePath)).isFile()) {
+      if (urlPath === "/" || !existsSync20(filePath) || !(await stat5(filePath)).isFile()) {
         filePath = join31(root2, "index.html");
       }
       const data = await readFile26(filePath);
@@ -196017,13 +196396,13 @@ function pinBrowsersPath() {
   }
 }
 async function browserInstalled2(env = process.env) {
-  if (env.LOLLY_BROWSER_PATH) return existsSync20(env.LOLLY_BROWSER_PATH);
+  if (env.LOLLY_BROWSER_PATH) return existsSync21(env.LOLLY_BROWSER_PATH);
   if (env.LOLLY_BROWSER_CHANNEL) return true;
   pinBrowsersPath();
   try {
     const { chromium } = await import("playwright-core");
     const path = chromium.executablePath();
-    return !!path && existsSync20(path);
+    return !!path && existsSync21(path);
   } catch {
     return false;
   }
@@ -196629,7 +197008,7 @@ init_design_system2();
 init_src();
 init_content_roots();
 init_state_dir();
-import { existsSync as existsSync21, readFileSync as readFileSync11 } from "node:fs";
+import { existsSync as existsSync22, readFileSync as readFileSync11 } from "node:fs";
 import { isAbsolute as isAbsolute3, join as join35, resolve as resolve5 } from "node:path";
 var PRESET_ASSET_TAGS = ["slides", "rebrand-preset"];
 var PRESET_FILE_VERSION = 1;
@@ -196861,7 +197240,7 @@ function listPresets(opts = {}) {
       }
     }
   }
-  if (existsSync21(personalFile)) {
+  if (existsSync22(personalFile)) {
     try {
       const sorted = sortEntries(readPresetFile(personalFile), { origin: "personal", file: personalFile });
       const packIds = /* @__PURE__ */ new Set([
@@ -198931,7 +199310,7 @@ init_src2();
 init_raster_child();
 import { readFile as readFile29 } from "node:fs/promises";
 import { extname as extname2, resolve as resolve6, sep as sep2 } from "node:path";
-import { fileURLToPath as fileURLToPath12 } from "node:url";
+import { fileURLToPath as fileURLToPath13 } from "node:url";
 var B642 = /^[A-Za-z0-9+/]*={0,2}$/;
 var RASTER_DATA = /^data:image\/(png|jpeg|gif|webp);base64,([A-Za-z0-9+/=\s]*)$/i;
 var SVG_DATA = /^data:image\/svg\+xml(;charset=[\w-]+)?(;base64)?,([\s\S]*)$/i;
@@ -198940,7 +199319,7 @@ var MAX_INLINE_BYTES = 16 * 1024 * 1024;
 var MAX_NESTING = 3;
 function localPath(href) {
   try {
-    if (/^file:\/\//i.test(href)) return fileURLToPath12(href);
+    if (/^file:\/\//i.test(href)) return fileURLToPath13(href);
     if (href.startsWith("/")) return decodeURIComponent(href);
   } catch {
   }
