@@ -3,15 +3,24 @@ import { execFileSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
+import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 const source = fileURLToPath(new URL('../packages/node-shell/wasm/affinity/', import.meta.url));
 const target = fileURLToPath(new URL('../plans/artifacts/342/affinity-target/', import.meta.url));
 mkdirSync(target, { recursive: true });
 // 1 GiB memory ceiling and a 1 MiB stack, linked in so a hostile file cannot grow past them.
+// Panic messages name source files. Writing them under fixed prefixes keeps the checkout and the
+// Cargo home out of the module, so the same source builds the same bytes wherever it is checked out.
+const repo = fileURLToPath(new URL('..', import.meta.url)).replace(/\/$/, '');
+const cargoHome = process.env.CARGO_HOME ?? join(homedir(), '.cargo');
+const rustflags = [
+  '-C', 'link-arg=--max-memory=1073741824', '-C', 'link-arg=-zstack-size=1048576',
+  `--remap-path-prefix=${repo}=/lolly`, `--remap-path-prefix=${cargoHome}=/cargo`,
+];
 execFileSync('cargo', ['build', '--release', '--locked', '--target', 'wasm32-unknown-unknown', '--target-dir', target], {
   cwd: source, stdio: 'inherit',
-  env: { ...process.env, RUSTFLAGS: '-C link-arg=--max-memory=1073741824 -C link-arg=-zstack-size=1048576' },
+  env: { ...process.env, RUSTFLAGS: undefined, CARGO_ENCODED_RUSTFLAGS: rustflags.join('\x1f') },
 });
 copyFileSync(join(target, 'wasm32-unknown-unknown/release/lolly_affinity.wasm'), join(source, 'affinity.wasm'));
 const wasm = readFileSync(join(source, 'affinity.wasm'));

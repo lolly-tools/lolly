@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:eafd0827-769f-46eb-89b3-c3f544c4318a",
+  "serialNumber": "urn:uuid:118ac64b-c7bf-4ddd-836f-713cb7b7e602",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-23T17:20:13.548Z",
+    "timestamp": "2026-11-23T19:15:06.053Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -6112,10 +6112,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/gridcraft-calc@0.14.2",
+      "bom-ref": "pkg:cargo/gridcraft-calc@0.19.1",
       "name": "gridcraft-calc",
-      "version": "0.14.2",
-      "purl": "pkg:cargo/gridcraft-calc@0.14.2",
+      "version": "0.19.1",
+      "purl": "pkg:cargo/gridcraft-calc@0.19.1",
       "scope": "required",
       "licenses": [
         {
@@ -6131,10 +6131,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/gridcraft-core@0.14.2",
+      "bom-ref": "pkg:cargo/gridcraft-core@0.19.1",
       "name": "gridcraft-core",
-      "version": "0.14.2",
-      "purl": "pkg:cargo/gridcraft-core@0.14.2",
+      "version": "0.19.1",
+      "purl": "pkg:cargo/gridcraft-core@0.19.1",
       "scope": "required",
       "licenses": [
         {
@@ -6150,10 +6150,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/gridcraft-formula@0.14.2",
+      "bom-ref": "pkg:cargo/gridcraft-formula@0.19.1",
       "name": "gridcraft-formula",
-      "version": "0.14.2",
-      "purl": "pkg:cargo/gridcraft-formula@0.14.2",
+      "version": "0.19.1",
+      "purl": "pkg:cargo/gridcraft-formula@0.19.1",
       "scope": "required",
       "licenses": [
         {
@@ -6169,10 +6169,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/gridcraft-functions@0.14.2",
+      "bom-ref": "pkg:cargo/gridcraft-functions@0.19.1",
       "name": "gridcraft-functions",
-      "version": "0.14.2",
-      "purl": "pkg:cargo/gridcraft-functions@0.14.2",
+      "version": "0.19.1",
+      "purl": "pkg:cargo/gridcraft-functions@0.19.1",
       "scope": "required",
       "licenses": [
         {
@@ -6188,10 +6188,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/gridcraft-model@0.14.2",
+      "bom-ref": "pkg:cargo/gridcraft-model@0.19.1",
       "name": "gridcraft-model",
-      "version": "0.14.2",
-      "purl": "pkg:cargo/gridcraft-model@0.14.2",
+      "version": "0.19.1",
+      "purl": "pkg:cargo/gridcraft-model@0.19.1",
       "scope": "required",
       "licenses": [
         {
@@ -6207,10 +6207,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/gridcraft-numfmt@0.14.2",
+      "bom-ref": "pkg:cargo/gridcraft-numfmt@0.19.1",
       "name": "gridcraft-numfmt",
-      "version": "0.14.2",
-      "purl": "pkg:cargo/gridcraft-numfmt@0.14.2",
+      "version": "0.19.1",
+      "purl": "pkg:cargo/gridcraft-numfmt@0.19.1",
       "scope": "required",
       "licenses": [
         {
@@ -18440,10 +18440,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/vectorcraft-affinity@0.19.0",
+      "bom-ref": "pkg:cargo/vectorcraft-affinity@0.24.0",
       "name": "vectorcraft-affinity",
-      "version": "0.19.0",
-      "purl": "pkg:cargo/vectorcraft-affinity@0.19.0",
+      "version": "0.24.0",
+      "purl": "pkg:cargo/vectorcraft-affinity@0.24.0",
       "scope": "required",
       "licenses": [
         {

@@ -81,8 +81,24 @@ fn count(nodes: &[Node], artboards: &mut usize, layers: &mut usize) {
     }
 }
 
+/// Strokes that keep a pressure curve from Affinity's Width tool. The reader keeps the curve, but
+/// Lolly draws each stroke at one width, so the warnings say how many strokes were drawn that way.
+fn pressure_strokes(nodes: &[Node]) -> usize {
+    let has = |s: &Stroke| usize::from(s.profile.is_some());
+    let runs = |rs: &[model::TextRun]| rs.iter().filter_map(|r| r.stroke.as_ref()).map(has).sum::<usize>();
+    nodes.iter().map(|n| pressure_strokes(&n.children) + match &n.kind {
+        Kind::Artboard { strokes, .. } | Kind::Shape { strokes, .. } => strokes.iter().map(has).sum(),
+        Kind::Text(t) => runs(&t.runs),
+        Kind::Table(t) => t.cells.iter().map(|c| runs(&c.runs)).sum::<usize>() + t.vertical.iter().chain(&t.horizontal).flatten().map(has).sum::<usize>(),
+        _ => 0,
+    }).sum()
+}
+
 fn warnings_of(doc: &Document) -> Vec<String> {
-    doc.warnings.iter().take(MAX_WARNINGS).map(|w| w.chars().take(300).collect()).collect()
+    let mut warnings: Vec<String> = doc.warnings.iter().take(MAX_WARNINGS).map(|w| w.chars().take(300).collect()).collect();
+    let pressure: usize = doc.spreads.iter().chain(&doc.masters).map(|s| pressure_strokes(&s.nodes)).sum();
+    if pressure > 0 && warnings.len() < MAX_WARNINGS { warnings.push(format!("pressure strokes (imported as plain strokes) ({pressure}×)")); }
+    warnings
 }
 
 fn doc_facts(doc: &Document) -> DocFacts {

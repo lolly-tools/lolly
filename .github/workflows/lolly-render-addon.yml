@@ -134,7 +134,7 @@ jobs:
       - name: Build the binding
         run: |
           rustc --version --verbose
-          ldd --version | head -1
+          ldd --version | sed -n 1p
           cargo build --locked --release
           cp target/release/liblolly_render_node.so "npm/${{ matrix.platform }}/lolly-render.${{ matrix.platform }}.node"
           cp target/release/liblolly_render_node.so "lolly-render.${{ matrix.platform }}.node"

@@ -263,7 +263,7 @@ checksum = "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563"
 
 [[package]]
 name = "vectorcraft-affinity"
-version = "0.19.0"
+version = "0.24.0"
 dependencies = [
  "crc32fast",
  "flate2",

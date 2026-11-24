@@ -71,7 +71,7 @@ dependencies = [
 
 [[package]]
 name = "gridcraft-calc"
-version = "0.14.2"
+version = "0.19.1"
 dependencies = [
  "gridcraft-core",
  "gridcraft-formula",
@@ -83,7 +83,7 @@ dependencies = [
 
 [[package]]
 name = "gridcraft-core"
-version = "0.14.2"
+version = "0.19.1"
 dependencies = [
  "chrono",
  "serde",
@@ -92,7 +92,7 @@ dependencies = [
 
 [[package]]
 name = "gridcraft-formula"
-version = "0.14.2"
+version = "0.19.1"
 dependencies = [
  "gridcraft-core",
  "serde",
@@ -101,7 +101,7 @@ dependencies = [
 
 [[package]]
 name = "gridcraft-functions"
-version = "0.14.2"
+version = "0.19.1"
 dependencies = [
  "gridcraft-core",
  "regex",
@@ -109,7 +109,7 @@ dependencies = [
 
 [[package]]
 name = "gridcraft-model"
-version = "0.14.2"
+version = "0.19.1"
 dependencies = [
  "gridcraft-core",
  "gridcraft-formula",
@@ -121,7 +121,7 @@ dependencies = [
 
 [[package]]
 name = "gridcraft-numfmt"
-version = "0.14.2"
+version = "0.19.1"
 dependencies = [
  "gridcraft-core",
 ]

@@ -22,6 +22,14 @@ gridcraft-calc = { path = "vendor/gridcraft-calc" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }
 
+# The vendored crates' own tests (`cargo test --workspace`) build with upstream's dev profile:
+# unoptimised frames are large enough that the recursion tests reach the stack budget early.
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 2
+
 [profile.release]
 opt-level = "z"
 lto = true

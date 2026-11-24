@@ -578,7 +578,7 @@ const MANIFEST: {
     },
     {
       name: 'GridCraft number formats and Rust dependencies',
-      version: '0.14.2 (5e415cdd34d287b90a4a9df67eb4f532f6f72d96; pinned Cargo.lock)',
+      version: '0.19.1 (main at 11a5711ab11c4b94acce63faa07bb42c058c124f; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT AND Unicode-3.0',
       copyright: 'Storytold and individual crate authors, reproduced in the notices below.',
       files: 'packages/node-shell/wasm/xlsx-numfmt/xlsx-numfmt.wasm',
@@ -588,12 +588,12 @@ const MANIFEST: {
     },
     {
       name: 'GridCraft formula engine and Rust dependencies',
-      version: '0.14.2 (5e415cdd34d287b90a4a9df67eb4f532f6f72d96; pinned Cargo.lock)',
+      version: '0.19.1 (main at 11a5711ab11c4b94acce63faa07bb42c058c124f; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT AND Unicode-3.0',
       copyright: 'Storytold and individual crate authors, reproduced in the notices below.',
       files: 'packages/node-shell/wasm/gridcraft-calc/gridcraft-calc.wasm',
       text: readFileSync(join(ROOT, 'packages/node-shell/wasm/gridcraft-calc/LICENSES.txt'), 'utf8'),
-      note: 'GridCraft gridcraft-calc, gridcraft-formula, gridcraft-functions, gridcraft-model, gridcraft-numfmt and gridcraft-core compiled through a bounded Lolly byte adapter. Source changes: an injected clock and random seed in place of the system clock, and the regular-expression functions left out. MIT is elected for dependencies offering that licence choice. Source, modifications and build instructions are in packages/node-shell/wasm/gridcraft-calc/.',
+      note: 'GridCraft gridcraft-calc, gridcraft-formula, gridcraft-functions, gridcraft-model, gridcraft-numfmt and gridcraft-core compiled through a bounded Lolly byte adapter. Source changes: an injected clock and random seed in place of the system clock, lower array and lambda limits, and the regular-expression functions and equation layout left out. MIT is elected for dependencies offering that licence choice. Source, modifications and build instructions are in packages/node-shell/wasm/gridcraft-calc/.',
       where: 'web',
     },
     {
@@ -648,7 +648,7 @@ const MANIFEST: {
     },
     {
       name: 'VectorCraft Affinity reader',
-      version: '0.19.0 (05d5f99fd7e7dc00db3a9754d594b1214945d855; pinned Cargo.lock)',
+      version: '0.24.0 (1b744eae520b7f0e1980d030560194b2121ae651; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT',
       copyright: 'The ArtCraft Team and the VectorCraft contributors, reproduced in the notices below.',
       files: 'packages/node-shell/wasm/affinity/affinity.wasm',
