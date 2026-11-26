@@ -585,6 +585,27 @@ function isInstanceOrigin(url: string): boolean {
   }
 }
 
+/**
+ * True when the web view cannot load `url` as an element's `src` by itself: in the
+ * apps, an address on the connected instance. The instance is another origin there
+ * and the session lives with the native transport, not in the web view's cookies, so
+ * a picture that needs the session has to be read with {@link instanceFetch}. Always
+ * false in a browser, and for every address that is not the instance's own.
+ */
+export function needsInstanceTransport(url: string): boolean {
+  return hasTauriInternals() && isInstanceOrigin(url) && isCrossOrigin(url);
+}
+
+/**
+ * `fetch` for an address that is usually local (a blob, a bundled file) and is now and
+ * then on the connected instance: only an address {@link needsInstanceTransport} names
+ * takes the instance transport and its session. Every other address is the plain fetch
+ * the caller made before, with nothing added.
+ */
+export function fetchMaybeInstance(url: string, init?: RequestInit): Promise<Response> {
+  return needsInstanceTransport(url) ? instanceFetch(url, init) : fetch(url, init);
+}
+
 /** Connector requests carry an exact-origin restriction through every native redirect. */
 export async function nativeConnectorFetch(request: Request, allowedOrigins: readonly string[]): Promise<Response> {
   return tauriRemoteFetch(request.url, {
@@ -615,9 +636,12 @@ async function tauriRemoteFetch(url: string, init?: RequestInit, allowedOrigins?
   // Request's browser header guard silently strips Cookie. Add the native-only
   // credential after extracting the WebView's permitted request headers.
   const nativeHeaders = Array.from(req.headers.entries());
+  /** The session pair this request carries, when it carries one. */
+  let carried: string | null = null;
   if (!allowedOrigins && instanceSession && instanceSession.origin === instanceOrigin()
     && isInstanceOrigin(url) && !nativeHeaders.some(([name]) => name.toLowerCase() === 'cookie')) {
     nativeHeaders.push(['cookie', instanceSession.cookiePair]);
+    carried = instanceSession.cookiePair;
   }
   const bodyBuf = await req.arrayBuffer();
   const signal = init?.signal ?? null;
@@ -638,9 +662,11 @@ async function tauriRemoteFetch(url: string, init?: RequestInit, allowedOrigins?
     // takes that in; this transport has no jar, so the pair is read here, before the
     // Response below drops the header as the fetch rules require. Only from an answer
     // of the instance itself to a request that carried this session. Read even when
-    // the caller has stopped waiting: the instance has already made the change.
-    if (!allowedOrigins && instanceSession && instanceSession.origin === instanceOrigin()
-      && isInstanceOrigin(url) && isInstanceOrigin(resp.url)) {
+    // the caller has stopped waiting: the instance has already made the change. An
+    // answer that arrives after the person signed in again says nothing about the
+    // newer session, so the session in use must still be the one the request carried.
+    if (!allowedOrigins && carried && instanceSession && instanceSession.cookiePair === carried
+      && instanceSession.origin === instanceOrigin() && isInstanceOrigin(url) && isInstanceOrigin(resp.url)) {
       const renewed = renewedSessionPair(resp.headers);
       if (renewed !== undefined && renewed !== instanceSession.cookiePair) void setInstanceSession(renewed);
     }

@@ -243,7 +243,7 @@ let setAsideNoted = false;
  * and the tools built into the app are shown. Said once: the note leaves after a few
  * seconds or on a tap, because a note that stays covers the controls below. The state
  * stays readable on the root element for any surface that shows the state later.
- * With `reconnect` (the apps), a tap or Enter on the note also calls it.
+ * With `reconnect` (the apps), a tap or Enter on the note also calls `reconnect`.
  */
 export function noteInstanceCatalogSetAside(instanceBase: string, reconnect?: () => void): void {
   if (typeof document === 'undefined' || !document.body) return;

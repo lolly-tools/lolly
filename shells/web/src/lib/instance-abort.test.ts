@@ -94,6 +94,24 @@ test('a session the instance renewed is kept even when the caller stopped waitin
   shell.answer();
 });
 
+test('a late answer to an older session does not replace or clear a newer one', async (ctx) => {
+  const shell = nativeShell(ctx);
+  _setBaseForTests(WORK);
+  await setInstanceSession('lw_session=first');
+  const old = instanceFetch(`${WORK}/api/v1/inbox`).catch(() => null);
+  await new Promise(resolve => setTimeout(resolve, 5));
+  // The person signs in again before that request is answered.
+  await setInstanceSession('lw_session=second');
+  shell.answer([['set-cookie', 'lw_session=; Path=/; Max-Age=0']]);
+  await old;
+  await new Promise(resolve => setTimeout(resolve, 5));
+  assert.ok(hasInstanceSession(), 'the newer session stays');
+  void instanceFetch(`${WORK}/api/auth/session`);
+  await new Promise(resolve => setTimeout(resolve, 5));
+  assert.equal(new Headers(shell.requests.at(-1)!.headers).get('cookie'), 'lw_session=second');
+  shell.answer();
+});
+
 test('a time budget ends the wait and is also the native request\'s own limit', async (ctx) => {
   const shell = nativeShell(ctx);
   _setBaseForTests(WORK);

@@ -345,10 +345,11 @@ export async function syncCatalog(
         const setAside = suspendInstanceBase();
         host.log('warn', 'Instance catalog not trusted; using the bundled catalog', { instance: setAside, error: String(e) });
         // In the apps a tap on the note opens the connect step with the address filled
-        // in, where the instance's key is shown before the person accepts it.
+        // in, where the person sees the instance's key before accepting that key.
         noteInstanceCatalogSetAside(setAside, isTauriShell() ? () => {
           void import('../components/instance-sheet.ts')
-            .then(m => m.openInstanceSheet(host, { start: 'connect', url: setAside }))
+            // The live web host, which is more than the surface a sync is typed against.
+            .then(m => m.openInstanceSheet(host as unknown as Parameters<typeof m.openInstanceSheet>[0], { start: 'connect', url: setAside }))
             .catch(error => host.log('warn', 'The connect step did not open', { error: String(error) }));
         } : undefined);
         return syncCatalog(host, onAssetsReady, maintenanceGate, signInRequired);

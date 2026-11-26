@@ -2,7 +2,7 @@
 /**
  * lib/instance.ts: connecting again to an instance that was set aside for this page
  * load keeps the session the person signed in with, and the session still travels to
- * that instance alone. Choosing another instance, or the bundled tools, drops it.
+ * that instance alone. Choosing another instance, or the bundled tools, drops that session.
  *
  * Run directly:  node --test shells/web/src/lib/instance-reconnect.test.ts
  */

@@ -3,6 +3,7 @@ import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 import type { AssetFormatViewerHandle } from './asset-format-viewer.ts';
 import { mountAssetFileList } from './asset-file-list.ts';
 import { instanceFetch } from '../lib/instance.ts';
+import { setInstanceImage } from '../lib/instance-image.ts';
 import { assetViewerKind } from '../lib/asset-viewer-source.ts';
 /** The same asset page for local folders and shared projects. */
 import { tRaw } from '../i18n.ts';
@@ -28,7 +29,7 @@ export function buildProjectAssetPage(opts: ProjectAssetPageOptions): ProjectAss
   const meta = document.createElement('p'); meta.className = 'team-project-notice'; meta.textContent = opts.metadata ?? '';
   const preview = document.createElement('div'); preview.className = 'team-project-asset-preview';
   if (!opts.preview && opts.contentType.startsWith('image/')) {
-    const image = document.createElement('img'); image.src = opts.url; image.alt = opts.name; preview.append(image);
+    const image = document.createElement('img'); image.alt = opts.name; preview.append(image); setInstanceImage(image, opts.url);
   } else if (!opts.preview && (opts.contentType.startsWith('video/') || opts.contentType.startsWith('audio/'))) {
     const media = document.createElement(opts.contentType.startsWith('video/') ? 'video' : 'audio'); media.src = opts.url; media.controls = true; media.preload = 'none'; preview.append(media);
   }
@@ -72,7 +73,7 @@ export function buildProjectAssetPage(opts: ProjectAssetPageOptions): ProjectAss
     const kind = opts.asset?.type === 'font' ? 'font' : opts.contentType === 'application/pdf' ? 'pdf' : opts.contentType.startsWith('font/') ? 'font' : assetViewerKind(format);
     const open = async (ref: AssetRef) => {
       const version = ++revision; selectedAsset = ref; heading.textContent = String(ref.meta?.name ?? opts.name); meta.textContent = ref.format; handle?.destroy(); handle = undefined;
-      if (ref.type === 'raster') { const image = document.createElement('img'); image.src = ref.url; image.alt = heading.textContent; preview.replaceChildren(image); return; }
+      if (ref.type === 'raster') { const image = document.createElement('img'); image.alt = heading.textContent; preview.replaceChildren(image); setInstanceImage(image, ref.url); return; }
       const module = await import('./asset-format-viewer.ts'); if (disposed || version !== revision || !panel.isConnected) return;
       handle = module.mountAssetFormatViewer(preview, ref, opts.host);
     };

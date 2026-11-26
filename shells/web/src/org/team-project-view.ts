@@ -26,6 +26,7 @@ import { buildTeamFilesPanel } from './team-files-panel.ts';
 import { listTeamFiles, teamFileMessage, type TeamFile } from './team-files.ts';
 import type { ProjectAssetPageOptions } from '../components/project-asset-page.ts';
 import { buildProjectAsset, teamAssetTiles } from './team-project-assets.ts';
+import { hydrateInstanceImages } from '../lib/instance-image.ts';
 import { hydrateSharedPreviews } from './team-previews.ts';
 import { tokenize } from '../lib/search/match.ts';
 import { buildFolderHaystack, matchesHaystack } from '../lib/search/projects-source.ts';
@@ -246,6 +247,8 @@ export function mountTeamProjectView(container: HTMLElement, opts: ProjectViewOp
         shared: { subtitle: [opts.toolName(session.toolId), activityLabel(session), place(homeOf('session', session.id))].filter(Boolean).join(' · '), openLabel: tRaw('Open shared session {name}', { name }) },
       });
     }).join('') + teamAssetTiles(project.id, files, folderId, file => tokens.length ? { folderId: homeOf('file', file.id), label: place(homeOf('file', file.id)) } : null);
+    // In the apps a shared picture needs the session, which the web view does not hold.
+    hydrateInstanceImages(grid);
     applyCardSize(grid, readCardSize('projects')); applyDensity(grid, readDensity('projects'));
     const layout = opts.layout?.() ?? (opts.list ? 'list' : 'preview');
     grid.classList.toggle('projects-list', layout === 'list');

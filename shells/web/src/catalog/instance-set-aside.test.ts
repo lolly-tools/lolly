@@ -68,7 +68,7 @@ test('sync sets the instance aside only on a trust failure and tries the bundled
   assert.match(body, /suspendInstanceBase\(\)/);
   assert.match(body, /noteInstanceCatalogSetAside\(setAside, isTauriShell\(\) \? /);
   // In the apps the note opens the connect step for that instance, address filled in.
-  assert.match(body, /openInstanceSheet\(host, \{ start: 'connect', url: setAside \}\)/);
+  assert.match(body, /openInstanceSheet\(host as [^,]+, \{ start: 'connect', url: setAside \}\)/);
   assert.match(body, /return syncCatalog\(host, onAssetsReady, maintenanceGate, signInRequired\)/);
   // The retry runs with no instance in use, so a second refusal cannot loop.
   assert.match(readFileSync(new URL('../lib/instance.ts', import.meta.url), 'utf8'), /if \(was\) \{ suspended = was; base = ''; instanceSession = null; \}/);
