@@ -137,7 +137,7 @@ for (const [format, bytes] of [['wav', wav], ['m4a', m4a]] as const) {
       'Attribution URL': 'https://lolly.tools',
       Credit: CREDIT,
     }, 'the plain tags carry the same terms without a credential reader');
-    assert.equal(extractFileMetadata(out).fields.find((f) => f.label === 'Copyright')?.source, format === 'wav' ? 'WAV INFO ICOP' : 'MP4 Copyright');
+    assert.equal(extractFileMetadata(out).fields.find((f) => f.label === 'Copyright')?.source, format === 'wav' ? 'WAV INFO ICOP' : 'MP4 ilst cprt');
   });
 }
 

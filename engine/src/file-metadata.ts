@@ -15,6 +15,11 @@
 // PDF is deliberately NOT handled here (it needs a parser the shells already
 // expose via host.pdf.analyze); this covers the raster + vector formats, plus
 // the XMP packet in MP4/QuickTime video (the AI-declaration carrier there).
+//
+// Rights and credit statements are also read from the tag carriers of audio,
+// Matroska and Office files (tag-readers.ts): ID3v2, Vorbis comments, Matroska
+// tags and the docProps parts of a DOCX or PPTX. Those formats report their
+// stated rights and credit only, not a full metadata census.
 
 import { isJxl } from './jxl.ts';
 import { jxlXmp } from './jxl-container.ts';
@@ -25,6 +30,7 @@ import { xmlProvenanceFields } from './software-origin.ts';
 import { auxiliaryMetadata, type AuxiliaryMetadata } from './auxiliary-metadata.ts';
 import { pngGeneratorHint } from './png-generator.ts';
 import { brandSkillLabel, readDesignRecordXml, themeChoiceLabel, type DesignRecord } from './metadata.ts';
+import { isFlac, oggKind, readFlacRights, readId3Rights, readMatroskaRights, readOfficeRights, readOggRights } from './tag-readers.ts';
 
 export type MetaGroup =
   | 'location'
@@ -58,7 +64,8 @@ export interface MetaField {
 
 export interface FileMetadata {
   /** Detected container, e.g. "JPEG", "PNG", "TIFF", "WebP", "SVG", "GIF",
-   *  "HEIC", "AVIF", "MP4", "QuickTime" - '' if unknown. */
+   *  "HEIC", "AVIF", "MP4", "QuickTime", "WAV", "MP3", "FLAC", "Ogg" (Opus), "Ogg Vorbis", "Matroska",
+   *  "WebM", "DOCX", "PPTX" - '' if unknown. */
   format: string;
   /** Everything found, in discovery order; the view groups + orders them. */
   fields: MetaField[];
@@ -161,6 +168,11 @@ function sniff(b: Uint8Array): string {
     if (/^(hei|hev)/.test(brand) || brand === 'mif1' || brand === 'msf1') return 'HEIC';
     return brand === 'qt  ' ? 'QuickTime' : 'MP4';
   }
+  // Audio and Matroska tag carriers. An ID3v2 tag can sit in front of a FLAC stream.
+  if (matchAscii(b, 0, 'ID3')) return isFlac(b) ? 'FLAC' : 'MP3';
+  if (matchAscii(b, 0, 'fLaC')) return 'FLAC';
+  if (matchAscii(b, 0, 'OggS')) return oggKind(b);
+  if (b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3) return 'Matroska';
   // SVG (and other XML) - decode a small prefix and look for the root element.
   const head = new TextDecoder('utf-8').decode(b.subarray(0, Math.min(b.length, 512)));
   if (/<svg[\s>]/i.test(head) || (/^\s*<\?xml/i.test(head) && /<svg[\s>]/i.test(new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096)))))) return 'SVG';
@@ -186,6 +198,11 @@ const MAX_TEXT_SCAN = 16 * 1024 * 1024;
 
 function clip(s: string): string {
   return s.length > MAX_VALUE_CHARS ? s.slice(0, MAX_VALUE_CHARS) + '…' : s;
+}
+
+/** A rights or credit value for one line of display: control characters become spaces. */
+function oneLine(s: string): string {
+  return clip(s.slice(0, MAX_VALUE_CHARS * 4).replace(/\p{Cc}/gu, ' ').replace(/\s+/g, ' ').trim());
 }
 
 // ── EXIF / TIFF ─────────────────────────────────────────────────────────────────
@@ -305,9 +322,9 @@ function readExif(bytes: Uint8Array, base: number, len: number, out: FileMetadat
   else return;
   if (dv.getUint16(2, le) !== 42) return;
 
-  const push = (label: string, value: string | null | undefined, group: MetaGroup, sensitive = false): void => {
+  const push = (label: string, value: string | null | undefined, group: MetaGroup, sensitive = false, source?: string): void => {
     if (value == null || value === '') return;
-    out.fields.push({ label, value, group, sensitive });
+    out.fields.push({ label, value, group, sensitive, ...(source ? { source } : {}) });
   };
 
   const ifd0 = readIfd(dv, dv.getUint32(4, le), le);
@@ -318,8 +335,8 @@ function readExif(bytes: Uint8Array, base: number, len: number, out: FileMetadat
   const model = byTag.has(0x0110) ? asciiVal(dv, byTag.get(0x0110)!) : null;
   push('Camera', [make, model].filter(Boolean).join(' ') || null, 'device', true);
   push('Software', byTag.has(0x0131) ? asciiVal(dv, byTag.get(0x0131)!) : null, 'software');
-  push('Artist', byTag.has(0x013b) ? asciiVal(dv, byTag.get(0x013b)!) : null, 'authorship', true);
-  push('Copyright', byTag.has(0x8298) ? asciiVal(dv, byTag.get(0x8298)!) : null, 'authorship');
+  push('Artist', byTag.has(0x013b) ? asciiVal(dv, byTag.get(0x013b)!) : null, 'authorship', true, 'EXIF Artist');
+  push('Copyright', byTag.has(0x8298) ? asciiVal(dv, byTag.get(0x8298)!) : null, 'authorship', false, 'EXIF Copyright');
   push('Image description', byTag.has(0x010e) ? asciiVal(dv, byTag.get(0x010e)!) : null, 'description');
   push('Modified', byTag.has(0x0132) ? asciiVal(dv, byTag.get(0x0132)!) : null, 'timestamps');
   if (byTag.has(0x0112)) {
@@ -441,14 +458,16 @@ function readXmp(text: string, out: FileMetadata): void {
 // decode as UTF-8 with a Latin-1 fallback (the 1:90 charset marker is not
 // honoured beyond that - real files overwhelmingly carry UTF-8 or Latin-1).
 
-const IPTC_DATASETS: Record<number, { label: string; group: MetaGroup; sensitive?: boolean }> = {
+// `source` is set on the rights and credit datasets: the record and dataset number with
+// the IIM specification's own name for the dataset.
+const IPTC_DATASETS: Record<number, { label: string; group: MetaGroup; sensitive?: boolean; source?: string }> = {
   5: { label: 'Title', group: 'description' },
-  80: { label: 'By-line', group: 'authorship', sensitive: true },
+  80: { label: 'By-line', group: 'authorship', sensitive: true, source: 'IPTC 2:80 By-line' },
   85: { label: 'By-line title', group: 'authorship' },
   105: { label: 'Headline', group: 'description' },
-  110: { label: 'Credit', group: 'authorship' },
+  110: { label: 'Credit', group: 'authorship', source: 'IPTC 2:110 Credit' },
   115: { label: 'Source', group: 'authorship' },
-  116: { label: 'Copyright', group: 'authorship' },
+  116: { label: 'Copyright', group: 'authorship', source: 'IPTC 2:116 Copyright Notice' },
   120: { label: 'Caption', group: 'description' },
 };
 const MAX_IPTC_RECORDS = 256;
@@ -496,7 +515,7 @@ function readIptc(bytes: Uint8Array, start: number, len: number, out: FileMetada
             else {
               const known = IPTC_DATASETS[dataset];
               if (known && out.fields.length < MAX_FIELDS && !out.fields.some((f) => f.label === known.label && f.value === value)) {
-                out.fields.push({ label: known.label, value, group: known.group, ...(known.sensitive ? { sensitive: true } : {}) });
+                out.fields.push({ label: known.label, value, group: known.group, ...(known.sensitive ? { sensitive: true } : {}), ...(known.source ? { source: known.source } : {}) });
               }
             }
           }
@@ -1118,6 +1137,7 @@ const ILST_TAGS: Record<string, { label: string; group: MetaGroup; sensitive?: b
   '©aut': { label: 'Author', group: 'authorship', sensitive: true },
   '©too': { label: 'Encoded with', group: 'software' },
   cprt: { label: 'Copyright', group: 'authorship' },
+  '©cpy': { label: 'Copyright', group: 'authorship' },
   desc: { label: 'Description', group: 'description' },
   ldes: { label: 'Description', group: 'description' },
 };
@@ -1129,6 +1149,8 @@ const MDTA_KEYS: Record<string, { label: string; group: MetaGroup; sensitive?: b
   'com.apple.quicktime.software': { label: 'Software', group: 'software' },
   'com.apple.quicktime.creationdate': { label: 'Created', group: 'timestamps' },
   'com.apple.quicktime.author': { label: 'Author', group: 'authorship', sensitive: true },
+  'com.apple.quicktime.artist': { label: 'Artist', group: 'authorship', sensitive: true },
+  'com.apple.quicktime.copyright': { label: 'Copyright', group: 'authorship' },
   'com.apple.quicktime.displayname': { label: 'Title', group: 'description' },
   'com.apple.quicktime.description': { label: 'Description', group: 'description' },
   'com.apple.quicktime.location.ISO6709': { label: 'Coordinates', group: 'location', sensitive: true },
@@ -1196,7 +1218,7 @@ function readIlst(bytes: Uint8Array, ilst: BmffBox, out: FileMetadata): string |
     if (!text) continue;
     if (entry.type === '©too') encoder = text;
     if (out.fields.length < MAX_FIELDS) {
-      out.fields.push({ label: tag.label, value: text, group: tag.group, ...(tag.sensitive ? { sensitive: true } : {}) });
+      out.fields.push({ label: tag.label, value: text, group: tag.group, ...(tag.sensitive ? { sensitive: true } : {}), ...(tag.group === 'authorship' ? { source: `MP4 ilst ${entry.type}` } : {}) });
     }
   }
   return encoder;
@@ -1243,7 +1265,7 @@ function readMdtaMeta(bytes: Uint8Array, kids: BmffBox[], out: FileMetadata): vo
       continue;
     }
     if (out.fields.length < MAX_FIELDS) {
-      out.fields.push({ label: known.label, value: text, group: known.group, ...(known.sensitive ? { sensitive: true } : {}) });
+      out.fields.push({ label: known.label, value: text, group: known.group, ...(known.sensitive ? { sensitive: true } : {}), ...(known.group === 'authorship' ? { source: `QuickTime mdta ${key}` } : {}) });
     }
   }
 }
@@ -1316,6 +1338,24 @@ function readBmff(bytes: Uint8Array, out: FileMetadata): void {
       if (xyz && xyz.end - xyz.payload > 4) {
         const fix = parseIso6709(bmffString(bytes, xyz.payload + 4, xyz.end));
         if (fix) bmffGps(out, fix);
+      }
+      // The copyright statement written straight into udta: the ISO `cprt` box (a
+      // FullBox, a packed language, then the notice) and QuickTime's `©cpy` text atom
+      // (a 16-bit length and a language, then the text). The iTunes form is an ilst item.
+      for (const b of ukids) {
+        if (out.fields.length >= MAX_FIELDS) break;
+        if (b.type === 'cprt' && b.end - b.payload > 6) {
+          const at = b.payload + 6;
+          const wide = bytes[at] === 0xfe && bytes[at + 1] === 0xff;
+          const notice = wide
+            ? clip(new TextDecoder('utf-16be').decode(bytes.subarray(at, Math.min(b.end, at + MAX_VALUE_CHARS * 2))).replace(/\0[\s\S]*$/, '').trim())
+            : bmffString(bytes, at, b.end);
+          if (notice) out.fields.push({ label: 'Copyright', value: notice, group: 'authorship', source: 'MP4 udta cprt' });
+        } else if (b.type === '©cpy' && b.end - b.payload > 4) {
+          const at = b.payload + 4;
+          const notice = bmffString(bytes, at, Math.min(b.end, at + u16(bytes, b.payload)));
+          if (notice) out.fields.push({ label: 'Copyright', value: notice, group: 'authorship', source: 'QuickTime udta ©cpy' });
+        }
       }
       const xmp = ukids.find((b) => b.type === 'XMP_');
       if (xmp) readXmp(new TextDecoder('utf-8').decode(bytes.subarray(xmp.payload, Math.min(xmp.end, xmp.payload + MAX_TEXT_SCAN))), out);
@@ -1593,14 +1633,35 @@ export function extractFileMetadata(bytes: Uint8Array): FileMetadata {
       case 'GIF': readGif(bytes, out); break;
       case 'WebP': readWebp(bytes, out); break;
       case 'WAV': readWav(bytes, out); break;
-      case 'TIFF': readExif(bytes, 0, bytes.length, out); break;
+      case 'TIFF': {
+        readExif(bytes, 0, bytes.length, out);
+        // The XMP packet of a TIFF sits in tag 0x02BC of the first IFD.
+        const xmp = extractXmpPacket(bytes);
+        if (xmp) readXmp(xmp, out);
+        break;
+      }
+      case 'MP3': out.fields.push(...readId3Rights(bytes)); break;
+      case 'FLAC': out.fields.push(...readFlacRights(bytes)); break;
+      case 'Ogg': case 'Ogg Vorbis': out.fields.push(...readOggRights(bytes)); break;
+      case 'Matroska': {
+        const tags = readMatroskaRights(bytes);
+        if (tags) { out.format = tags.format; out.fields.push(...tags.fields); }
+        break;
+      }
+      case '': {
+        // A DOCX or PPTX is a ZIP package; any other ZIP stays unrecognised.
+        const office = readOfficeRights(bytes);
+        if (office) { out.format = office.format; out.fields.push(...office.fields); }
+        break;
+      }
       case 'SVG': readSvg(bytes, out); break;
       case 'HEIC': case 'AVIF': readHeif(bytes, out); break;
       case 'MP4': case 'QuickTime': readBmff(bytes, out); break;
       // Other formats carry little structured metadata worth surfacing.
     }
   } catch { /* best-effort: return whatever was gathered before the fault */ }
-  out.fields = out.fields.slice(0, MAX_FIELDS).map((f) => ({ ...f, value: clip(f.value), source: f.source ?? `${out.format} ${f.label === 'Software' && ['JPEG', 'TIFF', 'WebP', 'PNG', 'HEIC', 'AVIF'].includes(out.format) ? 'EXIF Software' : f.label}` }));
+  // Rights and credit values are shown on one line, so their control characters go.
+  out.fields = out.fields.slice(0, MAX_FIELDS).map((f) => ({ ...f, value: f.group === 'authorship' ? oneLine(f.value) : clip(f.value), source: f.source ?? `${out.format} ${f.label === 'Software' && ['JPEG', 'TIFF', 'WebP', 'PNG', 'HEIC', 'AVIF'].includes(out.format) ? 'EXIF Software' : f.label}` }));
   return out;
 }
 
