@@ -188,7 +188,17 @@ const STUDIO_DISTANCE = 11.3;
  * file. 3D aimed its camera at the middle of the model; 3D Studio stands the model on the
  * floor and aims at a height, so the height is what places the target.
  */
-export const THREE_D_SAMPLE_HEIGHT: Record<string, number> = { duck: 0.8954, cat: 0.5691 };
+export const THREE_D_SAMPLE_HEIGHT: Record<string, number> = {
+  duck: 0.8954, cat: 0.5691,
+  // The samples a brand's own copy of 3D offered in place of the duck.
+  geeko: 0.5169, 'geeko-branch': 0.7756, 'geeko-sitting': 0.7958,
+};
+
+/** Each 3D sample as the catalog model 3D Studio opens. A brand's samples are in that brand's catalog. */
+export const THREE_D_SAMPLE_ASSET: Record<string, string> = {
+  duck: 'lolly/3d/duck', cat: 'lolly/3d/cat',
+  geeko: 'suse/model/geeko', 'geeko-branch': 'suse/model/geeko-branch', 'geeko-sitting': 'suse/model/geeko-sitting',
+};
 
 /**
  * 3D's seven lighting scenes as the nearest 3D Studio settings. 3D Studio has four rigs
@@ -238,7 +248,7 @@ export function threeDRotation(pitch: number, yaw: number, roll: number): { x: n
  * (`THREE_D_SCENES`). Pure, exported for tests.
  */
 export function threeDToStudio(values: Values): Values {
-  const sample = text(values.model) === 'cat' ? 'cat' : 'duck';
+  const sample = Object.hasOwn(THREE_D_SAMPLE_ASSET, text(values.model)) ? text(values.model) : 'duck';
   const cam = record(values.camera), rot = record(values.modelRotate), mov = record(values.modelTranslate);
   const scale = clamp(num(record(values.modelScale).scale, 1), 0.1, 5);
   const baseFov = clamp(num(cam.fov, 45), 20, 90);
@@ -328,7 +338,7 @@ export function threeDToStudio(values: Values): Values {
   const tinted = flag(values.applyTint, false) && text(values.tint);
   return {
     source: 'model',
-    modelAsset: `lolly/3d/${sample}`,
+    modelAsset: THREE_D_SAMPLE_ASSET[sample]!,
     ...(THREE_D_SCENES[scene] ?? THREE_D_SCENES['soft-glow']),
     // Both tools' own starting strengths are taken as the same light: 1 in 3D, 0.4 here.
     environmentIntensity: round3(clamp(num(values.envIntensity, 1) * 0.4, 0, 3)),

@@ -96,7 +96,10 @@ test('the address a default 3D document opens at is one 3D Studio reads back who
 
 test('the sample models stand as tall as the mapping says, so the camera aims at their middle', { skip: SKIP }, () => {
   for (const [name, ratio] of Object.entries(THREE_D_SAMPLE_HEIGHT)) {
-    const bytes = new Uint8Array(readFileSync(join(COMMUNITY, '3d', 'assets', `${name}.glb`)));
+    // A brand's samples are in its own pack, which a public clone does not hold.
+    const file = name.startsWith('geeko') ? join(COMMUNITY, '..', 'brands', 'suse', 'catalog', 'assets', 'suse', 'models', `${name}.glb`) : join(COMMUNITY, '3d', 'assets', `${name}.glb`);
+    if (!existsSync(file)) continue;
+    const bytes = new Uint8Array(readFileSync(file));
     // The texture needs an image decoder Node does not have; the size is in the manifest.
     const length = new DataView(bytes.buffer).getUint32(12, true);
     const manifest = JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + length))) as {
@@ -104,11 +107,25 @@ test('the sample models stand as tall as the mapping says, so the camera aims at
       accessors: { type: string; min?: number[]; max?: number[] }[];
     };
     const box = manifest.accessors.find((accessor) => accessor.type === 'VEC3' && accessor.min && accessor.max)!;
-    // Both samples carry one node turned a quarter turn about x, so the file's z is the world's up.
-    const [qx, qy, qz, qw] = manifest.nodes[0]!.rotation!;
-    assert.ok(Math.abs(qx! - Math.SQRT1_2) < 1e-6 && Math.abs(qw! - Math.SQRT1_2) < 1e-6 && qy === 0 && qz === 0);
-    const size = [0, 1, 2].map((axis) => box.max![axis]! - box.min![axis]!);
-    const tall = size[2]! / Math.max(...size);
+    // Every sample is one node holding one turn, so the box's corners turned by it give the size in the world.
+    assert.equal(manifest.nodes.length, 1);
+    const [qx, qy, qz, qw] = (manifest.nodes[0]!.rotation ?? [0, 0, 0, 1]) as [number, number, number, number];
+    const turn = [
+      [1 - 2 * (qy * qy + qz * qz), 2 * (qx * qy - qz * qw), 2 * (qx * qz + qy * qw)],
+      [2 * (qx * qy + qz * qw), 1 - 2 * (qx * qx + qz * qz), 2 * (qy * qz - qx * qw)],
+      [2 * (qx * qz - qy * qw), 2 * (qy * qz + qx * qw), 1 - 2 * (qx * qx + qy * qy)],
+    ];
+    const low = [Infinity, Infinity, Infinity], high = [-Infinity, -Infinity, -Infinity];
+    for (let corner = 0; corner < 8; corner++) {
+      const point = [0, 1, 2].map((axis) => (corner >> axis) & 1 ? box.max![axis]! : box.min![axis]!);
+      for (const axis of [0, 1, 2]) {
+        const value = turn[axis]![0]! * point[0]! + turn[axis]![1]! * point[1]! + turn[axis]![2]! * point[2]!;
+        low[axis] = Math.min(low[axis]!, value);
+        high[axis] = Math.max(high[axis]!, value);
+      }
+    }
+    const size = [0, 1, 2].map((axis) => high[axis]! - low[axis]!);
+    const tall = size[1]! / Math.max(...size);
     assert.ok(Math.abs(tall - ratio) < 0.0005, `${name}: ${tall.toFixed(4)} measured, ${ratio} in the mapping`);
   }
 });
