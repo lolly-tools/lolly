@@ -118,7 +118,8 @@ Every file's embedded metadata (EXIF, GPS, IPTC and XMP) is also read out in ful
 | Check | Lolly Verify (web, desktop, mobile) | `lolly validate` | MCP `lolly_verify` |
 |---|---|---|---|
 | Content Credential verdict | Yes | Yes | Yes |
-| Metadata, AI declaration, appended data | Yes | With `--metadata` | Yes |
+| The six findings (credential, made with, AI, licence, personal data, hidden content) | Yes | Yes, from the credential and the metadata | Yes, from the credential and the metadata |
+| Metadata, AI declaration, appended data, in full | Yes | With `--metadata` | Yes |
 | Deep scan (TrustMark, Content Seal) | Opt-in | With `--deep`, which drives the same Verify view in a local browser | No |
 | Lolly Imprint, LSB steganalysis, SEAL | Yes | No | No |
 
