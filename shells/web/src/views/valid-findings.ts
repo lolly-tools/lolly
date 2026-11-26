@@ -14,7 +14,7 @@ import { vendorMark } from './valid-vendors.ts';
 import { metadataValueHtml } from './valid-links.ts';
 import type { VerifyReport, Watermark } from './valid-verdict.ts';
 import type { TextSignalPanel } from './valid-text.ts';
-import { showOnStage } from './valid-stage.ts';
+import { showOnStage, wireStage } from './valid-stage.ts';
 
 const SLOT: Record<VerifyFindingId, { label: string; icon: IconName; section: string }> = {
   credential: { label: 'Credential', icon: 'seal', section: '[data-finding-section="credential"]' },
@@ -122,6 +122,8 @@ function openSection(target: HTMLElement): void {
 }
 
 export function wireFindings(root: HTMLElement): void {
+  // The findings drive the stage, so one call wires both.
+  wireStage(root);
   root.addEventListener('click', (event) => {
     const el = event.target instanceof Element ? event.target : null;
     const slot = el?.closest<HTMLButtonElement>('[data-finding]');

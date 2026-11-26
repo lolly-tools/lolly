@@ -78,7 +78,7 @@ import { auxiliaryMetadataHtml } from './valid-auxiliary.ts';
 import { metadataValueHtml, metadataLinkHtml, metadataUrl, wireMetadataLinks, visibleLinkedTextHtml } from './valid-links.ts';
 import { wireVerifyActions } from './valid-actions.ts';
 import { wireAddressRequests } from './valid-location.ts';
-import { stageHtml, wireStage } from './valid-stage.ts';
+import { stageHtml } from './valid-stage.ts';
 import { intakeAltsHtml, wireIntakeAlts } from './valid-intake-alts.ts';
 // The C2PA 2.4 text-binding models - same pure-module rule as valid-verdict.ts.
 // The copy for every carrier state, the snippet cap, and the ONE url gate both
@@ -1757,39 +1757,8 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
 // credentials, then claim the file" is one surface. The signed file downloads and
 // the panel re-verifies in place so the viewer immediately sees their claim on the chain.
 
-/**
- * Licence options offered when claiming a file - mirrors community/claim
- * (option value = the exact string embedded as dc:rights, incl. the CC deed URL).
- *
- * The first option is empty and means exactly what it says: no public licence was
- * declared. It is NOT a retained-rights notice, which is the second option and
- * writes a notice of its own. Those are different facts about a file, and the
- * empty value used to be labelled as the second one, which said something the
- * claimant never chose (plan 253, section 9.3).
- */
-export const CLAIM_LICENCES: Array<{ value: string; label: string }> = [
-  { value: '', label: 'No public licence declared' },
-  { value: 'All rights reserved', label: 'All rights reserved - a retained-rights notice' },
-  { value: 'CC0 1.0 (Public Domain) · https://creativecommons.org/publicdomain/zero/1.0/', label: 'CC0 1.0 - Public Domain' },
-  { value: 'CC BY 4.0 · https://creativecommons.org/licenses/by/4.0/', label: 'CC BY 4.0 - Attribution' },
-  { value: 'CC BY-SA 4.0 · https://creativecommons.org/licenses/by-sa/4.0/', label: 'CC BY-SA 4.0 - Attribution-ShareAlike' },
-  { value: 'CC BY-ND 4.0 · https://creativecommons.org/licenses/by-nd/4.0/', label: 'CC BY-ND 4.0 - Attribution-NoDerivatives' },
-  { value: 'CC BY-NC 4.0 · https://creativecommons.org/licenses/by-nc/4.0/', label: 'CC BY-NC 4.0 - Attribution-NonCommercial' },
-  { value: 'CC BY-NC-SA 4.0 · https://creativecommons.org/licenses/by-nc-sa/4.0/', label: 'CC BY-NC-SA 4.0 - NonCommercial-ShareAlike' },
-  { value: 'CC BY-NC-ND 4.0 · https://creativecommons.org/licenses/by-nc-nd/4.0/', label: 'CC BY-NC-ND 4.0 - NonCommercial-NoDerivatives' },
-  { value: 'Public Domain Mark 1.0 · https://creativecommons.org/publicdomain/mark/1.0/', label: 'Public Domain Mark - already public domain' },
-];
-
-/**
- * What the claimant says their claim rests on. Signing records the sentence, not
- * a finding: uploading a file is not ownership of it, and a Lolly signature says
- * who asserted this and that the bytes match, never that the assertion is true.
- */
-export const CLAIM_BASIS: Array<{ value: string; label: string; sentence: string }> = [
-  { value: 'author', label: 'I created this work', sentence: 'Credentials added by the claimant, who asserts they created this work.' },
-  { value: 'contribution', label: 'I hold rights in my own contribution', sentence: 'Credentials added by the claimant, who asserts rights in their own contribution and not in the rest of the work.' },
-  { value: 'distribution', label: 'I am authorised to distribute this work', sentence: 'Credentials added by the claimant, who asserts they are authorised to distribute this work.' },
-];
+export { CLAIM_BASIS, CLAIM_LICENCES } from './valid-claim-options.ts';
+import { CLAIM_BASIS, CLAIM_LICENCES } from './valid-claim-options.ts';
 
 /**
  * What a stripped file no longer carries, said plainly, with the credit it used
@@ -3512,7 +3481,6 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
   wireVerifyPreviews(reportEl, (index) => activeFiles[index]);
   wireVerifyActions(viewEl, reportEl);
   wireAddressRequests(reportEl);
-  wireStage(reportEl);
   reportEl.addEventListener('click', async (event) => {
     const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('[data-copy-evidence]') : null;
     if (!button) return;
