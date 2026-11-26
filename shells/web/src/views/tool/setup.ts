@@ -25,6 +25,7 @@ import { getCollabSessionSource } from '../../lib/collab-session-source.ts';
 import { getSessionSource } from '../../lib/session-source.ts';
 import { takeAssetOpeningSeed } from '../../lib/asset-open-handoff.ts';
 import { mountHistoryRole, takeCarriedMountState, takeEphemeralState, pendingLiveCollab } from '../../lib/collab-live-mount.ts';
+import { takeRenderMount, watchRenderMode } from '../tool-render-mode.ts';
 import { createMemoryStateAPI } from '../../lib/ephemeral-state.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { captureNeutralPinned } from '../../lib/capture-neutral.ts';
@@ -35,7 +36,7 @@ import { prepareToolDesignSystemContext } from '../tool-design-system-context.ts
 import { fpsTick, startFrameFps, stopFrameFps } from '../../lib/frame-fps.ts';
 import { takeAutomationExportPassword } from '../../lib/automation-export-secret.ts';
 import { addressAfterLinkPassword, withoutLinkPassword } from '../../lib/export-password.ts';
-import { replaceRouteUrl } from '../../lib/url-state.ts';
+import { flushAddressWrites, replaceRouteUrl } from '../../lib/url-state.ts';
 import { inferDesignIntent } from '../design-workspace.ts';
 import { createHistory, historyTokenLinks } from '../tool-history.ts';
 import { mountBackPill } from '../../components/back-pill.ts';
@@ -164,7 +165,8 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   // A no-op for ordinary readable links. Done once so every consumer below agrees.
   tview.urlParams = await expandQuery(tview.urlParams ?? '');
 
-  const carriedMount = takeCarriedMountState(toolId); tview.carriedMount = carriedMount as ToolViewCtx['carriedMount'];
+  const renderMount = takeRenderMount(toolId); tview.renderMount = renderMount;
+  const carriedMount = takeCarriedMountState(toolId) ?? renderMount; tview.carriedMount = carriedMount as ToolViewCtx['carriedMount'];
   const openedSession = await openToolSession(tview.host.state, tview.tool.manifest, parseUrlState(tview.urlParams, tview.tool.manifest), carriedMount?.slot); tview.openedSession = openedSession;
   const {
     values,
@@ -1201,6 +1203,14 @@ export function mountActions(tview: ToolViewCtx): void {
       }));
     });
   }
+  // Render settings that follow an input (`render.when`): when the keyed input changes
+  // the block in effect, mount this view again so the export sheet, the action bar and
+  // the preview are all built from the new answer (views/tool-render-mode.ts).
+  mountLifecycle.add('render mode', watchRenderMode({
+    toolId, manifest: tview.tool.manifest, runtime, mounted: tview.renderAtMount,
+    inputs: () => tview.inputsEl,
+    remount: () => { flushAddressWrites(); window.dispatchEvent(new Event('lolly:remount')); },
+  }));
   // A tool that moved into another one says so, and offers to open this document there
   // (views/tool-retired-notice.ts). The catalog index holds both facts and the names.
   const successorId = tview.indexEntry?.deprecated === true ? tview.indexEntry.replacedBy : null;

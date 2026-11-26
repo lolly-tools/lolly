@@ -154,7 +154,7 @@ Keep `onFrame` cheap. It is not time-boxed, but the runtime drops a frame while 
 
 Set `render.capture` to give the tool a **record** button. The button captures the person's microphone, camera or screen to a file, as the audio and video counterpart of the `file` transform path. There are four modes:
 
-- `"audio"` - **microphone only**, for a voice recorder. Also shows a live input-level meter when the tool declares an `onLevel` hook.
+- `"audio"` - **microphone only**, for a voice note. The first press is a sound check. A tool that declares an `onLevel` hook draws the levels in its own template; for any other tool the shell draws a level bar and coaching tips over the stage.
 - `"video"` - **camera only, silent**, with no microphone track.
 - `"av"` - **camera and microphone**, for a talking-head recorder. Use it rather than `"video"` when the clip needs sound. The shell also mounts a coaching display for audio level and background noise.
 - `"screen"` - **display capture** (engine v1.54). The shell mounts a Screenshot and Record pair. The browser's own picker chooses the screen, window or tab, so the tool never sees a target it was not given.
@@ -193,7 +193,7 @@ Engine v1.19 adds four optional background-noise cues. Check for them first, bec
 The noise cues are trustworthy only from the **raw** meter: the sound check runs the microphone with noise suppression and automatic gain off. A recording session turns them on for a clean file, so its noise floor reads lower than the room's.
 :::
 
-`voice-recorder` (`capture: "audio"` with `onLevel` coaching), `record` (`capture: "av"`) and `screencap` (`capture: "screen"`, declaring `screen` and `microphone`) are the reference tools. The `host.recorder` bridge, with `meter` and `record`, is on [Host API](/info/host-api.html).
+`audiogram` (`capture: "audio"`, where the take becomes its `audio` input), `voice-recorder` (`capture: "audio"` with `onLevel` coaching, retired into `audiogram` and kept as the `onLevel` reference), `record` (`capture: "av"`) and `screencap` (`capture: "screen"`, declaring `screen` and `microphone`) are the reference tools. The `host.recorder` bridge, with `meter` and `record`, is on [Host API](/info/host-api.html).
 
 ### Transcribing audio (`render.transcribe`)
 

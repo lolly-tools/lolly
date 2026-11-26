@@ -141,9 +141,36 @@ export function flowChartToDesign(values: Values): Values {
   return { boxes: ordered, ...(text(values.background) ? { background: values.background } : {}), width: 1600, height: 1000 };
 }
 
+/** Voice Recorder's two card styles, as the ground and text colours its stylesheet drew. */
+const VOICE_CARD: Record<string, { bg: string; ink: string }> = {
+  dark: { bg: '#11141f', ink: '#fafbfe' },
+  light: { bg: '#fafbfe', ink: '#11141f' },
+};
+
+/**
+ * Voice Recorder into Audiogram. The name becomes the card's title, the card style
+ * becomes Audiogram's background and text colours, a chosen accent becomes the
+ * visualiser colour, and the two coaching choices keep their ids. An accent left empty
+ * stays empty, so Audiogram draws its own default from the design system. A take that
+ * was recorded and not saved is not a value and does not travel. Pure, exported for tests.
+ */
+export function voiceRecorderToAudiogram(values: Values): Values {
+  const card = VOICE_CARD[text(values.theme) || 'dark'];
+  const target = text(values.targetLevel);
+  const tips = values.showTips === 'true' ? true : values.showTips === 'false' ? false : values.showTips;
+  return {
+    ...(text(values.title) ? { title: text(values.title) } : {}),
+    ...(card ? { bg: card.bg, ink: card.ink } : {}),
+    ...(text(values.accent) ? { accent: text(values.accent) } : {}),
+    ...(['soft', 'normal', 'loud'].includes(target) ? { targetLevel: target } : {}),
+    ...(typeof tips === 'boolean' ? { showTips: tips } : {}),
+  };
+}
+
 const CARRY: Record<string, Carry> = {
   'meeting-planner': meetingPlannerToTimezone,
   'org-chart': flowChartToDesign,
+  'voice-recorder': voiceRecorderToAudiogram,
 };
 
 /** The successor's address for a document open in the retired tool `from`. Lists and

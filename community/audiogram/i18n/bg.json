@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Story (9:16)",
   "inputs.accent.label": "Цвят на звуковата вълна",
   "inputs.ink.label": "Цвят на текста",
-  "inputs.bg.label": "Фон"
+  "inputs.bg.label": "Фон",
+  "inputs.targetLevel.label": "Целево ниво",
+  "inputs.targetLevel.help": "Какво се смята за „точно както трябва“ при подсказките.",
+  "inputs.targetLevel.options.soft": "Тихо · близък микрофон",
+  "inputs.targetLevel.options.normal": "Нормална реч",
+  "inputs.targetLevel.options.loud": "Силно · стая",
+  "inputs.showTips.label": "Насочващи подсказки",
+  "inputs.showTips.help": "Подсказки на живо като „приближи се“ или „звукът клипва“."
 }

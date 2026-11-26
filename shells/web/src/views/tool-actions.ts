@@ -35,6 +35,7 @@ import { rightsOps } from './tool-actions/rights-row.ts';
 import { wiringOps } from './tool-actions/wiring.ts';
 import { approvalStateOps } from './tool-actions/approval-state.ts';
 import { startingFormat } from '../lib/touch-export-format.ts';
+import { renderInEffect } from './tool-render-mode.ts';
 
 
 export { captureThumbnail, capturePreview, exportTargetNode, flatExportNode } from './tool-action-helpers.ts';
@@ -124,13 +125,15 @@ function renderActions(
 
   ta.formatRules.readCanvasBlocks();
 
-  if (manifest.render.export === false) {
+  // Export, and the actions offered, come from the block in effect (`render.when`).
+  const render = renderInEffect(runtime, manifest);
+  if (render.export === false) {
     const hasInputs = (manifest.inputs?.length ?? 0) > 0;
     // An explicit empty actions list opts out of the default Save+Share bar - for
     // on-device file utilities that provide their own download button and must
     // NOT persist the user's file bytes to storage (Save would write them to
     // IndexedDB, contradicting the "nothing is stored/uploaded" promise).
-    const optedOut = Array.isArray(manifest.render.actions) && manifest.render.actions.length === 0;
+    const optedOut = Array.isArray(render.actions) && render.actions.length === 0;
     if (!hasInputs || optedOut) {
       if (!el) return;
       el.innerHTML = '';
@@ -159,7 +162,7 @@ function renderActions(
     return { ...kept, save: ta.saving.performSave, quickSaveFolder: ta.saving.quickSaveFolder };
   }
 
-  const actions = manifest.render.actions ?? ['copy', 'download', 'save']; ta.actions = actions;
+  const actions = render.actions ?? ['copy', 'download', 'save']; ta.actions = actions;
   const exportOpts = runtime
     .getModel()
     .filter((i) => i.group === 'export' && i.control === 'checkbox'); ta.exportOpts = exportOpts;

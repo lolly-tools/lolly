@@ -1,0 +1,17 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+@layer views {
+  /* The Lolly block in Verify's findings column: what the credential records
+     about a Lolly export, each row a way back into the app. */
+  .vlb { display: grid; gap: var(--sp-5); min-width: 0; }
+  .vlb-head { display: flex; align-items: center; gap: var(--ui-space-control-inline); margin: 0; font-size: var(--ui-type-body); font-weight: 650; }
+  .vlb-mark { display: inline-flex; width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); flex: 0 0 auto; }
+  .vlb-mark svg { width: 100%; height: 100%; }
+  .vlb-rows { margin: 0; display: grid; gap: var(--sp-4); }
+  .vlb-rows div { display: grid; gap: var(--sp-1); min-width: 0; }
+  .vlb-rows dt { color: var(--ui-color-text-muted); font-size: var(--ui-type-label); }
+  .vlb-rows dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-4); overflow-wrap: anywhere; }
+  .vlb-quiet { color: var(--ui-color-text-muted); font-size: var(--ui-type-label); }
+  .vlb-link { display: inline-flex; align-items: center; gap: var(--sp-2); color: var(--ui-color-text-default); text-decoration: underline; text-underline-offset: 0.2em; }
+  .vlb-link svg { width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
+  .vlb-features { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--ui-space-panel); font-size: var(--ui-type-label); }
+}

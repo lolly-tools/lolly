@@ -3,7 +3,7 @@
 Every tool in the gallery, in alphabetical order. [Open Lolly](https://lolly.tools) to use one, or go back to the [README](README.md).
 
 <!-- tools-table:start -->
-The Lolly Start (blank brand) catalog ships **75 tools** today - 63 listed in the gallery, plus 12 unlisted tools (Asset Export, Battlecards, Brief, Calendar, Email, Flow Chart, Meeting Planner, Pricing, Sales Quote, Scorecard, Theme swap, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
+The Lolly Start (blank brand) catalog ships **75 tools** today - 62 listed in the gallery, plus 13 unlisted tools (Asset Export, Battlecards, Brief, Calendar, Email, Flow Chart, Meeting Planner, Pricing, Sales Quote, Scorecard, Theme swap, Voice Recorder, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|
@@ -46,7 +46,7 @@ The Lolly Start (blank brand) catalog ships **75 tools** today - 63 listed in th
 | Print Sheet | Lay one design - or a whole pile of them - out n-up on A4, Letter or A3, across as many pages as it takes, with crop marks in the margin. |
 | Prompt Card | Typeset a long prompt into one image for a multimodal model - image input is often cheaper than the same words as text tokens. |
 | QR Code | Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 - plus retail and logistics barcodes from EAN-13 to MaxiCode. |
-| Quote | A quotation card with a speaker's picture, name and role, for social posts and slides, in the active design system. |
+| Quote | A quotation in the active design system: a speaker card, a pull quote, a citation with its source, big type, a marker on the key phrase, with optional motion that carries into Design. |
 | Record | Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically. |
 | Redact | Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device. |
 | Rondocode | Write music as code and hear it as you type. Export the song as audio with Content Credentials, as stems, as a MIDI file, or keep its source. |
@@ -65,7 +65,6 @@ The Lolly Start (blank brand) catalog ships **75 tools** today - 63 listed in th
 | Timezone | Turn places and timezones into artwork. Rotate a vector atlas or a WebGL globe, then export artwork, a camera tour or structured schedules. |
 | Trim | Cut, turn or shrink an audio or video clip, take a poster frame or contact sheet, mute it or extract its audio on your device. |
 | URL Screenshot | Any web page, at any scroll depth, with custom CSS. |
-| Voice Recorder | Record a voice note with a live level meter and gentle coaching, then save it as MP3. |
 | Wayfinding | Directional event signs - destinations, each with an arrow. Print-ready. |
 | Wordmark | Type a word, get a pure-path vector wordmark in the design system font - recipients never need the font installed. |
 | Work Avatar | A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn, in your design system's colours and type. |

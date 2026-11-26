@@ -26,8 +26,8 @@
     {
       "version": 1,
       "toolId": "3d-studio",
-      "toolVersion": "0.11.0",
-      "toolVersionRange": "0.11.0",
+      "toolVersion": "0.12.0",
+      "toolVersionRange": "0.12.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -35,12 +35,12 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "925f990fb6d80571e98a9736f9049e0d55943eaa30686818420e9e0b6e1f0105",
+          "sha256": "63214c570058e3355f34432710725a0b9c81e56975b451a4c0c7d5d7dbbba14b",
           "bytes": 4160
         },
         "reference/inputs.json": {
-          "sha256": "66dbdda2cdf379e144546aaa9c8cb686885df59c4c8bc2c2dfddd59631442949",
-          "bytes": 70615
+          "sha256": "197b89b619203ae7050886f777e93cfb4722ce5a7b3e3406c3219448a740ad8b",
+          "bytes": 70978
         }
       },
       "path": "3d-studio/SKILL.md"
@@ -129,8 +129,8 @@
     {
       "version": 1,
       "toolId": "audiogram",
-      "toolVersion": "2.8.0",
-      "toolVersionRange": "2.8.0",
+      "toolVersion": "2.9.0",
+      "toolVersionRange": "2.9.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -139,12 +139,12 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "208c9b73fb4680ec1e008dde9f69e6226eebef672ebd2a14138c67fd9f3a802a",
-          "bytes": 2021
+          "sha256": "b9f2bf952a74515e12ed2221efe4ba6894250b02727c397de4acfb287a62ce6c",
+          "bytes": 2075
         },
         "reference/inputs.json": {
-          "sha256": "92a6f4c573a5aeff81660a8877f4829a6503a5c5e699a8b54b3064b0bec09b1c",
-          "bytes": 20603
+          "sha256": "d0779313e9f3509d2029b0a9ad3a3672635d3aa7afe515d35d1a1dcc4ca4f9c1",
+          "bytes": 21258
         },
         "reference/examples.json": {
           "sha256": "f83fcf2d8c1259cac4ab2357df3b45a546a64c8019ee5af7c0044c6d24b5299c",
@@ -1692,8 +1692,8 @@
     {
       "version": 1,
       "toolId": "voice-recorder",
-      "toolVersion": "1.1.3",
-      "toolVersionRange": "1.1.3",
+      "toolVersion": "1.1.4",
+      "toolVersionRange": "1.1.4",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1701,7 +1701,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "31c8c45f892729a57446a07999cd63ced4da2308c3a57a800885a42a6315cd15",
+          "sha256": "53d7b6ab2f32c7f2c90f81a8281545287fdfffe1932d162243756afea04d6a2b",
           "bytes": 1617
         },
         "reference/inputs.json": {

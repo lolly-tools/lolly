@@ -14,7 +14,7 @@ The **Utilities** tab (`#/u`) has jobs for files you already have: a photo in th
 - <!--i:document--> **Get the words or pictures out:** [Unpack, Text or Read and extract](#get-the-contents-out).
 - <!--i:seal--> **Check where a file came from:** [Lolly Verify](#check-where-a-file-came-from).
 - <!--i:layers--> **Rearrange or sign PDF pages:** [Pages and Sign](#pdf-pages).
-- <!--i:neurobeat--> **Cut or clean audio and video, or record your voice:** [Trim, Clean, Lolly Voice Recorder and Lolly Script audio](#audio-and-video).
+- <!--i:neurobeat--> **Cut or clean audio and video, or record your voice:** [Trim, Clean, a voice note in Lolly Audiogram and Lolly Script audio](#audio-and-video).
 - <!--i:palette--> **Check a colour or build a palette:** [Lolly Colour Lab, Contrast and Lolly Palette Lab](#colour).
 - <!--i:checklist--> **Read or fix a spreadsheet:** [Spreadsheet](#spreadsheets).
 - <!--i:pentool--> **Move a deck onto your design system:** [Lolly Rebrand](#decks).
@@ -303,7 +303,12 @@ Lolly Trim copies packets when the chosen boundary and container allow. A copy c
 - **Output.** Audio can leave as WAV, MP3, M4A or Opus. For a video, the picture is carried into the new container and the cleaned audio replaces its original track. Long recordings run in a background worker in the browser, so the page stays responsive.
 - **In the terminal.** The terminal path accepts WAV, runs the model-free repair and leaves the speech model to the browser; other containers move to the browser tier or are refused by name.
 
-**[Lolly Voice Recorder](/t/voice-recorder)** records a voice note with a live level meter and gentle coaching, then saves it as MP3.
+**[Lolly Audiogram](/t/audiogram)** records a voice note. Lolly Voice Recorder is now part of Audiogram, and its old links still open.
+
+- **Sound check.** Press **Warm the mic**. A level bar and short tips over the card tell you when you are too quiet, too loud, clipping or in a noisy room.
+- **Record.** Press **Record**, speak for up to ten minutes, then press **Stop**. The recording becomes the card's **Audio** and the waveform is drawn from your voice.
+- **Coaching.** Under **Recording** in the controls, **Target level** sets how loud a voice counts as right (soft and close, normal speech, or loud in a room) and **Coaching tips** turns the tips off while the level bar stays.
+- **Save.** Export saves the sound alone as MP3, WAV, M4A or Opus, or the card as a video with the sound.
 
 **Lolly Script audio** (`#/script`) is a writing surface over on-device speech. Write or paste a script. Markdown works: only the words are read, so code blocks and images drop out and links keep their text. Pick a voice, audition the voice, choose a speed and press **Generate speech** (or Ctrl or Cmd and Enter). Under the script are the word count and an estimate of the listening time. Under the script are the word count and an estimated listening time.
 

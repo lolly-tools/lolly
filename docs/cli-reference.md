@@ -133,6 +133,42 @@ lolly validate ./poster.svg --no-default-anchors    # trust only what you pinned
 
 The summary says whether the file was made with Lolly and is unchanged since. The exit code is `0` when the file matches what was signed, even with an expired certificate. Lolly signs with short-lived on-device certificates, so any other rule would fail every gate on Lolly's own correct output within a month. The code is `4` when a credential is present and the bytes no longer match the credential, `5` when there is no credential and `2` when the path could not be read. `--strict` makes an expired certificate exit `4`. `--require=none` turns off verdict-based exit codes ("just tell me what is in this file").
 
+### The six findings
+
+Under the verdict, every report prints six lines in one fixed order. They are the same six answers the app's Verify view gives, in the same words:
+
+```bash
+$ lolly validate ./photo.jpg
+./photo.jpg  [jpeg]
+○ No Content Credentials found
+  no Content Credentials found
+  Credential: Not signed
+  Made with: TestCam (Stated in the file)
+  AI: Nothing declared
+  Licence: CC BY 4.0 (Stated in the file)
+  Personal data: Location recorded (Stated in the file)
+  Hidden content: None found
+```
+
+| Line | The question |
+|---|---|
+| `Credential` | Is the file signed, and is the file unchanged since? |
+| `Made with` | Which software or device made the file? |
+| `AI` | Does anything declare or suggest AI? |
+| `Licence` | Which terms does the file state for itself? |
+| `Personal data` | Does the metadata record a place, a name or a device? |
+| `Hidden content` | Does the file hold anything that does not show when viewed? |
+
+All six lines always print. A line with nothing found says so (`Licence: None recorded`), because nothing found is a different answer from a check that never ran. The words in brackets say how strong the evidence is:
+
+- **Signed**: a credential whose bytes still match.
+- **Credential, not verified**: a credential is there but did not verify in full.
+- **Stated in the file**: metadata, which anyone can edit.
+- **Hint**: a marker or a packaging match.
+- **Estimated on this device**: analysis run here, such as the `--deep` scan.
+
+A stated licence is what the file says about itself. Permission to reuse is not checked. The terminal analyses no text, so the `AI` line rests on what the file declares, how the file is packaged and, with `--deep`, a watermark the scan decoded. `--verbose` prints one sentence under each line. The findings never change the exit code.
+
 ### Which anchors produced the verdict
 
 Every report says which anchor set it used. The default is the **Lolly CA root**, the **vendored C2PA known-certificate list** (camera makers and the big generators) and anything you pinned. The app's Verify view uses the same set:
@@ -155,7 +191,7 @@ Both exit `0`. The file is signed with an on-device key that chains to nothing. 
 ::: details Every lolly validate flag
 | Flag | Meaning |
 |---|---|
-| `--json` | The shared envelope. `result.files[]` holds one record per file: `verdict` (the stable slug), `resolved` (the engine's verdict), `report` (the full verifier output), `metadata` (the `--metadata` report, or `null`) and `anchors`. A file that could not be read gets a record with its own `error`, so one typo does not hide nine results. |
+| `--json` | The shared envelope. `result.files[]` holds one record per file: `verdict` (the stable slug), `resolved` (the engine's verdict), `report` (the full verifier output), `metadata` (the `--metadata` report, or `null`), `anchors` and `findings` (the six findings in their fixed order, each with `id`, `label`, `state`, `tone`, `strength`, `strengthLabel`, `word`, `detail`, `names` and `evidence`). A file that could not be read gets a record with its own `error`, so one typo does not hide nine results. |
 | `--deep` | Also run the neural pixel-watermark scan (TrustMark, Content Seal and the Lolly durable mark). Needs the headless Chromium and a built web shell, and is **advisory**: it never changes the exit code. |
 | `--trust-anchor=<root.pem>` | Trust another root certificate, such as your organisation's CA. Repeatable; `$LOLLY_TRUST_ANCHOR` adds more as a `PATH`-style list (`:` on Unix, `;` on Windows), and a leading `~` expands. A pinned root that cannot be read stops the run (exit `2`) rather than quietly weakening the verdict. |
 | `--no-default-anchors` | Trust **only** what you pinned. With nothing pinned, every signer reads untrusted: the bare-trust check, which confirms a green verdict came from a root you chose. |

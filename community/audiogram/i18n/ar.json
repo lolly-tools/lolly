@@ -18,5 +18,12 @@
   "inputs.size.options.story": "قصة (9:16)",
   "inputs.accent.label": "لون الموجة",
   "inputs.ink.label": "لون النص",
-  "inputs.bg.label": "الخلفية"
+  "inputs.bg.label": "الخلفية",
+  "inputs.targetLevel.label": "المستوى المستهدف",
+  "inputs.targetLevel.help": "ما يعتبر «مضبوطا تماما» بالنسبة لرسائل الإرشاد.",
+  "inputs.targetLevel.options.soft": "هادئ · ميكروفون قريب",
+  "inputs.targetLevel.options.normal": "كلام عادي",
+  "inputs.targetLevel.options.loud": "مرتفع · غرفة",
+  "inputs.showTips.label": "نصائح الإرشاد",
+  "inputs.showTips.help": "رسائل مباشرة مثل «اقترب أكثر» أو «الصوت مقصوص»."
 }

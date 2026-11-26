@@ -1326,6 +1326,7 @@
       "mogrt": ["import.library-upload"],
       "3mf": ["import.library-upload"],
       "glb": ["import.library-upload"],
+      "gltf": ["import.library-upload"],
       "stl": ["import.library-upload"],
       "ttf": ["import.library-upload"],
       "otf": ["import.library-upload"],

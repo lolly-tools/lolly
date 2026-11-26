@@ -1,6 +1,6 @@
 # 3D Studio
 
-Studio for extruded SVG artwork and GLB/STL/3MF product imagery, alone, as a collection of separate photographs, or arranged together in one scene.
+Studio for extruded SVG artwork and GLB/glTF/STL/3MF product imagery, alone, as a collection of separate photographs, or arranged together in one scene.
 
 [User guide](../../docs/3d-studio.md)
 

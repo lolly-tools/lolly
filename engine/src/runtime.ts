@@ -55,6 +55,7 @@ import { isBakedRef } from './bake.ts';
 import { base64ToBytes } from './bytes.ts';
 import type { InputModelItem, InputValue } from './inputs.ts';
 import type { LoadedTool, ToolManifest } from './loader.ts';
+import { renderWhenMatches, resolveRender } from './render-when.ts';
 import type { ComposeMemo } from './compose.ts';
 import type { EmojiDomNode, EmojiDomResult } from './emoji-dom.ts';
 import type { EmojiArtworkCache, EmojiTextIO } from './emoji-inline.ts';
@@ -499,6 +500,14 @@ export interface Runtime {
    */
   readonly lastReceipt: AttributionReceiptV1 | null;
   manifest: ToolManifest;
+  /**
+   * The `render` block in effect for the current values (v1.356): the manifest's own
+   * block, or that block with its `render.when` settings applied while the input the
+   * tool keyed them on holds the stated value. The same object comes back until the
+   * answer changes, so a shell can compare two reads by reference. A shell reads
+   * `export`, `webPreview` and `actions` here and not from `manifest.render`.
+   */
+  getRender(): ToolManifest['render'];
   styles: string | null;
   /** Asset refs (saved session / URL) that no longer resolve - read once after mount. */
   droppedAssets: DroppedAsset[];
@@ -1482,6 +1491,10 @@ export async function createRuntime(
     return { ...options, colorTarget, ...(writeTokenSet ? { tokenSet: writeTokenSet, refreshTokenLinks: true } : {}) };
   }
 
+  // `render.when`: the block in effect, kept until the condition's answer changes.
+  let renderMatched = false;
+  let renderInEffect: ToolManifest['render'] = tool.manifest.render;
+
   return {
     get tokenSelection() { return tokenSelection ? structuredClone(tokenSelection) : undefined; },
     get ignoredTokenChoices() { return ignoredTokenChoices.map(choice => ({ ...choice })); },
@@ -1593,6 +1606,14 @@ export async function createRuntime(
     get lastReceipt() { return lastRightsReceipt; },
 
     manifest: tool.manifest,
+    getRender() {
+      const matched = renderWhenMatches(tool.manifest.render, modelToValues(model));
+      if (matched !== renderMatched) {
+        renderMatched = matched;
+        renderInEffect = resolveRender(tool.manifest.render, modelToValues(model));
+      }
+      return renderInEffect;
+    },
     styles: tool.styles,
     // Asset refs (from a saved session / URL) that no longer resolve. The shell
     // reads this once after mount to surface a "left blank" notice.

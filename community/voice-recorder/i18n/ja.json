@@ -2,7 +2,6 @@
   "name": "ボイスレコーダー",
   "description": "リアルタイムのレベルメーターとやさしいコーチングを使ってボイスメモを録音し、MP3として保存できます。",
   "a11yLabel": "ボイスレコーダー - レベル {{default dbText \"idle\"}}",
-  "featured.blurb": "リアルタイムのレベルコーチングでクリアなボイスメモを録音できます。",
   "inputs.title.label": "ラベル",
   "inputs.title.help": "録音カードと保存されるファイルの名前になります。",
   "inputs.targetLevel.label": "目標レベル",

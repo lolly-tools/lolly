@@ -139,6 +139,8 @@ import { mdFromBlocks, htmlFromBlocks } from '../../engine/src/doc-md.ts';
 import { rebrandPptxParts, type PartMap, type RebrandPlan } from '../../engine/src/pptx-patch.ts';
 import { createPptxAPI, looksLikePptxFile } from '../../shells/web/src/bridge/pptx.ts';
 import { depthHint } from '../../shells/web/src/lib/image-sample.ts';
+import { inspectedGlb } from '../../shells/web/src/lib/gltf-container.ts';
+import { glbOf, jsonBytes, triangleGlb, triangleGltf, triangleManifest } from '../helpers/studio3d-gltf.ts';
 import { extractSvgColors } from '../../engine/src/svg-colors.ts';
 import { enumerateSvgLayers, svgRootViewBox } from '../../engine/src/svg-layers.ts';
 import { svgToCustGeomPaths, svgToNativePptx } from '../../engine/src/svg-custgeom.ts';
@@ -476,7 +478,18 @@ export const fileMetadataTarget: FuzzTarget = {
       pngChunk('iTXt', bytesOf('Comment\0\0\0en\0\0hello')),
       pngChunk('IEND', new Uint8Array(0)),
     ]);
-    return [tinyJpeg(), tinyPng(), pngWithText, tinyWebp(), tinySvg(), tiff, tinyGif(1)];
+    // The tag carriers read for rights statements (tag-readers.ts): ID3v2, Vorbis
+    // comments in FLAC and Ogg, Matroska tags, MP4 user data and Office property parts.
+    const office = storeZip([
+      { name: 'word/document.xml', bytes: bytesOf('<x/>') },
+      { name: 'docProps/core.xml', bytes: bytesOf('<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:rights>seed</dc:rights></cp:coreProperties>') },
+      { name: 'docProps/custom.xml', bytes: bytesOf('<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/custom-properties"><property name="License"><a>seed</a></property></Properties>') },
+    ]);
+    const tags = videoProvenanceTags({ tool: 'Fuzz', software: 'LollyFuzz' }, new Date(0));
+    return [
+      tinyJpeg(), tinyPng(), pngWithText, tinyWebp(), tinySvg(), tiff, tinyGif(1),
+      buildMp3(), buildFlac(), buildOpus(), buildWav(), embedWebmMeta(tinyWebm(), tags), embedMp4Meta(tinyMp4(), tags), office,
+    ];
   },
   // Contract: never throws, never hangs - a malformed block yields fewer fields.
   async invoke(bytes) { extractFileMetadata(bytes); },
@@ -1385,6 +1398,26 @@ export const depthHintTarget: FuzzTarget = {
     return [tinyPng(), png16, tiffLe, tiffBe, tinyJpeg(), tinyWebp(), ftyp('heic'), ftyp('mif1', 'miaf', 'avif')];
   },
   async invoke(bytes) { await depthHint(bytes); },
+};
+
+// The two glTF containers 3D Studio reads (shells/web/src/lib/gltf-container.ts):
+// the .glb inspector and the rewrite of a self-contained .gltf into a .glb. Contract:
+// a plain Error for anything it will not read. The classes to catch are a stack
+// overflow on a deeply nested manifest and an allocation sized by a number in the file.
+export const gltfContainerTarget: FuzzTarget = {
+  name: 'gltf-container',
+  async seeds() {
+    const png = tinyPng();
+    const picture = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
+    return [
+      triangleGltf(),
+      triangleGlb(),
+      triangleGltf({ images: [{ uri: picture }], accessors: [{ componentType: 5126, count: 3, type: 'VEC3' }] }),
+      jsonBytes(triangleManifest({ uri: 'scene.bin', byteLength: 44 })),
+      glbOf(triangleManifest({ uri: 'scene.bin', byteLength: 44 }), null),
+    ];
+  },
+  async invoke(bytes) { inspectedGlb(bytes); },
 };
 
 // The .cube/.3dl LUT readers (engine/src/grade.ts) - the parsers that read a
@@ -2778,7 +2811,7 @@ export const ALL_TARGETS: FuzzTarget[] = [
   rasterDecodeTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
   derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget, videoProbeTarget,
-  depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
+  depthHintTarget, gltfContainerTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, smfTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
   geomTarget, svgItemsTarget, fontInspectTarget, woff2PreflightTarget, audioDspTarget, imageTraceTarget, intentTarget,

@@ -533,6 +533,7 @@ One row per module under `engine/src/` (the `index.ts` barrel excluded), in path
 | `rebrand-review.ts` | The review model of a renovation (plan 274 section 4): what the queue, the footer, the report drawer, the CLI `inspect` command and later the TUI show. | yes | `tests/rebrand-review.test.ts` | – |
 | `rebrand-structure.ts` | The structure matcher (plan 275 section 3): which layout of the library a source slide was drawn as, how sure the read is, and the one opt-in action that applies the reads across a deck (decision 28, Auto-match). | yes | `tests/rebrand-structure.test.ts` | – |
 | `rebrand-theme.ts` | Deck themes and a slide's own ground (plan 275 section 6), as ordinary plan edits. | yes | `tests/rebrand-theme.test.ts` | – |
+| `render-when.ts` | Render settings that follow one input's value (`render.when`). | yes | `tests/render-when.test.ts` | – |
 | `reword.ts` | Reword flagged text - the SEMANTIC half humanize.ts's header defers (plans/127). | yes | `tests/reword.test.ts` | – |
 | `riff-meta.ts` | WAV provenance tags: the RIFF LIST/INFO chunk. | yes | `tests/riff-meta.test.ts` | – |
 | `rights-attribution.ts` | Turns an attribution plan into readable credits, companion files, source ingredients and a measured receipt (plan 253). | yes | `tests/rights-attribution.test.ts` | – |
@@ -590,6 +591,7 @@ One row per module under `engine/src/` (the `index.ts` barrel excluded), in path
 | `svg-path.ts` | SVG path `d` tokenizer. | yes | `tests/svg-path.test.ts` | – |
 | `table-edit.ts` | Named table mapping, validation and atomic wall-time edits. | no | `tests/table-edit.test.ts` | – |
 | `table-text.ts` | Text-to-table parsing and serialising for the `table` input (the clipboard and file round-trip). | yes | `tests/table-text.test.ts` | – |
+| `tag-readers.ts` | Rights and credit statements from tag carriers: ID3v2 frames, Vorbis comments (FLAC, Ogg Opus, Ogg Vorbis), Matroska tags and the property parts of an Office package. | no | `tests/tag-readers.test.ts` | – |
 | `tar-read.ts` | tar (USTAR / POSIX 1003.1-1988) reader. | yes | `tests/tar-read.test.ts` | yes |
 | `tar.ts` | tar (USTAR / POSIX 1003.1-1988) writer. | yes | indirect | – |
 | `template-cache.test.ts` |  | no | none | – |

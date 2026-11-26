@@ -1,0 +1,158 @@
+{
+  "source": "camera orbit for retiring the 3d tool",
+  "values": {
+    "cameraMotion": "orbit",
+    "cameraEase": "linear",
+    "cameraLoop": true,
+    "camera": {
+      "azimuth": -40,
+      "elevation": 22,
+      "zoom": 0.9,
+      "panX": 0.2
+    },
+    "focusDistance": 4
+  },
+  "camera": {
+    "projection": "perspective",
+    "azimuth": -40,
+    "elevation": 22,
+    "fov": 29,
+    "zoom": 0.9,
+    "target": [
+      0.2,
+      1.6,
+      0
+    ],
+    "focus": 4,
+    "aperture": 0
+  },
+  "cameraMotion": {
+    "kind": "orbit",
+    "ease": "linear",
+    "loop": true,
+    "amount": 1,
+    "keys": [
+      {
+        "at": 0,
+        "azimuth": -40,
+        "elevation": 22,
+        "fov": 29,
+        "zoom": 0.9,
+        "target": [
+          0.2,
+          1.6,
+          0
+        ],
+        "focus": 4
+      },
+      {
+        "at": 1,
+        "azimuth": 320,
+        "elevation": 22,
+        "fov": 29,
+        "zoom": 0.9,
+        "target": [
+          0.2,
+          1.6,
+          0
+        ],
+        "focus": 4
+      }
+    ]
+  },
+  "rows": [
+    {
+      "at": 0,
+      "azimuth": -40,
+      "elevation": 22,
+      "fov": 29,
+      "zoom": 0.9,
+      "panX": 0.2,
+      "panY": 1.6,
+      "panZ": 0,
+      "focusDistance": 4,
+      "name": "Orbit 1"
+    },
+    {
+      "at": 100,
+      "azimuth": 320,
+      "elevation": 22,
+      "fov": 29,
+      "zoom": 0.9,
+      "panX": 0.2,
+      "panY": 1.6,
+      "panZ": 0,
+      "focusDistance": 4,
+      "name": "Orbit 2"
+    }
+  ],
+  "travels": true,
+  "animated": true,
+  "poses": [
+    {
+      "at": 0,
+      "azimuth": -40,
+      "elevation": 22,
+      "fov": 29,
+      "zoom": 0.9,
+      "target": [
+        0.2,
+        1.6,
+        0
+      ],
+      "focus": 4
+    },
+    {
+      "at": 0.25,
+      "azimuth": 50,
+      "elevation": 22,
+      "fov": 29,
+      "zoom": 0.9,
+      "target": [
+        0.2,
+        1.6,
+        0
+      ],
+      "focus": 4
+    },
+    {
+      "at": 0.5,
+      "azimuth": 140,
+      "elevation": 22,
+      "fov": 29,
+      "zoom": 0.9,
+      "target": [
+        0.2,
+        1.6,
+        0
+      ],
+      "focus": 4
+    },
+    {
+      "at": 0.75,
+      "azimuth": 230,
+      "elevation": 22,
+      "fov": 29,
+      "zoom": 0.9,
+      "target": [
+        0.2,
+        1.6,
+        0
+      ],
+      "focus": 4
+    },
+    {
+      "at": 0,
+      "azimuth": -40,
+      "elevation": 22,
+      "fov": 29,
+      "zoom": 0.9,
+      "target": [
+        0.2,
+        1.6,
+        0
+      ],
+      "focus": 4
+    }
+  ]
+}

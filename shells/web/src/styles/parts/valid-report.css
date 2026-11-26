@@ -50,13 +50,22 @@
   .valid-vendor-mark { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 2rem; height: 2rem; color: var(--ui-color-text-default); }
   .valid-vendor-mark svg { width: 100%; height: 100%; }
   .is-primary > .valid-vendor-mark { width: 2.5rem; height: 2.5rem; }
-  /* These colours identify the software vendor recorded in the asset. */
-  .valid-vendor-mark[data-vendor="canva"] { color: #00aeb5; }
-  .valid-vendor-mark[data-vendor^="affinity"] { color: #ec7b51; }
-  .valid-vendor-mark[data-vendor="adobeindesign"] { color: #ef5284; }
-  .valid-vendor-mark[data-vendor="adobephotoshop"] { color: #36a9fc; }
-  .valid-vendor-mark[data-vendor="adobeillustrator"] { color: #e89127; }
-  .valid-vendor-mark[data-vendor="blender"] { color: #e87d0d; }
+  /* A product the registry holds with no mark: its initials, in the same box. */
+  .valid-vendor-mark.is-monogram {
+    border: 1.5px solid currentColor; border-radius: var(--ui-radius-choice);
+    font-size: var(--fs-xs); font-weight: 700; line-height: 1; letter-spacing: -0.02em;
+  }
+  .is-primary > .valid-vendor-mark.is-monogram { font-size: var(--fs-sm); }
+  /* One vendor, wherever one is named: mark, name as recorded, evidence strength. */
+  .vendor-chip { display: inline-flex; align-items: center; gap: var(--sp-3); min-width: 0; max-width: 100%; vertical-align: middle; }
+  .vendor-chip .valid-vendor-mark { width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); color: inherit; }
+  .vendor-chip .valid-vendor-mark.is-monogram { font-size: var(--fs-2xs); }
+  .vendor-chip-copy { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1) var(--sp-3); min-width: 0; }
+  .vendor-chip-copy strong { overflow-wrap: anywhere; }
+  .valid-ai-flag .vendor-chip { margin-bottom: var(--sp-2); }
+  .valid-ai-flag .vendor-chip .vf-slot-strength { color: inherit; opacity: 0.85; }
+  /* Marks draw in the design system's colours: ink everywhere, the accent for the product that leads. */
+  .is-primary > .valid-vendor-mark:not([data-vendor="lolly"]) { color: var(--ui-color-text-accent); }
   .valid-origin-facts { padding: var(--ui-space-panel); gap: var(--ui-space-panel); grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); }
   .valid-origin-facts:empty { display: none; }
   .valid-origin-facts dt { display: flex; align-items: center; gap: var(--sp-3); }

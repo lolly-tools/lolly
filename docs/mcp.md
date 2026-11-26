@@ -159,6 +159,8 @@ You can ask only for a format the tool declares, and `lolly_describe_tool` lists
 ::: details One vocabulary across the CLI and this server
 `lolly_verify` and the CLI's `lolly validate --json` give the same answer in the same words. Both report a `verdict` slug from one shared table (`made-with-lolly`, `delivered-by-lolly`, `likely-made-with-lolly`, `credential-expired`, `credential-intact`, `credential-broken`, `no-credential`) with `resolved` (the engine's semantic verdict) and the full verifier `report`. The slugs are frozen: an existing one is never re-pointed, and a new engine state adds a new slug. A consumer needs only a default branch.
 
+Both also return `findings`: the six answers of [Lolly Verify](/info/what-verify-checks.html) in one fixed order (`credential`, `made-with`, `ai`, `licence`, `personal`, `hidden`). Each has a `state` code, a `strength` (`signed`, `unverified`, `stated`, `hint`, `estimated` or `none`), a few words in `word`, one sentence in `detail` and the `evidence` rows behind the answer. All six are always present, and the text result prints them as six lines under the verdict. The server analyses no text and scans no pixels, so the `ai` finding rests on what the file declares and how the file is packaged. A stated licence is what the file says about itself, and permission to reuse is not checked.
+
 The CLI, the TUI and this server share one predicate that decides when a call needs the browser tier. The predicate reads a typed `NEEDS_BROWSER` marker, not the wording of an error. The open endpoint's "that needs the browser tier" refusal and the CLI's exit `3` are the same judgement.
 :::
 

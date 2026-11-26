@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Story (9:16)",
   "inputs.accent.label": "Warna waveform",
   "inputs.ink.label": "Warna teks",
-  "inputs.bg.label": "Latar belakang"
+  "inputs.bg.label": "Latar belakang",
+  "inputs.targetLevel.label": "Level target",
+  "inputs.targetLevel.help": "Apa yang dianggap 'pas' untuk arahan panduan.",
+  "inputs.targetLevel.options.soft": "Lembut · mik dekat",
+  "inputs.targetLevel.options.normal": "Bicara normal",
+  "inputs.targetLevel.options.loud": "Keras · ruangan",
+  "inputs.showTips.label": "Tips panduan",
+  "inputs.showTips.help": "Arahan langsung seperti ‘mendekatlah’ atau ‘suara Anda pecah’."
 }

@@ -28,8 +28,9 @@ const tick = async () => { await new Promise(resolve => setTimeout(resolve, 35))
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
-  const promise = new Promise<T>(yes => { resolve = yes; });
-  return { promise, resolve };
+  let reject!: (reason: unknown) => void;
+  const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; });
+  return { promise, resolve, reject };
 }
 
 function setup(mode: 'audio' | 'video' | 'av' | 'screen', hasLevelHook = false) {
@@ -81,6 +82,14 @@ function setup(mode: 'audio' | 'video' | 'av' | 'screen', hasLevelHook = false) 
     } };
 }
 
+/** An audio take with no level hook of its own starts with the shell's sound check: the
+ *  first press opens the level meter, the second records. */
+async function soundCheck(f: ReturnType<typeof setup>, mode: string): Promise<void> {
+  if (mode !== 'audio') return;
+  f.button.click(); f.coach.resolve(); await tick();
+  assert.equal(f.button.dataset.state, 'armed');
+}
+
 test('leaving while camera framing opens releases the camera and never opens the coaching mic', async () => {
   const f = setup('av');
   f.button.click(); f.cleanup(); f.camera.resolve(); await tick();
@@ -108,6 +117,7 @@ for (const mode of ['audio', 'screen'] as const) {
   test(`${mode}: a refused start never claims to be recording and can be retried`, async () => {
     const f = setup(mode);
     try {
+      await soundCheck(f, mode);
       f.button.click(); f.start.resolve({ started: false }); await tick();
       assert.equal(f.button.dataset.state, 'idle'); assert.equal(f.button.disabled, false);
       assert.equal(f.stage.classList.contains('is-recording'), false); assert.equal(frames.size, 0);
@@ -117,15 +127,19 @@ for (const mode of ['audio', 'screen'] as const) {
 
   test(`${mode}: leaving during the picker cancels the pending take without restarting the timer`, async () => {
     const f = setup(mode);
+    await soundCheck(f, mode);
     f.button.click(); f.cleanup(); f.start.resolve({ started: false }); await tick();
     assert.equal(f.counts.cancels, 1); assert.equal(frames.size, 0);
-    assert.equal(f.button.dataset.state, 'idle');
+    // An audio control left after its sound check keeps the label it last drew.
+    assert.equal(f.button.dataset.state, mode === 'audio' ? 'armed' : 'idle');
+    assert.equal(f.counts.coachRefs, 0, 'no mic is left open');
     assert.equal(f.counts.wakeRequests, 0);
     f.cleanup(); assert.equal(f.counts.cancels, 1, 'cleanup is idempotent');
   });
 
   test(`${mode}: leaving during stop does not rearm or publish late footage`, async () => {
     const f = setup(mode);
+    await soundCheck(f, mode);
     f.button.click(); f.start.resolve({ started: true }); await tick();
     assert.equal(f.button.dataset.state, 'recording');
     f.button.click(); f.button.dispatchEvent(new Event('click'));
@@ -142,6 +156,7 @@ for (const mode of ['audio', 'video', 'screen'] as const) {
       const f = setup(mode);
       try {
         if (mode === 'video') { f.button.click(); f.camera.resolve(); await tick(); }
+        await soundCheck(f, mode);
         assert.equal(f.counts.wakeRequests, 0);
         f.button.click(); f.start.resolve({ started: true }); await tick();
         assert.equal(f.counts.wakeRequests, 1);
@@ -185,4 +200,43 @@ test('leaving during the screenshot picker ignores its late image', async () => 
   f.stage.querySelector<HTMLButtonElement>('.canvas-screen-btn')!.click();
   f.cleanup(); f.still.resolve(new Blob(['late'], { type: 'image/png' })); await tick();
   assert.equal(f.counts.inputs, 0); assert.equal(f.counts.dirty, 0);
+});
+
+test('audio with no level hook: the shell draws the levels for the sound check and the take', async () => {
+  const f = setup('audio');
+  try {
+    assert.match(f.button.textContent ?? '', /Warm the mic/);
+    f.button.click(); f.coach.resolve(); await tick();
+    assert.equal(f.button.dataset.state, 'armed');
+    assert.equal(f.counts.meters, 0, 'the tool has no level hook for the runtime to drive');
+    assert.equal(f.counts.coachRefs, 1); assert.equal(f.counts.coachSubs, 2, 'the level bar and the tip flasher');
+    assert.ok(f.stage.querySelector('.canvas-record-coach .crc-audio'), 'the level bar is on the stage');
+    f.button.click(); f.start.resolve({ started: true }); await tick();
+    assert.equal(f.button.dataset.state, 'recording');
+    assert.ok(f.stage.querySelector('.canvas-record-coach'), 'the levels stay through the take');
+    f.button.click(); f.stop.resolve(null); await tick();
+    assert.equal(f.button.dataset.state, 'idle');
+    assert.equal(f.counts.coachRefs, 0, 'the sound-check mic is released');
+    assert.equal(f.stage.querySelector('.canvas-record-coach'), null);
+  } finally { f.cleanup(); }
+});
+
+test('audio with a level hook keeps its own meter: no shell level bar', async () => {
+  const f = setup('audio', true);
+  try {
+    f.button.click(); f.meter.resolve(true); await tick();
+    assert.equal(f.button.dataset.state, 'armed');
+    assert.equal(f.counts.meters, 1); assert.equal(f.counts.coachStarts, 0);
+    assert.equal(f.stage.querySelector('.canvas-record-coach'), null);
+  } finally { f.cleanup(); }
+});
+
+test('audio with no level hook: a refused sound check goes on to the take, which reports the fault', async () => {
+  const f = setup('audio');
+  try {
+    f.button.click(); f.coach.reject(new Error('denied')); await tick();
+    f.start.resolve({ started: false }); await tick();
+    assert.equal(f.takeFacing.length, 1, 'the take was attempted');
+    assert.equal(f.button.dataset.state, 'idle'); assert.equal(f.button.disabled, false);
+  } finally { f.cleanup(); }
 });

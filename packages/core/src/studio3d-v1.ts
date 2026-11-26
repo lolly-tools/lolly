@@ -37,6 +37,10 @@ export interface StudioFinishSpec {
 }
 
 export interface StudioSourceV1 {
+  /**
+   * `glb` is a glTF 2.0 model in either container: the binary .glb, or a .gltf whose
+   * buffers and images are all embedded. The host reads which from the bytes.
+   */
   kind: 'svg' | 'glb' | 'stl' | '3mf' | 'primitive' | 'text';
   id: string;
   url: string;
@@ -245,10 +249,11 @@ export interface StudioSceneV1 {
    * through every key with continuous velocity, `smooth` eases each leg, `linear` does not.
    * The other kinds are camera moves made from the live view: their rows are written
    * into `keys` when the recipe is built, so one evaluator draws every move, and
-   * `amount` (0.25 to 2, default 1) scales how far the move travels.
+   * `amount` (0.25 to 2, default 1) scales how far the move travels. `orbit` is one
+   * whole turn of the camera about the target and ignores `amount`.
    */
   cameraMotion?: {
-    kind: 'still' | 'keys' | 'sweep' | 'pushin' | 'dolly' | 'reveal' | 'crane';
+    kind: 'still' | 'keys' | 'sweep' | 'pushin' | 'dolly' | 'reveal' | 'crane' | 'orbit';
     ease: 'linear' | 'smooth' | 'flow';
     loop: boolean;
     amount?: number;

@@ -14,6 +14,7 @@ import {
   type ForensicViewState,
 } from './valid-forensics-render.ts';
 import { DEFAULT_LAYERS, pageHeat, stepSegment } from './valid-forensics-heat.ts';
+import { STAGE_SHOW_EVENT, type StageShowDetail } from './valid-stage.ts';
 import '../styles/parts/valid-forensics.css';
 const reportStates = new WeakMap<HTMLElement, ForensicViewState>();
 export const forensicStateForReport = (panel: HTMLElement): ForensicViewState | undefined => reportStates.get(panel);
@@ -51,15 +52,46 @@ export function wireForensicVerify(
   observer.observe(root, { childList: true, subtree: true });
   const content = (panel: HTMLElement) =>
     panel.querySelector<HTMLElement>('[data-forensic-content]')!;
+  // The page view (toolbar, image, heat) is drawn in Verify's stage when the report
+  // has one, so a panel's parts live in two places: the panel and its stage host.
+  const stageHost = (panel: HTMLElement) =>
+    root.querySelector<HTMLElement>(`[data-forensic-host="${panel.dataset.forensicIndex}"]`);
+  const find = <T extends Element = HTMLElement>(panel: HTMLElement, selector: string): T | null =>
+    panel.querySelector<T>(selector) ?? stageHost(panel)?.querySelector<T>(selector) ?? null;
+  const findAll = <T extends Element = HTMLElement>(panel: HTMLElement, selector: string): T[] =>
+    [...panel.querySelectorAll<T>(selector), ...(stageHost(panel)?.querySelectorAll<T>(selector) ?? [])];
+  const panelOf = (target: Element | null): HTMLElement | null => {
+    const own = target?.closest<HTMLElement>('[data-forensic-index]');
+    if (own) return own;
+    const host = target?.closest<HTMLElement>('[data-forensic-host]');
+    return host ? root.querySelector<HTMLElement>(`[data-forensic-index="${host.dataset.forensicHost}"]`) : null;
+  };
+  /** Move the freshly painted page view into the stage, or hand the stage back to the plain preview. */
+  const adopt = (panel: HTMLElement) => {
+    const host = stageHost(panel);
+    if (!host) return;
+    const part = panel.querySelector<HTMLElement>('[data-forensic-stagepart]');
+    const shows = !!part?.querySelector('.forensic-preview, .fh-text');
+    if (part && shows) host.replaceChildren(part);
+    else { part?.remove(); host.replaceChildren(); }
+    host.hidden = !shows;
+    // How many findings there are, so the page can stay quiet when there are none.
+    const count = String(states.get(panel)?.collection.report.findings.length ?? 0);
+    panel.dataset.forensicFindings = count;
+    host.dataset.forensicFindings = count;
+    const media = host.parentElement?.querySelector<HTMLElement>('[data-stage-media]');
+    if (media) media.hidden = shows;
+  };
   const paint = (panel: HTMLElement) => {
     const state = states.get(panel);
     if (state && alive && root.contains(panel)) {
       reportStates.set(panel, state);
-      const prior = panel.querySelector('.forensic-preview-scroll');
+      const prior = find(panel, '.forensic-preview-scroll');
       const top = prior?.scrollTop ?? 0,
         left = prior?.scrollLeft ?? 0;
       content(panel).innerHTML = forensicWorkspaceHtml(state);
-      const next = panel.querySelector('.forensic-preview-scroll');
+      adopt(panel);
+      const next = find(panel, '.forensic-preview-scroll');
       if (next) {
         next.scrollTop = top;
         next.scrollLeft = left;
@@ -77,6 +109,7 @@ export function wireForensicVerify(
     running.set(panel, { controller, job: job.id });
     content(panel).innerHTML =
       `<div class="forensic-progress" role="status"><span data-forensic-progress>${t('Waiting to inspect this file…')}</span><button type="button" class="btn" data-forensic="cancel">${t('Cancel inspection')}</button></div>${previous ? forensicWorkspaceHtml(previous) : ''}`;
+    adopt(panel);
     panel.setAttribute('aria-busy', 'true');
     try {
       await job.started;
@@ -86,7 +119,7 @@ export function wireForensicVerify(
         origins: JSON.parse(panel.dataset.forensicOrigins ?? '[]'),
         progress: (done, total) => {
           job.progress(done, total);
-          const label = panel.querySelector('[data-forensic-progress]');
+          const label = find(panel, '[data-forensic-progress]');
           if (label) label.textContent = t('Inspecting pages: {done} of {total}', { done, total });
         },
       });
@@ -117,7 +150,7 @@ export function wireForensicVerify(
             ].slice(-5)
           : [],
       });
-      const initial = panel.querySelector<HTMLElement>(':scope > button');
+      const initial = find<HTMLElement>(panel, ':scope > button');
       if (initial) initial.hidden = true;
       paint(panel);
       job.finish();
@@ -148,7 +181,7 @@ export function wireForensicVerify(
         event.target instanceof Element
           ? event.target.closest<HTMLElement>('[data-forensic]')
           : null,
-      panel = target?.closest<HTMLElement>('[data-forensic-index]');
+      panel = panelOf(target);
     if (!target || !panel) return;
     const action = target.dataset.forensic,
       state = states.get(panel);
@@ -193,7 +226,7 @@ export function wireForensicVerify(
       // Focus stays in the text (or on the page), where the reader is working;
       // the inspector next to the text is announced rather than jumped to.
       const anchor = open
-        ? panel.querySelector<HTMLElement>(
+        ? find<HTMLElement>(panel, 
             open.kind === 'region' ? `[data-forensic="region"][data-region="${open.index}"]` : `.fh-text [data-seg="${open.index}"]`
           )
         : null;
@@ -217,7 +250,7 @@ export function wireForensicVerify(
           state.location
         ]?.page ?? state.page;
       paint(panel);
-      const focus = [...panel.querySelectorAll<HTMLElement>('[data-finding]')].find(
+      const focus = findAll<HTMLElement>(panel, '[data-finding]').find(
         (el) => el.dataset.finding === state.selected && el.closest('.forensic-findings')
       );
       focus?.focus();
@@ -229,14 +262,12 @@ export function wireForensicVerify(
           Number(target.dataset.location)
         ]?.page ?? state.page;
       paint(panel);
-      panel
-        .querySelector('.forensic-region.is-selected')
+      find(panel, '.forensic-region.is-selected')
         ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-      panel
-        .querySelector<HTMLElement>(`[data-forensic="location"][data-location="${state.location}"]`)
+      find<HTMLElement>(panel, `[data-forensic="location"][data-location="${state.location}"]`)
         ?.focus({ preventScroll: true });
     } else if (action === 'annotate') {
-      const kind = panel.querySelector<HTMLSelectElement>('[data-forensic-annotation]')!.value as
+      const kind = find<HTMLSelectElement>(panel, '[data-forensic-annotation]')!.value as
         | 'brand-requirement'
         | 'quoted-example'
         | 'misdetected';
@@ -244,8 +275,7 @@ export function wireForensicVerify(
         reportSha256: state.collection.report.reportSha256,
         finding: state.selected,
         kind,
-        note: panel
-          .querySelector<HTMLTextAreaElement>('[data-forensic-note]')!
+        note: find<HTMLTextAreaElement>(panel, '[data-forensic-note]')!
           .value.slice(0, 1000),
       });
       state.message = t('Review note saved with this assessment.');
@@ -275,7 +305,7 @@ export function wireForensicVerify(
   }
   async function change(event: Event): Promise<void> {
     const target = event.target as HTMLInputElement,
-      panel = target.closest<HTMLElement>('[data-forensic-index]');
+      panel = panelOf(target);
     if (!panel) return;
     const state = states.get(panel);
     if (!state) return;
@@ -341,14 +371,13 @@ export function wireForensicVerify(
     } else return;
     paint(panel);
     if (target.matches('[data-forensic-filter]'))
-      panel.querySelector<HTMLElement>('[data-forensic-filter]')?.focus({ preventScroll: true });
+      find<HTMLElement>(panel, '[data-forensic-filter]')?.focus({ preventScroll: true });
     if (target.matches('[data-forensic-page]'))
-      panel.querySelector<HTMLElement>('[data-forensic-page]')?.focus({ preventScroll: true });
+      find<HTMLElement>(panel, '[data-forensic-page]')?.focus({ preventScroll: true });
     if (target.matches('[data-forensic-overlays]'))
-      panel.querySelector<HTMLElement>('[data-forensic-overlays]')?.focus({ preventScroll: true });
+      find<HTMLElement>(panel, '[data-forensic-overlays]')?.focus({ preventScroll: true });
     if (target.matches('[data-forensic-layer]'))
-      panel
-        .querySelector<HTMLElement>(`[data-forensic-layer="${target.dataset.forensicLayer}"]`)
+      find<HTMLElement>(panel, `[data-forensic-layer="${target.dataset.forensicLayer}"]`)
         ?.focus({ preventScroll: true });
   }
   const onClick = (event: Event) => {
@@ -360,15 +389,16 @@ export function wireForensicVerify(
   const onInput = (event: Event) => {
     const target = event.target as HTMLInputElement;
     if (target.matches('[data-forensic-zoom]')) {
-      const panel = target.closest<HTMLElement>('[data-forensic-index]');
+      const panel = panelOf(target);
       const state = panel && states.get(panel);
       if (state) state.zoom = Number(target.value);
-      const output = panel?.querySelector('[data-forensic-zoom-value]');
+      const output = panel && find(panel, '[data-forensic-zoom-value]');
       if (output) output.textContent = `${target.value}%`;
-      const preview = target
-        .closest('[data-forensic-index]')
-        ?.querySelector<HTMLElement>('.forensic-preview');
-      if (preview) preview.style.width = `${target.value}%`;
+      const preview = panel && find(panel, '.forensic-preview');
+      if (preview) {
+        preview.style.width = `${target.value}%`;
+        preview.classList.toggle('is-fit', Number(target.value) === 100);
+      }
     }
   };
   // A lit sentence is a span with role=button, so Enter and Space must open the sentence too.
@@ -383,6 +413,18 @@ export function wireForensicVerify(
       target.click();
     }
   };
+  // Pressing the AI finding shows the evidence on the asset: regions and heat on.
+  const onStageShow = (event: Event) => {
+    const detail = (event as CustomEvent<StageShowDetail>).detail;
+    if (detail?.finding !== 'ai') return;
+    const panel = root.querySelector<HTMLElement>(`[data-forensic-index="${detail.fileIndex}"]`);
+    const state = panel && states.get(panel);
+    if (!panel || !state) return;
+    state.overlays = true;
+    state.layers = { ...(state.layers ?? DEFAULT_LAYERS), heat: true };
+    paint(panel);
+  };
+  root.addEventListener(STAGE_SHOW_EVENT, onStageShow);
   root.addEventListener('click', onClick);
   root.addEventListener('change', onChange);
   root.addEventListener('input', onInput);
@@ -391,6 +433,7 @@ export function wireForensicVerify(
     alive = false;
     observer.disconnect();
     for (const panel of new Set([...states.keys(), ...running.keys()])) dispose(panel);
+    root.removeEventListener(STAGE_SHOW_EVENT, onStageShow);
     root.removeEventListener('click', onClick);
     root.removeEventListener('change', onChange);
     root.removeEventListener('input', onInput);

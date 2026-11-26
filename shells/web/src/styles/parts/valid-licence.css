@@ -1,0 +1,41 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+@layer views {
+  /* The licence band: declared terms, first in Verify's findings column. Drawn
+     calmly: a licence with conditions is not a warning, and no state is green. */
+  .vl-band { display: grid; gap: var(--sp-5); min-width: 0; }
+  .vl-head { display: flex; align-items: center; gap: var(--ui-space-control-inline); margin: 0; font-size: var(--ui-type-body); font-weight: 650; }
+  .vl-head svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); color: var(--ui-color-text-muted); }
+
+  .vl-statements { display: grid; gap: var(--ui-space-panel); }
+  .vl-statement { display: grid; gap: var(--sp-3); min-width: 0; }
+  .vl-name { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); margin: 0; }
+  .vl-name strong { font-size: var(--ui-type-heading); line-height: 1.15; letter-spacing: var(--ui-type-tracking-tight); overflow-wrap: anywhere; }
+  /* A statement that names no known licence is a sentence, so it reads at body size. */
+  .vl-name:not(:has(.vl-marks)) strong { font-size: var(--ui-type-title); font-weight: 600; }
+
+  /* Creative Commons element marks: the licence's own abbreviations, in the ink colour. */
+  .vl-marks { display: inline-flex; gap: var(--sp-1); }
+  .vl-mark {
+    display: inline-grid; place-items: center;
+    min-width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs));
+    padding-inline: var(--sp-1);
+    border: 1.5px solid currentColor; border-radius: var(--ui-radius-choice-round);
+    font-size: var(--fs-2xs); font-weight: 700; letter-spacing: 0.02em; line-height: 1;
+  }
+
+  .vl-conditions { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--sp-1); font-size: var(--ui-type-body); }
+  .vl-quiet { margin: 0; color: var(--ui-color-text-muted); font-size: var(--ui-type-label); }
+  .vl-disagree { margin: 0; font-weight: 600; }
+
+  .vl-where { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-5); font-size: var(--ui-type-label); color: var(--ui-color-text-muted); }
+  .vl-where li { display: inline-flex; align-items: baseline; gap: var(--sp-2); min-width: 0; }
+  .vl-source { overflow-wrap: anywhere; }
+  .vl-link, .vl-actions, .vl-sources { margin: 0; }
+  .vl-actions .btn { display: inline-flex; align-items: center; gap: var(--sp-2); }
+  .vl-sources { font-size: var(--ui-type-label); }
+
+  .vl-who { margin: 0; display: flex; flex-wrap: wrap; gap: var(--sp-3) var(--ui-space-panel); }
+  .vl-who div { display: grid; gap: var(--sp-1); min-width: 0; }
+  .vl-who dt { color: var(--ui-color-text-muted); font-size: var(--ui-type-label); }
+  .vl-who dd { margin: 0; overflow-wrap: anywhere; }
+}
