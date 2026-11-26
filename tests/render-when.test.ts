@@ -13,11 +13,14 @@ import { loadTool, type ToolManifest } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { parseUrlState } from '../engine/src/url-mode.ts';
 import type { HostV1 } from '../engine/src/bridge/host-v1.ts';
+import type { RenderSpec } from '@lolly-tools/core';
 
+type RenderBlock = Pick<RenderSpec, 'when'> & { formats: string[]; width: number; height: number; actions: string[] } & Record<string, unknown>;
 const SET = { export: false, webPreview: true, actions: [] as string[] };
 const manifest = (when?: unknown, extra: Record<string, unknown> = {}) => ({
   id: 'two-modes', name: 'Two modes', version: '1.0.0', engineVersion: '>=1.356.0', status: 'community',
-  render: { formats: ['svg', 'png'], width: 100, height: 100, actions: ['copy', 'download', 'save'], ...extra, ...(when === undefined ? {} : { when }) },
+  // `when` arrives as written in a manifest, malformed cases included, so the block is typed as the engine reads it.
+  render: { formats: ['svg', 'png'], width: 100, height: 100, actions: ['copy', 'download', 'save'], ...extra, ...(when === undefined ? {} : { when }) } as RenderBlock,
   inputs: [
     { id: 'mode', type: 'select', default: 'make', options: [{ value: 'make', label: 'Make' }, { value: 'scan', label: 'Scan' }, { value: 'read', label: 'Read' }] },
     { id: 'title', type: 'text', default: 'Hello' },
@@ -132,10 +135,10 @@ test('a list of values matches any one of them', () => {
 });
 
 test('an unknown input id never matches, whatever the values hold', () => {
-  const keyed = { ...manifest().render, when: { input: 'nope', value: 'scan', set: SET } };
+  const keyed = { ...manifest().render, when: { input: 'nope', value: 'scan', set: SET } } as RenderBlock;
   assert.equal(resolveRender(keyed, { mode: 'scan' }), keyed);
   // Not even a value of `undefined` against a missing key.
-  const odd = { ...manifest().render, when: { input: 'nope', value: undefined as unknown as string, set: SET } };
+  const odd = { ...manifest().render, when: { input: 'nope', value: undefined as unknown as string, set: SET } } as RenderBlock;
   assert.equal(resolveRender(odd, { mode: 'scan' }), odd);
 });
 
