@@ -5,6 +5,9 @@ import { THREE_MF_UPLOAD_LIMIT } from '../three-mf.ts';
 import { loadThreeMf } from './three-mf.ts';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
+import { clone as cloneWithSkeletons } from 'three/addons/utils/SkeletonUtils.js';
+import { studioClipSampleTimes } from '../../../../../engine/src/studio3d.ts';
+import { measureStudioClip, type StudioClipBounds, studioDeforms } from './clip.ts';
 import { extrudeStudioShape, studioChordTolerance } from './geometry.ts';
 import { inspectedGlb, MODEL_MAX_BYTES } from '../gltf-container.ts';
 import { makeGeomApi } from '../../../../../engine/src/geom-api.ts';
@@ -18,6 +21,18 @@ export interface StudioAsset {
   object: THREE.Group;
   info: StudioSourceInfo;
   originals: Map<THREE.Mesh, THREE.Material | THREE.Material[]>;
+  /**
+   * The baked clip this source plays, its length, and the bounds of the model over the
+   * whole clip. Present on a glTF model whose recipe asks for a clip and whose file
+   * holds one. The clip is read only: every placed copy poses bones of its own.
+   */
+  clip?: { clip: THREE.AnimationClip; seconds: number; bounds: StudioClipBounds };
+  /**
+   * Pose this placed copy at a moment of its clip, in seconds. Present on a copy of a
+   * source that plays one. The pose belongs to the copy: no other copy and no cached
+   * source moves when this one does.
+   */
+  pose?(seconds: number): void;
   dispose(): void;
 }
 export type StudioRead = (url: string, signal: AbortSignal) => Promise<Uint8Array>;
@@ -71,17 +86,58 @@ export async function studioTextSvg(
  * the copy owns only its transform and its material assignments, which it restores on dispose.
  */
 export function instantiateStudioAsset(asset: StudioAsset): StudioAsset {
-  const object = asset.object.clone(true);
+  // A skinned mesh is drawn where its bones are. A plain clone keeps the source's bones,
+  // which are in no scene and never move, so the copy would ignore its own placement.
+  // This clone gives the copy bones of its own; a model without a skeleton clones as before.
+  const object = cloneWithSkeletons(asset.object) as THREE.Group;
   const originals = new Map<THREE.Mesh, THREE.Material | THREE.Material[]>();
+  const skeletons = new Set<THREE.Skeleton>();
   object.traverse((node) => {
-    if (node instanceof THREE.Mesh) originals.set(node, node.material);
+    if (!(node instanceof THREE.Mesh)) return;
+    originals.set(node, node.material);
+    if (node instanceof THREE.SkinnedMesh) skeletons.add(node.skeleton);
   });
+  const playing = asset.clip;
+  let mixer: THREE.AnimationMixer | null = null;
+  let pose: ((seconds: number) => void) | undefined;
+  if (playing) {
+    // Every question about this copy's size is answered from the whole clip (clip.ts).
+    object.userData.studioClipBounds = playing.bounds;
+    const deforming: THREE.Mesh[] = [];
+    for (const mesh of originals.keys())
+      if (studioDeforms(mesh)) {
+        // three culls a deforming mesh by the sphere of the pose it was first drawn in.
+        mesh.frustumCulled = false;
+        deforming.push(mesh);
+      }
+    const own = new THREE.AnimationMixer(object);
+    own.clipAction(playing.clip).play();
+    mixer = own;
+    pose = (seconds) => {
+      // setTime starts from zero every call, so the pose is a function of `seconds` alone.
+      own.setTime(seconds);
+      // A ray is tested against a sphere three keeps from an earlier pose. Dropped here,
+      // three measures a new one the next time a ray asks (the types leave out the null
+      // three itself starts a skinned mesh with).
+      for (const mesh of deforming)
+        if (mesh instanceof THREE.SkinnedMesh)
+          (mesh as { boundingSphere: THREE.Sphere | null }).boundingSphere = null;
+    };
+    pose(0);
+  }
   return {
     object,
     originals,
     info: asset.info,
+    ...(pose ? { pose } : {}),
     dispose: () => {
       for (const [mesh, material] of originals) mesh.material = material;
+      if (mixer) {
+        mixer.stopAllAction();
+        mixer.uncacheRoot(object);
+      }
+      // The copy's skeletons hold a bone texture each once they have been drawn.
+      for (const skeleton of skeletons) skeleton.dispose();
       object.removeFromParent();
     },
   };
@@ -355,6 +411,7 @@ export async function loadStudioSource(
   await useDefaultGeometry();
   let raw = new THREE.Group();
   let info: StudioSourceInfo = { slots: [], triangles: 0, warnings: [] };
+  let animations: THREE.AnimationClip[] = [];
   // Without a target the geometry is built for the studio's own preview frame.
   const pixels = target?.pixels ?? STUDIO_PREVIEW_PIXELS;
   try {
@@ -441,10 +498,7 @@ export async function loadStudioSource(
           ''
         );
         raw.add(gltf.scene);
-        if (gltf.animations.length)
-          info.warnings.push(
-            'The studio uses the model pose at import. Baked animation clips are not played.'
-          );
+        animations = gltf.animations;
       }
     }
     signal.throwIfAborted();
@@ -502,19 +556,56 @@ export async function loadStudioSource(
         `Model spans ${units(size.x)} by ${units(size.y)} by ${units(size.z)} ${scene.source.kind === '3mf' ? 'millimeters' : 'units'} in its file; shown at 3.25 studio units.`
       );
     }
-    if (
-      scene.source.kind !== 'svg' &&
-      !(scene.source.kind === 'primitive' && scene.source.primitive === 'badge')
-    )
-      raw.scale.multiplyScalar(3.25 / span);
-    const centered = new THREE.Box3().setFromObject(raw).getCenter(new THREE.Vector3());
-    raw.position.sub(centered);
+    // A model that plays a clip is sized and centred by the whole clip, measured once at
+    // fixed moments. No single frame decides how large the model is or where the model rests.
+    let clip: StudioAsset['clip'];
+    if (animations.length) {
+      info.clips = animations.map((each) => ({
+        name: each.name,
+        seconds: Math.round(each.duration * 1000) / 1000,
+      }));
+      const count = animations.length;
+      const wanted = scene.source.clip;
+      if (wanted) {
+        const index = wanted.index % count;
+        const chosen = animations[index]!;
+        const measured = measureStudioClip(raw, chosen, studioClipSampleTimes(chosen.duration));
+        const whole = measured.union();
+        const wholeSpan = Math.max(...whole.getSize(new THREE.Vector3()).toArray());
+        if (!Number.isFinite(wholeSpan) || wholeSpan < 1e-9)
+          throw new Error('The model has no measurable size while its animation plays.');
+        const factor = 3.25 / wholeSpan;
+        const offset = whole.getCenter(new THREE.Vector3()).multiplyScalar(-factor);
+        raw.scale.multiplyScalar(factor);
+        raw.position.copy(offset);
+        clip = { clip: chosen, seconds: chosen.duration, bounds: measured.placed(factor, offset) };
+        info.playing = index;
+        info.warnings.push(
+          `Model animation: playing ${chosen.name ? `"${chosen.name}"` : 'the clip'} (clip ${index}, counted from zero, of ${count} in the file), ${info.clips[index]!.seconds} seconds long. The clip runs at its own speed and repeats for the length of the loop.`
+        );
+      } else
+        info.warnings.push(
+          count === 1
+            ? 'This model holds one animation clip. Turn on Play model animation under Motion to play the clip.'
+            : `This model holds ${count} animation clips. Turn on Play model animation under Motion to play one.`
+        );
+    }
+    if (!clip) {
+      if (
+        scene.source.kind !== 'svg' &&
+        !(scene.source.kind === 'primitive' && scene.source.primitive === 'badge')
+      )
+        raw.scale.multiplyScalar(3.25 / span);
+      const centered = new THREE.Box3().setFromObject(raw).getCenter(new THREE.Vector3());
+      raw.position.sub(centered);
+    }
     const object = new THREE.Group();
     object.add(raw);
     return {
       object,
       originals,
       info,
+      ...(clip ? { clip } : {}),
       dispose: () => {
         for (const [mesh, material] of originals) mesh.material = material;
         disposeObject(object);

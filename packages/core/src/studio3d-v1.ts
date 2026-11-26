@@ -56,6 +56,19 @@ export interface StudioSourceV1 {
     lineHeight: number;
     align: 'left' | 'center' | 'right';
   };
+  /**
+   * Play one of a glTF model's baked animation clips. `index` counts from zero and wraps
+   * round the number of clips the file holds. Absent, the model holds the pose it was
+   * imported in, which is how every recipe made before clips could play reads. Only a
+   * `glb` source carries one, and a file with no clips ignores the request.
+   */
+  clip?: { index: number };
+}
+
+/** One baked animation clip a model file holds: its own name and its length in seconds. */
+export interface StudioClipInfo {
+  name: string;
+  seconds: number;
 }
 
 /** One subject inside an arrangement. Its id is stable across edits so saved overrides survive reordering. */
@@ -295,6 +308,10 @@ export interface StudioSourceInfo {
    * drawn to fit and carry no size of their own.
    */
   bounds?: { x: number; y: number; z: number; span: number };
+  /** The baked animation clips a glTF model holds, in file order; absent when there are none. */
+  clips?: StudioClipInfo[];
+  /** The index in `clips` of the clip this source plays; absent when the model holds its pose. */
+  playing?: number;
 }
 
 /**

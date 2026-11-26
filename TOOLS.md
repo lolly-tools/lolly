@@ -3,11 +3,10 @@
 Every tool in the gallery, in alphabetical order. [Open Lolly](https://lolly.tools) to use one, or go back to the [README](README.md).
 
 <!-- tools-table:start -->
-The Lolly Start (blank brand) catalog ships **75 tools** today - 61 listed in the gallery, plus 14 unlisted tools (Asset Export, Battlecards, Brief, Calendar, Email, Flow Chart, Meeting Planner, Pricing, Sales Quote, Scan, Scorecard, Theme swap, Voice Recorder, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
+The Lolly Start (blank brand) catalog ships **75 tools** today - 60 listed in the gallery, plus 15 unlisted tools (3D, Asset Export, Battlecards, Brief, Calendar, Email, Flow Chart, Meeting Planner, Pricing, Sales Quote, Scan, Scorecard, Theme swap, Voice Recorder, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|
-| 3D | Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation. |
 | 3D Studio | Turn SVG artwork and 3D models into images, alone or together in one scene. Shape materials, lighting, focus and shadows. |
 | Agenda | Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars. |
 | Annotate | Mark up your own screenshot on your device - arrows, boxes, numbered steps, callouts, highlighter and a spotlight dim. |

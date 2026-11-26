@@ -146,7 +146,7 @@ A `vector` input is a fixed group of numbers edited as one control, such as a zo
 ?imageFraming.zoom=200&imageFraming.x=30&imageFraming.y=70
 ```
 
-Tools such as `frame`, `darkroom`, `filter`, `3d` and `gradient` use vector inputs. Mesh Gradient places each colour stop with one, so adding `?pos1.x=8&pos1.y=8&pos2.x=92&pos2.y=12&pos3.x=50&pos3.y=94` to the gradient above moves its three blooms out to the edges:
+Tools such as `frame`, `darkroom`, `filter`, `3d-studio` and `gradient` use vector inputs. Mesh Gradient places each colour stop with one, so adding `?pos1.x=8&pos1.y=8&pos2.x=92&pos2.y=12&pos3.x=50&pos3.y=94` to the gradient above moves its three blooms out to the edges:
 
 ![The coral, amber and violet gradient again, this time with each bloom pinned to an edge by its own dotted x and y param](/t/url-shot?url=%2F%23%2Ftool%2Fgradient%3Fcount%3D3%26blend%3Dnormal%26color1%3D%2523ff5f6d%26color2%3D%2523ffc371%26color3%3D%25236a11cb%26pos1.x%3D8%26pos1.y%3D8%26pos2.x%3D92%26pos2.y%3D12%26pos3.x%3D50%26pos3.y%3D94&width=880&height=560&dpi=96&waitMs=2400&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=um-vector-positions)
 

@@ -167,6 +167,199 @@ export function voiceRecorderToAudiogram(values: Values): Values {
   };
 }
 
+const record = (value: unknown): Values => (value && typeof value === 'object' && !Array.isArray(value) ? (value as Values) : {});
+const flag = (value: unknown, fallback: boolean): boolean =>
+  value === true || value === 'true' ? true : value === false || value === 'false' ? false : fallback;
+const round3 = (value: number): number => Math.round(value * 1000) / 1000;
+const radians = (degrees: number): number => (degrees * Math.PI) / 180;
+const degrees = (rad: number): number => (rad * 180) / Math.PI;
+/** An angle folded into -180 to 180, the range 3D Studio's sliders hold. */
+const fold180 = (angle: number): number => round3(((((angle + 180) % 360) + 360) % 360) - 180);
+
+const fields = (id: string, group: Record<string, number>): Values =>
+  Object.fromEntries(Object.entries(group).map(([field, value]) => [`${id}.${field}`, value]));
+
+/** The longest side a model is drawn at in 3D Studio, in studio units. */
+const STUDIO_SPAN = 3.25;
+/** How far 3D Studio's camera stands from its target at zoom 1. */
+const STUDIO_DISTANCE = 11.3;
+/**
+ * The height of each 3D sample model as a share of its longest side, measured from the
+ * file. 3D aimed its camera at the middle of the model; 3D Studio stands the model on the
+ * floor and aims at a height, so the height is what places the target.
+ */
+export const THREE_D_SAMPLE_HEIGHT: Record<string, number> = { duck: 0.8954, cat: 0.5691 };
+
+/**
+ * 3D's seven lighting scenes as the nearest 3D Studio settings. 3D Studio has four rigs
+ * of three lights and no hemisphere light or coloured point lights, so none of these is
+ * the same picture; each keeps what its scene was known for.
+ */
+export const THREE_D_SCENES: Record<string, Values> = {
+  // Low contrast with a bright fill: Soft cuts the key and lifts the fill.
+  'soft-glow': { studio: 'soft', environment: 'room' },
+  // One white key and an even fill: Dramatic with the contrast turned well down.
+  plain: { studio: 'dramatic', drama: 0.35, environment: 'room' },
+  // A warm sun under a cool sky. Seen side by side, Warm with the window environment came out dark
+  // orange; Soft with a faintly warm key in the gallery keeps the bright, warm picture.
+  natural: { studio: 'soft', environment: 'gallery', keyColor: '#fff1dc' },
+  // A strong key with a clear fill. Seen side by side, Dramatic was too dark and the studio
+  // environment cast green; Soft in the gallery keeps the bright, even picture.
+  'bright-studio': { studio: 'soft', environment: 'gallery' },
+  // A hard key over a dark room: the most contrast Dramatic has. Its blue fill is not kept.
+  'serious-studio': { studio: 'dramatic', drama: 1, environment: 'room' },
+  // Coloured lights on a gradient: Electric is the one rig with a coloured fill. The magenta light is not kept.
+  'fun-gradient': { studio: 'electric', drama: 0.4, environment: 'room' },
+  // A green key: Dramatic with the key light in the same green.
+  'suse-green': { studio: 'dramatic', drama: 0.5, environment: 'room', keyColor: '#8ff0c0' },
+};
+
+/** 3D turned a model yaw first, then pitch, then roll; 3D Studio turns x, then y, then z. The same pose in 3D Studio's order. */
+export function threeDRotation(pitch: number, yaw: number, roll: number): { x: number; y: number; z: number } {
+  const [cx, sx, cy, sy, cz, sz] = [pitch, yaw, roll].flatMap((angle) => [Math.cos(radians(angle)), Math.sin(radians(angle))]) as [number, number, number, number, number, number];
+  const m11 = cy * cz + sy * sx * sz, m12 = sy * sx * cz - cy * sz, m13 = sy * cx;
+  const m22 = cx * cz, m23 = -sx, m32 = sy * sz + cy * sx * cz, m33 = cy * cx;
+  const y = Math.asin(clamp(m13, -1, 1));
+  const free = Math.abs(m13) < 0.9999999;
+  const x = free ? Math.atan2(-m23, m33) : Math.atan2(m32, m22);
+  const z = free ? Math.atan2(-m12, m11) : 0;
+  // Adding zero turns a negative zero into zero, so a model that was not turned carries 0.
+  return { x: round3(degrees(x)) + 0, y: round3(degrees(y)) + 0, z: round3(degrees(z)) + 0 };
+}
+
+/**
+ * 3D into 3D Studio. Only a sample model travels: an uploaded model lived in memory and
+ * was never part of a saved document. The camera is carried as the place it stood, worked
+ * out from the two tools' own framing rules (3D stood `0.8 * size / tan(fov / 2) / zoom`
+ * from the model, 3D Studio stands `11.3 / zoom` from its target, and both draw a model
+ * 3.25 studio units across here). Every camera move but the whole turn becomes camera
+ * keys, because keys can hold 3D's exact start and end views where 3D Studio's own moves
+ * travel different distances. The lighting scene becomes the nearest rig
+ * (`THREE_D_SCENES`). Pure, exported for tests.
+ */
+export function threeDToStudio(values: Values): Values {
+  const sample = text(values.model) === 'cat' ? 'cat' : 'duck';
+  const cam = record(values.camera), rot = record(values.modelRotate), mov = record(values.modelTranslate);
+  const scale = clamp(num(record(values.modelScale).scale, 1), 0.1, 5);
+  const baseFov = clamp(num(cam.fov, 45), 20, 90);
+  const lens = (fov: number): number => round3(clamp(fov, 15, 80));
+  // The camera keeps its distance: 3D measured it with the pose's own lens, whatever a key's lens was.
+  const zoomOf = (zoom: number): number =>
+    round3(clamp((STUDIO_DISTANCE * Math.tan(radians(baseFov) / 2) * Math.max(0.1, zoom)) / (0.8 * STUDIO_SPAN), 0.05, 3));
+  const panOf = (pan: number): number => round3(clamp(pan, -1, 1) * STUDIO_SPAN * 0.5);
+  const targetY = round3((STUDIO_SPAN * THREE_D_SAMPLE_HEIGHT[sample]! * scale) / 2);
+  const base = {
+    azimuth: fold180(num(cam.rotation, 35)),
+    elevation: round3(clamp(num(cam.tilt, 12), -60, 80)),
+    fov: lens(baseFov),
+    zoom: zoomOf(num(cam.zoom, 1.3)),
+    pan: panOf(num(cam.pan, 0)),
+  };
+  type View = { azimuth: number; elevation: number; fov: number; zoom: number; pan: number };
+  const key = (at: number, view: View): Values => ({
+    at: round3(clamp(at, 0, 100)), azimuth: round3(view.azimuth), elevation: view.elevation, fov: view.fov, zoom: view.zoom,
+    panX: view.pan, panY: targetY, panZ: 0, focusDistance: 0,
+  });
+  const seconds = clamp(num(values.duration, 5), 1, 30);
+  const loop = flag(values.loop, true);
+  const ease = text(values.easing) === 'linear' ? 'linear' : 'smooth';
+  const move = text(values.cameraMove) || 'orbit';
+  const oldZoom = num(cam.zoom, 1.3);
+  // Looping, 3D ran every move there and back at a constant speed and ignored the easing.
+  const thereAndBack = (from: View, to: View): Values =>
+    loop
+      ? { cameraMotion: 'keys', cameraKeys: [key(0, from), key(50, to), key(100, from)], cameraEase: 'linear', cameraLoop: true }
+      : { cameraMotion: 'keys', cameraKeys: [key(0, from), key(100, to)], cameraEase: ease, cameraLoop: false };
+  let motion: Values = { cameraMotion: 'still' };
+  let duration = seconds;
+  if (move === 'orbit') motion = { cameraMotion: 'orbit', cameraEase: loop ? 'linear' : ease, cameraLoop: loop };
+  else if (move === 'arc') motion = thereAndBack({ ...base, azimuth: base.azimuth - 45 }, { ...base, azimuth: base.azimuth + 45 });
+  else if (move === 'dolly-in') motion = thereAndBack({ ...base, zoom: zoomOf(oldZoom * 0.6) }, { ...base, zoom: zoomOf(oldZoom * 1.2) });
+  else if (move === 'dolly-out') motion = thereAndBack({ ...base, zoom: zoomOf(oldZoom * 1.2) }, { ...base, zoom: zoomOf(oldZoom * 0.6) });
+  else if (move === 'push-in')
+    motion = thereAndBack(
+      { ...base, zoom: zoomOf(oldZoom * 0.6), fov: lens(baseFov * 1.15) },
+      { ...base, zoom: zoomOf(oldZoom * 1.35), fov: lens(baseFov * 0.9) },
+    );
+  else if (move === 'custom') {
+    const rows = (Array.isArray(values.cameraKeyframes) ? values.cameraKeyframes : [])
+      .map((row) => record(row))
+      .map((row) => ({
+        time: num(row.time, 0),
+        linear: text(row.easing) === 'linear',
+        view: {
+          azimuth: clamp(num(row.rotation, 0), -720, 720),
+          elevation: round3(clamp(num(row.tilt, 12), -60, 80)),
+          fov: lens(num(row.fov, 45)),
+          zoom: zoomOf(num(row.zoom, 1)),
+          pan: panOf(num(row.pan, 0)),
+        },
+      }))
+      .sort((a, b) => a.time - b.time);
+    const first = rows[0], last = rows[rows.length - 1];
+    const span = first && last ? last.time - first.time : 0;
+    // One easing for the whole path: linear only when every leg was.
+    const pathEase = rows.slice(1).every((row) => row.linear) ? 'linear' : 'smooth';
+    if (first && rows.length === 1) {
+      // One key was a held view, so the view is the camera.
+      Object.assign(base, first.view, { azimuth: fold180(first.view.azimuth) });
+    } else if (first && span > 0 && loop && rows.length * 2 - 1 <= 12) {
+      // Looping, 3D ran the path there and back inside its own length.
+      duration = clamp(span, 1, 30);
+      const forward = rows.map((row) => key(((row.time - first.time) / span) * 50, row.view));
+      const back = rows.slice(0, -1).reverse().map((row) => key(100 - ((row.time - first.time) / span) * 50, row.view));
+      motion = { cameraMotion: 'keys', cameraKeys: [...forward, ...back], cameraEase: pathEase, cameraLoop: true };
+    } else if (first && span > 0) {
+      // Played once, in its own time, then held: key times become shares of the loop.
+      const length = loop ? clamp(span, 1, 30) : seconds;
+      if (loop) duration = length;
+      motion = {
+        cameraMotion: 'keys',
+        cameraKeys: rows.slice(0, 12).map((row) => key(((row.time - first.time) / length) * 100, row.view)),
+        cameraEase: pathEase,
+        cameraLoop: loop,
+      };
+    }
+  }
+  const transparent = flag(values.transparentBg, true);
+  const shadows = flag(values.shadows, true);
+  const scene = text(values.scene) || 'soft-glow';
+  const gradient = scene === 'fun-gradient';
+  const tinted = flag(values.applyTint, false) && text(values.tint);
+  return {
+    source: 'model',
+    modelAsset: `lolly/3d/${sample}`,
+    ...(THREE_D_SCENES[scene] ?? THREE_D_SCENES['soft-glow']),
+    // Both tools' own starting strengths are taken as the same light: 1 in 3D, 0.4 here.
+    environmentIntensity: round3(clamp(num(values.envIntensity, 1) * 0.4, 0, 3)),
+    environmentRotation: fold180(num(values.envRotation, 0)),
+    exposure: round3(clamp(num(values.exposure, 1), 0.1, 4)),
+    // On transparency 3D still drew the contact shadow, which is 3D Studio's object with shadow.
+    outputMode: transparent ? (shadows ? 'object-shadow' : 'object') : 'scene',
+    backdrop: gradient ? 'gradient' : 'solid',
+    ...(text(values.background) ? { background: text(values.background) } : {}),
+    ...(gradient && text(values.bgColor2) ? { background2: text(values.bgColor2), backdropStrength: 1 } : {}),
+    shadowOpacity: shadows ? 0.28 : 0,
+    // 3D replaced every surface colour with the tint; a colour pair of one colour does the same.
+    ...(tinted ? { materialMode: 'pair', colorA: tinted, colorB: tinted, finishA: 'satin', finishB: 'satin' } : { materialMode: 'source' }),
+    // A group of numbers travels in a link one field at a time, as `camera.zoom=2`.
+    ...fields('camera', { azimuth: base.azimuth, elevation: base.elevation, fov: base.fov, zoom: base.zoom, panX: base.pan, panY: 0, panZ: 0 }),
+    ...fields('target', { x: 0, y: targetY, z: 0 }),
+    ...fields('rotation', threeDRotation(num(rot.pitch, 0), num(rot.yaw, 0), num(rot.tilt, 0))),
+    ...fields('position', {
+      x: round3(clamp(num(mov.x, 0) * STUDIO_SPAN, -5, 5)),
+      y: round3(clamp(num(mov.y, 0) * STUDIO_SPAN, -5, 5)),
+      z: round3(clamp(num(mov.z, 0) * STUDIO_SPAN, -5, 5)),
+    }),
+    ...fields('transform', { scale: round3(scale) }),
+    motion: 'still',
+    ...motion,
+    duration,
+    playClip: flag(values.playClip, true),
+    clipIndex: Math.round(clamp(num(values.clipIndex, 0), 0, 12)),
+  };
+}
+
 /** The three places Scan read a code from. */
 const SCAN_SOURCES = ['camera', 'image', 'paste'];
 
@@ -191,6 +384,7 @@ const CARRY: Record<string, Carry> = {
   'org-chart': flowChartToDesign,
   'scan-code': scanToQrCode,
   'voice-recorder': voiceRecorderToAudiogram,
+  '3d': threeDToStudio,
 };
 
 /** The successor's address for a document open in the retired tool `from`. Lists and

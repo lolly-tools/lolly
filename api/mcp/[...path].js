@@ -4279,7 +4279,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.356.0";
+    ENGINE_VERSION = "1.357.0";
   }
 });
 
@@ -139034,6 +139034,11 @@ function buildStudioScene(input) {
     text: v.words,
     settings: textSettings(v)
   });
+  if (enabled3(v.playClip)) {
+    const clip4 = { index: Math.round(number7(v.clipIndex, 0, 0, STUDIO_CLIP_INDEX_MAX)) };
+    for (const each of [source, ...objects.map((object4) => object4.source)])
+      if (each.kind === "glb") each.clip = clip4;
+  }
   const primary = color2(v.colorA, "#38b98a"), secondary = color2(v.colorB, "#173d37");
   const keyColor = color2(v.keyColor, "#d9fff1"), fillColor = color2(v.fillColor, primary), rimColor = color2(v.rimColor, primary);
   const coolColor = color2(v.coolColor, "#426dff");
@@ -139297,12 +139302,28 @@ function studioLightMotion(scene, time2, clipSeconds) {
     strength: motion.kind === "breathe" ? 1 - (1 - Math.cos(phase * 2 * Math.PI)) * motion.amount * 0.35 : 1
   };
 }
+function studioWantsClip(scene) {
+  return [scene.source, ...(scene.objects ?? []).map((object4) => object4.source)].some(
+    (source) => source.kind === "glb" && !!source.clip
+  );
+}
+function studioClipSeconds(scene, time2, clipSeconds, length2) {
+  if (!Number.isFinite(length2) || length2 <= 0) return 0;
+  const elapsed2 = Number.isFinite(time2) ? Math.max(0, time2) * (clipSeconds && clipSeconds > 0 ? clipSeconds : scene.motion.seconds) : 0;
+  const wrapped = elapsed2 - Math.floor(elapsed2 / length2) * length2;
+  return wrapped >= 0 && wrapped < length2 ? wrapped : 0;
+}
+function studioClipSampleTimes(length2, steps = STUDIO_CLIP_BOUND_STEPS) {
+  if (!Number.isFinite(length2) || length2 <= 0) return [0];
+  const count4 = Math.max(1, Math.min(240, Math.round(steps)));
+  return Array.from({ length: count4 + 1 }, (_, i) => i / count4 * length2);
+}
 function studioTime(scene, time2, clipSeconds) {
   if (scene.motion.kind === "still") return 0;
   const seconds3 = Number.isFinite(time2) ? Math.max(0, time2) * (clipSeconds && clipSeconds > 0 ? clipSeconds : scene.motion.seconds) : 0;
   return seconds3 / scene.motion.seconds * scene.motion.degrees * Math.PI / 180;
 }
-var STUDIO_FINISHES, FINISHES, STUDIO_CAMERA_KEY_NAME_LIMIT;
+var STUDIO_FINISHES, FINISHES, STUDIO_CAMERA_KEY_NAME_LIMIT, STUDIO_CLIP_INDEX_MAX, STUDIO_CLIP_BOUND_STEPS;
 var init_studio3d = __esm({
   "engine/src/studio3d.ts"() {
     "use strict";
@@ -139328,6 +139349,8 @@ var init_studio3d = __esm({
     ];
     FINISHES = STUDIO_FINISHES;
     STUDIO_CAMERA_KEY_NAME_LIMIT = 40;
+    STUDIO_CLIP_INDEX_MAX = 255;
+    STUDIO_CLIP_BOUND_STEPS = 24;
   }
 });
 
@@ -139512,6 +139535,9 @@ var init_studio3d_look = __esm({
       "artwork",
       "modelAsset",
       "modelFormat",
+      // A model's own animation belongs to the model, so a saved studio leaves both alone.
+      "playClip",
+      "clipIndex",
       "words",
       "wordFont",
       "wordWeight",
@@ -159022,6 +159048,8 @@ __export(src_exports, {
   STUDIO_ARRANGEMENT_EXTENT: () => STUDIO_ARRANGEMENT_EXTENT,
   STUDIO_ARRANGEMENT_LIMIT: () => STUDIO_ARRANGEMENT_LIMIT,
   STUDIO_CAMERA_KEY_LIMIT: () => STUDIO_CAMERA_KEY_LIMIT,
+  STUDIO_CLIP_BOUND_STEPS: () => STUDIO_CLIP_BOUND_STEPS,
+  STUDIO_CLIP_INDEX_MAX: () => STUDIO_CLIP_INDEX_MAX,
   STUDIO_COLLECTION_LIMIT: () => STUDIO_COLLECTION_LIMIT,
   STUDIO_FINISHES: () => STUDIO_FINISHES,
   STUDIO_INSTANCE_KEYS: () => STUDIO_INSTANCE_KEYS,
@@ -160535,6 +160563,8 @@ __export(src_exports, {
   studioCameraKeyFromView: () => studioCameraKeyFromView,
   studioCameraPose: () => studioCameraPose,
   studioCameraTravels: () => studioCameraTravels,
+  studioClipSampleTimes: () => studioClipSampleTimes,
+  studioClipSeconds: () => studioClipSeconds,
   studioCollectionRows: () => studioCollectionRows,
   studioCollectionSize: () => studioCollectionSize,
   studioFinish: () => studioFinish,
@@ -160564,6 +160594,7 @@ __export(src_exports, {
   studioSubjectEdit: () => studioSubjectEdit,
   studioSubjectIds: () => studioSubjectIds,
   studioTime: () => studioTime,
+  studioWantsClip: () => studioWantsClip,
   styleTextRange: () => styleTextRange,
   subCubic: () => subCubic,
   subPathsFromPath: () => subPathsFromPath,

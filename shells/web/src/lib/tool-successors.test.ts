@@ -2,7 +2,7 @@
 /** Where a retired tool's document opens in its successor (lib/tool-successors.ts). */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { flowChartToDesign, meetingPlannerToTimezone, successorHref, scanToQrCode, voiceRecorderToAudiogram } from './tool-successors.ts';
+import { flowChartToDesign, meetingPlannerToTimezone, successorHref, THREE_D_SCENES, threeDRotation, threeDToStudio, voiceRecorderToAudiogram, scanToQrCode } from './tool-successors.ts';
 
 test('a Meeting Planner document becomes Timezone places, with the host city first and as the clock', () => {
   const carried = meetingPlannerToTimezone({
@@ -114,6 +114,235 @@ test('the Audiogram address is one its own manifest reads back', async () => {
   const { values } = parseUrlState(href.split('?')[1]!, manifest);
   assert.deepEqual(values, { title: 'Standup notes', bg: '#fafbfe', ink: '#11141f', targetLevel: 'loud', showTips: false });
 });
+
+// ── 3D into 3D Studio ────────────────────────────────────────────────────────
+// 3D's document at its defaults, as the runtime hands it over.
+const threeD = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
+  model: 'duck', scene: 'soft-glow', envIntensity: 1, envRotation: 0, background: '#eef1f4', bgColor2: '#30ba78',
+  transparentBg: true, exposure: 1, shadows: true,
+  camera: { fov: 45, rotation: 35, tilt: 12, zoom: 1.3, pan: 0 },
+  modelRotate: { pitch: 0, yaw: 0, tilt: 0 }, modelTranslate: { x: 0, y: 0, z: 0 }, modelScale: { scale: 1 },
+  cameraMove: 'orbit', duration: 5, loop: true, easing: 'ease-in-out', cameraKeyframes: [],
+  playClip: true, clipIndex: 0, applyTint: false, tint: '#30ba78',
+  ...over,
+});
+const studio = (over: Record<string, unknown> = {}) => threeDToStudio(threeD(over));
+const keysOf = (carried: Record<string, unknown>) => carried.cameraKeys as Record<string, number>[];
+
+test('3D into 3D Studio: the sample model becomes a model source from the library', () => {
+  assert.deepEqual([studio().source, studio().modelAsset], ['model', 'lolly/3d/duck']);
+  assert.equal(studio({ model: 'cat' }).modelAsset, 'lolly/3d/cat');
+  assert.equal(studio({ model: 'something-else' }).modelAsset, 'lolly/3d/duck', '3D fell back to the duck too');
+  // An upload lived in memory and is not a value, so nothing of the upload travels.
+  assert.equal(JSON.stringify(studio({ modelUpload: { __file: true, url: 'blob:x' } })).includes('blob:'), false);
+});
+
+test('3D into 3D Studio: a transparent background becomes the output mode, with or without the shadow', () => {
+  assert.deepEqual([studio().outputMode, studio().shadowOpacity], ['object-shadow', 0.28]);
+  assert.deepEqual([studio({ shadows: false }).outputMode, studio({ shadows: false }).shadowOpacity], ['object', 0]);
+  assert.equal(studio({ transparentBg: false }).outputMode, 'scene');
+  assert.equal(studio({ transparentBg: 'false' }).outputMode, 'scene', 'a flag read from a link is text');
+});
+
+test('3D into 3D Studio: the background is a solid backdrop, and the gradient scene keeps both colours', () => {
+  const solid = studio({ transparentBg: false, background: '#102030' });
+  assert.deepEqual([solid.backdrop, solid.background, solid.background2], ['solid', '#102030', undefined]);
+  const gradient = studio({ transparentBg: false, scene: 'fun-gradient', background: '#102030', bgColor2: '#ff00aa' });
+  assert.deepEqual([gradient.backdrop, gradient.background, gradient.background2, gradient.backdropStrength], ['gradient', '#102030', '#ff00aa', 1]);
+});
+
+test('3D into 3D Studio: the environment keeps its turn and its strength relative to each tool own default', () => {
+  assert.deepEqual([studio().environmentIntensity, studio().environmentRotation], [0.4, 0]);
+  assert.equal(studio({ envIntensity: 2.5 }).environmentIntensity, 1);
+  assert.equal(studio({ envIntensity: 0 }).environmentIntensity, 0);
+  assert.equal(studio({ envRotation: 90 }).environmentRotation, 90);
+  assert.equal(studio({ envRotation: 270 }).environmentRotation, -90, '0 to 360 folds into -180 to 180');
+  assert.equal(studio({ envRotation: 360 }).environmentRotation, 0);
+});
+
+test('3D into 3D Studio: exposure and loop seconds keep their ids and values', () => {
+  assert.deepEqual([studio({ exposure: 1.85 }).exposure, studio({ duration: 12.5 }).duration], [1.85, 12.5]);
+  assert.equal(studio({ exposure: 0.1 }).exposure, 0.1);
+});
+
+test('3D into 3D Studio: the camera stands where it stood', () => {
+  const carried = studio();
+  assert.deepEqual(
+    [carried['camera.azimuth'], carried['camera.elevation'], carried['camera.fov'], carried['camera.panX'], carried['camera.panY'], carried['camera.panZ']],
+    [35, 12, 45, 0, 0, 0],
+  );
+  // 3D: 0.8 * size / tan(fov / 2) / zoom from the model. 3D Studio: 11.3 / zoom, with the model 3.25 across.
+  const distance = (zoom: number) => 11.3 / zoom;
+  const was = (fov: number, zoom: number) => (0.8 * 3.25) / Math.tan((fov * Math.PI) / 360) / zoom;
+  assert.ok(Math.abs(distance(carried['camera.zoom'] as number) - was(45, 1.3)) < 0.01);
+  const wide = studio({ camera: { fov: 30, rotation: 200, tilt: -10, zoom: 0.5, pan: 0.5 } });
+  assert.ok(Math.abs(distance(wide['camera.zoom'] as number) - was(30, 0.5)) < 0.05);
+  assert.equal(wide['camera.azimuth'], -160, 'a rotation of 200 is an azimuth of -160');
+  assert.equal(wide['camera.elevation'], -10);
+  assert.equal(wide['camera.panX'], 0.813, 'pan was in half model widths along x');
+  // The lens is held to 3D Studio's range, and the camera keeps the distance 3D put between camera and model.
+  const fisheye = studio({ camera: { fov: 90, rotation: 0, tilt: 0, zoom: 0.4, pan: 0 } });
+  assert.equal(fisheye['camera.fov'], 80);
+  assert.ok(Math.abs(distance(fisheye['camera.zoom'] as number) - was(90, 0.4)) < 0.05);
+  // A close view runs out of zoom: 3D Studio stops at 3.
+  assert.equal(studio({ camera: { fov: 90, rotation: 0, tilt: 0, zoom: 2.5, pan: 0 } })['camera.zoom'], 3);
+  // The target is the middle of the model, which stands on the floor in 3D Studio.
+  assert.deepEqual([carried['target.x'], carried['target.y'], carried['target.z']], [0, 1.455, 0]);
+  assert.equal(studio({ model: 'cat' })['target.y'], 0.925);
+  assert.equal(studio({ modelScale: { scale: 2 } })['target.y'], 2.91, 'a bigger model has a higher middle');
+});
+
+test('3D into 3D Studio: the model pose keeps its turn, its place and its size', () => {
+  const rest = studio();
+  assert.deepEqual([rest['rotation.x'], rest['rotation.y'], rest['rotation.z']], [0, 0, 0]);
+  assert.deepEqual([rest['position.x'], rest['position.y'], rest['position.z'], rest['transform.scale']], [0, 0, 0, 1]);
+  const moved = studio({ modelTranslate: { x: 1, y: -0.5, z: 2 }, modelScale: { scale: 2.5 } });
+  assert.deepEqual([moved['position.x'], moved['position.y'], moved['position.z']], [3.25, -1.625, 5], 'model widths become studio units, held to 5');
+  assert.equal(moved['transform.scale'], 2.5);
+  // One axis at a time is the same number in both orders.
+  assert.deepEqual(threeDRotation(30, 0, 0), { x: 30, y: 0, z: 0 });
+  assert.deepEqual(threeDRotation(0, -45, 0), { x: 0, y: -45, z: 0 });
+  assert.deepEqual(threeDRotation(0, 0, 60), { x: 0, y: 0, z: 60 });
+});
+
+test('3D into 3D Studio: a pose on several axes is the same turn in the other order', async () => {
+  const THREE = await import('three');
+  for (const [pitch, yaw, roll] of [[20, 35, -10], [-70, 120, 45], [10, 90, 30], [180, -180, 90]] as const) {
+    const rad = (n: number) => (n * Math.PI) / 180;
+    const was = new THREE.Quaternion().setFromEuler(new THREE.Euler(rad(pitch), rad(yaw), rad(roll), 'YXZ'));
+    const now = threeDRotation(pitch, yaw, roll);
+    const is = new THREE.Quaternion().setFromEuler(new THREE.Euler(rad(now.x), rad(now.y), rad(now.z), 'XYZ'));
+    assert.ok(Math.abs(Math.abs(was.dot(is)) - 1) < 1e-6, `${pitch}/${yaw}/${roll} became ${now.x}/${now.y}/${now.z}`);
+  }
+});
+
+test('3D into 3D Studio: Static holds still and Orbit is the whole turn at a constant speed', () => {
+  assert.equal(studio({ cameraMove: 'static' }).cameraMotion, 'still');
+  assert.equal(studio({ cameraMove: 'static' }).cameraKeys, undefined);
+  // Looping, 3D turned at a constant speed whatever Easing said.
+  const orbit = studio({ cameraMove: 'orbit', loop: true, easing: 'ease-in-out' });
+  assert.deepEqual([orbit.cameraMotion, orbit.cameraEase, orbit.cameraLoop], ['orbit', 'linear', true]);
+  // Played once, the turn eased as asked.
+  const once = studio({ cameraMove: 'orbit', loop: false, easing: 'ease-in-out' });
+  assert.deepEqual([once.cameraMotion, once.cameraEase, once.cameraLoop], ['orbit', 'smooth', false]);
+  assert.equal(studio({ cameraMove: 'orbit', loop: false, easing: 'linear' }).cameraEase, 'linear');
+});
+
+test('3D into 3D Studio: Arc is 45 degrees each way, as keys', () => {
+  const loop = studio({ cameraMove: 'arc' });
+  assert.deepEqual([loop.cameraMotion, loop.cameraEase, loop.cameraLoop], ['keys', 'linear', true]);
+  assert.deepEqual(keysOf(loop).map((k) => [k.at, k.azimuth]), [[0, -10], [50, 80], [100, -10]], 'there and back inside one loop');
+  const once = studio({ cameraMove: 'arc', loop: false });
+  assert.deepEqual([once.cameraEase, once.cameraLoop], ['smooth', false]);
+  assert.deepEqual(keysOf(once).map((k) => [k.at, k.azimuth]), [[0, -10], [100, 80]]);
+  // Every other part of the view is the camera's own.
+  for (const k of keysOf(loop)) assert.deepEqual([k.elevation, k.fov, k.zoom, k.panX, k.panY, k.panZ, k.focusDistance], [12, 45, 2.34, 0, 1.455, 0, 0]);
+});
+
+test('3D into 3D Studio: the dollies and Push in keep their start and end distances', () => {
+  const zoom = (old: number) => Math.round(((11.3 * Math.tan((45 * Math.PI) / 360) * old) / 2.6) * 1000) / 1000;
+  const dollyIn = keysOf(studio({ cameraMove: 'dolly-in', loop: false }));
+  assert.deepEqual(dollyIn.map((k) => k.zoom), [zoom(1.3 * 0.6), zoom(1.3 * 1.2)]);
+  const dollyOut = keysOf(studio({ cameraMove: 'dolly-out', loop: false }));
+  assert.deepEqual(dollyOut.map((k) => k.zoom), [zoom(1.3 * 1.2), zoom(1.3 * 0.6)], 'Dolly out is Dolly in backwards, which no 3D Studio move is');
+  const push = keysOf(studio({ cameraMove: 'push-in', loop: false }));
+  // 3D Studio's camera comes no closer than zoom 3, so from 3D's default view the end of
+  // Push in stops a little short: 3.77 studio units from the model where 3D reached 3.58.
+  assert.deepEqual(push.map((k) => k.zoom), [zoom(1.3 * 0.6), 3]);
+  assert.ok(zoom(1.3 * 1.35) > 3);
+  const farther = keysOf(studio({ cameraMove: 'push-in', loop: false, camera: { fov: 45, rotation: 35, tilt: 12, zoom: 1, pan: 0 } }));
+  assert.deepEqual(farther.map((k) => k.zoom), [zoom(0.6), zoom(1.35)], 'from a view with room to spare the end is exact');
+  assert.deepEqual(push.map((k) => k.fov), [51.75, 40.5], 'Push in narrowed the lens from 1.15 to 0.9 of the view');
+  assert.deepEqual(dollyIn.map((k) => k.fov), [45, 45], 'a dolly leaves the lens alone');
+  // Looping, each runs there and back at a constant speed.
+  const looped = studio({ cameraMove: 'dolly-out' });
+  assert.deepEqual([looped.cameraEase, looped.cameraLoop, keysOf(looped).map((k) => k.at)], ['linear', true, [0, 50, 100]]);
+});
+
+test('3D into 3D Studio: custom keyframes become keys, seconds as a share of the loop', () => {
+  const frames = [
+    { time: 5, fov: 40, rotation: 120, zoom: 1, pan: 0.2, tilt: 20, easing: 'linear' },
+    { time: 0, fov: 55, rotation: 0, zoom: 1.4, pan: 0, tilt: 6, easing: 'linear' },
+  ];
+  // Played once: each key at its own second out of the loop seconds, in time order.
+  const once = studio({ cameraMove: 'custom', loop: false, duration: 10, cameraKeyframes: frames });
+  assert.deepEqual([once.cameraMotion, once.cameraLoop, once.duration], ['keys', false, 10]);
+  assert.deepEqual(keysOf(once).map((k) => [k.at, k.azimuth, k.elevation, k.fov, k.panX]), [[0, 0, 6, 55, 0], [50, 120, 20, 40, 0.325]]);
+  assert.equal(once.cameraEase, 'linear', 'every leg was linear');
+  assert.equal(studio({ cameraMove: 'custom', loop: false, cameraKeyframes: [frames[1], { ...frames[0], easing: 'ease-in-out' }] }).cameraEase, 'smooth');
+  // A key's distance is measured with the camera's own lens, which is how 3D measured.
+  const zoom = (old: number) => Math.round(((11.3 * Math.tan((45 * Math.PI) / 360) * old) / 2.6) * 1000) / 1000;
+  assert.deepEqual(keysOf(once).map((k) => k.zoom), [zoom(1.4), zoom(1)]);
+  // Looping, 3D ran the path there and back inside the path's own length.
+  const loop = studio({ cameraMove: 'custom', loop: true, duration: 10, cameraKeyframes: frames });
+  assert.deepEqual([loop.cameraLoop, loop.duration], [true, 5]);
+  assert.deepEqual(keysOf(loop).map((k) => [k.at, k.azimuth]), [[0, 0], [50, 120], [100, 0]]);
+  // A rotation past one turn keeps its turns, so the camera goes the long way as 3D did.
+  const far = studio({ cameraMove: 'custom', loop: false, cameraKeyframes: [frames[1], { ...frames[0], rotation: 540 }] });
+  assert.equal(keysOf(far)[1]!.azimuth, 540);
+});
+
+test('3D into 3D Studio: one keyframe is a held view, and none is the camera as posed', () => {
+  const one = studio({ cameraMove: 'custom', cameraKeyframes: [{ time: 2, fov: 60, rotation: 270, zoom: 1, pan: 0, tilt: 30, easing: 'linear' }] });
+  assert.equal(one.cameraMotion, 'still');
+  assert.deepEqual([one['camera.azimuth'], one['camera.elevation'], one['camera.fov']], [-90, 30, 60]);
+  const none = studio({ cameraMove: 'custom', cameraKeyframes: [] });
+  assert.deepEqual([none.cameraMotion, none['camera.azimuth']], ['still', 35]);
+});
+
+test('3D into 3D Studio: the model animation choices keep their ids', () => {
+  assert.deepEqual([studio().playClip, studio().clipIndex], [true, 0]);
+  assert.deepEqual([studio({ playClip: false, clipIndex: 4 }).playClip, studio({ playClip: false, clipIndex: 4 }).clipIndex], [false, 4]);
+  assert.equal(threeDToStudio({}).playClip, true, '3D played the clip unless told otherwise');
+});
+
+test('3D into 3D Studio: Recolour becomes a colour pair of the one tint', () => {
+  assert.equal(studio().materialMode, 'source');
+  assert.equal(studio().colorA, undefined, 'a tint that was switched off does not travel');
+  const tinted = studio({ applyTint: true, tint: '#ff8800' });
+  assert.deepEqual([tinted.materialMode, tinted.colorA, tinted.colorB, tinted.finishA, tinted.finishB], ['pair', '#ff8800', '#ff8800', 'satin', 'satin']);
+});
+
+test('3D into 3D Studio: each lighting scene takes its nearest rig', () => {
+  const scenes = ['soft-glow', 'plain', 'natural', 'bright-studio', 'serious-studio', 'fun-gradient', 'suse-green'];
+  assert.deepEqual(Object.keys(THREE_D_SCENES).sort(), [...scenes].sort(), 'all seven are mapped');
+  for (const scene of scenes) {
+    const carried = studio({ scene });
+    for (const [id, value] of Object.entries(THREE_D_SCENES[scene]!)) assert.equal(carried[id], value, `${scene}: ${id}`);
+    assert.ok(['soft', 'dramatic', 'electric', 'warm'].includes(carried.studio as string), scene);
+  }
+  // Natural and Bright studio were set by comparing the two pictures side by side.
+  assert.deepEqual([studio({ scene: 'natural' }).studio, studio({ scene: 'natural' }).environment, studio({ scene: 'natural' }).keyColor], ['soft', 'gallery', '#fff1dc']);
+  assert.deepEqual([studio({ scene: 'bright-studio' }).studio, studio({ scene: 'bright-studio' }).environment], ['soft', 'gallery']);
+  assert.equal(studio({ scene: 'suse-green' }).keyColor, '#8ff0c0');
+  assert.equal(studio({ scene: 'no-such-scene' }).studio, 'soft', 'an unknown scene takes the default one');
+});
+
+test('3D into 3D Studio: the address is one 3D Studio own manifest reads back', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { parseUrlState } = await import('../../../../engine/src/url-mode.ts');
+  const manifest = JSON.parse(await readFile(new URL('../../../../community/3d-studio/tool.json', import.meta.url), 'utf8'));
+  const href = successorHref('3d', '3d-studio', threeD({ cameraMove: 'arc', applyTint: true, tint: '#ff8800', modelScale: { scale: 2 } }));
+  assert.ok(href.startsWith('#/tool/3d-studio?'));
+  const { values } = parseUrlState(href.split('?')[1]!, manifest);
+  const read = values as Record<string, unknown>;
+  const carried = studio({ cameraMove: 'arc', applyTint: true, tint: '#ff8800', modelScale: { scale: 2 } });
+  // Every id the mapping writes is an input 3D Studio has, and reads back as the value sent.
+  for (const [id, value] of Object.entries(carried)) {
+    const [input, field] = id.split('.');
+    assert.ok(manifest.inputs.some((i: { id: string }) => i.id === input), `3D Studio has ${input}`);
+    if (id === 'modelAsset') continue;
+    const got = field ? (read[input!] as Record<string, unknown> | undefined)?.[field] : read[input!];
+    assert.deepEqual(got ?? defaultOf(manifest, input!, field), value, id);
+  }
+  assert.deepEqual((read.modelAsset as { id: string }).id, 'lolly/3d/duck');
+});
+
+/** A value equal to the input's default is left out of what a link parser returns. */
+function defaultOf(manifest: { inputs: { id: string; default?: unknown; fields?: { id: string; default?: unknown }[] }[] }, id: string, field?: string): unknown {
+  const input = manifest.inputs.find((i) => i.id === id)!;
+  return field ? input.fields?.find((f) => f.id === field)?.default : input.default;
+}
 
 test('Scan into QR Code: scan mode on the same source, with pasted text as typed', () => {
   assert.deepEqual(scanToQrCode({ mode: 'paste', paste: ' WIFI:S:Cafe;T:WPA;P:pw;; ' }), { mode: 'scan', source: 'paste', scanText: ' WIFI:S:Cafe;T:WPA;P:pw;; ' });

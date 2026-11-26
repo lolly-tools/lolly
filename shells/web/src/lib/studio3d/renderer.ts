@@ -8,7 +8,7 @@ import {
 import { STUDIO_LIGHT_TARGET, studioPlaceableLights } from '../../../../../engine/src/studio3d-lights.ts';
 import { studioCameraPose } from '../../../../../engine/src/studio3d-camera-path.ts';
 import { STUDIO_POSE_REST, studioObjectPose } from '../../../../../engine/src/studio3d-motion.ts';
-import { studioAnimated, studioLightMotion } from '../../../../../engine/src/studio3d.ts';
+import { studioAnimated, studioClipSeconds, studioLightMotion } from '../../../../../engine/src/studio3d.ts';
 import type {
   StudioObjectV1,
   StudioPoseV1,
@@ -16,6 +16,7 @@ import type {
   StudioSourceInfo,
 } from '../../../../../packages/core/src/studio3d-v1.ts';
 import { halton, StudioCapture, StudioEmptyFrameError } from './capture.ts';
+import { studioBox } from './clip.ts';
 import { fitStudioObject, pickStudioFocus, placeStudioScene, studioFloorHeight } from './camera.ts';
 import { loadStudioEnvironment, type StudioEnvironment, studioPalette } from './environment.ts';
 import { applyStudioMaterials, studioHasEmissive, studioHasTransmission } from './materials.ts';
@@ -54,6 +55,8 @@ interface Instance {
   refusedBurst?: string;
   /** True once the burst uniforms have been written, so a non-burst loop can clear them. */
   shattered: boolean;
+  /** The length in seconds of the baked clip this copy plays; absent when it holds its pose. */
+  clipLength?: number;
 }
 
 /** The scene values one object is evaluated with: its own source and slot bindings. */
@@ -517,6 +520,7 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
           object: asset.object,
           restore,
           shattered: false,
+          ...(shared.clip && asset.pose ? { clipLength: shared.clip.seconds } : {}),
         };
         instances.push(instance);
         this.prepareBurst(recipe, instance);
@@ -590,6 +594,28 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
     }
   }
 
+  /**
+   * True when a placed model is playing a baked clip. The recipe can only ask for one;
+   * whether the file holds a clip is known once the model has loaded.
+   */
+  get playsClip(): boolean {
+    return this.instances.some((instance) => instance.clipLength !== undefined);
+  }
+
+  /**
+   * Pose every playing copy for one frame. The clip time is read from the export clock and
+   * the recipe (engine `studioClipSeconds`), and the mixer is set to that time from zero,
+   * so a frame's pose never depends on the frame drawn before. With `start`, every copy
+   * takes the first moment of its clip instead.
+   */
+  private poseClips(recipe: StudioSceneV1, time: number, clipSeconds?: number, start = false): void {
+    for (const instance of this.instances)
+      if (instance.clipLength !== undefined)
+        instance.asset.pose?.(
+          start ? 0 : studioClipSeconds(recipe, time, clipSeconds, instance.clipLength)
+        );
+  }
+
   /** The slots, triangle count and notes this update reports to the mount. */
   private sceneInfo(recipe: StudioSceneV1, everySpec: StudioObjectV1[]): StudioSourceInfo {
     let triangles = 0;
@@ -646,12 +672,14 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
     const pose = studioObjectPose(recipe, time, clipSeconds);
     if (quality === 'preview') this.previewAtRest = JSON.stringify(pose) === REST_POSE;
     const showEnvironment = recipe.environment.background && recipe.stage.output === 'scene';
+    // A baked clip moves the picture as a loop or a camera move does.
+    const animated = studioAnimated(recipe) || this.playsClip;
     const frameKey = JSON.stringify([
       this.revision,
       width,
       height,
       quality,
-      studioAnimated(recipe) ? time : 0,
+      animated ? time : 0,
       clipSeconds,
       quality === 'preview' ? this.lightHandles : null,
     ]);
@@ -700,6 +728,10 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
     if (!this.stage || stageKey !== this.stageKey) {
       this.counts.stageBuilds++;
       this.stage?.dispose();
+      // Depth copies are cloned from the subject as it stands, and the stage outlives the
+      // frame it was built for. They are made at the start of the clip, so which frame
+      // happened to build the stage changes nothing.
+      this.poseClips(recipe, 0, clipSeconds, true);
       this.stage = buildStudioStage(recipe, camera, this.backdrop, !showEnvironment, this.root);
       this.stageKey = stageKey;
     }
@@ -718,6 +750,7 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
     this.scene.backgroundIntensity = recipe.environment.intensity;
     this.scene.backgroundBlurriness = recipe.environment.blur;
     this.scene.backgroundRotation.y = THREE.MathUtils.degToRad(recipe.environment.rotation);
+    this.poseClips(recipe, time, clipSeconds);
     placeStudioScene(this.root, this.instances, recipe, time, clipSeconds, pose);
     this.applyBurst(recipe, pose);
     const handles = quality === 'preview' && this.lightHandles ? this.buildLightHandles(recipe) : null;
@@ -731,7 +764,7 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
         ? recipe.quality.exportSamples
         : quality === 'clip'
           ? recipe.quality.clipSamples
-          : !studioAnimated(recipe)
+          : !animated
             ? recipe.quality.previewSamples
             : 2;
     const lightMotion = studioLightMotion(recipe, time, clipSeconds);
@@ -819,7 +852,7 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
     const probes: THREE.Vector2[] = [];
     for (const instance of this.instances) {
       if (!instance.spec.visible) continue;
-      const bounds = new THREE.Box3().setFromObject(instance.object);
+      const bounds = studioBox(instance.object);
       const rect = bounds.isEmpty() ? null : projectedBox(bounds, camera, w, h);
       if (!rect || rect.intersect(frame).isEmpty()) continue;
       covered.union(rect);
