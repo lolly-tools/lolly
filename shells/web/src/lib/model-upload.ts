@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { inspectedGlb, MODEL_MAX_BYTES } from './gltf-container.ts';
 import { THREE_MF_UPLOAD_LIMIT, threeMfThumbnail } from './three-mf.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 
@@ -22,9 +23,10 @@ export async function tryStoreModelUpload(
   file: File
 ): Promise<AssetRef | null> {
   if (
-    !/\.(glb|stl|3mf)$/i.test(file.name) &&
+    !/\.(glb|gltf|stl|3mf)$/i.test(file.name) &&
     ![
       'model/gltf-binary',
+      'model/gltf+json',
       'model/3mf',
       'application/vnd.ms-package.3dmanufacturing-3dmodel+xml',
     ].includes(file.type)
@@ -35,8 +37,10 @@ export async function tryStoreModelUpload(
       ? '3mf'
       : /\.stl$/i.test(file.name)
         ? 'stl'
-        : 'glb';
-  const limit = format === '3mf' ? THREE_MF_UPLOAD_LIMIT : 32 * 1024 * 1024;
+        : /\.gltf$/i.test(file.name) || file.type === 'model/gltf+json'
+          ? 'gltf'
+          : 'glb';
+  const limit = format === '3mf' ? THREE_MF_UPLOAD_LIMIT : MODEL_MAX_BYTES;
   if (!file.size || file.size > limit)
     throw new Error(`Use a model between 1 byte and ${limit / 1024 / 1024} MB.`);
   const bytes = new Uint8Array(await file.arrayBuffer());
@@ -50,6 +54,11 @@ export async function tryStoreModelUpload(
       view.getUint32(8, true) !== bytes.length
     )
       throw new Error('Use a valid glTF 2.0 binary (.glb) file.');
+  } else if (format === 'gltf') {
+    // The same inspection a scene load runs, so a .gltf that refers to a separate file
+    // is refused here, by name, before anything is stored. A .glb under a .gltf name
+    // is a model the studio reads, so it is kept.
+    inspectedGlb(bytes);
   } else if (format === 'stl') {
     const binary = bytes.length >= 84 && 84 + view.getUint32(80, true) * 50 === bytes.length;
     const ascii =

@@ -139,6 +139,8 @@ import { mdFromBlocks, htmlFromBlocks } from '../../engine/src/doc-md.ts';
 import { rebrandPptxParts, type PartMap, type RebrandPlan } from '../../engine/src/pptx-patch.ts';
 import { createPptxAPI, looksLikePptxFile } from '../../shells/web/src/bridge/pptx.ts';
 import { depthHint } from '../../shells/web/src/lib/image-sample.ts';
+import { inspectedGlb } from '../../shells/web/src/lib/gltf-container.ts';
+import { glbOf, jsonBytes, triangleGlb, triangleGltf, triangleManifest } from '../helpers/studio3d-gltf.ts';
 import { extractSvgColors } from '../../engine/src/svg-colors.ts';
 import { enumerateSvgLayers, svgRootViewBox } from '../../engine/src/svg-layers.ts';
 import { svgToCustGeomPaths, svgToNativePptx } from '../../engine/src/svg-custgeom.ts';
@@ -1385,6 +1387,26 @@ export const depthHintTarget: FuzzTarget = {
     return [tinyPng(), png16, tiffLe, tiffBe, tinyJpeg(), tinyWebp(), ftyp('heic'), ftyp('mif1', 'miaf', 'avif')];
   },
   async invoke(bytes) { await depthHint(bytes); },
+};
+
+// The two glTF containers 3D Studio reads (shells/web/src/lib/gltf-container.ts):
+// the .glb inspector and the rewrite of a self-contained .gltf into a .glb. Contract:
+// a plain Error for anything it will not read. The classes to catch are a stack
+// overflow on a deeply nested manifest and an allocation sized by a number in the file.
+export const gltfContainerTarget: FuzzTarget = {
+  name: 'gltf-container',
+  async seeds() {
+    const png = tinyPng();
+    const picture = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
+    return [
+      triangleGltf(),
+      triangleGlb(),
+      triangleGltf({ images: [{ uri: picture }], accessors: [{ componentType: 5126, count: 3, type: 'VEC3' }] }),
+      jsonBytes(triangleManifest({ uri: 'scene.bin', byteLength: 44 })),
+      glbOf(triangleManifest({ uri: 'scene.bin', byteLength: 44 }), null),
+    ];
+  },
+  async invoke(bytes) { inspectedGlb(bytes); },
 };
 
 // The .cube/.3dl LUT readers (engine/src/grade.ts) - the parsers that read a
@@ -2778,7 +2800,7 @@ export const ALL_TARGETS: FuzzTarget[] = [
   rasterDecodeTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
   derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget, videoProbeTarget,
-  depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
+  depthHintTarget, gltfContainerTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, smfTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
   geomTarget, svgItemsTarget, fontInspectTarget, woff2PreflightTarget, audioDspTarget, imageTraceTarget, intentTarget,
