@@ -189206,7 +189206,7 @@ var package_default = {
     "playwright-core": "^1.49.0"
   },
   devDependencies: {
-    "@modelcontextprotocol/inspector": "^2.15.0"
+    "@modelcontextprotocol/inspector": "^2.16.0"
   }
 };
 
