@@ -348,8 +348,8 @@ export async function syncCatalog(
         // in, where the person sees the instance's key before accepting that key.
         noteInstanceCatalogSetAside(setAside, isTauriShell() ? () => {
           void import('../components/instance-sheet.ts')
-            // The live web host, which is more than the surface a sync is typed against.
-            .then(m => m.openInstanceSheet(host as unknown as Parameters<typeof m.openInstanceSheet>[0], { start: 'connect', url: setAside }))
+            // The sheet only logs, so it is handed the sync's own log and nothing else.
+            .then(m => m.openInstanceSheet({ log: (level, msg, ctx) => host.log(level, msg, ctx as Record<string, unknown> | undefined) }, { start: 'connect', url: setAside }))
             .catch(error => host.log('warn', 'The connect step did not open', { error: String(error) }));
         } : undefined);
         return syncCatalog(host, onAssetsReady, maintenanceGate, signInRequired);
