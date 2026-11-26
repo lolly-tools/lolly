@@ -130,6 +130,42 @@ test('static instances still need a valid catalog, and public Work can offer acc
   } });
 });
 
+test('a description answered "too many requests" is asked once more, after the pause the answer names', async (ctx) => {
+  const calls: string[] = [];
+  const waits: number[] = [];
+  ctx.mock.method(globalThis, 'fetch', async (input: RequestInfo | URL) => {
+    calls.push(String(input));
+    return calls.length === 1
+      ? new Response(JSON.stringify({ error: { code: 'RATE_LIMITED' } }), { status: 429, headers: { 'retry-after': '2' } })
+      : new Response(JSON.stringify({ name: 'Private workspace', accessMode: 'gated' }), { status: 200 });
+  });
+  assert.deepEqual(await probeConnection('https://work.example', async ms => { waits.push(ms); }), { ok: true, instance: {
+    base: 'https://work.example', toolCount: null,
+    manifest: { found: true, name: 'Private workspace', accessMode: 'gated' },
+  } });
+  assert.deepEqual(waits, [2000]);
+  // The protected catalog is still not read before sign-in.
+  assert.deepEqual(calls, ['https://work.example/api/v1/instance', 'https://work.example/api/v1/instance']);
+});
+
+test('a gated instance that would not describe itself is busy, not "an error (401)"', async (ctx) => {
+  const waits: number[] = [];
+  ctx.mock.method(globalThis, 'fetch', async (input: RequestInfo | URL) => String(input).endsWith('/api/v1/instance')
+    ? new Response('', { status: 429, headers: { 'retry-after': '600' } })
+    : new Response('', { status: 401 }));
+  assert.deepEqual(await probeConnection('https://work.example', async ms => { waits.push(ms); }), { ok: false, reason: 'busy' });
+  assert.deepEqual(waits, [8000], 'one pause, and never longer than the connect step allows');
+});
+
+test('a deployment with no description that refuses its catalog keeps its own answer, with no pause', async (ctx) => {
+  const waits: number[] = [];
+  ctx.mock.method(globalThis, 'fetch', async (input: RequestInfo | URL) => String(input).endsWith('/api/v1/instance')
+    ? new Response('', { status: 404 })
+    : new Response('', { status: 401 }));
+  assert.deepEqual(await probeConnection('https://static.example', async ms => { waits.push(ms); }), { ok: false, reason: 'http', status: 401 });
+  assert.deepEqual(waits, []);
+});
+
 test('web workspace handoff preserves a team invitation and drops device-local routes', () => {
   assert.equal(workspaceAppUrl('https://work.example/lolly', '#/team/project/one'), 'https://work.example/lolly/#/team/project/one');
   assert.equal(workspaceAppUrl('https://work.example', '#/p/local-only'), 'https://work.example/');

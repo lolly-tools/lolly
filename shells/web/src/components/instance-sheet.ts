@@ -84,6 +84,7 @@ async function readCapped(resp: Response): Promise<ArrayBuffer> {
 }
 
 function probeErrorMessage(outcome: Extract<ProbeOutcome, { ok: false }>): string {
+  if (outcome.reason === 'busy') return t('That instance is busy. Try again in a moment.');
   if (outcome.reason === 'http') return t('That instance responded with an error ({status}).', { status: outcome.status });
   if (outcome.reason === 'parse') return t("Couldn't read that instance's response.");
   return t("That doesn't look like a Lolly catalogue (no tools list).");
