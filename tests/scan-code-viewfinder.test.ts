@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * scan-code - the live camera viewfinder (plans/162 section 2.3). onFrame must SHOW each
+ * The live camera viewfinder (plans/162 section 2.3), in QR Code's scan mode and in
+ * the retired scan-code tool, which keeps working under its own id. onFrame must SHOW each
  * frame (so the user can align a code) AND decode it, keeping the found-code quad
  * and the masked result. Driven directly (createRuntime does not drive onFrame -
  * that is the shell's startLive), with a synthetic frame + mock host, so the
@@ -16,8 +17,19 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-const HOOKS = join(dirname(fileURLToPath(import.meta.url)), '..', 'community', 'scan-code', 'hooks.js');
-const SKIP = !existsSync(HOOKS) && 'scan-code not mounted';
+const COMMUNITY = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
+const SKIP = !existsSync(join(COMMUNITY, 'scan-code', 'hooks.js')) && 'scan-code not mounted';
+
+/** The two readers, and the model that puts each one on the camera. */
+const READERS = [
+  { name: 'qr-code scan mode', hooks: join(COMMUNITY, 'qr-code', 'hooks.js'),
+    model: [{ id: 'mode', value: 'scan' }, { id: 'source', value: 'camera' }, { id: 'formats', value: '' }] },
+  { name: 'scan-code', hooks: join(COMMUNITY, 'scan-code', 'hooks.js'),
+    model: [{ id: 'mode', value: 'camera' }, { id: 'formats', value: '' }] },
+];
+
+for (const reader of READERS) {
+const HOOKS = reader.hooks;
 
 // The hooks ship as a Function body (data, not a module); expose onFrame the same
 // way the engine loads it, plus a return of the entries we exercise.
@@ -37,9 +49,9 @@ function host(hit: unknown) {
     scan: { detect: async () => (hit ? [hit] : []) },
   };
 }
-const MODEL = [{ id: 'mode', value: 'camera' }, { id: 'formats', value: '' }];
+const MODEL = reader.model;
 
-test('onFrame shows the live frame as a data image with its dimensions', { skip: SKIP }, async () => {
+test(reader.name + ': ' + 'onFrame shows the live frame as a data image with its dimensions', { skip: SKIP }, async () => {
   const { onFrame } = await loadHooks();
   const vm = await onFrame({ frame: frame(1000), model: MODEL, host: host(null) });
   assert.match(String(vm.scanFrameSrc), /^data:image\/jpeg;base64,/, 'the frame is shown');
@@ -48,7 +60,7 @@ test('onFrame shows the live frame as a data image with its dimensions', { skip:
   assert.equal(vm.scanLive, true);
 });
 
-test('a found code overlays its quad (frame coords) and shows the result', { skip: SKIP }, async () => {
+test(reader.name + ': ' + 'a found code overlays its quad (frame coords) and shows the result', { skip: SKIP }, async () => {
   const { onFrame } = await loadHooks();
   const hit = { format: 'qr_code', rawValue: 'https://lolly.tools', corners: [[1, 1], [7, 1], [7, 7], [1, 7]] };
   const vm = await onFrame({ frame: frame(2000), model: MODEL, host: host(hit) });
@@ -56,7 +68,7 @@ test('a found code overlays its quad (frame coords) and shows the result', { ski
   assert.equal(vm.scanKind, 'url');
 });
 
-test('the live result masks a secret exactly like the still path', { skip: SKIP }, async () => {
+test(reader.name + ': ' + 'the live result masks a secret exactly like the still path', { skip: SKIP }, async () => {
   const { onFrame } = await loadHooks();
   const hit = { format: 'qr_code', rawValue: 'WIFI:S:Cafe;T:WPA;P:hunter2secret;;', corners: [[0, 0], [8, 0], [8, 8], [0, 8]] };
   const vm = await onFrame({ frame: frame(3000), model: MODEL, host: host(hit) });
@@ -65,7 +77,7 @@ test('the live result masks a secret exactly like the still path', { skip: SKIP 
   assert.ok(!/>hunter2secret</.test(String(vm.scanFieldsHtml)), 'not shown in the clear in the live view');
 });
 
-test('a failed preview encode retains the last frame instead of returning to the start hint', { skip: SKIP }, async () => {
+test(reader.name + ': ' + 'a failed preview encode retains the last frame instead of returning to the start hint', { skip: SKIP }, async () => {
   const { onFrame } = await loadHooks();
   const first = await onFrame({ frame: frame(1000), model: MODEL, host: host(null) });
   const failing = host(null);
@@ -74,3 +86,4 @@ test('a failed preview encode retains the last frame instead of returning to the
   assert.equal(Object.hasOwn(next, 'scanFrameSrc'), false);
   assert.equal({ ...first, ...next }.scanFrameSrc, first.scanFrameSrc);
 });
+}

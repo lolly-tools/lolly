@@ -1,5 +1,82 @@
 [
   {
+    "id": "mode",
+    "display": "segmented",
+    "label": "Mode",
+    "type": "select",
+    "default": "make",
+    "help": "Make a code to share, or read one with the camera, from an image or from pasted text.",
+    "options": [
+      {
+        "value": "make",
+        "label": "Make"
+      },
+      {
+        "value": "scan",
+        "label": "Scan"
+      }
+    ]
+  },
+  {
+    "id": "source",
+    "display": "segmented",
+    "label": "Source",
+    "type": "select",
+    "default": "camera",
+    "showIf": {
+      "mode": "scan"
+    },
+    "help": "Point the camera at a code, scan a saved image, or paste a code's text to inspect. Whatever the source, the code is read on this device - nothing is uploaded.",
+    "options": [
+      {
+        "value": "camera",
+        "label": "Camera"
+      },
+      {
+        "value": "image",
+        "label": "Image"
+      },
+      {
+        "value": "paste",
+        "label": "Text"
+      }
+    ]
+  },
+  {
+    "id": "scanImage",
+    "label": "Image",
+    "type": "file",
+    "accept": [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".webp",
+      ".gif"
+    ],
+    "maxSize": 26214400,
+    "showIf": {
+      "mode": "scan",
+      "source": "image"
+    },
+    "help": "A photo or screenshot containing a code. The bytes stay in memory on this device."
+  },
+  {
+    "id": "scanText",
+    "label": "Code text",
+    "type": "longtext",
+    "rows": 3,
+    "default": "",
+    "showIf": {
+      "mode": "scan",
+      "source": "paste"
+    },
+    "help": "Paste the exact text a scanner returned, to inspect it with the same safety checks without pointing a camera."
+  },
+  {
     "id": "url",
     "label": "URL",
     "type": "url",
@@ -7,6 +84,7 @@
     "default": "",
     "help": "The link a scanner opens. On a contact card it becomes the card's website line.",
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "vcard"
@@ -20,6 +98,7 @@
     "rows": 4,
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "text"
     }
   },
@@ -29,6 +108,7 @@
     "type": "text",
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "vcard"
     }
   },
@@ -38,6 +118,7 @@
     "type": "text",
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "vcard"
     }
   },
@@ -47,6 +128,7 @@
     "type": "text",
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "vcard"
     }
   },
@@ -56,6 +138,7 @@
     "type": "text",
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "vcard"
     }
   },
@@ -65,6 +148,7 @@
     "type": "text",
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "vcard"
     }
   },
@@ -74,6 +158,7 @@
     "type": "text",
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "vcard"
     }
   },
@@ -83,6 +168,7 @@
     "type": "text",
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "wifi"
     },
     "help": "The SSID exactly as it appears when joining, including capitals."
@@ -93,6 +179,7 @@
     "type": "text",
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "wifi"
     },
     "help": "Printed into the code in the clear, the way every Wi-Fi QR works. Use it for guest networks, not for anything you would not put on a poster."
@@ -103,6 +190,7 @@
     "type": "select",
     "default": "WPA",
     "showIf": {
+      "mode": "make",
       "payload": "wifi"
     },
     "options": [
@@ -126,6 +214,7 @@
     "type": "boolean",
     "default": false,
     "showIf": {
+      "mode": "make",
       "payload": "wifi"
     },
     "help": "Turn on when the network does not broadcast its name."
@@ -136,6 +225,7 @@
     "type": "text",
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "event"
     }
   },
@@ -145,6 +235,7 @@
     "type": "datetime-local",
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "event"
     }
   },
@@ -154,6 +245,7 @@
     "type": "datetime-local",
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "event"
     }
   },
@@ -163,6 +255,7 @@
     "type": "text",
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "event"
     }
   },
@@ -173,6 +266,7 @@
     "rows": 3,
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": "event"
     }
   },
@@ -185,6 +279,7 @@
     "max": 90,
     "step": 0.000001,
     "showIf": {
+      "mode": "make",
       "payload": "geo"
     }
   },
@@ -197,6 +292,7 @@
     "max": 180,
     "step": 0.000001,
     "showIf": {
+      "mode": "make",
       "payload": "geo"
     }
   },
@@ -206,6 +302,7 @@
     "type": "text",
     "default": "4006381333931",
     "showIf": {
+      "mode": "make",
       "payload": [
         "ean13",
         "ean8",
@@ -229,6 +326,7 @@
     "type": "select",
     "default": "gs1-128",
     "showIf": {
+      "mode": "make",
       "payload": "gs1"
     },
     "help": "GS1-128 bars suit wide logistics labels; GS1 Data Matrix fits the same element string into a small square for packaging and healthcare marking.",
@@ -249,6 +347,7 @@
     "type": "boolean",
     "default": true,
     "showIf": {
+      "mode": "make",
       "payload": [
         "ean13",
         "ean8",
@@ -272,6 +371,9 @@
     "type": "select",
     "urlKey": "p",
     "default": "url",
+    "showIf": {
+      "mode": "make"
+    },
     "help": "What a scanner gets: a 2D code (pick its shape below) carrying a link, text, a contact, a network, an event or a map pin - or a product and logistics barcode: EAN-13, EAN-8, UPC-A, UPC-E, Code 128, ITF-14, Code 39, Codabar, ISBN, GS1 DataBar, a GS1 element string, or MaxiCode.",
     "options": [
       {
@@ -357,6 +459,7 @@
     "default": "qr",
     "help": "The symbol that carries the content. QR reads best with phone cameras; Micro QR suits tiny labels; Data Matrix is the industrial standard for marking small parts; Aztec is common on tickets and transit passes; PDF417 holds long text the way IDs and boarding passes do.",
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -400,6 +503,7 @@
     "max": 10,
     "step": 0.5,
     "showIf": {
+      "mode": "make",
       "payload": [
         "ean13",
         "ean8",
@@ -420,6 +524,7 @@
     "max": 400,
     "step": 5,
     "showIf": {
+      "mode": "make",
       "payload": [
         "ean13",
         "ean8",
@@ -447,6 +552,7 @@
     "max": 24,
     "step": 1,
     "showIf": {
+      "mode": "make",
       "payload": [
         "ean13",
         "ean8",
@@ -468,13 +574,19 @@
     "id": "color",
     "label": "Module colour",
     "type": "color",
-    "default": "{color.semantic.text}"
+    "default": "{color.semantic.text}",
+    "showIf": {
+      "mode": "make"
+    }
   },
   {
     "id": "background",
     "label": "Background",
     "type": "color",
-    "default": "{color.semantic.surface}"
+    "default": "{color.semantic.surface}",
+    "showIf": {
+      "mode": "make"
+    }
   },
   {
     "id": "ecl",
@@ -502,6 +614,7 @@
       }
     ],
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -527,6 +640,7 @@
     "max": 10,
     "step": 1,
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -546,6 +660,7 @@
     "type": "select",
     "default": "square",
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -583,6 +698,7 @@
     "type": "boolean",
     "default": true,
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -604,6 +720,7 @@
     "type": "select",
     "default": "square",
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -641,6 +758,7 @@
     "type": "color",
     "default": "",
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -661,6 +779,7 @@
     "type": "select",
     "default": "solid",
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -694,6 +813,7 @@
     "type": "color",
     "default": "{color.semantic.primary}",
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -717,6 +837,7 @@
     "type": "select",
     "default": "linear",
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -750,6 +871,7 @@
     "max": 360,
     "step": 15,
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -770,6 +892,7 @@
     "label": "Centre logo",
     "type": "asset",
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -793,6 +916,7 @@
     "max": 32,
     "step": 1,
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -816,6 +940,7 @@
     "max": 4,
     "step": 1,
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -835,6 +960,7 @@
     "type": "select",
     "default": "rounded",
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -867,6 +993,7 @@
     "type": "select",
     "default": "none",
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -904,6 +1031,7 @@
     "type": "text",
     "default": "Scan me",
     "showIf": {
+      "mode": "make",
       "payload": [
         "url",
         "text",
@@ -920,5 +1048,15 @@
       ]
     },
     "help": "The call-to-action wording."
+  },
+  {
+    "id": "transparentBg",
+    "label": "Transparent background",
+    "type": "boolean",
+    "default": false,
+    "help": "Remove the background fill so alpha-supporting formats (PNG/WebP/SVG) keep transparency.",
+    "showIf": {
+      "mode": "make"
+    }
   }
 ]

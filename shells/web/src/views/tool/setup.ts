@@ -25,7 +25,7 @@ import { getCollabSessionSource } from '../../lib/collab-session-source.ts';
 import { getSessionSource } from '../../lib/session-source.ts';
 import { takeAssetOpeningSeed } from '../../lib/asset-open-handoff.ts';
 import { mountHistoryRole, takeCarriedMountState, takeEphemeralState, pendingLiveCollab } from '../../lib/collab-live-mount.ts';
-import { takeRenderMount, watchRenderMode } from '../tool-render-mode.ts';
+import { inputsOfMount, takeRenderMount, watchRenderMode } from '../tool-render-mode.ts';
 import { createMemoryStateAPI } from '../../lib/ephemeral-state.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { captureNeutralPinned } from '../../lib/capture-neutral.ts';
@@ -1180,7 +1180,10 @@ export function mountActions(tview: ToolViewCtx): void {
     }
   ); tview.actionsApi = actionsApi;
   if (!tview.isFull && !tview.autoExport && !tview.autoCopy) mountLifecycle.add('recovery notice', mountRecoveryNotice(viewEl, {
-    manifest: tview.tool.manifest, automatic: !!actionsApi?.history, canSave: !!actionsApi?.save,
+    // A file input of another mode of the tool (`render.when`) cannot be loaded in this
+    // mount, so the notice does not speak of imported files on its account.
+    manifest: { ...tview.tool.manifest, inputs: [...inputsOfMount(tview.tool.manifest, Object.fromEntries(runtime.getModel().map((m) => [m.id, m.value])))] },
+    automatic: !!actionsApi?.history, canSave: !!actionsApi?.save,
     shared: !!collabHandle || !!ephemeralState || !!getCollabSessionSource(), collab: collabHandle?.history,
     scope: slot ?? toolId, opened: openedSession.values, onSave: () => tview.openSaveAs?.(),
   }));

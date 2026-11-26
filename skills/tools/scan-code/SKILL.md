@@ -5,7 +5,7 @@ description: "Operate the Lolly Scan tool (scan-code) using its declared inputs 
 
 # Scan
 
-Tool ID: `scan-code`. Tool version: `0.1.3`. Engine range: `>=1.153.0`.
+Tool ID: `scan-code`. Tool version: `0.1.4`. Engine range: `>=1.153.0`.
 
 Read QR codes and barcodes on-device. Copy is always the first action; opening, joining or adding is an explicit, informed tap.
 

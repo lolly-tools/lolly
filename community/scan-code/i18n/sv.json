@@ -1,5 +1,4 @@
 {
   "name": "Scan",
-  "description": "Läs QR-koder och streckkoder på enheten. Kopiera är alltid det första alternativet; att öppna, ansluta eller lägga till är alltid ett uttryckligt, informerat val.",
-  "featured.blurb": "Läs vilken kod som helst, säkert och offline"
+  "description": "Läs QR-koder och streckkoder på enheten. Kopiera är alltid det första alternativet; att öppna, ansluta eller lägga till är alltid ett uttryckligt, informerat val."
 }

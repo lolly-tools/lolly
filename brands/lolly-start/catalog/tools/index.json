@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-26T12:49:01.254Z",
+  "generatedAt": "2026-11-26T15:02:46.363Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -272,7 +272,7 @@
       "id": "qr-code",
       "name": "QR Code",
       "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 - plus retail and logistics barcodes from EAN-13 to MaxiCode.",
-      "version": "2.8.0",
+      "version": "2.9.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -283,6 +283,8 @@
         "vcard",
         "wifi",
         "barcode",
+        "scan",
+        "reader",
         "gs1",
         "datamatrix",
         "shipping",
@@ -8422,9 +8424,12 @@
       "id": "scan-code",
       "name": "Scan",
       "description": "Read QR codes and barcodes on-device. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "status": "experimental",
       "category": "utility",
+      "listed": false,
+      "deprecated": true,
+      "replacedBy": "qr-code",
       "tags": [
         "qr",
         "scan",
@@ -8444,140 +8449,110 @@
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 7V5a2 2 0 0 1 2-2h2\" /><path d=\"M17 3h2a2 2 0 0 1 2 2v2\" /><path d=\"M21 17v2a2 2 0 0 1-2 2h-2\" /><path d=\"M7 21H5a2 2 0 0 1-2-2v-2\" /><path d=\"M7 8h2v2H7z\" /><path d=\"M14 8h3\" /><path d=\"M17 8v3\" /><path d=\"M7 14v-1\" /><path d=\"M11 16h-1v-1\" /><path d=\"M14 14h3v3h-3z\" /></svg>",
       "preview": "/catalog/previews/scan-code.svg",
-      "featured": {
-        "order": 7,
-        "blurb": "Read any code, safely and offline"
-      },
       "i18n": {
         "ar": {
           "name": "المسح",
-          "description": "اقرأ رموز QR والباركود على جهازك. النسخ هو الإجراء الأول دائما؛ أما الفتح أو الانضمام أو الإضافة فلمسة صريحة ومدروسة.",
-          "blurb": "اقرأ أي رمز، بأمان وبلا اتصال"
+          "description": "اقرأ رموز QR والباركود على جهازك. النسخ هو الإجراء الأول دائما؛ أما الفتح أو الانضمام أو الإضافة فلمسة صريحة ومدروسة."
         },
         "bg": {
           "name": "Сканиране",
-          "description": "Чети QR кодове и баркодове на устройството. Копирането винаги е първото действие; отварянето, присъединяването или добавянето е изрично, осъзнато докосване.",
-          "blurb": "Чети всеки код, безопасно и офлайн"
+          "description": "Чети QR кодове и баркодове на устройството. Копирането винаги е първото действие; отварянето, присъединяването или добавянето е изрично, осъзнато докосване."
         },
         "bn": {
           "name": "স্ক্যান",
-          "description": "আপনার ডিভাইসেই QR কোড ও বারকোড পড়ুন। কপি সবসময় প্রথম কাজ; খোলা, যোগ দেওয়া বা যোগ করা একটি স্পষ্ট, জেনেবুঝে করা ট্যাপ।",
-          "blurb": "যেকোনো কোড পড়ুন, নিরাপদে এবং অফলাইনে"
+          "description": "আপনার ডিভাইসেই QR কোড ও বারকোড পড়ুন। কপি সবসময় প্রথম কাজ; খোলা, যোগ দেওয়া বা যোগ করা একটি স্পষ্ট, জেনেবুঝে করা ট্যাপ।"
         },
         "cs": {
           "name": "Sken",
-          "description": "Načítej QR kódy a čárové kódy přímo v zařízení. Kopírování je vždy první možnost; otevření, připojení nebo přidání je výslovné, informované ťuknutí.",
-          "blurb": "Přečti jakýkoli kód, bezpečně a offline"
+          "description": "Načítej QR kódy a čárové kódy přímo v zařízení. Kopírování je vždy první možnost; otevření, připojení nebo přidání je výslovné, informované ťuknutí."
         },
         "de": {
           "name": "Scannen",
-          "description": "Liest QR-Codes und Barcodes auf dem Gerät. Kopieren ist immer die erste Aktion; Öffnen, Beitreten oder Hinzufügen ist ein bewusster, informierter Klick.",
-          "blurb": "Lesen Sie jeden Code, sicher und offline"
+          "description": "Liest QR-Codes und Barcodes auf dem Gerät. Kopieren ist immer die erste Aktion; Öffnen, Beitreten oder Hinzufügen ist ein bewusster, informierter Klick."
         },
         "es": {
           "name": "Escanear",
-          "description": "Lee códigos QR y de barras en el dispositivo. Copiar es siempre la primera acción; abrir, unirse o añadir es un toque explícito e informado.",
-          "blurb": "Lee cualquier código, de forma segura y sin conexión"
+          "description": "Lee códigos QR y de barras en el dispositivo. Copiar es siempre la primera acción; abrir, unirse o añadir es un toque explícito e informado."
         },
         "fr": {
           "name": "Scan",
-          "description": "Lis les codes QR et codes-barres sur ton appareil. Copier est toujours la première action ; ouvrir, rejoindre ou ajouter reste un geste explicite et informé.",
-          "blurb": "Lis n'importe quel code, en toute sécurité et hors ligne"
+          "description": "Lis les codes QR et codes-barres sur ton appareil. Copier est toujours la première action ; ouvrir, rejoindre ou ajouter reste un geste explicite et informé."
         },
         "hi": {
           "name": "Scan",
-          "description": "अपने डिवाइस पर QR कोड और बारकोड पढ़ें। कॉपी हमेशा पहला विकल्प होता है; खोलना, जुड़ना या जोड़ना एक स्पष्ट, सूचित टैप ही रहता है।",
-          "blurb": "किसी भी कोड को सुरक्षित रूप से और ऑफ़लाइन पढ़ें"
+          "description": "अपने डिवाइस पर QR कोड और बारकोड पढ़ें। कॉपी हमेशा पहला विकल्प होता है; खोलना, जुड़ना या जोड़ना एक स्पष्ट, सूचित टैप ही रहता है।"
         },
         "id": {
           "name": "Pindai",
-          "description": "Baca kode QR dan barcode di perangkat. Salin selalu menjadi tindakan pertama; membuka, bergabung atau menambahkan adalah ketukan eksplisit yang sudah diberi informasi.",
-          "blurb": "Baca kode apa pun, dengan aman dan offline"
+          "description": "Baca kode QR dan barcode di perangkat. Salin selalu menjadi tindakan pertama; membuka, bergabung atau menambahkan adalah ketukan eksplisit yang sudah diberi informasi."
         },
         "it": {
           "name": "Scansiona",
-          "description": "Leggi codici QR e codici a barre sul dispositivo. Copia è sempre la prima azione; aprire, unirsi o aggiungere è un tocco esplicito e informato.",
-          "blurb": "Leggi qualsiasi codice, in sicurezza e offline"
+          "description": "Leggi codici QR e codici a barre sul dispositivo. Copia è sempre la prima azione; aprire, unirsi o aggiungere è un tocco esplicito e informato."
         },
         "ja": {
           "name": "スキャン",
-          "description": "QRコードやバーコードをデバイス上で読み取ります。コピーは常に最初の操作で、開く・参加する・追加するは、明示的で情報を踏まえたタップとして行います。",
-          "blurb": "どんなコードも安全にオフラインで読み取ります"
+          "description": "QRコードやバーコードをデバイス上で読み取ります。コピーは常に最初の操作で、開く・参加する・追加するは、明示的で情報を踏まえたタップとして行います。"
         },
         "ko": {
           "name": "스캔",
-          "description": "QR 코드와 바코드를 기기에서 바로 읽어요. 복사는 언제나 첫 번째 동작이고, 열기·참여하기·추가하기는 명확하게 인지한 뒤 누르는 별도의 탭으로 이루어져요.",
-          "blurb": "어떤 코드든, 안전하게 오프라인으로 읽어요"
+          "description": "QR 코드와 바코드를 기기에서 바로 읽어요. 복사는 언제나 첫 번째 동작이고, 열기·참여하기·추가하기는 명확하게 인지한 뒤 누르는 별도의 탭으로 이루어져요."
         },
         "ms": {
           "name": "Scan",
-          "description": "Baca kod QR dan kod bar pada peranti. Salin sentiasa menjadi tindakan pertama; membuka, menyertai atau menambah adalah ketukan yang jelas dan termaklum.",
-          "blurb": "Baca sebarang kod, dengan selamat dan luar talian"
+          "description": "Baca kod QR dan kod bar pada peranti. Salin sentiasa menjadi tindakan pertama; membuka, menyertai atau menambah adalah ketukan yang jelas dan termaklum."
         },
         "nl": {
           "name": "Scan",
-          "description": "Lees QR-codes en barcodes op je apparaat. Kopiëren is altijd de eerste actie; openen, verbinden of toevoegen is een expliciete, weloverwogen tik.",
-          "blurb": "Lees elke code, veilig en offline"
+          "description": "Lees QR-codes en barcodes op je apparaat. Kopiëren is altijd de eerste actie; openen, verbinden of toevoegen is een expliciete, weloverwogen tik."
         },
         "no": {
           "name": "Skanning",
-          "description": "Les QR-koder og strekkoder på enheten. Kopiering er alltid den første handlingen; å åpne, bli med eller legge til er et eksplisitt, informert trykk.",
-          "blurb": "Les enhver kode, trygt og frakoblet"
+          "description": "Les QR-koder og strekkoder på enheten. Kopiering er alltid den første handlingen; å åpne, bli med eller legge til er et eksplisitt, informert trykk."
         },
         "pl": {
           "name": "Skanowanie",
-          "description": "Odczytuj kody QR i kody kreskowe na urządzeniu. Kopiowanie jest zawsze pierwszą czynnością; otwarcie, dołączenie lub dodanie to jawne, świadome dotknięcie.",
-          "blurb": "Odczytaj dowolny kod, bezpiecznie i offline"
+          "description": "Odczytuj kody QR i kody kreskowe na urządzeniu. Kopiowanie jest zawsze pierwszą czynnością; otwarcie, dołączenie lub dodanie to jawne, świadome dotknięcie."
         },
         "pt": {
           "name": "Scan",
-          "description": "Leia códigos QR e códigos de barras no dispositivo. Copiar é sempre a primeira ação; abrir, entrar ou adicionar é um toque explícito e informado.",
-          "blurb": "Leia qualquer código, com segurança e offline"
+          "description": "Leia códigos QR e códigos de barras no dispositivo. Copiar é sempre a primeira ação; abrir, entrar ou adicionar é um toque explícito e informado."
         },
         "ro": {
           "name": "Scan",
-          "description": "Citește coduri QR și coduri de bare direct pe dispozitiv. Copierea este mereu primul pas; deschiderea, alăturarea sau adăugarea este o atingere explicită și informată.",
-          "blurb": "Citește orice cod, în siguranță și offline"
+          "description": "Citește coduri QR și coduri de bare direct pe dispozitiv. Copierea este mereu primul pas; deschiderea, alăturarea sau adăugarea este o atingere explicită și informată."
         },
         "sv": {
           "name": "Scan",
-          "description": "Läs QR-koder och streckkoder på enheten. Kopiera är alltid det första alternativet; att öppna, ansluta eller lägga till är alltid ett uttryckligt, informerat val.",
-          "blurb": "Läs vilken kod som helst, säkert och offline"
+          "description": "Läs QR-koder och streckkoder på enheten. Kopiera är alltid det första alternativet; att öppna, ansluta eller lägga till är alltid ett uttryckligt, informerat val."
         },
         "tl": {
           "name": "Scan",
-          "description": "Basahin ang mga QR code at barcode sa mismong device. Ang Copy ay palaging ang unang aksyon; ang pagbukas, pag-join o pagdaragdag ay palaging malinaw at may kaalamang tap.",
-          "blurb": "Basahin ang kahit anong code, ligtas at offline"
+          "description": "Basahin ang mga QR code at barcode sa mismong device. Ang Copy ay palaging ang unang aksyon; ang pagbukas, pag-join o pagdaragdag ay palaging malinaw at may kaalamang tap."
         },
         "tr": {
           "name": "Tarama",
-          "description": "QR kodlarını ve barkodları cihazında oku. Kopyalama her zaman ilk eylemdir; açmak, katılmak ya da eklemek açık ve bilgilendirilmiş bir dokunuştur.",
-          "blurb": "Herhangi bir kodu güvenle ve çevrimdışı oku"
+          "description": "QR kodlarını ve barkodları cihazında oku. Kopyalama her zaman ilk eylemdir; açmak, katılmak ya da eklemek açık ve bilgilendirilmiş bir dokunuştur."
         },
         "uk": {
           "name": "Сканування",
-          "description": "Читайте QR-коди та штрихкоди прямо на пристрої. Копіювання - завжди перша дія; відкриття, приєднання чи додавання - явний, усвідомлений дотик.",
-          "blurb": "Читайте будь-який код безпечно й офлайн"
+          "description": "Читайте QR-коди та штрихкоди прямо на пристрої. Копіювання - завжди перша дія; відкриття, приєднання чи додавання - явний, усвідомлений дотик."
         },
         "ur": {
           "name": "اسکین",
-          "description": "QR کوڈز اور بارکوڈز کو اپنے آلے پر پڑھیں۔ کاپی ہمیشہ پہلا عمل ہوتا ہے؛ کھولنا، جوائن کرنا یا شامل کرنا ایک واضح، باخبر ٹیپ ہے۔",
-          "blurb": "کوئی بھی کوڈ محفوظ طریقے سے اور آف لائن پڑھیں"
+          "description": "QR کوڈز اور بارکوڈز کو اپنے آلے پر پڑھیں۔ کاپی ہمیشہ پہلا عمل ہوتا ہے؛ کھولنا، جوائن کرنا یا شامل کرنا ایک واضح، باخبر ٹیپ ہے۔"
         },
         "vi": {
           "name": "Quét",
-          "description": "Đọc mã QR và mã vạch ngay trên thiết bị. Sao chép luôn là hành động đầu tiên; mở, tham gia hoặc thêm vào là một thao tác chạm rõ ràng, có hiểu biết.",
-          "blurb": "Đọc mọi mã, an toàn và không cần mạng"
+          "description": "Đọc mã QR và mã vạch ngay trên thiết bị. Sao chép luôn là hành động đầu tiên; mở, tham gia hoặc thêm vào là một thao tác chạm rõ ràng, có hiểu biết."
         },
         "zh-hant": {
           "name": "掃描",
-          "description": "在裝置上讀取 QR code 與條碼。複製永遠是第一個動作；開啟、加入或新增則需要你明確點一下才會執行。",
-          "blurb": "安全離線讀取任何碼"
+          "description": "在裝置上讀取 QR code 與條碼。複製永遠是第一個動作；開啟、加入或新增則需要你明確點一下才會執行。"
         },
         "zh": {
           "name": "扫描",
-          "description": "在设备上读取 QR 码和条码。复制永远是第一个操作；打开、加入或添加则需要你明确点一下才会执行。",
-          "blurb": "安全离线读取任何码"
+          "description": "在设备上读取 QR 码和条码。复制永远是第一个操作；打开、加入或添加则需要你明确点一下才会执行。"
         }
       }
     },
