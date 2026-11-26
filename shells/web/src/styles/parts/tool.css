@@ -4091,11 +4091,18 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   .sidebar-body { margin-bottom: var(--sheet-body-foot); }
 
   /* Keep the existing canvas controls below the sheet, including its drag grip. */
-  .tool-layout:has(> .sidebar):not(.is-editor) .tool-stage > :is(.stage-nav:not([data-docked]), .canvas-record-help) {
+  .tool-layout:has(> .sidebar):not(.is-editor) .tool-stage > :is(.stage-nav:not([data-docked]), .canvas-record-help, .canvas-record-coach) {
     /* The peek height when --peek-h is unset, a token so the type multiplier scales only a declaration. */
     --sheet-peek-default: calc(56px * var(--a11y-fs));
     top: calc(max(0px, var(--sheet-h) - var(--peek-h, var(--sheet-peek-default))) + var(--chrome-top) - var(--safe-top) + var(--vv-top, 0px));
   }
+  /* The level display shares that row: centred on the help button's height, between it
+     and the account button, with a long warning wrapping under the bar. */
+  .tool-layout:has(> .sidebar):not(.is-editor) .tool-stage > .canvas-record-coach {
+    margin-top: 6px;
+    max-width: calc(100% - 144px);
+  }
+  .tool-layout:has(> .sidebar):not(.is-editor) .tool-stage > .canvas-record-coach .crc-audio { flex-wrap: wrap; }
   .tool-layout:has(> .sidebar):not(.is-editor) .tool-stage > .stage-nav:not([data-docked]) {
     max-height: calc(100dvh - max(var(--sheet-h), var(--peek-h, var(--sheet-peek-default))) - var(--chrome-top) - var(--safe-bottom) - var(--vv-bottom, 0px) - 8px);
     overflow-y: auto;

@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Historia (9:16)",
   "inputs.accent.label": "Color de la forma de onda",
   "inputs.ink.label": "Color del texto",
-  "inputs.bg.label": "Fondo"
+  "inputs.bg.label": "Fondo",
+  "inputs.targetLevel.label": "Nivel objetivo",
+  "inputs.targetLevel.help": "Lo que se considera «perfecto» para los mensajes de guía.",
+  "inputs.targetLevel.options.soft": "Suave · micro cerca",
+  "inputs.targetLevel.options.normal": "Voz normal",
+  "inputs.targetLevel.options.loud": "Alto · sala",
+  "inputs.showTips.label": "Consejos de guía",
+  "inputs.showTips.help": "Mensajes en vivo como «acércate más» o «estás saturando»."
 }

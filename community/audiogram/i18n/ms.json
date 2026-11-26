@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Story (9:16)",
   "inputs.accent.label": "Warna bentuk gelombang",
   "inputs.ink.label": "Warna teks",
-  "inputs.bg.label": "Latar belakang"
+  "inputs.bg.label": "Latar belakang",
+  "inputs.targetLevel.label": "Aras sasaran",
+  "inputs.targetLevel.help": "Apa yang dikira 'sesuai' untuk gesaan bimbingan.",
+  "inputs.targetLevel.options.soft": "Lembut · mik dekat",
+  "inputs.targetLevel.options.normal": "Pertuturan biasa",
+  "inputs.targetLevel.options.loud": "Kuat · bilik",
+  "inputs.showTips.label": "Tip bimbingan",
+  "inputs.showTips.help": "Gesaan langsung seperti 'dekatkan diri' atau 'bunyi anda klip'."
 }

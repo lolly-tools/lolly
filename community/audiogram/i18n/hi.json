@@ -18,5 +18,12 @@
   "inputs.size.options.story": "स्टोरी (9:16)",
   "inputs.accent.label": "वेवफ़ॉर्म रंग",
   "inputs.ink.label": "टेक्स्ट का रंग",
-  "inputs.bg.label": "बैकग्राउंड"
+  "inputs.bg.label": "बैकग्राउंड",
+  "inputs.targetLevel.label": "लक्ष्य लेवल",
+  "inputs.targetLevel.help": "कोचिंग संकेतों के लिए 'बिलकुल सही' क्या माना जाए।",
+  "inputs.targetLevel.options.soft": "धीमा · पास का माइक",
+  "inputs.targetLevel.options.normal": "सामान्य बोलचाल",
+  "inputs.targetLevel.options.loud": "तेज़ · कमरा",
+  "inputs.showTips.label": "कोचिंग टिप्स",
+  "inputs.showTips.help": "‘पास आइए’ या ‘आवाज़ क्लिप हो रही है’ जैसे लाइव संकेत।"
 }

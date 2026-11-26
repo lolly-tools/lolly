@@ -18,5 +18,12 @@
   "inputs.size.options.story": "故事 (9:16)",
   "inputs.accent.label": "波形颜色",
   "inputs.ink.label": "文本颜色",
-  "inputs.bg.label": "背景"
+  "inputs.bg.label": "背景",
+  "inputs.targetLevel.label": "目标电平",
+  "inputs.targetLevel.help": "决定录音提示中“刚好合适”的电平标准。",
+  "inputs.targetLevel.options.soft": "轻柔 · 近讲麦克风",
+  "inputs.targetLevel.options.normal": "正常语速",
+  "inputs.targetLevel.options.loud": "响亮 · 房间",
+  "inputs.showTips.label": "录音提示",
+  "inputs.showTips.help": "实时提示，例如“靠近一点”或“声音破音了”。"
 }

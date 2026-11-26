@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Story (9:16)",
   "inputs.accent.label": "Wellenform-Farbe",
   "inputs.ink.label": "Textfarbe",
-  "inputs.bg.label": "Hintergrund"
+  "inputs.bg.label": "Hintergrund",
+  "inputs.targetLevel.label": "Zielpegel",
+  "inputs.targetLevel.help": "Was für die Coaching-Hinweise als „genau richtig\" gilt.",
+  "inputs.targetLevel.options.soft": "Leise · Nahmikrofon",
+  "inputs.targetLevel.options.normal": "Normale Sprache",
+  "inputs.targetLevel.options.loud": "Laut · Raum",
+  "inputs.showTips.label": "Coaching-Hinweise",
+  "inputs.showTips.help": "Live-Hinweise wie „näher herangehen\" oder „Sie übersteuern\"."
 }

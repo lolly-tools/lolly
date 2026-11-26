@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Hikaye (9:16)",
   "inputs.accent.label": "Dalga formu rengi",
   "inputs.ink.label": "Metin rengi",
-  "inputs.bg.label": "Arka plan"
+  "inputs.bg.label": "Arka plan",
+  "inputs.targetLevel.label": "Hedef seviye",
+  "inputs.targetLevel.help": "Yönlendirme mesajları için neyin 'tam kararında' sayıldığı.",
+  "inputs.targetLevel.options.soft": "Yumuşak · yakın mikrofon",
+  "inputs.targetLevel.options.normal": "Normal konuşma",
+  "inputs.targetLevel.options.loud": "Yüksek sesli · oda",
+  "inputs.showTips.label": "Yönlendirme ipuçları",
+  "inputs.showTips.help": "‘yaklaş’ veya ‘sesin kırpılıyor’ gibi canlı yönlendirmeler."
 }

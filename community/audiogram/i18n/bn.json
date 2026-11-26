@@ -18,5 +18,12 @@
   "inputs.size.options.story": "স্টোরি (9:16)",
   "inputs.accent.label": "ওয়েভফর্ম রং",
   "inputs.ink.label": "টেক্সটের রং",
-  "inputs.bg.label": "ব্যাকগ্রাউন্ড"
+  "inputs.bg.label": "ব্যাকগ্রাউন্ড",
+  "inputs.targetLevel.label": "টার্গেট লেভেল",
+  "inputs.targetLevel.help": "কোচিং প্রম্পটের জন্য কোনটি 'ঠিক আছে' বলে গণ্য হবে।",
+  "inputs.targetLevel.options.soft": "সফট · কাছের মাইক",
+  "inputs.targetLevel.options.normal": "স্বাভাবিক কথা",
+  "inputs.targetLevel.options.loud": "লাউড · রুম",
+  "inputs.showTips.label": "কোচিং টিপস",
+  "inputs.showTips.help": "‘কাছে আসুন’ বা ‘আপনি ক্লিপ করছেন’-এর মতো লাইভ প্রম্পট।"
 }

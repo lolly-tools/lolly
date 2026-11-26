@@ -18,5 +18,12 @@
   "inputs.size.options.story": "限時動態 (9:16)",
   "inputs.accent.label": "波形顏色",
   "inputs.ink.label": "文字顏色",
-  "inputs.bg.label": "背景"
+  "inputs.bg.label": "背景",
+  "inputs.targetLevel.label": "目標音量",
+  "inputs.targetLevel.help": "決定提示訊息認定「剛剛好」音量的標準。",
+  "inputs.targetLevel.options.soft": "輕柔 · 貼近麥克風",
+  "inputs.targetLevel.options.normal": "一般說話",
+  "inputs.targetLevel.options.loud": "宏亮 · 房間收音",
+  "inputs.showTips.label": "錄音提示",
+  "inputs.showTips.help": "即時顯示「靠近一點」或「音量過大」等提示。"
 }

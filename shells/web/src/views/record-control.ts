@@ -9,7 +9,7 @@ import { mountCoachHud, coachAudio, type CoachHud, type CoachTarget } from '../l
 import { frameLuma, coachVideo } from '../lib/video-coach-core.ts';
 import { subscribeRecordPreview } from '../lib/record-preview.ts';
 import { mountRecordingHelp, createTipFlasher, type RecordingHelp } from '../lib/recording-tips.ts';
-import { setAudioTake, saveTakeMp3, saveTakeNative, takesAudioInput } from '../lib/audio-take.ts';
+import { setAudioTake, saveTakeMp3, saveTakeNative, takeNameFrom, takesAudioInput } from '../lib/audio-take.ts';
 import { holdScreenAwake } from '../lib/wake-lock.ts';
 import type { storeRecordingAsset } from './picker.ts';
 import { fmtBytes } from '../lib/device-info.ts';
@@ -20,8 +20,11 @@ import type { ToolRuntime, WebToolHost } from './tool.ts';
 /**
  * Device recording control (engine v1.17). Mounts a Record button on the stage for a
  * tool declaring render.capture, where the shell exposes host.recorder.
- *   - audio: first tap ARMS the mic (a level sound-check via the tool's onLevel hook,
- *     which the runtime drives) → tap again to record → Stop → offer MP3 / native save.
+ *   - audio: first tap ARMS the mic (a level sound-check) → tap again to record → Stop.
+ *     A tool with an onLevel hook draws the levels in its own template (the runtime
+ *     drives the hook) and the take is offered as an MP3 / native save. A tool without
+ *     one (Audiogram) gets the shell's level and coaching HUD, the one a video take
+ *     has, and the take becomes its Audio input.
  *   - video: a host.media viewfinder for FRAMING (shell-drawn, no onFrame hook) → tap
  *     Record to capture camera+mic → the finished clip becomes the top-&-tail
  *     compositor's `clip` input, which the render wraps with the intro/outro bookends.
@@ -35,6 +38,9 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   const isAudio = mode === 'audio';
   const wantAudio = mode !== 'video'; // 'audio' + 'av' capture the mic; 'video' is camera-only
   const wantVideo = mode !== 'audio';
+  // Level coaching drawn by the shell: every take with sound, except an audio tool that
+  // draws the levels in its own template through an onLevel hook.
+  const wantCoach = wantAudio && !!host.recorder && !(isAudio && runtime.hasLevelHook);
   const MAX_MS = isAudio ? 10 * 60 * 1000 : 60 * 1000; // 10 min audio / 1 min video
 
   const btn = document.createElement('button');
@@ -105,6 +111,8 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       // If a sound-check meter is already running, restart it on the new mic so the
       // levels match what the take will record.
       if (state === 'armed') { try { runtime.stopMeter(); await runtime.startMeter({ deviceId: micDeviceId }); } catch { /* ignore */ } }
+      // The shell's own sound check (a tool with no level hook) moves to the new mic too.
+      if (state === 'armed' && isAudio && wantCoach) { stopCoach(); await startCoach(); }
       if (!disposed) announce('Microphone changed');
     });
   }
@@ -119,6 +127,17 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   // arm/sound-check window (startRecording swaps to the record session), for video/av it
   // stays open through the take. Honours the tool's "Coaching tips" toggle where present.
   const flasher = createTipFlasher(help.flash);
+  // What the tool's "Target level" and "Coaching tips" inputs ask for, read on every
+  // sample so a change takes effect at once. A tool with neither gets normal speech
+  // with tips on.
+  const coachPrefs = (): { target: CoachTarget; tips: boolean } => {
+    const model = runtime.getModel();
+    const target = model.find((i) => i.id === 'targetLevel')?.value;
+    return {
+      target: target === 'soft' || target === 'loud' ? target : 'normal',
+      tips: model.find((i) => i.id === 'showTips')?.value !== false,
+    };
+  };
   let flashUnsub: (() => void) | null = null;
   if (host.recorder) {
     // A red (hot) meter held this long = a CONSTANT loud source - a fan / AC / air blowing
@@ -126,9 +145,8 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     const RED_SUSTAIN_MS = 2000, FAN_COOLDOWN_MS = 12000;
     let redSince = 0, fanFlashedAt = -Infinity;
     flashUnsub = host.recorder.meter.subscribe((level) => {
-      const model = runtime.getModel();
-      if (model.find((i) => i.id === 'showTips')?.value === false) { flasher.reset(); redSince = 0; return; }
-      const target = (model.find((i) => i.id === 'targetLevel')?.value as CoachTarget) || 'normal';
+      const { target, tips } = coachPrefs();
+      if (!tips) { flasher.reset(); redSince = 0; return; }
       const coaching = coachAudio(level, { target, phase: coachPhase });
       const now = performance.now();
       if (coaching.tone === 'hot') {
@@ -157,7 +175,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   // warmed (armed), the next tap records. If this tool/shell can't arm (no level hook / no
   // camera), the first tap records directly, so it just says "Record".
   const warmLabel = isAudio ? 'Warm the mic' : (wantAudio ? 'Warm the camera and mic' : 'Warm the camera');
-  const willArm = (): boolean => (isAudio ? runtime.hasLevelHook : !!host.media?.isAvailable?.());
+  const willArm = (): boolean => (isAudio ? runtime.hasLevelHook || wantCoach : !!host.media?.isAvailable?.());
   const render = (): void => {
     if (disposed) return;
     btn.dataset.state = state;
@@ -279,16 +297,15 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   const cameraObserver = new MutationObserver(reparentCamera);
   cameraObserver.observe(stageEl, { childList: true, subtree: true });
 
-  // ── Coaching HUD (video/av capture): audio levels + video exposure ──────────
-  // An audio tool renders its own meter in the template (onLevel); a video/av tool's
-  // canvas shows the composited bookends, so the shell draws a level+warning HUD over
-  // the viewfinder instead. It carries two rows:
+  // ── Coaching HUD: audio levels + video exposure ─────────────────────────────
+  // An audio tool with an onLevel hook renders its own meter in the template. Every
+  // other capture tool's canvas shows something else (a video/av tool the composited
+  // bookends, Audiogram its card), so the shell draws a level+warning HUD over the
+  // stage instead. It carries two rows:
   //   • audio - fed by the raw sound-check meter (levels + noiseFloor/hum/hiss), live
   //     from arm through the take;
   //   • exposure - fed by the live camera frames (too dark / too bright / overexposed),
   //     off the framing viewfinder while arming and off the self-view during the take.
-  const wantCoach = wantAudio && !isAudio && !!host.recorder;   // audio-level coaching (wantExposure hoisted above)
-  const coachTarget: CoachTarget = 'normal';
   let coachHud: CoachHud | null = null;
   let coachUnsub: (() => void) | null = null;
   let coachPhase: 'check' | 'record' = 'check';
@@ -341,7 +358,9 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     const generation = ++coachGeneration;
     coachStarting = true;
     try {
-      await host.recorder!.meter.start(); // raw sound-check stream (kept open through the take)
+      // Raw sound-check stream (kept open through the take). An audio take opens the mic
+      // the person chose, so the levels describe the mic that records.
+      await host.recorder!.meter.start(isAudio && micDeviceId ? { deviceId: micDeviceId } : undefined);
       if (disposed || generation !== coachGeneration) {
         try { host.recorder!.meter.stop(); } catch { /* release this late acquisition */ }
         return;
@@ -349,7 +368,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       coachMeterOn = true;
       ensureCoachHud();
       coachUnsub = host.recorder!.meter.subscribe((level) => {
-        coachHud?.updateAudio(level, { target: coachTarget, phase: coachPhase });
+        coachHud?.updateAudio(level, { ...coachPrefs(), phase: coachPhase });
       });
     } catch { /* mic denied - the take can still proceed, just without coaching */ }
     finally { if (generation === coachGeneration) coachStarting = false; }
@@ -453,7 +472,15 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   async function arm(): Promise<void> {
     showStarting();
     try {
-      if (isAudio) {
+      if (isAudio && !runtime.hasLevelHook) {
+        coachPhase = 'check';
+        await startCoach();      // the shell's sound check: levels and room noise on the HUD
+        if (disposed) return;
+        // No sound check to offer (the mic was refused or is missing): start the take, whose
+        // own start reports what went wrong.
+        if (!coachMeterOn) { await begin(); return; }
+        announce('Microphone live - check your levels, then tap Record');
+      } else if (isAudio) {
         coachPhase = 'check';   // arming an audio take is a sound check (room cues valid)
         const started = await runtime.startMeter(micDeviceId ? { deviceId: micDeviceId } : undefined);
         if (disposed) return;
@@ -486,8 +513,9 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   btn.addEventListener('click', () => {
     if (disposed || btn.disabled) return;
     if (state === 'recording') { void stop(); return; }
-    // Audio arms only when the tool has a coaching hook; video always arms (framing).
-    if (state === 'idle' && (isAudio ? runtime.hasLevelHook : host.media?.isAvailable?.())) { void arm(); return; }
+    // Audio arms for a sound check, on the tool's own level hook or the shell's HUD;
+    // video always arms (framing).
+    if (state === 'idle' && willArm()) { void arm(); return; }
     void begin();
   });
 
@@ -767,10 +795,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     // transcode as the same live mic capture; without that the PRIMARY save
     // button was the one shipping unsigned.
     const take = { blob, mimeType, container: container ?? null };
-    const takeName = (): string | undefined => {
-      const value = runtime.getModel().find(i => i.id === 'name')?.value;
-      return typeof value === 'string' ? value : undefined;
-    };
+    const takeName = (): string | undefined => takeNameFrom(runtime.getModel());
     natBtn.addEventListener('click', () => { void saveTakeNative(host, take, takeName()); });
     mp3Btn.addEventListener('click', async () => {
       const name = takeName();

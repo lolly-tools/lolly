@@ -18,5 +18,12 @@
   "inputs.size.options.story": "스토리 (9:16)",
   "inputs.accent.label": "파형 색상",
   "inputs.ink.label": "텍스트 색상",
-  "inputs.bg.label": "배경"
+  "inputs.bg.label": "배경",
+  "inputs.targetLevel.label": "목표 레벨",
+  "inputs.targetLevel.help": "코칭 안내에서 '딱 적당함'으로 판단하는 기준이에요.",
+  "inputs.targetLevel.options.soft": "작게 · 근접 마이크",
+  "inputs.targetLevel.options.normal": "일반 발화",
+  "inputs.targetLevel.options.loud": "크게 · 룸",
+  "inputs.showTips.label": "코칭 팁",
+  "inputs.showTips.help": "'더 가까이 오세요' 또는 '소리가 찌그러지고 있어요' 같은 실시간 안내예요."
 }

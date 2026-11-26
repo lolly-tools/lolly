@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Story (9:16)",
   "inputs.accent.label": "Màu dạng sóng",
   "inputs.ink.label": "Màu văn bản",
-  "inputs.bg.label": "Nền"
+  "inputs.bg.label": "Nền",
+  "inputs.targetLevel.label": "Mức âm lượng mục tiêu",
+  "inputs.targetLevel.help": "Xác định mức nào được coi là 'vừa đủ' cho các gợi ý hướng dẫn.",
+  "inputs.targetLevel.options.soft": "Nhẹ · mic gần",
+  "inputs.targetLevel.options.normal": "Giọng nói bình thường",
+  "inputs.targetLevel.options.loud": "To · cả phòng",
+  "inputs.showTips.label": "Gợi ý hướng dẫn",
+  "inputs.showTips.help": "Gợi ý trực tiếp như 'lại gần hơn' hoặc 'bạn đang bị vỡ tiếng'."
 }

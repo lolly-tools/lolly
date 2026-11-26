@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Історія (9:16)",
   "inputs.accent.label": "Колір хвилі",
   "inputs.ink.label": "Колір тексту",
-  "inputs.bg.label": "Фон"
+  "inputs.bg.label": "Фон",
+  "inputs.targetLevel.label": "Цільовий рівень",
+  "inputs.targetLevel.help": "Що вважається 'в самий раз' для підказок з коучингу.",
+  "inputs.targetLevel.options.soft": "Тихо · близько до мікрофона",
+  "inputs.targetLevel.options.normal": "Звичайна мова",
+  "inputs.targetLevel.options.loud": "Голосно · в кімнаті",
+  "inputs.showTips.label": "Підказки з коучингу",
+  "inputs.showTips.help": "Підказки в реальному часі, як-от «наблизьтеся» чи «занадто голосно»."
 }

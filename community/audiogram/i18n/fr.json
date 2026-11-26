@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Story (9:16)",
   "inputs.accent.label": "Couleur de la forme d'onde",
   "inputs.ink.label": "Couleur du texte",
-  "inputs.bg.label": "Fond"
+  "inputs.bg.label": "Fond",
+  "inputs.targetLevel.label": "Niveau cible",
+  "inputs.targetLevel.help": "Ce qui est considéré comme « idéal » pour les conseils d'accompagnement.",
+  "inputs.targetLevel.options.soft": "Doux · micro proche",
+  "inputs.targetLevel.options.normal": "Parole normale",
+  "inputs.targetLevel.options.loud": "Fort · pièce",
+  "inputs.showTips.label": "Conseils d'accompagnement",
+  "inputs.showTips.help": "Des messages en direct comme « rapproche-toi » ou « tu satures »."
 }

@@ -18,5 +18,12 @@
   "inputs.size.options.story": "اسٹوری (9:16)",
   "inputs.accent.label": "ویو فارم کا رنگ",
   "inputs.ink.label": "ٹیکسٹ کا رنگ",
-  "inputs.bg.label": "پس منظر"
+  "inputs.bg.label": "پس منظر",
+  "inputs.targetLevel.label": "مطلوبہ سطح",
+  "inputs.targetLevel.help": "کوچنگ اشاروں کے لیے 'بالکل ٹھیک' کیا شمار ہوتا ہے۔",
+  "inputs.targetLevel.options.soft": "نرم · قریبی مائیک",
+  "inputs.targetLevel.options.normal": "عام گفتگو",
+  "inputs.targetLevel.options.loud": "بلند · کمرہ",
+  "inputs.showTips.label": "کوچنگ تجاویز",
+  "inputs.showTips.help": "لائیو اشارے جیسے ‘قریب آئیں’ یا ‘آواز کلپ ہو رہی ہے’۔"
 }
