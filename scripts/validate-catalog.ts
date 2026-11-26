@@ -2195,6 +2195,24 @@ for (const err of verifySharedRegions()) {
 
 // ─── Report ─────────────────────────────────────────────────────────────────
 
+/** Another mounted profile that uses this profile's catalog and whose tokens the bake was drawn from, or ''. */
+function coverBakeSibling(drawnFrom: string): string {
+  const active = contentRoots();
+  let names: string[] = [];
+  try {
+    const file = JSON.parse(readFileSync(join(ROOT, 'profiles.json'), 'utf8')) as { profiles?: Record<string, unknown> };
+    names = Object.keys(file.profiles ?? {});
+  } catch { return ''; }
+  for (const name of names) {
+    if (name === active.profile) continue;
+    try {
+      const other = contentRoots({ profile: name });
+      if (other.catalogRoot === active.catalogRoot && coverSourceFingerprint(readBrandAssetIndex(other).assets) === drawnFrom) return name;
+    } catch { /* A profile whose packs are not on disk is no sibling. */ }
+  }
+  return '';
+}
+
 // Baked gallery covers. One tool's new version retires one cover, which costs a live
 // render and is a reminder. A changed token document retires all of them at once, and the
 // gallery shows no sign of that, so a bake drawn from other tokens is an error.
@@ -2206,7 +2224,12 @@ if (existsSync(catalogFile('previews/covers.json')) && existsSync(catalogFile('t
   if (drawnFrom === undefined) {
     warnings.push(`catalog/previews/covers.json: this bake does not record the tokens it was drawn from, so a retired bake cannot be seen here - run \`${bake}\``);
   } else if (drawnFrom !== coverSourceFingerprint(readBrandAssetIndex().assets)) {
-    errors.push(`catalog/previews/covers.json: the covers were baked from other design system tokens, so no visitor is shown any of them - run \`${bake}\``);
+    // Two profiles can share one catalog (suse and suse-with-demo do), and one
+    // catalog holds one bake. A bake drawn for the other profile is in date for that profile:
+    // here it costs live covers, which is a note and not a fault.
+    const sibling = coverBakeSibling(drawnFrom);
+    if (sibling) warnings.push(`catalog/previews/covers.json: the covers were baked for the ${sibling} profile, which shares this catalog. Covers are drawn live on this profile`);
+    else errors.push(`catalog/previews/covers.json: the covers were baked from other design system tokens, so no visitor is shown any of them - run \`${bake}\``);
   }
   const stale = (listed.tools ?? []).filter((t) => baked.covers?.[t.id] && baked.covers[t.id]!.version !== t.version).map((t) => t.id);
   if (stale.length) warnings.push(`catalog/previews/covers.json: ${stale.length} baked covers are stale (${stale.slice(0, 6).join(', ')}) - run \`${bake}\``);

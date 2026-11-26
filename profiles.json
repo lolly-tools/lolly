@@ -5,7 +5,7 @@
     "suse": {
       "label": "SUSE",
       "tools": ["community", "brands/suse/tools"],
-      "exclude": ["rebrand-deck", "street-map", "quote-card"],
+      "exclude": ["rebrand-deck", "street-map"],
       "assets": ["community/emoji-packs", "community/fallback-fonts"],
       "catalog": "brands/suse/catalog"
     },
@@ -26,7 +26,7 @@
     "suse-with-demo": {
       "label": "SUSE, with Lolly Demo beside it",
       "tools": ["community", "brands/suse/tools"],
-      "exclude": ["rebrand-deck", "street-map", "quote-card"],
+      "exclude": ["rebrand-deck", "street-map"],
       "assets": ["community/emoji-packs", "community/fallback-fonts"],
       "catalog": "brands/suse/catalog",
       "brandTokens": "suse/tokens/brand",
