@@ -300,7 +300,7 @@ A Lolly Design click deck can also export as a video. **Export slides as video**
 
 ### Audio
 
-Some tools export sound on its own. **Lolly Voice Recorder** captures a microphone take with a live level meter and saves it as **MP3**, **WAV**, **M4A (AAC)** or **Opus (WebM)**, encoded on your device. `wav`, `mp3`, `m4a` and `opus` are ordinary format ids, so an audio export is as shareable and scriptable as a PNG.
+Some tools export sound on its own. **Lolly Audiogram** records a microphone take with a live level bar, or takes a clip you bring, and saves the sound as **MP3**, **WAV**, **M4A (AAC)** or **Opus**, encoded on your device. `wav`, `mp3`, `m4a` and `opus` are ordinary format ids, so an audio export is as shareable and scriptable as a PNG.
 
 The asset picker accepts many audio formats for a music bed, from MP3 and FLAC to MIDI and tracker modules; [Formats](/info/formats.html) lists them. A [Lolly Rondocode song](/info/rondocode.html) plays at the length its clip asks for.
 
