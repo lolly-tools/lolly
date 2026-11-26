@@ -46,7 +46,7 @@ The Lolly Start (blank brand) catalog ships **75 tools** today - 61 listed in th
 | Print Sheet | Lay one design - or a whole pile of them - out n-up on A4, Letter or A3, across as many pages as it takes, with crop marks in the margin. |
 | Prompt Card | Typeset a long prompt into one image for a multimodal model - image input is often cheaper than the same words as text tokens. |
 | QR Code | Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 - plus retail and logistics barcodes from EAN-13 to MaxiCode. |
-| Quote | A quotation card with a speaker's picture, name and role, for social posts and slides, in the active design system. |
+| Quote | A quotation in the active design system: a speaker card, a pull quote, a citation with its source, big type, a marker on the key phrase, with optional motion that carries into Design. |
 | Record | Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically. |
 | Redact | Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device. |
 | Rondocode | Write music as code and hear it as you type. Export the song as audio with Content Credentials, as stems, as a MIDI file, or keep its source. |

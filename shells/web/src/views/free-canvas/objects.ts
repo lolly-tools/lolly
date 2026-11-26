@@ -108,7 +108,7 @@ export async function pickImage(fc: FcCtx, pickOpts?: {
       // With an inspector beside the board, a tool chosen from the Tools pane is instead
       // placed at once with its own defaults (placeTool) and tuned in the inspector, with
       // the board in view; editing the box's current render still opens the editor.
-      editTool: inlineTool && editTool ? (url: string, mode?: string) => (mode === 'edit' ? editTool(url, mode) : placeTool(fc, url)) : editTool,
+      editTool: inlineTool && editTool ? (url: string, mode?: string) => (mode === 'edit' ? editTool(url, mode) : placeTool(fc, url, first)) : editTool,
     });
     if (!ref) return;
     if (ref.type === 'lottie') ref = await (await import('../lottie-import.ts')).chooseLottieAsset(ref);
@@ -159,12 +159,19 @@ export function loopTiming(
 /**
  * A tool chosen to be placed, rendered with its own defaults in the format the tool
  * itself offers first (svg when it has one): the picker hands it to Design as it comes,
- * and its inputs are the inspector's to show. Null when the tool cannot be rendered.
+ * and its inputs are the inspector's to show. A tool that lays itself out for the canvas
+ * (render.followsCanvasSize) is drawn at the size of the frame it was dropped in, so a
+ * 16:9 frame does not hold a 4:3 card between two bars. Null when the tool cannot be
+ * rendered.
  */
-async function placeTool(fc: FcCtx, url: string): Promise<AssetRef | null> {
-  const compose = fc.host.compose as (HostV1['compose'] & { _describeUrl?: (url: string) => Promise<{ format: string } | null> }) | undefined;
+async function placeTool(fc: FcCtx, url: string, box: Box): Promise<AssetRef | null> {
+  const compose = fc.host.compose as (HostV1['compose'] & { _describeUrl?: (url: string) => Promise<{ format: string; followsCanvasSize?: boolean } | null> }) | undefined;
   const desc = await compose?._describeUrl?.(url).catch(() => null);
-  return desc && compose?.renderUrl ? compose.renderUrl(url, { format: desc.format as ExportFormat }).catch(() => null) : null;
+  if (!desc || !compose?.renderUrl) return null;
+  const width = Math.round(Number(box.w));
+  const height = Math.round(Number(box.h));
+  const size = desc.followsCanvasSize && width > 0 && height > 0 ? { width, height } : {};
+  return compose.renderUrl(url, { format: desc.format as ExportFormat, ...size }).catch(() => null);
 }
 
 /**

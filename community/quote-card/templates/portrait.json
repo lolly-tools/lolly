@@ -1,0 +1,13 @@
+{
+  "id": "portrait",
+  "name": "Portrait",
+  "category": "Social",
+  "description": "The picture takes half the frame, edge to edge.",
+  "values": {
+    "headshot": {
+      "id": "lolly/demo/sample-photo"
+    },
+    "ground": "ink",
+    "layout": "portrait"
+  }
+}
