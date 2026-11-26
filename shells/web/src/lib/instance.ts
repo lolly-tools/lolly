@@ -593,6 +593,15 @@ export async function nativeConnectorFetch(request: Request, allowedOrigins: rea
   }, allowedOrigins);
 }
 
+/** `pending`, or a rejection with the signal's reason as soon as it aborts. */
+function untilAborted<T>(pending: Promise<T>, signal: AbortSignal): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = (): void => { reject(signal.reason); };
+    signal.addEventListener('abort', onAbort, { once: true });
+    pending.then(resolve, reject).finally(() => signal.removeEventListener('abort', onAbort));
+  });
+}
+
 async function tauriRemoteFetch(url: string, init?: RequestInit, allowedOrigins?: readonly string[], limits?: InstanceFetchLimits): Promise<Response> {
   const { invoke } = (window as unknown as { __TAURI_INTERNALS__: TauriInternals }).__TAURI_INTERNALS__;
   init?.signal?.throwIfAborted();
@@ -611,7 +620,9 @@ async function tauriRemoteFetch(url: string, init?: RequestInit, allowedOrigins?
     nativeHeaders.push(['cookie', instanceSession.cookiePair]);
   }
   const bodyBuf = await req.arrayBuffer();
-  const resp = await invoke<TauriRemoteFetchResponse>('remote_fetch', {
+  const signal = init?.signal ?? null;
+  signal?.throwIfAborted();
+  const answered = invoke<TauriRemoteFetchResponse>('remote_fetch', {
     request: {
       method: req.method,
       url: req.url,
@@ -621,17 +632,25 @@ async function tauriRemoteFetch(url: string, init?: RequestInit, allowedOrigins?
       ...(limits?.timeoutMs ? { timeoutMs: Math.min(limits.timeoutMs, 60000) } : {}),
       ...(limits?.maxResponseBytes ? { maxResponseBytes: limits.maxResponseBytes } : {}),
     },
+  }).then((resp) => {
+    // The instance renews the session by sending the cookie again with a later expiry
+    // (Work does on its session, org-config and inbox answers). A browser's own jar
+    // takes that in; this transport has no jar, so the pair is read here, before the
+    // Response below drops the header as the fetch rules require. Only from an answer
+    // of the instance itself to a request that carried this session. Read even when
+    // the caller has stopped waiting: the instance has already made the change.
+    if (!allowedOrigins && instanceSession && instanceSession.origin === instanceOrigin()
+      && isInstanceOrigin(url) && isInstanceOrigin(resp.url)) {
+      const renewed = renewedSessionPair(resp.headers);
+      if (renewed !== undefined && renewed !== instanceSession.cookiePair) void setInstanceSession(renewed);
+    }
+    return resp;
   });
-  // The instance renews the session by sending the cookie again with a later expiry
-  // (Work does on its session, org-config and inbox answers). A browser's own jar
-  // takes that in; this transport has no jar, so the pair is read here, before the
-  // Response below drops the header as the fetch rules require. Only from an answer
-  // of the instance itself to a request that carried this session.
-  if (!allowedOrigins && instanceSession && instanceSession.origin === instanceOrigin()
-    && isInstanceOrigin(url) && isInstanceOrigin(resp.url)) {
-    const renewed = renewedSessionPair(resp.headers);
-    if (renewed !== undefined && renewed !== instanceSession.cookiePair) void setInstanceSession(renewed);
-  }
+  // The native command cannot be cancelled from here. A caller's signal used to be
+  // read once, before the request, so a 5 s budget waited for the native limit (60 s
+  // by default). The wait now ends with the signal; the native request ends at its
+  // own limit, which fetchWithin lowers to the same budget.
+  const resp = signal ? await untilAborted(answered, signal) : await answered;
   const body = resp.body instanceof ArrayBuffer ? new Uint8Array(resp.body) : Uint8Array.from(resp.body);
   // Null-body statuses (fetch spec) - Response() throws if handed bytes for them.
   const nullBody = [101, 103, 204, 205, 304].includes(resp.status);
