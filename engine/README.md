@@ -692,6 +692,7 @@ One row per module under `engine/src/` (the `index.ts` barrel excluded), in path
 | `vector-paint-parts.ts` | Separate paint groups only where inherited compositing can remain exact. | no | indirect | – |
 | `vector-paint.ts` | Paint trees reference authored contours; geometry has exactly one writable source. | yes | `tests/vector-paint.test.ts` | yes |
 | `vector-text.ts` | Outlined labels as live text (plan 275 section 9.3). | no | `tests/vector-text.test.ts` | – |
+| `verify-findings.ts` | Verify's answer as six findings, in one fixed order (plan 374). | yes | `tests/verify-findings.test.ts` | – |
 | `version.ts` | The engine's HostV1 contract version. | yes | indirect | – |
 | `video-container-probe.ts` | Video container probe: says what a MOV, MP4 or MXF file holds without decoding a single frame. | no | `tests/video-container-probe.test.ts` | – |
 | `video-meta.ts` | Video provenance - embeds the export authorship record (metadata.js) into the two MediaRecorder containers, which are produced bare (no metadata slot exists during recording, so the shell post-processes the finished… | yes | `tests/video-meta.test.ts` | yes |

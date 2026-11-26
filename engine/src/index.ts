@@ -97,6 +97,8 @@ export type { BrandPageWrite } from './brand-page-address.ts';
 export { extractFileMetadata, extractXmpPacket, readFileDesignRecord, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
 export type { FileMetadata, MetaField, MetaGroup } from './file-metadata.ts';
 export { softwareName, softwareOrigins, xmlProvenanceFields } from './software-origin.ts';
+export { VERIFY_FINDING_IDS, verifyFindings, verifyHashFailed, verifyRights, verifySoftware, fillFindingText } from './verify-findings.ts';
+export type { VerifyEvidence, VerifyFinding, VerifyFindingId, VerifyFindingsInput, VerifyFindingsReport, VerifyRights, VerifySoftware, VerifyStrength, VerifyTone } from './verify-findings.ts';
 export type { SoftwareOrigin, SoftwareEvidence, SoftwareRole } from './software-origin.ts';
 // Image-metadata byte stampers + the metadata carry (plans/144 Wave 1). The
 // stampers graduated here from the web shell's bridge/export-image-meta.ts

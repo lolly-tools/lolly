@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.353.0', () => {
+test('ENGINE_VERSION is 1.354.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -626,7 +626,8 @@ test('ENGINE_VERSION is 1.353.0', () => {
   // 1.351.0 moves the session record to format 5 (a picture reference beside the thumbnail). Capture is unchanged.
   // 1.352.0 reads a GFM table in the markdown helper. Capture is unchanged.
   // 1.353.0 stops charging an isolated hook for the time a host call takes. Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.353.0');
+  // 1.354.0 adds Verify's six findings. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.354.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

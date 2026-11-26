@@ -133,10 +133,10 @@
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
-      "lines": 2657,
+      "lines": 2601,
       "largestFunctionLines": 1915,
       "importFanIn": 3,
-      "importFanOut": 57,
+      "importFanOut": 58,
       "typeEscapes": 1
     }
   },
