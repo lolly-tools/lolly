@@ -78,7 +78,7 @@ import { auxiliaryMetadataHtml } from './valid-auxiliary.ts';
 import { metadataValueHtml, metadataLinkHtml, metadataUrl, wireMetadataLinks, visibleLinkedTextHtml } from './valid-links.ts';
 import { wireVerifyActions } from './valid-actions.ts';
 import { wireAddressRequests } from './valid-location.ts';
-import { stageHtml } from './valid-stage.ts';
+import { stageHtml } from './valid-stage.ts'; import { lollyBlockHtml } from './valid-lolly.ts';
 import { intakeAltsHtml, wireIntakeAlts } from './valid-intake-alts.ts';
 // The C2PA 2.4 text-binding models - same pure-module rule as valid-verdict.ts.
 // The copy for every carrier state, the snippet cap, and the ONE url gate both
@@ -1724,7 +1724,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
       <div class="vf-body">
       ${stageHtml(preview, meta, fileIndex)}
       <div class="vf-column">
-      ${columnLeadHtml(report, meta, fileName)}
+      ${columnLeadHtml(report, meta, fileName)}${lollyBlockHtml(report, { tool: recreate, imprint: !!watermark?.present })}
       ${aiBlock}
       ${stepsBlock ? `<div class="valid-journey-feature" data-lamp-section="provenance">${stepsBlock}</div>` : ''}
       <div data-finding-section="personal">${contextCardsHtml(report, meta, false)}</div>
