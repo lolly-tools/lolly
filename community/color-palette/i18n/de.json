@@ -1,6 +1,6 @@
 {
   "name": "Paletten-Labor",
-  "description": "Lässt aus einer Startfarbe eine ganze Palette wachsen - Harmonie-Akzente, perzeptuelle OKLab-Verläufe und WCAG/APCA-Lesbarkeitsbadges, mit DTCG-Tokens und CSV-Export.",
+  "description": "Lässt aus einer Startfarbe eine Palette wachsen - Harmonie-Akzente, OKLab-Verläufe und WCAG/APCA-Lesbarkeitsbadges, mit DTCG-Tokens und CSV-Export.",
   "inputs.seed.label": "Startfarbe",
   "inputs.seed.help": "Die Farbe, aus der die gesamte Palette entsteht - standardmäßig Ihre primäre Markenfarbe.",
   "inputs.harmony.label": "Harmonie",

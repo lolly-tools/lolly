@@ -1,4 +1,4 @@
 {
   "name": "Synth",
-  "description": "Instrument wizualny, na którym grasz. Cztery sceny działają na żywo na GPU: płynny tusz, rój cząstek lecący do nagłówka lub logo, pole sprzężenia zwrotnego i Twoja kamera. Każdy kolor pochodzi z palety systemu projektowego, a obraz rusza się za wskaźnikiem, ścieżką muzyczną i kontrolerem MIDI. Eksportuj stopklatkę lub pętlę bez szwu."
+  "description": "Instrument wizualny, na którym grasz. Obraz rusza się za wskaźnikiem, ścieżką muzyczną i kontrolerem MIDI. Eksportuj stopklatkę lub pętlę bez szwu."
 }

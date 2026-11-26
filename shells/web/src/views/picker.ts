@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { savedSessionEmbedUrl } from './picker-session-embed.ts';
 import { readRecentAssets, recordRecentAsset, readTabMemory, recordTabMemory } from '../lib/picker-memory.ts';
 import { projectImageCardHtml, libraryCardThumb, userCardThumb } from './picker-thumbnails.ts';
@@ -103,6 +104,7 @@ import type { VideoJobHost } from '../lib/video-jobs.ts';
 
 import { UPLOAD_ACCEPT, isPdfUpload, isPptxUpload } from '../lib/upload-types.ts';
 import { tryStoreModelUpload, tryStoreRadianceUpload } from '../lib/model-upload.ts';
+import { currentPiece, partnerMarkIds } from '../lib/partner-kit-state.ts';
 export { UPLOAD_ACCEPT, isPdfUpload, isPptxUpload };
 
 type TabId = 'library' | 'uploads' | 'sessions' | 'projects' | 'tools' | 'templates';
@@ -465,12 +467,11 @@ async function render(
 
   // ── Icon colour themes ──────────────────────────────────────────────────────
   // Themable two-colour icons (assets tagged "themable") can take a colour
-  // pairing chosen here. The pairings come from the catalog's icon-themes
-  // palette asset via host.assets._iconThemes(); the strip mounts only when the
-  // library actually contains themable icons. The first pairing is the default
-  // (identical to the fills baked into every icon) - choosing it keeps the plain
-  // asset id, so default picks stay class-overridable when inlined.
-  // A non-default choice is carried in the picked id (`<id>?theme=<themeId>`).
+  // pairing chosen here: one per colourway of the design system, through
+  // host.assets._iconThemes(). The strip mounts only when the library contains
+  // themable icons and the system has colourways. "Original" keeps the icon's own
+  // colours and the plain asset id, so such a pick stays class-overridable when
+  // inlined; a colourway is carried in the picked id (`<id>?theme=<themeId>`).
   let iconThemes: IconTheme[] = [];
   const currentBaseId = stripAssetModifiers(String(opts.current ?? ''));
   const { theme: currentTheme } = parseThemedAssetId(String(opts.current ?? ''));
@@ -485,9 +486,9 @@ async function render(
 
   // ── Photo colour treatments ─────────────────────────────────────────────────
   // The raster analogue of the icon colour strip: a raster photo can take a
-  // greyscale or duotone-wash treatment chosen here. The treatments come from the
-  // catalog's photo-treatments palette via host.assets._photoTreatments(); the
-  // strip mounts only on groups that hold raster photos. "None" is the plain
+  // gradient-map wash chosen here, one per colourway of the design system, through
+  // host.assets._photoTreatments(); the strip mounts only on groups that hold raster
+  // photos, and only when the system has colourways. "None" is the plain
   // photo (no suffix); a treatment choice rides in the picked id
   // (`<id>?treatment=<treatmentId>`).
   let photoTreatments: PhotoTreatment[] = [];
@@ -562,8 +563,7 @@ async function render(
       <header class="asset-picker-header">
         <h2 id="asset-picker-title">${escapeHtml(opts.title ?? (collect ? tRaw('Add to {name}', { name: collect.folderName }) : t('Choose an asset')))}</h2>
         <input type="search" class="asset-picker-search" placeholder="${escapeHtml(paneSearchPlaceholder('library', allowToolUrl))}" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(t('Search assets'))}">
-        <button type="button" class="asset-picker-close" aria-label="${escapeHtml(t('Close'))}">×</button>
-      </header>
+        ${closeButtonHtml({ className: 'asset-picker-close' })}</header>
       ${tabs.length > 1 ? `<div class="asset-picker-tabs" role="tablist" aria-label="${escapeHtml(t('Asset sources'))}">${tabs.map(tb => tabButtonHtml(tb, activeTab)).join('')}</div>` : ''}
       ${currentToolUrl ? `<div class="asset-picker-current">
         <span class="asset-picker-current-label"><span class="asset-picker-current-spark" aria-hidden="true">✦</span> ${t('Current image is from <strong>{name}</strong> - tweak it, or pick a different image below', { name: opts.currentToolName ?? t('a Lolly tool') })}</span>
@@ -576,7 +576,7 @@ async function render(
             <div class="asset-picker-typebar" role="group" aria-label="${escapeHtml(t('Filter by type'))}" hidden></div>
             <div class="asset-picker-catbar" role="group" aria-label="${escapeHtml(t('Filter by category'))}" hidden></div>
           </div>
-          <section class="asset-picker-recents" hidden></section>
+          <section class="asset-picker-partner" hidden></section><section class="asset-picker-recents" hidden></section>
           <section class="asset-picker-favourites" hidden></section>
           <section class="asset-picker-library">
             <div class="asset-picker-loading">${t('Loading…')}</div>
@@ -881,8 +881,8 @@ async function render(
     // so it's handled by delegation rather than a per-render listener.
     const theme = (e.target as HTMLElement).closest<HTMLElement>('[data-theme-id]');
     if (theme) {
-      // The first pairing is the icons' baked default → no id suffix in the pick.
-      activeTheme = theme.dataset.themeId === iconThemes[0]?.id ? null : theme.dataset.themeId;
+      // "Original" (an empty id) is the icon's own colours → no id suffix in the pick.
+      activeTheme = theme.dataset.themeId || null;
       libraryEl.querySelectorAll<HTMLElement>('[data-theme-id]').forEach(b => {
         const on = b === theme;
         b.classList.toggle('is-active', on);
@@ -1277,11 +1277,7 @@ async function render(
     }
     userEl.innerHTML = inner;
     if (treatable) { ensureTreatmentDefs(); retreatPhotoCards(); }
-    refreshLottieThumbs();
-    refreshAudioThumbs();
-    refreshTextThumbs();
-    refreshMotionThumbs();
-    markIncompatibleTiles(); // fade-not-hide: dim tiles this slot can't accept
+    refreshCardThumbs();
   }
 
   /**
@@ -1637,7 +1633,7 @@ async function render(
     // A group carries a colour strip in its header: the icon pairing strip when
     // it holds themable icons, or the photo treatment strip when it holds raster
     // photos. A group is one or the other, never both.
-    const themableOf = (items: AssetRef[]) => iconThemes.length > 1 && items.some(isThemableRef);
+    const themableOf = (items: AssetRef[]) => iconThemes.length > 0 && items.some(isThemableRef);
     const treatableOf = (items: AssetRef[]) => photoTreatments.length > 0 && items.some(isTreatableRef);
     // Every picker gets the same section chrome - even a single-category one
     // (e.g. a raster-only field) - so a narrow slot's picker matches the full
@@ -1658,11 +1654,11 @@ async function render(
   function afterLibraryPaint(): void {
     retintThemableCards();
     retreatPhotoCards();
-    refreshLottieThumbs();
-    refreshAudioThumbs();
-    refreshTextThumbs();
-    refreshMotionThumbs();
-    markIncompatibleTiles(); // fade-not-hide: dim tiles this slot can't accept
+    refreshCardThumbs();
+  }
+  // The thumbnails a painted card set needs, then fade-not-hide: dim tiles this slot can't accept.
+  function refreshCardThumbs(): void {
+    refreshLottieThumbs(); refreshAudioThumbs(); refreshTextThumbs(); refreshMotionThumbs(); markIncompatibleTiles();
   }
 
   // Fade-not-hide (plans/162): a still-image family slot shows the whole visual
@@ -1708,7 +1704,7 @@ async function render(
       const img = cardEl.querySelector<HTMLImageElement>('img.asset-picker-thumb');
       if (!img) continue;
       if (!def) { img.src = ref.url; img.style.background = ''; continue; }
-      const cached = themedThumbCache.get(`${ref.id}:${def.id}`);
+      const cached = themedThumbCache.get(`${ref.id}:${def.id}:${def.c1},${def.c2}`);
       if (cached) { img.src = cached; img.style.background = def.previewBg ?? ''; continue; }
       let textP = iconSvgTextCache.get(ref.id);
       if (!textP) {
@@ -1719,7 +1715,7 @@ async function render(
         const restyled = text ? restyleIconTheme(text, def) : null;
         if (!restyled) return;
         const src = svgDataUrl(restyled);
-        themedThumbCache.set(`${ref.id}:${def.id}`, src);
+        themedThumbCache.set(`${ref.id}:${def.id}:${def.c1},${def.c2}`, src);
         if (seq !== retintSeq) return; // superseded by a newer theme choice
         img.src = src;
         img.style.background = def.previewBg ?? '';
@@ -1804,7 +1800,17 @@ async function render(
   // or the favourites set change; unaffected by the search box (it's a fixed shortcut).
   /** The pinned "Recent" section (plans/134 P1): recently picked assets that
    *  this pick could still place, newest first, capped at 8. */
+  /** The partner kit's marks first (plans/82 M8), when the piece being edited carries a
+   *  kit: the company's own served logos, under "Partner". */
+  function renderPartnerMarks(): void {
+    const el = root.querySelector<HTMLElement>('.asset-picker-partner');
+    const items = partnerMarkIds(currentPiece()).map(id => libraryCandidates.find(ref => assetBaseId(ref.id) === id)).filter((r): r is AssetRef => !!r);
+    if (el) { el.hidden = !items.length; el.innerHTML = items.length ? sectionHtml({ key: 'partner', label: t('Partner') }, items.length, '', `<div class="asset-picker-grid">${items.map(card).join('')}</div>`) : ''; }
+    if (items.length) afterLibraryPaint();
+  }
+
   function renderRecents(): void {
+    renderPartnerMarks();
     if (!recentsEl) return;
     const order = readRecentAssets();
     if (!order.length) { recentsEl.hidden = true; recentsEl.innerHTML = ''; return; }
@@ -1821,11 +1827,7 @@ async function render(
       items.length, '',
       `<div class="asset-picker-grid">${items.map(card).join('')}</div>`,
     );
-    refreshLottieThumbs();
-    refreshAudioThumbs();
-    refreshTextThumbs();
-    refreshMotionThumbs();
-    markIncompatibleTiles(); // fade-not-hide: dim tiles this slot can't accept
+    refreshCardThumbs();
   }
 
   function renderFavourites(): void {
@@ -1849,13 +1851,7 @@ async function render(
       favItems.length, '',
       `<div class="asset-picker-grid">${favItems.map(card).join('')}</div>`,
     );
-    retintThemableCards();
-    retreatPhotoCards();
-    refreshLottieThumbs();
-    refreshAudioThumbs();
-    refreshTextThumbs();
-    refreshMotionThumbs();
-    markIncompatibleTiles(); // fade-not-hide: dim tiles this slot can't accept
+    afterLibraryPaint();
   }
 
   // ── Saved creations (previous single-tool sessions) ────────────────────────
@@ -2257,7 +2253,7 @@ async function render(
             return {
               slot: e.slot, toolId: e.toolId, label: e.label,
               toolName: t?.name ?? e.toolId, toolIcon: t?.icon ?? null,
-              thumb: e.thumb ?? null, updatedAt: e.updatedAt,
+              thumb: e.thumb ?? null, preview: e.preview ?? null, updatedAt: e.updatedAt,
             };
           })
           .sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')));
@@ -2289,7 +2285,7 @@ async function render(
     if (candidates.some(isThemableRef) && typeof host.assets._iconThemes === 'function') {
       iconThemes = await host.assets._iconThemes().catch(() => []);
       if (activeTheme && !iconThemes.some(t => t.id === activeTheme)) activeTheme = null;
-      // renderLibrary renders the strip inside the Icons group when iconThemes.length > 1.
+      // renderLibrary renders the strip inside the Icons group when the system has colourways.
     }
 
     // Colour treatments for raster photos - mounted only when this library holds
@@ -2405,12 +2401,16 @@ export function mountAudioThumbs(
   /** Tiles this mount has already painted, so a late palette can colour them instead of
    *  leaving the grid half grey. Weak refs: a tile dropped by a re-render must not be
    *  held alive by this list. */
-  const painted = new Set<WeakRef<HTMLElement>>();
+  const painted: WeakRef<HTMLElement>[] = [];
 
   const repaintPainted = (): void => {
-    for (const ref of painted) {
+    // splice(0) takes the list and empties it, because paint() records the tile again.
+    // Walking a live set while paint() added to it never ended: each repaint appended an
+    // entry the walk then reached, so one tile painted before the pool arrived froze the
+    // page for good. A tile that has left the page is dropped here.
+    for (const ref of painted.splice(0)) {
       const el = ref.deref();
-      if (!el?.isConnected) { painted.delete(ref); continue; }
+      if (!el?.isConnected) continue;
       const id = el.dataset.audioThumb ?? '';
       const p = id ? memoPeaks(id) : null;
       if (p) paint(el, p);
@@ -2474,7 +2474,7 @@ export function mountAudioThumbs(
       shape: look.shape,
       label: String(lookup(id)?.meta?.name ?? id),
     });
-    painted.add(new WeakRef(el));
+    painted.push(new WeakRef(el));
     if (look.viz) void paintBakedCover(el, id, look.viz);
   };
 
@@ -2697,7 +2697,7 @@ function userCard(ref: AssetRef): string {
         ${thumb}
         <span class="asset-picker-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
       </button>
-      <button type="button" class="asset-picker-card-delete" data-delete-id="${escapeHtml(ref.id)}" title="${escapeHtml(t('Delete'))}" aria-label="${escapeHtml(tRaw('Delete {name}', { name: String(name) }))}">×</button>
+      ${closeButtonHtml({ size: 'sm', danger: true, solid: true, className: 'asset-picker-card-delete', label: tRaw('Delete {name}', { name: String(name) }), attrs: { 'data-delete-id': ref.id, title: t('Delete') } })}
       ${upscaleButton(ref, String(name))}
       ${matteButton(ref, String(name))}
       ${vidMatteButton(ref, String(name))}
@@ -3745,7 +3745,7 @@ export async function replaceUserUpload(host: ReplaceHost, targetId: string, fil
  * number rather than probing the bytes. Ignored when it is not a finite positive.
  */
 export async function storeRecordingAsset(
-  host: PickerHost, blob: Blob, ext: 'mp4' | 'webm' | 'png', prevId?: string,
+  host: PickerHost, blob: Blob, ext: 'mp4' | 'webm' | 'ogg' | 'png', prevId?: string,
   credential?: { store: Uint8Array; format: string },
   opts?: { audio?: boolean; durationMs?: number },
 ): Promise<AssetRef> {

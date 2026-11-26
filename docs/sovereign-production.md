@@ -22,6 +22,7 @@ Two different things get called sovereignty, and the difference decides which qu
 
 This page is about the second kind, and only the parts that are checkable today. It is the operator's reading of the landing page's plainest line, "[yours to make, yours to keep](/info/index.html)".
 
+<!--i:eti-cpu-->
 ## Local rendering needs no server
 
 A standalone Lolly deployment can be a static web app. Editing, rendering, downloading and the app's Verify view run on the device once their tools and assets are there. [Server surface](/info/server-surface.html) inventories the optional services.
@@ -30,9 +31,10 @@ An organisation can add **Lolly Work** on infrastructure it controls, for single
 
 Standalone Lolly has no usage-reporting backend. Lolly Work offers configurable telemetry and a separate audit log. `tests/no-trackers.test.ts` checks for third-party tracking SDKs; it does not forbid an organisation's own reporting. See [Privacy](/info/privacy.html#organisation-services-with-lolly-work) and Lolly Work's [security overview](/info/work-security-platform.html).
 
+<!--i:eti-globe-->
 ## Choose the network services your workflow needs
 
-The complete list of what the app can fetch or send is the [privacy policy's network table](/info/privacy.html#every-network-request-the-app-can-make). It is a table because each row carries four facts: what it is, what actually leaves the device, the act that triggers the request and what happens when an operator blocks the request. The rows cover catalogue sync, a tool that needs live data, Google Fonts, ICC press profiles, internet radio, a web address you ask a tool to capture, the SEAL signature check, deep-scan detector models and a remote instance you point the app at. Read the table rather than a summary; each row gives its host.
+The complete list of what the app can fetch or send is the [privacy policy's network table](/info/privacy.html#every-network-request-the-app-can-make). It is a table because each row carries four facts: what it is, what actually leaves the device, the act that triggers the request and what happens when an operator blocks the request. The rows cover catalog sync, a tool that needs live data, Google Fonts, ICC press profiles, internet radio, a web address you ask a tool to capture, the SEAL signature check, deep-scan detector models and a remote instance you point the app at. Read the table rather than a summary; each row gives its host.
 
 Two properties of that table matter more than any single row:
 
@@ -41,24 +43,28 @@ Two properties of that table matter more than any single row:
 
 Tools are held to the same rule from the other side. `host.net` is the only way a tool reaches a network. It is gated by an allowlist in the tool's own manifest, and it fails closed: with no capability or no allowlist, every fetch is refused before any I/O. `tests/net-allowlist-conformance.test.ts` proves that against the shared module every shell uses.
 
+::: note Connecting to Lolly Work widens the boundary
 Connecting to a Lolly Work instance also turns on its sign-in, policy refresh and chosen shared services, and telemetry events and collaboration updates can travel during use without a click for each request. Keep the instance and any identity, storage or asset providers inside the boundary your deployment needs; offline local rendering does not make those services work without a connection.
+:::
 
+<!--i:eti-unlink-->
 ## Air-gapped deployment, and how updates arrive
 
-The web build is plain static files, so the air-gapped path is the simple one, not a special edition: serve it from an internal host with the six security headers, as [Choose a deployment](/info/deployment.html#any-static-host-including-air-gapped) sets out. Once loaded, **Settings → Available offline** turns best-effort caching into a guarantee, downloading the app, the tools, the catalogue and the docs ahead of a disconnection.
-
 For a cluster, the repository ships signed container images and a Helm chart ([Run on Kubernetes](/info/build-kubernetes.html)). One brand profile is fixed in the web image when it is built, so the running container reads nothing at serve time: no pack to mount, no runtime configuration, no secret. Pods run as non-root with capabilities dropped and a read-only root filesystem by default, and MCP and CA stay off unless you turn them on.
+
+The web build is plain static files, so the air-gapped path is the simple one, not a special edition: serve it from an internal host with the six security headers, as [Choose a deployment](/info/deployment.html#any-static-host-including-air-gapped) sets out. Once loaded, **Settings → Available offline** turns best-effort caching into a guarantee, downloading the app, the tools, the catalog and the docs ahead of a disconnection.
 
 Updates arrive the way any other controlled artefact does, in two separate streams:
 
 - **The app** is rebuilt and redistributed on your schedule: a new static bundle to the internal host, or a new binary through your device management. Nothing updates itself across the gap.
-- **The tools** are data, so shipping one never redeploys the app. Merge the tool directory into the catalogue your instance serves, rebuild the catalog ([Publish and localize a tool](/info/tool-publishing.html)), and clients pick it up on their next sync. Keep that directory in Git if you want review and an audit trail; it is an option, not a requirement.
+- **The tools** are data, so shipping one never redeploys the app. Merge the tool directory into the catalog your instance serves, rebuild the catalog ([Publish and localize a tool](/info/tool-publishing.html)), and clients pick it up on their next sync. Keep that directory in Git if you want review and an audit trail; it is an option, not a requirement.
 
 For organisation services inside a restricted network, deploy Lolly Work with reachable internal identity, storage and asset providers; its [deployment guide](/info/work-deployment.html) covers that topology. Lolly Work collabs and shared saves need the service connection even when local tools are ready for offline use.
 
+<!--i:eti-stamp-->
 ## Signing happens on the device
 
-Exports carry Content Credentials by default, and the signing key never passes through a service. The default signer is an anonymous key pair made per export inside the page, used once and dropped. An enrolled identity's device key is generated **non-extractable** and kept in IndexedDB, so code can ask it to sign but never read it, and the optional CA issues a short-lived certificate binding that public key to a verified identity. Turn the CA off and exports still sign, anonymously, which is the default anyway.
+Exports carry Content Credentials by default, and the signing key never passes through a service. The default signer is an anonymous key pair made per export inside the page, used once and dropped. An enrolled identity's device key is generated **non-extractable** and kept in IndexedDB, so code can ask it to sign but never read it, and the optional CA issues a short-lived certificate binding that public key to a verified identity. Turn the CA off and exports still sign anonymously.
 
 An organisation that wants to be its own root of trust has three supported routes, set out in [Signing from the terminal](/info/cli-signing.html):
 
@@ -66,16 +72,18 @@ An organisation that wants to be its own root of trust has three supported route
 - **Your own instance of the Lolly CA.** `services/ca` is a small Node service you can run yourself. The root private key is a deployment secret you hold, and the chart takes an existing Kubernetes Secret, so the chart never has to manage the key.
 - **Self-signed,** for closed loops where you distribute your own root.
 
-Verification is pinned the same way. `--trust-anchor=./corp-root.pem` and `$LOLLY_TRUST_ANCHOR` pin your roots, and `--no-default-anchors` drops the built-in sets so only your pins count. Every verdict prints the anchor set behind the verdict. [Content Credentials engineering](/info/content-credentials-engineering.html) has the detail.
+Verification is pinned the same way. `--trust-anchor=./corp-root.pem` and `$LOLLY_TRUST_ANCHOR` pin your roots, and `--no-default-anchors` drops the built-in sets so only your pins count. Every verdict prints the anchor set it used. [Content Credentials engineering](/info/content-credentials-engineering.html) has the detail.
 
 Server renders in Lolly Work use the service's configured signing identity when one is available, not the person's on-device key. Its operator owns that key and certificate chain, and verification must trust the relevant root. See Lolly Work's [Content Credentials guide](/info/work-c2pa.html).
 
+<!--i:eti-folder-shared-->
 ## The tools and the brand are files you hold
 
 A tool is a directory: a manifest, a template, optional styles and optional hooks. A brand pack is a directory of assets with permanent ids and a design-tokens document. Neither is a database row in a service, and both are ordinary version-controlled content, so what ships is what was reviewed. Which tools an instance offers is [configuration](/info/configuration.html), profiles and brand packs, not a code change.
 
 Exports are ordinary files too. PNG, SVG, PDF, WebP, TIFF and the rest open in software with no connection to this project, and keep working if the project stops existing.
 
+<!--i:eti-checklist-->
 ## Check it in an afternoon
 
 None of the above asks for trust. [Verify It Yourself](/info/verify-yourself.html) is the full list of procedures, with the exact commands and the output you should see. Four speak directly to this page:
@@ -87,6 +95,7 @@ None of the above asks for trust. [Verify It Yourself](/info/verify-yourself.htm
 - <!--i:clock--> **Work a day offline.** For an air-gapped site, turn on **Settings → Available offline**, disconnect the machine entirely and do a full day's work.
 :::
 
+<!--i:eti-help-->
 ## What a security review usually asks
 
 | The question | Where the answer lives |
@@ -96,22 +105,26 @@ None of the above asks for trust. [Verify It Yourself](/info/verify-yourself.htm
 | What is the trust boundary, and what is out of scope? | [Threat model](/info/threat-model.html) |
 | Which cryptography, and how is it tested? | [Security & Verification](/info/security.html) |
 | How do we host it ourselves, or without a network? | [Choose a deployment](/info/deployment.html) |
+| Which host security policy? | SELinux. The containers set no SELinux or AppArmor profile of their own, so the node's SELinux policy applies, and the browser sandbox profile does not turn it off. AppArmor is an opt-in companion for hosts that still run it ([What the chart deploys](/info/build-kubernetes.html#what-the-chart-deploys)) |
 | Who signs, and can we be our own root? | [Signing from the terminal](/info/cli-signing.html) |
 | What is the project's actual maturity? | [Adoption & Governance](/info/adoption-governance.html#status) |
 
+<!--i:eti-building-->
 ## Origin
 
 Lolly is built inside SUSE, a European infrastructure company with more than three decades of security technology and services for large enterprises, and the engine, the shells, the schemas and the docs are released open source under MPL-2.0.
 
+<!--i:eti-warning-->
 ## Limits
 
 - **The security has not been externally audited.** No independent party has certified the cryptography or the file parsers; [Adoption & Governance](/info/adoption-governance.html#status) gives the status. Where a contract calls for certified assurance, deploy Lolly as one layer of defence in depth.
 - **The supply chain today is conventional.** The build installs npm packages, and you can run it in your own CI. Release images are signed with cosign and carry SBOM and SLSA provenance attestations you can check by digest ([published images guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md#published-images)), and the repository commits a CycloneDX SBOM (`sbom.cdx.json`). Building through the Open Build Service, with artifacts delivered by the SUSE Application Collection, is an aim stated on the [FAQ](/info/faq.html), not a property of what ships now ([Linux packages](/info/build-obs.html) has the current recipes).
 - **The hosted MCP endpoint is server-side, and optional.** Full-format rendering for AI agents drives a headless browser, so that endpoint runs as a hosted service, not an offline component. It stores nothing persistent, and removing it leaves the app unaffected. An operator can require OAuth 2.1 or an operator-held token; the public endpoint on lolly.tools is open with no token, and its calls are limited per address and per day. The public render route in the same service is live on lolly.tools, and an operator's own instance can switch it off (`LOLLY_DISABLE_RENDER_GET=1`, which returns 404). The on-device apps stay the air-gapped path.
-- **Hooks are trusted code.** A tool's optional `hooks.js` runs with the host bridge injected but, in a browser, in the page's own realm: closure-scope injection rather than isolation, as `engine/src/runtime.ts` says at the site. A manifest can opt into a Worker with `isolate: true`. Run tools you have reviewed, and put a shared catalogue through review. [Threat model](/info/threat-model.html) owns the detail.
+- **Hooks are trusted code.** A tool's optional `hooks.js` runs with the host bridge injected but, in a browser, in the page's own realm: closure-scope injection rather than isolation, as `engine/src/runtime.ts` says at the site. A manifest can opt into a Worker with `isolate: true`. Run tools you have reviewed, and put a shared catalog through review. [Threat model](/info/threat-model.html) owns the detail.
 - **Content Credentials are tamper-evident.** They detect alteration cryptographically and offline. They do not prevent it, and that is exactly what makes fully offline verification possible.
 - **An operator owns its server records.** Hosting access logs can include IP, path and timestamp. A Lolly Work deployment also holds the content and records of its enabled shared services, including audit history. Set retention and backup policies for those copies; the device's **Clear all my data** control does not erase them.
 
+<!--i:eti-link-->
 ## Related
 
 - [Move from a hosted render API](/info/work-move-from-render-api.html): bring image production from Bannerbear or Placid onto your own server, one template at a time.

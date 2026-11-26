@@ -7,6 +7,7 @@ import { chromium, type Browser, type Page } from 'playwright';
 import type { ViteDevServer } from 'vite';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import { createTokenSet } from '../engine/src/tokens.ts';
+import { buildLollyFile } from '../shells/web/src/lib/lolly-pack.ts';
 
 let browser: Browser;
 let server: ViteDevServer | undefined;
@@ -39,6 +40,16 @@ async function reachable(page: Page, selector: string): Promise<boolean> {
   });
 }
 
+/** The element a tap at the centre of `selector` would reach, for a failure message. */
+async function hitAt(page: Page, selector: string): Promise<string> {
+  return page.locator(selector).evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    const name = (el: Element): string => `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ''}${typeof el.className === 'string' && el.className.trim() ? `.${el.className.trim().split(/\s+/).join('.')}` : ''}`;
+    return hit ? name(hit) : `nothing (centre ${Math.round(rect.x + rect.width / 2)},${Math.round(rect.y + rect.height / 2)} in ${innerWidth}x${innerHeight})`;
+  });
+}
+
 for (const width of [1440, 390]) {
   for (const appearance of ['light', 'dark', 'brand']) {
     test(`Component specimens retain their production context at ${width}px in ${appearance}`, { timeout: 120_000 }, async () => {
@@ -48,8 +59,12 @@ for (const width of [1440, 390]) {
         const errors: string[] = [];
         page.on('pageerror', error => errors.push(error.message));
         await page.goto(`${origin}/?_appearance=${appearance}#/components`, { waitUntil: 'domcontentloaded' });
-        await page.locator('.cl-card').first().waitFor({ timeout: 60_000 });
+        await page.locator('.cl-card').first().waitFor({ state: 'attached', timeout: 60_000 });
         await page.waitForFunction(() => !document.querySelector('#view[data-route-mounting], dialog.view-loading[open]'));
+        // Every family starts shut and draws its specimens when it opens: open them all.
+        assert.equal(await page.locator('details.cl-family[open]').count(), 0);
+        await page.locator('.cl-fold-all').click();
+        await page.waitForFunction(() => [...document.querySelectorAll('.cl-stage')].every(stage => stage.childNodes.length > 0));
         const result = await page.evaluate(async () => {
           const moduleUrl = '/src/views/components-data.ts';
           const { COMPONENT_SECTIONS }: typeof import('../shells/web/src/views/components-data.ts') = await import(moduleUrl);
@@ -179,6 +194,108 @@ test('phone tool controls clear the sheet grip and the Design top bar', { timeou
   } finally { await context.close(); }
 });
 
+// Unfolded, the phone zoom HUD is a column down the right of the stage. Its height used to
+// be reserved above the canvas, which left the fit at its 40px floor behind the Export
+// pill: no preview on open or after Fit, until a zoom moved the canvas into view.
+test('an unfolded phone zoom HUD leaves the fitted canvas in view beside the column', { timeout: 120_000 }, async () => {
+  const context = await browser.newContext({ viewport: { width: 393, height: 659 }, hasTouch: true, serviceWorkers: 'block', reducedMotion: 'reduce' });
+  await context.addInitScript(() => { try { localStorage.setItem('lolly:stage-nav-collapsed', '0'); } catch { /* the HUD stays folded */ } });
+  try {
+    const page = await context.newPage();
+    for (const route of ['tool/filter?effect=halftone', 'tool/chart?heading=Sample']) {
+      await open(page, route);
+      await page.waitForTimeout(400);
+      for (const step of ['open', 'fit']) {
+        if (step === 'fit') {
+          await page.locator('.stage-nav [data-nav="fit"]').click();
+          await page.waitForTimeout(200);
+        }
+        const geometry = await page.evaluate(() => {
+          const rect = (selector: string): DOMRect => document.querySelector(selector)!.getBoundingClientRect();
+          const art = rect('#tool-canvas'), hud = rect('.stage-nav');
+          return { artTop: art.top, artBottom: art.bottom, artRight: art.right, artHeight: art.height,
+            sheet: rect('#tool-sidebar').bottom, exportTop: rect('.render-pill').top, hudLeft: hud.left, hudWidth: hud.width, hudHeight: hud.height };
+        });
+        const detail = JSON.stringify({ route, step, geometry });
+        assert.ok(geometry.hudHeight > geometry.hudWidth * 3, `the HUD is unfolded: ${detail}`);
+        assert.ok(geometry.artHeight > 120, detail);
+        assert.ok(geometry.artTop >= geometry.sheet - 1, detail);
+        assert.ok(geometry.artBottom <= geometry.exportTop, detail);
+        assert.ok(geometry.artRight <= geometry.hudLeft, detail);
+      }
+    }
+  } finally { await context.close(); }
+});
+
+/** A one-field rules tool, the shape a workspace publishes: the sheet opens with the inputs. */
+async function rulesToolBytes(): Promise<number[]> {
+  const inputs = [{ id: 'price', label: 'Your price', type: 'text', default: '$1,200', maxLength: 40 }];
+  const manifest = { id: 'locked-preview-fixture', name: 'Partner data sheet', description: 'Set your price, then download.', version: '1.0.0', engineVersion: '^1.199.0', status: 'community', inputs,
+    render: { width: 1200, height: 800, formats: ['png', 'svg'] },
+    designTool: { schemaVersion: 1, presentation: 'sidebar', inputs: inputs.map(input => ({ input, targets: [] })), choices: [], variants: [{ id: 'sheet', label: 'Sheet', width: 1200, height: 800 }], defaultVariant: 'sheet', formats: ['png', 'svg'] },
+  };
+  const template = '<svg class="lolly-locked-design" xmlns="http://www.w3.org/2000/svg" width="1200" height="800"><rect width="1200" height="800" fill="#e8f1ee"/><text x="80" y="420" font-size="96">{{price}}</text></svg>';
+  const files = Object.fromEntries(Object.entries({ 'tool.json': JSON.stringify(manifest), 'template.html': template }).map(([path, text]) => [path, new TextEncoder().encode(text)]));
+  const pack = await buildLollyFile({ kind: 'tool', session: null, toolId: manifest.id, userAssets: [], tool: { id: manifest.id, version: manifest.version, trust: 'custom', files } });
+  return [...new Uint8Array(await pack.blob.arrayBuffer())];
+}
+
+// The locked tool's Preview used to stand alone on a row under the title, where on a
+// phone it read as the next step and cost a row of the screen. It now sits at the right
+// end of the title row, where other tools keep the collapse toggle.
+test('a locked tool keeps Preview in the title row and the result in view at 1440, 390 and 360', { timeout: 120_000 }, async () => {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, hasTouch: true, serviceWorkers: 'block', reducedMotion: 'reduce' });
+  try {
+    const page = await context.newPage();
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded' });
+    const bytes = await rulesToolBytes();
+    await page.evaluate(async bytes => {
+      const router = '/src/lib/drop-router.ts', bridge = '/src/bridge/index.ts';
+      const { openLollyFile } = await import(router); const { createBridge } = await import(bridge);
+      void openLollyFile(new File([new Uint8Array(bytes)], 'sheet.lolly'), await createBridge());
+    }, bytes);
+    await page.getByRole('button', { name: 'Trust & install', exact: true }).click();
+    await page.locator('.lolly-locked-design').waitFor();
+    for (const [width, height] of [[1440, 900], [390, 844], [360, 780]] as const) {
+      await page.setViewportSize({ width, height });
+      await page.waitForFunction(() => document.querySelector('#view')?.classList.contains('locked-inputs-open'));
+      await page.waitForTimeout(400);
+      const layout = await page.evaluate(() => {
+        const box = (selector: string) => { const r = document.querySelector(selector)?.getBoundingClientRect(); return r ? { top: r.top, bottom: r.bottom, left: r.left, right: r.right } : null; };
+        return {
+          inRow: !!document.querySelector('.sidebar-header-row > .locked-inputs-done'),
+          rows: document.querySelectorAll('.sidebar-header > .locked-inputs-done').length,
+          done: box('.locked-inputs-done'), title: box('.sidebar-title'), row: box('.sidebar-header-row'),
+          sidebar: box('#tool-sidebar'), canvas: box('#tool-canvas'), bar: box('.locked-actions'),
+          overflow: document.documentElement.scrollWidth > innerWidth + 1, vw: innerWidth, vh: innerHeight,
+        };
+      });
+      const where = JSON.stringify({ width, layout });
+      assert.ok(layout.inRow && layout.rows === 0, where);
+      assert.ok(layout.done && layout.title && layout.row, where);
+      // Same row as the title, at its right end and inside the sidebar.
+      assert.ok(layout.done.top < layout.title.bottom && layout.done.bottom > layout.title.top, where);
+      assert.ok(layout.done.left >= layout.title.right - 1 && layout.done.right <= layout.sidebar!.right + 1, where);
+      assert.ok(layout.done.bottom - layout.done.top >= 44, where);
+      assert.equal(layout.overflow, false, where);
+      assert.ok(await reachable(page, '.locked-inputs-done'), `${width} Preview is under ${await hitAt(page, '.locked-inputs-done')}`);
+      assert.ok(layout.bar && layout.bar.bottom <= layout.vh + 1 && layout.bar.top >= 0, where);
+      // On a phone the sheet sits over the top of the screen; the result starts under it
+      // and above the locked bar, so its top edge is in view at rest.
+      if (width < 640) assert.ok(layout.canvas && layout.canvas.top >= layout.sidebar!.bottom - 1 && layout.canvas.top < layout.bar.top, where);
+      await page.locator('.locked-inputs-done').click();
+      await page.waitForFunction(() => !document.querySelector('#view')?.classList.contains('locked-inputs-open'));
+      assert.equal(await page.locator('#tool-sidebar').isVisible(), false);
+      assert.ok(await page.locator('.locked-edit-inputs').evaluate(el => el === document.activeElement));
+      assert.ok(await reachable(page, '.locked-edit-inputs'));
+      await page.locator('.locked-edit-inputs').click();
+    }
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
+});
+
 test('Doc Studio keeps its ribbon reachable and mirrors document colours without replacing edited text', { timeout: 120_000 }, async () => {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
   await context.addInitScript(doc => { (window as unknown as Record<string, unknown>).__lollyAutomationDesignSystem = doc; }, designSystem);
@@ -239,13 +356,63 @@ test('capture controls remain reachable beside editor panels without opening a d
         await page.setViewportSize({ width, height: 900 });
         await page.waitForTimeout(400);
         const controls = tool === 'record' ? ['.canvas-record-btn', '.canvas-record-mic', '.crh-btn'] : ['.canvas-screen-btn:not([hidden])', '.canvas-screen-rec'];
-        for (const control of controls) assert.ok(await reachable(page, control), `${tool} ${width} ${control}`);
+        for (const control of controls) {
+          if (!await reachable(page, control)) assert.fail(`${tool} ${width} ${control} is under ${await hitAt(page, control)}`);
+        }
       }
     }
   } finally { await context.close(); }
 });
 
+// The phone layout's export sheet covers the whole screen above everything. Closed, it
+// used to fade out from the desktop look whenever the window crossed 640px, so for that
+// fade the scrim showed over the screen and took every tap: under load the fade outlasted
+// the wait above and the Record button read as covered.
+test('a change to the phone layout leaves the closed export sheet out of sight and out of the way', { timeout: 120_000 }, async () => {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
+  try {
+    const page = await context.newPage();
+    // An ordinary tool, its export closed, and Design's record tool, whose export sits
+    // docked beside the inspector on a desk.
+    for (const route of ['tool/qr-code?url=https%3A%2F%2Fexample.com', 'tool/record?qa=1']) {
+      await page.setViewportSize({ width: 1440, height: 900 });
+      await open(page, route);
+      await page.waitForTimeout(400);
+      await page.setViewportSize({ width: 390, height: 900 });
+      // The frame that applies the new width: media query listeners run before
+      // animation frame callbacks, so the shell has answered the change by now.
+      await page.waitForFunction(() => innerWidth === 390);
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+      const sheet = await page.evaluate(() => {
+        const overlay = document.querySelector<HTMLElement>('.export-overlay')!;
+        const popup = overlay.querySelector<HTMLElement>('.export-popup')!;
+        const style = getComputedStyle(overlay);
+        const covered = [[0.5, 0.5], [0.5, 0.9], [0.1, 0.2]].filter(([x, y]) => !!document.elementFromPoint(innerWidth * x!, innerHeight * y!)?.closest('.export-overlay'));
+        return {
+          open: document.querySelector('.tool-layout')!.classList.contains('export-open'),
+          visibility: style.visibility,
+          pointerEvents: style.pointerEvents,
+          moving: [...overlay.getAnimations(), ...popup.getAnimations()].map(a => (a as CSSTransition).transitionProperty ?? a.constructor.name),
+          covered,
+        };
+      });
+      assert.deepEqual(sheet, { open: false, visibility: 'hidden', pointerEvents: 'none', moving: [], covered: [] }, route);
+    }
+  } finally { await context.close(); }
+});
+
 test('Calendar event cards follow document colourways and modes even with a different OS appearance', { timeout: 120_000 }, async () => {
+  // The calendar draws on a treatment worked out from the colourway: the card
+  // on a ground tinted with a tenth of the primary, the chip in the primary or,
+  // where that would not read on the ground, the primary darkened until it
+  // does. So the check is that the treatment follows every colourway and mode,
+  // not that the card repeats the swatches.
+  const rgb = (hex: string): number[] => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
+  const luminance = (hex: string): number => {
+    const [r, g, b] = rgb(hex).map((c) => { const v = c / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }) as [number, number, number];
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const contrast = (a: string, b: string): number => { const x = luminance(a), y = luminance(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, colorScheme: 'dark', serviceWorkers: 'block', reducedMotion: 'reduce' });
   await context.addInitScript(doc => { (window as unknown as Record<string, unknown>).__lollyAutomationDesignSystem = doc; }, designSystem);
   try {
@@ -255,17 +422,50 @@ test('Calendar event cards follow document colourways and modes even with a diff
       if (mode === 'dark') await page.locator('#theme-section .badge-select-opt').filter({ hasText: /^Dark$/ }).click();
       for (const colourway of ['spearmint', 'morning', 'spring', 'beach', 'afternoon', 'midnight']) {
         const colours = createTokenSet(designSystem, { selection: { '': mode, colourway } }).colors();
-        const primary = colours.find(c => c.path === 'color.semantic.primary')!.value;
+        const token = (path: string): string => String(colours.find(c => c.path === path)!.value).slice(0, 7).toLowerCase();
+        const primary = token('color.semantic.primary'), surface = token('color.semantic.surface');
         await page.getByRole('radio', { name: new RegExp(`^${colourway}$`, 'i') }).click();
-        await page.waitForFunction(want => document.querySelector('.cal-meta svg')?.getAttribute('stroke') === want, primary);
-        const follows = await page.evaluate(() => {
-          const canvas = getComputedStyle(document.querySelector('#tool-canvas')!);
+        // Wait until the treatment is the one this colourway gives, not merely a
+        // redraw: the hooks work it out after the colourway is applied, so the first
+        // frames after the click still show the previous colourway's treatment.
+        const settled = await page.waitForFunction(({ primary, surface }) => {
+          const el = document.querySelector('[data-content-surface]');
+          if (!el) return false;
+          const vars = getComputedStyle(el);
+          const accent = vars.getPropertyValue('--brand-primary').trim().toLowerCase();
+          const ground = vars.getPropertyValue('--brand-surface').trim().toLowerCase();
+          if (!/^#[0-9a-f]{6}$/.test(accent) || !/^#[0-9a-f]{6}$/.test(ground)) return false;
+          if (document.querySelector('.cal-meta svg')?.getAttribute('stroke')?.toLowerCase() !== accent) return false;
+          const rgb = (hex: string): number[] => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
+          const lum = (hex: string): number => { const [r, g, b] = rgb(hex).map((c) => { const v = c / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }) as [number, number, number]; return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+          const contrast = (a: string, b: string): number => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+          const tinted = rgb(ground).every((c, i) => { const sv = rgb(surface)[i]!, pv = rgb(primary)[i]!; return c >= Math.min(sv, pv) - 3 && c <= Math.max(sv, pv) + 3 && Math.abs(c - sv) <= Math.abs(pv - sv) * 0.25 + 3; });
+          return tinted && (contrast(primary, ground) >= 4.5 ? accent === primary : contrast(accent, ground) >= 4.5);
+        }, { primary, surface }, { timeout: 30_000 }).then(() => true, () => false);
+        const seen = await page.evaluate(() => {
+          const el = document.querySelector('[data-content-surface]')!;
+          const vars = getComputedStyle(el);
           const chip = getComputedStyle(document.querySelector('.cal-chip')!);
           const card = getComputedStyle(document.querySelector('.cal-card')!);
-          const asRgb = (colour: string): string => { const el = document.createElement('span'); el.style.color = colour; document.body.append(el); const value = getComputedStyle(el).color; el.remove(); return value; };
-          return chip.backgroundColor === asRgb(canvas.getPropertyValue('--brand-primary')) && chip.color === asRgb(canvas.getPropertyValue('--brand-on-primary')) && card.backgroundColor === asRgb(canvas.getPropertyValue('--brand-surface'));
+          const asRgb = (colour: string): string => { const probe = document.createElement('span'); probe.style.color = colour; document.body.append(probe); const value = getComputedStyle(probe).color; probe.remove(); return value; };
+          const read = (name: string): string => vars.getPropertyValue(name).trim().toLowerCase();
+          return {
+            accent: read('--brand-primary'), onAccent: read('--brand-on-primary'), ground: read('--brand-surface'),
+            drawn: chip.backgroundColor === asRgb(read('--brand-primary')) && chip.color === asRgb(read('--brand-on-primary')) && card.backgroundColor === asRgb(read('--brand-surface')),
+          };
         });
-        assert.ok(follows, `${mode} ${colourway}`);
+        const where = `${mode} ${colourway}`;
+        assert.ok(settled, `${where}: the treatment follows the colourway (ground ${seen.ground}, accent ${seen.accent}; surface ${surface}, primary ${primary})`);
+        assert.ok(seen.drawn, `${where}: the chip and card are drawn in the treatment's colours`);
+        // The ground is the colourway's surface tinted towards its primary.
+        rgb(seen.ground).forEach((c, i) => {
+          const s = rgb(surface)[i]!, p = rgb(primary)[i]!;
+          assert.ok(c >= Math.min(s, p) - 3 && c <= Math.max(s, p) + 3 && Math.abs(c - s) <= Math.abs(p - s) * 0.25 + 3, `${where}: the ground ${seen.ground} is the surface ${surface} tinted with ${primary}`);
+        });
+        // The accent is the primary, unless the primary would not read on the ground.
+        if (contrast(primary, seen.ground) >= 4.5) assert.equal(seen.accent, primary, `${where}: the chip is the colourway's primary`);
+        else assert.ok(contrast(seen.accent, seen.ground) >= 4.5, `${where}: the chip's accent reads on the ground`);
+        assert.ok(contrast(seen.onAccent, seen.accent) >= 4.5, `${where}: the chip's text reads on the chip`);
       }
     }
   } finally { await context.close(); }

@@ -67,6 +67,10 @@ export interface VersionsCtx extends VersionsIoCtx {
   openBrandPage?: () => void;
   /** Opens the Connect an agent sheet. Absent, the row is not shown. */
   openConnectAgent?: () => void;
+  /** The instance this copy goes back to, read when the room paints. Null, the row is not shown. */
+  instanceHost?: () => string | null;
+  /** Opens the Send to {host} sheet. */
+  openInstanceEdit?: () => void;
 }
 
 export interface VersionsRoom {
@@ -103,7 +107,7 @@ export interface VersionsModel {
   /** What publishing records: the design system's editable head and its theme choices (plan 286). */
   context?: TokenContextModel | null;
   /** The sheets this panel can open, so a degraded studio does not show a dead row. */
-  share?: { brandPage: boolean; connectAgent: boolean };
+  share?: { brandPage: boolean; connectAgent: boolean; instanceHost?: string | null };
 }
 
 /** A long diff is a scroll, not a wall: the rest is named as a count. */
@@ -338,11 +342,19 @@ export function versionsHtml(model: VersionsModel | null): string {
 
 /** Beyond this device: a page for people and agents, and an agent's setup. */
 function shareHtml(model: VersionsModel): string {
-  if (!model.share?.brandPage && !model.share?.connectAgent) return '';
+  if (!model.share?.brandPage && !model.share?.connectAgent && !model.share?.instanceHost) return '';
   return `
     <section class="ds-v-share" aria-labelledby="ds-v-share-title">
       <h3 class="ds-v-title" id="ds-v-share-title">${t('Share beyond this device')}</h3>
       <div class="ds-v-share-rows">
+      ${model.share.instanceHost ? `
+      <div class="ds-v-share-row">
+        <div>
+          <h4 class="ds-v-share-name">${escape(model.share.instanceHost)}</h4>
+          <p class="ds-v-share-txt">${t('Colours, colour roles and the brand page address go there. Everything else stays on this device.')}</p>
+        </div>
+        <button type="button" class="be-btn ds-v-btn" data-ds-v-instance-edit>${escape(tRaw('Send to {host}', { host: model.share.instanceHost }))}</button>
+      </div>` : ''}
       ${model.share.brandPage ? `
       <div class="ds-v-share-row">
         <div>
@@ -540,7 +552,7 @@ export function mountVersionsRoom(el: HTMLElement, ctx: VersionsCtx): VersionsRo
       storage,
       restored,
       context: publishable ? tokenContextModel(documentSnapshot(head, { system }), { context: 'head' }) : null,
-      share: { brandPage: !!ctx.openBrandPage, connectAgent: !!ctx.openConnectAgent },
+      share: { brandPage: !!ctx.openBrandPage, connectAgent: !!ctx.openConnectAgent, instanceHost: ctx.instanceHost?.() ?? null },
     };
   };
 
@@ -604,6 +616,7 @@ export function mountVersionsRoom(el: HTMLElement, ctx: VersionsCtx): VersionsRo
   const onClick = (e: Event): void => {
     const target = e.target as HTMLElement;
 
+    if (target.closest('[data-ds-v-instance-edit]')) { ctx.openInstanceEdit?.(); return; }
     if (target.closest('[data-ds-v-brand-page]')) { ctx.openBrandPage?.(); return; }
     if (target.closest('[data-ds-v-connect-agent]')) { ctx.openConnectAgent?.(); return; }
 

@@ -26,9 +26,10 @@ import type { ToolManifest, ToolRenderSpec } from '../../../../../engine/src/loa
 import type { Runtime } from '../../../../../engine/src/runtime.js';
 import { isTextEditingTarget } from '../../lib/typing-target.ts';
 import type { EmojiParamPair } from '../../lib/emoji-prefs.ts';
-import { isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks } from '../tool-actions.ts';
+import { isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks, spotsAsProcessChecked } from '../tool-actions.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { agentGuidanceHost, agentInvitationHost } from '../../lib/agent-invitation-host.ts';
+import { partnerKitParam } from '../../lib/partner-kit-state.ts';
 
 // ── The chosen emoji set, for every writer of this tool's URL ────────────────
 //
@@ -117,7 +118,7 @@ export interface EmbedDescribe {
  */
 export type WebToolHost = HostV1 & {
   clipboard: ClipboardAPI & { writeHtml(html: string): Promise<void> };
-  state: StateAPI & { save(slot: string, data: object, thumb?: string | null): Promise<void> };
+  state: StateAPI & { save(slot: string, data: object, picture?: import('../../bridge/preview-store.ts').PictureInput): Promise<void> };
   identity?: { status(): Promise<IdentityStatus> };
   compose?: ComposeAPI & { _describeUrl(url: string): Promise<EmbedDescribe | null> };
   designSystems?: ToolDesignSystemRegistry;
@@ -169,6 +170,13 @@ export interface ExportDefaults {
   unit?: string;
   dpi?: number;
   profile?: string;
+  /** Spot inks as process from ?_spots=process (engine 1.324): ticks the Colour profile
+   *  card's "Print spot inks as process" box. Opt-in, so only a link that asks sets it;
+   *  never restored from a saved session. */
+  spots?: boolean;
+  /** EMF text as outlines from ?_text=outline: ticks the Outline fonts box. Opt-in, so only
+   *  a link that asks sets it; never restored from a saved session. */
+  emfOutline?: boolean;
   password?: string;
   bleed?: string;
   marks?: PrintMarks | null;
@@ -288,6 +296,8 @@ export type VizModule = typeof import('../../lib/viz-tool-mount.ts');
  * typecheck without changing what's passed at runtime.
  */
 export interface RunExportOpts {
+  /** An explicit `c2pa=off` or an unticked C2PA box: no manifest stays in an SVG (bridge/export-svg-credentials.ts). */
+  dropInlinedC2pa?: boolean;
   cuts?: number;
   sampleTimes?: readonly number[];
   motionBlur?: import('../../../../../engine/src/motion-sampling.ts').MotionBlur;
@@ -304,6 +314,8 @@ export interface RunExportOpts {
   embedMeta?: boolean;
   thumbnail?: boolean;
   colorProfile?: string;
+  /** Print every declared spot ink as its process build (pdf-cmyk); finishes keep their plates. */
+  spotsAsProcess?: boolean;
   palette?: unknown;
   fullPage?: boolean;
   password?: string;
@@ -642,8 +654,8 @@ export function wireUpCopyUrl(
 /** The internal assets-bridge methods the `.lolly` builder needs, described by shape -
  *  they are web-only (not on the public HostV1.AssetsAPI), the same reason
  *  data-transfer.ts declares its own `BackupHost`. */
-// Reads the export-panel controls (format, dimensions, colour profile, password, print
-// marks, the provenance toggles) into the share-link's export parts. Extracted from
+// Reads the export-panel controls (format, dimensions, colour profile, print marks,
+// the provenance toggles) into the share-link's export parts. Extracted from
 // buildShareParams so ONE DOM read feeds both the copied link AND the URL-budget gauge
 // (costUrlState's exportParts) - the two can never drift. Returns already-formed
 // `key=value` (and bare-flag) strings; byte-identical to the block it replaced. The
@@ -696,17 +708,11 @@ export function collectExportParams(exportScope: HTMLElement | null): string[] {
   if (isCmykFmt(fmtEl?.value) && prof && prof !== DEFAULT_CMYK_CONDITION) {
     parts.push(`profile=${encodeURIComponent(prof)}`);
   }
-  // Open-password - standard-tier lock only (PDF or ZIP), only when set. Clear-text by
-  // design so a shared link can carry the lock; never used for confidential files.
-  const pdfPass = exportScope?.querySelector<HTMLInputElement>(
-    '[data-action="pdf-password"]'
-  )?.value;
-  const pdfStrong =
-    exportScope?.querySelector<HTMLSelectElement>('[data-action="pdf-lock-tier"]')?.value ===
-    'strong';
-  if ((fmtEl?.value === 'pdf' || fmtEl?.value === 'zip') && pdfPass && !pdfStrong) {
-    parts.push(`password=${encodeURIComponent(pdfPass)}`);
-  }
+  // Spot inks as process rides with the press profile: CMYK formats only, and only
+  // when ticked, since off (the default) writes nothing.
+  if (isCmykFmt(fmtEl?.value) && spotsAsProcessChecked(exportScope)) parts.push('_spots=process');
+  // The export password is never read here. This list becomes the address bar and the
+  // copied link, and an address reaches browser history, server logs and whoever it is sent to.
   // Print marks & bleed - print formats (pdf / pdf-cmyk / cmyk-tiff) only, and only
   // when the card is on.
   if (isPrintFmt(fmtEl?.value) && printEnabled(exportScope)) {
@@ -794,6 +800,9 @@ export function buildShareParams(
   const parts: string[] = [];
   const selectionPart = tokenSelectionParam(runtime.tokenSelection);
   if (selectionPart) parts.push(selectionPart);
+  // The partner kit the piece carries travels with it (`_kit`, plans/82 M8).
+  const kitPart = partnerKitParam(runtime);
+  if (kitPart) parts.push(kitPart);
   // What a URL can't carry, recorded as we drop it, so the Share dialog can tell the
   // user what won't travel instead of dropping it silently (the "link has no content"
   // bug). Each `continue`-with-a-drop below records here.
@@ -897,7 +906,7 @@ function deviceLink(): string | undefined {
 // them into data-canvas-input attributes, then remove the comments.
 // Block-element outputs (e.g. <p> from {{markdown}}) are marked directly.
 // Plain text outputs get wrapped in a transparent <span> so they're clickable.
-export function resolveCanvasAnnotations(canvasEl: HTMLElement): void {
+export function resolveCanvasAnnotations(canvasEl: HTMLElement, fixed?: (id: string) => boolean): void {
   const comments: Comment[] = [];
   const walker = document.createTreeWalker(canvasEl, NodeFilter.SHOW_COMMENT);
   let node: Node | null;
@@ -924,12 +933,14 @@ export function resolveCanvasAnnotations(canvasEl: HTMLElement): void {
     }
 
     const elements = between.filter((n) => n.nodeType === Node.ELEMENT_NODE);
+    const isFixed = fixed?.(id) ?? false;
     if (elements.length > 0) {
-      for (const el of elements) (el as HTMLElement).dataset.canvasInput = id;
+      for (const el of elements) { (el as HTMLElement).dataset.canvasInput = id; if (isFixed) (el as HTMLElement).dataset.canvasFixed = ''; }
     } else {
       // Pure text - wrap in a span so it's individually clickable.
       const span = document.createElement('span');
       span.dataset.canvasInput = id;
+      if (isFixed) span.dataset.canvasFixed = '';
       comment.parentNode.insertBefore(span, comment);
       for (const n of between) span.appendChild(n);
     }

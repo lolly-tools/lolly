@@ -86,7 +86,10 @@ the accepted residual risks are in
 ## Maintainer security checks
 
 `pnpm run audit:all` inventories and audits every authoritative npm and Cargo
-lockfile. `pnpm run secrets:scan` scans the parent repository's complete tracked
+lockfile. Code and data copied into the repository instead of installed by a
+package manager are listed, with how each one is updated, in
+[`security/vendored-upstreams.md`](security/vendored-upstreams.md).
+`pnpm run secrets:scan` scans the parent repository's complete tracked
 history with redacted output; install the pinned Gitleaks 8.29.1 binary and set
 `GITLEAKS_BIN` if it is not on `PATH`. For a pre-commit check, run
 `pnpm run secrets:scan:staged`.
@@ -104,7 +107,20 @@ fails when the lockfile shows the hold has outlived its fix: no vulnerable copy 
 left, another crate starts pulling one in, or the parent crate's fixed release
 resolves. The exception then has to be removed in the same change.
 
-No exception is held today. The last one, approved by Andy on 2026-10-17, held
+An npm advisory with no fixed release is held the same way, as an
+`npmAdvisoryHolds` entry on its npm root: the GitHub advisory ids, the package,
+who approved it, a written justification and the upstream links. The audit leaves
+a held advisory out of that root's count and of no other root's. The audit fails
+when the registry lists a fixed release, when the advisory stops applying to the
+root, or when the advisory is filed against a different package. The update then
+replaces the hold in the same change.
+
+No npm hold is in place today. The one hold so far, approved by Andy on 2026-11-18, was
+for GHSA-fc5q-39xc-vjpf against `picomatch`, which had been widened to every release
+with no fixed version. GitHub withdrew the advisory later the same day, the audit
+reported the hold as stale, and the hold was removed.
+
+No Cargo exception is held today. The last one, approved by Andy on 2026-10-17, held
 RUSTSEC-2026-0367, RUSTSEC-2026-0368 and RUSTSEC-2026-0369 for `zip` 4.6.1, which
 reached `shells/tauri-desktop/src-tauri/Cargo.lock` only through
 `tauri-plugin-updater`. It was removed on 2026-11-02, when `tauri-plugin-updater`

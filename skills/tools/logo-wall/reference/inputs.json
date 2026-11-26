@@ -387,5 +387,31 @@
       ]
     },
     "help": "How many rows the repeated wall stacks. Logos keep cycling in order, so neighbouring repeats stay varied. At another canvas size the wall stacks fewer or more rows to fill that shape."
+  },
+  {
+    "id": "ground",
+    "label": "Colour treatment",
+    "type": "select",
+    "default": "tint",
+    "options": [
+      {
+        "value": "tint",
+        "label": "Brand tint"
+      },
+      {
+        "value": "lead",
+        "label": "Lead colour"
+      },
+      {
+        "value": "ink",
+        "label": "Ink"
+      },
+      {
+        "value": "surface",
+        "label": "Surface"
+      }
+    ],
+    "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+    "section": "Treatment"
   }
 ]

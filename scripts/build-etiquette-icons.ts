@@ -15,14 +15,15 @@
  *   node scripts/build-etiquette-icons.ts --sheet=<file.png>  also render a review sheet
  *   --source=<file.json> --out=<dir> --only=<slug,slug>       build another table or a subset
  *
- * The source table is scripts/data/etiquette-icons.json. The default fills are the first
- * pairing in lolly/palette/opal-icon-themes, which the validator also requires.
+ * The source table is scripts/data/etiquette-icons.json. The default fills are the icon
+ * pairing of Lolly Demo's canonical colourway (engine brand-treatments.ts
+ * colourwayIconThemes), so an icon's own colours and that colourway agree.
  * After writing, run `pnpm run build:catalog` so the index picks up the checksums.
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
-import { parseIconThemesDoc } from '../engine/src/icon-theme.ts';
+import { colourwayIconThemes } from '../engine/src/brand-treatments.ts';
 
 interface EtiquetteIcon {
   slug: string;
@@ -44,7 +45,7 @@ interface EtiquetteSource { stroke: number; icons: EtiquetteIcon[] }
 const root = new URL('../', import.meta.url);
 const sourceUrl = new URL('scripts/data/etiquette-icons.json', root);
 const defaultOutDir = new URL('brands/lolly-demo/catalog/assets/lolly/icons/', root);
-const themesUrl = new URL('brands/lolly-demo/catalog/assets/lolly/palette/opal-icon-themes.json', root);
+const demoTokensUrl = new URL('brands/lolly-demo/catalog/assets/lolly/tokens/demo.json', root);
 const indexUrl = new URL('brands/lolly-demo/catalog/assets/index.json', root);
 const LUCIDE_CREDIT = 'Lucide, Copyright (c) Lucide Contributors (portions Copyright (c) Cole Bemis, Feather, MIT). ISC License.';
 
@@ -131,9 +132,11 @@ function upsertRows(index: { assets: Record<string, unknown>[] }, icons: Etiquet
     if (JSON.stringify(merged) !== JSON.stringify(prev)) changed++;
     return merged;
   });
+  // The icons keep the place their first row held; a first build goes at the end.
+  const firstOurs = index.assets.findIndex((a) => ours.has(String(a.id)));
   const rest = index.assets.filter((a) => !ours.has(String(a.id)));
-  const at = rest.findIndex((a) => a.id === 'lolly/palette/opal-icon-themes');
-  rest.splice(at < 0 ? rest.length : at + 1, 0, ...rows);
+  const at = firstOurs < 0 ? rest.length : index.assets.slice(0, firstOurs).filter((a) => !ours.has(String(a.id))).length;
+  rest.splice(at, 0, ...rows);
   index.assets = rest;
   return { added, changed };
 }
@@ -157,8 +160,8 @@ async function main(): Promise<void> {
   const outArg = process.argv.find((a) => a.startsWith('--out='))?.slice('--out='.length);
   const outDir = outArg ? pathToFileURL(outArg.endsWith('/') ? outArg : `${outArg}/`) : defaultOutDir;
   const source = JSON.parse(await readFile(sourceArg ? pathToFileURL(sourceArg) : sourceUrl, 'utf8')) as EtiquetteSource;
-  const first = parseIconThemesDoc(JSON.parse(await readFile(themesUrl, 'utf8')))[0];
-  if (!first) throw new Error('opal-icon-themes has no pairing to take the default fills from');
+  const first = colourwayIconThemes(JSON.parse(await readFile(demoTokensUrl, 'utf8')))[0];
+  if (!first) throw new Error('the Lolly Demo design system has no colourway to take the default fills from');
   await mkdir(outDir, { recursive: true });
   const built: { slug: string; svg: string }[] = [];
   let stale = 0;

@@ -1,0 +1,19 @@
+{
+  "id": "waterfall-bridge",
+  "name": "From last year to this",
+  "category": "3-D",
+  "description": "Each change steps up or down from the running total, and the closing column shows where the year ended.",
+  "values": {
+    "renderMode": "scene",
+    "chartType": "waterfall",
+    "sceneType": "waterfall3d",
+    "data": "Step,Change\nLast year,240\nNew customers,86\nUpsell,34\nChurn,-52\nDiscounts,-18\nPrice change,27",
+    "yTitle": "This year",
+    "heading": "How revenue moved",
+    "subheading": "In thousands",
+    "sceneStage": "studio",
+    "sceneMaterial": "satin",
+    "showLegend": true
+  },
+  "presets": []
+}

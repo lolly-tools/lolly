@@ -121,8 +121,82 @@ export async function serveSessionOnce(
   return { remove, requested };
 }
 
-/** How long a page may take to ask for the file before the shell is taken to have no `#/open` route. */
+/** How long a page may take to ask for the file before the open gives up and says why. */
 export const OPEN_ROUTE_ASK_MS = 45_000;
+
+/** How long the page has to say what it shows once it has not asked for the file. */
+const OPEN_ROUTE_PROBE_MS = 5_000;
+
+/** What the page showed when it had not asked for the file in time. */
+interface OpenRouteProbe {
+  /** `location.hash`: the route turns `#/open?lolly=...` into `#/open` as soon as it mounts. */
+  hash: string;
+  /** The route's card state (`data-open-route`), or null when no card is up. */
+  card: string | null;
+  /** The boot screen, the Loading card or a route mount was still up. */
+  loading: boolean;
+  /** `data-webgpu` on the root: `unsupported` once the startup check has stopped the shell. */
+  webgpu: string | null;
+  /** The text of the shell's Reload card (`#view > .error`), when a view failed to mount. */
+  error: string | null;
+  /** `#view` is the gallery, where a shell with no `open` route sends `#/open`. */
+  gallery: boolean;
+}
+
+/**
+ * Ask the page what it shows, or null when it does not answer in OPEN_ROUTE_PROBE_MS
+ * (a page on a machine this busy may not).
+ */
+async function probeOpenRoute(page: Page): Promise<OpenRouteProbe | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), OPEN_ROUTE_PROBE_MS); });
+  const asked = page.evaluate((mountingAttr) => {
+    const view = document.getElementById('view');
+    return {
+      hash: location.hash,
+      card: document.querySelector('[data-open-route]')?.getAttribute('data-open-route') ?? null,
+      loading: !view || view.hasAttribute(mountingAttr)
+        || !!document.querySelector('#view > .loading[data-drop-stand-in], dialog.view-loading[open]'),
+      webgpu: document.documentElement.dataset.webgpu ?? null,
+      error: document.querySelector('#view > .error p')?.textContent?.trim() || null,
+      gallery: !!view?.classList.contains('gallery-view'),
+    };
+  }, ROUTE_MOUNTING_ATTR).catch(() => null);
+  try {
+    return await Promise.race([asked, late]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Why a page that never asked for the file did not, in words that are true for what it
+ * showed. Only a shell that loaded the gallery for `#/open` lacks the route; one still
+ * loading may be on a busy machine, one already opening the file has the route, and
+ * anything else is reported without a guess.
+ */
+function silentOpenMessage(probe: OpenRouteProbe | null, root: string, name: string, waitedMs: number): string {
+  const waited = waitedMs < 1000 ? `${waitedMs} ms` : `${Number((waitedMs / 1000).toFixed(1))} s`;
+  if (!probe) {
+    return `The web shell at ${root} did not ask for ${name} within ${waited}, and the page did not answer when asked what it showed. The machine may be too busy: try again. If this keeps happening, check that the shell is current (pnpm run build:web, or LOLLY_WEB_BASE).`;
+  }
+  if (probe.webgpu === 'unsupported') {
+    return `The web shell at ${root} stopped at its WebGPU startup check, so it never asked for ${name}.`;
+  }
+  if (probe.error) {
+    return `The web shell at ${root} showed an error before it asked for ${name}: ${probe.error}`;
+  }
+  if (probe.card !== null || probe.hash === '#/open') {
+    return `The web shell at ${root} started opening ${name} but had not fetched it after ${waited}. The shell has the #/open route; the machine may be too busy. Try again.`;
+  }
+  if (probe.loading) {
+    return `The web shell at ${root} was still loading after ${waited}, so it had not asked for ${name} yet. The machine may be too busy: try again.`;
+  }
+  if (probe.gallery && probe.hash.startsWith('#/open?')) {
+    return `The web shell at ${root} opened the gallery for #/open and never asked for ${name}, so it has no #/open route (it predates plan 291 W8). Rebuild it (pnpm run build:web), or point LOLLY_WEB_BASE at a current one.`;
+  }
+  return `The web shell at ${root} did not ask for ${name} within ${waited}, and the page is not opening it. Check that the shell is current (pnpm run build:web, or LOLLY_WEB_BASE) and try again.`;
+}
 
 export interface OpenSessionInPageOptions {
   /** Longest wait for the session to open, in ms. Default 120 s. */
@@ -201,12 +275,14 @@ export async function openSessionInPage(
     opts.step?.('open the file through #/open');
     await page.goto(`${root}/#/open?lolly=${encodeURIComponent(path)}`, { waitUntil: 'load', timeout: Math.min(timeout, 60_000) });
     // Whichever comes first: the tool address, the route's own failure card, the
-    // chooser (a file that is more than a plain session), or a shell that never asks
-    // for the file at all (one built before the route). Only the first may time out.
+    // chooser (a file that is more than a plain session), or a shell that has not asked
+    // for the file in time (one built before the route, or one on a busy machine, which
+    // silentOpenMessage tells apart). Only the first may time out.
     const never = (): Promise<never> => new Promise<never>(() => {});
     let quiet: ReturnType<typeof setTimeout> | undefined;
+    const askMs = Math.min(timeout, opts.askTimeoutMs ?? OPEN_ROUTE_ASK_MS);
     const silent = new Promise<{ kind: 'silent' }>((resolve) => {
-      quiet = setTimeout(() => resolve({ kind: 'silent' }), Math.min(timeout, opts.askTimeoutMs ?? OPEN_ROUTE_ASK_MS));
+      quiet = setTimeout(() => resolve({ kind: 'silent' }), askMs);
     });
     void requested.then(() => clearTimeout(quiet));
     const outcome = await Promise.race([
@@ -227,9 +303,7 @@ export async function openSessionInPage(
         .then(() => ({ kind: 'asks' as const }))
         .catch(never),
     ]).finally(() => clearTimeout(quiet));
-    if (outcome.kind === 'silent') {
-      throw new OpenSessionError(`The web shell at ${root} never asked for ${name}, so it has no #/open route (it predates plan 291 W8). Rebuild it (pnpm run build:web), or point LOLLY_WEB_BASE at a current one.`);
-    }
+    if (outcome.kind === 'silent') throw new OpenSessionError(silentOpenMessage(await probeOpenRoute(page), root, name, askMs));
     if (outcome.kind === 'failed') throw new OpenSessionError(`The web shell did not open ${name}: ${outcome.message || 'no reason was given.'}`);
     if (outcome.kind === 'asks') {
       throw new OpenSessionError(`${name} carries more than a saved session (a tool, a design system, templates, a renovation or a project), so the app asks a person what to do with it. Open it in the app instead.`);

@@ -15,7 +15,7 @@ import { chromeFollowsDesignSystem } from '../lib/chrome-follow.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import { icon } from '../lib/icons.ts';
 import { getMetrics } from '../metrics.ts';
-import { CATEGORY_FLAGS, CONNECTOR_FLAGS, SHARE_LINK_FLAGS, JELLY_FLAG, LEARNING_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, isFlagOn } from '../feature-flags.ts';
+import { CATEGORY_FLAGS, COLOURWAY_ASSET_TREATMENTS_FLAG, CONNECTOR_FLAGS, SHARE_LINK_FLAGS, JELLY_FLAG, LEARNING_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, isFlagOn } from '../feature-flags.ts';
 import { ensureJelly } from '../lib/jelly.ts';
 import { getInstanceBase } from '../lib/instance.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
@@ -172,7 +172,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
   const LISTED_FLAGS = [
     ...CATEGORY_FLAGS,
     ...(jellyHidden ? [] : [JELLY_FLAG]),
-    WOBBLY_FLAG, WOBBLY_MESH_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, STRIP_UPLOAD_META_FLAG, PREFLIGHT_FLAG, LEARNING_FLAG, PRIVATE_COLLAB_FLAG,
+    WOBBLY_FLAG, WOBBLY_MESH_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, STRIP_UPLOAD_META_FLAG, COLOURWAY_ASSET_TREATMENTS_FLAG, PREFLIGHT_FLAG, LEARNING_FLAG, PRIVATE_COLLAB_FLAG,
     ...CONNECTOR_FLAGS,
     ...SHARE_LINK_FLAGS,
   ]; pv.LISTED_FLAGS = LISTED_FLAGS;
@@ -212,14 +212,16 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
       label: 'High contrast',
       info: 'Strengthens the borders, text and focus rings of the app around your work. Your brand colours and everything on the canvas stay exactly as you set them.',
     },
-    // Large text multiplies CHROME font sizes only (--a11y-fs, styles/parts/a11y.css) - 
-    // px paddings and control heights are untouched, and the root font-size never moves
-    // so `rem`-styled tools export byte-identically. The copy promises exactly that and
-    // no more: over-promising "bigger controls" is the one claim this mechanism can't keep.
+    // Large text multiplies the CHROME's type and icon sizes by 1.2 (--a11y-fs,
+    // styles/parts/a11y.css), and tokens.css grows the top-row height (--chrome-h) and
+    // the standard control size (--ui-size-control) by the same factor. Other paddings
+    // and fixed heights keep their length, and the root font-size never moves, so
+    // `rem`-styled tools export byte-identically. The copy says exactly that, as
+    // docs/inclusive-design.md does: "every control grows" is a claim this can't keep.
     {
       key: 'largeText',
       label: 'Large text',
-      info: 'Grows the app type: labels, menus and button text. The controls themselves keep their size, so only the words inside them get bigger. Type inside your designs is untouched, so nothing you export reflows.',
+      info: 'Grows the app\'s type and icons by a fifth, and the top row and standard controls grow to hold them. Type inside your designs is untouched, so nothing you export reflows.',
     },
   ]; pv.A11Y_ROWS = A11Y_ROWS;
 

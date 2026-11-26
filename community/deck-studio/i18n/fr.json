@@ -1,6 +1,6 @@
 {
   "name": "Diaporama Markdown",
-  "description": "Transforme du Markdown ou une spécification JSON en diaporama PowerPoint natif et modifiable - vrai texte, puces, tableaux et thème du système de design - en quelques secondes. Le chemin le plus rapide, texte d'abord, vers un diaporama ; passe au canevas Design quand tu veux composer tes diapositives à la main ou les animer. Les graphiques et diagrammes viennent de tes autres outils Lolly. Exporte en .pptx (modifiable), plus PDF et PNG.",
+  "description": "Transforme du Markdown ou une spécification JSON en diaporama PowerPoint natif et modifiable. Exporte en .pptx (modifiable), plus PDF et PNG.",
   "a11yLabel": "Deck de présentation avec {{_slideCount}} diapositives",
   "inputs.size.label": "Taille du diaporama",
   "inputs.size.help": "Une seule taille pour tout le diaporama - PowerPoint donne la même taille à chaque diapositive.",

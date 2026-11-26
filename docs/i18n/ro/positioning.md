@@ -1,86 +1,97 @@
 # Cum se compară Lolly
 
-Lolly înseamnă două părți ale unui singur proiect open source. **Lolly** este motorul, aplicațiile și instrumentele pentru a crea, edita, converti și exporta pe dispozitivul tău, fără cont. **Lolly Work** este serverul organizației, rulat pe infrastructura ta, pentru autentificare, proiecte comune, aprobări și randare pe server. Ambele sunt MPL-2.0. Această pagină compară perechea cu celelalte moduri în care oamenii proiectează, guvernează și produc fișiere.
+Lolly creează fișiere conforme cu brandul pe dispozitivul tău, fără cont. **Lolly Work** este serverul pentru echipe: autentificare, proiecte partajate, aprobări și randare pe server, pe mașini operate de organizația ta. Ambele sunt open source sub MPL-2.0.
 
-## Uneltele de azi
+Cele mai multe echipe păstrează instrumentele pe care le au. O aplicație de design furnizează designurile, un DAM rămâne sursa de referință, iar Lolly transformă intrările aprobate în fișiere terminate. [Folosește Lolly cu DAM-ul tău existent](/info/use-with-dam.html) descrie această combinație. Ideea din spatele combinației este [suveranitatea conținutului](/info/content-sovereignty.html).
 
-Fiecare inel notează cât de complet livrează o clasă de produse o capabilitate, fiecare clasă fiind notată pe cel mai bun reprezentant al ei. Coloana Lolly acoperă Lolly și Lolly Work împreună, iar fiecare rând spune ce parte oferă ce. Deschide numele unui rând pentru raționamentul din spatele notei. Coloanele sunt sortate după rândul Overall completeness de sus: media rândurilor notate, cu rândul de cheltuială exclus.
+<!--i:eti-gauge-->
+## Instrumentele de astăzi
+
+Fiecare inel arată cât de complet răspunde o clasă de produse unei nevoi. Apasă un **?** lângă un rând ca să vezi dovezile și **?** de lângă legendă ca să vezi cum funcționează punctajele.
 
 ::: figure positioning-comparison
-Comparație de capabilități: cercetarea competitorilor și notele din august 2026; acoperirea Lolly + Lolly Work revizuită la 28 septembrie 2026. Notare: 0 absent, 25 soluție improvizată, 50 real dar limitat sau parțial, 75 puternic cu rezerve, 100 competență de bază.
+Comparația capabilităților. Cercetare despre concurenți din documentele furnizorilor, din august până la 21 noiembrie 2026. Lolly și Lolly Work evaluate la 21 noiembrie 2026. Punctaj: 0 absent, 25 soluție ocolitoare, 50 real, dar cu acces restricționat sau parțial, 75 puternic, cu rezerve, 100 competență de bază.
 :::
 
-::: details Note de notare
-Funcțiile disponibile și maturitatea în producție sunt separate. Lolly este lansat: versiunea 1.0 a apărut ca open source la 30 august 2026, securitatea lui nu a avut încă un audit independent, iar dovezile lui de adopție au câteva luni ([Adopție și guvernanță](/info/adoption-governance.html#status) are starea curentă). Faptul de a avea single sign-on, aprobări sau randare pe server nu stabilește un istoric de producție, deci nota de maturitate reflectă asta. Notele competitorilor își păstrează revizuirea datată din august.
-
-O regulă guvernează tabloul. Nota maximă (100), pe rânduri care ating conținutul sau identitatea ta, necesită o capabilitate pe care o poți folosi fără cont și fără precondiție de cloud; rândurile despre produsul însuși, precum maturitatea și ușurința în utilizare, sunt scutite. Regula aceasta îl costă pe Adobe la Content Credentials: cea mai largă implementare livrată (Photoshop, Lightroom, Premiere, Firefly) semnează local și în cloud, dar niciodată fără un cont și o identitate Adobe, deci 75. Plafonează API-urile de randare la generare în masă și automatizare din același motiv.
-
-Canva este notat pe cel mai bun membru al familiei pe rând, deoarece deține Affinity și Cavalry (ambele oferite gratuit în octombrie 2025). Randarea offline și pe dispozitiv primește 75 prin Affinity, o suită desktop care încă necesită un cont verificat și poartă telemetrie, aceeași deducere pe care o ia și Adobe; modul offline propriu al Canva editează doar designuri presincronizate, pe un singur dispozitiv, pentru o fereastră limitată. Autofill primește 50: este real, dar rezervat Enterprise și asincron, și completează doar text și imagini. Generarea în masă a Figma a crescut de la 25 la 50 când Buzz a lansat completarea din foaie de calcul (un beta gratuit, august 2026).
-
-Nota 75 a Lolly la Content Credentials acoperă semnarea pe dispozitiv și semnarea pe server a Lolly Work cu o identitate de organizație configurată; un verificator trebuie totuși să aibă încredere în semnatar ([Identitate Content Credentials](/info/content-credentials-identity.html)). Nota 50 a Penpot vine prin pluginul de export propriu al Lolly pentru Penpot: aceeași semnare a motorului, opt-in și dezvăluită ca a Lolly. Penpot primește 90 la randarea pe dispozitiv: un canvas de browser cu o țintă de salvare pe serverul lui, care poate fi găzduit propriu. Cloudinary primește propria coloană pentru biblioteca de resurse, API-ul de transformare și CDN-ul; revizuirea din august a notat semnarea livrării lui cu 50.
-
-Colaborarea live a Lolly include collab-uri private directe între două dispozitive și work collab-uri autentificate prin Lolly Work, cu editări comune, cursoare și sesiuni de echipă salvate. Nota Partial reflectă instalarea work curentă pe un singur nod și istoricul scurt de operare, nu absența editării în echipă. Estimările de preț sunt aritmetică datată pe prețuri de listă pentru ordin de mărime, nu achiziții.
+::: details Surse pentru punctajele care s-au schimbat în noiembrie 2026
+- Canva: [jurnalul modificărilor API](https://www.canva.dev/docs/apps/rest-apis/changelog/), [aplicații de serviciu](https://www.canva.dev/blog/developers/canva-service-accounts/), [ajutor pentru Brand Controls](https://www.canva.com/help/brand-control/)
+- Adobe: [jurnalul modificărilor InDesign API](https://developer.adobe.com/firefly-services/docs/indesign-apis/getting-started/changelog/), [prețuri Adobe Express](https://www.adobe.com/express/pricing)
+- Figma: [credite pentru agenți și AI](https://help.figma.com/hc/en-us/articles/42614902212887), [server MCP](https://developers.figma.com/docs/figma-mcp-server/)
+- Frontify și Bynder: [nota de lansare Frontify din octombrie 2026](https://news.frontify.com/163371-what-s-new-in-october-2026), [Frontify MCP](https://help.frontify.com/en/articles/14787214-frontify-mcp-beta)
+- Bannerbear și Placid: [prețuri Bannerbear](https://www.bannerbear.com/pricing/), [jurnalul modificărilor Bannerbear](https://www.bannerbear.com/changelog/), [prețuri Placid](https://placid.app/pricing)
+- Penpot: [prețuri pentru găzduire proprie](https://penpot.app/pricing/self-host), [versiuni lansate](https://github.com/penpot/penpot/releases)
+- Cloudinary: [proveniența conținutului](https://cloudinary.com/documentation/content_provenance_and_authenticity), [prețuri](https://cloudinary.com/pricing)
 :::
 
+Funcțiile și istoricul de utilizare sunt rânduri separate. Prima versiune publică Lolly a fost 1.0.1, pe 30 august 2026, securitatea sa nu a avut încă un audit independent, iar dovezile adoptării au doar câteva luni. [Adoptare & guvernanță](/info/adoption-governance.html#status) prezintă starea curentă.
+
+<!--i:eti-hammer-->
 ## Când să alegi Lolly
 
 ::: cols
 ## Alege Lolly când
 
-- Același fel de fișier este necesar iar și iar: plăci de eveniment, ecusoane, certificate, alerte, carduri sociale
-- Multe fișiere vin dintr-un singur șablon și un tabel de valori, în [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) sau CLI
-- Culorile, fonturile și resursele trebuie să rămână în sistemul de design, chiar și pe un canvas deschis
-- Un design terminat din Figma, Penpot, Illustrator, InDesign sau PDF trebuie să devină editabil și repetabil ([Importă un design](/info/design-import.html))
-- Fișierele trebuie făcute pe propriile tale dispozitive sau servere
+- Ai nevoie de același tip de fișier în mod repetat: carduri pentru evenimente, ecusoane, certificate, alerte, carduri pentru rețele sociale
+- Multe fișiere provin dintr-un șablon și un tabel de valori, în [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) sau în CLI
+- Culorile, tipografia și resursele trebuie să rămână în limitele sistemului de design, chiar și pe un canvas liber
+- Un design terminat în Figma, Penpot, Illustrator, InDesign, Affinity sau PDF trebuie să devină editabil și repetabil ([Importă un design](/info/design-import.html))
+- Fișierele trebuie create pe propriile dispozitive sau servere
 
 ## Alege altceva când
 
-- Munca este retușare foto detaliată sau ilustrație
-- Proiectezi și prototipezi o interfață de aplicație
-- Ai nevoie de o bibliotecă mare de stock și șabloane gata din prima zi
-- Ai nevoie de un serviciu administrat cu un istoric îndelungat la scară
+- Munca presupune retușare foto detaliată sau ilustrație
+- Proiectezi și prototipezi interfața unei aplicații
+- Ai nevoie de o bibliotecă mare de resurse și șabloane gata din prima zi
+- Ai nevoie de un serviciu administrat cu un istoric îndelungat de utilizare la scară mare
 :::
 
-Designurile importate și design tokens partajate lasă o echipă să combine Lolly cu aplicații specializate, în timp ce Lolly Work guvernează resursele comune, revizuirea și livrarea.
+Designurile importate și tokenurile de design partajate permit unei echipe să combine Lolly cu aplicații specializate, în timp ce Lolly Work guvernează resursele partajate, revizuirea și livrarea.
 
-Un deck întreg arată plafonul: în **Markdown Slides** un deck este declarat ca date, așezat live și exportat ca fișier PowerPoint nativ, editabil.
+Pentru echipele cu un DAM cu resurse atent selectate, începe prin a păstra biblioteca și administratorii ei. [Experiența SUSE cu Brandfolder](/info/suse-brandfolder.html) documentează modul în care integrarea a susținut adoptarea și gestionarea schimbărilor în procesul de aprobare. Furnizorii DAM și partenerii de implementare pot evalua aceeași configurație prin [fluxul de lucru pentru parteneri](/info/dam-partners.html).
 
-![Markdown Slides în vederea împărțită: diapozitivele deck-ului listate ca blocuri în stânga, deck-ul așezat randat în dreapta](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+În **Lolly Markdown Slides**, un deck întreg este scris ca date, aranjat live și exportat ca fișier PowerPoint nativ, editabil.
 
-## Regulile trăiesc în instrument
+![Lolly Markdown Slides în vizualizarea împărțită: diapozitivele deck-ului listate ca blocuri în stânga, randarea deck-ului aranjat în dreapta](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
-Lolly pune regulile reutilizabile de brand în instrument: culori, fonturi, margini de bleed, spațiere și intrări permise. Șablonul fixează părțile pe care un destinatar nu trebuie să le schimbe. Lolly Work adaugă în jurul acelui șablon acces pe grupuri și politici de intrare, cu lanțuri de aprobare pentru trimiterile în catalog și livrare.
+<!--i:eti-shield-check-->
+## Regulile sunt în instrument
 
-Verificarea unui instrument o dată face producția repetabilă mai ușoară, pentru că fiecare rezultat își moștenește regulile de layout. Textul, imaginile încărcate și drepturile de utilizare pot necesita totuși verificare, iar Lolly Work oferă cataloage comune și pași de aprobare pentru asta. Pentru echipa creativă, instrumentul este un parapet: tu aduci în continuare datele, textul și imaginea, iar instrumentul ține fiecare rezultat în stilul brandului.
+Lolly pune regulile reutilizabile ale brandului în instrument: culori, fonturi, margini de bleed, spațiere și intrări permise. Șablonul fixează părțile pe care destinatarul nu trebuie să le schimbe. Lolly Work adaugă acces pe grupuri și politici pentru intrări în jurul acelui șablon, cu lanțuri de aprobare pentru propunerile trimise în catalog și pentru livrare.
 
-![Toată treaba producătorului: tastează cuvintele. Tipografia, culoarea și spațierea au fost stabilite când a fost făcut instrumentul](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+Verificarea unui instrument o singură dată ușurează producția repetabilă, deoarece fiecare rezultat moștenește regulile lui de layout. Textele, imaginile încărcate și drepturile de utilizare pot avea în continuare nevoie de verificare, iar Lolly Work oferă cataloage partajate și pași de aprobare pentru asta. Pentru echipa de creație, instrumentul este o barieră de protecție: tu aduci în continuare datele, textul și imaginea, iar instrumentul păstrează fiecare rezultat conform cu brandul.
 
-Încă trei lucruri deosebesc această abordare:
+![Toată munca celui care produce fișierul: să scrie cuvintele. Tipografia, culoarea și spațierea au fost stabilite când a fost creat instrumentul](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
-- **Fișierul final, din intrări.** Intrare înăuntru, fișier terminat afară, fără „acum salvează-l din instrumentul de design și retușează-l”.
-- **Instrumentele compun instrumente.** Un instrument poate încorpora randarea altui instrument într-un singur fișier terminat, fără cuplare de cod între ele.
-- **Deschis până jos.** Motorul este open source, iar instrumentele, resursele și design tokens sunt fișiere pe care le poți păstra în controlul versiunilor sau gestiona în Lolly Work, nu rânduri în baza de date a altcuiva.
+Încă trei diferențe:
 
-Designul aventuros supraviețuiește parapetelor. Această hartă de oraș de calitate de afiș este cale vectorială adevărată de drumuri și apă, dintr-o listă derulantă și două câmpuri de culoare care nu pot fi îndreptate în afara sistemului de design:
+- **Fișierul final, din intrări.** Introduci datele, primești fișierul terminat, fără „acum salvează-l din instrumentul de design și corectează-l”.
+- **Instrumentele compun instrumente.** Un instrument poate încorpora randarea altui instrument într-un singur fișier terminat, fără cuplare la nivel de cod între ele.
+- **Open source.** Motorul este open source, iar instrumentele, resursele și tokenurile de design sunt fișiere pe care le poți păstra sub controlul versiunilor sau gestiona în Lolly Work, nu rânduri în baza de date a altcuiva.
 
-![Inelele de canale și rețeaua de drumuri din Amsterdam desenate de la margine la margine în cerneala proprie a sistemului de design, fiecare trasă plasată de șablon, nu de mână](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
+Designul îndrăzneț rezistă în limitele de protecție. Această hartă urbană de calitate pentru afișe conține căi vectoriale reale pentru drumuri și ape, obținute dintr-o listă derulantă și două câmpuri de culoare care nu permit alegeri în afara sistemului de design:
 
+![Inelele de canale și rețeaua de drumuri din Amsterdam desenate de la o margine la alta în culorile proprii ale sistemului de design, fiecare contur plasat de șablon, nu manual](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
+
+<!--i:eti-stamp-->
 ## Inovează probabilistic, scalează determinist
 
-Cele mai multe pitch-uri „AI creativ” pun modelul de partea greșită a unei linii vechi. Copiștii și miniaturiștii au stabilit unde cade. Lucrezi liber la schiță, unde se poate încerca orice și nimic nu e fixat. Apoi mergi la tipar, care fixează. Schițele erau locul unde era arta, iar presa era modul în care ea călătorea, iar lucrarea tipărită putea fi de încredere pentru că presa își ținea promisiunea la fiecare tragere.
+Cele mai multe prezentări de „creativitate cu AI” pun modelul de partea greșită a unei delimitări vechi. Copiștii și miniaturiștii au stabilit unde se află. Lucrezi liber la schiță, unde orice poate fi încercat și nimic nu este definitiv. Apoi treci la tipar, care fixează rezultatul. Arta era în schițe, iar tiparul o răspândea, și puteai avea încredere în lucrarea tipărită fiindcă presa își respecta promisiunea la fiecare imprimare.
 
-Lolly este presa. Adu ce vrei la idei, un model, un designer sau un desen brut, dar în clipa în care o idee trebuie să devină multe fișiere, trece printr-un proces care randează la fel de fiecare dată, din intrări pe care oricine le poate citi înapoi. Comparația de mai sus este de fapt despre cine face repetabil acel pas fixat.
+Lolly este presa. Adu orice vrei la etapa ideilor, un model, un designer sau un desen sumar, dar în momentul în care o idee trebuie să devină multe fișiere, ea trece prin ceva care randează la fel de fiecare dată, din intrări pe care oricine le poate reciti. Comparația de mai sus este, de fapt, despre cine face repetabil acel pas de fixare a rezultatului.
 
 > Ai încredere în procesul creativ, scalează cu rigoare.
 
+<!--i:eti-tag-->
 ## Gratuit pentru totdeauna
 
-**Dacă randează pe dispozitivul tău, este gratuit pentru totdeauna.** Motorul, shell-urile, instrumentele și formatele sunt open source, iar o versiune lansată nu poate fi retrasă. Și Lolly Work este open source. O organizație plătește pentru infrastructura și operarea pe care le alege, fără taxă de licență software per loc sau per randare pentru găzduire proprie. [Întrebări și răspunsuri](/info/faq.html) spune povestea din spatele promisiunii.
+**Dacă se randează pe dispozitivul tău, este gratuit pentru totdeauna.** Motorul, interfețele de rulare, instrumentele și formatele sunt open source, iar o versiune lansată nu poate fi luată înapoi. Lolly Work este și el open source. O organizație plătește pentru infrastructura și operarea pe care le alege, fără taxă de licență software per utilizator sau per randare pentru găzduirea proprie. [Întrebări & răspunsuri](/info/faq.html) spune povestea din spatele promisiunii.
 
-## Unde trăiește conținutul tău
+<!--i:eti-map-pin-->
+## Unde se află conținutul tău
 
-Munca creativă a Lolly poate rula pe hardware pe care îl deții, iar design tokens, fonturile, logourile și instrumentele lui sunt fișiere pe care le poți păstra. Cu Lolly Work, proiectele comune, resursele, politica și înregistrările de audit trăiesc în stocarea configurată de organizația ta. [Încredere](/info/trust.html) explică de ce contează, iar [Politica de confidențialitate](/info/privacy.html) și [Verifică singur](/info/verify-yourself.html) te lasă să verifici afirmația, nu s-o iei pe cuvânt.
+Munca de creație în Lolly poate rula pe hardware pe care îl deții, iar tokenurile de design, fonturile, logourile și instrumentele sale sunt fișiere pe care le poți păstra. Cu Lolly Work, proiectele partajate, resursele, politica și înregistrările de audit se află în stocarea configurată de organizația ta. [Încredere](/info/trust.html) explică de ce contează asta, iar [Politica de confidențialitate](/info/privacy.html) și [Verifică singur](/info/verify-yourself.html) îți permit să verifici afirmația în loc să ne crezi pe cuvânt.
 
+<!--i:eti-grid-->
 ## Instrument cu instrument
 
-[Lolly comparat, instrument cu instrument](/info/compare.html) compară Lolly cu Canva, Adobe, Figma, Penpot, portaluri de brand, API-uri de randare și convertoare online, câte o pagină fiecare, și prezintă [ce rulează unde](/info/compare.html#what-runs-where).
+[Lolly comparat, instrument cu instrument](/info/compare.html) compară Lolly cu Canva, Adobe, Figma, Penpot, portaluri de brand, API-uri de randare și convertoare online, câte o pagină pentru fiecare, și explică [ce rulează unde](/info/compare.html#what-runs-where).

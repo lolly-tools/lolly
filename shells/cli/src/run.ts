@@ -18,9 +18,10 @@ import { xlsxRecalc } from '@lolly-tools/node-shell/gridcraft-calc-node';
 import { checkPdfAccessibility } from '@lolly-tools/node-shell/pdf-a11y-node';
 import { isFileTransform } from '@lolly-tools/node-shell/transform-tool';
 import { withoutRecordedBrandPage } from '../../../engine/src/brand-page-address.ts';
-import { assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
+import { emfLiveTextRecords } from '../../../engine/src/emf.ts';
+import { colourRoleThemeAccents, assertMotionRequest, assertSampleRequest, sampleOutputFormat, buildExportMeta, designRecordWords, readFileDesignRecord, loadTool, createRuntime, canvasSizeOf, annotateTemplate, parseUrlState, parseSpots, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, extractC2paStore, pdfWithoutCredential, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
-import type { Lang } from '@lolly/engine';
+import type { Lang, PlacedPictures } from '@lolly/engine';
 import { RONDO_ASSET_FORMAT, RondoSourceError, isRondoFileName, rondoFromFile, rondoSourceBytes } from '@lolly/engine';
 import { prerenderSongInputs } from '@lolly-tools/node-shell/audio';
 import type { InputValue } from '../../../engine/src/inputs.ts';
@@ -31,24 +32,29 @@ import type { Runtime } from '../../../engine/src/runtime.ts';
 // scoped Chromium).
 import { NODE_FORMATS, DEEP_FORMATS, needsFloatScene, nodePathFormat, pxDims, matchedExportFormat, canCarryPrintPrep, printPrepRefusal } from '@lolly-tools/node-shell/raster';
 import { wantsNativeHdrStill } from './raster.ts';
-import { buildExportC2paOpts, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
+import { buildExportC2paOpts, placedPicturesIn, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
 // The enrolled signing identity (key + x5chain) - type only here; the module itself is
 // imported lazily in the render path so a run without --sign-key never loads it.
 import type { SigningIdentity } from '@lolly-tools/node-shell/signing-identity';
 import { catalogFile, readAssetIndex, readToolManifest, readToolText } from '@lolly-tools/node-shell/content-roots';
 // Fail loud: never write a degenerate file + exit 0 when the render silently failed.
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
+import { withoutSvgCredentials } from '@lolly-tools/node-shell/lolly-file';
+import { assertExportLocked, exportPasswordRefusal } from '@lolly-tools/node-shell/export-lock';
 // Fail loud, part two: refuse bytes that are demonstrably not the requested container
 // (headless Chromium has no AV1 encoder, so an --export=avif used to write PNG).
 import { assertFormatBytes, sniffFormat, formatAllows } from '@lolly-tools/node-shell/format-sniff';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
+import { pixelWorkCount } from '@lolly-tools/node-shell/canvas';
+import { acceptedWarning, isResvgRefusal, noBrowserAdvice, toolAdmission, toolResvgRoute, type ResvgRefusal, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
+import { acceptedRoute } from '@lolly-tools/node-shell/export-route';
 import { cleanControlChars } from '@lolly-tools/node-shell/verdict-report';
 // url-shot: capture a live page via the scoped Chromium (shared with the TUI).
 import { captureUrl, captureParamsFrom } from '@lolly-tools/node-shell/url-capture';
 import { createCliBridge, applyBrandVars, CLI_CAPABILITIES } from './bridge.ts';
 // The `s=` still-export frame filter (plan 112 section 10) - the engine resolves the
 // address, this reads the rendered pages. Same meaning as the web shell's fan-out.
-import { pickFramePage } from './frame-page.ts';
+import { pickFramePage, wholeCanvasNote } from './frame-page.ts';
 import { isOn, rightsMode } from './args.ts';
 import type { HostV1, Profile, ExportOpts, IngredientCredential } from '@lolly-tools/core/host-v1';
 import { DESIGN_STILL_RASTER_FORMATS, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
@@ -198,6 +204,9 @@ export { needsBrowserTier };
 /** Shared print/security options plus the CLI-local text, HDR and imprint controls. */
 type CliExportOpts = ExportOpts & import('@lolly-tools/node-shell/pdf-finishing').PdfFinishingOpts & {
   fps?: number;
+  /** The tool's stylesheet and route admission, for the browser-free raster formats (resvg-admission.ts). */
+  toolStyles?: string | null;
+  resvgTool?: ToolRouteFact;
   password?: string;
   /** The resolved Imprint decision, forwarded to the DOM-free bridge for the one
    *  raster it produces there (BMP). Vector/data DOM-free formats ignore it. */
@@ -206,6 +215,7 @@ type CliExportOpts = ExportOpts & import('@lolly-tools/node-shell/pdf-finishing'
   text?: 'outline' | 'live';
   /** Reported per run the svg branch could not outline (see the bridge). */
   onTextFallback?: (run: { text: string; reason: string }) => void;
+  onFillNotice?: (notice: string) => void;
   hdr?: { targets?: readonly string[]; peakNits?: number; reach?: number; lift?: number; richness?: number };
   /** A Design page drawn here from the drawing operations reports its route (plan 326). */
   onExportRoute?: (record: import('../../../engine/src/design-export-route.ts').DesignExportRouteRecord) => void;
@@ -394,9 +404,10 @@ let stdinReplay: { bytes: Buffer; used: boolean } | null = null;
  * browser tier's page is given the same one. With no `--file`, an active terminal system is what this runtime
  * resolves in, so the page is given that one; with neither, the page keeps its content
  * profile's system, which is this runtime's too. `--file` belongs to Design alone, and a
- * share link cannot carry a design system.
+ * share link cannot carry a design system. `lolly preflight` reads `--file` through this
+ * too, so the palette it counts is the one the export separates with.
  */
-async function designSystemForRun(
+export async function designSystemForRun(
   toolId: string, file: string | undefined, share: boolean | undefined,
 ): Promise<{ runDesignSystem: Record<string, unknown> | null; pageDesignSystem: Record<string, unknown> | null }> {
   if (file !== undefined) {
@@ -453,6 +464,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // directly rather than through parseUrlState (which treats it as reserved
   // and never surfaces it in `values`).
   const tool = await loadToolOrThrow(toolId, fetchFile, { lang: normalizeLang(params.lang) ?? undefined });
+  // Whether the browser-free route may draw this tool, judged on the files as loaded,
+  // before the annotation below changes the template.
+  const resvgTool = toolAdmission(tool);
   // Annotate the template as the web shell does (plans/222): the paint markers it
   // adds let a colour input bound to a brand token bind the exported shape to that
   // token even on this DOM-free path. Harmless otherwise - the data attributes have
@@ -516,6 +530,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     // `--link-password` is the unambiguous form and always wins.
     const explicit = params['link-password'];
     rawQuery = await decryptLinkQuery(rawQuery, explicit ?? params.password, explicit === undefined);
+    if (explicit === undefined && params.password) {
+      note('Note: --password opened the encrypted link, so it does not lock the exported file. To lock the file too, pass --link-password for the link and --password for the file.');
+    }
   }
   // Expand a packed `z=…` param back into a plain query - the CLI is URL mode under a
   // different transport, so a packed share link must run identically here
@@ -578,6 +595,13 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // is its frozen alias and reads straight off url-mode's reserved `profile` param, so
   // a shared print link and a hand-typed flag mean the same thing (contract B1).
   const pressProfile = params['press-profile'] || pressProfileParam || null;
+  // Spot inks as process (engine 1.324). `--spots=process` is the CLI spelling of a link's
+  // `_spots=process`, and either one asks. Any other value of the flag is a usage error,
+  // because a typo must never come back looking like a four-colour file.
+  if (params.spots !== undefined && parseSpots(String(params.spots)) === null) {
+    throw usageError(`--spots takes one value: --spots=process prints every spot ink in process. "${params.spots}" is not that value.`, 'BAD_FLAG_VALUE');
+  }
+  const spotsAsProcess = parseSpots(params.spots === undefined ? null : String(params.spots)) === 'process' || parsedUrl.spots === 'process';
 
   // --output=- means stdout, explicitly (contract B10). Normalised here so every
   // downstream branch sees "no path" and streams, exactly as an omitted --output does.
@@ -824,7 +848,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     const omitted = includePersonal ? [] : personalShareFields(runtime.getModel());
     if (omitted.length) note(`Share link omits personal fields: ${omitted.map(field => field.id).join(', ')}. Review them before using --include-personal.`);
     const serialize = includePersonal ? serializeUrlState : shareUrlState;
-    const q = serialize(runtime.getModel(), { format: format ?? paramFormat, width, height, unit, dpi, bleed, marks: new URLSearchParams(rawQuery).get('marks'), profile: pressProfileParam, c2pa: c2pa?.on, c2paDays: c2pa?.days, imprint: imprint ?? undefined, durable: durable ?? undefined, cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality, tokenSelection: runtime.tokenSelection, ...(madeWithOff ? { madeWith: false } : {}) });
+    const q = serialize(runtime.getModel(), { format: format ?? paramFormat, width, height, unit, dpi, bleed, marks: new URLSearchParams(rawQuery).get('marks'), profile: pressProfileParam, c2pa: c2pa?.on, c2paDays: c2pa?.days, imprint: imprint ?? undefined, durable: durable ?? undefined, cuts, sampleTimes, motionBlur, sequenceRange, ...video, vq: video.quality, tokenSelection: runtime.tokenSelection, ...(madeWithOff ? { madeWith: false } : {}), ...(spotsAsProcess ? { spots: 'process' as const } : {}) });
     const sharedParams = new URLSearchParams(q);
     if (filename) sharedParams.set('filename', filename);
     const sharedQuery = sharedParams.toString();
@@ -930,6 +954,13 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     // Copy the VIEW (not `.buffer`): the browser tier hands back a Uint8Array whose
     // backing buffer may be larger than the file, and `.buffer` would write the slack.
     let buf = Buffer.from(bytes);
+    // A utility decides for itself what it does with a password, and most do nothing, so
+    // the bytes answer. `compress-pdf --password=x` used to exit 0 with an unlocked PDF.
+    if (password) {
+      await assertExportLocked(bytes, tool.manifest.id, password).catch(() => {
+        throw refused(`"${tool.manifest.id}" did not lock this file, so nothing was written. Leave --password out, or use the utility's own lock option if it has one.`, 'PASSWORD_NOT_APPLIED');
+      });
+    }
     // WITHOUT --output, a transform streams to stdout like every other path in this
     // shell (contract section 11: the CLI guide, now docs/cli-files.md, always said
     // so; the code instead wrote `<name>-clean.svg` into the working directory and
@@ -1106,6 +1137,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // An explicit setting always wins over the manifest default; `null` from parseUrlState
   // is what "nobody said" means.
   const wantC2pa = bareRender ? false : c2pa ? c2pa.on : c2paDefaultOn(tool.manifest);
+  // The caller's own opt-out, as opposed to a tool that does not stamp by default. Only this
+  // takes an inlined picture's credential out of the file: a render with no setting keeps its bytes.
+  const optedOutC2pa = bareRender || c2pa?.on === false;
   // Whether the CALLER asked for Content Credentials, as opposed to inheriting them.
   // Every "could not stamp" message below is gated on this: a warning is a promise the
   // run did not keep, and under --strict it is an exit code, so a default nobody chose
@@ -1184,13 +1218,14 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   let buf: Buffer;
   let usedBrowser = false;                // a pooled browser was launched → tear it down before exit
   let webShellExport = false;             // the Tier-B web shell produced the bytes → it owns c2pa
+  let replacesBrowserCredential = false;  // the web shell stamped, and this shell's identity or intent credential takes its place
   // The Node tier asked for an Imprint and the frame was below the watermark's
   // detection floor. Reported, never silently dropped - but as a note, not a warning,
   // unless the caller explicitly asked for the mark (see the provenance block above).
   let imprintFloorSkip = false;
-  // A Design page drawn here from the drawing operations: its route and the credentialed pictures it drew (plan 326).
+  // A Design page drawn here from the drawing operations: its route and every credentialed picture the document places, on any page, as the web shell lists them (plan 326).
   const opsIngredients: IngredientCredential[] = [];
-  const routed: { record?: DesignExportRouteRecord } = {};
+  const routed: { record?: DesignExportRouteRecord | import('@lolly-tools/node-shell/export-route').NodeRouteRecord } = {};
 
   if (isCaptureTool(tool.manifest)) {
     // Capture tools (url-shot): drive the scoped Chromium straight at the target URL - 
@@ -1231,6 +1266,18 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     const u = unit || 'px';
     const qual = (v: number | null | undefined): string | number | undefined => (typeof v === 'number' && v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
     const exportOpts: CliExportOpts = { width: qual(width), height: qual(height) };
+    // The browser-free raster formats (BMP, JPEG XL, EXR, HDR) read the drawing's layout with the tool's stylesheet.
+    if (['bmp', 'jxl', 'jxl-lossless', 'exr', 'hdr'].includes(targetFormat.toLowerCase())) {
+      Object.assign(exportOpts, {
+        toolStyles: tool.styles ?? null, resvgTool, resvgPaged: !!tool.manifest.render?.paged,
+        allowBrowserFree: isOn(params['allow-browser-free']),
+        // A picture drawn here only because the user accepted that it may differ: said, and recorded.
+        onBrowserFreeAccepted: (accepted: ResvgRefusal[]) => {
+          warn('BROWSER_FREE_ACCEPTED', acceptedWarning(targetFormat.toUpperCase(), accepted), 'gate');
+          routed.record = acceptedRoute(toolResvgRoute());
+        },
+      });
+    }
     if (targetFormat === 'pdf' && tool.manifest.id === 'design') {
       // The finishing pass needs the same resolved controls the browser receives.
       exportOpts.c2pa = wantC2pa;
@@ -1246,6 +1293,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     // EPS (CMYK) separates through the press condition's profile (the bundled FOGRA39
     // one by default), so the condition a print link names reaches the Node tier too.
     if (targetFormat === 'eps-cmyk' && pressProfile) exportOpts.colorProfile = pressProfile;
+    // EPS has no named plates, so its bytes do not move; passed so the choice means one thing everywhere.
+    if (targetFormat === 'eps-cmyk' && spotsAsProcess) exportOpts.spotsAsProcess = true;
 
     // ── the `s=` still-export filter (plan 112 section 10) ────────────────────────────
     // `--s=2 --export=png` renders ONE slide of a framed document, exactly as
@@ -1282,6 +1331,10 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
           note(`Rendering slide ${picked.index + 1} of ${picked.total} (--s=${slide}).`);
         }
       }
+    } else {
+      // Several pages and no --s: the image is the whole canvas, so say how to get a page.
+      const pagesNote = wholeCanvasNote(canvas, targetFormat, tool.manifest.render.formats ?? []);
+      if (pagesNote) note(pagesNote);
     }
     if (u !== 'px') exportOpts.dpi = dpi || 300;
     // --depth=8|16|float requests the export's bits per channel (--depth=auto, the
@@ -1323,6 +1376,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     // refusal (exit 4), because a strict pipeline asked for "outlined or nothing".
     // emf INVERTS the default (live GDI text records since engine 1.128), so BOTH
     // values must be forwarded - `--text=outline` is emf's opt-out, not a no-op.
+    // A link's `_text=outline` asks for the same EMF outlines, so it reads as the flag.
+    if (text === undefined && parsedUrl.text === 'outline' && targetFormat.toLowerCase() === 'emf') text = 'outline';
     if (text) {
       exportOpts.text = text;
       if (targetFormat === 'pdf' && tool.manifest.id === 'design') exportOpts.convertPaths = text === 'outline';
@@ -1334,11 +1389,16 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     }
     const textFallbacks: Array<{ text: string; reason: string }> = [];
     exportOpts.onTextFallback = (run) => textFallbacks.push(run);
-    // A Design page this shell draws from the operations hands back its route and any
-    // credentialed picture's manifest, which the stamp below records (plan 326).
+    const fillNotices: string[] = [];
+    exportOpts.onFillNotice = (notice) => { if (!fillNotices.includes(notice)) fillNotices.push(notice); };
+    // A Design page this shell draws from the operations hands back its route and the
+    // manifest of every credentialed picture the document places, on any page, which the
+    // stamp below records, as the web shell does (plan 326).
     exportOpts.ingredientSink = opsIngredients;
     exportOpts.onExportRoute = (record) => { routed.record = record; };
 
+    // Where this shell's identity or intent credential takes the place of one the web shell writes first.
+    const stampsOverBrowser = C2PA_FORMATS.includes(targetFormat) && !sampled && !/tiff$/i.test(targetFormat);
     const dims = {
       productionInputIds: productionContract?.requirements.filter(r => r.kind === 'input').map(r => r.location),
       onProductionInputs: (inputs: Record<string, string> | undefined) => { browserProductionInputs = inputs; },
@@ -1354,21 +1414,33 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       imprint: wantImprint,
       ...(wantDurable ? { durable: true } : {}),
       ...(pressProfile ? { pressProfile } : {}),
+      // Opt-in, so only the request travels to the browser tier (`_spots=process`).
+      ...(spotsAsProcess ? { spotsAsProcess: true } : {}),
+      // EMF keeps live text by default on both tiers, so `--text=outline` is a request the
+      // browser tier must be told (`_text=outline`); a run no font can outline is the one
+      // the Node tier hands it, and the web shell pictures that run as it does in the panel.
+      ...(text === 'outline' && targetFormat.toLowerCase() === 'emf' ? { textOutline: true } : {}),
       // Forward the RESOLVED c2pa setting so the browser tier stamps it (single
       // authority); the Node post-stamp below is skipped when the browser ran, avoiding
       // a double-stamp. Always forwarded now that the default is on: leaving the param
       // off would let the web shell apply its OWN default and make the CLI's
       // --c2pa=off a suggestion rather than an instruction.
-      // WITH AN ENROLLED IDENTITY the browser tier must NOT stamp. It signs with its
-      // own ephemeral on-device key (the key is a CryptoKey in this process; there is
-      // no way to hand it to a browser over a URL, and there should not be). So the
-      // credential is suppressed there and applied in Node below, over the finished
+      // WITH AN ENROLLED IDENTITY the browser tier cannot sign: the key is a CryptoKey in
+      // this process, there is no way to hand it to a browser over a URL, and there
+      // should not be. So the credential is applied in Node below, over the finished
       // bytes, with the identity - the same last-byte-operation rule, one tier later.
       // The visible trade: the manifest's environment assertion is then the CLI's
       // (surface: 'cli'), not the web shell's. docs/cli-signing.md says so.
       // An intent record is the same case: it has no way to reach the browser over a URL,
       // so the credential that carries it is applied in Node below.
-      c2pa: wantC2pa && !identity && !intentRecord, c2paDays: c2pa?.days ?? undefined,
+      // The browser stamps first all the same, with its own ephemeral key: its credential
+      // is the record of the pictures placed in the file, AI-made ones included, and the
+      // stamp below reads that record into its own credential, which then takes that
+      // one's place. Only where that stamp happens: a format this shell can stamp, and
+      // not a sample set. A TIFF keeps a replaced credential as a second one, so there
+      // the browser writes none.
+      c2pa: wantC2pa && (!(identity || intentRecord) || stampsOverBrowser), c2paDays: c2pa?.days ?? undefined,
+      keepInlinedC2pa: !optedOutC2pa,
       // The deck state address, forwarded so the BROWSER tier applies the same one-slide
       // filter the web shell applies to `?s=`. Carried whenever it was given: a format the
       // filter skips is skipped there too (frameFilterApplies is the shared rule), so this
@@ -1392,16 +1464,29 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     };
     const viaRaster = async (): Promise<Buffer> => {
       const { renderRaster } = await import('./raster.ts');
-      // A Design still is routed by the browser tier's own page (plan 326); one log line records that.
-      if (tool.manifest.id === 'design' && DESIGN_STILL_RASTER_FORMATS.includes(targetFormat.toLowerCase())) host.log('info', (await import('@lolly-tools/node-shell/export-route')).nodeRasterRoute(targetFormat));
+      // A Design PNG says which renderer drew it, and why, from its own route (plan 371,
+      // M3a); every other Design still is routed by the browser tier's own page (plan 326).
+      if (tool.manifest.id === 'design' && DESIGN_STILL_RASTER_FORMATS.includes(targetFormat.toLowerCase()) && targetFormat.toLowerCase() !== 'png') host.log('info', (await import('@lolly-tools/node-shell/export-route')).nodeRasterRoute(targetFormat));
       const res = await renderRaster({
         runtime, dom, manifest: tool.manifest, format: targetFormat, dims,
         emoji: { emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam },
         initial: values as Record<string, unknown>,
         ...(pageDesignSystem ? { designSystem: pageDesignSystem } : {}),
+        // Pixel work the tool's hooks did through the Node canvas keeps the PNG off resvg.
+        pixelWork: () => pixelWorkCount(dom.window.document, host.raster),
+        styles: tool.styles ?? null,
+        tool: resvgTool,
+        allowBrowserFree: isOn(params['allow-browser-free']),
+        log: (line) => host.log('info', line),
       });
       const bytes = Buffer.from(res.bytes);
       usedBrowser = res.usedBrowser;
+      // A Design page drawn here records its route and the credentialed pictures it drew,
+      // as a page written from the operations as SVG does (plan 326).
+      if (res.route) routed.record = res.route;
+      for (const ingredient of res.ingredients ?? []) {
+        if (!opsIngredients.some((p) => p.activeLabel === ingredient.activeLabel)) opsIngredients.push(ingredient);
+      }
       // Tier B == the web shell; it owns c2pa for that path - UNLESS an identity is
       // configured, in which case it was told `c2pa=off` above and this shell stamps.
       // `nodeEncoded` is the third case: the browser supplied only SOURCE PIXELS for an
@@ -1409,6 +1494,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       // process wrote. Without it an `--hdr=1` export off the browser tier would carry
       // no Content Credential at all, silently.
       webShellExport = res.usedBrowser && !identity && !intentRecord && !res.nodeEncoded;
+      // The browser stamped a credential this shell is about to replace (see `c2pa` above).
+      replacesBrowserCredential = res.usedBrowser && !!(identity || intentRecord) && !res.nodeEncoded && wantC2pa && stampsOverBrowser;
       // Same third case: an HDR still marks its own pixels here, on either tier, so its
       // floor skip must be reported even when the browser supplied the source frame.
       if ((!res.usedBrowser || res.nodeEncoded) && wantImprint && res.imprinted === false) imprintFloorSkip = true;
@@ -1435,6 +1522,10 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     if ((bleed || marksRaw) && !canCarryPrintPrep(targetFormat)) {
       throw unavailableHere(printPrepRefusal(targetFormat), 'PRINT_PREP_UNAVAILABLE');
     }
+    // A password this file cannot carry is the same class of failure with a worse ending:
+    // an unlocked file somebody then sends on, believing the lock is there.
+    const passwordRefusal = password ? exportPasswordRefusal(targetFormat, { password, bleed, marks: marksRaw }) : null;
+    if (passwordRefusal) throw refused(passwordRefusal, 'PASSWORD_UNAVAILABLE');
 
     // AN HDR STILL AND A DURABLE CREDENTIAL CANNOT BOTH BE PRODUCED HERE, and the
     // silent answer would be worse than either. `--hdr=1` now routes png/jpg through
@@ -1485,6 +1576,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
             // The theme fonts and the mono face come from the brand's own font.brand,
             // font.display and font.mono tokens, as authored: never a release's render alias.
             ...(host.tokens ? { brandFont: await (await import('./raster.ts')).authoredBrandFont(host.tokens) } : {}),
+            // A design system with colour roles gives the theme's accents in its own order.
+            ...(host.tokens?.snapshot ? { themeAccents: colourRoleThemeAccents((await host.tokens.snapshot()).document) } : {}),
             // docProps come from the same assembly runtime.export would have used, so a
             // native deck is attributed the way the browser tier's deck was.
             meta: bareRender ? null : await deckDocProps(host, tool.manifest, runtime.getModel(), runtime.madeWith()),
@@ -1523,7 +1616,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
         if ((designPdfFallback || ['svg', 'svgz'].includes(targetFormat.toLowerCase())) && runtime.hookErrors.length) {
           assertRenderOk({ hookErrors: runtime.hookErrors, format: targetFormat, bytes: new Uint8Array() });
         }
-        if ((!designPdfFallback && !VECTOR_ESCALATABLE.has(targetFormat.toLowerCase())) || ['RenderIntegrityError', 'ExportHookError'].includes((e as Error)?.name)) throw e;
+        // A raster format the browser-free renderer refused (resvg-admission.ts) is handed on the same way.
+        if ((!designPdfFallback && !VECTOR_ESCALATABLE.has(targetFormat.toLowerCase()) && !isResvgRefusal(e)) || ['RenderIntegrityError', 'ExportHookError'].includes((e as Error)?.name)) throw e;
         domFreeError = e as Error;
         note(
           `Note: "${targetFormat}" has no browser-free path for this tool (${firstLine(domFreeError.message)}). ` +
@@ -1558,12 +1652,13 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       // rather than failed, which is a large part of why a Tier-B failure reads as
       // "the browser tier is broken". Both closes no-op when nothing was started.
       if (REAL_RENDER_FAILURES.has((e as Error)?.name)) { await teardownTierB(); throw e; }
-      if (sampled || motionBlur || sequenceRange || !htmlFallback || finalFormat === 'html') { await teardownTierB(); throw exportFailure(targetFormat, e as Error, domFreeError); }
+      if (sampled || motionBlur || sequenceRange || password || !htmlFallback || finalFormat === 'html') { await teardownTierB(); throw exportFailure(targetFormat, e as Error, domFreeError); }
       const blob = await runtime.export(canvas, 'html', {});
       buf = Buffer.from(await blob.arrayBuffer());
       assertRenderOk({ hookErrors: runtime.hookErrors, format: 'html', bytes: buf });
       finalFormat = 'html';
       webShellExport = false;
+      replacesBrowserCredential = false;
       usedBrowser = false;
       // Retarget --output to a .html name so the file's extension matches its content.
       if (outputPath) outputPath = outputPath.replace(/\.[^./\\]+$/, '') + '.html';
@@ -1574,22 +1669,26 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
 
     // `--text=live` on the BROWSER tier is a no-op, and used to be a silent one: the flag
     // is applied by this shell's own DOM-free exporter, and the browser tier is driven
-    // through a URL, where there is no reserved param for it (see RESERVED in
+    // through a URL, where there is no reserved param for `live` (see RESERVED in
     // engine/src/url-mode.ts). A run that escalated therefore came back outlined while
     // the caller had asked for editable <text>, byte-identical to a run without the flag.
-    // Report it rather than let the flag look honoured. The browser tier follows the
-    // WEB defaults and `--text` does not travel to it: svg comes back outlined
-    // (so an explicit `live` did not apply), and emf comes back LIVE since engine
-    // 1.128 (so an explicit `outline` did not apply). Warn on exactly the
-    // combination whose flag the produced file contradicts.
-    if (webShellExport && text && (
-      (text === 'live' && targetFormat.toLowerCase() !== 'emf') ||
-      (text === 'outline' && targetFormat.toLowerCase() === 'emf'))) {
+    // Report it rather than let the flag look honoured: svg comes back outlined, the web
+    // default. EMF `--text=outline` does travel, as `_text=outline`, so it is reported
+    // only when the file still holds live text records, which is what a web shell or
+    // desktop app that predates the param writes.
+    const emfOutlineIgnored = text === 'outline' && targetFormat.toLowerCase() === 'emf' && emfLiveTextRecords(buf) > 0;
+    if (webShellExport && text && ((text === 'live' && targetFormat.toLowerCase() !== 'emf') || emfOutlineIgnored)) {
       warn('TEXT_LIVE_IGNORED',
         `--text=${text} did not apply: "${targetFormat}" for this tool was produced by the browser render tier, ` +
-        `which follows the web default (${targetFormat.toLowerCase() === 'emf' ? 'live text records' : 'outlined text'}). ` +
+        (emfOutlineIgnored
+          ? 'which wrote live text records, so it does not read the outline request (_text=outline). Update the web shell or desktop app it uses. '
+          : 'which follows the web default (outlined text). ') +
         'The file is the same as one exported without the flag.');
     }
+
+    // Fallback fonts that drew what the design system's fonts do not cover: the same
+    // sentence the web export card shows (fallback-fonts.ts fillNotice).
+    for (const notice of fillNotices) note(`Note: ${notice}`);
 
     // Runs the svg branch could not outline. Reported once per run, in the exporter's
     // own terms ("this word, in this font, stays live text"), and refused outright when
@@ -1636,7 +1735,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // A tool that signed its own file (the Rondocode utility signs each song render
   // with what the song is and how it ran) keeps that credential: stamping over it
   // would replace a specific record with a generic one.
-  const toolSigned = C2PA_FORMATS.includes(finalFormat) && extractC2paStore(new Uint8Array(buf)) !== null;
+  // A credential the web shell wrote for this shell to replace is not a tool's own.
+  const toolSigned = !replacesBrowserCredential && C2PA_FORMATS.includes(finalFormat) && extractC2paStore(new Uint8Array(buf)) !== null;
   if (wantC2pa && !webShellExport && !toolSigned && C2PA_FORMATS.includes(finalFormat)) {
     // Only the paths that produced their OWN bytes here (DOM-free svg, Tier-A resvg PNG,
     // url-shot capture) stamp in Node. The Tier-B browser tier already stamped via the
@@ -1650,7 +1750,16 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
         // buildExportC2paOpts also attaches the profile author under `useDetails`).
         // Told not to stamp, the browser tier saves a PDF with a cross-reference stream,
         // which the embedder cannot extend, so an intent record needs the classic table.
-        const finished = intentRecord ? await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(new Uint8Array(buf), finalFormat) : new Uint8Array(buf);
+        // The web shell's credential, which this one replaces, is the record of the pictures
+        // placed in the file: read it first. A PDF holds one credential, so the web shell's
+        // update comes off before this one goes on.
+        let source: Uint8Array = new Uint8Array(buf);
+        let carried: PlacedPictures | null = null;
+        if (replacesBrowserCredential) {
+          carried = await placedPicturesIn(source);
+          if (/^pdf/.test(finalFormat)) source = pdfWithoutCredential(source) ?? source;
+        }
+        const finished = intentRecord ? await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(source, finalFormat) : source;
         const stamped = await embedC2pa(finished, finalFormat, buildExportC2paOpts({
           surface: 'cli', manifest: tool.manifest, model: runtime.getModel(),
           format: finalFormat, dims: { width, height, unit, dpi }, days: c2pa?.days, profile,
@@ -1663,7 +1772,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
           // carrying the set's own licence and creator. host.export.render ignores
           // opts.ingredients on this shell (the CLI stamps here, as the last byte
           // operation), so the runtime's record has to be handed over explicitly.
-          ingredients: [...runtime.emojiIngredients(), ...opsIngredients],
+          ingredients: [...runtime.emojiIngredients(), ...opsIngredients, ...(carried?.ingredients ?? [])],
+          // The AI facts the web shell's credential stated about those pictures.
+          carried,
           // Which renderer drew a Design page here (plan 326); none for the other paths.
           route: routed.record ?? null,
           // What this file was asked to do, for a render that started from an intent.
@@ -1688,6 +1799,12 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     // every single data-format render - noise about a promise nobody made.
     warn('C2PA_SKIPPED', `format "${finalFormat}" has no C2PA container - Content Credentials skipped.`);
   }
+  // Off means none. An SVG that inlines credentialed artwork, such as a catalog logo, still
+  // holds that piece's manifest, and a verifier reads it as this file's own.
+  if (optedOutC2pa) {
+    const clean = withoutSvgCredentials(new Uint8Array(buf), finalFormat);
+    if (clean.byteLength !== buf.byteLength) buf = Buffer.from(clean);
+  }
   // The Imprint's own skip, same rule: a note by default, a warning when asked for.
   if (imprintFloorSkip) {
     const msg = 'the render is below the Lolly Imprint\'s detection floor (too few 8×8 luma blocks), '
@@ -1699,6 +1816,14 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // Reported from the FINISHED bytes, after the stamp above, so "credits
   // included" is a reading of the file and not a claim about the intention.
   await reportRights(runtime, buf, finalFormat, rights, wantC2pa && C2PA_FORMATS.includes(finalFormat));
+
+  // Last, before any of it reaches a report or a file: the bytes hold the lock, or the
+  // run fails with nothing written. A capture tool and a browser-tier render both end here.
+  if (password) {
+    await assertExportLocked(new Uint8Array(buf), finalFormat, password).catch((error: Error) => {
+      throw refused(error.message, 'PASSWORD_NOT_APPLIED');
+    });
+  }
 
   // The export report (plan 203 rank 12): each property this run asked for beside the
   // value read back from these finished bytes, after the last byte operation above.
@@ -1893,6 +2018,8 @@ export function exportFailure(format: string, failure: Error, domFreeError: Erro
   const parts = [`Cannot export "${format}".`];
   if (domFreeError) parts.push(`No browser-free path: ${firstLine(domFreeError.message)}`);
   parts.push(`${domFreeError ? 'And the full render tier is unavailable' : 'Reason'}: ${firstLine(failure.message)}`);
+  // A job the browser-free route refused: the way forward (resvg-admission.ts noBrowserAdvice).
+  if (domFreeError && isResvgRefusal(domFreeError)) parts.push(noBrowserAdvice(domFreeError.refusals));
   parts.push('No file was written. Pass --html-fallback if an HTML artifact under a .html name is genuinely useful to you.');
   // A TYPED marker, not prose: `lolly smoke` (browser-free by budget rule) uses it to tell
   // "this tool needs the render tier I am not allowed to launch" from a real render bug,
@@ -1916,9 +2043,15 @@ export const CLI_FLAGS = new Set([
   // `--no-madewith`: leave the design-system record out (plans/319), the CLI spelling
   // of `_madewith=0`. Read where the runtime is created.
   'no-madewith',
+  // `--spots=process`: print every spot ink in process (engine 1.324), the CLI spelling of
+  // `_spots=process`. Read beside the press profile above.
+  'spots',
   // The enrolled signing identity (contract section 1.3). Both take a PATH - never key
   // material, which would be visible in `ps` to every user on the machine.
   'sign-key', 'sign-cert',
+  // `--allow-browser-free`: draw a picture the browser-free route refused only because it
+  // may differ (resvg-admission.ts REFUSAL_EFFECT), with a warning and a credential record.
+  'allow-browser-free',
   // The browser tier's diagnostic switch: keeps the headless page's console and network
   // log and writes them beside the output when a Tier-B render fails. Listed here so it
   // is never reported as "not an input of <tool>".
@@ -1952,7 +2085,9 @@ export const CLI_FLAGS = new Set([
  */
 const UNSUPPORTED_RESERVED: Record<string, string> = {
   copy: 'the CLI cannot reach a clipboard',
-  slot: 'saved slots are a GUI concept; the CLI is ephemeral',
+  // The CLI can read this device's saved projects (`lolly projects`), but a render
+  // takes its state from flags and links, never from a saved slot.
+  slot: 'a render does not open a saved session; `lolly projects show <slot>` prints one',
   full: 'there is no viewport to go full-bleed in',
   iframe: 'a CLI render is already the output alone, with no shell chrome to remove',
   options: 'the options panel is a GUI affordance',
@@ -1961,6 +2096,11 @@ const UNSUPPORTED_RESERVED: Record<string, string> = {
   // Presentation mode (plan 112) is a view state of a fullscreen shell. `s`, its
   // companion, IS honoured here - as the still-export slide filter - so it is not listed.
   present: 'there is no fullscreen to present into; `--s=<slide>` still selects one slide of a render',
+  // These three arrived after the list did and were read by nothing here, so a link
+  // carrying one rendered exactly as if it were absent, with no message.
+  kiosk: 'it loops a presentation, and there is no presentation to loop',
+  template: 'the CLI does not apply a template entry; give its values as flags',
+  preset: 'it applies only with template, which the CLI does not apply',
 };
 
 /**

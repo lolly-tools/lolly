@@ -76,6 +76,17 @@ export function armSessionReturn(returnTo: string): void {
 }
 
 /**
+ * Where rendering a saved item goes when its own view renders it rather than the
+ * folder renderer: a learning module's export, and a tune kept from the music
+ * generator, whose render pill plays and downloads the tune. Null for a tool session.
+ */
+export function sessionRenderHref(slot: string): string | null {
+  if (slot.startsWith('__learning__:')) return `#/learning?slot=${encodeURIComponent(slot)}&export=1`;
+  if (slot.startsWith('__music__:')) return `#/music?slot=${encodeURIComponent(slot)}`;
+  return null;
+}
+
+/**
  * Where opening a saved session navigates - exactly what a projects tile does:
  * a batch session opens its grid in /pro; a single-tool session resumes its
  * tool with the saved slot. Callers pass `isBatch` (lib/batch-slots.ts
@@ -83,6 +94,8 @@ export function armSessionReturn(returnTo: string): void {
  */
 export function sessionOpenHref(entry: { slot: string; toolId: string }, isBatch: boolean): string {
   if (entry.slot.startsWith('__learning__:')) return `#/learning?slot=${encodeURIComponent(entry.slot)}`;
+  // A tune kept from the music generator (lib/batch-slots.ts MUSIC_SLOT_PREFIX) opens back there.
+  if (entry.slot.startsWith('__music__:')) return `#/music?slot=${encodeURIComponent(entry.slot)}`;
   return isBatch
     ? `#/batch?session=${encodeURIComponent(entry.slot)}`
     : `#/tool/${entry.toolId || ''}?slot=${encodeURIComponent(entry.slot)}`;

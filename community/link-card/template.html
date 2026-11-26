@@ -1,13 +1,13 @@
 <div class="lc-card lc-{{layoutShape}} lc-{{layoutId}}"
      data-card-w="{{cardW}}" data-card-h="{{cardH}}" data-card-unit="{{cardUnit}}"
-     style="--lc-ink:{{inkColor}};--lc-card:{{cardColor}};--lc-accent:{{accentColor}};--lc-accent-ink:{{accentInk}};--lc-muted:{{mutedColor}};--lc-rule:{{ruleColor}}">
+     data-content-surface data-ground="{{ground}}" data-density="{{density}}" data-layout="{{contentLayout}}" data-motion="{{motion}}" data-enter-seconds="{{surfaceEnterSeconds}}" data-curve="{{surfaceCurve}}" style="--content-space:{{surfaceSpacing}};--lc-ink:{{surfaceInk}};--lc-card:{{surfaceGround}};--lc-accent:{{surfaceAccent}};--lc-accent-ink:{{surfaceOnAccent}};--lc-muted:{{surfaceMuted}};--lc-rule:{{surfaceEdge}}">
   {{#if _logoWarning}}<p data-export-hide role="status" style="position:absolute;z-index:10;top:8px;left:8px;right:8px;margin:0;padding:10px 14px;border:1px solid #b45309;border-radius:6px;background:#fffbeb;color:#78350f;font:14px/1.4 sans-serif">{{_logoWarning}}</p>{{/if}}
 
   {{#if error}}
   <p class="lc-error">{{error}}</p>
   {{else}}
 
-  <div class="lc-media">
+  <div class="lc-media" data-reveal>
     {{#if hasThumb}}
     <img class="lc-thumb" src="{{asset image}}" alt="" style="{{framingStyle}}">
     {{else}}
@@ -19,9 +19,9 @@
     {{/if}}
   </div>
 
-  <div class="lc-body">
+  <div class="lc-body" data-content-fit>
     {{#if hasChip}}
-    <div class="lc-chip">
+    <div class="lc-chip" data-reveal>
       <span class="lc-favicon">{{monogram}}</span>
       <span class="lc-chip-text">
         {{#if hostDisplay}}<span class="lc-host">{{hostDisplay}}</span>{{/if}}
@@ -30,17 +30,20 @@
     </div>
     {{/if}}
 
-    {{#if headingText}}<h1 class="lc-heading">{{headingText}}</h1>{{/if}}
-    <div class="lc-rule"></div>
-    {{#if bodyText}}<p class="lc-desc">{{bodyText}}</p>{{/if}}
+    {{#if headingText}}<h1 class="lc-heading" data-reveal>{{headingText}}</h1>{{/if}}
+    <div class="lc-rule" data-reveal></div>
+    {{#if bodyText}}<p class="lc-desc" data-reveal>{{bodyText}}</p>{{/if}}
 
     {{!-- The ACTIVE BRAND's lockup, not the linked site's, so naming the site
           here would caption the wrong thing. Decorative: the canvas carries the
           whole card as one summary (manifest.a11yLabel). --}}
     {{#if hasLogo}}
-    <div class="lc-lockup"><img class="lc-logo" src="{{logoUrl}}" alt=""></div>
+    <div class="lc-lockup" data-reveal><img class="lc-logo" src="{{logoUrl}}" alt=""></div>
     {{/if}}
   </div>
 
   {{/if}}
+  {{#unless (eq motion "none")}}<button type="button" data-content-play data-export-hide>Play motion</button>{{/unless}}
+  <p data-content-fit-warning data-export-hide hidden role="status">This content needs more room. Choose a larger size, fewer columns or shorter text.</p>
+  <canvas data-content-clock width="0" height="0" aria-hidden="true" style="position:absolute;pointer-events:none"></canvas>
 </div>

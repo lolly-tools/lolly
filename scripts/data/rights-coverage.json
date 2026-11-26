@@ -162,9 +162,9 @@
     {
       "id": "delivery.share-link",
       "kind": "delivery",
-      "title": "Share a link to a tool or asset",
+      "title": "Share a link to a tool, an asset or what the player is playing",
       "status": "raw-utility",
-      "code": ["shells/web/src/views/gallery-strip-menu.ts"],
+      "code": ["shells/web/src/views/gallery-strip-menu.ts", "shells/web/src/components/neuro-share-card.ts"],
       "note": "Shares a URL, not bytes. The page the link opens is its own delivery."
     },
     {
@@ -281,10 +281,10 @@
       ],
       "evidence": [
         { "file": "shells/web/src/views/lolly-vehicle-rights.test.ts", "test": "a built .lolly carries CREDITS.txt, under the integrity map, and still opens" },
-        { "file": "shells/web/src/views/lolly-vehicle-rights.test.ts", "test": "the credits file lists what travelled, what did not, and the reason for each" },
+        { "file": "tests/asset-rights.test.ts", "test": "the credits file lists what travelled, what did not, and the reason for each" },
         { "file": "shells/web/src/views/projects-team-download.test.ts", "test": "the file is built from this session alone, with licensed catalog bytes held back" }
       ],
-      "note": "Catalog bytes travel only under a reviewed licence that permits passing them on; CREDITS.txt lists what travelled, what was held back and why, and records an inclusion the sender chose. No receipt is measured from the finished file."
+      "note": "Catalog bytes travel under a reviewed licence that permits passing them on, under the owner's own terms, or, with a warning to the sender, when no licence is recorded at all; a recorded licence not yet interpreted is held back. CREDITS.txt lists what travelled, asks the recipient to check each work without a recorded licence, lists what was held back and why, and records an inclusion the sender chose. No receipt is measured from the finished file."
     },
     {
       "id": "delivery.design-tool-share",
@@ -939,9 +939,10 @@
       "code": ["engine/src/runtime.ts"],
       "evidence": [
         { "file": "tests/runtime-ingredients.test.ts", "test": "a library-sourced credentialed asset rides into opts.ingredients (v1.31)" },
-        { "file": "tests/runtime-ingredients.test.ts", "test": "a remote-sourced asset is never consulted for a credential" }
+        { "file": "tests/runtime-ingredients.test.ts", "test": "a remote-sourced asset is never consulted for a credential" },
+        { "file": "tests/runtime-ingredients.test.ts", "test": "two placed credentialed pictures are components, and the credential they make is valid" }
       ],
-      "note": "The asset's credential rides into the export as an ingredient. Its licence is not evaluated and no credit is prepared."
+      "note": "The asset's credential rides into the export as a componentOf ingredient. Its licence is not evaluated and no credit is prepared."
     },
     {
       "id": "census.catalog-art-unsigned",
@@ -954,10 +955,10 @@
     {
       "id": "census.inlined-bitmaps",
       "kind": "census",
-      "title": "Credentialed bitmaps inlined by the SVG and PDF walker, Design image ops and the shared export route",
+      "title": "Credentialed bitmaps drawn by the SVG and PDF walkers, the still raster routes, Design image ops and the shared export route",
       "status": "not-assessed",
-      "code": ["shells/web/src/bridge/export-svg-walker.ts", "shells/web/src/bridge/export-design-ops.ts", "shells/web/src/bridge/export-route.ts", "packages/node-shell/src/design-ops-host.ts"],
-      "note": "An inlined bitmap's credential is collected as a componentOf ingredient: by the web walker and Design image ops, by the web export route when a still takes the GPU path, and by the Node Design host that the CLI and TUI share. No test pins the collection, so no claim is made."
+      "code": ["shells/web/src/bridge/export-picture-credentials.ts", "shells/web/src/bridge/export-svg-walker.ts", "shells/web/src/bridge/export-design-ops.ts", "shells/web/src/bridge/export-route.ts", "packages/node-shell/src/design-ops-host.ts"],
+      "note": "A drawn bitmap's credential is collected as a componentOf ingredient: by the web SVG and PDF walkers and the still raster routes (one rule, export-picture-credentials.ts), by Design image ops, by the web export route when a still takes the GPU path, and by the Node Design host that the CLI and TUI share. The shared rule has unit tests; the routes as a whole are not pinned, so no claim is made."
     },
     {
       "id": "census.sequence-clips",
@@ -981,6 +982,30 @@
         { "file": "shells/web/src/bridge/sequence-rondo-provenance.test.ts", "test": "the song ingredient survives the C2PA writer and reader: name, digest, vm, algorithmic, no AI flag" }
       ],
       "note": "A song is recorded as a source ingredient by digest. No licence is evaluated for the song."
+    },
+    {
+      "id": "census.saved-tunes",
+      "kind": "census",
+      "title": "Saved tunes in a soundtrack, a music bed or a tool's audio",
+      "status": "credential-only",
+      "code": ["shells/web/src/bridge/sequence-render.ts", "shells/web/src/views/tool-actions/wiring.ts", "engine/src/tune-provenance.ts", "shells/web/src/lib/tune-provenance.ts"],
+      "evidence": [
+        { "file": "shells/web/src/bridge/sequence-tune-provenance.test.ts", "test": "the tune ingredient survives the C2PA writer and reader: name, maker, licence, digest, algorithmic, no AI flag" },
+        { "file": "shells/web/src/lib/tune-provenance.test.ts", "test": "the readback finds songs and tunes in one pass, and a file with no credential records neither" }
+      ],
+      "note": "A saved tune is recorded as a source ingredient by the digest of its recipe, as algorithmic media, with the licence the tune records written into its description, and its maker only while the profile's Use my details is on. No licence is evaluated for the tune and no credit is prepared; the export sheet lists the tunes before the export and reads the delivered file back after it."
+    },
+    {
+      "id": "delivery.music-generator",
+      "kind": "delivery",
+      "title": "Music generator: a generated track downloaded or saved to the library, and its link copied",
+      "status": "credential-only",
+      "code": ["shells/web/src/views/music-studio.ts", "engine/src/tune-sign.ts"],
+      "evidence": [
+        { "file": "engine/src/tune-sign.test.ts", "test": "a WAV from the music generator reads back as algorithmic media with the declaration" },
+        { "file": "shells/web/src/lib/tune-provenance.test.ts", "test": "a download is signed by the music generator and the hint repeats what the reading found" }
+      ],
+      "note": "The track is synthesised from a seed by Lolly's own composer and instruments, so no outside source enters it. A WAV or M4A download carries a Content Credential whose created step says it was made with Lolly's music generator (algorithmic media) while the Make panel's switch is ticked, read back before the hint reports it; unticked, the file carries none. A save to the library records the maker, the music generator and the versions on the asset, not in a file. The copied link carries only the recipe."
     },
     {
       "id": "census.lut-credit",

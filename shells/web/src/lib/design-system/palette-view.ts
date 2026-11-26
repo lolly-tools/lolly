@@ -14,6 +14,22 @@ export interface PaletteViewOptions {
   groups: string[];
   hidden: number;
   starterGroup: string | null;
+  /** The design system's own colour roles, in the brand's order, as they look in this
+   *  colourway and look. Their tokens are semantic, so no other group lists them. */
+  roleTiles?: readonly RoleTile[];
+}
+
+export interface RoleTile { roleId: string; label: string; hex: string; mode: string }
+
+/** A colour role's tile. It opens the role's value, because writing to the token behind
+ *  it would cut the link every colourway reads. No checkbox and no handle: the table
+ *  orders roles, and the palette's selection only ever holds colours. */
+function roleTileCard(tile: RoleTile): string {
+  const text = tRaw('{role}: {hex}. Choose a colour', { role: tile.label, hex: tile.hex || t('No colour here') });
+  return `<div class="be-pal-card be-pal-card--role">
+    <button type="button" class="be-swatch" data-be-role-tile="${esc(tile.roleId)}" data-be-role-mode="${esc(tile.mode)}" style="--sw:${esc(tile.hex || 'transparent')}" title="${esc(text)}" aria-label="${esc(text)}"><span class="be-swatch-chip" aria-hidden="true"></span></button>
+    <span class="be-pal-name" dir="auto">${esc(tile.label)}</span><code class="be-pal-hex">${esc(tile.hex || 'transparent')}</code>
+  </div>`;
 }
 
 /** Shared tile stays the edit target; the sibling checkbox makes selection discoverable. */
@@ -49,10 +65,15 @@ export function paletteHtml(swatches: BrandSwatch[], starter: Set<string>, opts:
     ${items.length ? `<div class="be-pal-grid">${cards(items)}</div>` : `<button type="button" class="be-pal-empty" data-be-add="custom" data-be-add-group="${esc(name)}">${t('+ Add a swatch')}</button>`}
   </details>`).join('');
   const count = chosen.length ? tRaw(chosen.length === 1 ? '{n} colour' : '{n} colours', { n: chosen.length }) : inherited.length ? tRaw('{n} starter colours', { n: inherited.length }) : t('No colours yet');
+  const roleTiles = opts.roleTiles?.length
+    ? `<details class="be-pal-group" data-be-group="Colour roles" open>
+        <summary class="be-pal-group-head"><span class="be-pal-group-label">${t('Colour roles')}<span class="be-pal-group-n">${opts.roleTiles.length}</span></span></summary>
+        <div class="be-pal-grid be-pal-grid--roles">${opts.roleTiles.map(roleTileCard).join('')}</div>
+      </details>` : '';
   return `<div class="be-pal-top"><span class="be-pal-count">${count}</span><div class="be-pal-topbtns">
       <button type="button" class="be-add" data-be-add="custom">${t('+ Add swatch')}</button>
       <button type="button" class="be-add" data-be-addgroup>${t('+ Add group')}</button>
-    </div></div><div data-be-group-form></div>${body}
+    </div></div><div data-be-group-form></div>${roleTiles}${body}
     ${/* The starter neutrals (plan 346 change 18). While nothing of the person's
           own exists they are the whole palette, so the group opens and shows
           them: folded, its count sat over an empty space and read as a group

@@ -1,6 +1,6 @@
 {
   "name": "Nárok",
-  "description": "Zabodni si své jméno do jakéhokoli média, které jsi už vytvořil/a - obrázek, PDF, video nebo audio. Otiskni autora, autorská práva a licenci jako Content Credentials (i trvalý rastrový otisk), přičemž zachováš jakoukoli přihlašovací informaci už uvnitř souboru - vše na tvém zařízení, ještě než to kamkoli nahraješ.",
+  "description": "Zabodni si své jméno do jakéhokoli média - obrázek, PDF, video nebo audio. Otiskni autora, autorská práva a licenci jako Content Credentials, přímo na svém zařízení.",
   "a11yLabel": "Vlož pověření do svého obrázku",
   "inputs.creator.label": "Umělec / autor",
   "inputs.creator.help": "Tvé jméno - vloží se jako autor/tvůrce obrázku (EXIF Artist, XMP dc:creator a Content Credential).",

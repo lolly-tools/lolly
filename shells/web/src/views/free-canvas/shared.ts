@@ -523,6 +523,8 @@ export interface ToolbarActions {
   agent?(): void; // Connect an AI agent (plans/289 D1); absent = this tool takes no live agent
   askAgent?(): void; // Ask an agent on this device (desktop only); absent = not offered here
   askAgentShown?(): boolean; // read when the menu opens: policy can change, and a detection that found nothing hides the row
+  guide?(): void; // "Read the guide": the tool's steps and its docs pages (plan 354 D6, components/tool-guide.ts)
+  guideShown?(): boolean; // read when the menu opens: the docs list arrives after the editor mounts
   canSave?: boolean; // omit the Save icon for tools that don't persist a session
   dirtyRef?: HTMLElement | null; // element whose `is-unsaved` class the Save icon mirrors
 }

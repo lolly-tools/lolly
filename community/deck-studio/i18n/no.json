@@ -1,6 +1,6 @@
 {
   "name": "Markdown-lysbilder",
-  "description": "Gjør Markdown eller en JSON-spesifikasjon om til en ekte, redigerbar PowerPoint-presentasjon - med ekte tekst, punktlister, tabeller og designsystemets tema - på sekunder. Den raske, tekstførst-veien til en presentasjon; bruk Design-lerretet når du vil legge lysbildene ut for hånd eller animere dem. Diagrammer og skjemaer kommer fra dine andre Lolly-verktøy. Eksporterer .pptx (redigerbar), pluss PDF og PNG.",
+  "description": "Gjør Markdown eller en JSON-spesifikasjon om til en ekte, redigerbar PowerPoint-presentasjon. Eksporterer .pptx (redigerbar), pluss PDF og PNG.",
   "a11yLabel": "Presentasjon med {{_slideCount}} lysbilder",
   "inputs.size.label": "Presentasjonsstørrelse",
   "inputs.size.help": "Én størrelse for hele presentasjonen - PowerPoint gir alle lysbilder samme størrelse.",

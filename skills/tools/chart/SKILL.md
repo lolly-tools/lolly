@@ -5,9 +5,9 @@ description: "Operate the Lolly Chart tool (chart) using its declared inputs and
 
 # Chart
 
-Tool ID: `chart`. Tool version: `1.27.2`. Engine range: `^1.181.0`.
+Tool ID: `chart`. Tool version: `1.31.0`. Engine range: `^1.348.0`.
 
-Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.
+Charts from first paste to advanced visualisation - 35 vector families, 3-D scenes, flights, motion and styles from the design system.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 
@@ -20,56 +20,44 @@ Required host APIs: none. Device capabilities: none.
 | ID | Type | URL alias |
 | --- | --- | --- |
 | data | longtext | d |
-| heading | text | t |
-| subheading | text | st |
-| chartIntent | select | goal |
 | renderMode | select | rm |
 | chartType | select | ct |
+| plotType | select | pf |
+| sceneType | select | sct |
+| cinematicType | select | cft |
+| chartStyle | select | sty |
+| chartIntent | select | goal |
+| heading | text | t |
+| subheading | text | st |
 | paretoCumulative | boolean |  |
 | paretoThreshold | number |  |
 | bulletTarget | number |  |
 | bulletBands | boolean |  |
 | rangeMidpoint | boolean |  |
-| plotType | select | pf |
-| sceneType | select | sct |
-| cinematicType | select | cft |
 | plotBins | number | pbn |
 | plotBinWidth | number | pbw |
 | plotBandwidth | number | pbnd |
 | plotShowRaw | boolean | praw |
 | plotConfidenceBand | boolean | pci |
 | plotFacetDirection | select | pfd |
-| plotMotionPreset | select | psm |
-| chartStyle | select | sty |
-| palette | select | pl |
-| paletteSeed | color | pz |
-| paletteBlend | select | pb |
-| paletteBlendTo | color | p2 |
-| hueRoute | select | hr |
-| colorBy | select | cb |
-| barStyle | select | b3 |
-| pieStyle | select | p3 |
-| depth3d | number | dp |
-| cameraProjection | select | cpr |
-| cameraAzimuth | number | caz |
-| cameraElevation | number | cel |
 | flightSeries | text | cfs |
 | flightHeight | number | cfh |
 | flightLookAhead | number | cfla |
 | flightBank | number | cfb |
 | flightFov | number | cff |
+| sceneLayout | select | sly |
+| sceneHighlight | text | shl |
+| scenePose | select | spo |
+| cameraAzimuth | number | caz |
+| cameraElevation | number | cel |
+| cameraProjection | select | cpr |
+| sceneView | vector | svw |
+| sceneFraming | select | sfr |
+| sceneStage | select | sst |
 | sceneMaterial | select | mat |
 | sceneRoughness | number | rou |
 | sceneMetalness | number | met |
 | sceneShadows | boolean | s3s |
-| shadow | select | sh |
-| differentiate | select | df |
-| colorOverrides | text | co |
-| transparentBg | boolean |  |
-| background | color | bg |
-| textColor | color | tc |
-| strokeWidth | number | ow |
-| strokeColor | color | oc |
 | hasHeader | boolean | hh |
 | delimiter | select | dl |
 | transpose | boolean | tp |
@@ -78,53 +66,6 @@ Required host APIs: none. Device capabilities: none.
 | pivotColumn | text | pv |
 | zColumn | text | zc |
 | sizeColumn | text | szc |
-| frameColumn | text | fc |
-| motionPreset | select | mp |
-| animSpeed | number | as |
-| frameLabelShow | boolean | fl |
-| frameLabelSize | number | fls |
-| frameLabelWeight | select | flw |
-| frameLabelColor | color | flc |
-| frameLabelPos | select | flp |
-| animEase | select | ae |
-| animDirection | select | ad |
-| stackMode | select | sm |
-| curve | select | cv |
-| showPoints | boolean | pt |
-| pointSize | number | ps |
-| sizeBy | select | sz |
-| lineWidth | number | lw |
-| fillOpacity | number | fo |
-| donutRadius | number | dr |
-| sliceGap | number | sg |
-| cornerRadius | number | cr |
-| barPadding | number | bp |
-| barGap | number | bpg |
-| binCount | number | bc |
-| sort | select | so |
-| labelLayout | select | ll |
-| labelReserve | number | lr |
-| labelLines | number | ln |
-| barThickness | number | bt |
-| yScaleType | select | ys |
-| yZero | boolean | yz |
-| yMax | number | ym |
-| showGrid | boolean | gd |
-| showAxes | boolean | ax |
-| tickCount | number | tk |
-| numberFormat | select | nf |
-| xTitle | text | xt |
-| yTitle | text | yt |
-| timeAxis | select | tax |
-| reference | longtext | rf |
-| trend | select | tr |
-| errorColumn | text | ec |
-| palette1 | color | c1 |
-| palette2 | color | c2 |
-| palette3 | color | c3 |
-| palette4 | color | c4 |
-| palette5 | color | c5 |
-| palette6 | color | c6 |
 | annotations | longtext | an |
 | titleSize | number | tz |
 | titleWeight | number | tw |
@@ -150,6 +91,71 @@ Required host APIs: none. Device capabilities: none.
 | legendBold | boolean | lbo |
 | legendItalic | boolean | lit |
 | legendColor | color | lgc |
+| palette | select | pl |
+| paletteSeed | color | pz |
+| paletteBlend | select | pb |
+| paletteBlendTo | color | p2 |
+| hueRoute | select | hr |
+| colorBy | select | cb |
+| barStyle | select | b3 |
+| pieStyle | select | p3 |
+| depth3d | number | dp |
+| shadow | select | sh |
+| differentiate | select | df |
+| colorOverrides | text | co |
+| transparentBg | boolean |  |
+| background | color | bg |
+| textColor | color | tc |
+| strokeWidth | number | ow |
+| strokeColor | color | oc |
+| palette1 | color | c1 |
+| palette2 | color | c2 |
+| palette3 | color | c3 |
+| palette4 | color | c4 |
+| palette5 | color | c5 |
+| palette6 | color | c6 |
+| stackMode | select | sm |
+| curve | select | cv |
+| showPoints | boolean | pt |
+| pointSize | number | ps |
+| sizeBy | select | sz |
+| lineWidth | number | lw |
+| fillOpacity | number | fo |
+| donutRadius | number | dr |
+| sliceGap | number | sg |
+| cornerRadius | number | cr |
+| barPadding | number | bp |
+| barGap | number | bpg |
+| barThickness | number | bt |
+| binCount | number | bc |
+| sort | select | so |
+| labelLayout | select | ll |
+| labelReserve | number | lr |
+| labelLines | number | ln |
+| yScaleType | select | ys |
+| yZero | boolean | yz |
+| yMax | number | ym |
+| showGrid | boolean | gd |
+| showAxes | boolean | ax |
+| tickCount | number | tk |
+| numberFormat | select | nf |
+| xTitle | text | xt |
+| yTitle | text | yt |
+| timeAxis | select | tax |
+| reference | longtext | rf |
+| trend | select | tr |
+| errorColumn | text | ec |
+| frameColumn | text | fc |
+| motionPreset | select | mp |
+| plotMotionPreset | select | psm |
+| animSpeed | number | as |
+| frameLabelShow | boolean | fl |
+| frameLabelSize | number | fls |
+| frameLabelWeight | select | flw |
+| frameLabelColor | color | flc |
+| frameLabelPos | select | flp |
+| animEase | select | ae |
+| animDirection | select | ad |
 | width | number |  |
 | height | number |  |
 

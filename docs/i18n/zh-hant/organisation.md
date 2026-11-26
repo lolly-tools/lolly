@@ -1,90 +1,100 @@
-# 在你的組織中使用 Lolly
+# 在組織中使用 Lolly
 
-你的組織可以運行自己的 Lolly：同一個應用程式，搭配它所選擇的工具與設計系統。本頁說明如何連到它、登入，以及登入後有什麼不同。
+組織可以運行自己的 Lolly：相同的應用程式，搭配組織選擇的工具與設計系統。了解如何存取、登入，以及有哪些不同。
 
-::: note 你需要向組織取得的東西
-它的 Lolly 網址，或是你的組織製作的 `.lolly` 設定檔。lolly.tools 本身不會連線到任何組織。
+規劃組織設定時，[搭配現有的 DAM 使用 Lolly](/info/use-with-dam.html)說明如何保留既有的核准素材庫，同時讓大家在 Lolly 中製作內容。[內容主權](/info/content-sovereignty.html)則說明對創作、治理、儲存與可攜性的更廣泛控制。
+
+::: note 你需要向組織取得的內容
+組織的 Lolly 網址，或組織製作的 `.lolly` 設定檔。單獨使用 lolly.tools 不會連線到組織。
 :::
 
+<!--i:eti-globe-->
 ## 在瀏覽器中
 
-開啟你的組織給你的位址。如果頁面要求登入，請按下 **Sign in**，並依它開啟的登入頁面操作。之後它就像任何 Lolly 一樣運作，搭配你組織的工具與設計系統。
+開啟組織提供的網址。若頁面要求登入，按下 **Sign in**，並依開啟的登入頁面操作。之後 Lolly 就會照常運作，使用組織的工具與設計系統。
 
-你也可以從 lolly.tools 開始：開啟 **Settings**，在 **Lolly instance** 卡片上按下 **Open a workspace**，輸入位址後按下 **Open this instance**。瀏覽器會前往你組織自己的位址，因為瀏覽器無法從 lolly.tools 載入另一個 Lolly 的工具。
+你也可以從 lolly.tools 開始：開啟 **Settings** 檢視，在 **Lolly instance** 卡片上按下 **Open a workspace**，輸入網址，再按下 **Open this instance**。瀏覽器會前往組織自己的網址，因為瀏覽器無法從 lolly.tools 載入另一個 Lolly 的工具。
 
-![Settings 中的 Lolly instance 卡片，在此開啟你組織的工作區，或更改應用程式取得工具的來源](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
+![Settings 中的 Lolly instance 卡片，可在此開啟組織的工作區，或更改應用程式取得工具的位置](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
-## 在桌面版或行動版應用程式中
+<!--i:eti-monitor-->
+## 在桌面或行動應用程式中
 
-應用程式一開始使用其內建的工具。若要連線，請開啟 **Settings**，在 **Lolly instance** 卡片上按下 **Change**。該面板會問 **Where should Lolly get its tools?**
+應用程式一開始使用隨附的工具。若要連線，請開啟 **Settings** 檢視，並在 **Lolly instance** 卡片上按下 **Change**。面板會詢問 **Where should Lolly get its tools?**
 
-1. 選擇**連線至 Lolly 執行個體**。
-2. 輸入你的組織的網址，然後按**檢查並連線**。
-3. 按**使用此執行個體**。接下來的畫面**匯入你的資料（選填）**會把已儲存的作品從 Lolly 備份中帶過來；如果沒有，按**略過**。
-4. 如果應用程式要求，請登入。
+1. 選擇 **Connect to a Lolly instance**。
+2. 輸入組織的網址，並按下 **Check & connect**。
+3. 按下 **Use this instance**。下一個畫面 **Import your data (optional)** 可從 Lolly 備份帶入已儲存的作品。若沒有備份，按下 **Skip**。
+4. 若應用程式要求，請登入。
 
-來自已連線執行個體的工具，執行時享有和應用程式自帶工具相同的信任層級，因此只連線到你信任的執行個體。你的組織也可能改為傳給你一個 `.lolly` 設定檔，替你完成應用程式的連線。
+已連接實例的工具會以與應用程式自帶工具相同的信任層級執行，因此只連接你信任的實例。組織也可能傳給你一個 `.lolly` 設定檔，替你完成應用程式的連線設定。
 
-之後若要切換，再次使用 **Change**，或使用同一張卡片上的 **Leave**。
+之後若要切換，再次使用 **Change**，或同一卡片上的 **Leave**。
 
-### 以代碼登入
+### 使用代碼登入
 
-在桌面與行動應用程式中，當你組織的 Lolly 支援代碼登入時，登入畫面也會提供一組短代碼。按下 **Open sign-in in browser**，在那裡登入並核准該代碼。或者在你已登入的手機或電腦上開啟它顯示的位址，輸入代碼。代碼約有十分鐘的有效期。
+在桌面與行動應用程式中，若組織的 Lolly 支援代碼登入，登入畫面也會提供一組短代碼。按下 **Open sign-in in browser**，在瀏覽器中登入並核准代碼。也可以在已登入的手機或電腦上開啟畫面顯示的網址，再輸入代碼。代碼的有效時間約為十分鐘。
 
-## 那裡有什麼不同
+<!--i:eti-sliders-->
+## 有哪些不同
 
-- **有些控制項已為你設定。** 由你的組織管轄的控制項會顯示 **Managed by** 與組織名稱，或 **Managed by your organisation**。固定的控制項無法更改，選單可能只提供部分選項，而以 **Set by** 開頭的一行可以說明適用哪條規則及原因。有些控制項則完全不顯示。
-- **有些設計系統已鎖定。** 由你的組織提供的設計系統會顯示鎖頭並保持唯讀。若要嘗試變更，請在 **Settings → Preferences → Design systems** 建立一份可編輯的副本。
-- **只列出它的工具。** 你的組織未提供的工具完全不會顯示。
-- **共用專案。** 如果你的組織與你共用專案，**Projects** 會顯示 **Team projects** 方塊。這些工作階段存放在組織的伺服器上。開啟其中一個即可進行工作，或在可用時從 **Share** 開始[工作協作](/info/collaborate.html#work-collabs-with-lolly-work-optional)。
-- **有些匯出可能需要核准。** 在你的組織要求核准之處，**Request approval** 會取代 **Download**，工具提供的格式也可能較少。
+- **有些控制項已替你設定好。** 由組織管轄的控制項會顯示 **Managed by** 與組織名稱，或 **Managed by your organisation**。固定的控制項無法更改，選單也可能只提供部分選項。有些控制項會隱藏。組織的主控台會記錄是哪條規則固定了控制項，以及原因。請詢問負責運行組織 Lolly 的人。
+- **有些設計系統會鎖定。** 組織提供的設計系統會顯示鎖頭，並維持唯讀。若要嘗試更改，請在 **Settings → Preferences → Design systems** 建立可編輯的副本。
+- **只列出組織提供的工具。** 組織未提供的工具不會顯示。
+- **共用專案。** 若組織與你共用專案，**Projects** 會顯示 **Team projects** 方塊。這些工作階段存放在組織的伺服器上。開啟其中一個即可編輯，或在有提供時，從 **Share** 開始[工作協作](/info/collaborate.html#collabs-through-lolly-work-optional)。
+- **有些匯出可能需要核准。** 當組織要求核准時，**Request approval** 會取代 **Download**，工具提供的格式也可能較少。
+- **首頁可能直接顯示範本。** 若組織向你發佈範本，例如提供給合作夥伴公司，首頁會顯示範本，取代初次造訪的歡迎訊息。每個範本是一張卡片，可用 **Your copy** 接續編輯，範本變更時則會顯示 **New version**。請見[合作夥伴範本](/info/work-partner-templates.html)。
 
-### 什麼存在哪裡
+### 哪些內容存在哪裡
 
 ::: cols
 ## 在這部裝置上
 
-- 你自己的儲存內容，除非你開啟[同步](/info/sync.html)
-- 你自己建立的設計系統
-- 你製作並下載的一切
+- 你自己儲存的作品，除非你開啟[同步](/info/sync.html)
+- 你自行製作的設計系統
+- 你製作並下載的任何內容
 
-## 在你組織的伺服器上
+## 在組織的伺服器上
 
 - 你的登入身分與裝置資訊
 - 團隊專案、共用工作階段，以及工作協作中的即時編輯
 - 你上傳到共用資料庫的素材
-- 核准請求與已核准的交付
-- 使用事件，在你的組織開啟它們時
+- 核准請求與經核准的交付
+- 你的登入與操作記錄
 :::
 
-[隱私](/info/privacy.html#organisation-services-with-lolly-work)列出伺服器儲存什麼，以及誰控制這些資料。
+連接工作區後，應用程式首個畫面上的隱私說明也會表達同樣的內容。Lolly 自己的應用程式不會向工作區傳送使用事件。[隱私](/info/privacy.html#organisation-services-with-lolly-work)列出伺服器儲存的內容，以及誰控制這些資料。
 
-## Lolly Work 增加什麼
+<!--i:eti-building-->
+## Lolly Work 增加了什麼
 
-你組織的伺服器運行 **Lolly Work**，這是同一個開源專案的組織版軟體。你自己使用時，應用程式既不需要工作帳號，也不需要 Lolly Work。
+組織的伺服器運行 **Lolly Work**，這是同一個開源專案的組織軟體。個人使用應用程式時，不需要工作帳號，也不需要 Lolly Work。
 
-::: details Lolly Work 可以增加什麼
-你的組織會在 Lolly 旁邊託管 [Lolly Work](https://github.com/lolly-tools/lolly-work)，並選擇開啟哪些功能：
+::: details Lolly Work 可增加的功能
+組織在 Lolly 旁託管 [Lolly Work](https://github.com/lolly-tools/lolly-work)，並選擇要開啟哪些功能：
 
-- **登入與存取。** 組織單一登入、以群組為基礎的權限，以及受管理的個人資料欄位。管理員可以透過 SCIM 佈建與停用帳號。
-- **共用工作。** 團隊專案、共用工作階段與[工作協作](/info/collaborate.html#work-collabs-with-lolly-work-optional)，經由組織的伺服器即時編輯。
-- **共用素材庫。** 上傳的素材、集合與已連接的資料庫，附有存取規則、版本與審閱。
-- **審閱與交付。** 核准步驟、可設定到期或撤銷的受管理連結，以及交付到組織允許的目的地。
-- **管理。** 依實例遙測政策的使用情況回報，以及受管轄動作的稽核記錄。
-
-如果你正在設定此服務，請從[部署](/info/deployment.html#organisation-services-with-lolly-work)開始。[lolly.work](https://lolly.work) 上的公開示範是沙箱；對於需要保存的工作，請使用你組織自己的位址。
+- **登入與存取。** 組織單一登入、依群組設定的權限，以及受管理的個人資料欄位。管理員可透過 SCIM 佈建與停用帳號。
+- **共用工作。** 團隊專案、共用工作階段與[工作協作](/info/collaborate.html#collabs-through-lolly-work-optional)，透過組織的伺服器即時編輯。
+- **共用素材庫。** 上傳的素材、集合與已連接的資料庫，附有存取規則、版本與審閱功能。
+- **審閱與交付。** 核准步驟、可到期或撤銷的受管理連結，以及交付至組織允許的目的地。
+- **管理。** 受管轄操作的稽核記錄，以及依實例的遙測政策，針對傳送使用事件的用戶端提供使用報告。Lolly 自己的應用程式目前不傳送任何使用事件。
 :::
 
-## 另一個組織的品牌
+若要設定服務，請從[部署](/info/deployment.html#organisation-services-with-lolly-work)開始。[lolly.work](https://lolly.work) 上的公開示範是沙箱環境。需要保留的作品，請使用組織自己的網址。
 
-夥伴、客戶或贊助商可能會以設計系統檔案（`.lolly`）而非位址的形式把他們的品牌寄給你。開啟這類檔案不會讓應用程式連線到任何地方：它只會把對方的設計系統加在這部裝置上你自己的旁邊。來自你自己組織的設定檔則不同，因為它會讓應用程式連線到該組織的 Lolly，而預覽會在任何內容更改之前顯示開啟檔案會做什麼。[與夥伴合作](/info/partners.html)涵蓋在另一個組織的品牌中工作的雙方。
+<!--i:eti-palette-->
+## 其他組織的品牌
 
+合作夥伴、客戶或贊助商可能以設計系統檔案（`.lolly`）傳送品牌給你，而非提供網址。開啟該檔案不會讓應用程式連線到任何地方。檔案會將對方的設計系統加入這部裝置，與你自己的設計系統並存。來自你所屬組織的設定檔則會讓應用程式連線到組織的 Lolly。在任何變更發生之前，預覽會顯示開啟檔案將執行的動作。[與合作夥伴共事](/info/partners.html)涵蓋使用其他組織品牌時雙方的做法。
+
+<!--i:eti-unlink-->
 ## 離開
 
-**Settings** 中 **Lolly instance** 卡片上的 **Leave** 會移除你組織的設計系統、工具與目錄。你自己的作品會保留。你用其工具製作的任何內容，在你重新連線之前都無法再開啟。
+**Settings** 中 **Lolly instance** 卡片上的 **Leave**，會移除組織的設計系統、工具與目錄。你自己的作品會保留。使用組織工具製作的內容，在重新連線之前都無法再次開啟。若組織的 Lolly 提供這項功能，同一卡片上的 **Sign out everywhere** 會結束所有裝置上的工作階段，包括目前這部裝置。
 
-你儲存到組織的任何內容都會留在組織，適用其存取與保留政策。離開或清除這部裝置不會刪除伺服器上的那份副本。在你組織自己位址的瀏覽器中沒有什麼可以離開的：請改為開啟不同的位址。
+儲存到組織的任何內容都會留在組織，受其存取與保留政策約束。離開或清除此裝置的資料，不會刪除伺服器上的副本。在瀏覽器中使用組織自己的網址時，無須執行離開操作：改為開啟另一個網址即可。
 
-## 該問誰
+<!--i:eti-help-->
+## 該詢問誰
 
-什麼內容會送到你組織的伺服器、誰能看到其共享專案、哪些設定是固定的，這些都由你的組織決定。請詢問負責執行你組織的 Lolly 的人。[隱私](/info/privacy.html)說明了 Lolly 本身如何處理你的資料。
+哪些內容會傳到組織的伺服器、誰能查看共用專案，以及哪些設定固定不變，都是組織的決定。請詢問負責運行組織 Lolly 的人。[隱私](/info/privacy.html)說明 Lolly 本身如何處理你的資料。

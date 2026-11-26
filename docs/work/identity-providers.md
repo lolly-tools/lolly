@@ -1,8 +1,6 @@
 # Sign-in provider recipes
 
-This page is for the operator connecting a sign-in provider to Lolly Work: the configuration
-for each provider, how several providers share one instance and how a reverse proxy can sign
-people in. Who gets in and how sessions behave are on [Sign-in and sessions](identity.md).
+Who gets in and how sessions behave are on [Sign-in and sessions](identity.md).
 The full rollout, with logout and optional assurance, is [Set up enterprise
 identity](enterprise-identity.md).
 
@@ -10,6 +8,7 @@ Every recipe uses one redirect URI: `<instance.baseUrl>/api/auth/callback`. Secr
 environment variables, never in the configuration file: `LW_IDP_CLIENT_SECRET` for the
 primary provider, and the variable that `clientSecretRef` points at for an additional one.
 
+<!--i:eti-user-check-->
 ## OpenID Connect sign-in
 
 Nothing in the code knows your provider. Set:
@@ -28,8 +27,7 @@ The flow is discovery, then Authorization Code with PKCE (S256), then the `id_to
 against the provider's JWKS (RS256 by default) **before any claim is believed**. Verified
 claims fill the person's account through `claimMap`.
 
-- The redirect URI is `<instance.baseUrl>/api/auth/callback`. `baseUrl` must match the URL
-  the deployment actually answers on.
+- `baseUrl` must match the URL the deployment actually answers on.
 - Set `LW_IDP_CLIENT_SECRET` only when your provider issues a confidential client.
 - `displayName` is what the sign-in button and the "managed by …" copy say. Any compliant
   issuer that matches the supported token and logout profile works.
@@ -53,6 +51,7 @@ Per provider, `scopes` replaces the default `openid profile email` and must incl
 sent as `hd`, so Google's account picker offers the right account first. A sign-in link may
 add `prompt=select_account` or `prompt=login`; no other query parameter reaches the provider.
 
+<!--i:eti-users-->
 ## More than one IdP
 
 A migration in progress, or a subsidiary with its own directory: `idp.additional` lists
@@ -69,18 +68,19 @@ further issuers beside the primary.
 ```
 
 - Each entry has its own client and display name, and optionally its own `groupsClaim` and
-  `claimMap`; unset ones inherit the primary's. A confidential secret comes from the
-  environment variable that `clientSecretRef` gives. Omit it for a public PKCE client.
+  `claimMap`; unset ones inherit the primary's. Omit `clientSecretRef` for a public PKCE
+  client.
 - With several providers configured, plain `/api/auth/login` serves a chooser page with no
   script, so every existing sign-in link (the console gate, Lolly's own sign-in gate) gains
   the buttons with no client change. `?idp=<id>` picks one directly, and `/api/auth/config`
   and `GET /api/v1/instance` list `providers` for clients that draw their own.
-- The provider that **starts** a flow finishes it, because its id travels in the signed state
+- The provider that **starts** a flow finishes that flow, because its id travels in the signed state
   token.
 - An additional provider's subjects are stored namespaced (`<id>:<sub>`), so two issuers
   handing out the same bare subject never collide in one account. The primary's subjects stay
   raw, so existing accounts and the SCIM `externalId` link are untouched.
 
+<!--i:eti-calendar-->
 ## Planned sign-ins
 
 `idp.pending` lists providers that appear as disabled choices on the sign-in and invitation
@@ -93,6 +93,7 @@ followed by `/api/auth/callback`), and store its secret in the environment varia
 `clientSecretRef` gives. The discovery URL is specific to the app registration. The usual
 admission, invitation and email-verification checks apply to this provider too.
 
+<!--i:eti-clipboard-->
 ## Provider recipes
 
 ### Google
@@ -107,10 +108,13 @@ Credentials, OAuth client ID, type Web application, with the redirect URI above.
 ```
 
 Omit `hostedDomain` to accept personal Google accounts as well, and then admit people by
-exact `emails` or by invitation only. Domain admission on Google needs `hostedDomain`: Google
-reports `email_verified: true` for a personal Google account registered with a non-Gmail
+exact `emails` or by invitation only.
+
+::: warning Domain admission on Google needs `hostedDomain`
+Google reports `email_verified: true` for a personal Google account registered with a non-Gmail
 address, and that account outlives the mailbox. A departed employee's personal account for
 `alex@example.com` would still match `domains: ["example.com"]`.
+:::
 
 Google sends no groups, so use `bootstrapOwners` for the first owner and local groups after
 that ([bootstrap owners](identity.md#bootstrap-owners)).
@@ -181,7 +185,7 @@ GitHub sign-in is OAuth 2.0, not OpenID Connect, so it has its own adapter: an a
 provider with `kind: "github"`. In GitHub, open Settings, Developer settings, OAuth Apps, New
 OAuth App (for an organisation, the organisation's own Developer settings). Set the Homepage
 URL to `instance.baseUrl` and the Authorization callback URL to
-`<instance.baseUrl>/api/auth/callback`, the same callback every provider uses. Generate a
+`<instance.baseUrl>/api/auth/callback`. Generate a
 client secret and put it in the environment variable that `clientSecretRef` gives. Leave
 device flow off.
 
@@ -223,6 +227,7 @@ SAML is a different protocol and does not connect directly. Put a broker in fron
 Auth0 SAML enterprise connection or a Keycloak SAML identity provider in your realm. Lolly Work then
 talks OpenID Connect to the broker as in the recipes above.
 
+<!--i:eti-shield-check-->
 ## Reverse-proxy sign-in
 
 Some hosts already sign people in before a request reaches the instance: YunoHost's SSOwat,
@@ -293,7 +298,7 @@ exists. Role still comes from groups, never from a direct assignment.
   after the login itself is dropped (YunoHost gives every account a primary group of its own
   name).
 - The directory fails closed: configured but not answering means `502 DIRECTORY_UNAVAILABLE`
-  and no session, never a session with fewer groups than the person holds.
+  and no session, never a session with fewer groups than the person has.
 - The client is `server/src/iam/ldap.ts`: plain `ldap://` over TCP, meant for the loopback of
   the host that owns the directory.
 
@@ -303,8 +308,8 @@ session only; ending the proxy's own session is up to the proxy.
 ::: details YunoHost, worked through
 SSOwat authenticates against the portal, strips any `ynh_*` header and any `Authorization:
 Basic` a client sent, then sets `YNH_USER`, `YNH_USER_EMAIL` and `YNH_USER_FULLNAME` for a
-signed-in user. Each user's LDAP entry carries `memberOf` (YunoHost groups) and `permission`
-(the app permissions the user holds), which the two `groupMap` rules above turn into groups.
+signed-in user. Each user's LDAP entry has `memberOf` (YunoHost groups) and `permission`
+(the app permissions the user has), which the two `groupMap` rules above turn into groups.
 A YunoHost group `marketing` becomes the Lolly Work group `marketing`, and the app permissions
 `lolly-work.owner`, `.admin`, `.approver` and `.author` become the role groups. Roles are
 therefore managed in YunoHost's own Users, Groups and permissions screen, and take effect at
@@ -312,8 +317,12 @@ the next sign-in. The YunoHost package sets all of this up, including the nginx 
 adds the secret.
 :::
 
+<!--i:eti-code-->
 ## The dev provider
 
 `dev.enabled: true` with a `dev.users` list enables `GET /api/auth/dev?email=…`: a
-passwordless local sign-in for development, demos and tests. It bypasses OpenID Connect
-entirely, so keep it off in production. The Helm values ship it disabled.
+passwordless local sign-in for development, demos and tests. The Helm values ship it disabled.
+
+::: warning Keep the dev provider off in production
+It bypasses OpenID Connect entirely, and setting an issuer does not turn it off.
+:::

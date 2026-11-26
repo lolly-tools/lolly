@@ -6,6 +6,7 @@ The composed-text path arrived in engine 1.217 and is optional: legacy text keep
 
 ![A story's literal source and pinned fonts are shaped by HarfBuzz into one layoutRuns result, which feeds SVG outlines, the web app's native editing surface and the export receipt.](/info/diagrams/concepts/composed-text-path.svg)
 
+<!--i:eti-file-->
 ## Source and ownership
 
 `TextDocumentV1` contains stories, named styles and content-pinned font resources. A story owns literal UTF-16 source, typed paragraph/soft breaks, paragraphs, spans, inline objects and ordered frame IDs. Frame geometry belongs to the container. The schema and `parseTextDocument` reject broken references, duplicate ownership, invalid source boundaries and oversized documents.
@@ -14,17 +15,18 @@ Design stores the document in the declared `textDocument` input (`tdoc` in URL m
 
 Edits preserve CRLF, NBSP, soft hyphens, combining sequences and literal Markdown. Visual case, inserted discretionary hyphens and display-only cleanup previews do not rewrite source. Inline vectors occupy U+FFFC with `originalText` retaining their semantic source. A plain-text copy restores that meaning.
 
+<!--i:eti-type-->
 ## Shaping and layout
 
-The SDK adds `host.text.fontInfo`, `shapeRun` and `layoutRuns`. The host supplies verified font bytes, XML parsing and the existing emoji service. Engine modules own bidi resolution, legal breaks, paragraph policy, frame flow, path placement, carets and SVG output. Font resources identify a face by SHA-256 and collection index. No platform font substitution is used in this path.
+**Who owns what.** The SDK adds `host.text.fontInfo`, `shapeRun` and `layoutRuns`. The host supplies verified font bytes, XML parsing and the existing emoji service. Engine modules own bidi resolution, legal breaks, paragraph policy, frame flow, path placement, carets and SVG output. Font resources identify a face by SHA-256 and collection index. No platform font substitution is used in this path.
 
-Unicode 17 grapheme, bidi and line-break data are pinned. Thai segmentation uses the bundled ICU dictionary and a bounded deterministic word search. Unknown runs remain intact. HarfBuzz shapes script runs with language, direction, variation axes and OpenType features. Metrics-only shaping avoids constructing outlines during measurement. Final lines are reshaped for their actual boundaries. Ligature carets use GDEF positions when present.
+**Pinned data and shaping.** Unicode 17 grapheme, bidi and line-break data are pinned. Thai segmentation uses the bundled ICU dictionary and a bounded deterministic word search. Unknown runs remain intact. HarfBuzz shapes script runs with language, direction, variation axes and OpenType features. Metrics-only shaping avoids constructing outlines during measurement. Final lines are reshaped for their actual boundaries. Ligature carets use GDEF positions when present.
 
-`layoutRuns` returns immutable-source ranges, visual runs, carets, resources, diagnostics and frame extents. SVG paths and native input projection consume that same result. `data-text-layout` is a receipt for authored document, resources and settled geometry. Consumers must not calculate independent browser line wrapping.
+**One layout result.** `layoutRuns` returns immutable-source ranges, visual runs, carets, resources, diagnostics and frame extents. SVG paths and native input projection consume that same result. `data-text-layout` is a receipt for authored document, resources and settled geometry. Consumers must not calculate independent browser line wrapping.
 
-Standard composition retains legal greedy lines. Best paragraph scores admitted candidates across the paragraph; Balanced heading adds a preference for similar line lengths. Hard breaks, no-break ranges and cluster boundaries take priority over spacing preferences. The candidate graph has a fixed budget and reports its bounded fallback. Frame flow retries at most 12 width schedules; balancing uses at most 16 searches. Shrink-to-fit uses at most 12 searches and respects the smallest authored size. Linked frames cannot shrink independently.
+**Line breaking and fitting.** Standard composition retains legal greedy lines. Best paragraph scores admitted candidates across the paragraph; Balanced heading adds a preference for similar line lengths. Hard breaks, no-break ranges and cluster boundaries take priority over spacing preferences. The candidate graph has a fixed budget and reports its bounded fallback. Frame flow retries at most 12 width schedules; balancing uses at most 16 searches. Shrink-to-fit uses at most 12 searches and respects the smallest authored size. Linked frames cannot shrink independently.
 
-Layout work is cached by the host and dropped when its inputs change: source, ranges, styles, fonts, artwork, frames and wrap geometry each invalidate the work that depends on them. Returned layouts cannot change a cached revision.
+**Caching.** Layout work is cached by the host and dropped when its inputs change: source, ranges, styles, fonts, artwork, frames and wrap geometry each invalidate the work that depends on them. Returned layouts cannot change a cached revision.
 
 ::: details Cache bounds
 A host-owned cache keeps at most 32 prepared paragraphs within 32 MiB, with a separate 8 MiB settled flow snapshot and at most 128 prefix checkpoints. Each line-shape cache is limited to 128 entries and 1 MiB. A single paragraph skips prefix retention, because every source edit invalidates that paragraph.
@@ -32,6 +34,7 @@ A host-owned cache keeps at most 32 prepared paragraphs within 32 MiB, with a se
 Settled clipboard receipts use a separate cache of eight entries and 32 MiB, and serialised receipts produce fresh objects when read. Native glyph measurements keep at most 1,024 entries within 128 KiB. Cached screen transforms include all six matrix coordinates, so rotated frames invalidate their projections correctly.
 :::
 
+<!--i:eti-keyboard-->
 ## Native editing and collaboration
 
 The web shell projects one logical contenteditable over settled source positions. Linked frames use their actual SVG screen transforms. Path holders follow curved baselines. The native surface retains clipboard, spellcheck, selection and IME behaviour; it does not own layout. DOM nodes are not replaced during active composition.
@@ -40,6 +43,7 @@ The current native font loader requires `faceIndex: 0`; other collection faces n
 
 A text edit retains its local versions for safe cancellation. Before writing, a three-way record merge preserves unrelated incoming stories, fonts, styles and frames. Conflicting records are refused, and the local draft is retained for recovery. The existing collab transport remains whole-document LWW, not a character CRDT. Split text/frame deliveries are held until their ownership graph is consistent. Recovery is local and bounded to eight snapshots totalling 16 MiB.
 
+<!--i:eti-pen-tool-->
 ## Paths, paint and exports
 
 Path text accepts one paragraph and one continuous guide, with at most one traversal of a closed contour. It keeps joined clusters together and never reverses literal source. Compound guides, excessive geometry and unsupported typography combinations fail explicitly. Fit, reverse, side and baseline are authored settings.
@@ -52,8 +56,13 @@ Generated Design tools carry declared text fields, allowed styling and verified 
 
 SVG, PDF, raster and Sequence use settled outlines. PPTX and Penpot retain vector appearance rather than ordinary text editing for composed text. C2PA source credits for converted emoji follow the retained source census. Font identity receipts are reproducibility metadata, not a claim that every font permits redistribution.
 
+<!--i:eti-gauge-->
 ## Evidence and limits
 
 Focused tests cover full Unicode bidi/line-break conformance, literal edits, actual HarfBuzz/GDEF shaping, cache equivalence, wrapping, ownership commands, portable fonts, strict generated tools and export preflight. Browser journeys cover native editing, cross-frame selection, IME recovery, path editing, typography, vector conversion and format exports. CLI, TUI and MCP are compared through their real export entry points.
 
-On the reference laptop, an isolated 20-sample run measured warm composition p95 of 33 ms for 2,000 characters and 245 ms for 20,000 characters across ten frames, including SVG generation. Native browser projection remains slower: steady samples are around 85-145 ms, with initial samples around 450-580 ms. The proposed 50 ms visible-feedback target is not met. Chromium at 200% browser zoom passes the compact-layout check. Physical-device IME, touch, screen readers and Office application review remain unverified; browser emulation does not establish those results.
+On the reference laptop, an isolated 20-sample run measured warm composition p95 of 33 ms for 2,000 characters and 245 ms for 20,000 characters across ten frames, including SVG generation. Native browser projection remains slower: steady samples are around 85-145 ms, with initial samples around 450-580 ms. The proposed 50 ms visible-feedback target is not met. Chromium at 200% browser zoom passes the compact-layout check.
+
+::: note Not yet checked on real devices
+Physical-device IME, touch, screen readers and Office application review remain unverified; browser emulation does not establish those results.
+:::

@@ -90,8 +90,11 @@ export interface VerifyReport {
   reason?: string;
   claim?: Claim;
   environment?: (Record<string, string | number | boolean> & { inputs?: Record<string, string> }) | null;
-  /** An approval the signer recorded (`tools.lolly.approval`). Stays visible when the credential fails, for the warning. */
-  approval?: { approvalId: string; decidedAt: string; reviewedSha256: string };
+  /** An approval the signer recorded (`tools.lolly.approval`): of one reviewed file, or of
+   *  one template version's variants with the example's digest. Stays visible when the
+   *  credential fails, for the warning. */
+  approval?: { approvalId: string; decidedAt: string; reviewedSha256: string; covers?: undefined }
+    | { approvalId: string; decidedAt: string; covers: 'template'; templateId: string; templateVersion: number; exampleSha256: string };
   /** What the piece was asked to do (`tools.lolly.intent`). Read only from a credential that verifies. */
   intent?: { purpose: string; surface: string; tool: string; language?: string; occasion?: string; audience?: string; region?: string; promptFingerprint?: string; prompt?: string };
   /** The brand page address the signer recorded. Read only from a credential that verifies. */

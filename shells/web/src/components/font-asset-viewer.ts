@@ -42,7 +42,7 @@ export async function mountFontAssetViewer(root: HTMLElement, bytes: Uint8Array,
   const signature = new TextDecoder().decode(bytes.subarray(0, 4));
   if (signature === 'wOFF' || signature === 'wOF2') { if (bytes.length < 20 || new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(16) > 32 * 1024 * 1024) throw new Error('The expanded font is too large for an inline preview.'); }
   if (signature === 'wOFF') sfnt = (await import('@lolly/engine')).woffToSfnt(bytes);
-  if (signature === 'wOF2') sfnt = await (await import('woff2-encoder/decompress')).default(bytes);
+  if (signature === 'wOF2') sfnt = await (await import('@lolly-tools/node-shell/woff2')).decodeWoff2(bytes);
   signal.throwIfAborted();
   // A WOFF2 file can wrap a collection too, so the check runs on the decoded bytes.
   if (isFontCollection(sfnt)) return mountCollection(root, sfnt, source, signal, host);

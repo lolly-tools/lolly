@@ -19,7 +19,7 @@ function fixture() {
     profile: { get: async () => ({}) },
     export: { download: async (blob: Blob, name: string) => { downloads.push({ name, size: blob.size }); } },
     assets: {
-      get: async (id: string) => ({ id, type: 'vector', format: 'svg', url: '', meta: { name: 'Unmarked pattern' } }),
+      get: async (id: string) => ({ id, type: 'vector', format: 'svg', url: '', meta: { name: 'House pattern', license: 'LicenseRef-acme-house' } }),
       _getBlob: async () => new Blob(['<svg/>'], { type: 'image/svg+xml' }),
       _getUserRecord: async (id: string) => (id === mine || id === other ? record(id) : null),
       _exportUserAssets: async () => { exported.push('all'); return [record(mine), record(other)]; },
@@ -43,7 +43,7 @@ test('the file is built from this session alone, with licensed catalog bytes hel
     const { buildLollyFile } = await import('../lib/lolly-pack.ts');
     const built = await buildLollyFile(input);
     assert.equal(built.summary.assetCount, 1, 'the upload travels');
-    assert.equal(built.summary.licensedExcluded, 1, 'the unrecorded catalog work stays behind');
+    assert.equal(built.summary.licensedExcluded, 1, 'the catalog work whose recorded licence is not yet interpreted stays behind');
     assert.equal(built.summary.credits, true, 'and CREDITS.txt says why');
   } finally { f.close(); }
 });

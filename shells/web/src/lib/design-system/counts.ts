@@ -26,6 +26,7 @@ import { inspectTokenDocument } from '../../../../../engine/src/token-inspect.ts
 import { walkSwatches, type BrandSwatch } from '../brand-doc.ts';
 import { familyFromTokenValue } from '../../user-fonts.ts';
 import { leadTokenSet } from './leads.ts';
+import { colourRoleCopies, withoutRoleCopies } from './colour-role-copies.ts';
 import { colorIdentity, isRoleKey } from './ownership.ts';
 
 /** One kind of material, counted. */
@@ -45,10 +46,11 @@ const counted = (own: number, rest: number): MaterialCount => ({ own, rest, show
 export const isUiTokenKey = (key: string): boolean => key.startsWith('lolly.') || key.startsWith('color.lolly.');
 
 /** Every token the document defines: the number the Tokens room's All tokens
- *  lists, read from the same inspection. */
+ *  lists, read from the same inspection. A colour role's values in each colourway
+ *  count with the role, not one by one, as the list shows them. */
 export function tokenCount(doc: unknown): number {
   if (!doc || typeof doc !== 'object') return 0;
-  try { return inspectTokenDocument(doc).tokens.length; } catch { /* fall back to the plain set */ }
+  try { return withoutRoleCopies(inspectTokenDocument(doc).tokens, colourRoleCopies(doc)).length; } catch { /* fall back to the plain set */ }
   try { return createTokenSet(doc).size; } catch { return 0; }
 }
 

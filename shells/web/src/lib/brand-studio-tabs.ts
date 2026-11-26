@@ -13,8 +13,9 @@
  * the picker's storeUserUpload. Nothing here writes outside those funnels.
  */
 
+import { closeButtonHtml } from './close-button.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import { colorToHex, createTokenSet, isAlias } from '@lolly/engine';
+import { colorToHex, createTokenSet, isAlias, readColourRoles } from '@lolly/engine';
 import {
   listStudioTokens, addStudioToken, setStudioTokenValue, deleteStudioToken,
   defaultValueFor, gradientCss, resolveStopHex, formatStudioValue,
@@ -22,6 +23,7 @@ import {
 import type { StudioKind, StudioToken, GradientStop } from './token-studio.ts';
 import { walkSwatches, isRec, type BrandSwatch } from './brand-doc.ts';
 import { colorIdentity, isNeutralRampKey, isRoleKey } from './design-system/ownership.ts';
+import { colourRoleCopies } from './design-system/colour-role-copies.ts';
 import { leadTokenSet } from './design-system/leads.ts';
 import { roleAssignments, roleReadouts, rampStepName, type RoleContrast } from './design-system/roles.ts';
 import { rolePathName, swatchTile } from './swatches.ts';
@@ -248,7 +250,11 @@ const roleRowName = (s: BrandSwatch): string => rolePathName(s.key);
 const isUiKey = isUiTokenKey;
 
 interface ColourRow { key: string; name: string; hex: string; value: string; starter: boolean; title: string }
-interface ColourGroup { id: string; label: string; ramp: boolean; neutral: boolean; note: boolean; rows: ColourRow[] }
+interface ColourGroup {
+  id: string; label: string; ramp: boolean; neutral: boolean; note: boolean; rows: ColourRow[];
+  /** The design system's colour roles, once each in its own words and order (plans/352). */
+  roles?: true;
+}
 interface ContrastPair { label: 'text' | 'primary' | 'muted'; fg: string; bg: string; contrast: RoleContrast }
 interface NamedRow { key: string; name: string; value: string; raw: unknown; starter: boolean }
 interface LogoRow extends NamedRow {
@@ -268,7 +274,7 @@ export interface TokensRoomModel {
   more: StudioToken[];
   /** The palette is only the starter's neutral ramp: Edit in Colours opens that group. */
   starterOnly: boolean;
-  example: { name: string; hex: string } | null;
+  example: { name: string; hex: string; word?: string } | null;
   /**
    * The person's own material per section, the way Overview and the Colours,
    * Type and Logos rooms count it: palette colours (roles re-point, they are not
@@ -326,6 +332,25 @@ export function tokensRoomModel(
     };
   });
 
+  // A system with colour roles lists each role once, in its own words and order, ahead of
+  // the rest. A role's own token leaves the theme's roles group, and so does a slot a role
+  // of another name fills, because both are that role. Its values in each colourway are
+  // edited in the Colour roles table and are not listed here (colour-role-copies.ts).
+  const copies = colourRoleCopies(doc);
+  if (copies) {
+    const rows = copies.roles.flatMap((role): ColourRow[] => {
+      const s = swatches.find(x => x.key === role.path);
+      let hex = s?.hex ?? '';
+      if (!hex) { try { hex = colorToHex(resolve(role.path)) ?? ''; } catch { hex = ''; } }
+      if (!hex.startsWith('#')) return [];
+      return [{ key: role.path, name: role.label, hex, value: hex, starter: s ? isStarter(s) : false, title: role.description ?? '' }];
+    });
+    const shown = new Set([...rows.map(r => r.key), ...copies.secondNames.keys()]);
+    for (const g of groups) if (!g.ramp) g.rows = g.rows.filter(r => !shown.has(r.key));
+    for (let i = groups.length - 1; i >= 0; i -= 1) if (!groups[i]!.rows.length) groups.splice(i, 1);
+    if (rows.length) groups.unshift({ id: 'colour-roles', label: t('Colour roles'), ramp: false, neutral: false, note: false, rows, roles: true });
+  }
+
   const studio = listStudioTokens(doc);
   const gradients = studio.filter(tok => tok.kind === 'gradient').map(tok => ({
     key: tok.key, name: tok.name, css: gradientCss(tok.raw, tok.angle, { resolve, space: 'oklch' }),
@@ -369,7 +394,10 @@ export function tokensRoomModel(
   try {
     const primary = roleAssignments(doc, 'light', resolve).primary;
     const named = primary && swatches.find(s => s.key === primary.key);
-    if (primary?.hex && named) example = { name: rampStepName(named.name, named.key), hex: primary.hex };
+    if (primary?.hex && named) {
+      const word = readColourRoles(doc).roles.find(role => role.declared && role.slots.includes('primary'))?.label;
+      example = { name: rampStepName(named.name, named.key), hex: primary.hex, ...(word ? { word } : {}) };
+    }
   } catch { /* no example line */ }
 
   // The colour, typeface and token numbers are the Board's too (design-system/
@@ -650,6 +678,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     const open = openGroups.has(g.id);
     return `<div class="tk-group${open ? ' is-open' : ''}" data-tk-group="${escape(g.id)}">
       <div class="tk-group-head"><span class="tk-group-name">${escape(g.label)}</span><span class="tk-group-n">${g.rows.length}</span>${allStarter ? starterTag() : ''}</div>
+      ${g.roles ? `<p class="tk-group-note">${t('Each role holds a colour for every colourway and look. Change them in the Colour roles table in Colours.')}</p>` : ''}
       <ul class="tk-colors" role="list">${g.rows.map(r => `<li class="tk-color"${r.title ? ` title="${escape(r.title)}"` : ''}><span class="tk-chip" style="--sw:${escape(r.hex || 'transparent')}" aria-hidden="true"></span><span class="tk-color-main"><span class="tk-color-line"><span class="tk-color-name">${escape(r.name)}</span>${r.starter && !allStarter ? starterTag() : ''}<code class="tk-color-value">${escape(r.value)}</code></span>${refBtn(`{${r.key}}`)}</span></li>`).join('')}</ul>
       ${g.rows.length > GROUP_PEEK ? `<button type="button" class="be-btn be-btn--sm tk-group-more" data-tk-more="${g.rows.length}" aria-expanded="${open}">${open ? t('Show fewer') : t('Show all {n}', { n: g.rows.length })}</button>` : ''}
     </div>`;
@@ -745,7 +774,9 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
   const renderExample = (): void => {
     if (!example) return;
     example.hidden = !model.example;
-    example.textContent = model.example ? tRaw('For example, Primary is {name}, {hex}.', { name: model.example.name, hex: model.example.hex }) : '';
+    example.textContent = !model.example ? ''
+      : model.example.word ? tRaw('For example, {role} is {name}, {hex}.', { role: model.example.word, name: model.example.name, hex: model.example.hex })
+        : tRaw('For example, Primary is {name}, {hex}.', { name: model.example.name, hex: model.example.hex });
   };
 
   // ── Shape and spacing: the two sliders ──────────────────────────────────────
@@ -846,7 +877,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
             <span class="tk-prev" data-tk-prev>${tok.kind === 'shadow' ? '' : tokenPreviewHtml(KIND_TYPE[tok.kind], tok.raw, { path: tok.key })}</span>
             <span class="tk-name-stack"><span class="be-tok-name">${escape(tok.name)}</span>${refBtn(`{${tok.key}}`)}</span>
             <span class="be-tok-editor">${tokenValueEditor(tok)}</span>
-            <button type="button" class="be-tok-del" data-tok-del="${pathAttr(tok)}" aria-label="${escape(tRaw('Delete {name}', { name: tok.name }))}">&#x2715;</button>
+            ${closeButtonHtml({ size: 'sm', danger: true, className: 'be-tok-del', label: tRaw('Delete {name}', { name: tok.name }), attrs: { 'data-tok-del': tok.path.join('␟') } })}
           </div>`).join('')}
       </div>`).join('');
     wireShadowFields();
@@ -892,7 +923,9 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
               ${tokens.map(tok => {
                 const key = uiPath(tok.path);
                 const own = owned.get(key) ?? null;
-                const kind = UI_KIND[tok.type];
+                // A derived role (the accent for words) is made from another, per
+                // theme, so it shows its value and offers no editor of its own.
+                const kind = tok.derived ? undefined : UI_KIND[tok.type];
                 const current = uiCurrent(tok, own);
                 const textValue = uiValueText(current);
                 const editing = openUiEditor === key;
@@ -1027,7 +1060,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
     e.preventDefault();
     const token = UI_STARTER_TOKENS.find(item => uiPath(item.path) === form.dataset.uiEdit);
     const input = form.querySelector<HTMLInputElement | HTMLTextAreaElement>('[data-ui-value]');
-    const kind = token ? UI_KIND[token.type] : undefined;
+    const kind = token && !token.derived ? UI_KIND[token.type] : undefined;
     if (!token || !input) return;
     let value: unknown;
     let usable = !!kind;
@@ -1236,7 +1269,7 @@ export function mountGradientsPanel(mount: HTMLElement, ctx: GradientsCtx): Stud
     return `<span class="be-grad-stopwrap">
         <button type="button" class="be-grad-stop-chip${isRef ? ' is-ref' : ''}" data-grad-stop="${i}" data-grad-path="${p}"
           style="--sw:${escape(stopCss(s))}" title="${escape(swName)}" aria-label="${escape(label)}" aria-haspopup="dialog"></button>
-        ${removable ? `<button type="button" class="be-grad-stopdel" data-grad-stopdel="${i}" data-grad-path="${p}" aria-label="${escape(tRaw('Remove {label}', { label }))}">&#x2715;</button>` : ''}
+        ${removable ? closeButtonHtml({ size: 'sm', danger: true, className: 'be-grad-stopdel', label: tRaw('Remove {label}', { label }), attrs: { 'data-grad-stopdel': i, 'data-grad-path': tok.path.join('␟') } }) : ''}
       </span>`;
   };
   const rowHtml = (tok: StudioToken): string => {
@@ -1255,7 +1288,7 @@ export function mountGradientsPanel(mount: HTMLElement, ctx: GradientsCtx): Stud
             <label class="be-grad-angle"><input type="number" value="${tok.angle ?? 180}" step="15" data-grad-angle data-grad-path="${p}" aria-label="${escape(tRaw('{name} angle', { name: tok.name }))}">°</label>
           </span>
         </span>
-        <button type="button" class="be-tok-del" data-grad-del="${p}" aria-label="${escape(tRaw('Delete {name}', { name: tok.name }))}">&#x2715;</button>
+        ${closeButtonHtml({ size: 'sm', danger: true, className: 'be-tok-del', label: tRaw('Delete {name}', { name: tok.name }), attrs: { 'data-grad-del': tok.path.join('␟') } })}
       </div>`;
   };
 

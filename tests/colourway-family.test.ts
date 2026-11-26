@@ -489,6 +489,21 @@ test('chart\'s categorical palette keeps every colour it had and puts the leads 
   realm.close();
 });
 
+test('on a system with colour roles a chart\'s series follow the family: each colourway\'s bound role, its own colourway first, and no role read by name', async () => {
+  const doc = load('./fixtures/colour-roles/wefthouse.tokens.json');
+  const value = (colourway: string, role: string): string => swatch(doc, `color.semantic.${role}`, { selection: { colourway } })!.toLowerCase();
+  const initial = { palette: 'suse', chartType: 'bar', colorBy: 'category', data: `Item,Count\n${Array.from({ length: 6 }, (_, i) => `Item ${i + 1},${10 + i}`).join('\n')}` };
+  const leads = ['indigo', 'madder', 'weld'].map(colourway => value(colourway, 'main'));
+  const indigo = await mount('chart', await cli(doc, { '': 'light', colourway: 'indigo' }), initial, { '': 'light', colourway: 'indigo' });
+  const drawn = await drawnColours(indigo);
+  assert.deepEqual(drawn.slice(0, 3), leads, 'the design system\'s colourway order, with Main as each lead');
+  for (const byName of ['supporting', 'tertiary']) assert.ok(!drawn.includes(value('indigo', byName)), `${byName} is read by name only, so no series picks the role`);
+  indigo.destroy?.();
+  const madder = await mount('chart', await cli(doc, { '': 'light', colourway: 'madder' }), initial, { '': 'light', colourway: 'madder' });
+  assert.deepEqual((await drawnColours(madder)).slice(0, 3), [leads[1], leads[0], leads[2]], 'the piece\'s own colourway leads, and the others keep their order');
+  madder.destroy?.();
+});
+
 const paletteOf = (rt: Awaited<ReturnType<typeof mount>>): string[] => JSON.parse(rt.getHydratedText('{{{paletteJson}}}'));
 
 test('gradient shuffles from the family first, then the rest of the design system', async () => {

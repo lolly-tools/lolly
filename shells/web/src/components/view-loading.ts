@@ -2,6 +2,7 @@
 import { t } from '../i18n.ts';
 import { LOLLY_MARK_SVG } from '../lib/lolly-mark.ts';
 import { escapeHtml } from '../lib/util/escape.ts';
+import { DROP_STAND_IN } from '../lib/drop-early.ts';
 import { mountModal, type ModalHandle } from './modal.ts';
 
 /** A short wait avoids flashing the card when a view is already cached. */
@@ -10,6 +11,15 @@ export const VIEW_LOADING_DELAY_MS = 150;
 export interface ViewLoading {
   /** Remove the card and cancel any pending appearance. Safe to call again. */
   close(): void;
+  /** Show the card now instead of after its delay (a tool open shows it the moment the
+   *  view it left goes from the screen). A no-op once shown or closed. */
+  show(): void;
+}
+
+export interface ViewLoadingOptions {
+  /** No dimming backdrop: the card stands on the plain ground a tool open leaves, so
+   *  the tool's arrival does not brighten the whole screen (parts/dialogs.css). */
+  plain?: boolean;
 }
 
 let active: ViewLoading | null = null;
@@ -29,8 +39,9 @@ export function focusWhenViewReady(place: () => void): void {
   else place();
 }
 
-/** Shared loading feedback, available before any lazy view or its CSS downloads. */
-export function beginViewLoading(delayMs = VIEW_LOADING_DELAY_MS): ViewLoading {
+/** Shared loading feedback, available before any lazy view or its CSS downloads.
+ *  An infinite delay leaves the card to the caller's show(). */
+export function beginViewLoading(delayMs = VIEW_LOADING_DELAY_MS, options: ViewLoadingOptions = {}): ViewLoading {
   // A request from the view being left must not follow into the next one.
   pendingFocus = null;
   active?.close();
@@ -39,6 +50,7 @@ export function beginViewLoading(delayMs = VIEW_LOADING_DELAY_MS): ViewLoading {
   let observer: MutationObserver | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const handle: ViewLoading = {
+    show() { if (!closed && !modal) { clearTimeout(timer); appear(); } },
     close() {
       if (closed) return;
       closed = true;
@@ -65,8 +77,8 @@ export function beginViewLoading(delayMs = VIEW_LOADING_DELAY_MS): ViewLoading {
   observer = new MutationObserver(() => { if (otherDialog()) handle.close(); });
   observer.observe(document.body, { childList: true });
 
-  timer = setTimeout(() => {
-    if (closed) return;
+  const appear = (): void => {
+    if (closed || modal) return;
     if (otherDialog()) { handle.close(); return; }
     // A cold open still shows index.html's boot screen (the same mark and the same
     // word) until the first view mounts; a card over it said "Loading…" twice. The
@@ -80,15 +92,19 @@ export function beginViewLoading(delayMs = VIEW_LOADING_DELAY_MS): ViewLoading {
       .replaceAll('lolly-reverse-', `${scope}-reverse-`);
     modal = mountModal(`<span class="view-loading-mark" aria-hidden="true">${mark}</span>
       <p class="view-loading-status" role="status" aria-live="polite">${escapeHtml(label)}</p>`, {
-      className: 'modal view-loading',
+      className: options.plain ? 'modal view-loading view-loading--plain' : 'modal view-loading',
       ariaLabel: label,
       backStack: false,
       dismissOnBackdrop: false,
       onEscape: () => {},
       onClose: () => handle.close(),
     });
+    // A file dropped on the card is held until the view is ready, then given to what the
+    // view shows at the same point, never to the card itself (lib/drop-early.ts).
+    modal.el.setAttribute(DROP_STAND_IN, '');
     shown = modal;
-  }, delayMs);
+  };
+  if (Number.isFinite(delayMs)) timer = setTimeout(appear, delayMs);
 
   return handle;
 }

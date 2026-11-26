@@ -1,261 +1,285 @@
-# Design：自由畫布
+# Lolly Design：自由畫布
 
-Design 是用於沒有範本涵蓋之版面的工具：從零開始的海報、一份投影片簡報、帶有配樂的動態作品。你得到的不是控制項表單，而是一塊方塊畫布，可以拖曳、調整大小、旋轉並輸入文字。它經由與其他每個工具相同的渲染路徑匯出，所以你在畫布上看到的就是你得到的檔案。
+<a id="design-the-free-canvas"></a>
 
-本頁帶你從第一個方塊走到完成的簡報：視窗、塑形方塊、繪製自己的圖形、放置 3D 場景與其他工具、加入時間、檢查結果，以及播放完成的簡報。[使用 Lolly](/info/using.html) 涵蓋 Design 與每個工具共有的部分，例如儲存與分享。
+Lolly Design 適合範本無法涵蓋的版面：從頭製作的海報、一份投影片簡報，或附有配樂的動態作品。你可以在畫布上拖曳方塊、調整大小、旋轉並輸入文字，畫布則透過與其他工具相同的渲染路徑匯出。
 
-![Design 的自由畫布 - 畫板及其周圍的貼上板](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+[使用 Lolly](/info/using.html)介紹各個工具共通的功能，例如儲存與分享。
 
+![Lolly Design 的自由畫布：畫板與四周的工作區](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+
+<!--i:eti-grid-->
 ## Design 視窗
 
-**頂端列**以 **Home**、**File menu** 與文件名稱開頭（點擊名稱即可重新命名文件）。中間包含 **Undo**、**Redo**、**History**、縮放控制項（附 **Fit all** 與 **Fit artboard**），以及 **Timeline**、**Navigator** 與 **Inspector** 的切換。右側是 **Share**、**Present** 與 **Export**。在手機上，較少使用的按鈕會移到 **More actions**。
+**頂端列**依序從 **Home**、**File menu** 和文件名稱開始（點擊名稱即可重新命名）。中央有 **Undo**、**Redo**、**History**、縮放控制項（包含 **Fit all** 與 **Fit artboard**），以及 **Timeline**、**Navigator** 和 **Inspector** 的切換按鈕。右側為 **Share**、**Present** 與 **Export**。手機上較少使用的按鈕會移至 **More actions**。
 
-沿側邊的**工具列**包含 Lolly 選單與你用來繪圖的工具：**Pointer**、**Add a box**、**Pen**（與 **Pencil** 共用一個按鈕）、**Edit points**、**Line**，接著是 Timeline、Artboards 與 Auto-arrange 按鈕。
+側邊的**工具列**包含 Lolly 選單與繪圖工具：**Pointer**、**Add a box**、**Pen**（與 **Pencil** 共用按鈕）、**Edit points**、**Line**，接著是 Timeline、Artboards 和 Auto-arrange 按鈕。
 
-![自由畫布的工具列：拖曳握把、Lolly 選單，接著是指標、新增方塊、鋼筆、編輯節點、線條、時間軸、畫板與自動排列](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
+![自由畫布的工具列：拖曳把手、Lolly 選單，接著是 Pointer、Add a box、Pen、Edit points、Line、Timeline、Artboards 與 Auto-arrange](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2600&css=.fc-toolbar%7Bopacity%3A1!important%7D&cropSelector=.fc-toolbar&walker=1&format=svg&dark=1&filename=pen-editor-rail)
 
-畫布的運作像設計師圍繞畫板的暫放區：
+畫布就像設計師在畫板周圍使用的工作區：
 
-- **把方塊暫放在畫板外。** 將方塊拖過框架邊緣後，它仍然可見且可選取。框架外的一切都會變淡，而框架保留其陰影，標出檔案從哪裡開始。
-- **只有畫板會匯出。** 框架外的任何內容，或方塊超出邊緣的部分，在點陣與向量格式中都會從輸出中裁掉。
-- **縮小到超過 Fit**，可看到你暫放的所有內容。
-- **調整畫板大小**的方法是更改匯出尺寸。方塊保持原本的位置，因此你可以圍繞既有內容重新取景版面。
+- **將方塊暫放在畫板外。** 方塊拖出框架邊緣後仍然可見，也能選取。框架外的所有內容會變淡，框架陰影則標示檔案範圍的起點。
+- **只匯出畫板範圍。** 框架外的所有內容，包括方塊超出邊緣的部分，都會從點陣與向量輸出中裁掉。
+- **縮小至低於 Fit 比例**，即可看見所有暫放的內容。
+- **調整畫板大小**可透過更改匯出尺寸完成。方塊位置不變，讓你可依既有內容重新界定版面範圍。方塊仍保留原本的位置。
 
-![編輯舞台：畫板在正中央，工具列在左側，縮放 HUD 在角落](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&chrome=1&dark=1&filename=seq-studio-stage)
+![編輯舞台：正中央的畫板、左側的工具列，以及角落的縮放 HUD](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&chrome=1&dark=1&filename=seq-studio-stage)
 
 ### Navigator 與 Inspector
 
-**Navigator** 將每個畫板（標題為 **Artboards**，在簡報中則為 **Slides**）列為其 **Layers** 的可摺疊群組。選取畫板名稱即可跳到那裡，展開它即可選取或重新排列其圖層，並用方向鍵在清單中移動；Left 會回到畫板標題。**Pages** 將畫板分組為具名頁面，而選擇某個頁面只會改變編輯器顯示哪些畫板。
+**Navigator** 以可摺疊的 **Layers** 群組列出各個畫板（標題為 **Artboards**，簡報中則是 **Slides**）。選取畫板名稱可跳至該處，展開畫板則可選取圖層或更改圖層順序。方向鍵可在清單中移動，Left 會返回畫板標題。**Pages** 將畫板歸入具名頁面。選取頁面只會改變編輯器顯示的畫板。
 
-**Inspector** 把所選物件的文字或圖片控制項放在最前面。選項晶片涵蓋快速選擇，**Advanced** 則包含樣式細節。在手機上，Inspector 會從 **More actions** 以面板方式開啟；Escape 或 Back 會關閉面板並保留你的選取。
+**Inspector** 會先顯示所選物件的文字或圖片控制項。選項晶片提供快速選擇，**Advanced** 則收納樣式細節。手機上，Inspector 和圖層清單共用一個從頂端列下方展開的面板，與其他工具相同。底部列的 **Inspect** 和 **Layer/Page** 會開啟面板的對應分頁。拖曳或點按面板下緣把手，可將面板切換為僅顯示兩個分頁的窄條、半螢幕或接近全螢幕。半螢幕時，面板下方的畫布會顯示選取範圍。按 Escape 可將面板收合為窄條，並保留選取範圍。
 
-![Inspector 的 Document 區段：Selection 與 Canvas 分頁，接著是 Dimensions 與 Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+![Inspector 的 Document 區段：Selection 與 Canvas 分頁，下方是 Dimensions 和 Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
+<!--i:eti-crop-->
 ## 調整大小、縮放與旋轉
 
-選取物件，然後拖曳把手來更改其大小，或拖曳選取範圍下方的圓形把手來旋轉物件。大小的拖曳有兩種模式：
+選取物件後，拖曳把手可調整大小，拖曳選取範圍下方的圓形把手則可旋轉物件。拖曳大小把手有兩種模式：
 
-- **Resize**（預設）只改變方塊。文字依新的大小重新換行，字型大小、筆畫寬度、圓角半徑與效果維持原樣。
-- **Scale** 連同內容一起放大或縮小整個物件：字型大小、筆畫、圓角半徑、陰影、模糊、內距與間距都以相同的比例改變。
+- **Resize** 是預設模式，只調整方塊大小。文字會按新尺寸重新換行，字型大小、筆畫寬度、圓角半徑與效果則不變。
+- **Scale** 將物件及內容一併放大或縮小：字型大小、筆畫、圓角半徑、陰影、模糊、內距和間距都按同一比例變化。
 
-按下 `K` 可開啟或關閉 Scale。沒有鍵盤時，可在 Lolly 選單中選擇 **Scale mode**，或在工具列上按住 **Pointer** 按鈕（或在該按鈕上按右鍵）並選擇 **Scale**；在觸控螢幕上，物件列也有 Scale 切換。Scale 開啟時，Pointer 按鈕顯示 Scale 圖示，每個把手中間都有一個圓點。`V` 或 **Escape** 會回到 Resize 並保留你的選取。每份文件開啟時 Scale 都是關閉的，所以沒有人會不小心縮放筆畫。
+用 `K` 可切換 Scale 的開關。沒有鍵盤時，可從 Lolly 選單選擇 **Scale mode**，或長按工具列的 **Pointer** 按鈕（或按右鍵），再選擇 **Scale**。觸控螢幕的物件列也提供 Scale 切換。Scale 開啟期間，Pointer 按鈕會顯示 Scale 圖示，每個把手中央也會有圓點。按 `V` 或 **Escape** 會切回 Resize，並保留選取範圍。每份文件開啟時都會關閉 Scale，避免意外縮放筆畫。每份文件開啟時，Scale 都是關閉的。
 
-**以數字縮放。** 開啟 Scale 時，或選取了多個物件時，點擊物件列上的讀數即可開啟 **Scale** 彈出視窗。輸入百分比、寬度或高度，在 3 x 3 格線上挑選保持不動的點，然後選擇 **Apply**。每次縮放是一步復原。
+**輸入數值縮放。** Scale 開啟或選取多個物件時，點擊物件列上的數值可開啟 **Scale** 彈出視窗。輸入百分比、寬度或高度，再於 3 x 3 格線選擇固定不動的點，並按 **Apply**。每次縮放都算一次復原步驟。
 
-**多個物件。** 選取多個物件時，其邊緣與角落都有把手。當每個物件都是正立或旋轉整數個四分之一圈，且選取範圍中沒有群組或圓形時，拖曳角落可自由改變寬度與高度。否則選取範圍會保持比例，讀數會加上 **Proportional**。拖曳時，小標籤會顯示大小，在 Scale 模式下則顯示百分比。
+**多個物件。** 選取多個物件後，選取範圍的邊緣和角落都會有把手。若所有物件都保持正立或旋轉了整數個四分之一圈，且選取範圍不含群組或圓形，拖曳角落即可自由調整寬高。其他情況下，選取範圍會維持比例，數值旁會加上 **Proportional**。拖曳時，小標籤會顯示尺寸，Scale 模式下則顯示百分比。
 
-**翻轉選取範圍。** 按右鍵並選擇 **Flip horizontal** 或 **Flip vertical**，或按 `Shift+H` 或 `Shift+V`（要用 Shift，因為單獨的 `V` 是 Pointer）。鏡像是真正的變形，因此匯出的 SVG、PDF 與 PNG 都會保留翻轉。
+**翻轉選取範圍。** 按右鍵後選擇 **Flip horizontal** 或 **Flip vertical**，也可按 `Shift+H` 或 `Shift+V`。匯出的 SVG、PDF 與 PNG 檔案都會保留翻轉效果。
 
-**拖曳期間按住的按鍵**在你按下或放開的瞬間就會生效；快捷鍵表（`?`）也列出了它們。
+**拖曳時按住的按鍵**會在按下或放開時立即生效。快捷鍵表（`?`）也有列出這些按鍵。
 
 | 按住 | 調整大小或縮放 | 旋轉 | 移動 |
 |---|---|---|---|
-| **Shift** | 保持比例（Scale 一律如此） | 以 15 度為單位旋轉 | 無變化 |
-| **Alt**（Option） | 從中心運作 | 自由旋轉 | 關閉貼齊與格線 |
-| **Cmd/Ctrl** | 關閉貼齊與格線 | 自由旋轉 | 關閉貼齊與格線 |
+| **Shift** | 維持比例（Scale 一律維持比例） | 每次旋轉 15 度 | 不變 |
+| **Alt**（Option） | 以中心為基準 | 自由旋轉 | 停用貼齊與格線 |
+| **Cmd/Ctrl** | 停用貼齊與格線 | 自由旋轉 | 停用貼齊與格線 |
 
-沒有按住任何按鍵時，旋轉一旦進入某個 15 度倍數的 4 度範圍內，就會被拉到最接近的 15 度。畫板不會旋轉，因此沒有旋轉把手。
+未按住按鍵時，只要旋轉角度距離最近的 15 度倍數在 4 度以內，就會貼齊該角度。畫板不能旋轉，也沒有旋轉把手。
 
 ::: details 把手、抓取區與觸控
-**沿著邊緣任何地方都能抓取。** 選取範圍的每一邊都是沿其全長的調整大小條，使用滑鼠或手寫筆時，每個角落外側還有一個旋轉區。指標會顯示拖曳將執行的動作。在條或區內按下，只有在你開始拖曳時才會變成調整大小或旋轉，所以單純點擊仍和以前一樣選取。鎖定的物件沒有把手、條或區。
+**邊緣任一處都可抓取。** 選取範圍的每一邊都是調整大小條。使用滑鼠或手寫筆時，各角落外側另有旋轉區。指標會標示拖曳的作用。在條或區域內按下後，必須開始拖曳才會調整大小或旋轉，因此單純點擊仍可選取。鎖定的物件不會有把手、條或區域。
 
-**小物件仍可移動。** 在寬度為 25 個螢幕像素以下的物件上，中間的把手會隱藏，其他把手則從輪廓向外移一小段，因此在物件上按下會移動物件。在 10 像素以下時，角落的把手也會消失，細線則在每一端保留一個把手。在細線或微小物件旁邊、避開其把手的地方按下，也會移動該物件。
+**小物件仍能移動。** 物件寬度不超過 25 個螢幕像素時，中間的把手會隱藏，其餘把手稍微向輪廓外移，讓你按在物件上時能移動它。不超過 10 像素時，角落把手也會隱藏；細線則在兩端各保留一個把手。在細線或微小物件旁按下，只要避開把手，也會移動物件。
 
-**大型抓取區。** 在觸控螢幕上，每個角落區是選取範圍在螢幕上寬度與高度的四分之一，介於 24 到 44 像素之間，每個邊區涵蓋兩個角落之間的範圍。當選取範圍小到放不下時，這些區會移到其輪廓之外。你的指標或手指下的區會被加上陰影。若要在滑鼠或手寫筆上得到相同的區，請在 Lolly 選單中開啟 **Large grab areas**；此設定保留在這部裝置上。
+**大型抓取區。** 觸控螢幕的每個角落區，其寬高各為選取範圍螢幕寬高的四分之一，介於 24 至 44 像素；各側邊區則涵蓋兩個角落之間的部分。選取範圍太小時，區域會移到輪廓外。指標或手指所在的區域會顯示陰影。要讓滑鼠或手寫筆也使用相同區域，請在 Lolly 選單開啟 **Large grab areas**。設定會保留在這部裝置上。
 
-**兩指操作選取範圍。** 在觸控螢幕上，將兩根手指放在選取的物件上：雙指縮放以縮放、扭轉以旋轉，或同時移動兩指來搬動選取範圍，全都算作一步復原。Scale 開啟時，雙指縮放也會縮放內容；Scale 關閉時，則依比例調整大小。扭轉在接近時會貼齊最近的 15 度，兩指移動則絕不貼齊。第一根手指必須落在選取範圍上，第二根必須迅速跟上，落在選取範圍上或剛好在其邊緣外。兩指在其他任何地方都會縮放與平移檢視，若選取範圍包含畫板或鎖定的物件、涵蓋大部分檢視範圍或超出其邊緣，兩指操作選取範圍時也一樣。
+**用兩指操作選取範圍。** 在觸控螢幕上，將兩根手指放到已選取的物件：捏合可縮放、扭轉可旋轉，同時移動兩指則可移動選取範圍。每個手勢都算一次復原步驟。Scale 開啟時，捏合也會縮放內容；關閉時則按比例調整大小。扭轉接近 15 度倍數時會貼齊，兩指移動則絕不貼齊。第一指須落在選取範圍內，第二指須迅速跟上，落在範圍內或邊緣稍外側。兩指落在其他位置時，會縮放和平移檢視；若選取範圍含畫板或鎖定物件、佔據大部分檢視，或超出檢視邊緣，兩指落在選取範圍內也會有相同作用。
 :::
 
-## 繪製你自己的圖形
+<!--i:eti-pen-tool-->
+## 繪製自己的圖形
 
-方塊、圓形與圓角框架涵蓋大多數版面。至於其他任何形狀，請自己畫：工具列的 **Pen** 按鈕（或 `P`）會讓你進入繪圖模式。四個按鍵可在模式之間切換：`V` 為 Pointer，`P` 為 Pen，`Shift C` 為 **Pencil**，`N` 為 **Edit points**。Pointer 永遠是離開的方式。
+方塊、圓形與圓角框架足以應付大部分版面。其他圖形可按工具列的 **Pen**（或 `P`）進入繪圖模式。四個按鍵可切換模式：`V` 為 Pointer、`P` 為 Pen、`Shift C` 為 **Pencil**，`N` 為 **Edit points**。切換至 Pointer 一律會離開繪圖模式。
 
-- **點擊**以放置一個點。在預設的曲線類型上，**點擊並拖曳**會拉出該點的把手以製作曲線；點擊時按住 **Alt** 可得到硬轉角。（在其他曲線類型上，每個點都是轉角，拖曳不起作用。）
-- 點擊時按住 **Shift**，新的線段會與前一個點保持 15 度的倍數，所以水平、垂直與 45 度的線條都很精確。拖出把手時按 Shift，把手也以同樣方式分段。
-- 點在你放置時會貼齊畫板、你其他的方塊與同一路徑的其他點，所以點能與你先前放置的點對齊。繪製時 Alt 會暫停格線，之後拖曳點時則同時暫停格線與邊緣。
-- **點擊你的第一個點**即可封閉形狀。否則按 **Enter**、按兩下或切換工具，繪圖就會被保留。
-- **Escape** 一次作用一步：第一次按下放棄繪圖，第二次離開鋼筆。
-- 繪製時按 **Delete** 或復原（`⌘ Z` 或 `Ctrl Z`）會刪掉最後一個點。
+- **點擊**可放置一個點。使用預設曲線類型時，**點擊並拖曳**會拉出該點的把手來形成曲線；點擊時按住 **Alt** 則形成銳利轉角。其他曲線類型的每個點都是轉角，拖曳不會有作用。
+- 點擊時按住 **Shift**，新線段相對於前一個點的角度會固定為 15 度的倍數，可繪製水平、垂直與 45 度線條。拉出把手時，Shift 也會將角度固定為同樣的間隔。
+- 放置點時，點會貼齊畫板、其他方塊和路徑上的其他點。繪圖時 Alt 會停用格線，之後拖曳點時則會同時停用格線與邊緣貼齊。
+- **點擊第一個點**即可封閉圖形。若要保留開放的繪圖，請按 **Enter**、按兩下，或切換工具。
+- **Escape** 第一次會放棄繪圖，再按一次則離開鋼筆。
+- 繪圖時按 **Delete** 或復原（`⌘ Z` 或 `Ctrl Z`），會移除最後一個點。
 
-**接續開放路徑。** 開啟 Pen 後，按住開放路徑的任一端，你就是在重新繪製該路徑：每次點擊都會在該端之後加上一個點，若你從起點開始，則加在第一個點之前。Enter 保留結果，Escape 則讓路徑完全維持原樣。路徑仍是同一個方塊，保有它的填色、筆畫與箭頭，一次復原就能還原。Delete 只會取回你新增的點。封閉的形狀、連接到方塊的線，以及有多個部分的路徑沒有可接續的自由端。
+**繼續繪製開放路徑。** 啟用 Pen 後，按開放路徑的任一端即可接著繪製。每次點擊都會在該端後面加入一點；若從路徑起點開始，則加在第一點之前。Enter 保留結果，Escape 讓路徑維持原狀。路徑仍是原本的方塊，填色、筆畫與箭頭都會保留，一次復原即可撤銷變更。Delete 只移除你新增的點。封閉圖形、連接方塊的線，以及含有多個部分的路徑，都沒有可接續的自由端點。
 
-**用 Pencil 徒手繪製。** 按下 `Shift C`，或在工具列上按住 **Pen** 按鈕（或在該按鈕上按右鍵）並選擇 **Pencil**；之後按鈕會一直顯示 Pencil，直到你再次選擇 Pen。Pencil 會在你拖曳時記錄筆跡。放開後，Lolly 會把筆跡平滑成少數幾個帶貝茲把手的點，保留急轉彎為轉角，並讓曲線與你的手實際走過的位置相差不超過幾個螢幕像素。終點靠近起點的筆跡會封閉。結果是一般的路徑，與 Pen 路徑有相同的上色方式，之後你可以編輯它的點。
+**使用 Pencil 徒手繪圖。** 按 `Shift C`，或長按工具列上的 **Pen** 按鈕（或按右鍵），再選擇 **Pencil**。按鈕會顯示 Pencil，直到你再次選取 Pen。拖曳時，Pencil 會記錄筆跡。放開後，Lolly 會將筆跡平滑化成少量帶有貝茲把手的點。急轉彎仍為轉角，曲線與原筆跡的差距維持在幾個螢幕像素內。筆跡終點接近起點時會自動封閉。
 
-結果是一般的方塊。可以像任何其他方塊一樣移動、調整大小、旋轉、群組、對齊、重新排序、填色、加陰影或淡化該路徑。第一個路徑會採用你的品牌為路徑設定的填色與筆畫，之後每個新路徑則採用你上次使用的設定。在品牌沒有為路徑設定任何內容的工具中，新路徑會以你繪製時使用的顏色描邊，所以形狀永遠不會看不見。
+Pen 或 Pencil 路徑是一般方塊，可像其他方塊一樣移動、調整大小、旋轉、群組、對齊、調整堆疊順序、填色、加陰影或淡化。第一條路徑會使用品牌為路徑設定的填色與筆畫，之後的路徑則沿用上次的設定。品牌未設定路徑樣式時，新路徑會以繪圖時的色彩描邊，確保圖形始終可見。
 
-**再次編輯點。** 在圖形上按兩下，或使用物件列上的 **Edit points**。拖曳點即可移動它，拖曳把手即可重新調整曲線方向，在曲線上點擊即可插入點，或拖出方框圈選多個點後按 Delete。路徑至少會保留兩個點。
+**重新編輯點。** 按兩下圖形，或使用物件列的 **Edit points**。拖曳點可移動它，拖曳把手可調整曲線方向，點擊曲線可插入點，也可拖出方框圈選數個點後按 Delete。路徑始終至少保留兩個點。
 
-- 拖曳點時按住 **Shift**，它與路徑上下一個不動的點之間的角度會以 15 度分段。拖曳把手時按 Shift，把手會繞著自己的點分段。點擊時按 Shift 仍是把點或把手加入選取範圍；分段在你開始拖曳後才生效。
-- 拖曳的點會貼齊畫板、其他方塊與路徑的其他點。按住 Alt 可自由放置。
-- 點擊把手即可選取它，再按 **Delete** 把它收回到它的點上。該點的這一側會變成轉角，沒有把手拉動曲線。選取了點時，Delete 仍照常移除這些點。
+- 拖曳點時按住 **Shift**，可讓角度以 15 度為單位變化，角度基準為沿路徑的下一個未移動點。拖曳把手時按住 Shift，則使把手繞自身的點以相同角度間隔移動。按住 Shift 點擊仍會將點或把手加入選取範圍；開始拖曳後才套用角度間隔。
+- 拖曳中的點會貼齊畫板、其他方塊與路徑上的其他點。按住 Alt 即可自由放置。
+- 點擊把手後按 **Delete**，可將把手收回原點。該點的這一側會變為轉角。若選取的是點，Delete 會移除所選的點。
 
-**Spline type** 決定穿過你的點的曲線種類：
+**Spline type** 決定通過各點的曲線類型：
 
 | 類型 | 作用 |
 |---|---|
-| **Smooth (auto)** | 預設。自行計算把手長度，所以單純點擊就能得到平滑曲線。你設定的把手會固定方向，而曲線仍自行決定長度。 |
-| **Bezier handles** | 經典鋼筆：你控制每個把手，插入點絕不會移動曲線。 |
-| **Through the points** | 精確穿過每個點，沒有把手。 |
-| **B-spline** | 流過點的附近而非穿過它們，線條更柔和。 |
-| **Straight lines** | 折線。 |
+| **Smooth (auto)** | 預設類型。自動設定把手長度，只需點擊即可形成平滑曲線。手動設定把手會固定方向，長度仍由曲線決定。 |
+| **Bezier handles** | 每個把手都由你控制，插入點也不會改變曲線位置。 |
+| **Through the points** | 通過每個點，不使用把手。 |
+| **B-spline** | 從點的附近經過而不穿過點，形成較柔和的線條。 |
+| **Straight lines** | 由直線段組成的折線。 |
 
-將現有路徑切換到自行計算把手的類型時會先詢問，因為你設定的把手長度無法復原；切換到 **Bezier handles** 則永遠不會有損失。繪製途中切換會立即生效，你拉出的任何把手都會被丟棄。
+將現有路徑改為自動設定把手的類型時，系統會先詢問，因為原本設定的把手長度會遺失。繪圖中途切換則立即套用，並移除已拉出的所有把手。切換至 **Bezier handles** 不會遺失任何內容。繪圖期間切換會立即生效，並捨棄已拉出的把手。
 
-每個點也帶有連續性規則，以其形狀顯示：方形代表 **Corner**（把手各自獨立移動），圓形代表 **Smooth**（把手保持成一直線），帶圓環的圓形代表 **Symmetric**（成一直線且長度相等）。為選取的點設定規則，曲線就會立即跟隨。
+每個點另有連續性規則，以點的形狀標示：方形為 **Corner**（把手獨立移動）、圓形為 **Smooth**（把手維持共線），帶環的圓形為 **Symmetric**（共線且等長）。為選取的點指定規則後，曲線會立即更新。
 
-![兩條直接從連結算圖出來的鋼筆路徑：一條描邊的 S 形曲線，以及一個閉合填色的團塊](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22curve%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A140%2C%22y%22%3A180%2C%22w%22%3A800%2C%22h%22%3A420%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A14%2C%22path%22%3A%221!cubic!0_.02!.85!!!.25!-.45!s_.5!.5!-.22!.32!.22!-.32!y_.98!.12!-.25!.45!!!s%22%7D%2C%7B%22id%22%3A%22blob%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A340%2C%22y%22%3A620%2C%22w%22%3A400%2C%22h%22%3A320%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23d1e7ff%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A6%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!catmull-rom!1_.5!0_1!.42_.78!1_.22!1_0!.42%22%7D%5D&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=pen-path-geometry)
+![直接透過連結渲染的兩條鋼筆路徑：有筆畫的 S 形曲線，以及封閉且填色的不規則圖形](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22curve%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A140%2C%22y%22%3A180%2C%22w%22%3A800%2C%22h%22%3A420%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A14%2C%22path%22%3A%221!cubic!0_.02!.85!!!.25!-.45!s_.5!.5!-.22!.32!.22!-.32!y_.98!.12!-.25!.45!!!s%22%7D%2C%7B%22id%22%3A%22blob%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A340%2C%22y%22%3A620%2C%22w%22%3A400%2C%22h%22%3A320%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23d1e7ff%22%2C%22stroke%22%3A%22%234f84ba%22%2C%22strokeW%22%3A6%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!catmull-rom!1_.5!0_1!.42_.78!1_.22!1_0!.42%22%7D%5D&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=pen-path-geometry)
 
-繪製的路徑和任何其他方塊一樣會隨分享連結傳遞，並在命令列中以相同方式渲染。
+繪製的路徑會和其他方塊一樣包含在分享連結中，也能從命令列渲染出相同結果。
 
+<!--i:eti-blend-->
 ## 組合圖形
 
-選取兩個或更多圖形，在畫布上按右鍵（觸控時為雙指輕點）並選擇：
+選取至少兩個圖形，在畫布上按右鍵（觸控則以兩指點按），然後選擇：
 
-- **Union** 將它們合併成一個圖形，採用最上層圖形的顏色。
-- **Subtract** 從底部的圖形中切掉其上方的所有內容。
-- **Intersect** 只保留重疊的部分。
-- **Exclude** 保留除重疊部分以外的所有內容。
+- **Union** 會將圖形合併為一個，使用最上層圖形的色彩。
+- **Subtract** 會從底層圖形扣除上方的所有內容。
+- **Intersect** 僅留下重疊區域。
+- **Exclude** 留下重疊區域以外的部分。
 
-另有三項作用於單一圖形。**Outline stroke…** 將筆畫轉成相同粗細的填色輪廓。**Offset path…** 將輪廓向外擴張，若為負數則向內縮小。**Simplify** 以較少的線段重建路徑，輪廓保持不變。
+另有三項功能用於單一圖形。**Outline stroke…** 將筆畫轉為粗細相同的填色輪廓。**Offset path…** 將輪廓向外擴展，輸入負值則向內收縮。**Simplify** 用更少線段重建路徑，保持相同輪廓。
 
-![一個新月形與一個帶有真正孔洞的環，兩者都由 Subtract 產生](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
+![使用 Subtract 製成的新月與中央真正挖空的圓環](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%5B%7B%22id%22%3A%22paper%22%2C%22kind%22%3A%22box%22%2C%22x%22%3A0%2C%22y%22%3A0%2C%22w%22%3A1080%2C%22h%22%3A1080%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%23ffffff%22%7D%2C%7B%22id%22%3A%22crescent%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A120%2C%22y%22%3A330%2C%22w%22%3A374%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22path%22%3A%221!cubic!1_.750491!.957645!-.128211!-.062578!-.065985!.027232!c_.534759!1!.076762!!-.295339!!c_0!.5!!.276142!!-.276142!c_.534759!0!-.295339!!.200102!!c_1.000984!.254923!-.09169!-.152161!-.021205!-.003239!c_.935829!.25!.022185!!-.221505!!c_.534759!.625!!-.207107!!.14459!c%22%7D%2C%7B%22id%22%3A%22ring%22%2C%22kind%22%3A%22path%22%2C%22x%22%3A580%2C%22y%22%3A330%2C%22w%22%3A400%2C%22h%22%3A400%2C%22shape%22%3A%22rect%22%2C%22bg%22%3A%22%234f84ba%22%2C%22fillRule%22%3A%22nonzero%22%2C%22path%22%3A%221!cubic!1_1!.5!!-.276142!!.276142!c_.5!1!.276142!!-.276142!!c_0!.5!!.276142!!-.276142!c_.5!0!-.276142!!.276142!!c*1!cubic!1_.5!.7!-.110457!!.110457!!c_.7!.5!!.110457!!-.110457!c_.5!.3!.110457!!-.110457!!c_.3!.5!!-.110457!!.110457!c%22%7D%5D%26w%3D1080%26h%3D1080&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&filename=path-ops-boolean-result)
 
-結果是可以繼續用鋼筆編輯的新路徑，以一般的貝茲曲線儲存，所以原本的曲線類型不會保留。孔洞是真正的孔洞：筆畫面板上的 **Fill rule** 控制項決定重疊的輪廓是填滿（*non-zero*）還是穿透（*even-odd*）。這些操作寧可拒絕也不破壞：要求將兩個不重疊的圖形取交集，什麼都不會改變。文字與圖片方塊沒有輪廓，因此不受影響。
+結果是由一般貝茲曲線構成的新路徑，可用鋼筆編輯。原始樣條類型不會保留。筆畫面板的 **Fill rule** 決定重疊輪廓要填色（*非零*）還是形成孔洞（*奇偶*）。這些操作寧可拒絕執行，也不會破壞圖形：要求兩個未重疊的圖形取交集時，不會有任何變化。這些操作絕不破壞圖形：兩個未重疊的圖形取交集不會改變任何內容。文字與圖片方塊沒有輪廓，因此會略過。
 
-## 描繪圖片
+<!--i:eti-image-->
+## 描圖
 
-選取一張圖片，按右鍵並選擇**描繪圖片…**，即可把圖片變成可編輯的形狀。選擇一個預設，然後按下**描繪**：
+選取一張圖片，在其上按右鍵，選擇 **Trace image…**，即可將圖片轉為可編輯的圖形。選取預設組合，再按 **Trace**：
 
-- **標誌**會找出少量純色，並保持銳利的邊緣以及正圓和直線。含有漸層或照片色調的圖片會被拒絕，並給出提示。
-- **插圖**把多種顏色描繪為填色形狀，適用於平面圖稿或色調分離的圖片。
-- **線稿**把淺色頁面上的深色線條描繪為黑色形狀。
-- **中心線**把深色線條描繪為單一筆畫，之後可以修改它們的粗細。
+- **Logo** 找出少量純色，保留清晰邊緣，以及精確的圓形與直線。Logo 會拒絕含漸層或照片色調的圖片，並說明原因。
+- **Illustration** 將多種色彩描繪成填色圖形，適用於平面圖稿或色調分離的圖片。
+- **Line art** 將淺色頁面上的深色線條描繪成黑色圖形。
+- **Centreline** 將深色線條描繪成可調整粗細的單一筆畫。
 
-形狀會以群組形式新增在圖片正上方，圖片維持原位。隱藏或刪除圖片即可只檢視路徑。描繪在你的裝置上以背景工作執行，附有「取消」按鈕，不會上傳任何內容。1500 像素的圖片通常需要一到幾秒，複雜的照片需要更久。
+圖形會以群組加入圖片上方，圖片仍留在原處。隱藏或刪除圖片即可只看路徑。描圖會在你的裝置上以背景工作執行，並提供 Cancel 按鈕，不會上傳任何內容。1500 像素的圖片通常需要一至數秒，內容複雜的照片則更久。
 
-描繪依據框內顯示的內容，所以被裁切（Cover）的圖片只會描繪可見部分。以下限制適用：
+描圖以方塊顯示的內容為準，因此經裁切（Cover）的圖片只會描繪可見部分。有以下限制：
 
-- 描繪前圖片會縮小到長邊最多 1500 像素，所以邊緣的位置精度是這個尺寸的幾分之一，而不是原圖的。
-- 一次描繪最多產生 1,500 個形狀和 60,000 個點。照片通常會超過，Design 會告知這一點，且不做任何更改。請試試標誌或線稿，或換一張較簡單的圖片。
-- 漸層會變成純色色帶，柔和的陰影會變成硬邊形狀。
-- 圓角半徑、形狀遮色片以及圖片框上的效果不會套用到路徑上。
-- 同一張圖片和同一個預設總是得到相同的形狀。
+- 描圖前會將圖片縮小至長邊最多 1500 像素，因此邊緣位置的精度以這個尺寸的像素細分為準，而非原始尺寸。
+- 一次描圖最多產生 1,500 個圖形與 60,000 個點。照片通常會超過上限；Lolly Design 會告知，並保持內容不變。可改用 Logo 或 Line art，或選擇較簡單的圖片。
+- 漸層會轉為純色色帶，柔和陰影則變成邊緣分明的圖形。
+- 圖片方塊的圓角半徑、圖形遮罩與效果不會套用至路徑。
+- 相同的圖片和預設組合一定會產生相同圖形。
 
+<!--i:eti-hexagon-->
 ## 筆畫
 
-方塊、圖片、畫板與 Pen 路徑都可以帶有筆畫：一個顏色、一個寬度與一種樣式（實線、虛線或點線）。筆畫的列位於 Inspector 中 **Fill** 之下，物件列上的 **Stroke** 按鈕也會開啟它們。
+方塊、圖片、畫板與鋼筆路徑都可設定筆畫，包括色彩、寬度與樣式（實線、虛線或點線）。筆畫設定列位於 Inspector 的 **Fill** 下方，按物件列的 **Stroke** 即可開啟。
 
-**Position** 決定筆畫放在輪廓的哪一側：**Inside**、**Centre** 或 **Outside**。除非你另行選擇，方塊的筆畫在內側，所以它的外緣維持在你畫的位置，而 Pen 路徑的筆畫則置中於曲線上。使用置中或外側筆畫時，填色、圖片與文字都留在筆畫的內緣之內，選取外框則留在方塊自己的邊緣上。開放路徑沒有內側，所以一律置中描邊。畫板的筆畫永遠留在頁面內，因為頁面邊緣就是匯出邊緣。
+**Position** 設定筆畫相對於輪廓的位置：**Inside**、**Centre** 或 **Outside**。方塊預設在內側描邊，保留你繪製的外緣。鋼筆路徑則以曲線為中心描邊。筆畫置中或位於外側時，填色、圖片與文字仍在筆畫內緣以內，選取輪廓則維持在方塊邊緣。開放路徑沒有內側，因此一律置中描邊。畫板的筆畫始終位於頁面內，因為頁面邊緣就是匯出邊緣。
 
-**按邊設定筆畫。** 在矩形、圓角方塊、膠囊形或畫板上，寬度旁的切換會顯示四個寬度：**Top**、**Right**、**Bottom** 與 **Left**。把某一邊設為 0 即可隱藏該邊，不需要第二個形狀就能做出分隔線或底線。這個切換只顯示或隱藏四個欄位，從不更改任何值。各邊不同時，寬度會顯示 **Mixed**；在那裡輸入寬度即可一次設定四邊。顏色、位置與樣式仍由各邊共用，圓角會隨旁邊的寬度彎曲，就像 CSS 邊框一樣。橢圓、圓形與 Pen 路徑四周只畫一種寬度。
+**各邊獨立設定筆畫。** 矩形、圓角方塊、膠囊形或畫板的寬度旁有切換按鈕，可顯示四個寬度：**Top**、**Right**、**Bottom** 與 **Left**。將某側設為 0 即可隱藏該側，不需新增圖形就能製作分隔線或底線。切換按鈕只會顯示或隱藏四個欄位，絕不改變數值。各側寬度不同時，寬度會顯示 **Mixed**；在此輸入寬度可同時設定四邊。每側共用色彩、位置與樣式。圓角會依相鄰側的寬度彎曲，與 CSS 邊框相同。橢圓、圓形與鋼筆路徑則全周使用同一寬度。
 
-各格式如何承載筆畫：
-
-| 格式 | Position | 按邊設定 |
+::: details 各種格式如何保留筆畫
+| 格式 | 位置 | 各邊設定 |
 |---|---|---|
-| SVG、PDF、PNG 與其他圖片 | 精確。Pen 路徑的內側或外側筆畫會畫成兩倍寬，並裁切到輪廓的一側。 | 實線筆畫是精確的，以筆畫外緣與內緣之間的一個形狀呈現。虛線或點線在 SVG 中沿每一邊畫成虛線段，在 PDF 中則為實線。 |
-| Penpot | 內側、置中與外側以 Penpot 的筆畫對齊方式傳遞。畫板一律為 `inner`。 | Penpot 2.19 或更新版本可直接讀取四個寬度。Penpot 2.18 四周都畫上方的寬度，Penpot 2.17 或更早版本會拒絕帶有各邊寬度的檔案。 |
-| PowerPoint | PowerPoint 的線置中於形狀的邊緣。Centre 是精確的；outside 會把形狀向外移動寬度的一半，使 PowerPoint 的線落在方塊外；inside 則保留較舊匯出所寫的置中線。 | 筆畫會變成獨立的形狀（外緣與內緣之間的環），疊在沒有線的形狀上。 |
-| dotLottie | Lottie 的筆畫是置中的，所以外側的方塊筆畫，或內側或外側的 Pen 路徑筆畫，都會被拒絕並附上訊息。 | 被拒絕並附上訊息。 |
+| SVG、PDF、PNG 與其他圖片 | 精確保留。鋼筆路徑的內側或外側筆畫會以兩倍寬度繪製，再裁切至輪廓的一側。 | 實線筆畫會精確保留，成為筆畫外緣與內緣之間的一個圖形。虛線或點線在 SVG 中會沿各邊繪製為虛線，在 PDF 中則為實線。 |
+| Penpot | 內側、置中與外側會作為 Penpot 的筆畫對齊方式傳遞。畫板一律為 `inner`。 | Penpot 2.19 或更新版本原生支援讀取四邊寬度。Penpot 2.18 將頂部寬度用於全周，Penpot 2.17 或更早版本則拒絕開啟含有各邊寬度的檔案。 |
+| PowerPoint | PowerPoint 以圖形邊緣為中心繪製線條。置中可精確保留。外側會將圖形向外擴展半個筆畫寬度，使 PowerPoint 的線條位於方塊外。內側則沿用舊版匯出寫入的置中線條。 | 筆畫會成為獨立圖形（外緣與內緣之間的環），覆在沒有線條的圖形上。 |
+| dotLottie | Lottie 筆畫採置中對齊，因此方塊外側筆畫或鋼筆路徑的內側、外側筆畫都會被拒絕，並顯示訊息。 | 拒絕並顯示訊息。 |
+:::
 
-半透明的置中筆畫，其內側一半會透出頁面而非填色，畫布上與每一種匯出都是如此。匯入 Penpot 檔案時，每個筆畫都保留它的對齊方式與各邊寬度，Figma 檔案的 `strokeAlign` 與個別筆畫粗細也以同樣方式匯入。
+在畫布和所有匯出結果中，半透明的置中筆畫，其內半部透出的是頁面，而非填色。匯入 Penpot 檔案會保留各筆畫的對齊方式與四邊寬度。Figma 檔案的 `strokeAlign` 和各邊筆畫粗細也會一併匯入。
 
+<!--i:eti-box-->
 ## 設計中的 3D 場景與工具
 
-方塊能容納的不只是圖片。下面兩種都保存的是配方而非渲染好的圖片，所以它們會以文件要求的任何大小與時刻重新繪製，而來源的更新會到達每個使用該來源的設計。
+方塊不只能放圖片。3D 場景或工具保存的是生成設定，而非渲染好的圖片，因此方塊可依文件要求的任何尺寸與時間重新繪製。來源更新後，所有使用該來源的設計都會收到更新。
 
 ### 3D 場景
 
-從工具列的新增選單中選擇 **3D scene** 並拖出一個框架：3D Studio 會在新的方塊上開啟，你在那裡設定的內容會回到畫布。之後，Inspector 的 **3D scene** 區段中的 **Edit in 3D Studio** 會重新開啟工作室。[在 Design 中放置場景](/info/3d-studio.html#place-a-scene-in-design)涵蓋海報、時間軸、匯出與分享。
+從工具列的新增選單選擇 **3D scene**，再拖出框架。Lolly 3D Studio 會在新方塊上開啟，其中的設定會帶回畫布。Inspector 的 **3D scene** 區段中，**Edit in 3D Studio** 可重新開啟工作室。[在 Lolly Design 放入場景](/info/3d-studio.html#place-a-scene-in-lolly-design)介紹海報、時間軸、匯出與分享。
 
 ### 設計中的工具
 
-從工具列的新增選單中選擇 **Image**，拖出一個框架，並在選擇器的 **Tools** 分頁挑選一個工具。工具會以其預設值填滿框架，Inspector 會開啟一個 **Tool** 區段，包含該工具自己的控制項。更改欄位後，方塊稍後就會更新，算作一步復原。**Image fit** 與 **Image position** 的作用與任何圖片相同，**Replace with another tool or image** 則會替換方塊的內容。
+從工具列的新增選單選擇 **Image**，拖出框架，再從選擇器的 **Tools** 分頁選取工具。工具會以預設設定填滿框架，Inspector 則開啟包含該工具控制項的 **Tool** 區段。更改欄位後，方塊稍後就會更新，並記為一次復原步驟。**Image fit** 與 **Image position** 的用法與其他圖片相同，**Replace with another tool or image** 則可替換方塊內容。
 
-**會動的工具**在方塊內播放：循環的插圖在畫布上持續循環，時間軸開啟後會跟隨播放頭，並逐格匯出為 GIF、MP4 或 WebM。當工具說明一次循環持續多久時，方塊會得到恰好那麼長的片段，因此影片包含完整的循環。你重新調整過時間的片段會保留你的時間設定，而關閉工具的動態則會讓方塊再次變成靜態圖片。
+**帶有動態的工具**會在方塊內播放。循環插圖會在畫布上循環，開啟時間軸後會跟隨播放頭，並逐格匯出至 GIF、MP4 或 WebM。工具有宣告循環長度時，方塊會取得同樣長度的片段，讓影片包含完整循環。已重新設定時間的片段會保留你的設定。關閉工具的動態效果後，方塊就會變成靜態圖片。
 
+<!--i:eti-film-->
 ## 時間軸（Sequence）
 
-**Sequence** 是 Design 的時間軸：它為畫布加入時間。每個方塊都可以在某個時刻開始、持續一段長度，並淡入淡出，而停靠在畫板下方的時間軸就是安排它們的地方。從 Design 的 **Video** 範本開始時，一段簡短的序列已經就位：序列列上有兩張定時的文字卡，下方有一段程序式生成的背景音樂，所以在你更改任何東西之前，就能看到時間軸如何運作。
+**Sequence** 是 Lolly Design 的時間軸，停駐在畫板下方。每個方塊都能設定開始時間、持續長度，以及進場與退場動畫。
 
-![Sequence 的時間軸：播放控制列、尺標、一條疊加軌道、含片段與接縫標籤的磁性序列列，以及常駐的 Always on 條帶](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
+Lolly Design 的 **Video** 範本以一段簡短序列開始：序列列上有兩張設定時間的文字卡，下方則是程式生成的背景音樂。
 
-有兩種列：
+![Sequence 時間軸：播放控制、尺規、疊加軌道、含片段與接縫晶片的磁性序列列，以及 Always on 橫列](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
 
-- **序列列**具有磁性。片段首尾相接，拖曳其中一個會重新排序，刪除一個會合上空隙。這是主幹。
-- **覆疊軌道**是自由的。下三分之一標題、標誌或字幕以各自的時間浮在主幹上，每個都在自己的軌道。
-- 它們下方，**Always on** 容納沒有時間設定、全程都存在的方塊。晶片上的 `+` 可將其移到軌道上；**Make always on** 則將它送回。
+共有兩種列：
 
-開啟時間軸會把鍵盤交給它，所以 Space 與方向鍵會控制播放頭。已經有時間設定的作品會自動開啟時間軸。
+- **序列列**具有磁性。片段首尾相接，拖曳片段會重新排序，刪除片段則會合攏空隙。這是主幹。
+- **疊加軌道**可自由安排。下三分之一字幕條、標誌或字幕會依各自的時間浮在主幹上方，各佔一條軌道。
+- 下方的 **Always on** 放置未設定時間、全程顯示的方塊。晶片上的 `+` 可將方塊移到軌道，**Make always on** 則移回原處。
 
-**編輯。** 拖曳片段的中間即可移動它，拖曳靠近任一端即可修剪它，按 **Split at playhead**（或 `S`）可將它切成兩段。Split 需要有實際 **Length** 的片段，且播放頭位於其內部稍微往裡一點的位置，所以沒有終點的片段（例如背景音樂）無法分割。**Snap to edges** 預設開啟，會貼齊片段邊緣、播放頭與整數秒；按住 Alt 可不貼齊地拖曳。每次拖曳是一步復原，拖曳時的預覽使用與結果相同的算法。
+時間軸開啟時，Space 與方向鍵可控制播放頭。已有時間設定的合成會自動開啟時間軸。
 
-選取片段後，inspector 以數字提供相同的編輯：**Length**、**Trim in**（片段從來源的多深處開始）、從 ×0.25 到 ×4 的 **Speed**、帶有各自長度的 **Animate in** 與 **Animate out**，以及 **Mute clip**。磁性列上的片段沒有 **Start** 欄位，因為順序由該列決定。
+**編輯。** 拖曳片段中間可移動片段，拖曳任一端附近可修剪片段，按下 **Split at playhead**（或 `S`）可將片段一分為二。分割需要片段已設定 **Length**，而且播放頭要稍微位於片段內，因此沒有固定結束時間的片段（例如背景配樂）無法分割。**Snap to edges** 預設開啟，會貼齊片段邊緣、播放頭與整秒位置。按住 Alt 可在拖曳時不貼齊。每次拖曳算一步復原，拖曳預覽與結果一致。
 
-**轉場**是預設組合：Fade、Pop、Grow、Rise、Drop、四種 Slide、Zoom in 與 out、Tilt、Swoop、Spin、Drift，或 **Cut (no animation)**。距離隨物件縮放，所以同一個預設在滿版卡片與小徽章上看起來都恰當。在序列列上兩個片段之間，**接縫晶片**可選擇 **Cut** 或 **Crossfade**；再次開啟它可設定 **Length (ms)**，並按下 **Done**。在交叉淡化中，第一個片段會在切點之後繼續播放並淡出，同時下一個淡入，預覽與檔案中都一樣。
+選取片段後，Inspector 會以數值提供相同的編輯項目：**Length**、**Trim in**（片段從來源中的哪個時間點開始）、從 ×0.25 到 ×4 的 **Speed**、**Animate in** 與 **Animate out** 及其長度，以及 **Mute clip**。磁吸列上的片段沒有 **Start** 欄位，因為順序由該列決定。
 
-**聲音。** **Audio** 片段與任何其他片段一樣存在於時間軸上，有波形、修剪與靜音。Video 範本生成的背景音樂在匯出時合成，所以它的列在你渲染之前保持單純且無聲。按下麥克風即可直接在時間軸上**錄製旁白**，附有倒數計時與音量表；錄音會以你自己的素材儲存在播放頭的位置。麥克風旁邊的攝影機按鈕以相同方式**錄製影片**，錄製時裁切到畫板，所以同事可以從分享連結加入一段片段。選取任何有聲音的片段，其條列會在時間軸下方開啟，供調整音量、聲像、EQ、音高、正規化，以及 **Voice cleanup** 等效果；序列編輯器指南中的[聲音](/info/sequence-editor.html#sound)涵蓋這個條列。匯出面板的 **Audio track** 是獨立的：整個片段下方的一段背景音，附有淡出和閃避。
+**Transitions** 提供預設效果：Fade、Pop、Grow、Rise、Drop、四種 Slides、Zoom in 與 Zoom out、Tilt、Swoop、Spin、Drift 或 **Cut (no animation)**。距離會隨物件縮放，因此同一個預設效果可用於滿版卡片與小徽章。在序列列的兩個片段之間，**接縫晶片**可選擇 **Cut** 或 **Crossfade**。再次開啟晶片以設定 **Length (ms)**，然後按下 **Done**。交叉淡化時，第一個片段會在剪接點之後繼續播放並淡出，同時下一個片段淡入，預覽與檔案都如此。
 
-![選取音樂片段的時間軸：底部控制條依序是速度、淡化、音量、平移、EQ、音高、正規化音量與效果插槽](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+**聲音。** **Audio** 片段會顯示在時間軸上，附有波形、修剪與靜音控制項。Video 範本產生的背景配樂會在匯出時合成，因此在渲染之前，其長條沒有波形，也不會發聲。按下麥克風可在時間軸上**錄製旁白**，並有倒數拍與音量表。錄音會儲存為你自己的素材，放在播放頭位置。麥克風旁的攝影機按鈕以相同方式**錄製影片**，裁切至畫板範圍，因此同事可從共用連結加入片段。選取有聲音的片段，即可在時間軸下方開啟其控制列，調整音量、聲像、EQ、音高、正規化，以及 **Voice cleanup** 等效果。序列編輯器指南中的[聲音](/info/sequence-editor.html#sound)說明了這個控制列。匯出面板的 **Audio track** 是獨立的：在整段片段下方放置一段背景配樂，提供淡入淡出與閃避效果。
 
-**渲染。** 動態匯出會在精確的時間點繪製、解碼並編碼每一格影格，因此檔案不取決於你的機器能否跟得上，而 MP4 與 WebM 沒有實際的影格上限。除非你輸入長度，否則時間軸的長度決定時長，Content Credentials 的蓋印方式與任何其他匯出相同。靜態匯出會給出播放頭位置的影格，或依 **Frames** 欄位產生的接觸印樣；請見[定時作品的靜態影像](/info/exporting.html#stills-from-a-timed-composition)。序列的上限為一小時。GIF 與動態 PNG 會將每一格影格保存在記憶體中，所以適合短片段。**Record live** 在此隱藏，因為逐格渲染是更好的路徑。
+![選取配樂片段的時間軸：其控制列沿底部排列，包含 Speed、Fades、Volume、Pan、EQ、Pitch、Normalize volume 與 Effect 欄位](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Czzfxm%25253A7%25253Alofi%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
 
-**關鍵影格、景深與攝影機。** 轉場會在片段進入和離開時為其製作動畫。若要在片段內為方塊擺姿勢（漂移、淡化、模糊、將它從頁面抬起再放回），請選取片段並按 **+Keyframe**：時間軸工具中的菱形、畫布物件列上的菱形，或在時間軸取得焦點時按 **Shift+K**。播放頭的位置決定你的下一次編輯寫入哪個姿勢。同樣的關鍵影格讓定時作品得到推進、平移與拉焦的攝影機。[動畫製作](/info/animating.html)是完整指南，[序列編輯器](/info/sequence-editor.html)則涵蓋選取、洋蔥皮、分割、修剪與標記。
+**渲染。** 動態匯出會在精確的時間點繪製、解碼並編碼每個影格，因此檔案不受電腦速度影響。MP4 與 WebM 沒有實際的影格數限制。除非你自行輸入時長，否則時長由時間軸長度決定。Content Credentials 會如其他匯出一樣加上。靜態匯出會取得播放頭所在的影格，或透過 **Frames** 欄位產生接觸印樣；請見[從計時合成中擷取靜態畫面](/info/exporting.html#stills-from-a-timed-composition)。序列上限為一小時。GIF 與動態 PNG 會將每個影格保留在記憶體中，因此適合短片段。這裡會隱藏 **Record live**，改用逐格渲染。
 
+**關鍵影格、深度與攝影機。** 轉場會在片段進場與離場時為其加上動畫。若要在片段內設定方塊的姿態（飄移、淡化、模糊、從頁面浮起再落回），請選取片段並按下 **+Keyframe**：時間軸工具中的菱形、畫布物件列上的菱形，或在時間軸取得焦點時按 **Shift+K**。播放頭位置決定下一次編輯會寫入哪個姿態。同一組關鍵影格也能為計時合成提供可推近、平移與轉移焦點的攝影機。緩動可以是[彈簧](/info/animating.html#springs)或設計系統定義的曲線，拖曳位置關鍵影格的把手則可讓畫布上的[動態路徑](/info/animating.html#edit-the-motion-path)彎曲。[製作動畫](/info/animating.html)是完整指南，而[序列編輯器](/info/sequence-editor.html)涵蓋選取、洋蔥皮、分割、修剪與標記。
+
+<!--i:eti-checklist-->
 ## 匯出之前
 
-Design 會在你送出檔案之前檢查你的文件。Inspector 的 **Document** 區段中以及匯出面板裡的 **Before you export** 卡片，會讀取儲存的圖層結構，然後查看穩定下來的畫布，檢查被裁切的文字與純色對比。它會詢問與 SVG 和 PDF 轉外框所用相同的字型註冊處，每個文字區段是否有可以嵌入的字型位元組。圖片與漸層背景會列為目視檢查，而不是給出捏造的對比分數。
+送出檔案之前，**Before you export** 卡片會先檢查文件。卡片顯示於 Inspector 的 **Document** 區段與匯出面板。
 
-### 對照設計系統檢查作品
+卡片會讀取已儲存的圖層結構，然後檢查渲染完成的畫布，找出被截斷的文字與純色對比問題。卡片會查詢用於 SVG 與 PDF 轉外框的字型登錄表，確認每個文字片段是否都有可嵌入的字型資料。匯出時由[備用字型](/info/fallback-fonts.html)繪製的文字視為已涵蓋。沒有備用字型的文字系統，或超出這些字型字集的中文、日文或韓文字元，仍會被列出。圖片與漸層背景會列為目視檢查項目，不會編造對比分數。
 
-匯出面板的卡片也會以渲染所用的相同設計系統版本，將作品與你的設計系統比較。它檢視自行設定的色彩、token 別名、字型選擇與圖片素材 ID。自訂值可能是刻意的，而宣告的品牌素材之外的圖片屬於審閱項目，並非被禁止的圖片。
+### 依設計系統檢查構圖
 
-在有具體色彩或字型建議之處，其按鈕會更改那一個圖層，**Undo** 則還原原樣。鎖定或之後已更改的圖層絕不會被舊的建議覆寫。漸層、效果、巢狀工具內容、權利與主觀品質不在這項比較範圍內，也沒有任何檢查會阻止 Download。
+匯出面板的卡片也會將構圖與設計系統比較，使用與渲染相同的設計系統版本。它會檢查設定的色彩、token 別名、字型選擇與圖片素材 id。自訂值可能是刻意設定的，而不在宣告品牌素材中的圖片是待審閱項目，不是禁止使用的圖片。
 
-### 內部規範與寫作訊號
+有色彩或字型建議時，其按鈕會變更該圖層，而 **Undo** 可還原原貌。舊建議絕不會覆寫已鎖定或之後已變更的圖層。比較不包含漸層、效果、巢狀工具內容、權利與主觀品質。任何檢查都不會阻止 Download。
 
-匯出面板的卡片也會逐層檢查你的設計系統所帶來的內部規範，例如文字粗細與對齊、核准的色彩搭配，或每個介面的標誌。每個發現都是一則警告，規則上方有圖層名稱。這個建置版本沒有檢查器的規則會列為未檢查，絕不會標示為已遵守。[Rules](/info/brand-studio.html#rules) 列出這些規則，`lolly check` 則對已儲存的文件套用相同的規則。
+### 組織規則與寫作訊號
 
-同一張卡片還會顯示文件所繪文字的寫作訊號：它的等級（無、弱、明顯或強），接著是 Verify 自己的句子，附上滿分 100 的分數以及最多三個被標記的片語，每個都附有包含它們的圖層。**Open the text in Verify** 會將該文字帶到 [Lolly Verify](/#/verify) 進行完整解讀；[Verify 中的 AI 證據](/info/verify-ai-evidence.html)說明分數衡量什麼。分數是訊號而非定論：它計算生成式寫作中常見的模式，無法分辨是誰寫了這些文字。隱藏的圖層不在兩項檢查之內，卡片會說明有多少個。
+匯出面板的卡片也會逐一檢查圖層是否符合設計系統中的組織規則，例如文字粗細與對齊、核准的配色組合，或每個版面都要有標誌。每項結果會在規則上方顯示圖層名稱。不符必要規則的結果會顯示警告，不符建議規則的則顯示備註。標誌相關結果會列出目錄中各個標誌的名稱。這個建置版本沒有檢查器的規則會列為未檢查，絕不會列為已遵守。[規則](/info/brand-studio.html#rules)列出各項規則，而 `lolly check` 會對已儲存的文件套用相同規則。在 Lolly Work 合作夥伴計畫中，卡片也會依合作公司的[合作夥伴套件](/info/manage/partner-programmes.html#partner-kits)檢查其標誌，並說明有哪些項目無法評估。
 
-內部規範的發現與強烈的寫作訊號會計入卡片的「待修正」總數，方便找到。它們只提供資訊，絕不阻擋：Download 仍可使用，也沒有任何東西需要忽略或記錄為例外。在開啟的文件中工作的代理，會透過其網站工具取得相同的報告（[開啟文件中的代理](/info/open-document-agents.html)）。
+同一張卡片會顯示文件所繪製文字的寫作訊號：先列出等級（無、微弱、明顯或強烈），接著是 Lolly Verify 的說明句，包含滿分 100 的分數，以及最多三個標記詞句，每個詞句都附有所屬圖層。**Open the text in Verify** 會把這段文字帶到 [Lolly Verify](/#/verify)，以查看完整分析。[Lolly Verify 中的 AI 證據](/info/verify-ai-evidence.html)說明分數衡量的內容。分數是訊號，不是定論。分數統計生成文字中常見的模式，無法判斷文字由誰撰寫。兩項檢查都會略過隱藏圖層，而卡片會說明略過多少個。
 
-當你開啟 **Settings → Feature flags → Print preflight** 時，列印檢查（出血、解析度、油墨覆蓋量與色版數量）會加入同一張卡片。在其他工具中，這個旗標決定卡片是否顯示；[匯出檔案](/info/exporting.html)說明了列印檢查。
+不符必要組織規則的結果與強烈的寫作訊號會計入卡片的「待修正」總數。建議規則的結果則列為須知事項。結果絕不會阻擋操作：Download 維持可用，也沒有任何項目需要略過或記錄為例外。在已開啟文件中工作的代理程式會透過網站工具取得相同報告（[已開啟文件中的代理程式](/info/open-document-agents.html)）。
 
-## 簡報播放
+::: note 印刷檢查需要功能旗標
+開啟 **Settings → Feature flags → Print preflight** 後，印刷檢查（出血、解析度、油墨覆蓋率與版數）會加入同一張卡片。在其他工具中，只有開啟該旗標才會顯示卡片。[匯出檔案](/info/exporting.html)說明了印刷檢查。
+:::
 
-由畫板組成的 Design 文件本身就是一份簡報。按下頂端列的 **Present**，每個畫板都會依其在畫布上的排列順序，成為一張全螢幕投影片。在文件的 **Design outcome** 設為 **Slides** 之前，按鈕顯示為 **Preview**。簡報在已渲染畫板的副本上執行，所以離開時會把你放回原本的位置。
+<!--i:eti-monitor-->
+## 播放簡報
 
-**Present** 旁的箭頭會開啟 **Present from this slide**、**Speaker view**、**Present with camera**、**Narrate**、**Auto-advance slides**、**Loop the deck (kiosk)** 與 **Export slides as video**。
+由畫板組成的 Lolly Design 文件就是一份簡報。按下頂端列的 **Present**，每個畫板就會成為全螢幕投影片，順序依畫板在畫布上的排列。
+
+文件的 **Design outcome** 設為 **Slides** 之前，按鈕會顯示 **Preview**。簡報以已渲染畫板的副本播放，因此離開後會回到原本的位置。
+
+按下 **Present** 旁的箭頭，可開啟 **Present from this slide**、**Speaker view**、**Present with camera**、**Narrate**、**Auto-advance slides**、**Loop the deck (kiosk)** 與 **Export slides as video**。
 
 | 按鍵 | 作用 |
 |---|---|
-| **Space**、`→`、**Page Down** | 下一步或下一張投影片（或點擊右緣的條） |
-| `←`、**Page Up** | 返回（或點擊左緣的條） |
+| **Space**、`→`、**Page Down** | 下一步或下一張投影片（或點擊右邊緣的長條） |
+| `←`、**Page Up** | 返回（或點擊左邊緣的長條） |
 | **Home**、**End** | 第一張或最後一張投影片 |
-| `O` | 總覽：依你畫布排列方式呈現的每個畫板；點擊一個即可開啟 |
-| `S` | 講者檢視：在第二個視窗中顯示目前投影片、下一張投影片、備忘稿與時鐘 |
-| `B` | 黑畫面；按任何鍵即可讓投影片回來 |
+| `O` | 總覽：依畫布上的排列顯示每個畫板；點擊其中一個即可開啟 |
+| `S` | 講者檢視：在第二個視窗中顯示目前投影片、下一張投影片、備註與時鐘 |
+| `B` | 黑畫面；按任意鍵恢復投影片 |
 | `F` | 回到全螢幕 |
-| `K` | 暫停或重新啟動資訊亭簡報 |
-| **Escape** | 剝開一層：總覽回到簡報，簡報回到編輯器 |
+| `K` | 暫停或重新啟動自動循環簡報 |
+| **Escape** | 返回上一層：從總覽回簡報，從簡報回編輯器 |
 
-移動指標時，會淡入一個小型控制列，停止時又會隱藏。如果瀏覽器封鎖講者彈出視窗，講者檢視會以面板形式開在簡報上方。備忘稿屬於每個畫板，絕不會出現在投影片上。
+移動指標時會顯示小型控制列，停止時則隱藏。如果瀏覽器阻擋講者彈出視窗，講者檢視會改為在簡報上方的面板中開啟。備註屬於各個畫板，絕不會顯示在投影片上。
 
-- **逐步顯示。** 在方塊上按右鍵並選擇 **Reveal at step 1**、**2** 或 **3**，而非 **Always visible**，方塊就會等到你前進到它的步驟才出現。共用同一個數字的方塊會一起出現。
-- **資訊亭。** 為畫板設定 **Length**，簡報就會在那裡停留那麼久，然後在細細的進度條後方前進。在連結中加入 `kiosk`，簡報就會在結尾處繞回開頭，適合數位看板。
-- **子投影片堆疊。** 在畫板上按右鍵並選擇 **Stack under the previous slide**，讓它成為上一張投影片的一個步驟。總覽顯示一張卡片，而 inspector 的 **Stack** 列會說明該畫板屬於哪張投影片。
-- **Morph。** 當連續的投影片都有名稱相同的 **Morph match** 方塊（例如 `hero`）時，轉場會移動、調整大小並重新著色該方塊，而不是直接切換。簡報範圍的 **Morph** 轉場會對每一對相符的方塊做同樣的事。
-- **旁白。** 每個畫板的 **Speaker notes** 都可以朗讀。在 Inspector 的 **Document** 區段中選擇 **Voice**，可選擇第二個聲音來 **Blend with**，以及 **Speed**、以毫秒計的 **Lead-in** 與 **Tail**；**Show captions when presenting** 會在說出文字時顯示字幕。聲音在你的裝置上執行，同樣的備忘稿會成為影片匯出的配樂、PowerPoint 匯出中的投影片音訊，以及 [SCORM 套件](/info/create/exporting.html#scorm-course-packages)中的旁白影片。
+在觸控螢幕上，向左滑動可前往下一步或下一張投影片，向右滑動則返回。**Slide** 或 **Fade** 轉場會跟隨手指，並在放開時完成。**Cut**、**Morph** 或 **Fly between artboards** 轉場會在放開時完整播放。短而慢的滑動不會改變任何內容。網頁方塊、影片控制項、可捲動的方塊與選取的文字保留自己的手勢，因此滑動切換絕不會從這些項目上開始。垂直捲動與雙指縮放照常運作。開啟減少動態效果時，投影片仍會切換，但不會跟隨手指。
 
-簡報也是一個連結。`?present` 會直接開啟簡報，`s=` 選擇投影片（位置、畫板 ID，或表示建置步驟的 `id.step`），而位址會跟著你，所以你送出的就是你所在的那張投影片。[保留的 URL 參數](/info/url-parameters.html#what-happens-on-open)有詳細文件。
+- **逐步顯示。** 在方塊上按右鍵，選擇 **Reveal at step 1**、**2** 或 **3**，取代 **Always visible**。前進到該步驟時，方塊就會出現。編號相同的方塊會一起出現。
+- **自動循環播放。** 為畫板設定 **Length**，簡報就會停留這段時間，顯示細進度列，然後前進。在連結加入 `kiosk` 可讓簡報結束後循環播放，供看板使用。
+- **子投影片堆疊。** 在畫板上按右鍵，選擇 **Stack under the previous slide**，將它設為該投影片的一個步驟。總覽會顯示一張卡片，Inspector 的 **Stack** 列會說明畫板屬於哪張投影片。
+- **變形。** 相鄰投影片都含有 **Morph match** 名稱相同（例如 `hero`）的方塊時，轉場會移動方塊、調整大小並改變顏色，而非直接切換。套用整份簡報的 **Morph** 轉場會對每對相符的方塊進行相同處理。
+- **旁白。** 每個畫板的 **Speaker notes** 都可以朗讀。在 Inspector 的 **Document** 區段中選擇 **Voice**，可選擇第二個聲音作為 **Blend with**，再設定 **Speed**，以及以毫秒為單位的 **Lead-in** 與 **Tail**。**Show captions when presenting** 會在朗讀時顯示文字。語音在你的裝置上執行。同一份備註會成為影片匯出的配音、PowerPoint 匯出的投影片音訊，以及 [SCORM 套件](/info/create/exporting.html#scorm-course-packages)中帶有旁白的影片。
 
-**Present with camera** 會把你的攝影機、標誌與姓名字幕疊在投影片上，並附有私人控制項與儲存的場景；請見[用攝影機簡報](/info/presenting.html)。在演講期間，當你在 **Web page** 方塊的 inspector 中開啟 **Make interactive** 時，它可以接管遙控器：在其 **Focus on click** 步驟，Up 和 Down 控制頁面，Next 則繼續簡報。[由遙控器操作的即時頁面](/info/interactive-pages.html)涵蓋焦點樣式、捲動停點與網站核准。
+簡報也是一個連結。`?present` 會開啟簡報，`s=` 則選擇投影片：可指定位置、畫板 id，或以 `id.step` 指定顯示步驟。位址會隨目前投影片更新，因此你送出的連結會開啟該張投影片。[保留的 URL 參數](/info/url-parameters.html#what-happens-on-open)記載了兩者。
 
-## 接下來往哪裡走
+**Present with camera** 會將你的攝影機畫面、標誌與姓名字幕放在投影片上方，提供私人控制項與已儲存場景；請見[使用攝影機播放簡報](/info/presenting.html)。在 **Web page** 方塊的 Inspector 中開啟 **Make interactive** 後，該方塊就能在演講期間接收簡報遙控器的操作。到達其 **Focus on click** 步驟時，Up 與 Down 會控制頁面，而 Next 會繼續簡報。[可由簡報遙控器操作的即時頁面](/info/interactive-pages.html)涵蓋焦點樣式、捲動停留點與網站核准。
 
-- **[Design 中的文字](/info/text-composition.html)**：在畫布上編輯文字、讓文章流經框架，以及字體排印。
-- **[動畫製作](/info/animating.html)**：關鍵影格、景深、場景攝影機與 Lift 圖層。
-- **[匯入設計](/info/design-import.html)**：將 Figma、Penpot、Illustrator 或 InDesign 檔案開啟為可編輯的方塊。
-- **[分享附規則的設計](/info/create-a-tool.html)**：將 Design 文件變成只含你所選輸入的工具。
-- **[匯出檔案](/info/exporting.html)**：格式、大小、列印單位與影片。
+<!--i:eti-map-pin-->
+## 接下來看什麼
+
+- **[Lolly Design 中的文字](/info/text-composition.html)**：在畫布上編輯文字、讓文章在框架之間流動，以及字體排印。
+- **[製作動畫](/info/animating.html)**：關鍵影格、深度、場景攝影機與 Lift 圖層。
+- **[Lolly Chart](/info/chart.html)**：將表格繪製為向量、統計、3-D 或電影風格的圖表，像其他工具一樣放在方塊中。
+- **[匯入設計](/info/design-import.html)**：將 Figma、Penpot、Illustrator、InDesign、Affinity 與 DXF 檔案開啟為可編輯的方塊，並將剪輯時間軸開啟為序列。
+- **[分享附有規則的設計](/info/create-a-tool.html)**：將 Lolly Design 文件轉為只含你選定輸入的工具。
+- **[匯出檔案](/info/exporting.html)**：格式、尺寸、列印單位與影片。

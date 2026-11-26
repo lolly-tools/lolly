@@ -43,12 +43,26 @@
  * keyed by origin, so it is never offered to another origin. Anything able to write
  * there already runs as this origin.
  *
- * PAIRING, LATER. Plan 324 section 8 pairs the desktop and mobile apps with a home
- * server by QR code. The code can carry this key's keyId beside the certificate
- * fingerprint, and a paired app would then call {@link resolveInstanceCatalogKey}
- * against the instance with `expectedKeyId` set, so the network can supply the key
- * but never choose the key. Until then {@link instanceKeyAllowed} keeps those apps on
- * their build-time key.
+ * THE APPS, AND AN INSTANCE THE PERSON CONNECTED. The desktop and mobile apps have no
+ * origin in common with an instance, so rule 1 gives them nothing, and an app pointed
+ * at a Work instance used to refuse that instance's catalog and show only the tools
+ * built into the app. An app may now use one more key: the key whose id the person
+ * accepted when they connected the app to that instance in Settings
+ * (components/instance-sheet.ts shows the id before the choice is saved, and
+ * lib/instance.ts keeps the id beside the instance's address). On each load the app
+ * asks the instance for its key document with `expectedKeyId` set to the accepted id
+ * ({@link connectedInstanceKeyId}), so the network can supply the key but never choose
+ * the key: a different key is refused, the catalog is refused with it, and the person
+ * is asked to connect again. The saved copy is kept per instance origin, as in a
+ * browser, so the catalog accepted earlier still verifies offline.
+ *
+ * What this trusts: the instance's TLS certificate at the moment of connecting, and the
+ * person's decision to connect. A person who connects an app to a server already
+ * agrees to run that server's tools; without this key those tools did not arrive.
+ *
+ * PAIRING, LATER. Plan 324 section 8 pairs the apps with a home server by QR code. The
+ * code can carry the keyId beside the certificate fingerprint, and would set the same
+ * accepted id with no question asked on the device.
  */
 import { jwkThumbprint } from '../../../../engine/src/catalog-integrity.ts';
 
@@ -105,6 +119,16 @@ export function instanceKeyAllowed(env: InstanceKeyEnvironment): boolean {
   if (env.tauri || !env.pageOrigin || !/^https?:\/\//.test(env.pageOrigin)) return false;
   if (!env.instanceBase) return true;
   try { return new URL(env.instanceBase).origin === env.pageOrigin; } catch { return false; }
+}
+
+/**
+ * The key id an app may accept from the instance it is connected to, or '' for none:
+ * inside the desktop or mobile app, with an https instance on another origin, and only
+ * the id the person accepted for that instance. Anything else keeps the build-time key.
+ */
+export function connectedInstanceKeyId(env: InstanceKeyEnvironment & { acceptedKeyId: string }): string {
+  if (!env.tauri || !env.instanceBase || !BASE64URL_32.test(env.acceptedKeyId)) return '';
+  try { return new URL(env.instanceBase).protocol === 'https:' ? env.acceptedKeyId : ''; } catch { return ''; }
 }
 
 /** Validate a document or a saved record down to its four public members. */
@@ -168,6 +192,21 @@ async function ask(io: InstanceKeyIO): Promise<Answer> {
   } catch {
     return { kind: 'unanswered' };
   }
+}
+
+/**
+ * The id of the key an instance says it signs its catalog with, or '' when it serves
+ * none or does not answer. For the connect step, which shows the id to the person
+ * before they choose the instance; nothing is saved here. Never throws.
+ */
+export async function askInstanceKeyId(base: string, fetcher: InstanceKeyIO['fetch'], timeoutMs?: number): Promise<string> {
+  const answer = await ask({ origin: base, fetch: fetcher, load: async () => null, save: async () => {}, forget: async () => {}, ...(timeoutMs ? { timeoutMs } : {}) });
+  return answer.kind === 'key' ? answer.keyId : '';
+}
+
+/** A key id as a person can compare one: the first sixteen characters in fours. */
+export function shortKeyId(keyId: string): string {
+  return (keyId.slice(0, 16).match(/.{1,4}/g) ?? []).join(' ');
 }
 
 /**

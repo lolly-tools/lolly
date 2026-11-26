@@ -1,90 +1,100 @@
 # Använd Lolly i din organisation
 
-Din organisation kan driva sin egen Lolly: samma app, med de verktyg och designsystem den valt. Den här sidan visar hur du når den, loggar in och vad som ändras när du gjort det.
+Din organisation kan köra sin egen Lolly: samma app, med de verktyg och designsystem den valt. Läs om hur du når den, loggar in och vad som ändras.
+
+När ni planerar organisationens upplägg förklarar [Använd Lolly med ert befintliga DAM](/info/use-with-dam.html) hur ett godkänt bibliotek kan ligga kvar medan användarna skapar innehåll i Lolly. [Innehållssuveränitet](/info/content-sovereignty.html) beskriver den bredare kontrollen över skapande, styrning, lagring och portabilitet.
 
 ::: note Vad du behöver från din organisation
-Webbadressen till dess Lolly, eller en `.lolly`-installationsfil din organisation har gjort. lolly.tools i sig ansluter inte till någon organisation.
+Webbadressen till organisationens Lolly, eller en konfigurationsfil i formatet `.lolly` som organisationen har skapat. lolly.tools ansluter inte till någon organisation på egen hand.
 :::
 
+<!--i:eti-globe-->
 ## I en webbläsare
 
-Öppna adressen som din organisation gav dig. Om sidan ber dig logga in trycker du på **Sign in** och följer inloggningssidan den öppnar. Därefter fungerar det som vilken Lolly som helst, med din organisations verktyg och designsystem.
+Öppna adressen du fått av din organisation. Om sidan ber dig logga in trycker du på **Sign in** och följer inloggningssidan som öppnas. Därefter fungerar Lolly som vanligt, med organisationens verktyg och designsystem.
 
-Du kan också börja från lolly.tools: öppna **Settings**, och på kortet **Lolly instance** trycker du på **Open a workspace**, anger adressen och trycker på **Open this instance**. Webbläsaren går till din organisations egen adress, eftersom en webbläsare inte kan ladda en annan Lollys verktyg från lolly.tools.
+Du kan också börja på lolly.tools: öppna vyn **Settings**, tryck på **Open a workspace** på kortet **Lolly instance**, ange adressen och tryck på **Open this instance**. Webbläsaren går till organisationens egen adress, eftersom en webbläsare inte kan läsa in verktyg från en annan Lolly på lolly.tools.
 
-![Kortet Lolly instance i Settings, där du öppnar din organisations arbetsyta eller ändrar var appen hämtar sina verktyg](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
+![Kortet Lolly instance i Settings, där du öppnar organisationens arbetsyta eller ändrar var appen hämtar sina verktyg](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
-## I skrivbords- eller mobilappen
+<!--i:eti-monitor-->
+## I dator- eller mobilappen
 
-Appen startar med sina medföljande verktyg. För att ansluta öppnar du **Settings** och trycker på **Change** på kortet **Lolly instance**. Dialogen frågar **Where should Lolly get its tools?**
+Appen startar med de medföljande verktygen. För att ansluta öppnar du vyn **Settings** och trycker på **Change** på kortet **Lolly instance**. Panelen frågar **Where should Lolly get its tools?**
 
-1. Välj **Anslut till en Lolly-instans**.
-2. Ange din organisations webbadress och tryck på **Kontrollera och anslut**.
-3. Tryck på **Använd den här instansen**. Nästa skärm, **Importera dina data (valfritt)**, för över sparat arbete från en Lolly-säkerhetskopia; tryck på **Hoppa över** om du inte har någon.
-4. Logga in om appen frågar.
+1. Välj **Connect to a Lolly instance**.
+2. Ange organisationens webbadress och tryck på **Check & connect**.
+3. Tryck på **Use this instance**. Nästa skärm, **Import your data (optional)**, för över sparat arbete från en Lolly-säkerhetskopia. Tryck på **Skip** om du inte har någon.
+4. Logga in om appen ber om det.
 
-Verktyg från en ansluten instans körs med samma tillit som appens egna, så anslut bara till en du litar på. Din organisation kan i stället skicka dig en `.lolly`-installationsfil som ansluter appen åt dig.
+Verktyg från en ansluten instans körs med samma förtroende som appens egna, så anslut bara till en instans du litar på. Din organisation kan i stället skicka en konfigurationsfil i formatet `.lolly` som ansluter appen åt dig.
 
-För att byta senare använder du **Change** igen, eller **Leave** på samma kort.
+Om du vill byta senare använder du **Change** igen, eller **Leave** på samma kort.
 
 ### Logga in med en kod
 
-I dator- och mobilapparna erbjuder inloggningsskärmen också en kort kod, när din organisations Lolly stöder kodinloggning. Tryck på **Open sign-in in browser**, logga in och godkänn koden där. Eller öppna adressen den visar på en telefon eller dator där du redan är inloggad, och ange koden. Koden gäller i ungefär tio minuter.
+I dator- och mobilapparna erbjuder inloggningsskärmen också en kort kod när organisationens Lolly stöder kodinloggning. Tryck på **Open sign-in in browser**, logga in och godkänn koden där. Eller öppna adressen som visas på skärmen på en telefon eller dator där du redan är inloggad och ange koden. Koden gäller i ungefär tio minuter.
 
+<!--i:eti-sliders-->
 ## Vad som är annorlunda där
 
-- **Vissa kontroller är inställda åt dig.** En kontroll som din organisation styr visar **Managed by** och organisationens namn, eller **Managed by your organisation**. En fast kontroll kan inte ändras, en meny kan bara erbjuda några av sina val, och en rad som börjar med **Set by** kan säga vilken regel som gäller och varför. Vissa kontroller visas inte alls.
-- **Vissa designsystem är låsta.** Ett designsystem som din organisation tillhandahåller visar ett lås och förblir skrivskyddat. För att prova ändringar gör du en redigerbar kopia i **Settings → Preferences → Design systems**.
-- **Bara dess verktyg listas.** Ett verktyg som din organisation inte erbjuder visas inte alls.
-- **Delade projekt.** Om din organisation delar projekt med dig visar **Projects** en ruta **Team projects**. Dessa sessioner finns på organisationens server. Öppna en för att arbeta med den, eller starta en [arbetscollab](/info/collaborate.html#work-collabs-with-lolly-work-optional) från **Share** när det går.
-- **Vissa exporter kan kräva godkännande.** Där din organisation ber om godkännande tar **Request approval** platsen för **Download**, och ett verktyg kan erbjuda färre format.
+- **Vissa kontroller är inställda åt dig.** En kontroll som organisationen styr visar **Managed by** och organisationens namn, eller **Managed by your organisation**. En låst kontroll går inte att ändra, och en meny kanske bara erbjuder en del av sina val. Vissa kontroller är dolda. Organisationens konsol registrerar vilken regel som låste en kontroll och varför. Fråga den som sköter organisationens Lolly.
+- **Vissa designsystem är låsta.** Ett designsystem som organisationen tillhandahåller visas med ett lås och är skrivskyddat. Skapa en redigerbar kopia i **Settings → Preferences → Design systems** för att prova ändringar.
+- **Bara organisationens verktyg listas.** Ett verktyg som organisationen inte erbjuder visas inte.
+- **Delade projekt.** Om organisationen delar projekt med dig visar **Projects** en ruta med **Team projects**. Dessa sessioner finns på organisationens server. Öppna en för att arbeta med den, eller starta en [arbetscollab](/info/collaborate.html#collabs-through-lolly-work-optional) från **Share** när det är tillgängligt.
+- **Vissa exporter kan kräva godkännande.** När organisationen kräver godkännande ersätter **Request approval** knappen **Download**, och ett verktyg kan erbjuda färre format.
+- **Din startskärm kan öppnas med mallar.** Om organisationen publicerar mallar för dig, till exempel för ett partnerföretag, öppnas startskärmen med dem i stället för hälsningen vid första besöket. Varje mall är ett kort, med **Your copy** för att fortsätta och **New version** när mallen ändras. Se [Partnermallar](/info/work-partner-templates.html).
 
-### Vad som stannar var
+### Vad stannar var
 
 ::: cols
 ## På den här enheten
 
-- Dina egna sparade filer, om du inte slår på [Sync](/info/sync.html)
-- Designsystem som du gjort själv
-- Allt du gör och laddar ner
+- Det du själv sparar, om du inte slår på [Sync](/info/sync.html)
+- Designsystem som du har skapat själv
+- Allt du skapar och laddar ner
 
-## På din organisations server
+## På organisationens server
 
 - Din inloggningsidentitet och enhetsinformation
-- Teamprojekt, delade sessioner och live-ändringar i en arbetscollab
-- Tillgångar du laddar upp till det delade biblioteket
-- Godkännandebegäranden och godkända leveranser
-- Användningshändelser, där din organisation slår på dem
+- Teamprojekt, delade sessioner och ändringar i realtid i en arbetscollab
+- Tillgångar som du laddar upp till det delade biblioteket
+- Begäranden om godkännande och godkända leveranser
+- En logg över dina inloggningar och vad du gör där
 :::
 
-[Integritet](/info/privacy.html#organisation-services-with-lolly-work) listar vad servern lagrar och vem som styr de data.
+När en arbetsyta är ansluten säger integritetsraden på appens första skärm samma sak. Lollys egna appar skickar inga användningshändelser till arbetsytan. [Integritet](/info/privacy.html#organisation-services-with-lolly-work) listar vad servern lagrar och vem som styr över dessa data.
 
+<!--i:eti-building-->
 ## Vad Lolly Work tillför
 
-Din organisations server kör **Lolly Work**, organisationsprogramvaran i samma projekt med öppen källkod. Appen behöver varken ett arbetskonto eller Lolly Work när du använder den på egen hand.
+Organisationens server kör **Lolly Work**, organisationsprogramvaran från samma projekt med öppen källkod. Appen behöver varken ett jobbkonto eller Lolly Work när du använder den på egen hand.
 
 ::: details Vad Lolly Work kan tillföra
-Din organisation driver [Lolly Work](https://github.com/lolly-tools/lolly-work) vid sidan av Lolly och väljer vilka funktioner som slås på:
+Din organisation är värd för [Lolly Work](https://github.com/lolly-tools/lolly-work) tillsammans med Lolly och väljer vilka funktioner som ska aktiveras:
 
-- **Inloggning och åtkomst.** Enkel inloggning för organisationen, gruppbaserade behörigheter och hanterade profilfält. Administratörer kan provisionera och avaktivera konton via SCIM.
-- **Delat arbete.** Teamprojekt, delade sessioner och [arbetscollabs](/info/collaborate.html#work-collabs-with-lolly-work-optional), med redigering i realtid via organisationens server.
+- **Inloggning och åtkomst.** Organisationens enkelinloggning, gruppbaserade behörigheter och hanterade profilfält. Administratörer kan skapa och inaktivera konton via SCIM.
+- **Delat arbete.** Teamprojekt, delade sessioner och [arbetscollabs](/info/collaborate.html#collabs-through-lolly-work-optional), med redigering i realtid via organisationens server.
 - **Ett delat tillgångsbibliotek.** Uppladdade tillgångar, samlingar och anslutna bibliotek, med åtkomstregler, versioner och granskning.
-- **Granskning och leverans.** Godkännandesteg, hanterade länkar med utgångsdatum eller återkallelse, och leverans till destinationer som organisationen tillåter.
-- **Administration.** Användningsrapportering enligt instansens telemetripolicy, plus en granskningspost över styrda åtgärder.
-
-Om du sätter upp tjänsten, börja med [Deployment](/info/deployment.html#organisation-services-with-lolly-work). Den publika demon på [lolly.work](https://lolly.work) är en sandlåda; använd din organisations egen adress för arbete du behöver behålla.
+- **Granskning och leverans.** Godkännandesteg, hanterade länkar med utgångstid eller återkallning och leverans till destinationer som organisationen tillåter.
+- **Administration.** En granskningspost över styrda åtgärder och användningsrapportering enligt instansens telemetripolicy för klienter som skickar användningshändelser. Lollys egna appar skickar inga i dag.
 :::
 
+Börja med [Driftsättning](/info/deployment.html#organisation-services-with-lolly-work) för att konfigurera tjänsten. Den offentliga demon på [lolly.work](https://lolly.work) är en sandlåda. Använd organisationens egen adress för arbete du behöver behålla.
+
+<!--i:eti-palette-->
 ## En annan organisations varumärke
 
-En partner, kund eller sponsor kan skicka dig sitt varumärke som en designsystemfil (`.lolly`) i stället för en adress. Att öppna en sådan fil kopplar appen till ingenting: den lägger till deras designsystem bredvid ditt eget på den här enheten. En installationsfil från din egen organisation är annorlunda, eftersom den kopplar appen till organisationens Lolly, och förhandsvisningen visar vad en fil gör innan något ändras. [Samarbeta med partners](/info/partners.html) beskriver båda sidor av att arbeta i en annan organisations varumärke.
+En partner, kund eller sponsor kan skicka sitt varumärke som en designsystemfil (`.lolly`) i stället för en adress. Att öppna den filen ansluter inte appen till något. Filen lägger till deras designsystem bredvid ditt eget på den här enheten. En konfigurationsfil från din egen organisation ansluter appen till organisationens Lolly. Innan något ändras visar förhandsvisningen vad som händer när du öppnar en fil. [Arbeta med partner](/info/partners.html) beskriver båda sidor av att arbeta med en annan organisations varumärke.
 
-## Att lämna
+<!--i:eti-unlink-->
+## Lämna
 
-**Leave**, på kortet **Lolly instance** i **Settings**, tar bort din organisations designsystem, verktyg och katalog. Ditt eget arbete blir kvar. Allt du gjort med dess verktyg öppnas inte igen förrän du ansluter på nytt.
+**Leave**, på kortet **Lolly instance** i **Settings**, tar bort organisationens designsystem, verktyg och katalog. Ditt eget arbete finns kvar. Det du har skapat med organisationens verktyg går inte att öppna igen förrän du ansluter på nytt. Om organisationens Lolly erbjuder det avslutar **Sign out everywhere** på samma kort dina sessioner på alla enheter, även den här.
 
-Allt du sparat hos organisationen stannar hos organisationen, under dess åtkomst- och lagringspolicyer. Att lämna eller rensa den här enheten raderar inte den kopian på servern. I en webbläsare på din organisations egen adress finns inget att lämna: öppna en annan adress i stället.
+Allt du har sparat hos organisationen stannar där, enligt dess policyer för åtkomst och lagringstid. Att lämna eller rensa den här enheten tar inte bort kopian på servern. I en webbläsare på organisationens egen adress finns inget att lämna: öppna en annan adress i stället.
 
-## Vem du ska fråga
+<!--i:eti-help-->
+## Vem du kan fråga
 
-Vad som når din organisations server, vem som kan se dess delade projekt och vilka inställningar som är låsta är din organisations beslut. Fråga den som driftar din organisations Lolly. [Integritetspolicy](/info/privacy.html) tar upp vad Lolly själv gör med dina data.
+Vad som når organisationens server, vem som kan se dess delade projekt och vilka inställningar som är låsta bestäms av din organisation. Fråga den som sköter organisationens Lolly. [Integritet](/info/privacy.html) beskriver vad Lolly självt gör med dina data.

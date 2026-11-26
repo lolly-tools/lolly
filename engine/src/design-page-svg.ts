@@ -19,7 +19,7 @@ import { compileDesignDraw, describeDesignDrawPictures, layoutDesignDrawText, ou
 import { designDrawPdf, designDrawPdfFindings, type DesignPdfInfo, type DesignPdfPage } from './design-draw-pdf.ts';
 import { designDrawSvg, svgEscape } from './design-draw-svg.ts';
 import { injectSvgMeta } from './image-meta.ts';
-import { imageDimensions } from './penpot-file.ts';
+import { imageDimensions, svgIntrinsicSize } from './penpot-file.ts';
 import type { TextShaperV1 } from './design-text-measure.ts';
 import type { DrawStrikeMetrics } from './design-draw.ts';
 
@@ -169,7 +169,8 @@ export async function designPageDrawing(values: Record<string, unknown>, frameId
     if (found?.media === 'motion' || found?.media === 'audio') return { width: 0, height: 0, media: found.media };
     const mime = found?.bytes ? pictureMime(found.bytes) : null;
     if (!found?.bytes || !mime) { unread.add(ref); return null; }
-    const size = imageDimensions(found.bytes, mime) ?? (found.width && found.height ? { w: found.width, h: found.height } : null);
+    // A vector picture's own size unrounded, as the browser places one (`svgIntrinsicSize`).
+    const size = (mime === 'image/svg+xml' ? svgIntrinsicSize(found.bytes) : imageDimensions(found.bytes, mime)) ?? (found.width && found.height ? { w: found.width, h: found.height } : null);
     pictures.set(ref, { bytes: found.bytes, mime });
     return size ? { width: size.w, height: size.h } : null;
   });

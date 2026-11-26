@@ -1,48 +1,53 @@
-# Bài hát Rondocode
+# Bài nhạc Lolly Rondocode
 
-Một bài hát rondocode là âm nhạc viết bằng mã: bộ tổng hợp, mẫu và bản phối, phát khi bạn gõ. Lolly có thể phát một bài hát dưới video, và tiện ích **Rondocode** cho phép bạn viết một bài và xuất thành âm thanh. Cả hai ghi bài hát vào Content Credentials của tệp, để âm nhạc nói được nó đến từ đâu.
+<a id="rondocode-songs"></a>
 
-## Phát một bài hát trong Lolly
+Bài nhạc rondocode là nhạc được viết bằng mã: bộ tổng hợp âm, mẫu nhạc và bản phối, phát khi bạn nhập. Lolly có thể phát bài nhạc làm nền cho video, còn tiện ích **Rondocode** viết bài nhạc và xuất dưới dạng âm thanh; cả hai ghi bài nhạc trong Content Credentials của tệp.
 
-Bộ chọn tài nguyên nhận một bài hát dưới dạng tệp `.rondo` hoặc `.rondo.json`, hoặc liên kết chia sẻ `rondocode.com` được dán. Một bài hát là mã tự tạo ra âm thanh của nó, nên nó phát ở bất kỳ độ dài nào mà clip của nó yêu cầu. Nó có thể là **music bed** dưới bản xuất video hoặc phát trong trình phát môi trường của Neurospicy Mode.
+<!--i:eti-music-->
+## Phát bài nhạc trong Lolly
 
-Mã của bài hát chạy trong sandbox của Lolly, không có mạng và không truy cập tệp của bạn. Mọi phần mà bản kết xuất không phát được, như micro trực tiếp, hoặc giọng hát khi thiếu mô hình giọng, được liệt kê trong chi tiết của tài nguyên.
+Bộ chọn tài nguyên nhận bài nhạc dưới dạng tệp `.rondo` hoặc `.rondo.json`, hoặc liên kết chia sẻ `rondocode.com` được dán vào. Bài nhạc phát theo bất kỳ thời lượng nào clip của nó yêu cầu. Nó có thể làm **nhạc nền** cho bản xuất video hoặc phát trong trình phát âm thanh nền của chế độ Neurospicy.
 
-Từ terminal, `lolly mix` nhận một bài hát làm toàn bộ nhạc nền; xem [CLI rendering](/info/cli-rendering.html).
+Mã của bài nhạc chạy trong môi trường cô lập của Lolly, không có mạng và không truy cập tệp của bạn. Mọi phần mà bản kết xuất không phát được, như micro trực tiếp, hoặc giọng hát khi không có mô hình giọng nói, đều được liệt kê trong chi tiết tài nguyên.
 
-## Viết và xuất một bài hát
+Từ terminal, `lolly mix` nhận một bài nhạc làm toàn bộ nhạc nền; xem [Kết xuất bằng CLI](/info/cli-rendering.html).
 
-Mở **Rondocode** từ **Utilities** để viết bài hát trong trình soạn thảo trực tiếp của rondocode và nghe khi bạn gõ. Xuất nó dưới dạng **WAV**, **MP3**, **M4A**, **Opus** hoặc **FLAC**, một ZIP các stem, **MIDI**, hoặc bản ghi những gì đang phát. Từ terminal, `lolly rondocode --export=mid` ghi cùng tệp MIDI đó. **Export length** đặt số giây mà một bản xuất âm thanh kéo dài. Chính tệp bài hát (`.rondo.json`) là mã của bạn như đã viết và không mang thêm gì.
+<!--i:eti-code-->
+## Viết và xuất bài nhạc
 
-Một bài hát có thể hát lời của nó bằng `sing()`. Giọng hát được tạo trên thiết bị của bạn bằng các mô hình giọng đã tải, và tệp chứa giọng hát tổng hợp luôn khai báo giọng hát đó là do AI tạo (xem [AI features](/info/ai-features.html)).
+Mở công cụ **Rondocode** từ **Utilities** để viết bài nhạc trong trình soạn thảo trực tiếp của rondocode và nghe khi bạn nhập. Xuất dưới dạng **WAV**, **MP3**, **M4A**, **Opus** hoặc **FLAC**, ZIP chứa các phần âm thanh riêng, **MIDI** hoặc bản ghi âm những gì đang phát. Từ terminal, `lolly rondocode --export=mid` ghi cùng tệp MIDI. **Export length** đặt số giây của bản xuất âm thanh. Tệp bài nhạc (`.rondo.json`) là mã bạn đã viết, không thêm gì.
 
-## Bài hát trong credential
+Bài nhạc có thể hát lời bằng `sing()`. Các mô hình giọng nói đã tải xuống tạo giọng hát trên thiết bị của bạn. Tệp chứa giọng hát tổng hợp luôn khai báo giọng hát là do AI tạo (xem [Tính năng AI](/info/ai-features.html)).
 
-Một bản xuất video hoặc âm thanh phát bài hát rondocode ghi từng bài trong Content Credentials của nó làm một nguồn:
+<!--i:eti-badge-check-->
+## Bài nhạc trong chứng thực
 
-- tên bài hát;
-- SHA-256 của tệp `.rondo.json` của nó;
-- cách nó được kết xuất: trong sandbox của Lolly, lớp thực thi `vm`, kèm phiên bản và seed của bộ kết xuất, và mọi phần mà bản kết xuất không phát được.
+Bản xuất video hoặc âm thanh phát bài nhạc rondocode ghi từng bài nhạc trong Content Credentials dưới dạng nguồn:
 
-Âm nhạc được tính từ mã của bài hát được đánh dấu là phương tiện thuật toán, nên Verify không đánh dấu nó là AI. Trước khi xuất, một dòng dưới **Download** liệt kê các bài hát mà credential sẽ ghi; sau khi xuất, cùng dòng báo cáo điều mà việc đọc tệp đã giao tìm thấy. Bỏ chọn **C2PA Credentials** để bỏ bản ghi. Ảnh tĩnh không ghi bài hát nào, vì nó không có âm thanh. `lolly mix` và [máy chủ MCP](/info/mcp.html) ghi cùng bản ghi.
+- tên bài nhạc;
+- SHA-256 của tệp `.rondo.json`;
+- cách nó được kết xuất: trong môi trường cô lập của Lolly, lớp thực thi `vm`, với phiên bản và giá trị khởi tạo của trình kết xuất, cùng mọi phần mà bản kết xuất không phát được.
 
+Nhạc được tính toán từ mã bài nhạc được đánh dấu là phương tiện tạo bằng thuật toán, nên Lolly Verify không đánh dấu nó là AI. Trước khi xuất, một dòng dưới **Download** liệt kê các bài nhạc mà chứng thực sẽ ghi lại. Sau khi xuất, cùng dòng đó báo những gì tìm thấy khi đọc tệp đã bàn giao. Bỏ đánh dấu **C2PA Credentials** để không đưa bản ghi vào. Ảnh tĩnh không ghi bài nhạc nào, vì không có âm thanh. Ảnh tĩnh không ghi bài nhạc nào. `lolly mix` và [máy chủ MCP](/info/mcp.html) ghi cùng bản ghi.
+
+<!--i:eti-file-->
 ## Tệp từ tiện ích Rondocode
 
-Hầu hết tiện ích trên thiết bị không ghi credential, vì chúng biến đổi một tệp bạn đã sở hữu. Rondocode tạo âm thanh mới, nên mọi tệp âm thanh nó ghi đều mang Content Credentials ghi bài hát làm nguồn: tên của nó, SHA-256 của tệp `.rondo.json` và nơi mã của nó chạy. Điều đó bao gồm WAV, MP3, M4A, Opus, FLAC, từng stem trong ZIP stem và bản ghi những gì đang phát.
+Hầu hết tiện ích trên thiết bị không ghi chứng thực, vì chúng biến đổi tệp mà bạn đã sở hữu. Lolly Rondocode tạo âm thanh mới, nên mọi tệp âm thanh nó ghi đều mang Content Credentials ghi bài nhạc làm nguồn: WAV, MP3, M4A, Opus, FLAC, từng phần âm thanh riêng trong ZIP chứa các phần đó và bản ghi âm những gì đang phát.
 
-- Các bản kết xuất của chính trình soạn thảo chạy trong khung riêng của nó (lớp thực thi `frame`) và ghi phiên bản của trình soạn thảo.
-- Một bản kết xuất tạo bằng CLI hoặc liên kết chia sẻ chạy trong lớp `vm` và ghi phiên bản và seed của bộ kết xuất.
-- Một WAV cũng nêu điều tương tự trong chú thích RIFF của nó.
-- Âm nhạc được tính từ mã của bài hát là phương tiện thuật toán và không được đánh dấu là AI.
+- Các bản kết xuất riêng của trình soạn thảo chạy trong khung riêng của nó (lớp thực thi `frame`) và ghi phiên bản trình soạn thảo.
+- Bản kết xuất tạo bằng CLI hoặc liên kết chia sẻ chạy trong lớp `vm` và ghi phiên bản cùng giá trị khởi tạo của trình kết xuất.
+- WAV cũng nêu cùng thông tin trong chú thích RIFF.
 
-Khi một bài hát hát, tệp khai báo giọng hát đó là do AI tạo ở dạng máy đọc được. Loại nguồn số của credential là phương tiện tổng hợp tạo bằng mô hình đã huấn luyện, bản ghi liệt kê các phần được hát, và một khai báo AI C2PA cho mỗi mô hình xác định từng mô hình mà giọng hát đi qua: chuyển văn bản thành giọng Supertonic-3, bộ căn âm vị wav2vec 2.0, bộ mã hóa ContentVec và giọng RVC, với kho và commit mà Lolly lưu trữ nó. Tệp chứa giọng hát tổng hợp không bao giờ được lưu mà không có khai báo đó.
+Khi bài nhạc có giọng hát, khai báo AI ở dạng máy đọc được. Loại nguồn kỹ thuật số của chứng thực là phương tiện tổng hợp được tạo bằng mô hình đã huấn luyện, bản ghi liệt kê các phần được hát, và một khai báo AI C2PA cho mỗi mô hình xác định từng mô hình mà giọng hát đi qua: Supertonic-3 chuyển văn bản thành giọng nói, bộ căn chỉnh âm vị wav2vec 2.0, bộ mã hóa ContentVec và giọng RVC, cùng kho mã và commit mà Lolly dùng để lưu trữ mô hình.
 
-### Tệp MIDI chứa gì
+### Tệp MIDI chứa những gì
 
-Tệp MIDI là một Standard MIDI File, định dạng 1. Track đầu tiên chứa nhịp độ và nhịp 4/4, và sau đó có một track cho mỗi synth, đặt tên theo synth. Mỗi nốt giữ lại thời điểm bắt đầu, độ dài và velocity của nó. Synth có tên đọc lên như một nhạc cụ, chẳng hạn bass, strings, pad hay piano, sẽ nhận nhạc cụ General MIDI tương ứng, còn tên giống trống thì đi vào kênh 10. Một hệ chỉnh âm không phải mười hai âm sẽ được làm tròn đến nửa cung gần nhất bằng pitch bend.
+Tệp MIDI là Standard MIDI File, định dạng 1. Track đầu chứa nhịp độ và số chỉ nhịp 4/4, tiếp theo là một track cho mỗi bộ tổng hợp âm, đặt tên theo bộ tổng hợp âm đó. Mỗi nốt giữ thời điểm bắt đầu, độ dài và lực đánh. Bộ tổng hợp âm có tên chỉ một nhạc cụ, như bass, bộ dây, pad hoặc piano, nhận nhạc cụ General MIDI tương ứng, còn tên giống trống được đưa lên kênh 10. Cách lên dây không theo hệ mười hai âm được làm tròn đến nửa cung gần nhất với độ uốn cao độ.
 
-Tệp MIDI không thể chứa việc một bài hát nghe ra sao. Cài đặt synth, bộ lọc, hiệu ứng, bus, sample và phần hát không có trong đó, nên DAW phát các nốt bằng nhạc cụ của chính nó. Nhịp độ được đọc từ số chu kỳ mỗi giây của bài hát, với một chu kỳ là một ô nhịp bốn phách, vì nhịp riêng của bài hát không nằm trong những gì bộ kết xuất trả về.
+Tệp MIDI không thể chứa cài đặt bộ tổng hợp âm, bộ lọc, hiệu ứng, bus, mẫu âm hay giọng hát, nên DAW phát các nốt bằng nhạc cụ riêng của nó. Nhịp độ được đọc từ số chu kỳ mỗi giây của bài nhạc, với một chu kỳ là một ô nhịp bốn phách, vì số chỉ nhịp riêng của bài nhạc không nằm trong những gì trình kết xuất trả về.
 
-Tệp MIDI không có chỗ cho credential, nên một sự kiện văn bản trong tệp mang lời tuyên bố thay thế, và bảng xuất cho bạn biết điều đó. Bảng mô tả tất cả điều này trước khi bạn xuất, và sau mỗi lần xuất trình soạn thảo đọc lại tệp đã lưu và chỉ báo cáo điều mà việc đọc đó tìm thấy.
+Tệp MIDI không có chỗ cho chứng thực, nên một sự kiện văn bản trong tệp chứa tuyên bố, và bảng xuất cho bạn biết điều đó. Bảng mô tả tất cả những điều này trước khi bạn xuất. Sau mỗi lần xuất, trình soạn thảo đọc lại tệp đã lưu và chỉ báo những gì lần đọc đó tìm thấy.
 
-Về những gì Content Credentials ghi nói chung, xem [Export a file](/info/exporting.html#content-credentials-c2pa).
+Để biết Content Credentials ghi lại những gì nói chung, xem [Xuất một tệp](/info/exporting.html#content-credentials-c2pa).

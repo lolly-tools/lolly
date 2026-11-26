@@ -11,6 +11,8 @@ import { activeFrameIdFor } from '../free-canvas-math.ts';
 import { LOLLY_MARK_SVG } from '../../lib/lolly-mark.ts';
 import { t } from '../../i18n.ts';
 import { wireColorField } from '../../components/color-field.ts';
+import { linkedColourWord } from '../../lib/colour-role-words.ts';
+import { designInputColorValue } from '../../lib/design-color.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
 import { slotGlyphs, type PopItem } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
@@ -197,6 +199,24 @@ export function buildToolbar(fc: FcCtx): void {
       check: true,
       run: () => (fc.scaleContent ? fc.scaleMode.toggle() : fc.scaleMode.pick()),
     };
+    // The rail's other tools, for the same reason as Scale mode: the compact layout hides
+    // the rail, and these three live nowhere else. They sit with Scale mode, in the rail's
+    // order and with the rail's glyphs.
+    const railRows: PopItem[] = [];
+    if (stageEl.dataset.designLayout === 'compact') {
+      if (cv.pathField) railRows.push({
+        label: t('Edit points'), icon: icon(SVG.nodes), key: 'edit-points',
+        run: () => fc.modes.toggleNodeTool(),
+      });
+      if (cv.pathField && hasBindCfg) railRows.push({
+        label: t('Auto-arrange cards'), icon: icon(SVG.tidy),
+        key: 'auto-arrange', run: () => fc.modes.autoLayout(),
+      });
+      if (cv.grid) railRows.push({
+        label: t('Snap to grid'), icon: icon(SVG.grid), key: 'snap-grid',
+        on: fc.gridOn, check: true, run: () => fc.toolbox.toggleGrid(),
+      });
+    }
     // Export leads - it's the star of the Lolly menu. Present is added LAST (very bottom).
     if (actions && !barMounted) {
       items.push({
@@ -322,7 +342,8 @@ export function buildToolbar(fc: FcCtx): void {
         });
     }
     const askAgent = actions?.askAgent && (actions.askAgentShown?.() ?? true) ? actions.askAgent : undefined;
-    if (info || actions?.newFromTemplate || actions?.bulk || actions?.agent || askAgent) {
+    const guide = actions?.guide && (actions.guideShown?.() ?? true) ? actions.guide : undefined;
+    if (info || guide || actions?.newFromTemplate || actions?.bulk || actions?.agent || askAgent) {
       if (items.length) items.push({ sep: true });
       if (info)
         items.push({
@@ -330,6 +351,15 @@ export function buildToolbar(fc: FcCtx): void {
           icon: icon(SVG.info),
           key: 'info',
           run: () => fc.fieldPanels.openInfoPanel(anchorEl()),
+        });
+      // The docs pages about this tool (plan 354 D6): the same dialog the help button
+      // opens in the sidebar layouts, which Design does not have.
+      if (guide)
+        items.push({
+          label: t('Read the guide'),
+          icon: icon(SVG.help),
+          key: 'guide',
+          run: () => guide(),
         });
       // Back to the Start chooser (plans/142 WP-1) - the "start a document from
       // something" group. The pick applies through the tool's own
@@ -411,7 +441,7 @@ export function buildToolbar(fc: FcCtx): void {
           run: () => fc.frameTitles.cycleTitleMode(),
         });
       }
-      items.push(scaleRow, grabRow);
+      items.push(scaleRow, ...railRows, grabRow);
       items.push({
         label: t('Keyboard shortcuts'),
         icon: icon(SVG.info),
@@ -447,7 +477,7 @@ export function buildToolbar(fc: FcCtx): void {
     // Without a top bar there is no view group above, so the two rows stand alone.
     if (!barMounted) {
       if (items.length) items.push({ sep: true });
-      items.push(scaleRow, grabRow);
+      items.push(scaleRow, ...railRows, grabRow);
     }
     // Present is the VERY LAST row (Andy: Export is the star; Present sits at the bottom),
     // set off by its own separator and next to the Slide transition it uses (plan 112).
@@ -632,11 +662,8 @@ export function buildToolbar(fc: FcCtx): void {
   fc.keys.syncArrangeUI();
   // Snap-to-grid toggle (opt-in).
   if (cv.grid) {
-    const gbtn = toolBtn(fc, t('Snap to grid'), SVG.grid, () => {
-      fc.gridOn = !fc.gridOn;
-      gbtn.classList.toggle('is-armed', fc.gridOn);
-      gbtn.setAttribute('aria-pressed', String(fc.gridOn));
-    });
+    const gbtn = toolBtn(fc, t('Snap to grid'), SVG.grid, () => fc.toolbox.toggleGrid());
+    fc.gridBtn = gbtn;
     gbtn.setAttribute('aria-pressed', String(fc.gridOn));
     if (fc.gridOn) gbtn.classList.add('is-armed');
   }
@@ -677,7 +704,7 @@ export function buildToolbar(fc: FcCtx): void {
 // delegated listeners on the scope it is handed, so re-wiring one in place would fire
 // every later edit twice.
 /** What the swatch edits right now. `frameId` empty = the document background. */
-export function bgTarget(fc: FcCtx): { frameId: string; value: unknown; tip: string } {
+export function bgTarget(fc: FcCtx): { frameId: string; value: unknown; tip: string; word?: string } {
   const { cfg, frameCfg } = fc;
   if (frameCfg && cfg.fillField) {
     const boxes = fc.select.getBoxes();
@@ -688,6 +715,7 @@ export function bgTarget(fc: FcCtx): { frameId: string; value: unknown; tip: str
         frameId: fid,
         value: fb ? (fb[cfg.fillField] ?? '') : '',
         tip: t('Artboard fill'),
+        word: linkedColourWord(fb, cfg.fillField, fb?.[cfg.fillField]),
       };
     }
   }
@@ -705,7 +733,7 @@ export function paintBgField(fc: FcCtx): void {
   // seeded this swatch BLACK and its sliders a blue that came from the field's own
   // neutral seed. `seededColorField` reads the token off the canvas's computed style
   // and labels the trigger with the token's name; the model keeps the `var()`.
-  wrap.innerHTML = fc.contextBar.seededColorField('fc-bg', tgt.value);
+  wrap.innerHTML = fc.contextBar.seededColorField('fc-bg', tgt.value, tgt.word);
   wrap.addEventListener('pointerdown', (e) => e.stopPropagation());
   fc.bgSlot.replaceChildren(wrap);
   wireColorField(wrap, {
@@ -727,7 +755,7 @@ export function paintBgField(fc: FcCtx): void {
         return;
       }
       onDirty?.(bgInputId);
-      runtime.setInput(bgInputId, col);
+      runtime.setInput(bgInputId, designInputColorValue(val, runtime.getModel().find(input => input.id === 'editingRange')?.value, detail));
     },
   });
 }
@@ -808,11 +836,17 @@ export function fillPopover(fc: FcCtx, el: HTMLElement, items: PopItem[]): void 
     el.appendChild(b);
   }
 }
+export function toggleGrid(fc: FcCtx): void {
+  fc.gridOn = !fc.gridOn;
+  fc.gridBtn?.classList.toggle('is-armed', fc.gridOn);
+  fc.gridBtn?.setAttribute('aria-pressed', String(fc.gridOn));
+}
 export function toolboxOps(fc: FcCtx) {
   return {
     closePopover: bindOp(fc, closePopover),
     toolBtn: bindOp(fc, toolBtn),
     buildToolbar: bindOp(fc, buildToolbar),
+    toggleGrid: bindOp(fc, toggleGrid),
     bgTarget: bindOp(fc, bgTarget),
     paintBgField: bindOp(fc, paintBgField),
     syncBgField: bindOp(fc, syncBgField),

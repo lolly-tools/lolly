@@ -1,6 +1,6 @@
 {
   "name": "Audiograma",
-  "description": "Transforme um clipe de voz ou uma música em um vídeo nas cores do seu sistema de design que realmente se move com o som - barras, espectro, anel, cordilheira ou osciloscópio, pronto para redes sociais.",
+  "description": "Transforme um clipe de voz ou uma música em um vídeo nas cores do seu sistema de design que se move com o som.",
   "a11yLabel": "Cartão de audiograma para {{default title \"an audio clip\"}} com forma de onda animada",
   "inputs.audio.label": "Áudio",
   "inputs.audio.help": "Escolha uma faixa da sua biblioteca ou envie um clipe. Ela é decodificada no seu dispositivo para desenhar a forma de onda - o áudio nunca sai do navegador. Deixe vazio para uma forma de onda de exemplo. Para ouvi-la na exportação, escolha \"Áudio desta ferramenta\" como Faixa de áudio nas opções de download.",

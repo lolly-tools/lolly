@@ -1,26 +1,31 @@
-# 管理する
+# 管理
 
-Lollyは各自のデバイス上で動作します。チームにサインイン、共有プロジェクト、管理されたアセット、レビュー、サーバージョブが必要になったとき、組織は同じプロジェクトのオープンソースの組織向けサーバーである**Lolly Lolly Work**を追加します。これらのページは、そのサーバーを設定し、世話をする人向けです。
+Lollyは各ユーザーのデバイス上で動作します。これらのページは、**Lolly Work**を運用する人に向けたものです。Lolly Workは、このプロジェクトのオープンソースの組織向けサーバーで、サインイン、共有プロジェクト、管理されたアセット、レビュー、サーバージョブを提供します。
 
-メンバーが得られるものは[組織でLollyを使う](/info/organisation.html)で、サーバーが担う責任は[Lolly Workのアーキテクチャ](/info/work-overview.html)で、まず確認してください。
+メンバーが使えるものを知るには[組織でLollyを使う](/info/organisation.html)、サーバーの機能を知るには[Lolly Workのアーキテクチャ](/info/work-overview.html)からお読みください。
 
+<!--i:eti-lock-->
 ## アクセスとポリシーを設定する
 
-- [導入とガバナンス](/info/adoption-governance.html)では、展開の進め方とブランドルールの役割を扱っています。
-- [IDとセッション](/info/work-identity.html)では、サインインとグループのマッピングを扱っています。[ロールと権限付与](/info/work-permissions.html)では、ロール、権限付与、オーナーガードを説明しています。
-- [ポリシーとガバナンス](/info/work-governance.html)では、ツールのオーバーレイ、ロックされた入力、ポリシーを扱っています。[組織のAIポリシーを管理する](/info/work-ai-policy.html)では、承認と実行の制限を扱っています。
-- [アカウントデータの管理](/info/work-account-lifecycle.html)と[Workのストレージとデータライフサイクル](/info/work-data-lifecycle.html)では、エクスポート、退職時の手続き、保持、およびそれらの限界を扱っています。
-- [プロファイル、ブランド、ツールの設定](/info/configuration.html)では、Lollyのビルドがどのツールとデザインシステムを含むかを扱っています。
+- [導入 & ガバナンス](/info/adoption-governance.html)では、展開とブランドルールの役割を扱います。
+- [IDとセッション](/info/work-identity.html)では、サインインとグループのマッピングを扱います。[ロールと権限付与](/info/work-permissions.html)では、ロール、権限付与、所有者の保護を説明します。
+- [ポリシーとガバナンス](/info/work-governance.html)では、ツールのオーバーレイ、ロックされた入力、ポリシーを扱います。[組織のAIポリシーを管理する](/info/work-ai-policy.html)では、承認と実行制限を扱います。
+- [アカウントデータの管理](/info/work-account-lifecycle.html)と[Lolly Workのストレージとデータのライフサイクル](/info/work-data-lifecycle.html)では、書き出し、退会処理、保持、およびそれぞれの制限を扱います。
+- [プロファイル、ブランド、ツールの設定](/info/configuration.html)では、Lollyのビルドにどのツールとデザインシステムを含めるかを扱います。
 
-## アセットを接続して作業をレビューする
+<!--i:eti-link-->
+## アセットを接続し、作品をレビューする
 
-- [デザインシステムの管理](/info/work-design-system-administration.html)では、ソースの一覧、レビューされた変更、ロールバックを扱っています。
-- [カタログとコンテンツ](/info/work-catalog.html)では、共有アセットと公開ルールを扱っています。[プロバイダーガイド](/info/work-provider-guides.html)では、各ソースプラットフォームの設定と検証の要件を示しています。
-- [承認](/info/work-approvals.html)では、レビューの連鎖と職務の分離を扱っています。[レンダリングと共有](/info/work-sharing.html)では、リンクとサーバー出力を扱っています。
-- [ドキュメントにエージェントを招待する](/info/work-document-agents.html)では、範囲を限定したドキュメントへのアクセス、有効期限、取り消しを扱っています。招待によって、デプロイやインフラへのアクセスが付与されることはありません。
+- [既存のDAMとLollyを使う](/info/use-with-dam.html)では、ソース側の管理権限と、接続して行う制作を説明します。[SUSEのBrandfolder導入記録](/info/suse-brandfolder.html)では、1つの導入事例を記録しています。[DAMの移行を計画する](/info/dam-transition.html)では、任意で後から行う移行を扱います。
 
-## 次の作業を見つける
+- [デザインシステムの管理](/info/work-design-system-administration.html)では、ソースの一覧管理、レビューを経た変更、ロールバックを扱います。
+- [カタログとコンテンツ](/info/work-catalog.html)では、共有アセットと公開範囲のルールを扱います。[プロバイダーガイド](/info/work-provider-guides.html)では、各ソースプラットフォームの設定と検証の要件を示します。
+- [承認](/info/work-approvals.html)では、レビューの承認経路と職務分離を扱います。[レンダリングと共有](/info/work-sharing.html)では、リンクとサーバー出力を扱います。
+- [エージェントをドキュメントに招待する](/info/work-document-agents.html)では、範囲を限定したドキュメントへのアクセス、有効期限、取り消しを扱います。招待で、デプロイやインフラへのアクセスが付与されることはありません。
 
-- [作る](/info/creators.html)には、クリエイティブの作業とチーム向けプレイブックがあります。
-- [配備する](/info/operate.html)では、LollyとLolly Workサーバーのインストールと保守を扱っています。インスタンスの設定は、個人のコンテンツプロファイルとは別です。
-- [信頼](/info/trust.html)では、データの流れ、署名、セキュリティ境界を説明しています。
+<!--i:eti-search-->
+## 次の作業を探す
+
+- [作成](/info/creators.html)には、制作作業とチーム向けの手順があります。
+- [デプロイ](/info/operate.html)では、LollyとLolly Workサーバーのインストールと保守を扱います。インスタンスの設定は、個人のコンテンツプロファイルとは別のものです。
+- [信頼](/info/trust.html)では、データの流れ、署名、セキュリティ境界を説明します。

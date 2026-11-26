@@ -1,78 +1,80 @@
-# 自行验证
+# 自行驗證
 
-本站的每一项承诺都可以在没有账号的情况下检验。大多数检查只需要浏览器；其余需要终端和一份源代码。如果下面的某项检查没有得到所示的结果，那就是一个缺陷或一项被打破的承诺，我们希望听到你的反馈：参见[如果检查失败](#if-a-check-fails)。
+這個網站上的每項承諾都能檢查，不需要帳號。大多數檢查只需瀏覽器，其餘則需要終端機與一份原始碼。如果下列檢查沒有得到所示結果，那就是錯誤或未履行的承諾，我們希望知道：請見[檢查失敗時](#if-a-check-fails)。
 
-从最快的开始：把文件拖到 Verify 上。然后再深入一步：使用工具时观察网络，拔掉网线继续工作，数一数 Cookie，阅读源代码。
+這些檢查涵蓋 Lolly 本身。如果你的組織運行 Lolly Work，它會加入登入、共用內容、已設定的遙測與稽核記錄；請對照[伺服器介面](/info/server-surface.html)與[隱私政策的組織章節](/info/privacy.html#organisation-services-with-lolly-work)檢查這些項目。
 
-这些检查针对的是 Lolly 本身。如果你所在组织运行 Lolly Work，它会增加登录、共享内容、已配置的遥测和审计记录；请对照[服务器层面](/info/server-surface.html)和[隐私政策的组织部分](/info/privacy.html#organisation-services-with-lolly-work)检查这些内容。
+<!--i:eti-clock-->
+## 十秒內看看它如何運作
 
-## 十秒钟看它如何运作
+開啟 [`/verify`](/#/verify)，將檔案拖放到頁面上。不需上傳、不需帳號，也不需等待伺服器。這裡檢查的是〈我們對 AI 的立場〉中的[生成的昆士蘭風暴圖片](/info/ai-stance.html)：由 Gemini 生成，再由 Lolly 開啟、標記與轉換的圖片。每個徽章都在裝置上，從檔案本身的位元組計算得出。
 
-打开 [`/verify`](/#/verify) 并把文件拖到页面上。没有上传，没有账号，也无需等待服务器。这里检查的是我们 AI 立场中的[生成的昆士兰风暴](/info/ai-stance.html)：一张由 Gemini 生成、再经 Lolly 打开、标记并转换的图像。每个徽章都是在设备上根据文件自己的字节得出的。
+![手機寬度螢幕上的 Lolly Verify：風暴圖片、綠色的 Made with Lolly 判定，以及下方堆疊的憑證完整與位元組未變更徽章](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 
-![手机宽度屏幕上的 Verify - 风暴图像、绿色的 Made with Lolly 判定,以及下方叠放的凭证完整和字节未变徽章](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
+判定由幾個徽章組成，每個都是一項獨立的事實：
 
-结论是一小堆徽章，每个都是独立的事实：
+- <!--i:lock--> **Made with Lolly**：憑證完整，*而且*記錄了 Lolly 匯出。
+- <!--i:seal--> **The credential is intact**：已簽署的 C2PA manifest 可解析，且其宣告本身的簽章通過驗證。
+- <!--i:hash--> **The bytes have not changed**：檔案的雜湊值仍與簽署時相符。只要改動一個像素，這個徽章就會改變。
+- <!--i:sparkle--> **GEN AI**：這些像素由機器製作，檔案也如此宣告。Lolly 會讀出這項宣告，而非隱藏這個事實。
 
-- <!--i:lock--> **Made with Lolly**：凭据完好，*并且*记录了 Lolly 的导出。
-- <!--i:seal--> **The credential is intact**：签名的 C2PA 清单可解析，且其自身的声明签名验证通过。
-- <!--i:hash--> **The bytes have not changed**：文件的哈希仍与签名时一致。改动一个像素，这个徽章就会翻转。
-- <!--i:sparkle--> **GEN AI**：这些像素由机器制作，文件也这样声明。Lolly 会把该声明读回来，而不是隐藏这一事实。
+完整歷史記錄會隨檔案傳遞。這裡保留了九個步驟：先是 Google 在生成圖片與加入浮水印時記錄的五個步驟，再是 Lolly 在開啟、標記與轉換本頁副本時記錄的四個步驟。Lolly Verify 直接從位元組讀取它們，並繪成時間軸。
 
-完整的历史随文件一起传递。这里保留了九个步骤：Google 在生成并为图像加水印时记录的五步，以及 Lolly 在这个页面上打开、标记并转换副本时记录的四步。Verify 直接从字节中读出它们，并画成时间线。
+![Lolly Verify 從風暴圖片讀出的變更歷史記錄：先是 Google 記錄的五個步驟，再是 Lolly 的四個，最後成為本頁的 WebP](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
 
-![Verify 从风暴图像中读回的变更历史 - 五个步骤由 Google 记录,随后四个由 Lolly 记录,最终形成本页面中的 WebP](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
+下列檢查是這個示範背後的保證，每一項都可重現。[Content Credentials](/info/content-credentials-identity.html) 說明每種判定。
 
-这就是演示。下面的检查是它背后的保证，每一项都可以复现。[Content Credentials](/info/content-credentials-identity.html)解释了每一个结论。
-
-## 在浏览器中,无需任何工具
+<!--i:eti-globe-->
+## 在瀏覽器中，不需其他工具
 
 ::: timeline
-- <!--i:globe--> **1. 观察网络。** 打开 [lolly.tools](https://lolly.tools)，打开浏览器的 DevTools（F12），切换到 **Network** 并使用一个工具：在 [Lolly QR Code](/t/qr-code) 中输入网址、更改颜色、导出 PNG。每个请求都留在 `lolly.tools` 上：应用外壳、工具自己的文件和目录素材。没有分析主机，没有 CDN 信标，没有字体服务，也没有错误上报端点。你在工具中输入的内容**不会出现在任何请求中**，因为渲染是在本地进行的。
-- <!--i:eyeoff--> **2. 拔掉网线。** 加载应用并打开一两个工具，然后断开网络（飞行模式，或 DevTools → Network → Offline）并重新加载。图库和你打开过的每个工具都继续工作，包括你用过的格式的渲染和导出。工具的文件和格式的编码器会在你第一次使用时缓存，所以在离线测试之前，请先在联网时使用一次该工具。这是本页上最有力的单项检查：向外回传数据的软件，被切断连线后就活不下去。
-- <!--i:check--> **3. 数一数 Cookie。** DevTools → **Application**（Firefox：**Storage**）→ Cookies → `https://lolly.tools`。列表是空的：应用不设置 Cookie。把 `document.cookie` 粘贴到控制台，得到的是 `""`。可选的 CA 注册会设置一个短期的 `HttpOnly` Cookie `lolly_ca_state`，范围限定为 `/api/ca`，`document.cookie` 看不到它。Lolly Work 实例使用它自己的登录 Cookie；请与[隐私](/info/privacy.html#organisation-services-with-lolly-work)对照。
-- <!--i:layers--> **4. 读取你自己的存储。** 在同一个面板中，Lolly 保存的一切都摆在你面前：二十几个普通的 `localStorage` 键（主题、语言、侧栏宽度、声音和视图设置，以及公共工具目录索引的缓存副本）和你在 IndexedDB 中的文档。每个值都是可读的字符串或 JSON，没有任何混淆。清除网站数据会移除这些本地记录，但不会移除 Sync 备份或 Lolly Work 实例持有的记录。**Settings → Storage → Clear all my data** 在应用内部做同样的事，你可以看着存储和缓存被清空。
-- <!--i:lock--> **5. 检查披露联系方式存在。** [`/.well-known/security.txt`](/.well-known/security.txt) 返回的是 [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116) 联系信息块，而不是 HTML 页面。
+- <!--i:globe--> **1. 觀察網路。** 開啟 [lolly.tools](https://lolly.tools)，開啟瀏覽器的 DevTools（F12），切換到 **Network** 並使用工具：在 [Lolly QR Code](/t/qr-code) 輸入網址、更改色彩、匯出 PNG。每個請求都送到 `lolly.tools`：應用程式外殼、工具自己的檔案與目錄素材。沒有分析主機、CDN 信標、字型服務或錯誤回報端點。你在工具中輸入的內容**不會出現在任何請求中**，因為渲染在本機進行。
+- <!--i:eyeoff--> **2. 切斷連線。** 載入應用程式並開啟一兩個工具，接著離線（飛航模式，或 DevTools → Network → Offline）並重新載入。工具庫與你開啟過的每個工具都能繼續運作，包括以你使用過的格式渲染與匯出。工具的檔案與格式的編碼器會在第一次使用時快取，因此請先在線上使用工具一次，再測試離線。這是本頁最有力的單一檢查：需要回傳資料的軟體，在連線切斷後就無法照常運作。
+- <!--i:check--> **3. 計算 cookie。** DevTools → **Application**（Firefox：**Storage**）→ Cookies → `https://lolly.tools`。清單是空的：應用程式不設定 cookie。將 `document.cookie` 貼到主控台，會得到 `""`。選用的 CA 註冊會設定短效的 `HttpOnly` cookie，名稱為 `lolly_ca_state`，範圍限定於 `/api/ca`，`document.cookie` 無法顯示它。Lolly Work 實例使用自己的登入 cookie；請與[隱私](/info/privacy.html#organisation-services-with-lolly-work)比對。
+- <!--i:layers--> **4. 讀取自己的儲存資料。** 在同一個面板中，Lolly 保存的所有內容都在眼前：約二十多個一般的 `localStorage` 鍵（主題、語言、側邊欄寬度、音效與檢視設定，以及公開工具目錄索引的快取副本），還有你在 IndexedDB 中的文件。每個值都是可讀的字串或 JSON，沒有任何混淆處理。清除網站資料會移除這些本機記錄，但不會移除 Sync 備份或 Lolly Work 實例儲存的記錄。**Settings → Storage → Clear all my data** 可在應用程式內執行相同操作，你可以看著儲存區與快取清空。
+- <!--i:lock--> **5. 檢查漏洞揭露聯絡方式是否存在。** [`/.well-known/security.txt`](/.well-known/security.txt) 會回傳 [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116) 聯絡資訊區塊，而非 HTML 頁面。
 :::
 
-::: details 你在 Network 标签页中还可能看到什么
-有些功能只在你使用时才访问网络，每一项在同一个标签页中都可见：
+::: details Network 分頁中還可能看到什麼
+有些功能只在你使用時才會連上網路，每項都能在同一個分頁中看到：
 
-- 在 Design System Setup 中添加 **Google Font** 时，会在首次获取之前出现一个说明此事的同意对话框，然后只从 Google 获取那一个字体家族；
-- 点击 **ICC press-profile preset** 会从 ICC 位于 color.org 的公开注册库获取该配置文件；
-- 播放可选的内置**电台**会从电台串流；
-- 在 **Meeting Planner** 中输入地点，会向 open-meteo 的地理编码服务查询该地点的坐标和时区，每个城市一次（答案保存在你的设备上），输入框在你输入的地方也这样说明；
-- **URL Screenshot** 会加载你输入的地址，因为这就是它的工作，你可以看着它发生。
+- 在 Lolly Design System Setup 中新增 **Google Font** 時，會從 Google 擷取該字型家族；第一次擷取前會顯示一次同意對話框，說明此事；
+- 點擊 **ICC 印刷設定檔預設集**時，會從 color.org 的 ICC 公開登錄庫擷取該設定檔；
+- 播放選用的內建**廣播**時，會從電台串流播放；
+- 在 **Meeting Planner** 中輸入地點時，會向 open-meteo 的地理編碼服務查詢該地點的座標與時區，每個城市查詢一次（結果儲存在你的裝置上），輸入欄位也會在你輸入的位置說明；
+- **Lolly URL Screenshot** 會載入你輸入的網址，你可以看到這個過程。
 
-声明了网络能力的工具只能从其清单允许列表中的主机获取，该检查失败时会安全关闭。目前出货的工具没有一个声明此能力，所以由浏览器强制执行的 Content-Security-Policy 把上面的列表限制在它的主机上。[隐私政策](/info/privacy.html)保存着所有这些的规范表格，包括受管理实例的流量，例如策略刷新和已启用的报告。
+宣告網路能力的工具，只能從其 manifest 允許清單中的主機擷取資料，且這項檢查在失敗時會拒絕存取。目前發布的工具沒有任何一個宣告網路能力，因此瀏覽器強制執行的 Content-Security-Policy 將上述清單限制在其主機範圍內。[隱私政策](/info/privacy.html)提供所有這些流量的正式對照表，包括政策更新與已啟用回報等受管理實例流量。
 :::
 
-## 在终端中
+<!--i:eti-code-->
+## 從終端機檢查
 
-**6. 渲染端点只返回公开数据。** 唯一把输入的内容放进 URL 的服务器功能，即热链接渲染，在这里是启用的。[隐私政策](/info/privacy.html)说明了这对你放进链接的输入意味着什么。
+**6. 渲染端點只回傳公開資料。** 唯一會將輸入內容放入 URL 的伺服器功能，也就是熱連結渲染，已在這裡啟用。[隱私政策](/info/privacy.html)說明這對你放入連結的輸入內容有何意義。
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-每个部署各自选择（`LOLLY_DISABLE_RENDER_GET=1`）：在设置了它的实例上，同样的探测返回 `404`。这个差异是该设置在起作用，而不是不一致。
+每個部署自行選擇（`LOLLY_DISABLE_RENDER_GET=1`）：在設有此變數的實例上，相同的探測會回傳 `404`。這個差異表示設定正在生效，並非不一致。
 
-**7. 检查你的部署启用了哪些服务。** [服务器层面](/info/server-surface.html)列出了可选服务并链接到它们的详细参考。对于 Lolly Work，请包括它的认证 API、协作连接、存储和已配置的提供方。对公开的 lolly.tools 的探测不能测试私有的组织实例。
+**7. 檢查部署啟用的服務。** [伺服器介面](/info/server-surface.html)列出選用服務，並連結至詳細參考資料。對 Lolly Work，請納入需要驗證身分的 API、協作連線、儲存與已設定的供應商。對公開 lolly.tools 的探測，不會測試私人組織實例。
 
-如果你运行自己的实例，[交付部署](/info/deploy-delivery.html)提供了针对它的发布检查：模型完整性、边缘探测及其样本列表、展示用渲染版本、私密下载网关，以及浏览器中的签名目录。
+如果你運行自己的實例，[交付部署](/info/deploy-delivery.html)提供發布檢查：模型完整性、邊緣探測及其樣本清單、顯示用衍生版本、私人下載閘道，以及瀏覽器中的已簽署目錄。
 
 
-## 在源代码中
+<!--i:eti-search-->
+## 在原始碼中檢查
 
-如果部署的代码与公开的代码不同，以上所有检查仍可能只是做做样子。所以请检查代码。部署是从[公共仓库](https://github.com/lolly-tools/lolly)构建的：
+如果部署的程式碼與公開程式碼不同，以上一切仍可能只是假象。所以請檢查程式碼。部署是從[公開儲存庫](https://github.com/lolly-tools/lolly)建置的：
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
-**8. 任何地方都没有跟踪器，也没有分析 SDK。** 在发布的代码（引擎、包括浏览器扩展在内的每个外壳、Tauri 桥接覆盖层和 service worker、服务器函数以及工具包）中搜索常见的嫌疑对象：
+**8. 任何地方都沒有追蹤器或分析 SDK。** 在發布的程式碼中搜尋常見的可疑項目（引擎、每個執行外殼，包括瀏覽器擴充功能、Tauri 橋接覆寫與 service worker、伺服器函式及工具套件）：
 
 ```bash
 grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
@@ -83,9 +85,9 @@ grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html'
 # (no output)
 ```
 
-这次扫描查找的是第三方跟踪 SDK。它并不表明不存在第一方使用情况报告：Lolly Work 支持组织遥测和单独的审计日志，它们有各自的政策和测试。
+這項掃描尋找的是第三方追蹤 SDK，並不證明沒有第一方使用情況回報：Lolly Work 支援組織遙測與獨立的稽核記錄，各有自己的政策與測試。
 
-**9. 没有第三方 DNS 解析器。** Verify 的 SEAL 检查从不通过 DNS-over-HTTPS 提供方发送查询，因为应用没有解析器：
+**9. 沒有第三方 DNS 解析器。** Lolly Verify 的 SEAL 檢查絕不會透過 DNS-over-HTTPS 供應商傳送查詢，因為應用程式沒有解析器：
 
 ```bash
 grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' \
@@ -97,25 +99,26 @@ grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' \
 #  bans them)
 ```
 
-**10. 证书服务不保留签发日志。** 身份 CA 不记录它签发了什么，也没有身份清单：没有 stdout 行，没有 webhook，没有证书存储。这种缺失可以搜索到：
+**10. 憑證服務不保留簽發記錄。** 身分 CA 不會記錄已簽發的內容，也沒有身分清冊：沒有 stdout 輸出行、webhook 或憑證儲存區。可以透過搜尋確認這些內容不存在：
 
 ```bash
 grep -rn logIssuance services/ca api/ca
 # (no output)
 ```
 
-CA 确实保留短期的工作状态：限速桶在其窗口内保存哈希后的 IP 和电子邮件键，受管理部署的准入存储最多十分钟保存一个带密钥的标识符和请求摘要。[Content Credentials 工程](/info/content-credentials-engineering.html#protocol)有详细说明。
+CA 確實會保留短效的工作狀態：速率限制儲存桶會在其時間窗內保存經雜湊處理的 IP 與電子郵件鍵，而受管理部署的准入儲存區會保存以金鑰產生的識別碼與請求摘要，最長十分鐘。[Content Credentials 工程](/info/content-credentials-engineering.html#protocol)提供詳細說明。
 
-## 由测试强制执行
+<!--i:eti-flask-->
+## 透過測試強制維持
 
-上面的源码检查不是一次性的审计：它们被固定在测试套件中，所以不会悄悄失效。[`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts) 检查的跟踪器名称列表比上面的扫描更长，并在以下情况下让构建失败：
+上述原始碼檢查並非一次性的稽核：它們已固定在測試套件中，因此無法悄悄失效。[`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts) 檢查的追蹤器名稱清單比上述掃描更長，若有以下情況就會使建置失敗：
 
-- 任何分析或跟踪 SDK 出现在它扫描的发布源码的任何位置，涵盖应用、引擎、服务器、扩展和工具包代码；
-- 任何第三方 DNS-over-HTTPS 解析器出现在该源码中；
-- CA 签发日志重新出现，无论是在源码中**还是**生成的服务器包中；
-- 隐私政策失去其法律要求的声明（具名的控制者、法律依据、投诉权）。
+- 它掃描的已發布原始碼中，任何地方出現分析或追蹤 SDK，包括應用程式、引擎、伺服器、擴充功能與工具套件程式碼；
+- 該原始碼中出現任何第三方 DNS-over-HTTPS 解析器；
+- CA 簽發記錄重新出現在原始碼**或**產生的伺服器套件中；
+- 隱私政策缺少法律要求的聲明（具名的資料控管者、法律依據、申訴權）。
 
-在克隆中自己运行它们（Node 22.18 或更高版本；此文件无需 `pnpm install`）：
+在複製的儲存庫中自行執行這些測試（Node 22.18 或更新版本；此檔案不需要 `pnpm install`）：
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -125,14 +128,16 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-完整测试套件(`pnpm install && pnpm test`)会额外运行数千个测试,包括[安全与验证](/info/security.html)中描述的对抗性密码学测试。
+完整套件（`pnpm install && pnpm test`）還會執行數千項測試，包括[安全與驗證](/info/security.html)所述的對抗性密碼學測試。
 
-## 你无法从外部验证的内容
+<!--i:eti-eye-off-->
+## 無法從外部驗證的事項
 
-- **托管访问日志。** 任何响应请求的服务器都可以记录它：IP 地址、路径和时间。外部探测无法确定日志保留多久。运营方控制日志记录、轮转和导出，并且必须披露这些选择。本地渲染让普通编辑留在你的设备上；可选的服务器渲染和共享工作区服务有隐私政策所述的单独数据流。
-- **部署运行的是否就是这份代码。** 你可以检查源码是干净的，也可以检查部署的行为与之相符，上面的检查两者都做到了。对网页部署进行二进制层面的证明，不是网页平台提供的东西。缓解办法是公共仓库、强制执行的测试和离线检查：被篡改而向外回传数据的部署会同时无法通过检查 1 和 2。
-- **工具钩子。** 内置工具的可选逻辑是经过审阅而不是沙盒化的：除非工具选择使用 Worker，否则它在页面中运行。lolly.tools 上的每个工具都是第一方的，并在发布之前经过审阅。[威胁模型](/info/threat-model.html#trust-boundaries)说明了钩子在哪里运行以及什么限制它们。
+- **託管服務的存取記錄。** 任何伺服器都能記錄它回應的請求：IP 位址、路徑與時間。外部探測無法確定記錄保留多久。營運者控制記錄、輪替與匯出，且必須揭露這些選擇。本機渲染讓一般編輯留在你的裝置上；選用的伺服器渲染與共用工作空間服務，則有隱私政策所述的獨立資料流。
+- **部署是否執行這份程式碼。** 你可以檢查原始碼是否乾淨，以及部署後的行為是否符合原始碼，上述檢查兩者都有涵蓋。網頁平台不提供網頁部署的二進位層級證明。緩解措施是公開儲存庫、強制執行的測試與離線檢查：遭竄改且會回傳資料的部署，會立即在檢查 1 與 2 失敗。
+- **工具掛鉤。** 內建工具的選用邏輯經過審查，而非置於沙箱：除非工具選擇使用 Worker，否則會在頁面中執行。lolly.tools 上的每個工具都是第一方工具，發布前都經過審查。[威脅模型](/info/threat-model.html#trust-boundaries)說明掛鉤在哪裡執行，以及受到哪些限制。
 
-## 如果某项检查失败
+<!--i:eti-warning-->
+## 檢查失敗時
 
-本页与你所观察到的情况之间的任何差异都是一份安全报告。请通过[安全与验证](/info/security.html#reporting-a-vulnerability)上的私密渠道发送。我们实行协调披露，并对报告者致谢。
+本頁與你觀察到的情況若有差異，就值得提出安全報告。請透過[安全與驗證](/info/security.html#reporting-a-vulnerability)上的私人管道傳送。我們採取協調揭露，並為回報者署名致謝。

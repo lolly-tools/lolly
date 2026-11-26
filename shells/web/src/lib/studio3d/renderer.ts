@@ -7,7 +7,7 @@ import {
 } from '../../../../../engine/src/studio3d-arrangement.ts';
 import { STUDIO_LIGHT_TARGET, studioPlaceableLights } from '../../../../../engine/src/studio3d-lights.ts';
 import { studioCameraPose } from '../../../../../engine/src/studio3d-camera-path.ts';
-import { studioObjectPose } from '../../../../../engine/src/studio3d-motion.ts';
+import { STUDIO_POSE_REST, studioObjectPose } from '../../../../../engine/src/studio3d-motion.ts';
 import { studioAnimated, studioLightMotion } from '../../../../../engine/src/studio3d.ts';
 import type {
   StudioObjectV1,
@@ -16,7 +16,7 @@ import type {
   StudioSourceInfo,
 } from '../../../../../packages/core/src/studio3d-v1.ts';
 import { halton, StudioCapture, StudioEmptyFrameError } from './capture.ts';
-import { fitStudioObject, pickStudioFocus, placeStudioScene } from './camera.ts';
+import { fitStudioObject, pickStudioFocus, placeStudioScene, studioFloorHeight } from './camera.ts';
 import { loadStudioEnvironment, type StudioEnvironment, studioPalette } from './environment.ts';
 import { applyStudioMaterials, studioHasEmissive, studioHasTransmission } from './materials.ts';
 import {
@@ -27,7 +27,8 @@ import {
   type StudioRead,
   type StudioShaper,
 } from './source.ts';
-import type { StudioSceneCounters, StudioSceneHost } from './scene-host.ts';
+import { studioFootprint } from './handle-geometry.ts';
+import type { StudioSceneCounters, StudioSceneHost, StudioSceneSelection } from './scene-host.ts';
 import { clearShatter, prepareShatter, setShatter } from './shatter.ts';
 import {
   buildStudioRig,
@@ -233,6 +234,9 @@ const PROBE_POINTS: [number, number][] = [
   [0.25, 0.25],
 ];
 
+/** The rest pose as text, to compare a frame's pose with. */
+const REST_POSE = JSON.stringify(STUDIO_POSE_REST);
+
 export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.Camera, THREE.Vector3> {
   readonly canvas: HTMLCanvasElement;
   private readonly output: StudioCapture;
@@ -259,7 +263,10 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
   private materialKey = '';
   private frameKey = '';
   private recipe: StudioSceneV1 | null = null;
-  private highlighted: number | null = null;
+  /** The camera the last preview frame was drawn with, without its sample jitter. */
+  private previewCamera: THREE.PerspectiveCamera | THREE.OrthographicCamera | null = null;
+  /** Whether the last preview frame drew the objects at their rest pose (no motion applied). */
+  private previewAtRest = true;
   /** Preview-only light handles: null hides them, otherwise the selected light index. */
   private lightHandles: { selected: number | null } | null = null;
   private disposed = false;
@@ -637,6 +644,7 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
     // One pose for the whole frame: the subjects take it, the burst takes it, and the
     // empty-frame check reads the same one back.
     const pose = studioObjectPose(recipe, time, clipSeconds);
+    if (quality === 'preview') this.previewAtRest = JSON.stringify(pose) === REST_POSE;
     const showEnvironment = recipe.environment.background && recipe.stage.output === 'scene';
     const frameKey = JSON.stringify([
       this.revision,
@@ -645,13 +653,18 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
       quality,
       studioAnimated(recipe) ? time : 0,
       clipSeconds,
-      quality === 'preview' ? this.highlighted : null,
       quality === 'preview' ? this.lightHandles : null,
     ]);
     if (frameKey === this.frameKey) return;
     this.counts.frames++;
     const camera = studioCamera(recipe, width / height),
       target = new THREE.Vector3(...recipe.camera.target);
+    if (quality === 'preview') {
+      // The handles over the preview are placed through this camera (frameCamera), so
+      // they sit on the frame that was drawn, including a camera path's sampled pose.
+      this.previewCamera = studioCamera(recipe, width / height);
+      this.previewCamera.updateMatrixWorld(true);
+    }
     const footprint = this.boxes().reduce(
       (radius, box) =>
         Math.max(radius, ...[box.min[0], box.max[0], box.min[2], box.max[2]].map(Math.abs)),
@@ -707,18 +720,6 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
     this.scene.backgroundRotation.y = THREE.MathUtils.degToRad(recipe.environment.rotation);
     placeStudioScene(this.root, this.instances, recipe, time, clipSeconds, pose);
     this.applyBurst(recipe, pose);
-    let outline: THREE.Box3Helper | null = null;
-    const selected =
-      this.highlighted === null
-        ? null
-        : this.instances.find((instance) => instance.row === this.highlighted);
-    if (quality === 'preview' && selected?.spec.visible) {
-      outline = new THREE.Box3Helper(
-        new THREE.Box3().setFromObject(selected.object),
-        new THREE.Color('#ffffff')
-      );
-      this.scene.add(outline);
-    }
     const handles = quality === 'preview' && this.lightHandles ? this.buildLightHandles(recipe) : null;
     if (handles) this.scene.add(handles.group);
     const origin = camera.position.clone(),
@@ -766,11 +767,6 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
         );
       }, glow);
     } finally {
-      if (outline) {
-        this.scene.remove(outline);
-        outline.geometry.dispose();
-        (outline.material as THREE.Material).dispose();
-      }
       if (handles) {
         this.scene.remove(handles.group);
         handles.dispose();
@@ -871,34 +867,69 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
     this.frameKey = '';
   }
 
-  /** Preview an object at a new position while it is dragged; the saved row changes on release. */
-  moveObject(row: number, position: [number, number, number]): void {
-    const instance = this.instances.find((candidate) => candidate.row === row);
-    if (!this.recipe?.objects || !instance || this.hold) return;
-    const spec = { ...instance.spec, transform: { ...instance.spec.transform, position } };
-    instance.spec = spec;
-    this.recipe = {
-      ...this.recipe,
-      objects: this.recipe.objects.map((object, i) => (i === row ? spec : object)),
-    };
-    this.frameKey = '';
-  }
-
   /**
-   * Preview an object at a new rotation while it is turned; the saved value changes on
-   * release. A lone subject is row 0, and its rotation is the scene's own transform.
+   * Preview a placed object with part of its transform changed, while a gesture or a handle
+   * drags it; the saved value changes on release. A lone subject is row 0, and its
+   * transform is the scene's own.
    */
-  turnObject(row: number, rotation: [number, number, number]): void {
+  private preview(row: number, patch: Partial<StudioObjectV1['transform']>): void {
     const instance = this.recipe?.objects
       ? this.instances.find((candidate) => candidate.row === row)
       : this.instances[0];
     if (!this.recipe || !instance || this.hold) return;
-    const spec = { ...instance.spec, transform: { ...instance.spec.transform, rotation } };
+    const spec = { ...instance.spec, transform: { ...instance.spec.transform, ...patch } };
     instance.spec = spec;
     this.recipe = this.recipe.objects
       ? { ...this.recipe, objects: this.recipe.objects.map((object, i) => (i === row ? spec : object)) }
       : { ...this.recipe, transform: spec.transform };
     this.frameKey = '';
+  }
+
+  /** Preview an object at a new position, height included, while it is dragged or lifted. */
+  moveObject(row: number, position: [number, number, number]): void {
+    this.preview(row, { position });
+  }
+
+  /** Preview an object at a new rotation, in degrees, while it is turned. */
+  turnObject(row: number, rotation: [number, number, number]): void {
+    this.preview(row, { rotation });
+  }
+
+  /** Preview an object at a new uniform scale while its scale handle drags. */
+  scaleObject(row: number, scale: number): void {
+    this.preview(row, { scale });
+  }
+
+  /**
+   * The rest place of a placed object, for the handles a preview draws over the object: the floor
+   * under its footprint, the ring's radius and its world bounds. Null for a row that is
+   * hidden, still waiting for its file, or not placed.
+   */
+  selection(row: number): StudioSceneSelection<THREE.Vector3> | null {
+    const recipe = this.recipe;
+    const instance = recipe?.objects
+      ? this.instances.find((candidate) => candidate.row === row)
+      : this.instances[0];
+    if (!recipe || !instance?.spec.visible) return null;
+    this.boxes();
+    const footprint = studioFootprint(instance.object, studioFloorHeight(recipe));
+    return footprint
+      ? { center: footprint.center, radius: footprint.radius, min: footprint.box.min, max: footprint.box.max }
+      : null;
+  }
+
+  /** The camera of the last preview frame, which the handles over it are placed through. */
+  frameCamera(): THREE.Camera | null {
+    return this.previewCamera;
+  }
+
+  /**
+   * Whether the last preview frame drew the objects where they rest. A turntable or a
+   * hover moves them, and `selection` reports the rest place, so handles drawn from it
+   * would stand where the object is not.
+   */
+  frameAtRest(): boolean {
+    return this.previewAtRest;
   }
 
   /** A sphere per placeable light in its own colour, a line to the target, and a ring on the selection. */
@@ -987,13 +1018,6 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
       if (distance < 0.12 && (!best || distance < best.distance)) best = { index, distance };
     }
     return best?.index ?? null;
-  }
-
-  /** Outline one object in previews only; exports never carry it. */
-  highlight(index: number | null): void {
-    if (this.hold || this.highlighted === index) return;
-    this.highlighted = index;
-    this.frameKey = '';
   }
 
   fit(aspect: number, row?: number): { zoom: number; target: THREE.Vector3 } | null {

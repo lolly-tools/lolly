@@ -3,41 +3,98 @@
 /**
  * Bake each tool's gallery cover, so a first visit paints without rendering anything.
  *
- * Run it against a web shell already serving the profile you are baking:
+ * One command bakes one profile. It starts a web shell for that profile and stops the
+ * shell when the bake is done:
  *
- *   LOLLY_PROFILE=lolly-demo node scripts/build-gallery-covers.ts --url=http://localhost:5173
+ *   node scripts/build-gallery-covers.ts --profile=lolly-demo
+ *   node scripts/build-gallery-covers.ts --all          # every mounted profile in turn
+ *
+ * Pass --url=<a shell already serving that profile> to use a running one instead.
  *
  * It opens the real gallery on a clean profile, once per theme, waits for the live covers,
  * and saves each tool's first cover under catalog/previews/covers/ with
  * catalog/previews/covers.json. Vector stays vector when the file is small; a heavy cover is
  * saved as WebP at twice card size. lib/gallery-covers.ts uses a file only when the visitor's
- * context hash, tool version and cover all match, so a stale bake only costs a live render.
- * Re-run after changing a cover, a tool version or a design system.
+ * context hash, tool version and cover all match.
+ *
+ * A bake goes out of date in two ways, and they do not cost the same. A new tool version
+ * retires that one tool's cover. A change to a token document retires EVERY cover, because
+ * the context hash takes in each resolved token. The manifest therefore records what the
+ * bake was drawn from (scripts/lib/cover-source.ts), and validate-catalog fails when the
+ * design system has moved on. Bake again after changing a design system; after a tool
+ * version or a cover changes, a bake rewrites only the files that differ.
  */
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { execFileSync, spawn } from 'node:child_process';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:net';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
-import { catalogFile } from '../packages/node-shell/src/content-roots.ts';
+import { catalogFile, contentRoots, readBrandAssetIndex } from '../packages/node-shell/src/content-roots.ts';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
+import { coverSourceFingerprint } from './lib/cover-source.ts';
+import { applyProfileArg } from './lib/profile-arg.ts';
 
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const arg = (name: string): string | undefined => process.argv.find((a) => a.startsWith(`--${name}=`))?.split('=').slice(1).join('=');
-const base = (arg('url') ?? '').replace(/\/$/, '');
-if (!base) throw new Error('Pass --url=<the web shell serving this profile>');
+
+// --all runs this script once for each profile whose packs are on disk. A private pack
+// that is not mounted is skipped, as build-catalog-all.ts skips one.
+if (process.argv.includes('--all')) {
+  const cfg = JSON.parse(readFileSync(join(ROOT, 'profiles.json'), 'utf8')) as { profiles: Record<string, { tools: string[]; catalog: string }> };
+  for (const [name, p] of Object.entries(cfg.profiles)) {
+    if (![...p.tools, p.catalog].every((r) => existsSync(join(ROOT, r)))) { console.log(`${name}: packs not mounted, skipped`); continue; }
+    console.log(`\n${name}`);
+    execFileSync('node', [fileURLToPath(import.meta.url), `--profile=${name}`, ...process.argv.slice(2).filter((a) => a !== '--all' && !a.startsWith('--profile=') && !a.startsWith('--url='))], { cwd: ROOT, stdio: 'inherit' });
+  }
+  process.exit(0);
+}
+
+applyProfileArg();
+const roots = contentRoots();
+
+/** A web shell for this profile on a free local port, for the length of one bake. */
+async function serveProfile(): Promise<{ url: string; stop(): void }> {
+  const port = await new Promise<number>((done, fail) => {
+    const probe = createServer();
+    probe.once('error', fail);
+    probe.listen(0, '127.0.0.1', () => { const { port: free } = probe.address() as { port: number }; probe.close(() => done(free)); });
+  });
+  const child = spawn('pnpm', ['exec', 'vite', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], {
+    cwd: join(ROOT, 'shells', 'web'),
+    env: { ...process.env, LOLLY_PROFILE: roots.profile },
+    stdio: 'ignore',
+  });
+  const url = `http://127.0.0.1:${port}`;
+  const stop = (): void => { child.kill('SIGTERM'); };
+  process.once('exit', stop);
+  for (let i = 0; i < 120; i++) {
+    if (child.exitCode !== null) throw new Error(`The web shell for ${roots.profile} stopped before it was ready`);
+    if (await fetch(`${url}/`).then((r) => r.ok, () => false)) return { url, stop };
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  stop();
+  throw new Error(`The web shell for ${roots.profile} did not answer on ${url}`);
+}
+
+const served = arg('url') ? null : await serveProfile();
+const base = (arg('url') ?? served!.url).replace(/\/$/, '');
 const THEMES = ['light', 'dark'] as const;
 /** A vector cover this small costs less than its raster twin and stays sharp. */
 const MAX_SVG_BYTES = 180_000;
 const CARD_WIDTH = 656;
 const WAIT_MS = Number(arg('wait') ?? 240_000);
 
-const out = catalogFile('previews/covers');
-rmSync(out, { recursive: true, force: true });
+const out = catalogFile('previews/covers', roots);
 mkdirSync(out, { recursive: true });
 
 interface Saved { templateId?: string; file: string }
-const manifest: { v: 1; contexts: Record<string, string>; covers: Record<string, { version: string; [theme: string]: Saved | string }> } = { v: 1, contexts: {}, covers: {} };
+interface Manifest { v: 1; source: { fingerprint: string }; contexts: Record<string, string>; covers: Record<string, { version: string; [theme: string]: Saved | string }> }
+const manifest: Manifest = { v: 1, source: { fingerprint: coverSourceFingerprint(readBrandAssetIndex(roots).assets) }, contexts: {}, covers: {} };
 const index = await (await fetch(`${base}/catalog/tools/index.json`)).json() as { tools: Array<{ id: string; version: string }> };
 const versions = new Map(index.tools.map((t) => [t.id, t.version]));
 
+const kept = new Set<string>();
 const browser = await chromium.launch({ channel: 'chrome', headless: true, args: webGpuLaunchArgs('auto') });
 for (const theme of THEMES) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, colorScheme: theme, serviceWorkers: 'block' });
@@ -86,7 +143,7 @@ for (const theme of THEMES) {
     }
     return rows;
   }, CARD_WIDTH);
-  let bytes = 0, saved = 0;
+  let bytes = 0, saved = 0, written = 0;
   for (const cover of covers) {
     const version = versions.get(cover.id);
     if (!version) continue;
@@ -100,15 +157,20 @@ for (const theme of THEMES) {
     const data = useSvg ? svg! : cover.webp ? Buffer.from(cover.webp.split(',')[1]!, 'base64') : null;
     if (!data) continue;
     const name = `${cover.id}.${theme}.${useSvg ? 'svg' : 'webp'}`;
-    writeFileSync(join(out, name), data);
+    const target = join(out, name);
+    if (!existsSync(target) || !readFileSync(target).equals(data)) { writeFileSync(target, data); written += 1; }
+    kept.add(name);
     bytes += data.length; saved += 1;
     const templateId = /[?&]template=([^&]+)/.exec(cover.href)?.[1];
     manifest.covers[cover.id] ??= { version };
     manifest.covers[cover.id]![theme] = { ...(templateId ? { templateId: decodeURIComponent(templateId) } : {}), file: `/catalog/previews/covers/${name}` };
   }
-  console.log(`${theme}: ${saved} covers, ${(bytes / 1024 / 1024).toFixed(1)} MB`);
+  console.log(`${theme}: ${saved} covers, ${(bytes / 1024 / 1024).toFixed(1)} MB, ${written} files changed`);
   await context.close();
 }
 await browser.close();
-writeFileSync(catalogFile('previews/covers.json'), `${JSON.stringify(manifest, null, 1)}\n`);
-console.log(`Wrote ${Object.keys(manifest.covers).length} tools to ${catalogFile('previews/covers.json')}`);
+served?.stop();
+// A cover that was not drawn this time belongs to no entry, so the file goes.
+for (const name of readdirSync(out)) if (!kept.has(name)) rmSync(join(out, name), { force: true });
+writeFileSync(catalogFile('previews/covers.json', roots), `${JSON.stringify(manifest, null, 1)}\n`);
+console.log(`Wrote ${Object.keys(manifest.covers).length} tools to ${catalogFile('previews/covers.json', roots)}`);

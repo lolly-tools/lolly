@@ -37,6 +37,7 @@ import { escape } from '../utils.ts';
 import { icon } from '../lib/icons.ts';
 import { mountModal, type ModalHandle } from './modal.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
+import { viewingAs } from '../org/view-as.ts';
 import { beginOfflineRun } from '../lib/offline-run.ts';
 import type { DownloadProgress } from '../lib/offline-manager.ts';
 import { downloadModelPart, modelPartsInfo, modelPrecache, type ModelPartInfo } from '../lib/model-parts.ts';
@@ -74,6 +75,7 @@ export async function maybeShowModelsWelcome(): Promise<void> {
   if (!isTauriShell()) return;                                          // desktop shell only
   if ((window as { __LOLLY_CLI__?: unknown }).__LOLLY_CLI__) return;    // headless render - no human
   if (shown || seen()) return;
+  if (viewingAs()) return;                                              // a view downloads nothing
   const parts = await welcomeParts();
   if (parts.some(p => p.ready === true)) { markSeen(); return; }       // already have them
   const offered = parts.filter(p => p.available && p.allowed);
@@ -103,7 +105,6 @@ export function welcomeSentence(offered: readonly ModelPartInfo[]): string {
 function renderContent(sizeLabel: string | null, offered: readonly ModelPartInfo[]): string {
   return `
     <span class="mw-icon">${icon('download', { size: 30 })}</span>
-    <p class="mw-eyebrow">${t('Lolly for desktop')}</p>
     <h2 class="mw-title">${t('Unlock the on-device AI tools')}</h2>
     <p class="mw-sub">${escape(welcomeSentence(offered))}</p>
     <div class="mw-actions">

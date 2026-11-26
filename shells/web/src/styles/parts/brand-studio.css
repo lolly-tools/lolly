@@ -144,7 +144,7 @@
 .be-lock-body[hidden], .be-lock-spot[hidden], .be-ps-body[hidden] { display: none; }
 .be-lock-block { display: grid; gap: .5rem; }
 .be-lock-block + .be-lock-block { padding-top: .5rem; border-top: 1px solid hsl(var(--border) / .5); }
-.be-lock-block.is-pinned .be-subst-val { color: hsl(var(--primary)); font-weight: 600; }
+.be-lock-block.is-pinned .be-subst-val { color: hsl(var(--primary-text)); font-weight: 600; }
 .be-lock-body { display: grid; gap: .5rem; margin-top: .1rem; }
 .be-lock-spot { display: flex; gap: .5rem; flex-wrap: wrap; }
 .be-lock-field { display: grid; gap: .12rem; flex: 1 1 10rem; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
@@ -175,7 +175,7 @@
 .be-swatch-lock {
   display: inline-block; margin-inline-start: .4rem; padding: .05rem .35rem;
   font-size: calc(.58rem * var(--a11y-fs)); font-weight: 700; letter-spacing: .05em; vertical-align: middle;
-  color: hsl(var(--primary)); border: 0; 
+  color: hsl(var(--primary-text)); border: 0; 
 }
 .be-derive-controls { display: grid; gap: .8rem; align-content: start; }
 .be-field { display: grid; gap: .35rem; }
@@ -244,7 +244,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-cand-hex { font-family: var(--font-mono); font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
 .be-cand-add {
   flex: 0 0 auto; border: 1px solid hsl(var(--border)); background: hsl(var(--primary) / .1);
-  color: hsl(var(--primary)); font: inherit; font-size: var(--fs-xs); font-weight: 700;
+  color: hsl(var(--primary-text)); font: inherit; font-size: var(--fs-xs); font-weight: 700;
   padding: .3rem .6rem; border-radius: var(--radius-pill); cursor: pointer; transition: background var(--dur-1), border-color var(--dur-1);
 }
 .be-cand-add:hover:not(:disabled) { background: hsl(var(--primary) / .18); border-color: hsl(var(--primary) / .4); }
@@ -302,10 +302,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
   display: flex; align-items: center; gap: .6rem; margin-bottom: .45rem;
   cursor: pointer; list-style: none;
 }
-.be-pal-group-head::-webkit-details-marker { display: none; }
-.be-pal-group-head::after { display: grid; place-items: center; width: 24px; height: 24px; flex: 0 0 24px; content: '▸'; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); transition: rotate var(--dur-1); }
-.be-pal-group[open] > .be-pal-group-head::after { rotate: 90deg; }
-@media (prefers-reduced-motion: reduce) { .be-pal-group-head::after { transition: none; } }
+.be-pal-group-head::after { margin-inline: var(--sp-4); }
 .be-pal-group-head .be-add { margin-inline-start: 0; }
 .be-pal-group-label { font-size: var(--fs-sm); font-weight: 600; color: hsl(var(--foreground)); margin-inline-end: auto; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .be-pal-group-n { margin-inline-start: .4rem; font-weight: 500; opacity: .7; }
@@ -482,10 +479,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
   display: flex; align-items: center; gap: .5rem; cursor: pointer; list-style: none;
   font-size: var(--fs-2xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground));
 }
-.be-subst-details summary::-webkit-details-marker { display: none; }
-.be-subst-details summary::after { content: '▸'; margin-inline-start: auto; font-size: var(--fs-xs); transition: rotate var(--dur-1); }
-.be-subst-details[open] summary::after { rotate: 90deg; }
-@media (prefers-reduced-motion: reduce) { .be-subst-details summary::after { transition: none; } }
+.be-subst-details summary::after { margin-inline-start: auto; }
 .be-subst-chips { display: inline-flex; gap: .3rem; }
 /* Font-weight/letter-spacing-base/radius compose .chip--flag (chips.css);
    the mono value string needs its own font-family/size/case/spacing/padding
@@ -554,12 +548,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-font-meta { display: grid; gap: 1px; min-width: 0; margin-inline-end: auto; }
 .be-font-name { font-size: var(--fs-md); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .be-font-sub { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
-.be-font-badge { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--primary)); }
-.be-font-del {
-  flex: 0 0 auto; border: 0; background: transparent; cursor: pointer; padding: .25rem .4rem;
-  color: hsl(var(--muted-foreground)); font-size: var(--fs-md); border-radius: var(--radius-sm);
-}
-.be-font-del:hover { color: hsl(var(--destructive-text)); background: hsl(var(--destructive) / .1); }
+.be-font-badge { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--primary-text)); }
 .be-font-empty { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); padding: .4rem .1rem; }
 .be-font-add { display: flex; gap: .5rem; flex-wrap: wrap; }
 /* One field shape for both doors into a family name: the management list's row
@@ -589,14 +578,6 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-logo-group--fold { display: block; }
 .be-logo-group--fold > .be-logo-row { margin-top: .6rem; }
 .be-logo-group--fold > .be-logo-group-head { cursor: pointer; list-style: none; }
-.be-logo-group--fold > .be-logo-group-head::-webkit-details-marker { display: none; }
-.be-logo-group--fold > .be-logo-group-head::after {
-  content: '▸'; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); transition: rotate var(--dur-1);
-}
-.be-logo-group--fold[open] > .be-logo-group-head::after { rotate: 90deg; }
-@media (prefers-reduced-motion: reduce) {
-  .be-logo-group--fold > .be-logo-group-head::after { transition: none; }
-}
 /* Touch: the heading IS the control that opens the group. */
 @media (pointer: coarse) {
   .be-logo-group--fold > .be-logo-group-head { min-height: 44px; align-items: center; }
@@ -623,11 +604,6 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-logo-row > .be-logo-addmark { grid-row: span 3; }
 .be-logo-slot-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 1.2rem; align-self: end; }
 .be-logo-slot-name { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
-.be-logo-del {
-  border: 0; background: transparent; cursor: pointer; padding: .1rem .3rem; line-height: 1;
-  color: hsl(var(--muted-foreground)); font-size: var(--fs-md); border-radius: var(--radius-sm);
-}
-.be-logo-del:hover { color: hsl(var(--destructive-text)); background: hsl(var(--destructive) / .1); }
 /* One fixed cell, so the artwork can never size the tile: an image's own size
    used to grow an auto track past the tile and crop a stacked mark. */
 .be-logo-drop {
@@ -747,16 +723,6 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
   color: hsl(var(--muted-foreground)); overflow-wrap: anywhere;
 }
 .be-logo-chip-acts { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .35rem; }
-/* A square box, not a bare glyph: this is the destructive control of the chip and
-   it sits a few pixels from the primary one. 28px at rest, a full 44px target on a
-   coarse pointer (plan 97 section 11) - the same treatment .labp-close takes. */
-.be-logo-chip-x {
-  flex: none; display: grid; place-items: center;
-  width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs));
-  border: 0; background: transparent; cursor: pointer; line-height: 1; border-radius: var(--radius-sm);
-  color: hsl(var(--muted-foreground)); font-size: var(--fs-md);
-}
-.be-logo-chip-x:hover { color: hsl(var(--destructive-text)); background: hsl(var(--destructive) / .1); }
 /* The chip is focusable (tabindex="-1") so the keyboard has somewhere to sit while
    a placement is in flight and its buttons are disabled; it must show where it is. */
 .be-logo-chip:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
@@ -783,7 +749,6 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
    height is lifted here rather than in the shared button primitive - this queue
    is the surface with a destructive control inches from a primary one. */
 @media (pointer: coarse) {
-  .be-logo-chip-x { width: 44px; height: 44px; }
   .be-logo-chip-acts .be-btn,
   .be-logo-chip-acts .be-cta { min-height: 44px; }
   /* The slot rows are two-part (name + "in use"), so they centre once they are
@@ -815,10 +780,7 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
       same. */
 .be-wing { border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 1.05rem 1.1rem; }
 .be-wing-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: .3rem .6rem; cursor: pointer; list-style: none; }
-.be-wing-head::-webkit-details-marker { display: none; }
-.be-wing-head::after { content: '▸'; margin-inline-start: auto; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); transition: rotate var(--dur-1); }
-.be-wing[open] > .be-wing-head::after { rotate: 90deg; }
-@media (prefers-reduced-motion: reduce) { .be-wing-head::after { transition: none; } }
+.be-wing-head::after { margin-inline-start: auto; align-self: center; }
 .be-wing-title { font-size: calc(.84rem * var(--a11y-fs)); letter-spacing: .02em; text-transform: uppercase; color: hsl(var(--foreground)); }
 .be-wing-sub { flex: 1 1 18ch; font-size: calc(.74rem * var(--a11y-fs)); line-height: 1.5; color: hsl(var(--muted-foreground)); }
 .be-wing-body { display: grid; gap: 1.1rem; padding-top: .9rem; }
@@ -990,7 +952,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .be-role-val { font-family: var(--font-mono); font-size: var(--fs-2xs); color: hsl(var(--foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.be-role-apca { font-family: var(--font-mono); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; color: hsl(var(--muted-foreground)); }
+.be-role-apca { font-size: var(--fs-2xs); color: hsl(var(--muted-foreground)); overflow-wrap: anywhere; }
 .be-role-apca.is-weak { color: hsl(var(--destructive-text)); }
 /* The picker is the assignment control: native, so it is keyboard- and
    phone-native. .field-select supplies the base look; this only bounds it.
@@ -1005,6 +967,17 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-role.is-derived .be-role-derived {
   flex: 0 0 auto; font-size: var(--fs-xs); color: hsl(var(--muted-foreground));
 }
+
+/* The Colour roles wing sits above the chips, in the palette's own column, so the In
+   context preview stays beside the table. Open, the table says what the chips say and
+   more, so the chips step aside. */
+[data-be-tab-panel="color"] .be-roles { padding: 0; margin-block-end: var(--sp-4); }
+.be-roles[open] + .be-rolechips-mount { display: none; }
+.be-roles-all { padding-top: var(--sp-3); }
+.be-roles-all-body { display: grid; gap: var(--sp-3); padding-top: var(--sp-3); }
+.be-pal-card--role .be-swatch { cursor: pointer; }
+.be-roles-preview { justify-self: start; }
+@media (min-width: 1100px) { .be-roles-preview { display: none; } }
 
 /* ── The role chips at the top of Colours (lib/design-system/role-chips.ts,
       plan 346 change 7). One chip per first decision, each the colour that
@@ -1028,7 +1001,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   background: var(--sw, transparent); box-shadow: var(--ui-edge-faint);
 }
 .be-rolechip-meta { display: grid; gap: 1px; flex: 1 1 auto; min-width: 0; }
-.be-rolechip-role { font-size: var(--fs-2xs); font-weight: 600; color: hsl(var(--muted-foreground)); }
+.be-rolechip-role { font-size: var(--fs-2xs); font-weight: 600; color: hsl(var(--muted-foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .be-rolechip-tag { margin-inline-start: var(--sp-3); font-weight: 500; }
 .be-rolechip-tag::before { content: '\00b7'; margin-inline-end: var(--sp-3); }
 .be-rolechip-val { font-size: var(--fs-sm); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1060,6 +1033,8 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 /* The swatch popover's "Use as" row - roles reached from the colour itself. */
 .be-useas-row { display: flex; align-items: center; flex-wrap: wrap; gap: .35rem; padding-top: .5rem; border-top: 1px solid hsl(var(--border) / .6); }
 .be-useas-row[hidden] { display: none; }
+/* A design system's own word can run long, and the card is narrow, so the word wraps. */
+.be-useas-row > .be-btn { max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: start; }
 .be-useas-label { font-size: var(--fs-2xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
 /* A pressed "Use as" means THIS swatch already holds that role - and pressing it
    again is what un-sets the role, so the state is not decoration, it is the
@@ -1154,7 +1129,8 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   .be-bulk-preview { display: inline-flex; }
 }
 .be-preview-empty { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: var(--radius); margin: 0; padding: 1rem; background: hsl(var(--muted) / .5); color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); text-align: center; }
-.be-context .be-context-head { margin-bottom: 0; }
+.be-context .be-context-head { margin-bottom: 0; align-items: center; }
+.be-context-head > .view-seg { margin-inline-end: auto; }
 .be-context > .view-seg { width: 100%; }
 .be-context .be-pv-cap { display: none; }
 /* The add area (plan 346 change 18): paste, sample or drop, visible at the top
@@ -1222,7 +1198,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 /* Beat 0's "or bring a file" - a real button that reads as the link it is
    (the studio has no shared link-button primitive; this is the only one). */
 .be-beat0-file {
-  border: 0; padding: 0; background: none; font: inherit; color: hsl(var(--primary));
+  border: 0; padding: 0; background: none; font: inherit; color: hsl(var(--primary-text));
   text-decoration: underline; cursor: pointer;
 }
 .be-beat0-file:hover, .be-beat0-file:focus-visible { text-decoration: none; }
@@ -1252,11 +1228,6 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   width: 16px; height: 16px; border-radius: var(--radius-xs); background: var(--sw, transparent);
   box-shadow: inset 0 0 0 1px hsl(var(--foreground) / .15);
 }
-.be-suggest-dismiss {
-  border: 0; background: transparent; color: hsl(var(--muted-foreground));
-  font-size: var(--fs-md); cursor: pointer; padding: .15rem .3rem;
-}
-.be-suggest-dismiss:hover { color: hsl(var(--foreground)); }
 
 /* ── The post-add chip (plan 137 C1). Same box as the suggestion row above - it
       is the same kind of row in the same panel - so only its own addition lives
@@ -1267,7 +1238,6 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
       for the whole of beat 1 rather than a link a dismiss takes away.) */
 @media (pointer: coarse) {
   .be-added .be-btn { min-height: 44px; }
-  .be-added .be-suggest-dismiss { min-width: 44px; min-height: 44px; }
 }
 
 /* ── The logo colours card (plan 320 S1): which of a placed logo's colours is
@@ -1461,23 +1431,11 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-typestage[hidden] { display: none; }
 .be-typestage-head { display: flex; align-items: baseline; gap: .6rem; }
 .be-typestage-title { margin: 0; font-size: var(--fs-lg); font-weight: 700; color: hsl(var(--foreground)); }
-/* The only pointer way to close the stage, so it carries a real touch target:
-   a 2rem box (any bigger and it dwarfs the title row) plus an ::after that
-   expands the hit area to 44×44 - `inset: calc((44px - 100%) / -2)` resolves
-   against the button's own padding box, so it tracks --a11y-fs with it. The
-   overhang lands in the head row's own gap, not on another control. */
+/* The shared close button (lib/close-button.ts); only its place is set here. */
 .be-typestage-x {
   position: relative;
-  margin-inline-start: auto; flex: none;
-  display: inline-flex; align-items: center; justify-content: center;
-  width: calc(2rem * var(--a11y-fs)); height: calc(2rem * var(--a11y-fs));
-  border: 1px solid hsl(var(--border)); border-radius: var(--radius-pill);
-  background: transparent; color: hsl(var(--muted-foreground)); cursor: pointer;
+  margin-inline-start: auto;
 }
-.be-typestage-x::after { content: ''; position: absolute; inset: calc((44px - 100%) / -2); }
-.be-typestage-x:hover { color: hsl(var(--foreground)); background: hsl(var(--muted)); }
-.be-typestage-x:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
-.be-typestage-x svg { width: var(--fs-lg); height: var(--fs-lg); }
 .be-typestage-search { display: flex; gap: .5rem; flex-wrap: wrap; }
 /* Pinned families - one press each (plan 182 section 6.4). A row of names under
    the field, so a fresh origin has something to press before it has something
@@ -1566,7 +1524,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   box-shadow: var(--ui-edge-faint);
 }
 .be-ui-starter-head { display: flex; align-items: start; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
-.be-ui-starter-kicker { margin: 0 0 .16rem; font-size: var(--fs-2xs); font-weight: 800; letter-spacing: .075em; text-transform: uppercase; color: hsl(var(--primary)); }
+.be-ui-starter-kicker { margin: 0 0 .16rem; font-size: var(--fs-2xs); font-weight: 800; letter-spacing: .075em; text-transform: uppercase; color: hsl(var(--primary-text)); }
 .be-ui-starter-title { margin: 0; font-size: var(--fs-xl); line-height: 1.25; }
 .be-ui-starter-count, .be-ui-role-badge, .be-ui-group-count {
   display: inline-flex; align-items: center; min-height: 1.45rem; padding-inline: .48rem;
@@ -1578,7 +1536,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-ui-starter-groups { display: grid; gap: .4rem; }
 .be-ui-group { border: 1px solid hsl(var(--border) / .8); border-radius: calc(var(--radius) * .65); background: hsl(var(--background) / .55); overflow: clip; }
 .be-ui-group > summary { display: flex; align-items: center; gap: .55rem; min-height: 2.6rem; padding: .45rem .65rem; cursor: pointer; list-style: none; font-size: var(--fs-sm); font-weight: 700; }
-.be-ui-group > summary::-webkit-details-marker { display: none; }
+.be-ui-group > summary::after { content: none; }
 .be-ui-group > summary::before { content: '›'; font-size: 1.15em; color: hsl(var(--muted-foreground)); transition: rotate var(--dur-1); }
 .be-ui-group[open] > summary::before { rotate: 90deg; }
 .be-ui-group-count { margin-inline-start: auto; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); text-transform: none; }
@@ -1652,10 +1610,8 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-tok-shadow-cf { flex: 0 0 auto; width: 34px; display: inline-flex; }
 .be-tok-shadow-cf .color-picker-field, .be-tok-shadow-cf .color-trigger { width: 100%; }
 .be-tok-del {
-  margin-inline-start: auto; border: 0; background: transparent; cursor: pointer;
-  color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); padding: .2rem .35rem;
+  margin-inline-start: auto;
 }
-.be-tok-del:hover { color: hsl(var(--destructive-text)); }
 .be-tok-add { display: flex; gap: .5rem; flex-wrap: wrap; }
 /* `.field-select .field-select--sm` carries the box; the add-row only needs the
    kind picker to hug its content beside the flexible name field. */
@@ -1698,7 +1654,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 }
 .tk-tile:hover { border-color: color-mix(in oklab, var(--ui-color-action-primary) 55%, var(--ui-color-border-default)); }
 .tk-tile:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
-.tk-tile-ic { display: grid; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); color: var(--ui-color-action-primary); }
+.tk-tile-ic { display: grid; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); color: var(--ui-color-text-accent); }
 .tk-tile-ic svg, .tk-sec-ic svg { width: 100%; height: 100%; }
 .tk-tile-n { justify-self: end; font-size: var(--ui-type-title); font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .tk-tile-label { grid-column: 1 / -1; font-size: var(--ui-type-label); font-weight: 600; }
@@ -1711,7 +1667,7 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .tk-sec:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .tk-sec-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); font-size: var(--ui-type-section); }
 .tk-sec-head > .tk-sec-act { margin-inline-start: auto; }
-.tk-sec-ic { flex: 0 0 auto; display: grid; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); color: var(--ui-color-action-primary); }
+.tk-sec-ic { flex: 0 0 auto; display: grid; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); color: var(--ui-color-text-accent); }
 .tk-sec-name { min-width: 0; margin: 0; font-size: var(--ui-type-section); font-weight: var(--ui-type-weight-section); color: var(--ui-color-text-default); }
 .tk-sec-n {
   padding: 0 var(--sp-2); border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted);
@@ -1903,18 +1859,14 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
   border-radius: var(--radius-pill); background: hsl(var(--popover));
   box-shadow: 0 0 0 1px hsl(var(--foreground) / .35);
 }
-/* Per-stop remove - a corner ✕ revealed on hover/focus (the stop-count stepper
-   covers shrink where hover doesn't exist). */
+/* The shared close button (lib/close-button.ts); its place and reveal are set here. */
 .be-grad-stopdel {
-  position: absolute; top: -6px; right: -6px; width: 14px; height: 14px; padding: 0;
-  display: none; align-items: center; justify-content: center;
-  border: 1px solid hsl(var(--border)); border-radius: var(--radius-pill);
-  background: hsl(var(--popover)); color: hsl(var(--muted-foreground));
-  font-size: calc(.55rem * var(--a11y-fs)); line-height: 1; cursor: pointer;
+  position: absolute; top: -6px; right: -6px;
+  display: none;
 }
 .be-grad-stopwrap:hover .be-grad-stopdel,
-.be-grad-stopwrap:focus-within .be-grad-stopdel { display: inline-flex; }
-.be-grad-stopdel:hover { color: hsl(var(--destructive-text)); border-color: hsl(var(--destructive) / .5); }
+.be-grad-stopwrap:focus-within .be-grad-stopdel,
+.be-grad-stopdel:focus-visible { display: inline-grid; }
 .be-grad-addstop {
   width: 22px; height: 22px; border: 1px solid hsl(var(--border)); border-radius: var(--radius-sm);
   background: transparent; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: var(--fs-md); line-height: 1;
@@ -1955,7 +1907,7 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
   cursor: pointer; list-style: none;
   font-size: var(--fs-2xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground));
 }
-.be-grad-pop-custom summary::-webkit-details-marker { display: none; }
+.be-grad-pop-custom summary::after { content: none; }
 .be-grad-pop-customrow { display: flex; gap: .4rem; margin-top: .45rem; }
 .be-grad-pop-customrow .be-fmt-input { flex: 1 1 auto; min-width: 0; }
 
@@ -2253,7 +2205,7 @@ html[data-a11y-motion="reduce"] .start:has(> .stu-sheet) .be-bulkbar { transitio
   padding: 0;
   border: 0;
   background: none;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   cursor: pointer;
   text-decoration: underline;
   font: inherit;
@@ -2319,7 +2271,7 @@ html[data-a11y-motion="reduce"] .start:has(> .stu-sheet) .be-bulkbar { transitio
   border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) * 0.6);
   background-color: hsl(var(--primary) / 0.08);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-size: var(--fs-sm);
   font-weight: 500;
   cursor: pointer;
@@ -2362,32 +2314,18 @@ html[data-a11y-motion="reduce"] .start:has(> .stu-sheet) .be-bulkbar { transitio
 .fonts-item-style::before { content: 'style:'; margin-inline-end: .25rem; }
 .fonts-item-size::before { content: 'size:'; margin-inline-end: .25rem; }
 
+/* The shared close button (lib/close-button.ts) in its removal tone. It shows while the
+   pointer is on its font, and whenever the keyboard reaches the button. */
 .fonts-item-delete {
   position: absolute;
   top: 0.25rem;
   right: 0.25rem;
-  width: 1.25rem;
-  height: 1.25rem;
-  padding: 0;
-  border: 0;
-  background-color: transparent;
-  color: hsl(var(--destructive-text));
-  font-size: var(--fs-lg);
-  line-height: 1;
-  cursor: pointer;
-  transition: all var(--dur-1) ease;
   opacity: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.fonts-item:hover .fonts-item-delete {
+.fonts-item:hover .fonts-item-delete,
+.fonts-item-delete:focus-visible {
   opacity: 1;
-}
-
-.fonts-item-delete:hover {
-  background-color: hsl(var(--destructive) / 0.1);
 }
 
 .fonts-loading {
@@ -2473,10 +2411,10 @@ html[data-a11y-motion="reduce"] .start:has(> .stu-sheet) .be-bulkbar { transitio
   cursor: pointer; transition: color var(--dur-1), background var(--dur-1), border-color var(--dur-1);
 }
 .be-ramp-curve:hover { color: hsl(var(--foreground)); background: hsl(var(--muted) / .5); }
-.be-ramp-curve.is-edited { color: hsl(var(--primary)); }
+.be-ramp-curve.is-edited { color: hsl(var(--primary-text)); }
 /* Open state reads as a filled control (a background swap, not an accent border -
    that's the pill/card border rule). */
-.be-ramp-curve.is-open { background: hsl(var(--primary) / .14); color: hsl(var(--primary)); border-color: hsl(var(--border)); }
+.be-ramp-curve.is-open { background: hsl(var(--primary) / .14); color: hsl(var(--primary-text)); border-color: hsl(var(--border)); }
 .be-ramp-curve:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
 .be-ramp-curve svg { display: block; }
 @media (prefers-reduced-motion: reduce) { .be-ramp-curve { transition: none; } }
@@ -2490,15 +2428,6 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
 .be-curve-head { display: flex; align-items: center; gap: .6rem; }
 .be-curve-title { font-size: var(--fs-sm); font-weight: 700; letter-spacing: .01em; color: hsl(var(--foreground)); margin-inline-end: auto; }
 .be-curve-head-actions { display: flex; align-items: center; gap: .4rem; }
-.be-curve-close {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: calc(1.5rem * var(--a11y-fs)); height: calc(1.5rem * var(--a11y-fs));
-  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .45);
-  background: hsl(var(--background)); color: hsl(var(--muted-foreground));
-  font-size: var(--fs-md); line-height: 1; cursor: pointer;
-}
-.be-curve-close:hover { color: hsl(var(--foreground)); background: hsl(var(--muted) / .5); }
-.be-curve-close:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
 .be-curve-hint { margin: 0; font-size: var(--fs-xs); line-height: 1.45; color: hsl(var(--muted-foreground)); }
 .be-curve-mount { display: grid; gap: .5rem; }
 
@@ -2511,7 +2440,7 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
   font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer;
 }
 .be-curve-ch:hover { color: hsl(var(--foreground)); }
-.be-curve-ch.is-active { background: hsl(var(--primary) / .14); color: hsl(var(--primary)); }
+.be-curve-ch.is-active { background: hsl(var(--primary) / .14); color: hsl(var(--primary-text)); }
 .be-curve-ch:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
 .be-curve-axis { margin-inline-start: auto; font-family: var(--font-mono); font-size: var(--fs-2xs); color: hsl(var(--muted-foreground)); }
 
@@ -2696,12 +2625,8 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
 }
 .be-bulkbar-del:disabled { opacity: .45; cursor: default; }
 .be-bulkbar-x {
-  border: 0; background: transparent; color: inherit; cursor: pointer;
-  font: inherit; font-size: var(--fs-lg);
   margin-inline-start: auto;
-  padding: .3rem .55rem; border-radius: var(--radius-pill);
 }
-.be-bulkbar-x:hover { background: hsl(var(--background) / .2); }
 /* Phone: the bar is a scrolling row rather than a wrap - it docks above the
    sheet handle (see the mobile block), where there is one line of room. */
 @media (max-width: 640px) {

@@ -29,6 +29,9 @@ const readInk = (page: Page) => page.evaluate(() => {
 async function visit(page: Page): Promise<void> {
   await page.goto(`${origin}/t/design?template=video&editingRange=hdr`);
   await page.waitForFunction(() => !!(window as EditorWindow).lolly?.ui);
+  // The editor's chrome is imported after the view mounts: wait for its layout attribute
+  // as well as the timeline, so a test reads the layout it is in, never a missing one.
+  await page.waitForSelector('.tool-stage[data-design-layout]');
   await page.waitForSelector('.tl-panel:not([hidden])');
   // The editor paints before the mount finishes, and the shared Loading card
   // (components/view-loading.ts) keeps the page inert until then: keys pressed on
@@ -43,12 +46,20 @@ async function visit(page: Page): Promise<void> {
 test('Design keeps compact actions, panels and timeline resizing usable across the viewport matrix', { skip, timeout: 180000 }, async () => {
   const browser = await getBrowser({ graphics: 'auto' });
   try {
-    for (const [width, height] of [[320, 568], [360, 640], [390, 844], [768, 1024], [844, 390], [1024, 768], [1440, 1000]]) {
+    // Each window and the layout Design must take there: compact on phones and the
+    // landscape phone, wide on the tablets (two panes) and the desktop. Stated, not read,
+    // so a window in the wrong layout fails instead of skipping its checks.
+    const matrix: Array<[number, number, 'compact' | 'wide']> = [
+      [320, 568, 'compact'], [360, 640, 'compact'], [390, 844, 'compact'], [768, 1024, 'wide'],
+      [844, 390, 'compact'], [1024, 768, 'wide'], [1440, 1000, 'wide'],
+    ];
+    for (const [width, height, layout] of matrix) {
       const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: width!, height: height! }, hasTouch: true });
       try {
         const page = await context.newPage();
         await visit(page);
-        const compact = await page.locator('.tool-stage').getAttribute('data-design-layout') === 'compact';
+        assert.equal(await page.locator('.tool-stage').getAttribute('data-design-layout'), layout, `the ${layout} layout at ${width}x${height}`);
+        const compact = layout === 'compact';
         if (compact) {
           const profile = page.locator('.design-topbar .profile-link:visible');
           const box = (await profile.boundingBox())!;
@@ -111,9 +122,13 @@ test('Design keeps compact actions, panels and timeline resizing usable across t
         await page.waitForSelector('.fc-insp:not([hidden])');
         await select(page);
         const inspector = (await page.locator('.fc-insp:not([hidden])').boundingBox())!;
+        // A phone keeps the inspector in the tool view's drop-down panel
+        // (views/design-phone-panel.ts); a wider compact window in a bottom sheet.
+        const phonePanel = await page.locator('.design-phone-panel').count() > 0;
         if (compact) {
-          const background = await page.locator('.fc-insp.is-compact-sheet').evaluate(el => getComputedStyle(el).backgroundColor);
-          assert.notEqual(background, 'rgba(0, 0, 0, 0)', 'the inspector sheet has a background');
+          const surface = phonePanel ? '.design-phone-panel' : '.fc-insp.is-compact-sheet';
+          const background = await page.locator(surface).evaluate(el => getComputedStyle(el).backgroundColor);
+          assert.notEqual(background, 'rgba(0, 0, 0, 0)', 'the inspector surface has a background');
           await page.getByRole('button', { name: 'Add', exact: true }).click();
           const menu = page.locator('.fc-popover');
           const menuBox = (await menu.boundingBox())!;
@@ -126,7 +141,10 @@ test('Design keeps compact actions, panels and timeline resizing usable across t
           await webpage.click();
           await menu.waitFor({ state: 'hidden' });
           await page.getByRole('button', { name: 'Inspect', exact: true }).click();
-          assert.ok(inspector.y > 90, 'a visible preview remains above the sheet');
+          if (phonePanel) {
+            const edge = await page.locator('.design-phone-panel').evaluate(el => el.getBoundingClientRect().bottom);
+            assert.ok(actionBox.y - edge >= 120, `a visible canvas band remains below the panel at ${width}`);
+          } else assert.ok(inspector.y > 90, 'a visible preview remains above the sheet');
           assert.equal(await page.locator('.fc-nav:not(.is-collapsed):visible').count(), 0);
         } else if (width! <= 1024) {
           assert.equal(await page.locator('.fc-nav:not(.is-collapsed):visible').count(), 0);
@@ -154,12 +172,12 @@ test('phone inspector preserves P3 through undo and reload, and Escape dismisses
     assert.equal(await readInk(page), 'color(display-p3 1 0 0)');
     await page.keyboard.press('Escape');
     assert.equal(await field.locator('.color-popover').isVisible(), false);
-    assert.equal(await page.locator('.is-compact-sheet').count(), 1);
+    assert.equal(await page.locator('.design-phone-panel[data-snap="half"]').count(), 1, 'the panel stays open');
     // A pending inspector paint can replace the trigger after locator resolution.
     // Read the live trigger and focus together, after that paint settles.
     await page.waitForFunction(() => document.querySelector('[data-color-field="fc-insp-fg"] .color-trigger') === document.activeElement);
     await page.keyboard.press('Escape');
-    assert.equal(await page.locator('.is-compact-sheet').count(), 0);
+    assert.equal(await page.locator('.design-phone-panel[data-snap="peek"]').count(), 1, 'the second Escape folds the panel');
     assert.deepEqual(await selection(page), ['headline']);
     // The runtime paints before its coalesced address-bar update under load.
     // Wait for the authored colour in the actual share state, not a fixed delay.
@@ -201,7 +219,7 @@ test('compact editing survives rotation, enlarged text, RTL and returning from i
     await page.getByRole('button', { name: 'Inspect', exact: true }).click();
     await page.locator('[data-act="edittext"]').click();
     await page.waitForSelector('.tool-stage.is-text-editing');
-    await page.waitForSelector('.is-compact-sheet', { state: 'detached' });
+    await page.waitForSelector('.design-phone-panel[data-snap="peek"]');
     await page.getByRole('button', { name: 'Done', exact: true }).click();
     await page.waitForSelector('.tool-stage.is-text-editing', { state: 'detached' });
     assert.deepEqual(await selection(page), ['headline']);
@@ -213,7 +231,7 @@ test('compact editing survives rotation, enlarged text, RTL and returning from i
     await page.waitForSelector('.fc-insp:not([hidden])');
     assert.deepEqual(await selection(page), ['headline']);
     await page.setViewportSize({ width: 360, height: 640 });
-    await page.waitForSelector('.is-compact-sheet');
+    await page.waitForSelector('.design-phone-panel[data-snap="half"] .fc-insp');
     await page.evaluate(() => {
       document.documentElement.dir = 'rtl';
       document.documentElement.style.fontSize = '200%';
@@ -225,9 +243,11 @@ test('compact editing survives rotation, enlarged text, RTL and returning from i
     assert.ok((await page.locator('.dtb-name').boundingBox())!.width >= 90);
     const actions = (await page.locator('.design-compact-actions').boundingBox())!;
     assert.equal(actions.height, 84, 'the safe area is included in panel reserves');
-    const inspector = (await page.locator('.is-compact-sheet').boundingBox())!;
+    const inspector = (await page.locator('.design-phone-panel').boundingBox())!;
     assert.ok(inspector.y + inspector.height <= actions.y + 1);
-    await page.locator('[data-act-col="close"]').click();
+    // The phone panel folds to its peek from the bottom bar's own button.
+    await page.getByRole('button', { name: 'Inspect', exact: true }).click();
+    await page.waitForSelector('.design-phone-panel[data-snap="peek"]');
     await page.getByRole('button', { name: 'Add', exact: true }).click();
     await page.waitForSelector('.fc-popover');
     assert.match(await page.locator('.fc-popover').innerText(), /Text/);

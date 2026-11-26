@@ -14,6 +14,9 @@
  *   sources  docs/spec/document-model/diagrams/<name>.<mmd|dot|pikchr>
  *            docs/diagram-sources/shoulders-of-giants/<name>.txt
  *            docs/diagram-sources/concepts/<name>.dot
+ *            docs/diagram-sources/work-integrations/<name>.dot
+ *            docs/diagram-sources/work-partners/<name>.dot
+ *            docs/diagram-sources/work-deployment/<name>.dot
  *   output   docs/diagrams/<set>/<name>.svg, plus docs/diagrams/<set>/recipes.json;
  *            a set marked `dark` also writes docs/diagrams/<set>/<name>.dark.svg
  *
@@ -53,6 +56,8 @@ const SET_DIRS = {
   'shoulders-of-giants': { src: join(ROOT, 'docs/diagram-sources/shoulders-of-giants'), out: join(ROOT, 'docs/diagrams/shoulders-of-giants'), dark: true },
   concepts: { src: join(ROOT, 'docs/diagram-sources/concepts'), out: join(ROOT, 'docs/diagrams/concepts'), dark: true },
   'work-integrations': { src: join(ROOT, 'docs/diagram-sources/work-integrations'), out: join(ROOT, 'docs/diagrams/work-integrations'), dark: true },
+  'work-partners': { src: join(ROOT, 'docs/diagram-sources/work-partners'), out: join(ROOT, 'docs/diagrams/work-partners'), dark: true },
+  'work-deployment': { src: join(ROOT, 'docs/diagram-sources/work-deployment'), out: join(ROOT, 'docs/diagrams/work-deployment'), dark: true },
 } as const;
 export type FigureSet = keyof typeof SET_DIRS;
 const CLI = join(ROOT, 'shells/cli/bin/lolly.ts');
@@ -96,8 +101,13 @@ interface Figure {
   lang: Lang;
   /** Drawn as the figure's heading, and passed as `--title`. */
   title: string;
+  /** Draw no heading: the page's own heading or intro already says what the figure shows.
+   *  The title stays here as the figure's name in this list. */
+  untitled?: boolean;
   /** Per figure overrides, appended after SHARED_FLAGS so they win. */
   flags?: string[];
+  /** Overrides for the dark twin only, appended after DARK_FLAGS. */
+  darkFlags?: string[];
 }
 
 /** The ten figures, in the order the chapters use them. */
@@ -153,8 +163,10 @@ export const CONCEPT_FIGURES: Figure[] = [
   { set: 'concepts', name: 'share-with-rules', lang: 'dot', title: 'From a master to a reusable tool', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'token-resolution', lang: 'dot', title: 'From token sources to tool values', flags: ['--look=minimal', '--cardWidth=178'] },
   { set: 'concepts', name: 'one-render-path', lang: 'dot', title: 'Two transports, one render path', flags: ['--look=minimal', '--cardWidth=178'] },
+  { set: 'concepts', name: 'mcp-endpoints', lang: 'dot', title: 'Three endpoints, one render path', flags: ['--look=minimal', '--cardWidth=170', '--siblingGap=16'] },
   { set: 'concepts', name: 'rights-evidence-to-delivery', lang: 'dot', title: 'Evidence, obligation and delivery', flags: ['--look=minimal', '--cardWidth=190'] },
   { set: 'concepts', name: 'two-ways-to-resize', lang: 'dot', title: 'Two ways to resize a logo', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=24'] },
+  { set: 'concepts', name: 'tune-from-seed', lang: 'dot', title: 'One seed, one tune', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=20'] },
   { set: 'concepts', name: 'signing-architecture', lang: 'dot', title: 'From device key to verified signer', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=18'] },
   { set: 'concepts', name: 'trusted-two-gates', lang: 'dot', title: 'Two gates to trusted', flags: ['--look=minimal', '--cardWidth=178', '--siblingGap=18'] },
   { set: 'concepts', name: 'token-three-places', lang: 'dot', title: 'One token, three places', flags: ['--look=minimal', '--cardWidth=170', '--siblingGap=16'] },
@@ -174,16 +186,46 @@ export const CONCEPT_FIGURES: Figure[] = [
   { set: 'concepts', name: 'asset-relay', lang: 'dot', title: 'One tool, many hands', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=24'] },
 ];
 
-/** Lolly Work guides: connecting a source, Penpot's two lanes, a resumable upload and an agent invitation. */
+/** Lolly Work guides: connecting a source, Penpot's two lanes, a resumable upload, an agent invitation
+ *  and who decides what while a DAM stays the source. */
 export const WORK_INTEGRATION_FIGURES: Figure[] = [
   { set: 'work-integrations', name: 'source-flow', lang: 'dot', title: 'From your source to Lolly tools', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=18'] },
   { set: 'work-integrations', name: 'penpot-lanes', lang: 'dot', title: 'Two lanes out of Penpot', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=18'] },
   { set: 'work-integrations', name: 'upload-parts', lang: 'dot', title: 'A resumable upload', flags: ['--look=minimal', '--cardWidth=178', '--rowGap=36'] },
   { set: 'work-integrations', name: 'agent-invite', lang: 'dot', title: 'An agent invitation', flags: ['--look=minimal', '--cardWidth=190', '--rowGap=36'] },
+  // Read beside the partner pages, so it takes their Opal greens (PARTNER_LIGHT and PARTNER_DARK below).
+  { set: 'work-integrations', name: 'dam-decisions', lang: 'dot', title: 'Who decides what', untitled: true, flags: ['--look=minimal', '--edgeColor=#008657', '--nodeStroke=#ace1ad', '--nodeText=#033633', '--cardWidth=180', '--siblingGap=18'], darkFlags: ['--background=#121d24', '--nodeFill=#1c282f', '--nodeStroke=#2f5a46', '--nodeText=#edf6e0', '--edgeColor=#50c369'] },
+];
+
+/** Partner programme guides: how a programme fits together, what reaches a partner, the
+ *  approvals a partner team can turn on and a partnership from invitation to reopening.
+ *
+ *  These read as product pages, so they take the docs' own greens from Lolly Demo's Opal
+ *  palette rather than the starter brand's greys: Bunyapine connectors, Pandanus card
+ *  edges and Spearmint labels, with the key cards tinted in the source (#dcf3e6, which the
+ *  dark twin swaps for its deeper green). The dark twin sits on the docs' dark card colour
+ *  with Green Apple connectors. Each page heading or intro already says what its figure
+ *  shows, so the figures draw no heading of their own. */
+const PARTNER_LIGHT = ['--look=minimal', '--edgeColor=#008657', '--nodeStroke=#ace1ad', '--nodeText=#033633'];
+const PARTNER_DARK = ['--background=#121d24', '--nodeFill=#1c282f', '--nodeStroke=#2f5a46', '--nodeText=#edf6e0', '--edgeColor=#50c369'];
+export const WORK_PARTNER_FIGURES: Figure[] = [
+  { set: 'work-partners', name: 'programme-structure', lang: 'dot', title: 'How a programme fits together', untitled: true, flags: [...PARTNER_LIGHT, '--cardWidth=176', '--siblingGap=20'], darkFlags: PARTNER_DARK },
+  { set: 'work-partners', name: 'what-reaches-a-partner', lang: 'dot', title: 'What reaches a partner', untitled: true, flags: [...PARTNER_LIGHT, '--cardWidth=176', '--siblingGap=18'], darkFlags: PARTNER_DARK },
+  { set: 'work-partners', name: 'approval-paths', lang: 'dot', title: 'Approvals you can turn on', untitled: true, flags: [...PARTNER_LIGHT, '--cardWidth=168', '--siblingGap=16'], darkFlags: PARTNER_DARK },
+  { set: 'work-partners', name: 'partnership-lifecycle', lang: 'text', title: 'From invitation to reopening', untitled: true, flags: [...PARTNER_LIGHT, '--diagramType=timeline', '--timelineDir=down', '--cardWidth=180', '--siblingGap=8'], darkFlags: PARTNER_DARK },
+];
+
+/** Lolly Work install guides: what a production install on Kubernetes is made of. An IT
+ *  team reads these beside the partner pages, so they take the same Opal greens; the server
+ *  and its database, the two parts every install has, are tinted as the key cards. */
+export const WORK_DEPLOYMENT_FIGURES: Figure[] = [
+  { set: 'work-deployment', name: 'production-architecture', lang: 'dot', title: 'Lolly Work in production', untitled: true, flags: [...PARTNER_LIGHT, '--cardWidth=176', '--siblingGap=18'], darkFlags: PARTNER_DARK },
+  { set: 'work-deployment', name: 'yunohost-package', lang: 'dot', title: 'Lolly Work for YunoHost', untitled: true, flags: [...PARTNER_LIGHT, '--cardWidth=176', '--siblingGap=18'], darkFlags: PARTNER_DARK },
+  { set: 'work-deployment', name: 'appliance', lang: 'dot', title: 'The Lolly appliance', untitled: true, flags: [...PARTNER_LIGHT, '--cardWidth=176', '--siblingGap=18'], darkFlags: PARTNER_DARK },
 ];
 
 /** Every figure the script renders, in set order. */
-export const ALL_FIGURES: Figure[] = [...FIGURES, ...GIANTS_FIGURES, ...CONCEPT_FIGURES, ...WORK_INTEGRATION_FIGURES];
+export const ALL_FIGURES: Figure[] = [...FIGURES, ...GIANTS_FIGURES, ...CONCEPT_FIGURES, ...WORK_INTEGRATION_FIGURES, ...WORK_PARTNER_FIGURES, ...WORK_DEPLOYMENT_FIGURES];
 
 const setOf = (fig: Figure): FigureSet => fig.set ?? 'document-model';
 const sourcePath = (fig: Figure): string => join(SET_DIRS[setOf(fig)].src, `${fig.name}.${EXT[fig.lang]}`);
@@ -199,9 +241,9 @@ export const sourceInput = (fig: Figure): string => SOURCE_INPUT[fig.lang];
 export function figureInputs(fig: Figure, variant: Variant = 'light'): Record<string, string> {
   let source = readFileSync(sourcePath(fig), 'utf8');
   if (variant === 'dark') source = source.replace(/#[0-9a-f]{6}\b/gi, hex => DARK_FILLS[hex.toLowerCase()] ?? hex);
-  const inputs: Record<string, string> = { source: fig.lang, title: fig.title, [SOURCE_INPUT[fig.lang]]: source };
+  const inputs: Record<string, string> = { source: fig.lang, title: fig.untitled ? '' : fig.title, [SOURCE_INPUT[fig.lang]]: source };
   const shared = setOf(fig) === 'shoulders-of-giants' ? GIANTS_FLAGS : SHARED_FLAGS;
-  for (const flag of [...shared, ...(fig.flags ?? []), ...(variant === 'dark' ? DARK_FLAGS : [])]) {
+  for (const flag of [...shared, ...(fig.flags ?? []), ...(variant === 'dark' ? [...DARK_FLAGS, ...(fig.darkFlags ?? [])] : [])]) {
     const split = flag.indexOf('=');
     inputs[flag.slice(2, split)] = flag.slice(split + 1);
   }

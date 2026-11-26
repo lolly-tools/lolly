@@ -16,6 +16,7 @@ import type { AssetRef, HostV1, Profile } from '@lolly-tools/core/host-v1';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
 import type { IconTheme } from '../../../../../engine/src/icon-theme.ts';
 import type { CatFont, CatalogHost } from './shared.ts';
+import type { AssetScope } from '../../lib/design-system/asset-scope.ts';
 import type { TileSelect } from '../../lib/tile-select.ts';
 import type { TileContextMenuHandle } from '../../lib/context-menu.ts';
 import type { tilesOps } from './tiles.ts';
@@ -63,6 +64,10 @@ export interface CatCtx {
   searchHaystack: Map<string, string> | null;
   headshotUrl: string;
   showHidden: boolean;
+  /** The catalog's design-system scope, or null when it holds one system (asset-scope.ts). */
+  scope: AssetScope | null;
+  /** The grid lifts that scope (`?systems=all`), a viewer's own choice that a link can carry. */
+  allSystems: boolean;
   /** The role colours under Swatches stay behind their card until it shows them (`?swatches`). */
   showSwatches: boolean;
   loadFailed: boolean;
@@ -70,6 +75,8 @@ export interface CatCtx {
   typeFilter: TypeFilter;
   query: string;
   iconThemes: IconTheme[];
+  /** The ground `iconThemes` was read for (views/assets/shared.ts iconThemeForGround). */
+  iconThemeGround: 'light' | 'dark';
   catIconTheme: string | null;
   iconSvgCache: Map<string, string>;
   photoTreatments: PhotoTreatment[];
@@ -135,6 +142,8 @@ export interface CatCtx {
   dropzoneMount: HTMLElement | null;
   detailsMeterDispose: import('../../lib/audio-meter.ts').MeterHandle | null;
   detailsTransport: import('../../lib/audio-transport.ts').AudioTransport | null;
+  /** A saved tune's preview in the open sheet: live until its WAV is made (lib/tune-preview.ts). */
+  detailsTune: import('../../lib/tune-preview.ts').TunePreview | null;
   vizTeardown: (() => void) | null;
   vizCycleStop: (() => void) | null;
   warmingFavArt: boolean;

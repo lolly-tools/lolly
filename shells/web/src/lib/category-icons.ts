@@ -38,6 +38,8 @@ const CATEGORY_ICON: Record<string, string> = {
   headshots: g('headshot'),
   // Icons - the universal triangle / square / circle shapes mark.
   icons: g('shapes'),
+  // Lolly etiquette icons - a lollipop, because the set is Lolly's own.
+  'etiquette-icons': g('lollipop'),
   // Illustrations - a vector pen tool (drawn art).
   illustrations: g('penTool'),
   // Guidelines - a mortarboard, the Skills room's own glyph (plan 323).

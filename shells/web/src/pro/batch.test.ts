@@ -130,3 +130,12 @@ test('runBatch: every emitted index is a QUEUE position, and the row rides with 
   assert.equal(errors[2]!.index, 2);
   assert.equal(errors[2]!.uid, 'r5');
 });
+
+test('planBatch: a kept tune is renderable without a tool to load', async () => {
+  const rows: BatchRow[] = [{ uid: 'm', toolId: '__music__', values: { params: 'style=ska&seed=7' } }, { uid: 'q', toolId: 'qr-code', values: {} }];
+  let asked = 0;
+  const plan = await planBatch(rows, { getTool: async (id: string) => { asked++; if (id === '__music__') throw new Error('no such tool'); return { manifest: {} }; }, isExportable: () => true });
+  assert.deepEqual(plan.renderable.map(r => r.uid), ['m', 'q']);
+  assert.deepEqual(plan.skipped, []);
+  assert.equal(asked, 1, 'only the tool row looked a tool up');
+});

@@ -1,5 +1,5 @@
 {
   "name": "다크룸",
-  "description": "필름 룩, Adobe XMP 프리셋, .cube LUT, 디자인 시스템 색상으로 사진과 영상을 보정해요. LUT 내보내기나 영상 보정으로 룩을 다시 쓸 수 있어요. Photoshop과 GIMP 레이어를 열어 배치, 블렌딩, 이미지 내보내기도 해요.",
+  "description": "필름 룩, Adobe XMP 프리셋, .cube LUT, 디자인 시스템 색상으로 사진과 영상을 보정해요. Photoshop과 GIMP 레이어를 열 수 있어요.",
   "featured.blurb": "필름 룩, LUT와 브랜드 색상으로 사진 보정"
 }

@@ -31,3 +31,25 @@ test('the web shell routes each Tier A note to the person and to the console lin
   assert.match(loop![1]!, /_host\?\.log\?\.\('warn', `pptx: \$\{line\}\.`\)/, 'the console line the CLI reads');
   assert.match(loop![1]!, /_exportNotice\(/, 'the export card and the aria-live announce');
 });
+
+test('a PDF that drew text as pictures tells the caller, and other pdf lines stay in the log', () => {
+  const line = 'pdf: This PDF draws some text as pictures, because no font it can embed has those letters (Arabic).';
+  assert.equal(sessionExportNote('warning', `[warn] ${line} `), line);
+  assert.equal(sessionExportNote('warning', '[warn] pdf: SUSE-Regular.ttf is not a TrueType file'), null);
+});
+
+test('an EMF, EPS or WMF that drew text as pictures tells the caller too', () => {
+  for (const f of ['emf', 'eps', 'wmf']) {
+    const line = `${f}: This ${f.toUpperCase()} draws some text as pictures, because no font it can outline has those letters (Tamil).`;
+    assert.equal(sessionExportNote('warning', `[warn] ${line} `), line);
+  }
+  assert.equal(sessionExportNote('warning', '[warn] eps: something else'), null);
+});
+
+test('an export whose text a fallback font drew tells the caller which font', () => {
+  const line = "fonts: Arabic text is drawn with Noto Sans Arabic, because this design system's fonts do not have those letters.";
+  // host.log('info', …) prints as [info] with a trailing space, as warn does.
+  assert.equal(sessionExportNote('info', `[info] ${line} `), line);
+  assert.equal(sessionExportNote('warning', `[warn] ${line}`), null, 'it is information, not a warning');
+  assert.equal(sessionExportNote('info', '[info] pdf: something else'), null, 'only the fallback-font note');
+});

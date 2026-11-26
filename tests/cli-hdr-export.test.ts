@@ -40,6 +40,7 @@ import sharp from 'sharp';
 import { findJpegSegment, scanJpegSegments, JPEG_APP_IDS } from '../engine/src/jpeg-segments.ts';
 import { ISO_GAINMAP_URN } from '../engine/src/gainmap-jpeg.ts';
 import { extractC2paStore } from '../engine/src/c2pa-extract.ts';
+import { writeBrowserFreeFixture } from './helpers/browser-free-fixture.ts';
 
 // ─── self-contained fixture repo ────────────────────────────────────────────
 
@@ -69,6 +70,8 @@ await writeFile(join(root, 'tools', 'swatch', 'tool.json'), JSON.stringify({
   inputs: [{ id: 'fill', type: 'color', label: 'Fill', default: '#ffffff' }],
 }));
 await writeFile(join(root, 'tools', 'swatch', 'template.html'), SWATCH);
+// Admitted to the browser-free route by its own record; the assertions below check the drawing.
+writeBrowserFreeFixture(join(root, 'tools', 'swatch'));
 
 // Pin the run chain to the fixture BEFORE the first import, and pin the browser tier
 // to a directory with no built shell so it is deterministically absent. LOLLY_WEB_BASE

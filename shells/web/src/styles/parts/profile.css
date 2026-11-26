@@ -115,7 +115,7 @@
 .profile-view .profile-nav-item:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: -1px; }
 .profile-view .profile-nav-item.is-active {
   background: hsl(var(--primary) / .12);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 .profile-view .profile-nav-ic { flex: 0 0 auto; width: var(--fs-xl); height: var(--fs-xl); }
 .profile-view .profile-nav-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -325,7 +325,7 @@
   flex: none;
   font-size: calc(.58rem * var(--a11y-fs)); font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
   padding: .1rem .45rem; border-radius: calc(var(--radius)*2);
-  background: hsl(var(--primary) / .15); color: hsl(var(--primary));
+  background: hsl(var(--primary) / .15); color: hsl(var(--primary-text));
 }
 
 /* Brief attention highlight when a #/profile?focus=<id> deep link lands (the
@@ -382,7 +382,7 @@
   margin-left: .5rem; padding: .1rem .5rem;
   border-radius: var(--radius-pill);
   background: hsl(var(--primary) / .12);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-size: var(--fs-xs); font-weight: 600; letter-spacing: .02em;
 }
 /* Small (i) explainer beside a flag label - the shared help-tip button now
@@ -531,7 +531,7 @@ html[data-a11y-motion="reduce"] .profile-view .profile-hand-ic svg { transition:
 .profile-view .profile-theme-name { display: flex; align-items: center; gap: .4rem; font-weight: 600; }
 .profile-view .profile-theme-ic { display: inline-flex; }
 .profile-view .profile-theme-ic svg { width: var(--fs-xl); height: var(--fs-xl); }
-.profile-view .profile-theme.is-active .profile-theme-name::after { content: '✓'; margin-inline-start: auto; color: hsl(var(--primary)); font-weight: 800; }
+.profile-view .profile-theme.is-active .profile-theme-name::after { content: '✓'; margin-inline-start: auto; color: hsl(var(--primary-text)); font-weight: 800; }
 /* Tiny "default" pill on the Light preview. */
 .profile-view .profile-theme-pill {
   display: inline-block; font-size: calc(.58rem * var(--a11y-fs)); font-weight: 700;
@@ -606,7 +606,7 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 }
 .profile-view .activity-meta .activity-fav::after { content: "→"; font-weight: 600; opacity: .55; }
 .profile-view .activity-meta .activity-fav:hover {
-  background: var(--ui-color-selection-surface); border-color: var(--ui-color-selection-border); color: var(--ui-color-action-primary);
+  background: var(--ui-color-selection-surface); border-color: var(--ui-color-selection-border); color: var(--ui-color-text-accent);
 }
 
 /* Storage */
@@ -700,23 +700,9 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 .profile-view .store-sess-thumb.is-placeholder svg { width: calc(20px * var(--a11y-fs)); height: calc(20px * var(--a11y-fs)); }
 .profile-view .store-sess-meta { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .profile-view .store-sess-label { font-size: var(--fs-md); color: var(--ui-color-text-default); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.profile-view .store-sess-tag { font-size: var(--fs-2xs); padding: 0 5px; margin-left: .35rem; border-radius: var(--ui-radius-pill); background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary); }
+.profile-view .store-sess-tag { font-size: var(--fs-2xs); padding: 0 5px; margin-left: .35rem; border-radius: var(--ui-radius-pill); background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent); }
 .profile-view .store-sess-sub { font-size: var(--fs-xs); color: var(--ui-color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .profile-view .store-sess .session-size { margin: 0; flex: none; }
-.profile-view .store-sess-del {
-  flex: none; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
-  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-choice-round); background: var(--ui-color-surface-canvas);
-  color: var(--ui-color-text-muted); cursor: pointer; font-size: var(--fs-sm); line-height: 1; opacity: .6;
-  transition: opacity var(--ui-motion-feedback), color var(--ui-motion-feedback), border-color var(--ui-motion-feedback);
-}
-.profile-view .store-sess:hover .store-sess-del, .profile-view .store-sess-del:focus-visible { opacity: 1; }
-/* No hover on touch, so the delete icon needs to be reachable without it. */
-@media (hover: none) {
-  .profile-view .store-sess-del { opacity: 1; }
-}
-.profile-view .store-sess-del:hover,
-.profile-view .headshot-remove:hover{ color: hsl(var(--destructive-text)); border-color: hsl(var(--destructive)); }
-.profile-view .store-sess-del:disabled { opacity: .4; cursor: default; }
 
 /* Floating multi-select action bar (sessions only). */
 .store-selbar {
@@ -784,10 +770,6 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 .profile-view .headshot-edit-jelly:focus-within { opacity: 1; }
 .profile-view .headshot-remove {
   position: absolute; top: 4px; right: 4px; z-index: 2;
-  width: 24px; height: 24px; border-radius: var(--radius-round);
-  border: 1px solid hsl(var(--border)); background: hsl(var(--background));
-  color: hsl(var(--muted-foreground)); font-size: var(--fs-xl); line-height: 1; cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
 }
 .profile-view .headshot-remove[hidden] { display: none; }
 
@@ -902,10 +884,10 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 .profile-view .feature-flag-cluster-sum {
   display: flex; align-items: center; cursor: pointer; list-style: none;
 }
-.profile-view .profile-group-sum::-webkit-details-marker,
-.profile-view .profile-row-sum::-webkit-details-marker,
-.profile-view .pconn-sync-choices-sum::-webkit-details-marker,
-.profile-view .feature-flag-cluster-sum::-webkit-details-marker { display: none; }
+.profile-view .profile-group-sum::after,
+.profile-view .profile-row-sum::after,
+.profile-view .pconn-sync-choices-sum::after,
+.profile-view .feature-flag-cluster-sum::after { content: none; }
 .profile-view .profile-group-sum:focus-visible,
 .profile-view .profile-row-sum:focus-visible,
 .profile-view .pconn-sync-choices-sum:focus-visible,
@@ -929,14 +911,14 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 .profile-view .profile-row[open] { background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent); }
 .profile-view .profile-row-sum { gap: var(--sp-6); min-height: 48px; padding: 0 var(--sp-7); transition: background var(--dur-1); }
 .profile-view .profile-row-sum:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); }
-.profile-view .profile-mark { flex: none; display: inline-flex; width: var(--profile-mark-size); height: var(--profile-mark-size); color: hsl(var(--primary)); }
+.profile-view .profile-mark { flex: none; display: inline-flex; width: var(--profile-mark-size); height: var(--profile-mark-size); color: hsl(var(--primary-text)); }
 .profile-view .profile-mark svg { width: 100%; height: 100%; }
 .profile-view .profile-row-name { flex: 1 1 auto; min-width: 0; font-size: var(--fs-lg); font-weight: 500; color: var(--ui-color-text-default); }
 .profile-view .profile-row-value { flex: none; font-size: var(--fs-md); color: var(--ui-color-text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 /* A settled state (Connected, Downloaded): the selection tint as a fill, never an outline. */
 .profile-view .profile-row-tag {
   flex: none; padding: var(--sp-1) var(--sp-4); border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-selection-surface); color: var(--ui-color-action-primary);
+  background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent);
   font-size: var(--fs-sm); font-weight: 600;
 }
 /* The body's text lines up under the service name, past the mark. */
@@ -1035,7 +1017,7 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 .ds-row-actions [aria-disabled="true"] { cursor: progress; }
 .ds-row-more { position: relative; pointer-events: auto; }
 .ds-row-more summary { display: grid; place-items: center; min-height: var(--ui-size-target); cursor: pointer; list-style: none; border-radius: var(--ui-radius-control); }
-.ds-row-more summary::-webkit-details-marker { display: none; }
+.ds-row-more summary::after { content: none; }
 .ds-row-more summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 /* Opens downward, so the first compact row cannot push it off the top of the
    card; a row near the foot opens it upward when the card's clip would cut it
@@ -1059,9 +1041,7 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 /* Brand download uses the same tokens in the dialog's body-mounted top layer. */
 .brand-download { width: min(760px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 40px); padding: var(--ui-space-page); overflow: auto; color: var(--ui-color-text-default); background: var(--ui-color-surface-raised); }
 .bd-head { display: flex; align-items: start; justify-content: space-between; gap: var(--sp-5); }
-.bd-eyebrow { margin: 0 0 var(--sp-4); font-size: var(--ui-type-caption); letter-spacing: .08em; color: var(--ui-color-text-muted); }
 .brand-download .modal-title { margin: 0; font-size: var(--ui-type-heading); line-height: 1.2; overflow-wrap: anywhere; }
-.bd-close { display: grid; place-items: center; width: var(--ui-size-target); height: var(--ui-size-target); flex-shrink: 0; border: 0; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); }
 .bd-intro, .bd-help { font-size: var(--ui-type-body); line-height: 1.5; color: var(--ui-color-text-muted); }
 .bd-modes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); padding: 0; margin: var(--ui-space-panel) 0; border: 0; }
 .bd-modes label { display: flex; align-items: start; gap: var(--sp-4); padding: var(--ui-space-panel); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); cursor: pointer; }

@@ -21,6 +21,11 @@
  *     document someone asked for.
  *   - `onEscape`: Escape is Cancel, and the card stays up saying "Stopping…" until the
  *     mount has unwound.
+ *
+ * Focus goes to the title, not to Cancel. The card appears by itself while someone may
+ * still be typing or holding the Enter that opened the document, and a focused button
+ * takes Space and Enter as a press, so a stray key used to cancel the open. Cancel is
+ * one Tab away, and Escape cancels from anywhere on the card.
  */
 import { t } from '../i18n.ts';
 import { escapeHtml } from '../lib/util/escape.ts';
@@ -137,7 +142,7 @@ export function openProgress(opts: OpenProgressOpts = {}): OpenProgress {
     const thumb = opts.thumb && SAFE_THUMB.test(opts.thumb)
       ? `<div class="open-progress-thumb"><img src="${escapeHtml(opts.thumb)}" alt=""></div>` : '';
     modal = mountModal<void>(`${thumb}
-      <h2 class="modal-title" id="${titleId}">${escapeHtml(title)}</h2>
+      <h2 class="modal-title" id="${titleId}" tabindex="-1" autofocus>${escapeHtml(title)}</h2>
       <div class="open-progress-status">
         <p class="open-progress-step" role="status" aria-live="polite"></p>
         <span class="open-progress-count" aria-hidden="true" hidden></span>
@@ -151,7 +156,7 @@ export function openProgress(opts: OpenProgressOpts = {}): OpenProgress {
       backStack: false,
       dismissOnBackdrop: false,
       onEscape: cancel,
-      initialFocus: (el) => el.querySelector<HTMLElement>('[data-act="cancel"]'),
+      initialFocus: (el) => el.querySelector<HTMLElement>('.modal-title'),
     });
     modal.el.querySelector('[data-act="cancel"]')?.addEventListener('click', cancel);
     render();

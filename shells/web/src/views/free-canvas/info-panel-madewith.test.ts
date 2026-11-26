@@ -32,7 +32,9 @@ function open(info: Info): HTMLElement {
     },
   };
   openInfoPanel(fc as never, anchor);
-  return stageEl.querySelector('.fc-info-panel') as HTMLElement;
+  // This anchor is not a stage descendant, so the panel goes over the stage, on the
+  // body (mountEditorPanel): the lookup reads the whole document.
+  return document.querySelector('.fc-info-panel') as HTMLElement;
 }
 const settle = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 

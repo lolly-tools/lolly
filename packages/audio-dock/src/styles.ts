@@ -141,15 +141,52 @@ export const DOCK_CSS = `
    margin:auto drift; the wider thumb simply overhangs into the popover's padding. */
 .audio-dock-volrange { writing-mode: vertical-lr; direction: rtl; width: 6px; height: 120px; }
 .audio-dock-volpct { font: 700 .62rem/1 var(--font-mono, ui-monospace, monospace); color: var(--dock-muted); }
+.audio-dock-volmain { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.audio-dock-volname, .audio-dock-popctl:empty { display: none; }
+/* One controls popover (DockHost.controlsPopover): the master volume as a row like the
+   other sliders, then the other volumes and the source's switches, choices and sliders. */
+.audio-dock[data-ctlpop="true"] .audio-dock-volpop { align-items: stretch; gap: 10px; width: min(280px, calc(100% - 12px)); padding: 12px;
+  max-height: calc(100% - 12px); overflow-y: auto; }
+.audio-dock[data-ctlpop="true"] .audio-dock-volmain { flex-direction: row; gap: 10px; }
+.audio-dock[data-ctlpop="true"] .audio-dock-volname { display: block; }
+.audio-dock[data-ctlpop-open]:not([data-collapse="mini"]) { min-height: 384px; }
+.audio-dock[data-ctlpop="true"] .audio-dock-volrange { writing-mode: horizontal-tb; direction: inherit; flex: 1; width: auto; height: auto; min-width: 0; }
+.audio-dock[data-ctlpop="true"] .audio-dock-volpct { flex: 0 0 30px; text-align: right; }
+.audio-dock[data-ctlpop="true"] .audio-dock-volpop .audio-dock-vol span { flex: 0 0 3.6em; }
+.audio-dock[data-ctlpop="true"] .audio-dock-volpop .audio-dock-volumes { padding: 0; }
+.audio-dock-popctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.audio-dock-popctl .audio-dock-vol { flex: 1 1 100%; }
+.audio-dock-popctl .audio-dock-choice { flex-wrap: wrap; border-radius: 12px; }
+.audio-dock-popctl .audio-dock-choice button { flex: 1 1 40%; }
 .audio-dock-play {
   width: 46px; height: 46px; background: var(--dock-accent); color: var(--dock-accent-fg);
 }
 .audio-dock-play:hover { background: var(--dock-accent); filter: brightness(1.08); }
-.audio-dock-scrub { padding: 0 14px 10px; }
+.audio-dock-scrub { padding: 0 14px 10px; container-type: inline-size; }
 .audio-dock-scrub input[type="range"] { width: 100%; }
-.audio-dock-time { display: flex; justify-content: space-between; font-size: .68rem; color: var(--dock-muted);
+.audio-dock-time { display: flex; justify-content: space-between; gap: 8px; font-size: .68rem; color: var(--dock-muted);
   margin-top: 2px; font-family: var(--font-mono, ui-monospace, monospace); font-variant-numeric: tabular-nums; }
+/* Where the music is, between the times: a tune's bar and part. It gives way first, on a
+   narrow dock, and a long part name is cut short rather than pushing the times about. */
+.audio-dock-time-pos { flex: 1 1 auto; min-width: 0; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dock-fg); }
+@container (max-width: 210px) { .audio-dock-time-pos { display: none; } }
 .audio-dock[data-seekable="false"] .audio-dock-scrub { display: none; }
+/* The music scrub: a slider of the dock's own (see dock.ts). The track stays a 4px line;
+   the element around it is the hit area, taller on a touch screen so a thumb can take it. */
+.audio-dock-seek { position: relative; height: 18px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.audio-dock-seek:focus-visible { outline: 2px solid var(--dock-accent); outline-offset: 2px; border-radius: 6px; }
+.audio-dock-seek-track { position: absolute; left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; overflow: hidden; border-radius: 999px; background: var(--dock-track); }
+.audio-dock-seek-fill { position: absolute; top: 0; bottom: 0; left: 0; width: 0; background: var(--dock-accent); }
+/* Where a new part of a tune starts: a notch cut in the line. */
+.audio-dock-seek-mark { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--dock-bg); }
+.audio-dock-seek-thumb { position: absolute; top: 50%; left: 0; width: 13px; height: 13px; margin: -6.5px 0 0 -6.5px; border-radius: 999px;
+  background: var(--dock-accent); pointer-events: none; transition: transform .1s ease; }
+.audio-dock-seek.is-dragging .audio-dock-seek-thumb { transform: scale(1.3); }
+html[data-a11y-contrast="high"] .audio-dock-seek-track { outline: 1px solid var(--dock-border); }
+@media (pointer: coarse) {
+  .audio-dock-seek { height: 34px; }
+  .audio-dock-seek-thumb { width: 18px; height: 18px; margin: -9px 0 0 -9px; }
+}
 
 /* Every range slider (scrub, master Volume, Music/Effects, atmosphere) is fully
    custom-styled so it shows the dock's own colours ONLY: a clean rounded track in
@@ -230,6 +267,27 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 .audio-dock[data-collapse="compact"] .audio-dock-disclosure,
 .audio-dock[data-collapse="compact"] .audio-dock-caption { display: none; }
 
+/* the current source's own controls (a station's mood, switches, sliders, share) */
+.audio-dock-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 8px; padding: 2px 14px 8px; }
+.audio-dock-controls:empty { display: none; }
+.audio-dock-controls .audio-dock-vol { flex: 1 1 100%; }
+.audio-dock-choice { display: flex; flex: 1 1 100%; gap: 2px; padding: 2px; border: 1px solid var(--dock-border); border-radius: 999px; }
+.audio-dock-choice button {
+  flex: 1; min-width: 0; padding: 4px 8px; border: none; border-radius: 999px; background: transparent;
+  color: var(--dock-muted); font-size: .74rem; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.audio-dock-choice button[aria-pressed="true"] { background: var(--dock-accent); color: var(--dock-accent-fg); }
+.audio-dock-choice button:focus-visible { outline: 2px solid var(--dock-accent); outline-offset: 1px; }
+.audio-dock-action { margin-left: auto; }
+/* the icon actions and switches: one row at the end, each named by its tooltip */
+.audio-dock-icons { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.audio-dock-icon-ctl { width: 32px; height: 32px; color: var(--dock-muted); }
+.audio-dock-icon-ctl:hover { color: var(--dock-fg); }
+.audio-dock-icon-ctl[aria-pressed="true"] { background: var(--dock-accent); color: var(--dock-accent-fg); }
+.audio-dock-icon-ctl svg { width: 17px; height: 17px; }
+.audio-dock-said { font-size: .72rem; color: var(--dock-muted); margin-right: 4px; white-space: nowrap; }
+.audio-dock-said:empty { display: none; }
+
 /* volume sliders (music host: Music + interface Effects) */
 .audio-dock-volumes { display: flex; flex-direction: column; gap: 7px; padding: 2px 14px 8px; }
 .audio-dock-volumes:empty { display: none; }
@@ -264,11 +322,24 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 .audio-dock-src[aria-current="true"] { background: hsl(0 0% 100% / .12); font-weight: 700; }
 .audio-dock-src[disabled] { opacity: .5; cursor: default; }
 .audio-dock-src-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* a grid of tiles: the generated stations, a genre a tile, its icon over its name */
+.audio-dock-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); gap: 4px; padding: 2px 0 4px; }
+.audio-dock-tiles[hidden] { display: none; }
+.audio-dock-tile { flex-direction: column; justify-content: center; gap: 5px; min-height: 58px; padding: 8px 4px 6px; text-align: center;
+  background: hsl(0 0% 100% / .05); font-size: .7rem; }
+.audio-dock-tile[hidden] { display: none; }
+.audio-dock-tile .audio-dock-src-name { flex: none; max-width: 100%; }
+.audio-dock-tile-icon { display: inline-flex; color: var(--dock-muted); }
+.audio-dock-tile-icon svg { width: 20px; height: 20px; }
+.audio-dock-tile[aria-current="true"] { background: var(--dock-accent); color: var(--dock-accent-fg); }
+.audio-dock-tile[aria-current="true"] .audio-dock-tile-icon { color: inherit; }
 .audio-dock-src-mood { flex: 0 0 auto; font-size: .62rem; text-transform: uppercase; letter-spacing: .02em;
   color: var(--dock-muted); font-family: var(--font-mono, ui-monospace, monospace); }
 
-/* atmosphere mixer (restored per-layer icons) */
-.audio-dock-atmo-row { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+/* atmosphere mixer (restored per-layer icons), in columns: two in the dock's usual
+   width, more when it is wide, one when it is narrow */
+.audio-dock-atmo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); column-gap: 14px; }
+.audio-dock-atmo-row { display: flex; align-items: center; gap: 6px; padding: 1px 0; min-width: 0; }
 .audio-dock-atmo-icon { flex: 0 0 auto; width: 22px; height: 22px; display: inline-flex; align-items: center;
   justify-content: center; border-radius: 7px; background: hsl(0 0% 100% / .06); color: var(--dock-muted);
   border: 0; padding: 0; cursor: pointer; }   /* a button: tap to mute/unmute the layer (plans/147) */
@@ -276,7 +347,7 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 .audio-dock-atmo-row.is-on .audio-dock-atmo-icon:hover { filter: brightness(1.08); }
 .audio-dock-atmo-icon svg { width: 14px; height: 14px; }
 .audio-dock-atmo-row.is-on .audio-dock-atmo-icon { background: var(--dock-accent); color: var(--dock-accent-fg); }
-.audio-dock-atmo-label { flex: 0 0 6em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .76rem; color: var(--dock-muted); }
+.audio-dock-atmo-label { flex: 0 0 5.2em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .76rem; color: var(--dock-muted); }
 .audio-dock-atmo-row.is-on .audio-dock-atmo-label { color: var(--dock-fg); }
 .audio-dock-atmo-row input[type="range"] { flex: 1; min-width: 0; accent-color: var(--dock-accent); }
 
@@ -344,6 +415,13 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 .audio-dock[data-collapse="mini"] { width: auto; min-width: 200px; }
 .audio-dock[data-collapse="mini"] .audio-dock-main { display: none; }
 .audio-dock[data-collapse="mini"] .audio-dock-mini { display: flex; }
+/* The Mini size's progress: a thin line along its bottom edge, to look at, not to drag
+   (a press on the Mini opens the player, where the scrub is). */
+.audio-dock-mini { position: relative; }
+.audio-dock-mini-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--dock-track); pointer-events: none; }
+.audio-dock-mini-progress::after { content: ''; position: absolute; inset: 0; background: var(--dock-accent);
+  transform-origin: left center; transform: scaleX(var(--dock-progress, 0)); }
+.audio-dock[data-seekable="false"] .audio-dock-mini-progress { display: none; }
 
 /* ── Windowed states (full + expanded): draggable + resizable ────────────────── */
 /* Expanded (and a resized full) get an explicit inline size; disable the width
@@ -393,6 +471,11 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 }
 .audio-dock:fullscreen .audio-dock-face, .audio-dock[data-fullscreen] .audio-dock-face {
   height: 100%; max-height: 100%; overflow-y: auto;
+}
+/* Full screen covers the status bar and the home indicator on a phone, so the header and
+   the transport keep clear of both. Immersive places its own header (below). */
+.audio-dock:fullscreen:not([data-immersive]) .audio-dock-face, .audio-dock[data-fullscreen]:not([data-immersive]) .audio-dock-face {
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* ── Brand silhouette over the viz (plans/147) ── the brand's MONO-REVERSE logo, painted
@@ -451,6 +534,7 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 /* reduced motion - OS query. The app pref (data-a11y-motion) is added by the
    host on its own root; the viz loop also checks it in JS and stands down. */
 @media (prefers-reduced-motion: reduce) {
-  .audio-dock, .audio-dock-btn, .audio-dock-caret { transition: none; }
+  .audio-dock, .audio-dock-btn, .audio-dock-caret, .audio-dock-seek-thumb { transition: none; }
 }
+html[data-a11y-motion="reduce"] .audio-dock-seek-thumb { transition: none; }
 `;

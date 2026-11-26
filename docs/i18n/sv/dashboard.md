@@ -1,142 +1,170 @@
-# Settings
+# Inställningar
 
-Settings är där du ändrar hur Lolly fungerar för dig: dina uppgifter, designsystemet du använder, tillgänglighet, vad som lagras på den här enheten och vad som är redo offline. Öppna det med **Settings** i fältet längst ner på startskärmen, eller från din avatarmeny. Det öppnas på **Preferences**, med fyra flikar till bredvid.
+Settings innehåller dina uppgifter, ditt designsystem, tillgänglighet, lagring på den här enheten och offlinenedladdningar. Öppna **Settings** från fältet längst ner på startskärmen eller från din avatarmeny, så öppnas **Preferences**.
 
-| Flik | Adress | Vad den håller |
+| Flik | Adress | Vad den innehåller |
 |---|---|---|
 | **Preferences** | `#/settings` | Dina uppgifter, designsystem, utseende, emoji, tillgänglighet, anslutningar, lagring och offlinenedladdningar |
-| **This device** | `#/settings?tab=device` | En levande avläsning av den här webbläsaren och maskinen, plus ljud och en skrivskyddad lagringsvy |
-| **Design system** | `#/settings?tab=brand` | Det aktiva designsystemet som ett omslag och sidor, med ett band av omslag för att byta system |
+| **This device** | `#/settings?tab=device` | Aktuella uppgifter om den här webbläsaren och datorn samt ljud och en skrivskyddad lagringsvy |
+| **Design system** | `#/settings?tab=brand` | Det aktiva designsystemet som ett omslag och sidor, med en rad omslag för att byta system |
 | **Capabilities** | `#/settings?tab=caps` | Allt Lolly kan göra, som sökbara kort |
-| **Activity & stats** | `#/settings?tab=activity` | Katalogen, dina lokala räknare och senaste arbete |
+| **Activity & stats** | `#/settings?tab=activity` | Katalogen, dina lokala räknare och senaste arbeten |
 
-Varje flik har sin egen adress, och gamla länkar till `#/profile` och `#/d` öppnar fortfarande rätt ställe, ända ned till enskilda inställningar.
+Gamla länkar till `#/profile` och `#/d` öppnar fortfarande rätt plats, ända ner till enskilda inställningar.
 
-## Preferences
+<!--i:eti-sliders-->
+## Preferenser
 
-Preferences är en lång sida med en **inställningsrail** längs sidan och ett fält **Search settings** ovanför railen som filtrerar den medan du skriver. Varje avsnitt öppnas direkt från en länk av formen `#/settings?focus=<section-id>`, till exempel `#/settings?focus=storage-section`.
+Preferences är en enda lång sida med en **inställningslist** längs sidan. Fältet **Search settings** ovanför listen filtrerar den medan du skriver. Varje avsnitt har en länk på formen `#/settings?focus=<section-id>`, till exempel `#/settings?focus=storage-section`.
 
-- <!--i:usercheck--> **Your details** - ditt namn, dina kontaktuppgifter och ditt porträtt, och reglaget **Use my details to create**. [Profiler](/info/profile.html) förklarar hur verktyg använder dem.
-- <!--i:seal--> **Content Credentials** - den valfria verifierade identiteten som signerar dina exporter. Se [Content Credentials](/info/content-credentials-identity.html).
+- <!--i:usercheck--> **Your details** - ditt namn, dina kontaktuppgifter och ditt porträttfoto samt omkopplaren **Use my details to create**. [Profiler](/info/profile.html) förklarar hur verktygen använder dem.
+- <!--i:seal--> **Content Credentials** - den valfria verifierade identitet som signerar dina exporter. Se [Content Credentials](/info/content-credentials-identity.html).
 - <!--i:palette--> **Design systems** - byt, lägg till, dölj eller ta bort designsystem. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) beskriver varje åtgärd.
-- <!--i:moon--> **Appearance** - temat (Light, Dark eller Brand, som målar appen i din palett), **Your colourway** när designsystemet erbjuder fler än en ([Gör en färgvariant till din egen](/info/colourways.html#make-a-colourway-your-own)) och **Interface follows the design system**.
-- <!--i:sparkle--> **Emoji** - uppsättningen dina emoji ritas från när du börjar något nytt, med dess konstlicens, och hur starkt din palett färgar om dem (**Off**, **Subtle**, **Strong**, **Full**, **Mono** eller **Duotone**). **Keep skin tones and flags** låter dem behålla sina egna färger. Arbete du redan gjort behåller uppsättningen det gjordes med.
-- <!--i:eyeoff--> **Accessibility** - fyra komfortreglage, plus Sound och Neurospicy Mode. Se [Tillgänglighet](#accessibility).
-- <!--i:link--> **Connected services** - lagring du ansluter, som Dropbox, Google Drive, OneDrive, Nextcloud eller S3, och **Sync across devices**. Se [Synkronisera dina enheter](/info/sync.html).
-- <!--i:globe--> **Trusted sites** - webbplatserna som en Design-webbsiderutan eller en Sandbox-demo får kontakta utan att fråga, och, där servern erbjuder det, **Allow pages from any site**. [Integritetspolicyn](/info/privacy.html) listar vad varje förfrågan skickar.
-- <!--i:download--> **Your renders** - **Save my renders to my library** behåller en kopia av varje bild, ljudklipp och video du laddar ner i Assets, under taggen Renders.
-- <!--i:database--> **Storage** - vad Lolly behåller på den här enheten, och knapparna som rensar eller bär dina data. Se [Lagring](#storage).
-- <!--i:cpu--> **Available offline** - ladda ner det du behöver innan du förlorar anslutningen. Se [Available offline](#available-offline).
-- <!--i:folder--> **Hot folder** - i datorappen, bevaka en mapp och dra in allt som släpps i den i Lolly, genom samma väljare som ett dra-och-släpp får.
-- <!--i:clock--> **Your activity** - vad du har gjort på den här enheten, räknat lokalt.
-- <!--i:sliders--> **Feature flags** - slå på eller av delar av appen, som **Print preflight** eller **Strip metadata from uploads**.
-- <!--i:server--> **Lolly instance** - var den här installationen hämtar sina verktyg och sin katalog. Se [Lolly instance](#lolly-instance).
+- <!--i:moon--> **Appearance** - temat (Light, Dark eller Brand, som färgar appen med din palett), **Your colourway** när designsystemet erbjuder fler än en ([Gör en färgvariant till din egen](/info/colourways.html#make-a-colourway-your-own)) och **Interface follows the design system**.
+- <!--i:sparkle--> **Emoji** - emojiuppsättningen för nytt arbete, med licensen för grafiken, och hur mycket din palett färgar om emoji (**Off**, **Subtle**, **Strong**, **Full**, **Mono** eller **Duotone**). **Keep skin tones and flags** låter dem behålla sina egna färger. Arbete du redan har gjort behåller sin uppsättning.
+- <!--i:eyeoff--> **Accessibility** - fyra omkopplare för komfort samt Sound och Neurospicy Mode. Se [Tillgänglighet](#accessibility).
+- <!--i:link--> **Connected services** - lagring som du ansluter, till exempel Dropbox, Google Drive, OneDrive, Nextcloud eller S3, och **Sync across devices**. Se [Synkronisera dina enheter](/info/sync.html).
+- <!--i:globe--> **Trusted sites** - de webbplatser som en webbsideruta i Lolly Design eller en Lolly Sandbox-demo får kontakta utan att fråga och, där servern erbjuder det, **Allow pages from any site**. [Integritetspolicyn](/info/privacy.html) listar vad varje begäran skickar.
+- <!--i:download--> **Your renders** - **Save my renders to my library** behåller en kopia av varje bild, ljudklipp och video du laddar ner i Assets, under en Renders-etikett.
+- <!--i:database--> **Storage** - vad Lolly behåller på den här enheten och knapparna som rensar eller flyttar dina data. Se [Lagring](#storage).
+- <!--i:cpu--> **Available offline** - ladda ner det du behöver innan du förlorar anslutningen. Se [Tillgängligt offline](#available-offline).
+- <!--i:folder--> **Hot folder** - i datorappen bevakar Lolly en mapp och tar in allt som släpps där, via samma väljare som vid dra och släpp.
+- <!--i:clock--> **Your activity** - vad du har skapat på den här enheten, räknat lokalt.
+- <!--i:sliders--> **Feature flags** - slå på eller av delar av appen, som **Print preflight** eller **Strip metadata from uploads**. **Performance UI** ger appen ett enklare utseende som kräver mindre resurser att rita. Lolly kan slå på Performance UI på egen hand på en långsam enhet. Raden under omkopplaren anger då när och varför, med **Allow again** ([hur beslutet fattas](/info/configuration.html#curating-what-people-see)).
+- <!--i:server--> **Lolly instance** - var den här installationen hämtar sina verktyg och sin katalog. Se [Lolly-instans](#lolly-instance).
 
-Temakorten är levande förhandsvisningar och tillämpas i samma stund du väljer ett, bara på den här enheten.
+Temakorten är levande förhandsvisningar. Ett tema tillämpas så snart du väljer det, bara på den här enheten.
 
-![Tre temakort, vart och ett med en förhandsvisning av sin egen typografi och färg, med det aktiva flaggat](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![Tre temakort som vart och ett förhandsvisar sin egen typografi och färg, med det aktiva markerat](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ### Tillgänglighet
 
-**Settings → Preferences → Accessibility** håller fyra komfortinställningar för appen runt ditt arbete. Var och en är av tills du slår på den, och ingen av dem når in i en verktygsyta eller en export, så en lugnare app flyttar aldrig en pixel i filen du levererar.
+**Settings → Preferences → Accessibility** innehåller fyra komfortinställningar för appen. Var och en är av tills du slår på den och ingen av dem påverkar ett verktygs yta eller en export, så en lugnare app flyttar aldrig en pixel i filen du levererar. Alla är av som standard. Ingen av dem ändrar ett verktygs yta eller en export.
 
-- <!--i:pause--> **Reduce motion** stänger av appens övergångar, svep och krusiduller. Din yta och alla animerade exporter fortsätter röra sig som designat.
-- <!--i:photos--> **Hide colourful previews** byter galleriets förhandsvisningskonst mot lugna kort med ikon och text, och dämpar projektminiatyrer så att de förblir igenkännbara utan att skrika.
-- <!--i:sliders--> **High contrast** förstärker appens kanter, text och fokusringar. Dina varumärkesfärger och ytan förblir som du ställt in dem.
-- <!--i:font--> **Large text** förstorar appens etiketter, menyer och knapptext. Typ inne i dina designer rörs inte, så inget du exporterar bryts om.
+- <!--i:pause--> **Reduce motion** slår av appens övergångar, glidningar och dekorativa animationer.
+- <!--i:photos--> **Hide colourful previews** byter ut galleriets förhandsvisningsgrafik mot kort med ikoner och text och tonar ner projektminiatyrerna, som fortfarande går att känna igen.
+- <!--i:sliders--> **High contrast** förstärker appens kanter, text och fokusmarkeringar. Dina varumärkesfärger och ytan förblir som du ställt in dem.
+- <!--i:font--> **Large text** förstorar appens etiketter, menyer och knapptexter.
 
-De här inställningarna ligger på din profil, så de följer med i en profilexport och kommer fram på nästa installation med ditt namn och dina sessioner. En liten kopia bara för enheten tillämpar dem före den första målningen.
+**Dominant hand** (Right eller Left) anger vilken sida kontrollerna hamnar på när Lolly visar två paneler, på en vikbar eller nästan kvadratisk surfplatta. **Swap sides** i en panels rubrik ändrar också detta.
 
-Samma kort håller **Sound**, ett milt lager av hjälpljud för det du gör (att komma till galleriet, ett Content Credentials-resultat, att stänga en panel), och **Neurospicy Mode**, ett lugnt fokusspår. Att slå på Neurospicy öppnar en liten spelare i hörnet som följer dig genom appen. Där väljer du ett spår, hoppar över, ställer in volymen och minimerar eller stänger spelaren. Spår inkluderar procedurella *Lolly Sings*-melodier, ambienta loopar och beats, ditt eget ljud och internetradiostationer, som kräver anslutning. Båda är av som standard och kommer ihåg, och att stänga av Sound tystar också fokusspåret. Profilmenyn och **This device** bär samma reglage.
+De här inställningarna finns i din profil, så de följer med i en profilexport tillsammans med ditt namn och dina sessioner. En kopia som bara finns på enheten tillämpar dem före den första uppritningen.
 
-Gränssnittet går att navigera med tangentbord, anpassade kontroller bär etiketter för skärmläsare och varje verktygs levande förhandsvisning exponeras som en etiketterad bild som beskriver vad den visar.
+Samma kort har **Sound**, mjuka ljud som stöd för handlingar som att komma till galleriet, få ett Content Credentials-resultat eller stänga en panel. Det har också **Neurospicy Mode**, ett lugnt ljudspår för fokus. När du slår på Neurospicy öppnas en liten spelare i hörnet som följer med dig i hela appen. I spelaren väljer du ett spår, hoppar vidare, ställer in volymen och minimerar eller stänger spelaren. Spåren omfattar Lollys genererade stationer, ambientloopar och beats, ditt eget ljud och internetradiostationer, som behöver en anslutning. Båda är av som standard och inställningarna sparas. Att slå av Sound tystar också fokusspåret. Profilmenyn och **This device** har samma omkopplare.
+
+Ett reglage under omkopplaren Sound ställer in vad ljuden består av. Mot den runda **Bouba**-klumpen blir de mjuka droppar, bubblor och lite bas. Mot den spetsiga **Kiki**-stjärnan blir de torra tick, skrap och metall. Mitten behåller Lollys klanger och toner. Om ljuden i ena änden är svåra för dig att tåla, flytta mot den andra. Reglaget fungerar när Sound är av och när du släpper reglaget spelas ett kort prov upp.
+
+::: details De genererade stationerna
+De genererade stationerna komponerar sin musik medan de spelar, utan samplingar och inspelade röster. Varje låt har sina egna instrument, sitt eget sväng och sin egen spelordning.
+
+- **Lolly Sings** är en familj av stationer. Ursprungliga Lolly Sings är ljus och melodisk: durtonarter, en huvudmelodi i varje låt och inslag av bossa, shuffle och chiptune. Varje genre har också sin egen station, från Sugar och K-pop till Country, Jazz, Metal och D&B.
+- **Lofi-stationerna** (Warm, Late night och Rainy) är ändlösa lo-fi-beats.
+
+På en genererad station byter nästa och föregående mellan låtar. Varje låt kommer från ett startvärde, så låten spelas likadant var du än delar eller sparar den (se [Genererad musik](/info/generated-music.html)). Under uppspelningskontrollerna byter **Mood** mellan Lofi-stationerna, **Drums** tar bort trumsetet och **Texture** går från rent ljud till en dammig skiva. Därefter kommer en rad ikonknappar. Håll pekaren över eller tryck länge på en knapp för att se dess namn:
+
+- Musiknoten, **Open in the music generator**, öppnar låten på `#/music`, där du kan ändra dess instrument avsnitt för avsnitt.
+- Länken, **Share this tune or moment**, erbjuder en länk som spelar samma låt eller en som också startar där du är och visar visualiseraren med din aktuella förinställning och dina färger.
+- Mappen, **Save to library**, behåller låten bland dina tillgångar.
+- Blixten, **Light visualiser**, är en omkopplare som beskrivs nedan.
+
+En sparad låt listas under sin stations grupp, efter tonart och tempo. Om du väljer den sparade låten spelas samma låt igen, med upprepning som vilket spår som helst eller med fortsättning till nästa i framåtläge. Bara stationen och låtens nummer lagras, några få byte, och musiken komponeras igen medan den spelas. Du kan byta namn på eller ta bort en sparad låt bland dina tillgångar och använda den som bakgrundsmusik till en video. Lolly Demo och Lolly Start levereras med sex sparade låtar vardera.
+
+Visualiseraren hör varje spår på en jämn nivå, så ett tyst spår rör bilden lika mycket som ett starkt, oavsett volym. Varje Lolly Sings-genre, och en sparad låt från en sådan, erbjuder **Light visualiser**: enkla nivåstaplar som lämnar den bearbetningstid musiken behöver. Light visualiser är på från start för pekskärmar och för enheter med högst fyra kärnor eller högst 4 GB minne.
+:::
+
+Du kan använda gränssnittet med tangentbordet. Anpassade kontroller har etiketter för skärmläsare. Varje verktygs levande förhandsvisning är en enda bild med en etikett som beskriver vad den visar.
 
 ### Lagring
 
-Lagringsmätaren redovisar varje byte den här installationen håller, kategori för kategori, mot vad webbläsaren rapporterar.
+Lagringsmätaren visar varje byte som den här installationen innehåller, uppdelat efter kategori och jämfört med vad webbläsaren rapporterar.
 
-![Lagringsmätaren, som bryter ned sparade sessioner, bilder och cache mot vad webbläsaren faktiskt rapporterar](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![Lagringsmätaren, som delar upp sparade sessioner, bilder och cache i förhållande till vad webbläsaren faktiskt rapporterar](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 Under mätaren:
 
 - **Move to another device** har **Export my data**, **Import data…** och **Export my data & render everything**. [Flytta ditt arbete till en annan enhet](/info/find-your-work.html#move-your-work-to-another-device) går igenom dem.
-- **Clear cache** släpper nedladdade katalogfiler, som laddas ner igen vid behov.
+- **Clear cache** tar bort nedladdade katalogfiler som laddas ner igen när de behövs.
 - **Remove automatic checkpoints older than 30 days** frigör utrymme i History och behåller sparade och namngivna versioner.
-- **Clear all my data** tar bort allt Lolly behåller i den här webbläsaren, efter att du skrivit ett ord för att bekräfta. [Om du rensar webbläsardata](/info/find-your-work.html#if-you-clear-your-browser-data) listar vad som försvinner.
+- **Clear all my data** tar bort allt som Lolly behåller i den här webbläsaren, efter att du skrivit ett ord för att bekräfta. [Om du rensar dina webbläsardata](/info/find-your-work.html#if-you-clear-your-browser-data) listar vad som försvinner.
 
-### Available offline
+### Tillgängligt offline
 
-Lolly cachar skärmar när du besöker dem, vilket bara täcker platser du redan varit på. **Available offline** är för resan du ser komma: ladda ner de delar du behöver och titta på ett förloppsfält, så fortsätter allt du tog med fungera utan anslutning.
+Lolly cachelagrar bara de vyer du har besökt. **Available offline** laddar ner de delar du kommer att behöva, med en enda förloppsindikator, och de fortsätter fungera utan anslutning.
 
-- <!--i:monitor--> **App, katalog och guider** - **The app** (varje vy, redigerare och typsnitt, inklusive skärmar du aldrig öppnat), **Catalogue** (allt, eller **Choose by tag**) och **Guides & docs** (den här dokumentationen på ditt språk, skärmbilder inkluderade).
-- <!--i:cpu--> **AI-modeller** - varje modell på enheten på en egen rad med sin storlek: Speech voices, Upscaling models, Background removal, Text recognition, Verify deep scan, Durable credential, Rewriter model, Ask matching model, AI text detector och Singing voices. En modell över 50 MB märks **large download**.
-- <!--i:wrench--> **Verktyg** - varje verktyg laddas ner för sig, eller så tar **Download all** varje verktyg. En bock betyder redo offline.
+- <!--i:monitor--> **App, catalogue and guides** - **The app** (varje vy, redigerare och typsnitt, även skärmar du aldrig har öppnat), **Catalogue** (hela katalogen eller **Choose by tag**) och **Guides & docs** (den här dokumentationen på ditt språk, inklusive skärmbilder).
+- <!--i:cpu--> **AI models** - varje modell som körs på enheten på en egen rad med sin storlek: talröster, uppskalningsmodeller, bakgrundsborttagning, textigenkänning, Lolly Verify-djupskanning, beständig autenticitetsinformation, omskrivningsmodell, matchningsmodell för Ask, AI-textdetektor och sångröster. En modell över 50 MB är märkt **large download**.
+- <!--i:wrench--> **Tools** - varje verktyg laddas ner för sig, eller så hämtar **Download all** alla verktyg. En bock betyder att det är redo att användas offline.
 
-**Download everything** överst tar appen, katalogomfånget du valt, guiderna och alla verktyg. Kryssa i **Include all the AI models** för att lägga till modellerna, eller ladda ner en modell från dess egen rad; sångrösterna laddas bara någonsin ner från sin egen rad. En organisations policy kan stänga av AI-nedladdningar, och raderna säger det då.
+**Download everything** högst upp hämtar appen, det urval av katalogen du valde, guiderna och alla verktyg. Markera **Include all the AI models** för att ta med modellerna, eller ladda ner en modell från dess egen rad. Sångrösterna laddas bara ner från sin egen rad. En organisations policy kan stänga av AI-nedladdningar, och då visas det på raderna.
 
-Nedladdningar återupptas där de slutade om du avbryter eller förlorar anslutningen, och uppdaterar sig själva när du är online igen och hämtar bara det en version ändrat. Om webbläsaren inte beviljat beständig lagring ber **Protect downloads** om det: skillnaden mellan "nedladdat" och "nedladdat tills webbläsaren vill ha utrymmet tillbaka".
+Nedladdningar fortsätter där de avbröts om du avbryter eller tappar anslutningen. När du är online igen uppdateras de och hämtar bara det som ändrats i en ny version. Om webbläsaren inte har beviljat beständig lagring ber **Protect downloads** om det tillståndet. Utan tillståndet kan webbläsaren radera nedladdningar när den vill frigöra utrymme.
 
-### Lolly instance
+### Lolly-instans
 
-**Lolly instance** anger var den här installationen hämtar sina verktyg och sin katalog: en instans adress, eller *Bundled with this app* när allt levereras inuti bygget.
+**Lolly instance** visar var den här installationen hämtar sina verktyg och sin katalog: en instansadress eller *Bundled with this app* när allt ingår i bygget.
 
-- **Design-system source** visar varifrån det tillhandahållna designsystemet kommer.
-- **Instance console** öppnar en installations adminsidor, där den erbjuder dem.
-- **Change** pekar datorappen mot en annan instans. En webbläsare kan inte läsa in verktyg och tillgångar över ursprung, så på webben erbjuder avsnittet **Open a workspace** i stället.
-- **Leave** tar bort instansens designsystem, verktyg och katalog, och ditt eget arbete blir kvar. Se [Använd Lolly i din organisation](/info/organisation.html#leaving).
-- När du är inloggad på en organisation avslutar **Sign out** den här sessionen och **Sign out everywhere** avslutar dina sessioner på varje enhet, den här inkluderad.
+- **Design-system source** visar varifrån det medföljande designsystemet kommer.
+- **Instance console** öppnar en driftsättnings administratörssidor, om sådana finns.
+- **Change** riktar skrivbordsappen mot en annan instans. En webbläsare kan inte ladda verktyg och tillgångar från andra ursprung, så på webben erbjuder avsnittet **Open a workspace** i stället.
+- **Leave** tar bort instansens designsystem, verktyg och katalog. Ditt eget arbete finns kvar. Se [Använd Lolly i din organisation](/info/organisation.html#leaving).
+- När du är inloggad i en organisation avslutar **Sign out** den här sessionen och **Sign out everywhere** avslutar dina sessioner på alla enheter, även den här.
 
-## This device
+<!--i:eti-monitor-->
+## Den här enheten
 
-- <!--i:monitor--> **This Machine** - skärm, indata, grafik, minne, kodekar, lagringsbackend med mera, avläst live från den här sessionen. Inget lagras och inget skickas. Den öppnas av sig själv på en bred skärm, där fliken läggs ut i två kolumner.
-- <!--i:neurobeat--> **Sound** - gränssnittsljuden och Neurospicy-fokusloopar, det enda reglaget på den här fliken som skriver något.
-- <!--i:database--> **Storage** - en skrivskyddad vy av mätaren i [Preferences](#storage), där du rensar eller bär dina data.
+- <!--i:monitor--> **This Machine** - skärm, inmatning, grafik, minne, kodekar, lagringsbackend och mer, avläst direkt från den här sessionen. Inget lagras eller skickas. På en bred skärm öppnas panelen automatiskt och fliken använder två kolumner.
+- <!--i:neurobeat--> **Sound** - gränssnittsljuden och Neurospicy-fokuslooparna. Sound är den enda omkopplaren på den här fliken som skriver något.
+- <!--i:database--> **Storage** - en skrivskyddad vy av mätaren. Rensa eller flytta dina data i [Preferences](#storage).
 
-## Design system
+<!--i:eti-palette-->
+## Designsystem
 
-Det aktiva designsystemet, uppställt för läsning. När den här webbläsaren håller två eller fler designsystem listar ett band av små omslag högst upp dem: välj ett för att göra det aktivt, och **Undo** i notisen som följer sätter tillbaka det föregående.
+Det aktiva designsystemet, uppställt för läsning. När den här webbläsaren har två eller fler designsystem listas de i en rad omslag högst upp. Välj ett för att göra det aktivt. **Undo** i meddelandet som följer återställer det föregående.
 
-![Fliken Design system på Lolly Demo: ett band av omslag för att byta system, sedan omslaget med sin logotyp, sitt namn, sin anteckning och räknarna som öppnar varje sida](/t/url-shot?url=%2F%23%2Fsettings%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=2400&format=svg&walker=1&dark=1&filename=settings-design-system)
+![Fliken Design system med Lolly Demo: en rad omslag för att byta system, sedan omslaget med logotyp, namn, anteckning och antal som öppnar varje sida](/t/url-shot?url=%2F%23%2Fsettings%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=2400&format=svg&walker=1&dark=1&filename=settings-design-system)
 
-Fliken öppnas på ett omslag målat i systemets egna färger, med dess logotyp, dess namn i dess visningstypsnitt och anteckningen dess upphovsperson skrev. En rad med räknare på omslaget länkar till varje sida:
+Fliken öppnas med ett omslag i systemets egna färger, med logotypen, namnet i dess displaytypsnitt och anteckningen från dess upphovsperson. En rad med antal på omslaget länkar till varje sida:
 
-- <!--i:palette--> **Colour** - yta, text, primär och sekundär i de ljusa och mörka utseendena, varje namngiven färg som ett chip med namn och hexvärde, ett band för varje nyansramp och diagramspektrumet, och färgrollerna i en hopfällning. Välj ett värde för att kopiera hexvärdet.
+- <!--i:palette--> **Colour** - yta, text, primär och sekundär för det ljusa och mörka utseendet, varje namngiven färg som ett chip med namn och hexvärde, ett band för varje nyansskala och diagramspektrumet samt färgrollerna i ett hopfällbart avsnitt. Välj ett värde för att kopiera hexvärdet.
 - <!--i:font--> **Type** - Headings, Text, Emphasis och Code, var och en satt i sitt eget typsnitt.
-- <!--i:photos--> **Logos** - varje logotypfil på den grund den gjordes för.
-- <!--i:layers--> **Colourways** - det ljusa och mörka paret i varje färgvariant, när systemet har fler än en.
+- <!--i:photos--> **Logos** - varje logotypfil på den bakgrund den gjordes för.
+- <!--i:layers--> **Colourways** - varje färgvariants ljusa och mörka par, när systemet har fler än en.
 - <!--i:sliders--> **Tokens** - radie, avstånd, effekter och gradienter.
-- <!--i:document--> **Print & CMYK** - färgerna låsta till en exakt färg, och tryckförhållandena en CMYK-PDF kan deklarera.
+- <!--i:document--> **Print & CMYK** - färgerna som är låsta till en exakt tryckfärg och de tryckförhållanden som en CMYK-PDF kan ange.
 
-Att byta är den enda ändring den här fliken gör. Du redigerar ett designsystem i [Lolly Design System Setup](/info/brand-studio.html) på `#/start`, som omslaget länkar till. Ett skrivskyddat system säger det på sitt omslag; lokala system du skapar förblir redigerbara. `/b` och `/brand` är genvägar direkt till den här fliken.
+Att byta system är den enda ändring den här fliken gör. Redigera ett designsystem i [Lolly Design System Setup](/info/brand-studio.html) på `#/start`, som omslaget länkar till. Ett skrivskyddat system anger det på omslaget. Lokala system som du skapar förblir redigerbara. `/b` och `/brand` är kortlänkar till den här fliken.
 
-## Capabilities
+<!--i:eti-grid-->
+## Funktioner
 
-Varje del av plattformen är beskriven som ett kort, i tolv grupper: Experiences, Platforms & runtimes, Accessibility & languages, Export formats, Import formats, Print production, Automation & AI, Determinism & reproducibility, Brand & design system, Privacy & data ownership, Security & access control och Architecture (for builders). Varje grupp viks och visar sitt antal kort. Ett kort öppnas i en dialog med den förmågans funktioner och, för ungefär hälften av dem, skärmbilden som den här dokumentationen använder.
+Varje del av plattformen har ett kort, indelade i tolv grupper: upplevelser, plattformar & körmiljöer, tillgänglighet & språk, exportformat, importformat, tryckproduktion, automatisering & AI, determinism & reproducerbarhet, varumärke & designsystem, integritet & dataägande, säkerhet & åtkomstkontroll och arkitektur (för utvecklare). Varje grupp är hopfällbar och visar antalet kort. Ett kort öppnar en dialog med detaljer om funktionen och, för ungefär hälften av korten, skärmbilden som används i den här dokumentationen.
 
-Sökfältet ovanför grupperna filtrerar korten medan du skriver och öppnar de grupper som fortfarande har en träff. Det säger hur många förmågor det söker i, och en fråga utan träff säger det med ord.
+Sökfältet ovanför grupperna filtrerar korten medan du skriver och öppnar de grupper som har en träff. Fältet visar hur många funktioner sökningen omfattar. Om en sökning inte ger någon träff anges det i text.
 
-Den här fliken är skriven dokumentation av vad Lolly kan göra, hållen i takt med de här guiderna. Den undersöker inte maskinen du sitter vid; **This device** gör det.
+Den här fliken dokumenterar vad Lolly kan göra, i takt med de här guiderna. Den undersöker inte datorn du använder; det gör **This device**.
 
-## Activity & stats
+<!--i:eti-gauge-->
+## Aktivitet & statistik
 
-Bygget först: hur många verktyg som är inlästa, hur många exportformat som finns, på hur många ytor plattformen körs och hur många varumärkestillgångar katalogen bär, med en panel **Catalogue** som bryter ned vad som levereras i det här bygget.
+Först bygget: antalet inlästa verktyg, exportformat, miljöer som plattformen körs i och varumärkestillgångar i katalogen. En **Catalogue**-panel visar vad som ingår i det här bygget.
 
-Sedan din egen sida: **Your activity** räknar vad du har gjort på den här enheten, och **Recent creations** och **Latest exports** är staplar du kan svepa genom, var och en visas först när det finns något att visa. Båda öppnar ett objekt som det var. De här räknarna stannar på enheten; en valfri Lolly Work-instans för sina egna [organisationstelemetri- och granskningsposter](/info/privacy.html#organisation-services-with-lolly-work).
+Sedan ditt eget arbete: **Your activity** räknar det du har skapat på den här enheten. **Recent creations** och **Latest exports** är staplar som du kan svepa igenom och som visas när de har något innehåll. Båda öppnar ett objekt som det var. Räknarna stannar på enheten. En valfri Lolly Work-instans har sin egen [organisationstelemetri och sina egna granskningsposter](/info/privacy.html#organisation-services-with-lolly-work).
 
+<!--i:eti-link-->
 ## Djuplänkar
 
-Varje flik och avsnitt i Settings har sin egen länk, som du kan bokmärka eller klistra in. [Sök](/info/search.html) pekar sina **Settings**-resultat mot samma register som Settings renderas från, så att ett avsnitt inte kan döpas om under ett sökresultat.
+Varje flik och avsnitt i Settings har en egen länk att bokmärka eller klistra in. [Lolly Search](/info/search.html) bygger sina **Settings**-resultat från samma register som Settings, så ett namnbyte på ett avsnitt förstör aldrig en sökträff.
 
-::: details Varje form av länk
+::: details Alla länkformer
 
 - **En flik:** `#/settings?tab=brand`, `#/settings?tab=caps`, `#/settings?tab=device`, `#/settings?tab=activity`.
-- **Ett Preferences-avsnitt:** `#/settings?focus=<section-id>`, till exempel `#/settings?focus=offline-section`.
-- **Ett avsnitt, exakt:** dess id som en bar flagga, till exempel `#/settings?dash-storage`, `#/settings?dash-logos`, `#/settings?dash-colourways` eller `#/settings?cap-formats`. De äldre länkarna `#/settings?dash-lock` och `#/settings?dash-palette-wheel` öppnar omslaget och sidan Colour.
-- **Ett avsnitt via nyckelord:** `#/settings?print`, `#/settings?formats`, `#/settings?palette` (sidan Colour) eller `#/settings?tokens`. Nyckelord kan delas: `print` hör till både varumärkesflikens tryckreferens och gruppen Print production, och den första i sidordning vinner. Använd id:t när det spelar roll vilken.
+- **Ett avsnitt i Preferences:** `#/settings?focus=<section-id>`, till exempel `#/settings?focus=offline-section`.
+- **Ett exakt avsnitt:** dess id som en fristående flagga, till exempel `#/settings?dash-storage`, `#/settings?dash-logos`, `#/settings?dash-colourways` eller `#/settings?cap-formats`. De äldre länkarna `#/settings?dash-lock` och `#/settings?dash-palette-wheel` öppnar omslaget och sidan Colour.
+- **Ett avsnitt via nyckelord:** `#/settings?print`, `#/settings?formats`, `#/settings?palette` (sidan Colour) eller `#/settings?tokens`. Två avsnitt kan dela ett nyckelord: `print` tillhör både varumärkesflikens tryckreferens och gruppen Print production, och det som kommer först på sidan väljs. Använd id:t för att välja ett av dem.
 
-En djuplänk byter till fliken som äger målet, öppnar varje grupp den ligger hopfälld i och rullar sedan till den, och väntar en stund medan avsnitten ovanför blir färdiglagda. De utgångna adresserna `#/platform` och `#/capabilities` viks in i Settings med sina djuplänksflaggor intakta.
+En djuplänk växlar till fliken som innehåller målet och öppnar alla grupper som målet är hopfällt i. Sedan rullar den till målet när avsnitten ovanför har fått sin layout. De tidigare adresserna `#/platform` och `#/capabilities` öppnas i Settings med sina djuplänksflaggor intakta.
 :::
 
 ---
 
-**Relaterat:** [Profiler](/info/profile.html) för dina uppgifter och sammanhangen du skapar i. [Lolly Design System Setup](/info/brand-studio.html) för att redigera det fliken Design system visar. [Hitta och återställ ditt arbete](/info/find-your-work.html) för lagring, säkerhetskopior och byte av enhet.
+**Relaterat:** [Profiler](/info/profile.html) för dina uppgifter och de sammanhang du skapar i. [Lolly Design System Setup](/info/brand-studio.html) för att redigera det som fliken Design system visar. [Hitta och återställ ditt arbete](/info/find-your-work.html) för lagring, säkerhetskopior och byte av enhet.

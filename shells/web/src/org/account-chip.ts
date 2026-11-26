@@ -31,6 +31,28 @@ import { flushAddressWrites } from '../lib/url-state.ts';
 import { iconNode } from '../lib/icon-node.ts';
 import { announce } from '../a11y.ts';
 import { tRaw } from '../i18n.ts';
+import { instanceFetch } from '../lib/instance.ts';
+import { openViewAsSheet, stopViewAs, viewingAs, type ViewAsEntity } from './view-as.ts';
+
+let managedProgrammes: Promise<ViewAsEntity[]> | null = null;
+
+/** Check programme access once, when the first account menu renders. */
+function programmesForViewing(): Promise<ViewAsEntity[]> {
+  managedProgrammes ??= (async () => {
+    try {
+      const response = await instanceFetch('/api/v1/programmes', { credentials: 'same-origin' });
+      if (response.status !== 200) return [];
+      const body = await response.json();
+      if (!Array.isArray(body?.programmes)) return [];
+      return body.programmes.filter((row: unknown): row is ViewAsEntity => {
+        if (!row || typeof row !== 'object') return false;
+        const value = row as Record<string, unknown>;
+        return typeof value.id === 'string' && !!value.id.trim() && typeof value.name === 'string' && !!value.name.trim();
+      });
+    } catch { return []; }
+  })();
+  return managedProgrammes;
+}
 
 /** The account as org/index.ts's orgProfileAccount() reports the account. */
 export interface ChipAccount {
@@ -281,6 +303,15 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps, menu?
     el.append(item('projects', tRaw('Projects')));
     if (!menu) el.append(item('signins', tRaw('Linked sign-ins')));
     if (consoleUrl) el.append(item('console', tRaw('Admin'), { href: consoleUrl }));
+    const viewAsRows = node(doc, 'div', '');
+    el.append(viewAsRows);
+    if (viewingAs()) viewAsRows.append(item('view-as-stop', tRaw('Stop viewing')));
+    else void programmesForViewing().then((programmes) => {
+      // A menu rendered again before the check answered keeps one row.
+      if (programmes.length && viewAsRows.isConnected && !el.querySelector('[data-account-act="view-as"]')) {
+        viewAsRows.append(item('view-as', tRaw('View as partner…')));
+      }
+    });
     // Sign out everywhere lives in Settings, away from Sign out: side by side, the
     // one that ends every session was a slip of the finger away (plan 320 J11).
     el.append(split(), item('signout', tRaw('Sign out')));
@@ -292,6 +323,12 @@ export function mountAccountChip(into: HTMLElement, deps: AccountChipDeps, menu?
       if (act === 'inbox') { pop.close(true); inbox?.open(); return; }
       if (act === 'projects') { pop.close(); go('#/p'); return; }
       if (act === 'signins') { pop.close(); go('#/settings?focus=instance-section'); return; }
+      if (act === 'view-as-stop') { pop.close(); void stopViewAs(instanceFetch); return; }
+      if (act === 'view-as') {
+        pop.close();
+        void programmesForViewing().then((programmes) => openViewAsSheet({ fetchImpl: instanceFetch, programmes }));
+        return;
+      }
       if (act === 'signout') void leave(target);
     });
     const first = el.querySelector<HTMLElement>(state.failure ? '[data-account-act="signout"]' : '[data-account-act]');

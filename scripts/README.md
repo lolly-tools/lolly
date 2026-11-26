@@ -40,11 +40,11 @@ The manifest is always the source of truth; `catalog/tools/index.json` and the a
 |---|---|---|---|
 | `build-catalog-index.ts` | part of `build:catalog` | Regenerates `catalog/tools/index.json` from every `tool.json` in the active profile's tool packs. | DESTRUCTIVE, submodule |
 | `checksum-assets.ts` | part of `build:catalog` | Recomputes the content checksums in `catalog/assets/index.json`. | DESTRUCTIVE, submodule |
-| `build-preview-bundle.ts` | part of `build:catalog`, `previews` | Builds the preview-look bundle the gallery's featured hero row and example carousels render from. | DESTRUCTIVE, submodule |
 | `validate-catalog.ts` | `validate:catalog` | Validates every `tool.json` and asset entry against the schemas, then checks the invariants schemas cannot express: checksums, file existence, `bindToProfile` fields, palette references, `replacedBy` chains, and canonical-input divergence (a warning, never an error). | |
 | `build-catalog-all.ts` | `build:catalog:all`, `validate:catalog:all` (`--check`) | Rebuilds or checks **every mounted profile's** catalog by passing `--profile=<name>` to the underlying build for each one in turn. This is the one to run after any community `tool.json` edit, because the index is generated per brand. Skips a profile whose packs are not mounted rather than failing. | DESTRUCTIVE, submodule |
 | `sign-catalog.ts` | none | Produces `catalog/tools/index.sig.json`, the ECDSA P-256/SHA-256 integrity envelope `engine/src/catalog-integrity.ts` verifies before executing tool code. Deliberately not part of `build:catalog`, and no key lives in the repo: pass `--keyfile` or set `LOLLY_CATALOG_SIGNING_KEY`. `--gen-key` writes a fresh keypair into the gitignored `keys/` and refuses to overwrite an existing one. `--min-seq <n>` or `LOLLY_CATALOG_MIN_SEQ` can only raise the computed sequence. The flag takes precedence; accept integers from 0 to `Number.MAX_SAFE_INTEGER`. | submodule, API key |
-| `build-readme-tools.ts` | `build:readme-tools` | Regenerates the "Current tools" section of the root `README.md` between its marker comments, from the active profile's `catalog/tools/index.json`. | DESTRUCTIVE |
+| `build-readme-tools.ts` | `build:readme-tools` | Regenerates the tool list in the root `TOOLS.md` between its marker comments, from the active profile's `catalog/tools/index.json`. The README links to that page. | DESTRUCTIVE |
+| `tool-browser-free.ts` | none | Writes a tool's `browser-free.json` from evidence: `--verify` draws each case in `scripts/data/browser-free-cases.json` through the CLI's resvg route and the browser tier and compares them with the plan 326 bands (`scripts/lib/browser-free/`); `--write` records the cases, bands, date, web shell commit, renderer versions, the tool's version and file digest, and the verdict (`resvg` only when every drawn case is inside every band). Needs a built or served web shell (`LOLLY_WEB_BASE`), Chromium and sharp, says so by name without them, and is never part of CI. | DESTRUCTIVE, browser |
 | `sync-shared-hooks.ts` | `sync:shared` | Rewrites every `// === lolly:shared <name> ===` region in a tool's `hooks.js` from its canonical source in `community/_shared/`. Idempotent, refuses CRLF files, fails loudly on malformed or nested regions. | DESTRUCTIVE, submodule |
 
 ## Profiles and brands
@@ -72,7 +72,7 @@ These drive tools in a real browser and export through the app's own render path
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
-| `build-previews.ts` | part of `previews` | Captures each tool's gallery preview, keeping SVG where it can and rasterising where it cannot. | DESTRUCTIVE, submodule, browser |
+| `build-previews.ts` | part of `previews` | Captures each tool's gallery preview, keeping SVG where it can and rasterising where it cannot. A blank card is captured again from the example look that reads best; the example looks themselves are drawn live by the gallery and get no files. | DESTRUCTIVE, submodule, browser |
 | `build-animated-previews.ts` | `previews:animated` | Gives an animating tool a looping APNG instead of a frozen still, exported through the engine's own `renderApng` path. Writes committed authored overrides in the tool dir, which win over build-generated previews. | DESTRUCTIVE, submodule, browser |
 | `build-thumbnails.ts` | `optimize:thumbnails` | Derives the raster thumbnail sizes for catalog assets listed in `catalog/assets/index.json`. | DESTRUCTIVE, submodule |
 | `optimize-previews.ts` | `optimize:previews` | Runs svgo over every generated `catalog/previews/*.svg` in place. | DESTRUCTIVE, submodule |
@@ -139,7 +139,7 @@ These drive tools in a real browser and export through the app's own render path
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
-| `gen-engine-modules.ts` | `build:engine-modules`, `check:engine-modules` (`--check`) | Regenerates the module table in [`../engine/README.md`](../engine/README.md), between the `<!-- engine-modules:start -->` and `<!-- engine-modules:end -->` markers. Never hand-edit inside those markers. `--check` fails on drift; `--check --allow-drift` only warns on drift and still fails on missing markers or a generator error, which is how CI's `typecheck` job and the pre-push hook run it. `.github/workflows/generated-readmes.yml` regenerates the table after each merge (with `gen-web-src-readme.ts`) and proposes it as one bot pull request. | DESTRUCTIVE |
+| `gen-engine-modules.ts` | `build:engine-modules`, `check:engine-modules` (`--check`) | Regenerates the module table in [`../engine/README.md`](../engine/README.md), between the `<!-- engine-modules:start -->` and `<!-- engine-modules:end -->` markers: one row per module (purpose, export, test, fuzz status) in path order, with no line counts or totals, so two pull requests that touch different modules touch different lines. Never hand-edit inside those markers. `--check` exits 3 when the table is out of date and lists the rows; CI's `typecheck` job and the pre-push hook run it, so a pull request that adds, removes or renames a module commits its rows. | DESTRUCTIVE |
 | `pack-engine.ts` | `pack:engine` | Produces the distributable, checksummed engine bundle that downstream consumers pin against, unmodified. | DESTRUCTIVE |
 
 ## Dev helpers, guards and audits
@@ -147,6 +147,7 @@ These drive tools in a real browser and export through the app's own render path
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
 | `ci-local.ts` | `ci:local` | Runs on this machine the gates CI runs for a pull request, in the workflow order. `--changed` runs only lanes the diff against `origin/main` touches (the fast-lane path filters, plus a local path narrowing for ci.yml jobs, and CI's own rule that a docs-and-tests change leaves out the heavy tier). `--changed` leaves out, and lists as skipped, every lane that runs `build:web` (it rewrites tracked files such as the brand OG images); `--with-build` runs them, and a plain run without `--changed` always does. `--list` prints the lanes and commands and runs nothing. `--only=ids`, `--skip=ids` and `--strict` narrow or tighten a run. Hosted-only lanes (aggregates, secrets, Tauri, instance shell) print as SKIPPED with a reason. A step that needs a tool this machine lacks (Chromium, a WebGPU adapter, ffmpeg, gitleaks) prints NOT RUN, and the lane never reads as passed. `tests/ci-local.test.ts` fails when the lane list drifts from the workflow files. | |
+| `media-study.ts` | none | Runs the finite local sonic and narrated-media specimen study, retaining exact recipes, audio, Design examples and attempt/cost records. See [the study](../examples/open-media/README.md). No publication. | browser, local models, `--out`, `--models`, `--video` |
 | `dev-web.ts` | `dev:web` | The local dev orchestrator: runs the web shell and keeps the deploy artifacts, including the `/info` site, fresh as docs change. | |
 | `copy-ort.ts` | `build:ort` | Copies the onnxruntime-web runtime files out of `node_modules`, tolerating either hoisting layout. | DESTRUCTIVE, submodule |
 | `copy-viz-presets.ts` | none | Stages the curated MilkDrop artist presets from `node_modules/butterchurn-presets` into `shells/web/public/viz-presets/`. Depend, do not vendor: these are community works by roughly 118 authors and are never committed here. | DESTRUCTIVE, submodule |
@@ -189,11 +190,8 @@ All four write into `brands/lolly-start/catalog/`, which this repository owns, s
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
-| `gen-music.ts` | none | Generates a varied set of CC0 ZzFXM tracks (ambient, rhythmic and others) for Neurospicy Mode and video music beds. | DESTRUCTIVE |
 | `ingest-midi.ts` | none | Converts a Standard MIDI File into a small ZzFXM song and registers it as an `audio`/`zzfxm` catalog asset tagged `neurospicy`. | DESTRUCTIVE |
-| `ingest-lofi.ts` | none | Converts a curated set of public-domain lo-fi tracks to opus and registers them under `lolly/loops/`. | DESTRUCTIVE, network |
 | `ingest-audio.ts` | none | Tracker-module and general audio catalog ingest. Dry run by default. | DESTRUCTIVE |
-| `build-voice-clips.ts` | `voice` | Synthesises a robot voice speaking each UI filter, treatment and theme name at build time. One-shot: run locally, commit the output. | DESTRUCTIVE, submodule |
 | `build-street-clips.ts` | none | Offline road and water geometry prep for the `street-map` tool, fetched from OpenStreetMap via the public Overpass API. Writes into the tool's own `lib/` directory in its pack, `community/street-map/lib/`. | DESTRUCTIVE, submodule, network |
 | `lib/zzfx-music.ts` | none | A re-export shim. The ZzFX preset bank and ZzFXM composition helpers now live in `engine/src/zzfx-compose.ts`. | |
 

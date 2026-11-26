@@ -76,8 +76,8 @@ test('arrangement approximates targetSec via pattern reuse', () => {
 });
 
 test('scripts/lib/zzfx-music.ts is a pure re-export shim of the engine module', () => {
-  // Same function identities, not copies - the generator scripts (gen-music.ts)
-  // keep producing byte-identical output through either path.
+  // Same function identities, not copies - a script importing the shim produces
+  // byte-identical output to one importing the engine module.
   assert.equal(shim.composeSong, composeSong);
   assert.equal(shim.PRESETS, PRESETS);
   assert.equal(shim.SCALES, SCALES);

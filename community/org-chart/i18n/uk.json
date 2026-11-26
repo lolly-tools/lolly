@@ -65,8 +65,6 @@
   "inputs.boxes.fields.weight.options.700": "Напівжирний",
   "inputs.boxes.fields.weight.options.800": "Екстражирний",
   "inputs.boxes.fields.font.label": "Шрифт",
-  "inputs.boxes.fields.font.options.SUSE": "SUSE Sans",
-  "inputs.boxes.fields.font.options.SUSE Mono": "SUSE Mono",
   "inputs.boxes.fields.lineHeight.label": "Висота лінії",
   "inputs.boxes.fields.tracking.label": "Кернінг",
   "inputs.boxes.fields.ligatures.label": "Лігатури",

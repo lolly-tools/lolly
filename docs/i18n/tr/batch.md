@@ -1,78 +1,92 @@
-# Batch ve Multi-edit
+# Lolly Batch ve Lolly Multi-edit
 
-Aynı tür dosyayı sık yaptığında iki iş ortaya çıkar. Bazen bir tasarımın birçok sürümüne ihtiyacın olur: düzinelerce dilde bir kart ya da bir afişin her boyutu. Bazen birkaç farklı kayıtlı tasarımın olur ve tek bir değişikliğin hepsine ulaşmasını istersin; yeni bir tarih veya yeni bir başlık gibi.
+<a id="batch-and-multi-edit"></a>
 
-**Batch** ilk işi, **Multi-edit** ikinci işi yapar. İkisi de cihazında çalışır ve araçların kendisiyle aynı render yolundan dışa aktarır.
+**Lolly Batch**, bir kartın bir düzine dildeki hâli veya bir bannerın her boyutu gibi, tek bir tasarımın birçok sürümünü oluşturur. **Lolly Multi-edit**, yeni bir tarih veya başlık gibi tek bir değişikliği farklı kayıtlı tasarımlara uygular.
+
+İkisi de cihazında çalışır ve araçlarla aynı render yolundan dışa aktarır.
 
 ::: cols
 ## Batch
 
-- Bir şablon, çok satır. Her satır bir girdi kümesidir ve bir dosya yapar.
-- Satırları yazarak, bir elektronik tablodan yapıştırarak veya bir CSV içe aktararak doldur.
-- Satır sınırı yok; sayfa başına 50 gösterilir.
-- Projects başlığındaki **Batch** üzerinden açılır (`#/batch`).
+- Tek şablon, birçok satır. Her satır bir girdi kümesidir ve bir dosya oluşturur.
+- Satırları yazarak, bir elektronik tablodan yapıştırarak veya CSV içe aktararak doldur.
+- Satır sınırı yoktur; sayfa başına 50 satır gösterilir.
+- Projects başlığındaki **Lolly Batch** üzerinden açılır (`#/batch`).
 
-## Multi-edit
+<a id="multi-edit"></a>
+## Lolly Multi-edit
 
-- İki ila sekiz farklı kayıtlı tasarım, canlı kartlar olarak yan yana.
-- Tek bir kenar çubuğu paylaştıkları girdileri, sonra her kartın kendi girdilerini düzenler.
+- İki ile sekiz farklı kayıtlı tasarım, yan yana canlı kartlar olarak görünür.
+- Tek bir kenar çubuğu, önce paylaştıkları girdileri, sonra her kartın kendi girdilerini düzenler.
 - Her tasarım geldiği yere geri kaydedilir.
 - Projects seçim çubuğundaki **Edit together** üzerinden açılır.
 :::
 
-## Bir tasarımın birçok sürümünü yap
+<!--i:eti-table-->
+## Tek bir tasarımın birçok sürümünü oluştur
 
-**Projects** sayfasını aç ve başlığındaki **Batch** düğmesine bas. Izgara tek bir satırla başlar: onda bir şablon seç, sonra satırı çoğalt veya elektronik tablondan veri yapıştır. Bir klasörün içinden açıldığında Batch seni o klasöre geri döndürür.
+Önce **Projects** görünümünü aç ve başlığındaki **Batch** düğmesine bas. Izgara tek satırla başlar. O satırda bir şablon seç, sonra satırı çoğalt veya bir elektronik tablodan veri yapıştır. Bir klasörün içinden açıldığında Batch seni o klasöre geri götürür.
 
-![Yeni bir ızgarada Batch: üstte dosya adı ve satır araçları, seçebileceğin araçlar üzerinde açık duran ilk satırın şablon listesi](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
+![Yeni bir ızgarada Batch: üstte dosya adı ve satır araçları, ilk satırın şablon listesinde seçebileceğin araçlar açık](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
-**Satırları doldur.** Bir hücreye yaz ya da Excel'den, Google Sheets'ten veya başka bir elektronik tablodan bir bloğu doğrudan yapıştır. **Import CSV** satır ekler veya toplu işi değiştirir. Dışa aktarma ayarlarını tutan bir hücreye yapıştırdığında Lolly, yapıştırılan her sütunun hangi girdiyi doldurduğunu sorar. **Export CSV** ızgarayı geri yazar. Daha fazla girdiyi ya da satır başına genişlik, yükseklik, birim ve DPI değerlerini göstermek için ızgaranın altındaki **Columns** bölümünü aç.
+**Satırları doldur.** Bir hücreye yaz veya Excel, Google Sheets ya da başka bir elektronik tablodan bir blok yapıştır. **Import CSV** satır ekler veya toplu işin yerini alır. Dışa aktarma ayarları içeren bir hücreye yapıştırdığında Lolly, yapıştırılan her sütunun hangi girdiyi dolduracağını sorar. **Export CSV** ızgarayı dışarı yazar. Daha fazla girdi veya satır başına genişlik, yükseklik, birim ve DPI göstermek için ızgaranın altındaki **Columns** bölümünü aç. Bir sayı, metin veya seçim sütununun **Fill** açılır penceresinde, tek bir token'ı sütunun satırlarına bağlayan bir **Design token** bölümü de vardır ([Birçok belgeyi aynı anda bağla](/info/token-workflows.html#link-many-documents-at-once)).
 
-**Çıktıyı ayarla.** Araç çubuğu zip dosyasının adını, her satır için **Default format**, birimleri ve DPI değerini belirler. Biçim menüsü, dışa aktarma panelinin gruplanmış listesidir ve katalogun sunduğu ve tarayıcının desteklediği biçimleri gösterir. Kendi biçimi, boyutu veya dosya adı olan bir satır kendi ayarını korur.
+**Çıktıyı ayarla.** Araç çubuğu, zip'in dosya adını ve her satır için **Default format**, birim ve DPI değerlerini ayarlar. Biçim menüsü, kataloğun sunduğu ve tarayıcının desteklediği biçimleri içeren dışa aktarma panelindeki gruplu listedir. Kendi biçimi, boyutu veya dosya adı olan bir satır kendi ayarını korur.
 
-**Render.** **Render all** her satırı tek bir `.zip` içine dışa aktarır. Önce satırları seç; **Render selected**, **Export selected CSV** ve **Print selected rows** yalnızca onlar üzerinde işlem yapar; tüm toplu iş üzerinde yeniden çalışmak için seçimi temizle. **Print sheet** satırları yazdırılabilir bir sayfaya yerleştirir. **Batch activity** her içe aktarmayı ve render'ı raporlar ve tabloya daha fazla yer vermek için katlanır.
+**Render et.** **Render all**, her satırı tek bir `.zip` içine dışa aktarır. Satırlar seçiliyken **Render selected**, **Export selected CSV** ve **Print selected rows** yalnızca bu satırlarda işlem yapar. Yeniden toplu işin tamamında çalışmak için seçimi temizle. **Print sheet**, satırları yazdırılabilir bir sayfaya yerleştirir. **Batch activity** her içe aktarmayı ve render işlemini bildirir ve katlanabilir.
 
-**Toplu işi sakla.** **Sessions** tüm ızgarayı adlandırılmış bir toplu iş oturumu olarak kaydeder; bu oturum sonra Projects içinden yeniden açılır. Sessions, ne seçili olursa olsun her zaman her satırı kaydeder. Aynı menüdeki **Folders…** bütün bir Projects klasörünü, kayıtlı oturum başına bir satır olacak şekilde ve her dosya adı klasör yolunu taşıyarak satırlar olarak açar.
+**Toplu işi sakla.** **Sessions**, ne seçili olursa olsun ızgaranın tüm satırlarını adlandırılmış tek bir toplu iş oturumunda kaydeder. Oturum Projects içinden yeniden açılır. Aynı menüdeki **Folders…**, bir Projects klasörünü kayıtlı oturum başına bir satır olacak şekilde açar; her dosya adı klasör yolunu taşır.
 
-::: details Satırları ve hücreleri seçme
-Satırları onay kutularıyla seç ya da bir aralık için bir onay kutusuna Shift ile tıkla. Başlıktaki onay kutusu geçerli sayfayı seçer ve **Select all *N* rows** diğer sayfalardaki satırları da alır. Seçimler sayfalar arasında gezinirken kalır. **Edit input**, **Duplicate** ve **Remove** seçili satırlar üzerinde işlem yapar ve **Undo remove** en son kaldırılan satırları geri yükler. Odaktaki bir hücreden Shift+Space o satırı seçer ve Escape seçimi temizler.
+::: details Satır ve hücre seçme
+Satırları onay kutularıyla seç veya bir aralık seçmek için Shift tuşunu basılı tutarak bir onay kutusuna tıkla. Başlıktaki onay kutusu geçerli sayfayı seçer ve **Select all *N* rows** diğer sayfalardaki satırları da alır. Sayfalar arasında geçiş yaptığında seçimler korunur. **Edit input**, **Duplicate** ve **Remove** seçili satırlarda işlem yapar ve **Undo remove** son kaldırılan satırları geri yükler. Bir hücre odaktayken Shift+Space o satırı seçer ve Escape seçimi temizler.
 
-Bir dikdörtgen seçmek için hücrelerin üzerinde sürükle, bir hücreye Shift ile tıkla veya Shift+Ok tuşlarını kullan. **Copy cells** veya Ctrl+C / Command+C değerleri bir elektronik tablo için kopyalar. Odaktaki bir hücreden Ctrl+A / Command+A her sayfadaki her görünür sütunu seçer; bir satır onay kutusundan aynı kısayol her satırı seçer. Hücre seçmek işaretli satırları işaretli bırakır. Metnini düzenlemek için bir hücreye çift tıkla ya da Enter'a bas. Panodan bir dikdörtgen yapıştır ya da seçili her hücreyi doldurmak için tek bir değer yapıştır; boş hücreler ve çok satırlı metin konumlarını korur.
+Bir dikdörtgen seçmek için hücreler boyunca sürükle, Shift tuşunu basılı tutarak bir hücreye tıkla veya Shift+Arrow tuşlarını kullan. **Copy cells** veya Ctrl+C / Command+C, değerleri elektronik tabloya uygun olarak kopyalar. Bir hücre odaktayken Ctrl+A / Command+A, her sayfadaki tüm görünür sütunları seçer; bir satırın onay kutusunda aynı kısayol her satırı seçer. Hücre seçmek, işaretlenmiş satırların işaretini kaldırmaz. Bir hücrenin metnini düzenlemek için hücreye çift tıkla veya Enter tuşuna bas. Panodan bir dikdörtgen yapıştır veya seçili her hücreyi doldurmak için tek bir değer yapıştır; boş hücreler ve çok satırlı metin konumlarını korur.
 :::
 
 ### Satır başına colourway'ler ve temalar
 
-Her satır kendi tema seçimlerini korur: açık veya koyu ve tasarım sisteminde varsa bir colourway. Projects'ten, bir klasörden veya kayıtlı bir toplu işten açılan bir satır, oturumunun kaydedildiği seçimlerle render edilir ve önizlemesi onlarla açılır. Baskı sayfası, çoğaltılmış bir satır ve doldurulmuş bir satır bunları korur.
+Her satır kendi tema seçimlerini korur: açık veya koyu ve tasarım sisteminde varsa bir colourway. Projects, bir klasör veya kayıtlı toplu işten açılan satır, oturumunun kaydedildiği seçimlerle render edilir ve önizlenir. Baskı sayfası, çoğaltılmış bir satır ve doldurulmuş bir satır bunları korur.
 
-Bir CSV seçimleri boyut sütunlarından sonra bir `_themes` sütununda taşır; bu, `_themes` bağlantı parametresiyle aynı JSON'u tutar, örneğin `{"":"dark","colourway":"beach"}`. Boş bir hücre veya `{}` tasarım sisteminin varsayılanları anlamına gelir. Sütun yalnızca bir satırın seçimleri olduğunda yazılır; bu yüzden hiçbiri olmayan bir toplu iş öncekiyle aynı CSV'yi dışa aktarır. İçe aktarırken geçerli tema seçimi olmayan bir hücre sorun olarak listelenir ve satırı varsayılanlarla render edilir. Izgarada bir satırın seçimlerini değiştirecek bir denetim henüz yok; bu yüzden onları CSV'de veya kayıtlı oturumda ayarla.
+Bir CSV, seçimleri boyut sütunlarından sonraki bir `_themes` sütununda taşır. Sütun, `_themes` bağlantı parametresiyle aynı JSON'u içerir; örneğin `{"":"dark","colourway":"beach"}`. Boş bir hücre veya `{}`, tasarım sisteminin varsayılanları anlamına gelir. Sütun yalnızca en az bir satırda seçim varsa yazılır. İçe aktarmada, geçerli tema seçimleri içermeyen bir hücre sorun olarak listelenir ve satırı varsayılanlarla render edilir.
+
+::: note Bir satırın seçimlerini CSV'de ayarla
+Izgarada bir satırın seçimlerini değiştirecek bir denetim henüz yoktur; bu yüzden bunları CSV'de veya kayıtlı oturumda ayarla.
+:::
+
+### Her satır için bir dil
+
+Certificate gibi kendi metnini basan bir araç, `language` sütununda `de`, `ja` veya `ar` gibi kısa bir dil kodu alabilir. Böylece her satır metnini ve tarihini o dilde basar. Arapça ve Urduca satırlar sağdan sola düzenlenir. Boş bir hücre uygulamanın dilini izler. Lolly'nin henüz çevirisinin bulunmadığı bir dilde, tarih dahil İngilizce basılır; böylece bir sertifika hiçbir zaman yarı çevrilmiş olmaz.
 
 ### Batch veya Render folder
 
-Batch, bir şablonun birçok varyantını yapar. Zaten kaydettiğin oturumları yeniden render etmek için onları Projects içinde seç ve **Render selection** ya da bütün bir klasör için **Render folder** kullan; ikisini de [Find and recover your work](/info/find-your-work.html#find-something-you-saved) kapsar.
+Daha önce kaydettiğin oturumları yeniden render etmek için Projects içinde seç ve **Render selection** seçeneğini veya tüm bir klasör için **Render folder** seçeneğini kullan. [İşini bul ve kurtar](/info/find-your-work.html#find-something-you-saved) ikisini de anlatır.
 
+<!--i:eti-layers-->
 ## Birkaç kayıtlı tasarımı birlikte düzenle
 
-**Projects** içinde iki ila sekiz kayıtlı oturumu işaretle ve seçim çubuğundan **Edit together** seç. `#/multi?s=<slot>,<slot>…` adresinde canlı kartlar olarak yan yana açılırlar. Her kart oturumunun gerçek bir render'ıdır; yani gördüğün, dışa aktarılacak olandır.
+İki ile sekiz kayıtlı oturumu **Projects** içinde işaretle ve seçim çubuğundan **Edit together** seç. `#/multi?s=<slot>,<slot>…` adresinde yan yana canlı kartlar olarak açılırlar. Her kart, oturumunun gerçek bir render'ıdır ve neyin dışa aktarılacağını gösterir.
 
-Tek bir kenar çubuğu hepsini sürer:
+Tek bir kenar çubuğu hepsini yönetir:
 
-- <!--i:sliders--> **Shared** önce gelir: oturumlardan ikisinin veya daha fazlasının aynı şekilde bildirdiği her girdi (aynı kimlik, aynı tür, aynı kısıtlar; toplu iş ızgarasının sütunları için kullandığı kural). Paylaşılan bir denetimi bir kez düzenle; değer, girdiyi bildiren her oturuma, her kartta canlı olarak ulaşır. Aynı aracın iki oturumu her şeyi paylaşır; iki farklı araç yalnızca ortak girdilerini paylaşır.
-- <!--i:document--> Altında, **oturum başına bir katlanmış kart**, o oturumun kendi girdilerinin tamamını, aracın kendi kenar çubuğu kadar eksiksiz biçimde, kompakt bir dışa aktarma bloğuyla tutar: **Format**, **W** / **H**, **Unit**, **DPI** ve **Download**. Bu Download önce oturumu kaydeder, sonra dosyayı araçtan alacağı aynı dosya adı, biçim ve Content Credentials ile render eder.
-- <!--i:search--> En üstteki **Filter inputs…** her kartta denetimleri aynı anda daraltır; böylece sekiz oturumda kaydırmadan "başlığa" ulaşabilirsin.
+- <!--i:sliders--> Önce **Shared** gelir: iki veya daha fazla oturumun aynı şekilde tanımladığı her girdi (aynı kimlik, tür ve kısıtlar; toplu iş ızgarasının sütunları için kullandığı kural). Paylaşılan bir denetimdeki değişiklik, girdiyi tanımlayan her oturuma ulaşır ve her kartta canlı görünür. Aynı aracın iki oturumu her şeyi paylaşır; iki farklı araç yalnızca ortak girdilerini paylaşır. Shared kartının **Input actions** menüsü, girdiyi tanımlayan her oturumda bir tasarım token'ını bağlar.
+- <!--i:document--> Shared kartının altında **oturum başına bir katlanmış kart**, aracın kendi kenar çubuğundaki gibi o oturumun tüm girdilerini ve kompakt bir dışa aktarma bloğunu tutar: **Format**, **W** / **H**, **Unit**, **DPI** ve **Download**. Bu Download önce oturumu kaydeder, sonra dosyayı araçtan alacağı dosya adı, biçim ve Content Credentials ile render eder.
+- <!--i:search--> Üstteki **Filter inputs…**, tüm kartlardaki denetimleri aynı anda daraltır.
 
-O oturumun kenar çubuğu kartını açmak için herhangi bir karta tıkla (veya üzerindeyken Enter'a bas). **Save all** her oturumu kendi yuvasına geri yazar. **Download all** önce kaydeder, sonra tüm kümeyi Projects'teki **Render selection** gibi tek bir zip içine render eder; yolda isteğe bağlı parola kilidi sunulur.
+Bir oturumun kenar çubuğu kartını açmak için kartına tıkla (veya kartın üzerindeyken Enter tuşuna bas). **Save all**, her oturumu kendi yuvasına geri yazar. **Download all** önce kaydeder, sonra Projects içindeki **Render selection** gibi kümeyi tek bir zip'e render eder ve isteğe bağlı parola kilidi sunar.
 
-Her kart, tasarımın içine yerleştirilmiş bir araç dahil kendi oturumunun tema seçimlerinde çizilir. Farklı görünümlerdeki kartlar, etraflarındaki uygulama kendi renklerini korurken yan yana durur; **Save all**, indirmeler, **Batch grid** ve **Send to Print Sheet** her oturumun seçimlerini korur.
+Her kart, tasarımın içine yerleştirilmiş bir araç da dahil olmak üzere kendi oturumunun tema seçimleriyle çizilir. Kartları çevreleyen uygulama kendi renklerini korur. **Save all**, indirmeler, **Batch grid** ve **Send to Print Sheet** her oturumun seçimlerini korur.
 
 ### Sınırlar
 
-- **En fazla sekiz.** Her kart kendi canlı çalışma zamanını bağlar ve sekiz, yanıt verir kalan sayıdır. Daha fazlasını veya artık var olmayan bir oturumu isteyen bir bağlantı, yarım yüklenmek yerine bunu söyler.
-- **Bağlantı yereldir.** Kendi kayıtlı yuvalarının adını verir; bu yüzden o kümeyi bu cihazda yeniden açar. Bir paylaşım bağlantısı değildir.
-- **Daha büyük her şey için** aynı seçim çubuğunda **Edit as sheet** seç. Tüm seçimi, boyut sınırı ve aynı araç kuralı olmadan toplu iş ızgarasında satırlar olarak açar (`#/batch?s=…`). Klasörler ikisinin de dışında kalır: bir klasörü ızgarada **Sessions → Folders…** ile aç ya da Projects içinde **Render folder** ile render et.
-- **Arama Multi-edit'e ulaşmaz.** Arama çubuğunun bilmediği tek görünümdür.
+- **En fazla sekiz.** Her kart kendi canlı çalışma ortamını başlatır ve sekiz kartla arayüz akıcı kalır. Daha fazlasını veya artık var olmayan bir oturumu isteyen bağlantı bunu söyler ve yarım yükleme yapmaz.
+- **Bağlantı yereldir.** Kendi kayıtlı yuvalarını belirtir ve o kümeyi bu cihazda yeniden açar. Paylaşım bağlantısı değildir.
+- **Daha büyük işler için** aynı seçim çubuğunda **Edit as sheet** seç. Seçimi, boyut sınırı veya aynı araç koşulu olmadan toplu iş ızgarasında satırlar olarak açar (`#/batch?s=…`). Klasörler ikisinin de dışında kalır: bir klasörü ızgarada **Sessions → Folders…** ile aç veya Projects içinde **Render folder** ile render et.
+- **Arama Lolly Multi-edit'e ulaşmaz.** Arama çubuğunun kapsamadığı tek görünümdür.
 
-## Bundan sonra nereye
+<!--i:eti-map-pin-->
+## Sırada nereye gitmeli
 
-- **[Export a file](/info/exporting.html)**: her satırın kullanabileceği biçimler, boyutlar ve baskı ayarları.
-- **[Templates](/info/templates.html)**: iyi bir ilk satır yapan başlangıç noktaları.
-- **[Find and recover your work](/info/find-your-work.html)**: Projects, klasörler ve kaydettiklerini render etme.
+- **[Dosya dışa aktar](/info/exporting.html)**: her satırın kullanabileceği biçimler, boyutlar ve baskı ayarları.
+- **[Şablonlar](/info/templates.html)**: iyi bir ilk satır oluşturan başlangıç noktaları.
+- **[İşini bul ve kurtar](/info/find-your-work.html)**: Projects, klasörler ve kaydettiklerini render etme.

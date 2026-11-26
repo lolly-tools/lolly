@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 64" width="240" height="64">
+  <title>Northwind IT (a test fixture, not a real company's mark)</title>
+  <style>.word { fill: #111827; }</style>
+  <rect x="0" y="0" width="64" height="64" rx="12" fill="#1D4ED8"/>
+  <path d="M16 46V18h8l16 18V18h8v28h-8L24 28v18z" fill="#ffffff"/>
+  <circle cx="54" cy="12" r="6" style="fill: #f59e0b"/>
+  <text class="word" x="76" y="42" font-size="24">Northwind IT</text>
+  <rect x="76" y="50" width="120" height="2" fill="none" stroke="#1d4ed8"/>
+</svg>

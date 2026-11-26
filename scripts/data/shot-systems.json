@@ -1,0 +1,16 @@
+{
+  "$description": "Fixture design systems a docs screenshot recipe can load with system=<name> (scripts/build-docs-shots.ts). The pipeline installs the file as the active design system, under the label, before the recipe's route loads. `omit` drops token groups by dotted path before the install. Public material only: an invented brand or the blank starter, never a brand pack's own tokens (tests/docs-shot-systems.test.ts checks).",
+  "systems": {
+    "new-design-system": {
+      "file": "brands/lolly-start/catalog/assets/lolly/tokens/brand.json",
+      "omit": ["base.asset"],
+      "label": "New design system",
+      "about": "A design system with nothing chosen: the blank starter's neutrals and faces, and no logos. For the rooms as they first open."
+    },
+    "wefthouse": {
+      "file": "tests/fixtures/colour-roles/wefthouse.tokens.json",
+      "label": "Wefthouse",
+      "about": "An invented textile brand with four colour roles in its own words and three colourways. For colour roles on a system that declares them."
+    }
+  }
+}

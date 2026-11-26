@@ -22,6 +22,7 @@ import {
   validateBrowserPartitionReports,
 } from '../scripts/browser-partitions.ts';
 import { checkBrowserReports, validateBrowserSkips } from '../scripts/check-browser-partitions.ts';
+import { type RunTimings, median, plannedLoads, timingProfile } from '../scripts/refresh-browser-durations.ts';
 
 const source = 'a'.repeat(40);
 const count = BROWSER_PARTITION_COUNT;
@@ -193,6 +194,27 @@ test('a runner with a conformance step takes correspondingly fewer test files', 
   const measured = real.map(load);
   const longest = Math.max(...Object.values(profile.durationMs));
   assert.ok(Math.max(...measured) - Math.min(...measured) <= longest, 'no runner is a whole file behind another');
+});
+
+test('a refreshed profile keeps the median of each file and step, and only files that still exist', () => {
+  assert.equal(median([3, 1, 2]), 2);
+  assert.equal(median([4, 1, 3, 2]), 2.5);
+  assert.throws(() => median([]), /no values/);
+  const run = (runId: number, slow: number, duty: number): RunTimings => ({
+    runId, runAttempt: 1, source: String(runId).repeat(40).slice(0, 40),
+    durationMs: { 'tests/b.test.ts': slow, 'tests/a.test.ts': 1_000, 'tests/gone.test.ts': 5_000 },
+    partitionDutyMs: { 1: duty },
+  });
+  // One slow runner (90 s) does not move a file whose other runs took 10 and 12 s.
+  const refreshed = timingProfile([run(3, 90_000, 61_400), run(1, 10_000, 60_200), run(2, 12_000, 300_000)],
+    ['tests/a.test.ts', 'tests/b.test.ts', 'tests/new.test.ts'], 10_000);
+  assert.deepEqual(refreshed.durationMs, { 'tests/a.test.ts': 1_000, 'tests/b.test.ts': 12_000 });
+  assert.deepEqual(refreshed.partitionDutyMs, { 1: 61_000 });
+  assert.deepEqual(refreshed.sources.map((source) => source.runId), [1, 2, 3]);
+  assert.throws(() => timingProfile([], [], 10_000), /no runs/);
+  // The committed profile plans every runner within one file of the others, conformance steps included.
+  const loads = plannedLoads(inventory, profile, profile, 10_000);
+  assert.ok(Math.max(...loads) - Math.min(...loads) <= Math.max(...Object.values(profile.durationMs)));
 });
 
 const invalidReports: [string, (value: BrowserPartitionReport[]) => void, RegExp][] = [

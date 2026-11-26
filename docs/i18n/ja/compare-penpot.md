@@ -1,25 +1,29 @@
-# Lolly と Penpot
+# LollyとPenpot
 
 _最終確認日: 2026年9月28日。_
 
-チームがPenpotでデザインしている場合、LollyはPenpotと並んで動作します。どちらもオープンソースで、同じデザイントークンを読みます。このページは、それぞれがどの作業向けかを示します。
+チームがPenpotでデザインしている場合、LollyはPenpotと併用できます。どちらもオープンソースで、同じデザイントークンを読み取ります。このページでは、それぞれがどの作業に向いているかを説明します。
 
-## Penpotがより優れている点
+<!--i:eti-award-->
+## Penpotが優れている点
 
-[Penpot](https://penpot.app/)は、インターフェースデザイン、コンポーネント、柔軟なレイアウト、インタラクティブなプロトタイプ、開発者向けのインスペクションを、リアルタイム編集とライブカーソル付きで提供します。ホスト型とセルフホスト型の両方の配備があり、[DockerとKubernetesのインストールオプション](https://help.penpot.app/technical-guide/getting-started/)があります。アプリケーションをデザインするなら、Penpotがそのためのツールです。
+[Penpot](https://penpot.app/)は、インターフェースのデザイン、コンポーネント、柔軟なレイアウト、操作可能なプロトタイプ、開発者向けの検査機能に加え、リアルタイム編集とライブカーソルを提供します。ホスティング型とセルフホストの両方で利用でき、[DockerとKubernetesによるインストール方法](https://help.penpot.app/technical-guide/getting-started/)があります。アプリケーションを設計するなら、Penpotが適したツールです。
 
-## 重なる部分
+<!--i:eti-blend-->
+## 共通する範囲
 
-[Penpotのデザイントークン](https://help.penpot.app/user-guide/design-systems/design-tokens/)はDTCG形式を使い、Lollyもこれを読むため、色、書体、その他のトークン値は両者の間を行き来できます。Lollyの[デザインを取り込む](/info/design-import.html)は`.penpot`のエクスポートを編集可能なレイアウトとして開き、Lollyの**Send to Penpot**は、デザインを`.penpot`アーカイブとして送り返します。Lollyは[Penpot向けのLolly Exportプラグイン](https://github.com/lolly-tools/lolly-plugins-penpot-export)も保守しており、これはLollyのエンジンを使って、デバイス上でオプトインのContent Credentialsを追加します。
+[Penpotのデザイントークン](https://help.penpot.app/user-guide/design-systems/design-tokens/)は、Lollyも読み取るDTCG形式を使っているため、色、書体、その他のトークン値を両者の間で移せます。Lollyの[デザインのインポート](/info/design-import.html)は、書き出された`.penpot`を編集可能なレイアウトとして開き、Lollyの**Send to Penpot**は、デザインを`.penpot`アーカイブとして送り返します。Lollyは[Penpot向けのLolly Exportプラグイン](https://github.com/lolly-tools/lolly-plugins-penpot-export)も保守しています。このプラグインは、Lollyのエンジンを使い、選択した場合にデバイス上でContent Credentialsを追加します。
 
-## 重なる作業をLollyがどう行うか
+<!--i:eti-lolly-->
+## 共通する作業をLollyで行う方法
 
-LollyのDesignキャンバスは編集可能なアセットを作り、レイアウトを[ルール付きのツール](/info/create-a-tool.html)に変えることができます。同じツールが、ブラウザ、デスクトップアプリ、CLIでレンダリングし、データからバリエーションを作ります。単独のLollyは、アカウントもサーバーもなしで、デバイス上でレンダリングと署名を行います。[プライベートコラボ](/info/collaborate.html)は、2台のデバイスを直接つなぎます。
+Lolly Designのキャンバスは、編集可能なアセットを作り、レイアウトを[ルール付きツール](/info/create-a-tool.html)に変えられます。同じツールが、ブラウザ、デスクトップアプリ、CLIでレンダリングし、データからバリエーションを作ります。単独で使うLollyは、アカウントやサーバーなしで、デバイス上でレンダリングと署名を行います。[プライベートコラボ](/info/collaborate.html)は、2台のデバイスを直接つなぎます。
 
+<!--i:eti-building-->
 ## 組織で使う場合
 
-Lolly Workは、シングルサインオン、SCIMプロビジョニング、共有カタログとプロジェクト、ロール、承認、監査記録、ワークコラボ、サーバーレンダリングを加えます。どちらのリポジトリもMPL-2.0で、組織は両方を運用できます。この2つの部分の対比は、[どこで何が動くか](/info/compare.html#what-runs-where)にあります。
+Lolly Workは、シングルサインオン、SCIMプロビジョニング、共有カタログとプロジェクト、ロール、承認、監査記録、Workのコラボ、サーバーレンダリングを追加します。両方のリポジトリはMPL-2.0で、組織は両方を運用できます。[何がどこで動くか](/info/compare.html#what-runs-where)では、この2つの部分を並べて示しています。
 
-両方を使えます。インターフェースのデザインとプロトタイプにはPenpot、繰り返し作るファイルにはLollyを使い、共有トークンと取り込んだデザインでつなぎます。
+両方を使えます。インターフェースのデザインとプロトタイプ作成にはPenpot、繰り返し作るファイルにはLollyです。
 
-Penpotは、その所有者の商標です。このページは2つの製品が重なる部分を説明するもので、Penpotとは提携していません。
+Penpotはその所有者の商標です。このページは両製品で共通する範囲を説明するものであり、Penpotとは提携していません。

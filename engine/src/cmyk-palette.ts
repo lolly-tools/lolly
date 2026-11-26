@@ -81,6 +81,19 @@ export function cmykKey(r: number, g: number, b: number): string {
   return `${Math.round(r * 100)},${Math.round(g * 100)},${Math.round(b * 100)}`;
 }
 
+/** Choices a CMYK export makes about the brand inks, on top of the palette itself. */
+export interface CmykPaletteOptions {
+  /**
+   * Print every declared spot INK as its process alternate: the swatch's own CMYK
+   * lock when it has one, else `separate`'s build of its hex. This is the same
+   * value the ink's /Separation tint transform already names as its alternate, so
+   * the artwork prints with the four process plates alone. A declared FINISH is
+   * not an ink and keeps its spot hit (its own plate, with the mask as its
+   * alternate): converting it would print the black mask. Off by default.
+   */
+  spotsAsProcess?: boolean;
+}
+
 /**
  * Builds a lookup map from quantised RGB keys to their locked CMYK (+ optional
  * spot name). Shared by every CMYK export path (PDF / TIFF / EPS, web and CLI)
@@ -94,6 +107,7 @@ export function cmykKey(r: number, g: number, b: number): string {
 export function buildCmykPaletteMap(
   palette: readonly BrandPaletteEntry[],
   separate: (r: number, g: number, b: number) => Cmyk = rgbToCmyk,
+  options: CmykPaletteOptions = {},
 ): Map<string, PaletteHit> {
   const map = new Map<string, PaletteHit>();
   for (const { hex, cmyk, spot } of palette ?? []) {
@@ -115,7 +129,10 @@ export function buildCmykPaletteMap(
     // sink: the PDF Separation's tint transform reads spot.cmyk, the flat
     // TIFF/EPS paths read cmyk.
     const build = spot?.finish ? FINISH_MASK_CMYK : frac;
-    map.set(cmykKey(r, g, b), spot
+    // Spots as process: an ink becomes a plain process hit with the build its
+    // /Separation would have named as the alternate. A finish keeps its plate.
+    const asProcess = options.spotsAsProcess === true && !!spot && !spot.finish;
+    map.set(cmykKey(r, g, b), spot && !asProcess
       ? { cmyk: build, spot: { name: spot.name, cmyk: build, ...(spot.finish ? { finish: spot.finish } : {}) } }
       : { cmyk: frac });
   }

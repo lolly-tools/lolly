@@ -1,4 +1,3 @@
-# Lolly - Nội dung trang chủ
+# Lolly - Nội dung trang đích
 
-Tạo tệp hoàn chỉnh. Giữ quyền kiểm soát nội dung của bạn.
-Đồ họa, tài liệu, video và bản in bằng màu sắc và kiểu chữ của riêng bạn: không cần tài khoản, không cần thẻ, riêng tư và mã nguồn mở.
+Tạo đồ họa, tài liệu, video và sản phẩm in hoàn chỉnh bằng màu sắc và kiểu chữ của riêng bạn. Riêng tư, nguồn mở, không cần tài khoản.

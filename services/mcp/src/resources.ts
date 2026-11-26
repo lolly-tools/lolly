@@ -8,12 +8,14 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { designBrief } from '../../../engine/src/design-brief.ts';
+import { colourRolesBrief, type BriefColourRoles } from '../../../engine/src/colour-roles.ts';
+import type { ColorSwatch } from '@lolly-tools/core/host-v1';
 import { briefCatalogSummary, readProfileBriefCatalog, readProfileTokenDocument } from '@lolly-tools/node-shell/design-brief';
 import { exportProfileBrandSkill, listProfileBrandSkills, profileBrandSkillCoverage, readProfileBrandSkill } from '@lolly-tools/node-shell/brand-skills';
 import { isHostedServer } from './rebrand.ts';
 import { isPublicBrandSkillAsset } from '@lolly-tools/core/brand-skill-v1';
 import { createTokenSet, pickHeadAssetId } from '@lolly/engine';
-import { assetIndex, contentUrl, previewsDir, REPO_ROOT } from './paths.ts';
+import { assetIndex, contentUrl, REPO_ROOT } from './paths.ts';
 import { loadIndex, loadToolCached } from './catalog.ts';
 import { toolInputSchema } from './schema.ts';
 import { withHost } from './host.ts';
@@ -29,9 +31,9 @@ export const RESOURCES = [
   { uri: 'lolly://skill', name: 'Lolly skill', description: 'Shared Lolly workflows and design-system setup. Tool guidance is available through lolly://tool/{id}/skill.', mimeType: 'text/markdown' },
   { uri: 'lolly://catalog', name: 'Tool catalog', description: 'The full generated Lolly tool index.', mimeType: 'application/json' },
   { uri: 'lolly://assets', name: 'Brand asset listing', description: 'Every catalog asset id with its type, name, tags and formats - the ids lolly://asset/{id} resolves.', mimeType: 'application/json' },
-  { uri: 'lolly://design-context', name: 'Design context', description: 'The effective design system with resolved tokens, recorded source observations, coverage and explicit brand rules, plus the brief: approved colour pairings, type per role, logos per surface, icons and their themes, media families, the slide master and machine-checkable house rules. Read-only.', mimeType: 'application/json' },
+  { uri: 'lolly://design-context', name: 'Design context', description: 'The effective design system with resolved tokens, recorded source observations, coverage and explicit brand rules, plus the brief: the system\'s own colour words and what each is bound to, approved colour pairings, type per role, logos per surface, icons and their themes, media families, the slide master and machine-checkable house rules. Read-only.', mimeType: 'application/json' },
   { uri: 'lolly://design-system/skills', name: 'Brand skills', description: "The brand's own guidance per discipline (overall brand, photography, motion, iconography and more) as Agent Skills: the index without bodies, plus the baseline Lolly generates from the design brief. Read the overall brand skill before composing. Skills are guidance for brand intent only; house rules are what Lolly checks.", mimeType: 'application/json' },
-  { uri: 'lolly://tokens', name: 'Brand design tokens', description: "On-brand colour swatches (DTCG) with names and CMYK, from the design system's edit head - never one of its published versions.", mimeType: 'application/json' },
+  { uri: 'lolly://tokens', name: 'Brand design tokens', description: "On-brand colour swatches (DTCG) with names and CMYK, plus the system's own colour words where it declares them, from the design system's edit head - never one of its published versions.", mimeType: 'application/json' },
 ];
 
 export const RESOURCE_TEMPLATES = [
@@ -40,7 +42,7 @@ export const RESOURCE_TEMPLATES = [
   { uriTemplate: 'lolly://design-system/skill/{name}', name: 'Brand skill', description: "One brand skill as SKILL.md. The brand's body is unchanged; frontmatter metadata says which asset, revision and checksum it is.", mimeType: 'text/markdown' },
   { uriTemplate: 'lolly://design-system/skill/{name}/{path}', name: 'Brand skill file', description: 'A reference of one brand skill, its lolly.json companion, or coverage.json: what the skill says against what Lolly checks.', mimeType: 'application/json' },
   { uriTemplate: 'lolly://tool/{id}', name: 'Tool details', description: 'A tool manifest summary + input JSON Schema + examples.', mimeType: 'application/json' },
-  { uriTemplate: 'lolly://tool/{id}/preview', name: 'Tool preview', description: "The tool's committed catalog preview (SVG), where one exists.", mimeType: 'image/svg+xml' },
+  { uriTemplate: 'lolly://tool/{id}/preview', name: 'Tool preview', description: "The tool's committed gallery preview, where one exists: SVG text, or a WebP or PNG blob for a tool whose preview is a picture." },
   { uriTemplate: 'lolly://asset/{id}', name: 'Brand asset', description: 'A catalog asset (logo, palette, font) resolved to bytes.', mimeType: 'application/octet-stream' },
 ];
 
@@ -76,8 +78,13 @@ async function tokensResource(uri: string): Promise<ResourceContent> {
   const tokenPath = contentUrl(tokenUrl);
   if (!tokenPath) throw new Error(`Tokens asset ${tokenAsset.id}: ${tokenUrl} is not in this profile's catalog.`);
   const doc = JSON.parse(await readFile(tokenPath, 'utf8'));
-  const set = createTokenSet(doc);
-  return { uri, mimeType: 'application/json', text: JSON.stringify({ colors: set.colors() }, null, 2) };
+  return { uri, mimeType: 'application/json', text: JSON.stringify(tokensListing(doc), null, 2) };
+}
+
+/** What lolly://tokens lists: the swatches, and beside them the design system's own colour words, quoted as data, when it declares some. */
+export function tokensListing(doc: unknown): { colors: ColorSwatch[]; colourRoles?: BriefColourRoles } {
+  const colourRoles = colourRolesBrief(doc);
+  return { colors: createTokenSet(doc).colors(), ...(colourRoles ? { colourRoles } : {}) };
 }
 
 function parseDataUrl(url: string): { mime: string; base64: string } | null {
@@ -101,15 +108,50 @@ async function assetsListing(uri: string): Promise<ResourceContent> {
   return { uri, mimeType: 'application/json', text: JSON.stringify({ count: assets.length, assets }, null, 2) };
 }
 
-/** The tool's committed gallery preview: `<id>.svg`, else its first example look. */
+/** The picture types a committed preview takes, and the MIME type each is served as. */
+const PREVIEW_TYPES: Record<string, string> = { svg: 'image/svg+xml', webp: 'image/webp', png: 'image/png' };
+
+/**
+ * The addresses a tool's committed preview may have, in the order the resource tries them.
+ * First the index's own `preview`, which is what the gallery and the picker show: the
+ * tool's `card.svg` or `card.png`, or one of the catalog files. Then the catalog's
+ * `<id>.svg`, `<id>.webp` and `<id>.png`. The index value counts only when it equals one of
+ * those addresses, so nothing read from the index can point the read anywhere else. An
+ * HTML card is a page, not a picture, so the catalog file stands in for the card.
+ *
+ * A signed build (materialize-catalog-delivery.ts) rewrites the index to hashed copies,
+ * `/tools/<id>@<hash>/card.svg` and `/catalog/previews/<id>.<hash>.svg`, and keeps the
+ * plain files beside them. A hashed value is read as its plain address, which then has
+ * to pass the same check.
+ */
+export function previewCandidates(id: string, indexed: unknown): string[] {
+  const catalog = Object.keys(PREVIEW_TYPES).map(ext => `/catalog/previews/${id}.${ext}`);
+  const cards = ['svg', 'png'].map(ext => `/tools/${id}/card.${ext}`);
+  const plain = typeof indexed === 'string'
+    ? indexed
+      .replace(/^\/tools\/([a-z0-9-]+)@[0-9a-f]{16}\//, '/tools/$1/')
+      .replace(/^(\/catalog\/previews\/[a-z0-9-]+)\.[0-9a-f]{16}(\.[a-z]+)$/, '$1$2')
+    : null;
+  const first = plain !== null && [...cards, ...catalog].includes(plain) ? [plain] : [];
+  return [...new Set([...first, ...catalog])];
+}
+
+/** The tool's committed gallery preview, as text for SVG and as base64 for WebP or PNG. */
 async function previewResource(uri: string, id: string): Promise<ResourceContent> {
-  for (const file of [`${id}.svg`, `${id}.look0.svg`]) {
+  const entry = (await loadIndex().catch(() => null))?.tools.find(t => t.id === id);
+  for (const url of previewCandidates(id, entry?.preview)) {
+    // The resolver answers from the profile's catalog and tool roots only.
+    const file = contentUrl(url);
+    if (!file) continue;
+    const mimeType = PREVIEW_TYPES[url.slice(url.lastIndexOf('.') + 1)]!;
     try {
-      const text = await readFile(join(previewsDir(), file), 'utf8');
-      return { uri, mimeType: 'image/svg+xml', text };
+      const bytes = await readFile(file);
+      return mimeType === 'image/svg+xml'
+        ? { uri, mimeType, text: bytes.toString('utf8') }
+        : { uri, mimeType, blob: bytes.toString('base64') };
     } catch { /* try the next candidate */ }
   }
-  throw new Error(`No SVG preview for tool: ${id}`);
+  throw new Error(`No preview for tool: ${id}`);
 }
 
 async function assetResource(uri: string, id: string): Promise<ResourceContent> {

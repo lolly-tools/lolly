@@ -1,6 +1,6 @@
-<div class="qe-page {{statusClass}}" style="--qe-accent: {{default accent "#2563eb"}}; --qe-bg: {{default background "#ffffff"}}; --qe-ink: {{default ink "#111827"}}; --qe-scale: {{default scale "1"}};">
-  <div class="qe-sheet">
-    <div class="qe-head">
+<div class="qe-page {{statusClass}}" data-content-surface data-ground="{{ground}}" data-density="{{density}}" data-layout="{{layout}}" data-motion="{{motion}}" data-enter-seconds="{{surfaceEnterSeconds}}" data-curve="{{surfaceCurve}}" style="--content-space:{{surfaceSpacing}}; --qe-on-accent:{{surfaceOnAccent}}; --qe-accent: {{surfaceAccent}}; --qe-bg: {{surfaceGround}}; --qe-ink: {{surfaceInk}}; --qe-scale: {{default scale "1"}};">
+  <div class="qe-sheet" data-content-fit>
+    <div class="qe-head" data-reveal>
       <div class="qe-avatar" aria-hidden="true">{{initials}}</div>
       <div class="qe-who">
         <div class="qe-from"><b>{{senderName}}</b>{{#if senderAddress}} <span class="qe-address">&lt;{{senderAddress}}&gt;</span>{{/if}}</div>
@@ -13,16 +13,19 @@
       </div>
     </div>
 
-    <h1 class="qe-subject">{{subjectText}}</h1>
+    <h1 class="qe-subject" data-reveal>{{subjectText}}</h1>
 
     {{!-- The message is Markdown from the input, rendered and escaped by the
           markdown helper. --}}
-    <div class="qe-body">{{markdown message}}</div>
+    <div class="qe-body" data-reveal data-content-fit>{{markdown message}}</div>
 
     {{#if hasFiles}}
-    <div class="qe-files">
+    <div class="qe-files" data-reveal>
       {{#each files}}<span class="qe-file"><span class="qe-ext">{{ext}}</span><span class="qe-name">{{name}}</span></span>{{/each}}
     </div>
     {{/if}}
   </div>
+  {{#unless (eq motion "none")}}<button type="button" data-content-play data-export-hide>Play motion</button>{{/unless}}
+  <p data-content-fit-warning data-export-hide hidden role="status">This content needs more room. Choose a larger size, fewer columns or shorter text.</p>
+  <canvas data-content-clock width="0" height="0" aria-hidden="true" style="position:absolute;pointer-events:none"></canvas>
 </div>

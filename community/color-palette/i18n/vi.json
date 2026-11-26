@@ -1,6 +1,6 @@
 {
   "name": "Lab Bảng Màu",
-  "description": "Phát triển bảng màu từ một màu gốc - điểm nhấn hài hòa, dải màu OKLab theo cảm nhận và huy hiệu độ dễ đọc WCAG/APCA, cùng token DTCG và xuất CSV.",
+  "description": "Phát triển bảng màu từ một màu gốc - điểm nhấn hài hòa, dải màu OKLab và huy hiệu độ dễ đọc WCAG/APCA, cùng token DTCG và xuất CSV.",
   "inputs.seed.label": "Màu gốc",
   "inputs.seed.help": "Màu mà toàn bộ bảng màu phát triển từ đó - mặc định là màu chính của thương hiệu bạn.",
   "inputs.harmony.label": "Hòa sắc",

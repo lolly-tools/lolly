@@ -79,6 +79,7 @@
  * to. The middle row is the gallery's shape: nothing was animating.)
  */
 import { parseCssMatrix, isAxisAlignedMat } from '@lolly/engine';
+import type { Mat2D } from '@lolly/engine';
 import { pureRotationDeg } from './export-pdf-vector.ts';
 
 /**
@@ -104,6 +105,37 @@ export function wrapsInWalker(transform: string | null | undefined): boolean {
   const m = parseCssMatrix(transform);
   if (!m) return false;
   return !isAxisAlignedMat(m) || Math.abs(m.a - 1) > 1e-4 || Math.abs(m.d - 1) > 1e-4;
+}
+
+/**
+ * Does the PDF walker draw this element through one matrix: neutralise the transform,
+ * walk the subtree untransformed, and wrap the drawing in the CTM? `mtx` is the
+ * element's parsed transform, already known not to be a pure rotation, and `root` is
+ * the node the walk started from.
+ *
+ * A transform that is not axis-aligned always does, as in the SVG walker; a mirror is one
+ * of those, because isAxisAlignedMat counts a flip as not axis-aligned. So does a scale
+ * below the root. On the box path a client rect carries the scale but a computed length
+ * does not, so a box was placed right while its font size, border width, radius and
+ * shadow offset were all drawn 1/s too big: text under scale(.5) printed at twice its
+ * size. The root is left out because the walker's cssToPt already holds its scale. A
+ * picture with nothing drawn around it, such as a photo zoomed in its frame, reads no
+ * length and fills its scaled box exactly, so it keeps the box path and the bytes it had.
+ */
+export function pdfDrawsThroughMatrix(el: Element, root: Element, style: CSSStyleDeclaration, mtx: Mat2D): boolean {
+  if (!isAxisAlignedMat(mtx)) return true;
+  if (el === root || barePicture(el, style)) return false;
+  return Math.abs(mtx.a - 1) > 1e-4 || Math.abs(mtx.d - 1) > 1e-4;
+}
+
+/** A replaced element that draws nothing from a computed length: no border, corner, shadow, outline or filter. */
+function barePicture(el: Element, s: CSSStyleDeclaration): boolean {
+  if (!/^(img|svg|video|canvas)$/i.test(el.tagName)) return false;
+  const zero = (v: string): boolean => !parseFloat(v);
+  const none = (v: string): boolean => !v || v === 'none';
+  return zero(s.borderTopWidth) && zero(s.borderRightWidth) && zero(s.borderBottomWidth) && zero(s.borderLeftWidth)
+    && zero(s.borderTopLeftRadius) && zero(s.borderTopRightRadius) && zero(s.borderBottomRightRadius) && zero(s.borderBottomLeftRadius)
+    && none(s.boxShadow) && (s.outlineStyle === 'none' || zero(s.outlineWidth)) && none(s.filter);
 }
 
 /**

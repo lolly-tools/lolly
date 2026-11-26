@@ -100,7 +100,7 @@
       "slug": "suse-brandfolder",
       "title": "How SUSE connected Brandfolder to Lolly",
       "src": "suse-brandfolder.md",
-      "description": "How successful Brandfolder integration at SUSE supported adoption and administrator change management before a planned migration, with the evidence scope recorded.",
+      "description": "How Brandfolder integration at SUSE supported adoption and administrator change management before a planned migration, with the evidence scope recorded.",
       "section": "start",
       "path": "start/suse-brandfolder",
       "icon": "layers",
@@ -112,7 +112,7 @@
       "slug": "how-lolly-works",
       "title": "How Lolly works",
       "src": "how-lolly-works.md",
-      "description": "One tool, your rules, many files: who sets a tool up, the four routes from a tool to a finished file and what runs on your device or on your organisation's server.",
+      "description": "Who sets a tool up, the four routes from a tool to a finished file and what runs on your device or on your organisation's server.",
       "section": "start",
       "path": "start/how-lolly-works",
       "icon": "cpu",
@@ -129,6 +129,9 @@
       "path": "start/make-something",
       "icon": "pentool",
       "aliases": [],
+      "tools": [
+        "qr-code"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "renderer": "renderMakeSomethingPage",
       "group": "First steps"
@@ -174,7 +177,7 @@
       "slug": "organisation",
       "title": "Use Lolly at your organisation",
       "src": "organisation.md",
-      "description": "Reach your organisation's Lolly, sign in and see what changes with Lolly Work: managed settings, locked design systems, team projects and approvals. What stays on your device, and how to leave.",
+      "description": "Reach your organisation's Lolly, sign in and see what changes with Lolly Work. What stays on your device, and how to leave.",
       "section": "start",
       "path": "start/organisation",
       "icon": "people",
@@ -189,7 +192,7 @@
       "slug": "install",
       "title": "Install Lolly",
       "src": "install.md",
-      "description": "Every way to get Lolly: the Mac and Windows apps, Lolly Tools on the App Store, the Android APK, Linux packages (Flatpak, RPM, deb, Arch, AppImage), YunoHost and the container image, with versions and how to check a download.",
+      "description": "Every way to get Lolly: the Mac and Windows apps, the App Store, the Android APK, Linux packages, YunoHost and the container image, and how to check a download.",
       "section": "start",
       "path": "start/install",
       "icon": "download",
@@ -238,11 +241,14 @@
       "slug": "design",
       "title": "Lolly Design: the free canvas",
       "src": "design.md",
-      "description": "Build layouts, decks and motion on Lolly Design's free canvas: shape boxes, draw paths, place 3D scenes and tools, add a timeline, check the result and present it.",
+      "description": "Build layouts, decks and motion on Lolly Design's free canvas: shape boxes, draw paths, place 3D scenes and tools, add a timeline and present.",
       "section": "create",
       "path": "create/design",
       "icon": "pentool",
       "aliases": [],
+      "tools": [
+        "design"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
@@ -486,7 +492,7 @@
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates",
-      "description": "Make the design system yours at #/start: logo, colours, type, tokens, files and usage rules, then export it, move it between devices and manage the systems you keep."
+      "description": "Make the design system yours at #/start: logo, colours, type, tokens, files and usage rules, then export it, move it between devices."
     },
     {
       "slug": "brand-architectures",
@@ -532,6 +538,9 @@
       "path": "create/partners",
       "icon": "people",
       "aliases": [],
+      "tools": [
+        "logo-wall#sponsor-and-event-logo-walls"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates",
       "description": "Share your brand with a partner, work in a brand you were given, place a partner's logo and build a sponsor wall in Lolly, with what it does not do yet."
@@ -545,6 +554,24 @@
       "path": "create/3d-studio",
       "icon": "layers",
       "aliases": [],
+      "tools": [
+        "3d-studio"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
+      "slug": "chart",
+      "title": "Lolly Chart",
+      "src": "chart.md",
+      "description": "Paste a table and draw it in your design system: vector charts, statistical plots, 3-D scenes and flights, from 43 templates to 20 export formats.",
+      "section": "create",
+      "path": "create/chart",
+      "icon": "chart",
+      "aliases": [],
+      "tools": [
+        "chart"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
@@ -552,7 +579,7 @@
       "slug": "find-your-work",
       "title": "Find and recover your work",
       "src": "find-your-work.md",
-      "description": "Where your saved work, downloads and earlier versions are, what a closed tab or cleared browser data takes with it, and how to move everything to another device.",
+      "description": "Where your saved work, downloads and earlier versions are, and how to move everything to another device.",
       "section": "create",
       "path": "create/find-your-work",
       "icon": "folder",
@@ -564,7 +591,7 @@
       "slug": "sync",
       "title": "Sync your devices",
       "src": "sync.md",
-      "description": "Keep your work the same on every device through storage you choose - Dropbox, Google Drive, OneDrive, your own Nextcloud or S3 - with no Lolly server in between.",
+      "description": "Keep your work the same on every device through storage you choose - Dropbox, Google Drive, OneDrive, your own Nextcloud or S3 - with no Lolly server.",
       "section": "create",
       "path": "create/sync",
       "icon": "convert",
@@ -654,6 +681,9 @@
       "path": "create/design-layout",
       "icon": "layers",
       "aliases": [],
+      "tools": [
+        "design"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
@@ -666,6 +696,9 @@
       "path": "create/darkroom",
       "icon": "photos",
       "aliases": [],
+      "tools": [
+        "darkroom"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
@@ -673,7 +706,7 @@
       "slug": "rebrand",
       "title": "Rebrand a deck",
       "src": "rebrand.md",
-      "description": "Move a PowerPoint or PDF deck someone else made onto your design system, on your device: review what Lolly Rebrand suggests for each slide, decide, and open the result in Lolly Design.",
+      "description": "Move a PowerPoint or PDF deck someone else made onto your design system, on your device: review what Lolly Rebrand suggests for each slide, decide.",
       "section": "create",
       "path": "create/rebrand",
       "icon": "convert",
@@ -685,13 +718,25 @@
       "slug": "formats",
       "title": "Formats",
       "src": "formats.md",
-      "description": "Every file format Lolly reads, every format it writes and the ones it does both ways, with a plain-language card behind every chip and what happens when a file comes in.",
+      "description": "Every file format Lolly reads, every format it writes and the ones it does both ways, with a plain-language card behind every chip.",
       "section": "create",
       "path": "create/formats",
       "icon": "convert",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "renderer": "renderFormatsPage",
+      "group": "Collaborate and export"
+    },
+    {
+      "slug": "fallback-fonts",
+      "title": "Fallback fonts",
+      "src": "fallback-fonts.md",
+      "description": "Which open fonts draw the scripts a design system's fonts cannot, when one downloads, how the page and the export agree, and what still becomes a picture.",
+      "section": "create",
+      "path": "create/fallback-fonts",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
       "group": "Collaborate and export"
     },
     {
@@ -703,6 +748,9 @@
       "path": "create/text-composition",
       "icon": "document",
       "aliases": [],
+      "tools": [
+        "design"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
@@ -750,6 +798,9 @@
       "path": "create/sequence-editor",
       "icon": "clock",
       "aliases": [],
+      "tools": [
+        "design"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Motion and presenting",
       "description": "Cut a video in Lolly Design's timeline: split, trim, cross-fade, mix sound, mark a range, edit Lottie animations and hand off to Premiere."
@@ -763,6 +814,9 @@
       "path": "create/presenting",
       "icon": "monitor",
       "aliases": [],
+      "tools": [
+        "design"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Motion and presenting"
     },
@@ -787,6 +841,9 @@
       "path": "create/agenda",
       "icon": "checklist",
       "aliases": [],
+      "tools": [
+        "agenda"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Motion and presenting"
     },
@@ -799,6 +856,9 @@
       "path": "create/animating",
       "icon": "layers",
       "aliases": [],
+      "tools": [
+        "design"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Motion and presenting"
     },
@@ -811,8 +871,48 @@
       "path": "create/rondocode",
       "icon": "clock",
       "aliases": [],
+      "tools": [
+        "rondocode"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Motion and presenting"
+    },
+    {
+      "slug": "background-music",
+      "title": "Free background music generator",
+      "src": "background-music.md",
+      "description": "Make free background music for videos, podcasts, streams and games in more than 50 genres, on your own device. Free for any use, even commercial, with credit.",
+      "section": "create",
+      "path": "create/background-music",
+      "icon": "headphones",
+      "aliases": [],
+      "renderer": "renderMusicHubPage",
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Music"
+    },
+    {
+      "slug": "music-generator",
+      "title": "Music generator",
+      "src": "music-generator.md",
+      "description": "Make a track in any of Lolly's genres: shuffle, choose instruments, set the tune and the mix, then download an M4A or WAV file that is free to use with credit.",
+      "section": "create",
+      "path": "create/music-generator",
+      "icon": "music",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Music"
+    },
+    {
+      "slug": "generated-music",
+      "title": "Generated music",
+      "src": "generated-music.md",
+      "description": "How a seed becomes a tune, what stays the same on every device, how each genre's instruments are made and measured, and what a track records.",
+      "section": "create",
+      "path": "create/generated-music",
+      "icon": "neurobeat",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Music"
     },
     {
       "slug": "collaborate",
@@ -844,11 +944,24 @@
       "slug": "utilities",
       "title": "Utilities",
       "src": "utilities.md",
-      "description": "Fix a file on your device: share it safely, compare two versions, change its format, get the words out or check a colour, with every utility in the Utilities tab.",
+      "description": "Fix a file on your device: share it safely, compare two versions, change its format, get the words out or check a colour.",
       "section": "create",
       "path": "create/utilities",
       "icon": "wrench",
       "aliases": [],
+      "tools": [
+        "strip-data#lolly-strip-hidden-data-and-redact",
+        "redact#lolly-strip-hidden-data-and-redact",
+        "compress-pdf#compress-convert-image-and-convert-font",
+        "convert-image#compress-convert-image-and-convert-font",
+        "font-convert#compress-convert-image-and-convert-font",
+        "text-helper#text",
+        "pages#pdf-pages",
+        "sign#pdf-pages",
+        "trim#audio-and-video",
+        "clean#audio-and-video",
+        "voice-recorder#audio-and-video"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Design and templates"
     },
@@ -860,6 +973,9 @@
       "path": "create/exporting",
       "icon": "download",
       "aliases": [],
+      "tools": [
+        "qr-code#size-and-print-units"
+      ],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Collaborate and export",
       "description": "Pick the right format for a screen, a printer or another app, set its size and print marks, export many files at once, and see what travels with each file."
@@ -880,7 +996,7 @@
       "slug": "compare",
       "title": "Lolly compared, tool by tool",
       "src": "compare.md",
-      "description": "What runs on your device and what runs on a Lolly Work server, the limits every comparison shares and one page per product: Canva, Adobe, Figma, Penpot, brand portals, rendering APIs and converters.",
+      "description": "What runs on your device and what runs on a Lolly Work server, one page per product: Canva, Adobe, Figma, Penpot, brand portals, rendering APIs and converters.",
       "section": "create",
       "path": "create/compare",
       "icon": "checklist",
@@ -928,7 +1044,7 @@
       "slug": "compare-render-apis",
       "title": "Lolly and rendering APIs",
       "src": "compare-render-apis.md",
-      "description": "Running your own image production instead of a hosted rendering API like Bannerbear or Placid: what each does better, how the jobs line up, and what carries across.",
+      "description": "Running your own image production instead of a hosted rendering API like Bannerbear or Placid: what each does better, how the jobs line up.",
       "section": "create",
       "path": "create/compare-render-apis",
       "icon": "checklist",
@@ -964,7 +1080,7 @@
       "slug": "compare-brand-portals",
       "title": "Lolly and brand portals",
       "src": "compare-brand-portals.md",
-      "description": "Use Lolly alongside a brand portal or DAM: keep the approved library, make controlled outputs and understand where access, review and delivery responsibilities sit.",
+      "description": "Use Lolly alongside a brand portal or DAM: keep the approved library, make controlled outputs and understand where access, review and delivery sit.",
       "section": "create",
       "path": "create/compare-brand-portals",
       "icon": "checklist",
@@ -1036,7 +1152,7 @@
       "slug": "visual-intent",
       "title": "Start from what the piece has to do",
       "src": "visual-intent.md",
-      "description": "Say what a piece has to do, where it will be seen and what it has to say. Lolly chooses the tool for each surface, says why and shows what it could not fill, with no model in the path.",
+      "description": "Say what a piece has to do, where it will be seen and what it has to say. Lolly chooses the tool for each surface, says why, with no model in the path.",
       "section": "build",
       "path": "build/visual-intent",
       "icon": "document",
@@ -1048,7 +1164,7 @@
       "slug": "glossary",
       "title": "Glossary",
       "src": "glossary.md",
-      "description": "The words you meet in the app, such as design system, colourway, saved session and Lolly Work, then the builder words (engine, shell, bridge, tool, brand pack, profile and catalog) and what each is not.",
+      "description": "The words you meet in the app, such as design system, colourway, saved session and Lolly Work, then the builder words and what each is not.",
       "section": "start",
       "path": "start/glossary",
       "icon": "document",
@@ -1062,7 +1178,7 @@
       "slug": "document-model",
       "title": "Document model draft",
       "src": "document-model.md",
-      "description": "A draft specification of the Lolly document model: the records, operations, values, evaluation, policy, conformance and packaging rules that make a complete tool portable, and what is decided, open and not yet built.",
+      "description": "A draft specification of the Lolly document model: the rules that make a complete tool portable, and what is decided, open and not yet built.",
       "section": "build",
       "path": "build/document-model",
       "icon": "layers",
@@ -1074,7 +1190,7 @@
       "slug": "constraints",
       "title": "Constraints",
       "src": "constraints.md",
-      "description": "Why output comes out right by construction: inputs declared in the manifest, logic-less templates and brand values resolved from tokens, with the tests that enforce each.",
+      "description": "Why output comes out right: inputs declared in the manifest, logic-less templates and brand values resolved from tokens, with the tests that enforce each.",
       "section": "build",
       "path": "build/constraints",
       "icon": "lock",
@@ -1475,7 +1591,7 @@
       "slug": "contributing-setup",
       "title": "Get the source",
       "src": "contributing-setup.md",
-      "description": "Clone Lolly, install what it needs and open the web app from source: the setup script, a full or partial clone, what a clone leaves out and how to fix a failed setup.",
+      "description": "Clone Lolly, install what it needs and open the web app from source: the setup script, a full or partial clone and how to fix a failed setup.",
       "section": "build",
       "path": "build/contributing-setup",
       "icon": "download",
@@ -1581,42 +1697,17 @@
       "description": "Run Lolly in the iPhone Simulator, sign a build for a device or TestFlight, and release through the protected App Store workflow."
     },
     {
-      "slug": "catalog-resource-reading",
-      "title": "Read verified catalog resources",
-      "src": "catalog-resource-reading.md",
-      "description": "How a client verifies signed catalog resources before use, the read limits, and how exact source reads stay fixed in History.",
+      "slug": "operate",
+      "title": "Deploy",
+      "src": "operate.md",
       "section": "operate",
-      "path": "operate/catalog-resource-reading",
-      "icon": "shieldcheck",
-      "aliases": [
-        "build/catalog-resource-reading"
-      ],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Updates, qualification and release history"
-    },
-    {
-      "slug": "connector-origins",
-      "title": "Configure connector origins",
-      "src": "connector-origins.md",
-      "description": "Exact HTTPS connector origins, deployment headers and native request policy.",
-      "section": "operate",
-      "path": "operate/connector-origins",
-      "icon": "globe",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Instance configuration, SSO and signing"
-    },
-    {
-      "slug": "deployment",
-      "title": "Choose a deployment",
-      "src": "deployment.md",
-      "section": "operate",
-      "path": "operate/deployment",
-      "icon": "upload",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
       "group": "Hosting and installation",
-      "description": "Pick how Lolly reaches people: hand out the apps, host the web app on any static server or Kubernetes, or add Lolly Work. The routes and headers a host must serve."
+      "path": "operate/index",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "isHub": true,
+      "headingId": "deploy-operate"
     },
     {
       "slug": "build-kubernetes",
@@ -1633,16 +1724,46 @@
       "group": "Hosting and installation"
     },
     {
-      "slug": "deploy-delivery",
-      "title": "Delivery deployment",
-      "src": "deploy-delivery.md",
-      "description": "Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks.",
+      "slug": "work-platform-deployment",
+      "title": "Install on Kubernetes",
+      "src": "work/platform-deployment.md",
       "section": "operate",
-      "path": "operate/deploy-delivery",
-      "icon": "download",
+      "group": "Hosting and installation",
+      "path": "operate/platform-deployment",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Try Lolly Work on a cluster in one command, then install it for production with Helm on K3s, RKE2 or Rancher, and prepare new SLES or openSUSE Leap hosts.",
+      "work": {
+        "slug": "platform-deployment",
+        "path": "platform-deployment.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "deployment",
+      "title": "Choose a deployment",
+      "src": "deployment.md",
+      "section": "operate",
+      "path": "operate/deployment",
+      "icon": "upload",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Updates, qualification and release history"
+      "group": "Hosting and installation",
+      "description": "Pick how Lolly reaches people: hand out the apps, host the web app on Kubernetes or any static server, or add Lolly Work."
+    },
+    {
+      "slug": "sovereign-production",
+      "title": "Sovereign creative production",
+      "src": "sovereign-production.md",
+      "register": "stage",
+      "description": "Make, sign and verify files locally as one part of content sovereignty. Inspect the dependencies, optional network services and limits of the workflow.",
+      "section": "operate",
+      "path": "operate/sovereign-production",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Hosting and installation"
     },
     {
       "slug": "configuration",
@@ -1789,17 +1910,21 @@
       "group": "Administration, policy and approvals"
     },
     {
-      "slug": "sovereign-production",
-      "title": "Sovereign creative production",
-      "src": "sovereign-production.md",
-      "register": "stage",
-      "description": "Make, sign and verify files locally as one part of content sovereignty. Inspect the dependencies, optional network services and limits of the workflow.",
+      "slug": "work-self-host",
+      "title": "Run Lolly Work",
+      "src": "work/self-host.md",
       "section": "operate",
-      "path": "operate/sovereign-production",
+      "group": "Hosting and installation",
+      "path": "operate/run-your-own-server",
       "icon": "server",
       "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Hosting and installation"
+      "contentLicense": "MPL-2.0",
+      "description": "Pick the path that matches what you have: Kubernetes, the public demo, a trial on your computer, one Linux server or YunoHost.",
+      "work": {
+        "slug": "self-host",
+        "path": "self-host.md",
+        "icon": "overview"
+      }
     },
     {
       "slug": "security",
@@ -1898,6 +2023,18 @@
       "group": "Principles, rights and AI"
     },
     {
+      "slug": "without-ai",
+      "title": "Lolly without AI",
+      "src": "without-ai.md",
+      "description": "Lolly fills a template with your own words, pictures and data, the same way every time. Where a model can appear and how to keep every one of them out.",
+      "section": "trust",
+      "path": "trust/without-ai",
+      "icon": "check",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Principles, rights and AI"
+    },
+    {
       "slug": "ai-stance",
       "title": "Our AI Stance",
       "src": "ai-stance.md",
@@ -1914,7 +2051,7 @@
       "slug": "ai-features",
       "title": "Generated once, rendered the same",
       "src": "ai-features.md",
-      "description": "Text-to-speech, upscaling and background removal: generated once under guard-rails, then rendered identically everywhere. Why inventing pixels is marked AI and removing them is not.",
+      "description": "Text-to-speech, upscaling and background removal: generated once, then rendered identically. Why inventing pixels is marked AI and removing them is not.",
       "section": "trust",
       "path": "trust/ai-features",
       "icon": "sparkle",
@@ -1962,92 +2099,6 @@
       "group": "Principles, rights and AI"
     },
     {
-      "slug": "operate",
-      "title": "Deploy",
-      "src": "operate.md",
-      "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/index",
-      "icon": "server",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "isHub": true,
-      "headingId": "deploy-operate"
-    },
-    {
-      "slug": "work-self-host",
-      "title": "Run Lolly Work",
-      "src": "work/self-host.md",
-      "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/run-your-own-server",
-      "icon": "server",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Pick the path that matches what you have: the public demo, a trial on your computer, one Linux server, YunoHost or Kubernetes. Downloads and checksums for the current release.",
-      "work": {
-        "slug": "self-host",
-        "path": "self-host.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-release-1-1-3",
-      "title": "Release 1.1.3",
-      "src": "work/release-1-1-3.md",
-      "section": "operate",
-      "group": "Updates, qualification and release history",
-      "path": "operate/release-1-1-3",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "The current release: Lolly Work 1.1.3 paired with Lolly 1.1.3, what Lolly 1.1.3 needs from Lolly Work, changes since 1.1.2, migrations, the first published chart and YunoHost packaging.",
-      "work": {
-        "slug": "release-1-1-3",
-        "path": "release-1-1-3.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-release-1-1-2",
-      "title": "Release 1.1.2",
-      "src": "work/release-1-1-2.md",
-      "section": "operate",
-      "group": "Updates, qualification and release history",
-      "path": "operate/release-1-1-2",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Lolly Work 1.1.2 paired with Lolly 1.1.2, what Lolly 1.1.2 needs from Lolly Work, changes since 1.1.1, migrations, images and YunoHost packaging.",
-      "work": {
-        "slug": "release-1-1-2",
-        "path": "release-1-1-2.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-past-releases",
-      "title": "Past releases",
-      "src": "work/past-releases.md",
-      "section": "operate",
-      "group": "Updates, qualification and release history",
-      "path": "operate/past-releases",
-      "icon": "document",
-      "aliases": [
-        "work-release-1-1-1",
-        "work-release-1-1-0",
-        "operate/release-1-1-1",
-        "operate/release-1-1-0"
-      ],
-      "contentLicense": "MPL-2.0",
-      "description": "Lolly Work 1.1.1 and 1.1.0 kept as a record: matched components, changes, migrations, image digests and YunoHost packaging.",
-      "work": {
-        "slug": "past-releases",
-        "path": "past-releases.md",
-        "icon": "overview"
-      }
-    },
-    {
       "slug": "work-overview",
       "title": "Lolly Work architecture",
       "src": "work/overview.md",
@@ -2074,7 +2125,7 @@
       "icon": "server",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "From a source checkout to a running instance on one server: try it locally, make it yours, add PostgreSQL and secrets, then run it with Compose, systemd or YunoHost.",
+      "description": "From a source checkout to a running instance on one server: try it locally, add PostgreSQL and secrets, then run it with Compose, systemd or YunoHost.",
       "work": {
         "slug": "install",
         "path": "install.md",
@@ -2091,27 +2142,10 @@
       "icon": "server",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "One Docker Compose folder with Lolly Work, PostgreSQL, the matching web app and automatic HTTPS, for a fresh VM, UpCloud, Dokploy or Coolify, with backup, restore and update steps.",
+      "description": "One Docker Compose folder with Lolly Work, PostgreSQL, the matching web app and automatic HTTPS, with backup, restore and update steps.",
       "work": {
         "slug": "ready-made-package",
         "path": "ready-made-package.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-platform-deployment",
-      "title": "Install on Kubernetes",
-      "src": "work/platform-deployment.md",
-      "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/platform-deployment",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Try Lolly Work on a cluster in one command, then install it for production with Helm on K3s, RKE2 or Rancher, and prepare new SLES or openSUSE Leap hosts.",
-      "work": {
-        "slug": "platform-deployment",
-        "path": "platform-deployment.md",
         "icon": "overview"
       }
     },
@@ -2131,6 +2165,137 @@
         "path": "official-installations.md",
         "icon": "overview"
       }
+    },
+    {
+      "slug": "work-deployment",
+      "title": "How a Lolly Work deployment fits together",
+      "src": "work/deployment.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/work-deployment-options",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The parts every Lolly Work deployment runs, which ones you can leave out, the two ways to render, the Helm values to know and offline operation.",
+      "work": {
+        "slug": "deployment",
+        "path": "deployment.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-cloud-deployment",
+      "title": "Run Lolly Work on UpCloud or Evroc",
+      "src": "work/cloud-deployment.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/cloud-deployment",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "What the OpenTofu and Terraform modules create, how the two providers differ, moving a PostgreSQL database safely, and capacity and recovery checks.",
+      "work": {
+        "slug": "cloud-deployment",
+        "path": "cloud-deployment.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-edge-cdn",
+      "title": "Put a CDN in front of Lolly Work",
+      "src": "work/edge-cdn.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/edge-cdn",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Serve Lolly Work's public files through Bunny or Cloudflare: the per-hostname jurisdiction rule, configuration and credentials, purges and the probe.",
+      "work": {
+        "slug": "edge-cdn",
+        "path": "edge-cdn.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-aws-compatible",
+      "title": "Run Lolly Work on AWS or MulgaDC Spinifex",
+      "src": "work/aws-compatible.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/aws-compatible",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Run Lolly Work on AWS or on MulgaDC Spinifex: EKS with the chart, the Lolly appliance, one VM or managed PostgreSQL and S3.",
+      "work": {
+        "slug": "aws-compatible",
+        "path": "aws-compatible.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-wasm-deployment",
+      "title": "WebAssembly and Kubewarden choices",
+      "src": "work/wasm-deployment.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/wasm-deployment",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Optional WebAssembly tracks: evaluating Kubewarden admission policies and preparing a component host. A normal install needs neither.",
+      "work": {
+        "slug": "wasm-deployment",
+        "path": "wasm-deployment.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-kubewarden",
+      "title": "How Lolly uses Kubewarden",
+      "src": "work/kubewarden.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/kubewarden",
+      "icon": "shieldcheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Where Lolly uses Kubewarden, what its policies check on a Lolly Work cluster, what an administrator sees in Setup and which Kubewarden release the policy set is qualified against.",
+      "work": {
+        "slug": "kubewarden",
+        "path": "kubewarden.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-admission-policy",
+      "title": "Admission policy with Kubewarden",
+      "src": "work/admission-policy.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/admission-policy",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "What Lolly Work pods need from an admission policy, a ready Kubewarden policy set pinned by digest, a preflight check and how the set was qualified.",
+      "work": {
+        "slug": "admission-policy",
+        "path": "admission-policy.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "connector-origins",
+      "title": "Configure connector origins",
+      "src": "connector-origins.md",
+      "description": "Exact HTTPS connector origins, deployment headers and native request policy.",
+      "section": "operate",
+      "path": "operate/connector-origins",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Instance configuration, SSO and signing"
     },
     {
       "slug": "work-enterprise-identity",
@@ -2187,106 +2352,112 @@
       }
     },
     {
-      "slug": "work-deployment",
-      "title": "How a Lolly Work deployment fits together",
-      "src": "work/deployment.md",
+      "slug": "work-configuration",
+      "title": "Lolly Work instance configuration",
+      "src": "work/configuration.md",
       "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/work-deployment-options",
-      "icon": "server",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "The parts every Lolly Work deployment runs, which ones you can leave out, the two ways to render, the Helm values to know and offline operation.",
-      "work": {
-        "slug": "deployment",
-        "path": "deployment.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-cloud-deployment",
-      "title": "Run Lolly Work on UpCloud or Evroc",
-      "src": "work/cloud-deployment.md",
-      "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/cloud-deployment",
+      "group": "Instance configuration, SSO and signing",
+      "path": "operate/instance-configuration",
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "What the OpenTofu and Terraform modules create, how the two providers differ, moving a PostgreSQL database safely, and capacity and recovery checks.",
+      "description": "Every instance.json key and every LW_* environment variable, with defaults.",
       "work": {
-        "slug": "cloud-deployment",
-        "path": "cloud-deployment.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-edge-cdn",
-      "title": "Put a CDN in front of Lolly Work",
-      "src": "work/edge-cdn.md",
-      "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/edge-cdn",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Serve Lolly Work's public files through Bunny or Cloudflare: the per-hostname jurisdiction rule, configuration and credentials, the settings that must stay off, purges and the probe.",
-      "work": {
-        "slug": "edge-cdn",
-        "path": "edge-cdn.md",
+        "slug": "configuration",
+        "path": "configuration.md",
         "icon": "instance"
       }
     },
     {
-      "slug": "work-aws-compatible",
-      "title": "Run Lolly Work on AWS or MulgaDC Spinifex",
-      "src": "work/aws-compatible.md",
+      "slug": "work-c2pa",
+      "title": "Configure Lolly Work export signing",
+      "src": "work/c2pa.md",
       "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/aws-compatible",
+      "group": "Instance configuration, SSO and signing",
+      "path": "operate/work-export-signing",
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Run Lolly Work on AWS or on MulgaDC Spinifex: one VM, managed PostgreSQL and S3, EKS with the chart or the Lolly appliance, behind a load balancer if you like, with the issues two Spinifex test runs found.",
+      "description": "Give a deployment a signing identity so server exports carry a verifiable Content Credential: a self-made root in one command, or your organisation's CA.",
       "work": {
-        "slug": "aws-compatible",
-        "path": "aws-compatible.md",
-        "icon": "overview"
+        "slug": "c2pa",
+        "path": "c2pa.md",
+        "icon": "grants"
+      },
+      "secondarySections": [
+        "trust"
+      ]
+    },
+    {
+      "slug": "work-operations",
+      "title": "Keep Lolly Work running",
+      "src": "work/operations.md",
+      "section": "operate",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/operations",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Upgrades, backups and restores, secret rotation, health and storage alerts, rate limits, scan hooks, notifications and SIEM forwarding.",
+      "work": {
+        "slug": "operations",
+        "path": "operations.md",
+        "icon": "audit"
       }
     },
     {
-      "slug": "work-wasm-deployment",
-      "title": "WebAssembly and Kubewarden choices",
-      "src": "work/wasm-deployment.md",
+      "slug": "work-metrics",
+      "title": "Metrics and alerts",
+      "src": "work/metrics.md",
       "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/wasm-deployment",
-      "icon": "document",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/metrics",
+      "icon": "server",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Optional WebAssembly tracks: evaluating Kubewarden admission policies and preparing a component host. A normal install needs neither.",
+      "description": "Every metric Lolly Work exports on /metrics with its type and labels, the suggested Prometheus alerts and the Grafana dashboard the Helm chart can install.",
       "work": {
-        "slug": "wasm-deployment",
-        "path": "wasm-deployment.md",
-        "icon": "overview"
+        "slug": "metrics",
+        "path": "metrics.md",
+        "icon": "audit"
       }
     },
     {
-      "slug": "work-admission-policy",
-      "title": "Admission policy with Kubewarden",
-      "src": "work/admission-policy.md",
+      "slug": "work-production-readiness",
+      "title": "Check a deployment before production",
+      "src": "work/production-readiness.md",
       "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/admission-policy",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/production-readiness",
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "What Lolly Work pods need from an admission policy, a ready Kubewarden policy set pinned by digest, a preflight check and how the set was qualified.",
+      "description": "Run the read-only checker against your configuration or rendered manifests, read its results, and add the evidence only you can supply.",
       "work": {
-        "slug": "admission-policy",
-        "path": "admission-policy.md",
-        "icon": "overview"
+        "slug": "production-readiness",
+        "path": "production-readiness.md",
+        "icon": "audit"
       }
+    },
+    {
+      "slug": "work-telemetry",
+      "title": "Telemetry and dashboards",
+      "src": "work/telemetry.md",
+      "section": "operate",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/telemetry",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "What is recorded, what never is, and how attribution consent works.",
+      "work": {
+        "slug": "telemetry",
+        "path": "telemetry.md",
+        "icon": "audit"
+      },
+      "secondarySections": [
+        "trust"
+      ]
     },
     {
       "slug": "work-security-platform",
@@ -2306,21 +2477,25 @@
       }
     },
     {
-      "slug": "work-configuration",
-      "title": "Lolly Work instance configuration",
-      "src": "work/configuration.md",
+      "slug": "work-audit",
+      "title": "Audit log",
+      "src": "work/audit.md",
       "section": "operate",
-      "group": "Instance configuration, SSO and signing",
-      "path": "operate/instance-configuration",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/audit",
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Every instance.json key and every LW_* environment variable, with defaults.",
+      "description": "The hash-chained record, verification, and anchoring the head off-box.",
       "work": {
-        "slug": "configuration",
-        "path": "configuration.md",
-        "icon": "instance"
-      }
+        "slug": "audit",
+        "path": "audit.md",
+        "icon": "audit"
+      },
+      "secondarySections": [
+        "trust",
+        "manage"
+      ]
     },
     {
       "slug": "work-identity",
@@ -2378,6 +2553,142 @@
       "work": {
         "slug": "invitations",
         "path": "invitations.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-run-a-partner-programme",
+      "title": "Run a partner programme",
+      "src": "work/run-a-partner-programme.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/run-a-partner-programme",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "For partner teams: what partners get and see, how a programme fits together and where to start, with a guide for each subject.",
+      "work": {
+        "slug": "run-a-partner-programme",
+        "path": "run-a-partner-programme.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-partner-co-branding",
+      "title": "Co-branding and partner kits",
+      "src": "work/partner-co-branding.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/partner-co-branding",
+      "icon": "palette",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Give each partner company its details, logos for light and dark surfaces and a partner kit, and what a co-branded file records.",
+      "work": {
+        "slug": "partner-co-branding",
+        "path": "partner-co-branding.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-partner-templates",
+      "title": "Partner templates",
+      "src": "work/partner-templates.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/partner-templates",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Publish ready pieces to a partner programme, fill inputs from each company's details, and bring out new versions or retire a template.",
+      "work": {
+        "slug": "partner-templates",
+        "path": "partner-templates.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-partner-approvals",
+      "title": "Partner approvals",
+      "src": "work/partner-approvals.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/partner-approvals",
+      "icon": "checklist",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The reviews a team can turn on, off by default: contact edits, partner kit changes, requests from partners' agents and one approval for a template's variants.",
+      "work": {
+        "slug": "partner-approvals",
+        "path": "partner-approvals.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-partner-shared-assets",
+      "title": "Shared assets and licences",
+      "src": "work/partner-shared-assets.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/partner-shared-assets",
+      "icon": "folder",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "What reaches partners: collections, provider folders, the licence gate, files marked as your own, and the credits that travel with links.",
+      "work": {
+        "slug": "partner-shared-assets",
+        "path": "partner-shared-assets.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-partner-agents",
+      "title": "Partners' agents",
+      "src": "work/partner-agents.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/partner-agents",
+      "icon": "sparkle",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Give a partner's AI agent a token that sees what the company's people see: scopes, expiry, limits and usage, and the context it reads over MCP.",
+      "work": {
+        "slug": "partner-agents",
+        "path": "partner-agents.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-partner-people",
+      "title": "People and the partnership",
+      "src": "work/partner-people.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/partner-people",
+      "icon": "people",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Create a partner programme, invite people by list or domain, then end a partnership at once or on a date with a notice, and reopen an end.",
+      "work": {
+        "slug": "partner-people",
+        "path": "partner-people.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-partner-programmes",
+      "title": "Partner programmes",
+      "src": "work/partner-programmes.md",
+      "section": "manage",
+      "group": "Partners",
+      "path": "manage/partner-programmes",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The reference for partner programmes: tools and files, company details and logos, templates, licences, agent tokens, routes and audit events.",
+      "work": {
+        "slug": "partner-programmes",
+        "path": "partner-programmes.md",
         "icon": "instance"
       }
     },
@@ -2498,7 +2809,7 @@
         "manage/offboarding"
       ],
       "contentLicense": "MPL-2.0",
-      "description": "Choose a DAM offboarding path: self-host Lolly Work, Nextcloud or Git, or export to a hosted drive. Lolly Compare transfer steps, originals, links and recovery.",
+      "description": "Choose a DAM offboarding path: self-host Lolly Work, Nextcloud or Git, or export to a hosted drive. Compare transfer steps, originals, links and recovery.",
       "work": {
         "slug": "offboarding",
         "path": "offboarding.md",
@@ -2568,7 +2879,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Move image production from Bannerbear or Placid to your own server, one template at a time: read the account, import or rebuild designs, keep your request shapes, and compare before you cut over.",
+      "description": "Move image production from Bannerbear or Placid to your own server: read the account, import or rebuild designs and compare before you cut over.",
       "work": {
         "slug": "move-from-render-api",
         "path": "move-from-render-api.md",
@@ -2613,24 +2924,18 @@
       }
     },
     {
-      "slug": "work-c2pa",
-      "title": "Configure Lolly Work export signing",
-      "src": "work/c2pa.md",
+      "slug": "catalog-resource-reading",
+      "title": "Read verified catalog resources",
+      "src": "catalog-resource-reading.md",
+      "description": "How a client verifies signed catalog resources before use, the read limits, and how exact source reads stay fixed in History.",
       "section": "operate",
-      "group": "Instance configuration, SSO and signing",
-      "path": "operate/work-export-signing",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Give a deployment a signing identity so server exports carry a verifiable Content Credential: a self-made root in one command, or your organisation's CA.",
-      "work": {
-        "slug": "c2pa",
-        "path": "c2pa.md",
-        "icon": "grants"
-      },
-      "secondarySections": [
-        "trust"
-      ]
+      "path": "operate/catalog-resource-reading",
+      "icon": "shieldcheck",
+      "aliases": [
+        "build/catalog-resource-reading"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Updates, qualification and release history"
     },
     {
       "slug": "work-ai-policy",
@@ -2768,7 +3073,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Connect Optimizely CMP to Lolly Work with scoped onboarding and optional export publishing. Understand offboarding limits before planning self-hosted S3 storage.",
+      "description": "Connect Optimizely CMP to Lolly Work with scoped onboarding and optional export publishing. Understand offboarding limits before planning S3 storage.",
       "work": {
         "slug": "provider-optimizely-cmp",
         "path": "providers/optimizely-cmp.md",
@@ -2870,7 +3175,7 @@
       "icon": "globe",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Connect Orange Logic renditions to Lolly Work with scoped onboarding. Understand offboarding limits and self-hosted S3 storage; protected originals block cutover.",
+      "description": "Connect Orange Logic renditions to Lolly Work with scoped onboarding. Understand offboarding limits and S3 storage; protected originals block cutover.",
       "work": {
         "slug": "provider-orange-logic",
         "path": "providers/orange-logic.md",
@@ -2994,37 +3299,88 @@
       }
     },
     {
-      "slug": "work-operations",
-      "title": "Keep Lolly Work running",
-      "src": "work/operations.md",
+      "slug": "deploy-delivery",
+      "title": "Delivery deployment",
+      "src": "deploy-delivery.md",
+      "description": "Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks.",
       "section": "operate",
-      "group": "Operations, monitoring and recovery",
-      "path": "operate/operations",
-      "icon": "server",
+      "path": "operate/deploy-delivery",
+      "icon": "download",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Updates, qualification and release history"
+    },
+    {
+      "slug": "work-release-1-2-0",
+      "title": "Release 1.2.0",
+      "src": "work/release-1-2-0.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/release-1-2-0",
+      "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Upgrades, backups and restores, secret rotation, health and storage alerts, rate limits, scan hooks, notifications and SIEM forwarding, in the order the jobs come round.",
+      "description": "The current release: Lolly Work 1.2.0 paired with Lolly 1.2.0, partner programmes, changes since 1.1.3, migrations and YunoHost packaging.",
       "work": {
-        "slug": "operations",
-        "path": "operations.md",
-        "icon": "audit"
+        "slug": "release-1-2-0",
+        "path": "release-1-2-0.md",
+        "icon": "overview"
       }
     },
     {
-      "slug": "work-metrics",
-      "title": "Metrics and alerts",
-      "src": "work/metrics.md",
+      "slug": "work-release-1-1-3",
+      "title": "Release 1.1.3",
+      "src": "work/release-1-1-3.md",
       "section": "operate",
-      "group": "Operations, monitoring and recovery",
-      "path": "operate/metrics",
-      "icon": "server",
+      "group": "Updates, qualification and release history",
+      "path": "operate/release-1-1-3",
+      "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Every metric Lolly Work exports on /metrics with its type and labels, the suggested Prometheus alerts and the Grafana dashboard the Helm chart can install.",
+      "description": "Lolly Work 1.1.3 paired with Lolly 1.1.3, changes since 1.1.2, migrations, the first published chart and YunoHost packaging.",
       "work": {
-        "slug": "metrics",
-        "path": "metrics.md",
-        "icon": "audit"
+        "slug": "release-1-1-3",
+        "path": "release-1-1-3.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-release-1-1-2",
+      "title": "Release 1.1.2",
+      "src": "work/release-1-1-2.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/release-1-1-2",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Lolly Work 1.1.2 paired with Lolly 1.1.2, what Lolly 1.1.2 needs from Lolly Work, changes since 1.1.1, migrations, images and YunoHost packaging.",
+      "work": {
+        "slug": "release-1-1-2",
+        "path": "release-1-1-2.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-past-releases",
+      "title": "Past releases",
+      "src": "work/past-releases.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/past-releases",
+      "icon": "document",
+      "aliases": [
+        "work-release-1-1-1",
+        "work-release-1-1-0",
+        "operate/release-1-1-1",
+        "operate/release-1-1-0"
+      ],
+      "contentLicense": "MPL-2.0",
+      "description": "Lolly Work 1.1.1 and 1.1.0 kept as a record: matched components, changes, migrations, image digests and YunoHost packaging.",
+      "work": {
+        "slug": "past-releases",
+        "path": "past-releases.md",
+        "icon": "overview"
       }
     },
     {
@@ -3041,23 +3397,6 @@
       "work": {
         "slug": "instance-pack-production",
         "path": "instance-pack-production.md",
-        "icon": "audit"
-      }
-    },
-    {
-      "slug": "work-production-readiness",
-      "title": "Check a deployment before production",
-      "src": "work/production-readiness.md",
-      "section": "operate",
-      "group": "Operations, monitoring and recovery",
-      "path": "operate/production-readiness",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Run the read-only checker against your configuration or rendered manifests, read its results, and add the evidence only you can supply.",
-      "work": {
-        "slug": "production-readiness",
-        "path": "production-readiness.md",
         "icon": "audit"
       }
     },
@@ -3084,47 +3423,6 @@
         "path": "shell-deployment-workflow.md",
         "icon": "audit"
       }
-    },
-    {
-      "slug": "work-telemetry",
-      "title": "Telemetry and dashboards",
-      "src": "work/telemetry.md",
-      "section": "operate",
-      "group": "Operations, monitoring and recovery",
-      "path": "operate/telemetry",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "What is recorded, what never is, and how attribution consent works.",
-      "work": {
-        "slug": "telemetry",
-        "path": "telemetry.md",
-        "icon": "audit"
-      },
-      "secondarySections": [
-        "trust"
-      ]
-    },
-    {
-      "slug": "work-audit",
-      "title": "Audit log",
-      "src": "work/audit.md",
-      "section": "operate",
-      "group": "Operations, monitoring and recovery",
-      "path": "operate/audit",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "The hash-chained record, verification, and anchoring the head off-box.",
-      "work": {
-        "slug": "audit",
-        "path": "audit.md",
-        "icon": "audit"
-      },
-      "secondarySections": [
-        "trust",
-        "manage"
-      ]
     },
     {
       "slug": "work-project-portability",
@@ -3248,8 +3546,8 @@
   "workImport": {
     "repository": "https://github.com/lolly-tools/lolly-work",
     "commit": "36414f800798deb30d0cf7c6e6712d0205c6931d",
-    "version": "1.1.3",
-    "chart": "1.1.3",
+    "version": "1.2.0",
+    "chart": "1.2.0",
     "files": {
       "README.md": {
         "source": "work/README.md",
@@ -3533,37 +3831,37 @@
       },
       "shots/README.md": {
         "source": "shots/work/README.md",
-        "sha256": "5c8cdb66a50ad73d6ba074c670e78e18492192c9607592d9845a1fc3b25970b9",
+        "sha256": "a8ebcd9b66b173bac9be8ab3c9a404614339e164462b5944373824d27d0d4c96",
         "originalPath": "docs/shots/README.md"
       },
       "shots/activity-timeline.dark.svg": {
         "source": "shots/work/activity-timeline.dark.svg",
-        "sha256": "c2ef0a31733b857691a9a2d8ca2f5fef25518d62846b281f4395ed8d3fda8217",
+        "sha256": "d207c63f0edc1fbbfca40309f4edbd7069bb0749aa5efef9a3f8bb5f5ee6e230",
         "originalPath": "docs/shots/activity-timeline.dark.svg"
       },
       "shots/activity-timeline.svg": {
         "source": "shots/work/activity-timeline.svg",
-        "sha256": "89b6abb8ac1dafb0224e9ef0a2b3b1a3222714e47b9aa3409303bd43102920b6",
+        "sha256": "b2438c5f0140e1abc702be1ad3289f6d080ed487d317f13a9659d7629234032e",
         "originalPath": "docs/shots/activity-timeline.svg"
       },
       "shots/approvals-inbox.dark.svg": {
         "source": "shots/work/approvals-inbox.dark.svg",
-        "sha256": "3103509c35a1837300163f966237067b4c71d6037cd42da5c0bde0539b9f483c",
+        "sha256": "7a18a321fa696c30e8178e4406659b7777d00a6137251f5e26cbd867da6a1f83",
         "originalPath": "docs/shots/approvals-inbox.dark.svg"
       },
       "shots/approvals-inbox.svg": {
         "source": "shots/work/approvals-inbox.svg",
-        "sha256": "8d91d464f2b08a7da381489fe7705dd53ce6c5d06c5d09ba689210b832b4eddb",
+        "sha256": "43c6171854e050a4e6b3841b64207b5e200441d1c892db1b7b3f433dc1d4da25",
         "originalPath": "docs/shots/approvals-inbox.svg"
       },
       "shots/audit-chain.dark.svg": {
         "source": "shots/work/audit-chain.dark.svg",
-        "sha256": "3e1bf179cb4f9b7d2666d3b11550d715e31f414b2f264748dd6300c8b89fd696",
+        "sha256": "9e680d1f10aab1e0eb7f5b02d9e6badd0599d4073b23a1cd10b675fb8e685832",
         "originalPath": "docs/shots/audit-chain.dark.svg"
       },
       "shots/audit-chain.svg": {
         "source": "shots/work/audit-chain.svg",
-        "sha256": "dd05a5c4a0669a129b3db78ff94f764900244e2024f581b481d6473d979e7b80",
+        "sha256": "0ccb456c146edab342b533c8439136313866454033cb315206971f0516ef2037",
         "originalPath": "docs/shots/audit-chain.svg"
       },
       "shots/broadcast-messages.dark.svg": {
@@ -3613,17 +3911,17 @@
       },
       "shots/customer-setup-deployment.dark.svg": {
         "source": "shots/work/customer-setup-deployment.dark.svg",
-        "sha256": "b68527a5fbf564f0c8574ed5dc6199d9666b17f9246adaeba3c139905a3a98db",
+        "sha256": "9820b68f1d23b315bfae3a8feda06d7fb3cdce596bac0cb6861c7db2887cbbfc",
         "originalPath": "docs/shots/customer-setup-deployment.dark.svg"
       },
       "shots/customer-setup-deployment.root.pem": {
         "source": "shots/work/customer-setup-deployment.root.pem",
-        "sha256": "0b0826b0c836cb82e06e21cb715825247ca829ff5c2cebc961742c17dfa55bef",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
         "originalPath": "docs/shots/customer-setup-deployment.root.pem"
       },
       "shots/customer-setup-deployment.svg": {
         "source": "shots/work/customer-setup-deployment.svg",
-        "sha256": "9114f098a82bd495fa8f7c9f99c2826a047eded61e6a7ad83e0ac6609f58aeee",
+        "sha256": "bf5638f2d5e7a8a43a58e26bf48bb173657cc219bb687e81e469cccabed0fdaf",
         "originalPath": "docs/shots/customer-setup-deployment.svg"
       },
       "shots/customer-setup-identity.dark.svg": {
@@ -3668,22 +3966,202 @@
       },
       "shots/overview-dashboard.dark.svg": {
         "source": "shots/work/overview-dashboard.dark.svg",
-        "sha256": "d18bcbc380c5976f1ec556ebe00e1cffaabf1e94d05a4bd5c2a45276c94fd911",
+        "sha256": "61e9b5c3b6926f8d450a6c11e9ac51ae6798c2e2ac5a7940fa21de3233cdfe09",
         "originalPath": "docs/shots/overview-dashboard.dark.svg"
       },
       "shots/overview-dashboard.svg": {
         "source": "shots/work/overview-dashboard.svg",
-        "sha256": "dcafcb768b2b6c77e793cf067ea88fb5ce132197cbf22cc3a09a924980e0f4a5",
+        "sha256": "314ee6c4909c95410760871c8a68f46ba6bc4eb270386a8adddb536b3042f683",
         "originalPath": "docs/shots/overview-dashboard.svg"
+      },
+      "shots/partner-agent-tokens.dark.svg": {
+        "source": "shots/work/partner-agent-tokens.dark.svg",
+        "sha256": "173d98a6cb540c345a0cab3e5a995bcaba196f8e85bf4076a9719253658045ac",
+        "originalPath": "docs/shots/partner-agent-tokens.dark.svg"
+      },
+      "shots/partner-agent-tokens.root.pem": {
+        "source": "shots/work/partner-agent-tokens.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-agent-tokens.root.pem"
+      },
+      "shots/partner-agent-tokens.svg": {
+        "source": "shots/work/partner-agent-tokens.svg",
+        "sha256": "84795a3da2abe58213bbc4a5f21f8f5d45923f365a744b7d7c5396dc749c5118",
+        "originalPath": "docs/shots/partner-agent-tokens.svg"
+      },
+      "shots/partner-agent-usage.dark.svg": {
+        "source": "shots/work/partner-agent-usage.dark.svg",
+        "sha256": "ce77f769c1faafe2e01d809a5eb1bff4363d9e77b86eaa114d8585f084d516b0",
+        "originalPath": "docs/shots/partner-agent-usage.dark.svg"
+      },
+      "shots/partner-agent-usage.root.pem": {
+        "source": "shots/work/partner-agent-usage.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-agent-usage.root.pem"
+      },
+      "shots/partner-agent-usage.svg": {
+        "source": "shots/work/partner-agent-usage.svg",
+        "sha256": "231a3cd964111b9210b4ebea583f33b38b44c24cd20fc04b8c86f201f462b1cf",
+        "originalPath": "docs/shots/partner-agent-usage.svg"
+      },
+      "shots/partner-company-sheet.dark.svg": {
+        "source": "shots/work/partner-company-sheet.dark.svg",
+        "sha256": "6dd75075da6d0e93c9a40903baf0e630e6cfbf4b90b12faff4bfb2257e21d8e5",
+        "originalPath": "docs/shots/partner-company-sheet.dark.svg"
+      },
+      "shots/partner-company-sheet.root.pem": {
+        "source": "shots/work/partner-company-sheet.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-company-sheet.root.pem"
+      },
+      "shots/partner-company-sheet.svg": {
+        "source": "shots/work/partner-company-sheet.svg",
+        "sha256": "a577ab37a08ff8231b713110170253ec5dd6a1b52e81f5782e5712b8f921db5b",
+        "originalPath": "docs/shots/partner-company-sheet.svg"
+      },
+      "shots/partner-company.dark.svg": {
+        "source": "shots/work/partner-company.dark.svg",
+        "sha256": "bccb57046e32ad488a716145b887482166497ea1205d025689a51d0cfef32098",
+        "originalPath": "docs/shots/partner-company.dark.svg"
+      },
+      "shots/partner-company.root.pem": {
+        "source": "shots/work/partner-company.root.pem",
+        "sha256": "0a5c264efcbad774f58e8f3f5c7e81d01a173c7a64d84ed2f7e111b959351c94",
+        "originalPath": "docs/shots/partner-company.root.pem"
+      },
+      "shots/partner-company.svg": {
+        "source": "shots/work/partner-company.svg",
+        "sha256": "5385b3f9e098cb6551c39ef7cf300246e12af9be0c590f24812ae25e9edf46d5",
+        "originalPath": "docs/shots/partner-company.svg"
+      },
+      "shots/partner-end-dry-run.dark.svg": {
+        "source": "shots/work/partner-end-dry-run.dark.svg",
+        "sha256": "40810b4fc796aa78c3152f8eda2004b67a14f4a666af083674219dc320aaafd1",
+        "originalPath": "docs/shots/partner-end-dry-run.dark.svg"
+      },
+      "shots/partner-end-dry-run.root.pem": {
+        "source": "shots/work/partner-end-dry-run.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-end-dry-run.root.pem"
+      },
+      "shots/partner-end-dry-run.svg": {
+        "source": "shots/work/partner-end-dry-run.svg",
+        "sha256": "4f4dc3e954a2f5e7c44b9a916044467b4967f54daba12e843e7f2105f56e417a",
+        "originalPath": "docs/shots/partner-end-dry-run.svg"
+      },
+      "shots/partner-export-record.dark.svg": {
+        "source": "shots/work/partner-export-record.dark.svg",
+        "sha256": "3430626d9ecb34d4c1216333a3b35f8773399a20b3f596b687ce9f8fd4a7b26d",
+        "originalPath": "docs/shots/partner-export-record.dark.svg"
+      },
+      "shots/partner-export-record.root.pem": {
+        "source": "shots/work/partner-export-record.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-export-record.root.pem"
+      },
+      "shots/partner-export-record.svg": {
+        "source": "shots/work/partner-export-record.svg",
+        "sha256": "a20e03b918af89bfad799b9c66739f3f029ecb2425c18b59a3648e4450d97c4b",
+        "originalPath": "docs/shots/partner-export-record.svg"
+      },
+      "shots/partner-home.dark.svg": {
+        "source": "shots/work/partner-home.dark.svg",
+        "sha256": "ad7ba59c7d62c4ba6b6dad4aba07f08133104894424d9f146ffa0ac9910bfc3b",
+        "originalPath": "docs/shots/partner-home.dark.svg"
+      },
+      "shots/partner-home.root.pem": {
+        "source": "shots/work/partner-home.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-home.root.pem"
+      },
+      "shots/partner-home.svg": {
+        "source": "shots/work/partner-home.svg",
+        "sha256": "8d340ba5c54b62b1fc5d233477fb2ebe424cc16649d7ba70b0afcde6825e9fae",
+        "originalPath": "docs/shots/partner-home.svg"
+      },
+      "shots/partner-licences.dark.svg": {
+        "source": "shots/work/partner-licences.dark.svg",
+        "sha256": "afeda4a1ae019b75fb19aed70c7c10be7651e1cb79cf47e51bd3c6e641756e3e",
+        "originalPath": "docs/shots/partner-licences.dark.svg"
+      },
+      "shots/partner-licences.root.pem": {
+        "source": "shots/work/partner-licences.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-licences.root.pem"
+      },
+      "shots/partner-licences.svg": {
+        "source": "shots/work/partner-licences.svg",
+        "sha256": "17ccf266adc4c194155f5e10f6a04224eca3a5d946411fe549373eaa1065e7ed",
+        "originalPath": "docs/shots/partner-licences.svg"
+      },
+      "shots/partner-limits-tokens.dark.svg": {
+        "source": "shots/work/partner-limits-tokens.dark.svg",
+        "sha256": "b73ea73090166f458d9b702854e0fd54058f262eab33e51e4c8c1f988f6c829d",
+        "originalPath": "docs/shots/partner-limits-tokens.dark.svg"
+      },
+      "shots/partner-limits-tokens.root.pem": {
+        "source": "shots/work/partner-limits-tokens.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-limits-tokens.root.pem"
+      },
+      "shots/partner-limits-tokens.svg": {
+        "source": "shots/work/partner-limits-tokens.svg",
+        "sha256": "0eb7563e0bf3f5022b9acdcdba0ab5de1a88521340f6436043f2569f078486ca",
+        "originalPath": "docs/shots/partner-limits-tokens.svg"
+      },
+      "shots/partner-limits.dark.svg": {
+        "source": "shots/work/partner-limits.dark.svg",
+        "sha256": "e3e7741585fd9ec703cf750d139c8d3e4835e1111d48300726a5120a1c050c7f",
+        "originalPath": "docs/shots/partner-limits.dark.svg"
+      },
+      "shots/partner-limits.root.pem": {
+        "source": "shots/work/partner-limits.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-limits.root.pem"
+      },
+      "shots/partner-limits.svg": {
+        "source": "shots/work/partner-limits.svg",
+        "sha256": "d628dacba2e907bafbf2425e71777eb31283c08281290953e39a19abe3fdba09",
+        "originalPath": "docs/shots/partner-limits.svg"
+      },
+      "shots/partner-programme-templates.dark.svg": {
+        "source": "shots/work/partner-programme-templates.dark.svg",
+        "sha256": "a450b4a4005c9be46bed6fd577b28a8969478e01f1256c1472339e95d2e2900f",
+        "originalPath": "docs/shots/partner-programme-templates.dark.svg"
+      },
+      "shots/partner-programme-templates.root.pem": {
+        "source": "shots/work/partner-programme-templates.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-programme-templates.root.pem"
+      },
+      "shots/partner-programme-templates.svg": {
+        "source": "shots/work/partner-programme-templates.svg",
+        "sha256": "043f619118ed9fadf783b8b223afa64eacaab95912c5662f2d0a994ecb280b8f",
+        "originalPath": "docs/shots/partner-programme-templates.svg"
+      },
+      "shots/partner-template-tool.dark.svg": {
+        "source": "shots/work/partner-template-tool.dark.svg",
+        "sha256": "fa30d05a581773d584425760d8739931a3a15e689565a839f585c2c9c1f7c8b0",
+        "originalPath": "docs/shots/partner-template-tool.dark.svg"
+      },
+      "shots/partner-template-tool.root.pem": {
+        "source": "shots/work/partner-template-tool.root.pem",
+        "sha256": "72eb0d1190738d925dac5243b2203cd683ff6d8afdeacb34c4ec71b7521295a1",
+        "originalPath": "docs/shots/partner-template-tool.root.pem"
+      },
+      "shots/partner-template-tool.svg": {
+        "source": "shots/work/partner-template-tool.svg",
+        "sha256": "e2f3c417b1e50b3837df7de2c0fdc160b30e724fbef840759c9da0776de2b689",
+        "originalPath": "docs/shots/partner-template-tool.svg"
       },
       "shots/people-directory.dark.svg": {
         "source": "shots/work/people-directory.dark.svg",
-        "sha256": "b0376ce2ceb24b683be41acc6e6ff4a3aaa24ca604400826cccb64489158b4b1",
+        "sha256": "2b666b62c69b8d157b96854572a1efec6d3d6d6a182c24ced996703ff61ae305",
         "originalPath": "docs/shots/people-directory.dark.svg"
       },
       "shots/people-directory.svg": {
         "source": "shots/work/people-directory.svg",
-        "sha256": "bbd3cddf584ccb1ebef1507e72780ddae1204a37a07e80cc2a228ea6acfa2e75",
+        "sha256": "1144ee5722b69c0dcf8af499e2d02bf50694b50d14322037bfe40007662d24b5",
         "originalPath": "docs/shots/people-directory.svg"
       },
       "shots/permissions-grants.dark.svg": {
@@ -3753,12 +4231,12 @@
       },
       "shots/share-links.dark.svg": {
         "source": "shots/work/share-links.dark.svg",
-        "sha256": "621317b4cf48171948bb9ff3a595094db941e95a9f687352388b348eba985276",
+        "sha256": "e0ff6c9362e2d2410bd5954d12d7307b624b64cb12b3984af0da8e40ad91a1ab",
         "originalPath": "docs/shots/share-links.dark.svg"
       },
       "shots/share-links.svg": {
         "source": "shots/work/share-links.svg",
-        "sha256": "461421df38c7bd10fd55fd8da68312b28a6be595474620a5276af26b8b9aa193",
+        "sha256": "288b63e19d3a0d3ddfbc52bbff979e370d251cf77604a82706a9906e1e7c1d45",
         "originalPath": "docs/shots/share-links.svg"
       },
       "shots/signing-root.pem": {
@@ -3768,12 +4246,12 @@
       },
       "shots/tool-policy.dark.svg": {
         "source": "shots/work/tool-policy.dark.svg",
-        "sha256": "873599ec135186a71c18e006661a3c3806848b86a785a464466a672376630592",
+        "sha256": "b006b7be4f49ecb73c6cc49d83633b063bff92712d823a89bc5b03eabadef246",
         "originalPath": "docs/shots/tool-policy.dark.svg"
       },
       "shots/tool-policy.svg": {
         "source": "shots/work/tool-policy.svg",
-        "sha256": "ad855705acb81deab45596037df38ca5e6dc3978137a7138f8fa3465ba262ed6",
+        "sha256": "ea04b00cc938b3268b310eb9deda0c64db8486e924118b5b332c1b49edbeae1d",
         "originalPath": "docs/shots/tool-policy.svg"
       },
       "status.md": {
@@ -3799,6 +4277,41 @@
       "resumable-uploads.md": {
         "source": "work/resumable-uploads.md",
         "sha256": "0efbed02e63d03fdacc9df9c79ab23341e57c2924a6bf310af2dcf760022375d"
+      },
+      "shots/activity-timeline.root.pem": {
+        "source": "shots/work/activity-timeline.root.pem",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
+        "originalPath": "docs/shots/activity-timeline.root.pem"
+      },
+      "shots/approvals-inbox.root.pem": {
+        "source": "shots/work/approvals-inbox.root.pem",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
+        "originalPath": "docs/shots/approvals-inbox.root.pem"
+      },
+      "shots/audit-chain.root.pem": {
+        "source": "shots/work/audit-chain.root.pem",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
+        "originalPath": "docs/shots/audit-chain.root.pem"
+      },
+      "shots/overview-dashboard.root.pem": {
+        "source": "shots/work/overview-dashboard.root.pem",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
+        "originalPath": "docs/shots/overview-dashboard.root.pem"
+      },
+      "shots/people-directory.root.pem": {
+        "source": "shots/work/people-directory.root.pem",
+        "sha256": "e26033f072a2af3c730814f9c997708f778ba9814677c8a9ce99a99bbd2db9ec",
+        "originalPath": "docs/shots/people-directory.root.pem"
+      },
+      "shots/share-links.root.pem": {
+        "source": "shots/work/share-links.root.pem",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
+        "originalPath": "docs/shots/share-links.root.pem"
+      },
+      "shots/tool-policy.root.pem": {
+        "source": "shots/work/tool-policy.root.pem",
+        "sha256": "f513426cb8b7b006787005ca95b38604714082e98cf45b3153b923fda867ff57",
+        "originalPath": "docs/shots/tool-policy.root.pem"
       }
     }
   }

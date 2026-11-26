@@ -22,6 +22,7 @@ import { buildInputModel, tokenRestoreRefsOf } from '../../../../../engine/src/i
 import { createInteractiveToolRuntime as createRuntime } from '../../lib/mount-runtime.ts';
 import { attachCollabPlumbing } from '../../lib/collab-plumbing.ts';
 import { getCollabSessionSource } from '../../lib/collab-session-source.ts';
+import { getSessionSource } from '../../lib/session-source.ts';
 import { takeAssetOpeningSeed } from '../../lib/asset-open-handoff.ts';
 import { mountHistoryRole, takeCarriedMountState, takeEphemeralState, pendingLiveCollab } from '../../lib/collab-live-mount.ts';
 import { createMemoryStateAPI } from '../../lib/ephemeral-state.ts';
@@ -33,10 +34,13 @@ import { installDocumentSurface } from '../../lib/document-surface.ts';
 import { prepareToolDesignSystemContext } from '../tool-design-system-context.ts';
 import { fpsTick, startFrameFps, stopFrameFps } from '../../lib/frame-fps.ts';
 import { takeAutomationExportPassword } from '../../lib/automation-export-secret.ts';
+import { addressAfterLinkPassword, withoutLinkPassword } from '../../lib/export-password.ts';
+import { replaceRouteUrl } from '../../lib/url-state.ts';
 import { inferDesignIntent } from '../design-workspace.ts';
 import { createHistory, historyTokenLinks } from '../tool-history.ts';
 import { mountBackPill } from '../../components/back-pill.ts';
 import { autoOpenToolGuide, showToolGuide } from '../../components/tool-guide.ts';
+import { toolGuideRows } from '../../lib/tool-guides.ts';
 import { zipBulkFiles } from '../../lib/bulk-files.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { readScene } from '../present-production/scene.ts';
@@ -57,9 +61,10 @@ import { entryHoldsUnsavedEdits, localDocument } from '../tool-leave.ts';
 import { asRow } from '../tool-types.ts';
 import { openToolSession } from '../tool-session-open.ts';
 import { carriedEmojiPins } from '../tool-session-snapshot.ts';
+import { partnerKitOffer } from '../../lib/partner-kit-state.ts';
 import { _sliderDragging, fileToRef, fmtBytes, makeBlocksDropper, syncInputs } from '../tool-inputs.ts';
 import { cappedFileRef, fileInputCap } from '../../lib/file-input-ref.ts';
-import { notifyToolInputMount, guardDocumentEdits, policyValuesFor } from '../../lib/input-policy.ts';
+import { notifyToolInputMount, guardDocumentEdits, getInputPolicy, policyValuesFor, toolStartValues } from '../../lib/input-policy.ts';
 import { createLiveControls, mountSidebarLiveControls, registerLiveControls } from '../live-controls.ts';
 import { mountCaptureSignin } from '../capture-signin.ts';
 import { captureThumbnail, renderActions } from '../tool-actions.ts';
@@ -69,6 +74,7 @@ import { clearShareDeepLink, shareDeepLink } from '../export-share.ts';
 import { setSessionEmojiStamp } from '../../bridge/state.ts';
 import type { PanelEl, ToolRuntime } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
+import { isTemplatesOnlyTool, isWorkspaceTemplateRef } from '../../lib/workspace-templates.ts';
 import { navigateTo } from '../../nav.ts';
 import { endCanvasCost, startCanvasCost } from '../../lib/canvas-feedback.ts';
 
@@ -199,6 +205,20 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   tview.urlDpi = urlDpi;
   tview.urlProfile = urlProfile;
   tview.urlPassword = urlPassword;
+  // A link may still bring a password, but it stops being an address here: it was read
+  // above, and from now on it lives only in the export settings of this page. Leaving it
+  // in the bar would write it to history and, since the bar is a path route, send it to
+  // the host on a reload. A ciphertext `zx` link shows nothing and stays as it is.
+  if (urlPassword) {
+    const query = tview.urlParams ?? '';
+    tview.urlParams = withoutLinkPassword(query);
+    if (!tview.encLinkQuery) {
+      const address = addressAfterLinkPassword(query);
+      const base = tview.toolId === 'design' ? '/design' : `/t/${tview.toolId}`;
+      tview.launchQuery = address;
+      replaceRouteUrl(address ? `${base}?${address}` : base);
+    }
+  }
   tview.urlBleed = urlBleed;
   tview.urlMarks = urlMarks;
   tview.urlC2pa = urlC2pa;
@@ -357,6 +377,53 @@ export async function seedDirect(tview: ToolViewCtx): Promise<void> {
   tview.templatePose = {};
 }
 
+/**
+ * Offer only what a workspace template leaves open, before the sidebar first renders.
+ * The workspace's current rules win; a template that has left the catalog keeps the
+ * rules the document was started under, so it never opens wider than it was.
+ */
+async function applyTemplateOrigin(tview: ToolViewCtx): Promise<void> {
+  const origin = tview.templateOrigin;
+  if (!origin) return;
+  const { getWorkspaceTemplate } = await import('../../lib/workspace-templates.ts');
+  tview.templateNow = await getWorkspaceTemplate(tview.host as never, origin.ref);
+  tview.templateFixedTheme = !!(tview.templateNow ? tview.templateNow.fixedTheme : origin.fixedTheme);
+  const editable = tview.templateNow ? tview.templateNow.editable : origin.editable;
+  if (!editable) return;
+  const { setTemplateInputs, clearTemplateInputs } = await import('../../lib/input-policy.ts');
+  setTemplateInputs(tview.toolId, editable);
+  tview.mountLifecycle.add('template inputs', () => clearTemplateInputs(tview.toolId));
+}
+
+/**
+ * The Start chooser for a tool the workspace set to templates only: its published
+ * templates, with no blank canvas and no others. Resolves `{}` when there is nothing to
+ * start from or the person closes it; the pick handler then sends them home.
+ */
+async function publishedOnlyPick(tview: ToolViewCtx): Promise<Record<string, InputValue>> {
+  const { openTemplateChooser } = await import('../template-chooser.ts');
+  const { listWorkspaceTemplates, startableFor, workspaceVariants } = await import('../../lib/workspace-templates.ts');
+  if (tview.templatePickTornDown) return {};
+  const published = startableFor(await listWorkspaceTemplates(tview.host as never), tview.toolId);
+  const label = getSessionSource()?.label;
+  const from = label ? tRaw('From {name}', { name: label }) : t('From your workspace');
+  const templates = await workspaceVariants(published, from, undefined, (tpl) => `${from} · ${tRaw('Version {n}', { n: tpl.version })}`);
+  if (tview.templatePickTornDown) return {};
+  return openTemplateChooser({
+    toolName: tview.tool.manifest.name,
+    toolId: tview.toolId,
+    templates,
+    host: tview.host,
+    formats: tview.tool.manifest.render?.formats,
+    galleryArt: tview.tool.manifest.galleryArt,
+    noBlank: true,
+    // Nothing published to this person for this tool yet: one plain line, and closing goes home.
+    emptyText: tRaw('No {tool} templates have been published to you yet.', { tool: tview.tool.manifest.name }),
+    onPick: ({ templateId }) => { if (templateId?.startsWith('inst/')) tview.pickedWorkspaceRef = templateId; },
+    onOpen: (close) => { if (tview.templatePickTornDown) close(); else tview.templatePickClose = close; },
+  });
+}
+
 /** The "New from template" on-ramp. */
 export async function templatePick(tview: ToolViewCtx): Promise<void> {
   const { hasTemplates, presetParam, reachedViaLink, slot, templateMeta, templateParam, templateSeededIds, toolId, urlDesignSystem, values } = tview;
@@ -368,6 +435,26 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   // instead of leaving it floating over whatever loads next.
   tview.templatePickTornDown = false;
   tview.templatePickClose = null;
+  tview.pickedWorkspaceRef = null;
+  tview.templateNow = null;
+  tview.templateFixedTheme = false;
+  // Templates only (lib/workspace-templates.ts): the workspace keeps this person inside
+  // the templates it published for this tool. A saved copy still opens as it is; a
+  // fresh open offers only those templates, with no blank canvas and no others.
+  const onlyPublished = isTemplatesOnlyTool(tview.indexEntry);
+  tview.templatesOnly = onlyPublished;
+  // A document made from a workspace template keeps where it came from (`__template`),
+  // and reopens offering only what that template leaves open.
+  tview.templateOrigin = null;
+  if (tview.initialValues.__template) {
+    const { readTemplateOrigin } = await import('../../lib/workspace-templates.ts');
+    tview.templateOrigin = readTemplateOrigin(tview.initialValues.__template);
+  }
+  /** Note the workspace template a seed came from, for the saved record. */
+  const noteOrigin = (found: { ref: { kind: string; id: string }; workspace?: { version: number; editable?: string[]; fixedTheme?: boolean } } | null): void => {
+    if (found?.ref.kind !== 'workspace' || !found.workspace) return;
+    tview.templateOrigin = { ref: found.ref.id, version: found.workspace.version, ...(found.workspace.editable ? { editable: found.workspace.editable } : {}), ...(found.workspace.fixedTheme ? { fixedTheme: true } : {}) };
+  };
   // ONE way to apply a starting point before the runtime is born - the `?template=`
   // launcher and the "Start with" ladder below both go through it, so the two can never
   // drift apart on what a seed does (pose, precedence, the kept-in-share-URLs marks).
@@ -376,6 +463,19 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
     tview.templatePose = templateEditorPose(seed);
     tview.initialValues = { ...seed, ...tview.initialValues };
     for (const id of Object.keys(seed)) templateSeededIds.add(id);
+  };
+  /** A workspace template's values with the person's company details over the inputs
+   *  it binds (plans/82 M3): their logo and details line are in place from the start.
+   *  A bound input the template keeps fixed is not offered, so it holds this value. */
+  const withCompanyValues = async (found: { ref: { kind: string; id: string }; values: Record<string, InputValue> }): Promise<Record<string, InputValue>> => {
+    if (found.ref.kind !== 'workspace') return found.values;
+    const { companyValuesFor, getWorkspaceTemplate, modeOfSelection, workspaceCompany } = await import('../../lib/workspace-templates.ts');
+    if (!workspaceCompany()) return found.values;
+    const bindings = (await getWorkspaceTemplate(tview.host as never, found.ref.id))?.bindings;
+    if (!bindings) return found.values;
+    companyLogoInputs.set(tview, Object.entries(bindings).filter(([, field]) => field === 'logo').map(([id]) => id));
+    const mode = modeOfSelection(tview.openedSession?.url.tokenSelection ?? tview.initialValues.__tokenSelection);
+    return { ...found.values, ...companyValuesFor(bindings, mode) as Record<string, InputValue> };
   };
   // The profile record, read at most ONCE per mount: the "Start with" ladder below wants
   // it, and so does the profile-fill loop further down. Null until something asks.
@@ -386,7 +486,7 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   // direct link, a share, or an OFFSCREEN export remount (the blank-PDF/MP4 bug:
   // scene and export renders re-parse the URL in a context with no index and no
   // inline manifest fallback) would silently drop the seed and render empty.
-  if (templateParam && !slot && !tview.seededDirect && Object.keys(values).length === 0) {
+  if (templateParam && !slot && !tview.seededDirect && Object.keys(values).length === 0 && (!onlyPublished || isWorkspaceTemplateRef(templateParam))) {
     // `?template=` names a REF now (plans/226): a bare `<tid>` is this tool's shipped
     // template, exactly as every existing link has it, and `user:<id>` is one the person
     // saved - the Projects tiles and the Templates collection link that way.
@@ -399,7 +499,8 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
       templateParam,
       { toolId, templateMeta, presetId: presetParam },
     );
-    if (found) await applyTemplateSeed(found.values);
+    if (found) await applyTemplateSeed(await withCompanyValues(found));
+    noteOrigin(found);
     // Design's intent was first guessed in guardNetworkAndSeed from the bare id, before
     // the template was read, so a Video template opened by link got the plain Design
     // layout, and that layout shuts the timeline its clips need. Guess again with the
@@ -421,6 +522,10 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   } else if (captureNeutralPinned()) {
     // A pinned docs capture honours an explicit template but skips personal
     // defaults and the chooser, which would need someone to dismiss it.
+  } else if (onlyPublished && !slot && !tview.seededDirect && pendingLiveCollab()?.toolId !== toolId) {
+    // Templates only: the workspace's published templates are the only way in, links and
+    // the "Start with" setting included. Not awaited, like the chooser below.
+    tview.templatePick = publishedOnlyPick(tview).catch(() => ({} as Record<string, InputValue>));
   } else if (
     !slot &&
     pendingLiveCollab()?.toolId !== toolId &&
@@ -455,7 +560,8 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
           { toolId, templateMeta },
         );
         if (found) {
-          await applyTemplateSeed(found.values);
+          await applyTemplateSeed(await withCompanyValues(found));
+          noteOrigin(found);
           startSeeded = true;
         } else {
           // Deleted, hidden by a brand update, or not synced to this device yet.
@@ -479,6 +585,9 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
     // the user templates off the mount path (as it already did), keeping the fast path fast.
     // A "Start with" that already seeded the document skips the question altogether.
     let hasUserTemplates = false;
+    // Templates the connected workspace published for this tool count the same way, and
+    // are read the same way: here only when nothing else would open the chooser.
+    let hasWorkspaceTemplates = false;
     if (!startSeeded && !hasTemplates) {
       try {
         const { createUserTemplateStore } = await import('../../lib/user-templates.ts');
@@ -489,13 +598,17 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
       } catch {
         /* user templates are best-effort - fall through to a blank open */
       }
+      if (!hasUserTemplates) {
+        const { listWorkspaceTemplates, startableFor } = await import('../../lib/workspace-templates.ts');
+        hasWorkspaceTemplates = startableFor(await listWorkspaceTemplates(tview.host as never), toolId).length > 0;
+      }
     }
     // A design file dropped on the front door is the document: the drop route stashed
     // it and free-canvas imports it on mount, so the chooser must not open over it - a
     // template picked (or merely clicked through) under a running import replaces the
     // board and re-mounts the canvas, and the import finishes in a view that is gone.
     const { hasPendingDesignImport } = await import('../../lib/drop-router.ts');
-    if (!startSeeded && (hasTemplates || hasUserTemplates) && !hasPendingDesignImport()) {
+    if (!startSeeded && (hasTemplates || hasUserTemplates || hasWorkspaceTemplates) && !hasPendingDesignImport()) {
       // NOT AWAITED - and that is the whole point. This chooser used to sit between the
       // user and `createRuntime` below: the tool could not begin to mount until a human
       // clicked a tile, and the chooser's own live tile previews (a real off-screen tool
@@ -541,6 +654,17 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
         } catch {
           /* user templates are best-effort */
         }
+        // The workspace's own, first, under one chip with the workspace's name. A pick opens a fresh
+        // document from it (see "template chooser pick"), so its rules apply from the start.
+        try {
+          const { listWorkspaceTemplates, startableFor, workspaceVariants } = await import('../../lib/workspace-templates.ts');
+          const published = startableFor(await listWorkspaceTemplates(tview.host as never), toolId);
+          const label = getSessionSource()?.label;
+          const from = label ? tRaw('From {name}', { name: label }) : t('From your workspace');
+          if (published.length) templates.unshift(...await workspaceVariants(published, from, undefined, (tpl) => `${from} · ${tRaw('Version {n}', { n: tpl.version })}`));
+        } catch {
+          /* workspace templates are best-effort, like the person's own */
+        }
         if (!templates.length) return {};
         return openTemplateChooser({
           toolName: tview.tool.manifest.name,
@@ -548,14 +672,17 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
           templates,
           host: tview.host,
           formats: tview.tool.manifest.render?.formats,
+          galleryArt: tview.tool.manifest.galleryArt,
           // "Blank canvas" on a frame-based tool is the default document's artboards with
           // nothing on them, not the composed cover the default opens with (plan 179).
           blankSeed: () => blankTemplateSeed(tview.tool.manifest.inputs),
           // The brand's own hidden-by-default shipped templates. The chooser owns the
           // filtering and the tile menu (plans/226 WP-3); it only needs the seed set.
           hiddenDefaults: defaultHiddenTemplateRefs(),
-          onPick: ({ templateId, category }) =>
-            tview.history.setDesignIntent(inferDesignIntent({ templateId, templateCategory: category }), true),
+          onPick: ({ templateId, category }) => {
+            if (templateId?.startsWith('inst/')) { tview.pickedWorkspaceRef = templateId; return; }
+            tview.history.setDesignIntent(inferDesignIntent({ templateId, templateCategory: category }), true);
+          },
           // Arms the navigate-away close. If teardown arrived in the same tick as the
           // modal's own construction (the race the check exists for), close immediately
           // instead of leaving a reference nobody will ever call.
@@ -567,6 +694,12 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
       });
     }
   }
+
+  // Templates only, and a link named a template that is gone: there is no plain start
+  // to offer, so the pick handler below sends the person home.
+  if (onlyPublished && !slot && !tview.seededDirect && !tview.templateOrigin && !tview.templatePick) tview.templatePick = Promise.resolve({});
+
+  await applyTemplateOrigin(tview);
 
   // "+ New tool" from the Projects view leaves a sessionStorage marker so the first
   // FRESH session saved here files into the folder it launched from. Read it ONLY on a
@@ -650,6 +783,20 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
     const seed = await newWorkTokenSelection(tview.host, tview.tool.manifest.tokenAxes);
     if (seed) tview.initialValues = { ...tview.initialValues, __tokenSelection: seed };
   }
+  // New work starts from what the workspace says for this tool (plans/82 M3): its
+  // group defaults and the person's company details, below a template's values and
+  // their own. Empty on a plain build. A saved document keeps what it holds.
+  if (newWork) {
+    const start = toolStartValues(toolId);
+    if (Object.keys(start).length) tview.initialValues = { ...start as Record<string, InputValue>, ...tview.initialValues };
+  }
+  // The partner kit this piece carries as a guest (plans/82 M8): a link's `_kit`, else a
+  // saved document's, else, for new work only, the person's company's at its live
+  // revision. Stored as `__partnerKit`, as `__tokenSelection` is, so the session keeps the kit.
+  if (tview.openedSession.url.partnerKit || tview.initialValues.__partnerKit || (newWork && partnerKitOffer())) {
+    const { openingKit } = await import('../../lib/partner-kit.ts');
+    tview.initialValues = openingKit(tview.initialValues as Record<string, unknown>, tview.openedSession.url.partnerKit, newWork).values as Record<string, InputValue>;
+  }
 
   // The document's emoji style (link, saved session or brand, preference) goes in at
   // creation, before onInit: the tool's first text composition then uses the right
@@ -690,11 +837,58 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
   // allowed set) goes into the runtime, not only onto the sidebar: the canvas,
   // the saved session and any link then carry the value the control shows.
   // Empty on an ungoverned instance, so nothing here runs for it.
-  const policyValues = policyValuesFor(toolId, runtime.getModel());
+  const { modeOfSelection } = await import('../../lib/workspace-templates.ts');
+  const policyValues = policyValuesFor(toolId, runtime.getModel(), modeOfSelection(runtime.tokenSelection));
   if (Object.keys(policyValues).length) {
     await runtime.applyPatch(policyValues);
     await runtime.resolveRefs();
   }
+  await followCompanyMode(tview, runtime);
+  // The partner this work is made for, which the export records beside the design
+  // system while the record is on (plans/82 M3). Null outside a partner programme.
+  // It follows the piece's kit attachment, released with the mount.
+  const { followPiecePartner } = await import('../../lib/partner-kit-state.ts');
+  tview.mountLifecycle.add('partner record', followPiecePartner(runtime));
+}
+
+/** The inputs of a mounted workspace template that take the company's logo by mode. */
+const companyLogoInputs = new WeakMap<ToolViewCtx, string[]>();
+
+/**
+ * A partner company's logo follows the document between its light and dark logos
+ * (plans/82 M3): now, for a document opened in dark mode, and on every switch, beside
+ * the colours that follow the theme. Nothing happens without a company.
+ */
+async function followCompanyMode(tview: ToolViewCtx, runtime: ToolRuntime): Promise<void> {
+  const { companyLogo, modeOfSelection, workspaceCompany } = await import('../../lib/workspace-templates.ts');
+  if (!workspaceCompany()) return;
+  const logoIds = companyLogoInputs.get(tview) ?? [];
+  const idOf = (v: unknown): unknown => (v && typeof v === 'object' ? (v as { id?: unknown }).id : v);
+  const apply = async (): Promise<void> => {
+    const company = workspaceCompany();
+    if (!company || tview.runtime !== runtime) return;
+    const mode = modeOfSelection(runtime.tokenSelection);
+    const model = runtime.getModel();
+    const patch: Record<string, unknown> = {};
+    // A logo a policy holds by mode: compared by asset id, as the model holds the resolved asset.
+    for (const input of model) {
+      const want = getInputPolicy(tview.toolId, input.id)?.byMode?.[mode];
+      if (want !== undefined && idOf(input.value) !== want) patch[input.id] = want;
+    }
+    for (const id of logoIds) {
+      const want = companyLogo(company, mode);
+      const have = model.find((i) => i.id === id);
+      if (want && have && idOf(have.value) !== want) patch[id] = want;
+    }
+    if (!Object.keys(patch).length) return;
+    await runtime.applyPatch(patch as Record<string, InputValue>);
+    await runtime.resolveRefs();
+  };
+  await apply();
+  const { DOCUMENT_THEME_EVENT } = await import('../../lib/document-theme.ts');
+  const onTheme = (): void => { void apply().catch((e) => console.error(e)); };
+  window.addEventListener(DOCUMENT_THEME_EVENT, onTheme);
+  tview.mountLifecycle.add('company logo by mode', () => window.removeEventListener(DOCUMENT_THEME_EVENT, onTheme));
 }
 
 export function documentSurface(tview: ToolViewCtx): void {
@@ -716,7 +910,7 @@ export function documentSurface(tview: ToolViewCtx): void {
         boxes: () => tview.runtime.getModel().find((input) => input.id === 'boxes')?.value,
         whenSettled: () => tview.runtime.whenSettled(),
         paintPending: () => tview.rafId !== 0 || tview.pendingFrame !== null,
-        resolveFont: (style, text) => fontCoversText(style, text, tview.host.text),
+        resolveFont: (style, text, place) => fontCoversText(style, text, tview.host.text, undefined, place),
       });
     },
   }; tview.documentSurface = documentSurface;
@@ -824,6 +1018,16 @@ export function stableRowIds(tview: ToolViewCtx): void {
         // this path anyway (the close armed by `onOpen` resolves blank), so the seed
         // below would end up empty regardless - this is the explicit, required check.
         if (tview.templatePickTornDown) return;
+        // A workspace template starts its own document, through the same `?template=`
+        // path a link from the home or the catalog takes, so its rules hold from the
+        // first frame rather than arriving after the sidebar has drawn.
+        if (tview.pickedWorkspaceRef) {
+          location.hash = `#/tool/${encodeURIComponent(tview.toolId)}?template=${encodeURIComponent(tview.pickedWorkspaceRef)}`;
+          return;
+        }
+        // Templates only, and the chooser closed with no pick: there is no blank start
+        // to fall back to, so the person goes back home, where the templates are.
+        if (tview.templatesOnly) { location.hash = '#/'; return; }
         const seed: Record<string, InputValue> = {};
         for (const [k, v] of Object.entries(chosen ?? {})) if (k !== '__tokenLinks' && !(k in tview.initialValues)) seed[k] = v;
         if (!Object.keys(seed).length) return; // Blank canvas / Escape / close
@@ -885,10 +1089,21 @@ export function wireActionsPanel(tview: ToolViewCtx): void {
   // help button beside the title, plus one automatic open per device on a tool
   // the user hasn't opened before. mountModal bodies its dialog, so the handle is
   // kept to close it on teardown - a guide must not outlive the tool it explains.
+  // The same button also opens the docs pages mapped to this tool (plan 354 D6,
+  // lib/tool-guides.ts): it is rendered hidden for a tool with no steps, and shown once
+  // that list arrives holding a row.
   tview.openGuide = null;
-  viewEl.querySelector<HTMLButtonElement>('#tool-guide-btn')?.addEventListener('click', () => {
-    tview.openGuide = showToolGuide(tview.tool.manifest);
+  const guideRows = toolGuideRows(tview.toolId);
+  const guideButtons = [...viewEl.querySelectorAll<HTMLButtonElement>('[data-tool-guide]')];
+  void guideRows.then((rows) => {
+    if (!rows.length || !viewEl.isConnected) return;
+    for (const b of guideButtons) b.hidden = false;
   });
+  for (const b of guideButtons) {
+    b.addEventListener('click', () => {
+      void guideRows.then((rows) => { tview.openGuide = showToolGuide(tview.tool.manifest, rows); });
+    });
+  }
   // The automatic first-visit open is for someone who came to MAKE the thing.
   // Anyone arriving on a finished render - a fullscreen/auto-export share link,
   // or a chromeless editor embed - gets the button and nothing in their way.
@@ -956,6 +1171,7 @@ export function mountActions(tview: ToolViewCtx): void {
       current: toolId === 'design' ? () => tview.session.currentDesignOutcome() : undefined,
       sessionMeta: () => ({ ...(getDesignPublication(runtime) ? {__designPublication:getDesignPublication(runtime)} : {}), ...(getRebrandHandoff(runtime) ? { [REBRAND_HANDOFF_MARKER]: getRebrandHandoff(runtime) } : {}), ...(getDesignToolSource(runtime) ? { __designToolSource: getDesignToolSource(runtime) } : {}), ...(tview.tool.artifactDigest ? { __toolArtifact: tview.tool.artifactDigest } : {}), ...(getDesignToolDraft(runtime) ? { __designTool: getDesignToolDraft(runtime) } : {}), ...(toolId === 'design' ? { __workspace_intent: tview.designIntent } : {}),
         ...(tview.presentationScene ? { __presentation: tview.presentationScene } : {}),
+        ...(tview.templateOrigin ? { __template: tview.templateOrigin } : {}),
         ...carriedEmojiPins(runtime.emoji, tview.initialValues),
         ...tview.documentMeta?.() }),
       ...historyParticipation(tview.tool.manifest, historyRole.shared),
@@ -968,6 +1184,40 @@ export function mountActions(tview: ToolViewCtx): void {
   }));
   // The retained export file (plans/236) lives only as long as this mount.
   mountLifecycle.add('export delivery result', () => actionsApi?.releaseDelivery?.());
+  // What a saved copy hears about the template it came from: a new version, a
+  // retirement, or a rules tool that moved on (views/tool-template-notices.ts).
+  const templateId = (tview.indexEntry as Record<string, unknown> | undefined)?.templateId;
+  if (!tview.isFull && !tview.autoExport && !tview.autoCopy && (tview.templateOrigin || (tview.tool.manifest.designTool && typeof templateId === 'string'))) {
+    void import('../tool-template-notices.ts').then((notices) => {
+      if (!viewEl.isConnected) return;
+      if (tview.templateOrigin) mountLifecycle.add('template notices', notices.watchTemplateNotices({
+        host: tview.host, toolId, origin: tview.templateOrigin, now: tview.templateNow, runtime,
+        updated: (origin) => { tview.templateOrigin = origin; },
+        changed: () => tview.revisionChanged(),
+        open: (href) => { location.hash = href; },
+      }));
+      if (tview.tool.manifest.designTool && typeof templateId === 'string') mountLifecycle.add('rules tool notice', notices.mountRulesToolNotice({
+        toolId, name: tview.tool.manifest.name, savedVersion: tview.initialValues.__toolVersion, version: tview.tool.manifest.version,
+      }));
+    });
+  }
+  // A tool that moved into another one says so, and offers to open this document there
+  // (views/tool-retired-notice.ts). The catalog index holds both facts and the names.
+  const successorId = tview.indexEntry?.deprecated === true ? tview.indexEntry.replacedBy : null;
+  const successor = typeof successorId === 'string' ? tview.catalog.tools?.find((entry) => entry.id === successorId) : null;
+  if (successor && !tview.isFull && !tview.autoExport && !tview.autoCopy) {
+    void import('../tool-retired-notice.ts').then((notice) => {
+      if (!viewEl.isConnected) return;
+      const named = successor as { id: string; name?: unknown; en?: { name?: unknown } };
+      mountLifecycle.add('retired tool notice', notice.mountRetiredToolNotice({
+        body: viewEl.querySelector<HTMLElement>('.sidebar-body') ?? tview.stageEl,
+        toolId, name: tview.tool.manifest.name, successorId: successor.id,
+        successorName: typeof named.name === 'string' ? named.name : String(named.en?.name ?? successor.id),
+        values: () => Object.fromEntries(runtime.getModel().map((input) => [input.id, input.value])),
+        open: (href) => { location.hash = href; },
+      }));
+    });
+  }
   if (tview.tool.manifest.designTool && tview.sidebarEl && tview.canvasEl) mountLifecycle.add('locked tool inputs', mountLockedTool({
     view: viewEl, canvas: tview.canvasEl, stage: tview.stageEl, sidebar: tview.sidebarEl,
     runtime, host: tview.host, policy: tview.tool.manifest.designTool, actions: tview.actionsEl,
@@ -1297,6 +1547,20 @@ export async function mountLiveControls(tview: ToolViewCtx): Promise<void> {
         actionsApi,
         sizeExplicit: Boolean(urlWidth || urlHeight),
       });
+    } else {
+      // No screen capture in this browser (every phone, or a page that is not secure).
+      // One status line takes the place of the two capture buttons. `has-record` gives
+      // the line the same lift above the Export button that the buttons get on a phone.
+      const status = document.createElement('div');
+      status.className = 'canvas-screen-bar';
+      status.setAttribute('role', 'status');
+      status.setAttribute('data-export-hide', '');
+      const message = document.createElement('p');
+      message.className = 'canvas-screen-note';
+      message.textContent = t('Screen capture is not available in this browser. You can still crop an image here.');
+      status.appendChild(message);
+      stageEl.classList.add('has-record');
+      stageEl.appendChild(status);
     }
   } else if (
     stageEl &&

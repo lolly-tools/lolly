@@ -1,86 +1,97 @@
-# Lolly nasıl karşılaştırılır
+# Lolly'nin diğerleriyle karşılaştırması
 
-Lolly, tek bir açık kaynak projesinin iki parçasıdır. **Lolly**, hesap olmadan cihazında yapmak, düzenlemek, dönüştürmek ve dışa aktarmak için motor, uygulamalar ve araçlardır. **Lolly Work**, giriş, paylaşılan projeler, onaylar ve sunucu render'ı için kendi altyapında çalışan kuruluş sunucusudur. İkisi de MPL-2.0'dır. Bu sayfa çifti insanların dosya tasarladığı, yönettiği ve ürettiği diğer yollarla karşılaştırır.
+Lolly, hesap olmadan kendi cihazında markaya uygun dosyalar üretir. **Lolly Work**, ekipler için sunucudur: kuruluşunun işlettiği makinelerde oturum açma, paylaşılan projeler, onaylar ve sunucuda render. İkisi de MPL-2.0 kapsamında açık kaynaklıdır.
 
-## Bugünün araçları
+Çoğu ekip elindeki araçları kullanmaya devam eder. Tasarım uygulaması tasarımları sağlar, DAM esas kayıt kaynağı olarak kalır ve Lolly onaylanmış girdileri bitmiş dosyalara dönüştürür. [Lolly'yi mevcut DAM sisteminle kullan](/info/use-with-dam.html) bu birleşimi anlatır. Bu birleşimin arkasındaki fikir [içerik egemenliğidir](/info/content-sovereignty.html).
 
-Her halka, bir ürün sınıfının bir yeteneği ne kadar eksiksiz sunduğunu puanlar; her sınıf en iyi temsilcisi üzerinden puanlanır. Lolly sütunu Lolly ve Lolly Work'ü birlikte kapsar ve her satır hangi parçanın neyi sağladığını söyler. Puanının ardındaki gerekçe için bir satır adını aç. Sütunlar en üstteki Overall completeness satırına göre sıralanır: harcama satırı hariç, puanlanan satırların ortalaması.
+<!--i:eti-gauge-->
+## Günümüzün araçları
+
+Her halka, bir ürün sınıfının bir ihtiyacı ne ölçüde karşıladığını gösterir. Kanıtları görmek için bir satırın yanındaki **?** düğmesine, puanların nasıl işlediğini görmek için açıklama anahtarının yanındaki **?** düğmesine bas.
 
 ::: figure positioning-comparison
-Yetenek karşılaştırması: rakip araştırması ve puanlar Ağustos 2026; Lolly + Lolly Work kapsamı 28 Eylül 2026'da gözden geçirildi. Puanlama: 0 yok, 25 geçici çözüm düzeyinde, 50 gerçek ama kısıtlı veya kısmi, 75 çekincelerle güçlü, 100 temel yetkinlik.
+Yetenek karşılaştırması. Tedarikçi belgelerinden rakip araştırması, Ağustos - 21 Kasım 2026. Lolly ve Lolly Work, 21 Kasım 2026'da incelendi. Puanlama: 0 yok, 25 dolaylı çözüm, 50 var ama erişimi kısıtlı veya kısmi, 75 bazı sınırlamalarla güçlü, 100 temel yetkinlik.
 :::
 
-::: details Puanlama notları
-Mevcut özellikler ve üretim olgunluğu ayrıdır. Lolly yayımlandı: 1.0 sürümü 30 Ağustos 2026'da açık kaynak olarak çıktı, güvenliği henüz bağımsız bir denetimden geçmedi ve benimsenme kanıtı birkaç aylık ([Adoption & Governance](/info/adoption-governance.html#status) güncel durumu içerir). Çoklu oturum açma, onaylar veya sunucu render'ına sahip olmak bir üretim sicilini kanıtlamaz; olgunluk puanı bunu yansıtır. Rakip puanları tarihli Ağustos incelemesini korur.
-
-Tek bir kural tabloyu yönetir. İçeriğine veya kimliğine dokunan satırlarda tam puan (100), hesap ve bulut ön koşulu olmadan kullanabileceğin bir yetenek gerektirir; olgunluk ve kullanım kolaylığı gibi ürünün kendisiyle ilgili satırlar bu kuraldan muaftır. Bu kural Adobe'ye Content Credentials'ta mal olur: en geniş gönderilmiş uygulama (Photoshop, Lightroom, Premiere, Firefly) yerelde ve bulutta imzalar ama hiçbir zaman bir Adobe hesabı ve kimliği olmadan değil, yani 75. Aynı nedenle render API'lerini toplu üretim ve otomasyonda sınırlar.
-
-Canva, Affinity ve Cavalry'nin (ikisi Ekim 2025'te bedava dağıtıldı) sahibi olduğu için satır başına en iyi aile üyesi üzerinden puanlanır. Çevrimdışı ve cihaz üzerinde render, hâlâ doğrulanmış bir hesap gerektiren ve telemetri taşıyan bir masaüstü paketi olan Affinity üzerinden 75 puan alır; Adobe'nin de aldığı kesinti. Canva'nın kendi çevrimdışı modu yalnızca önceden eşitlenmiş tasarımları, tek cihazda, sınırlı bir süre için düzenler. Autofill 50 puan alır: gerçektir ama Enterprise ile kısıtlıdır, eşzamansızdır ve yalnızca metin ve görselleri doldurur. Figma'nın toplu üretimi, Buzz elektronik tablo doldurmayı (ücretsiz bir beta, Ağustos 2026) gönderdiğinde 25'ten 50'ye çıktı.
-
-Lolly'nin 75 olan Content Credentials puanı cihaz üzerinde imzalamayı ve Lolly Work'ün yapılandırılmış bir kuruluş kimliğiyle sunucu imzalamasını kapsar; bir doğrulayıcı yine imzalayana güvenmelidir ([Content Credentials Identity](/info/content-credentials-identity.html)). Penpot'un 50 puanı Lolly'nin kendi Penpot dışa aktarma eklentisinden gelir: aynı motor imzalaması, isteğe bağlı ve Lolly'nin olarak açıklanmış. Penpot cihaz üzerinde render'da 90 alır: kendi sunucusunda barındırılabilen kaydetme hedefiyle bir tarayıcı tuvali. Cloudinary, varlık kitaplığı, dönüştürme API'si ve CDN'i için kendi sütununu alır; Ağustos incelemesi teslimat imzalamasını 50 puanladı.
-
-Lolly'nin canlı iş birliği, doğrudan iki cihazlı özel collab'ları ve Lolly Work üzerinden paylaşılan düzenlemeler, imleçler ve kayıtlı ekip oturumlarıyla kimliği doğrulanmış work collab'ları içerir. Partial puanı, ekip düzenlemesinin yokluğunu değil, mevcut tek düğümlü work dağıtımını ve kısa işletim geçmişini yansıtır. Fiyat tahminleri, ölçek için tarihli liste fiyatı aritmetiğidir, satın alma değildir.
+::: details Kasım 2026'da değişen puanların kaynakları
+- Canva: [API değişiklik günlüğü](https://www.canva.dev/docs/apps/rest-apis/changelog/), [hizmet uygulamaları](https://www.canva.dev/blog/developers/canva-service-accounts/), [Brand Controls yardımı](https://www.canva.com/help/brand-control/)
+- Adobe: [InDesign API değişiklik günlüğü](https://developer.adobe.com/firefly-services/docs/indesign-apis/getting-started/changelog/), [Adobe Express fiyatlandırması](https://www.adobe.com/express/pricing)
+- Figma: [ajan ve yapay zekâ kredileri](https://help.figma.com/hc/en-us/articles/42614902212887), [MCP sunucusu](https://developers.figma.com/docs/figma-mcp-server/)
+- Frontify ve Bynder: [Frontify Ekim 2026 sürüm notu](https://news.frontify.com/163371-what-s-new-in-october-2026), [Frontify MCP](https://help.frontify.com/en/articles/14787214-frontify-mcp-beta)
+- Bannerbear ve Placid: [Bannerbear fiyatlandırması](https://www.bannerbear.com/pricing/), [Bannerbear değişiklik günlüğü](https://www.bannerbear.com/changelog/), [Placid fiyatlandırması](https://placid.app/pricing)
+- Penpot: [kendi sunucunda barındırma fiyatlandırması](https://penpot.app/pricing/self-host), [sürümler](https://github.com/penpot/penpot/releases)
+- Cloudinary: [içeriğin kaynak bilgisi](https://cloudinary.com/documentation/content_provenance_and_authenticity), [fiyatlandırma](https://cloudinary.com/pricing)
 :::
 
-## Lolly'ye ne zaman uzanmalı
+Özellikler ve geçmiş performans ayrı satırlardır. Lolly'nin ilk genel sürümü, 30 Ağustos 2026'da yayımlanan 1.0.1'di; güvenliği henüz bağımsız bir denetimden geçmedi ve benimsenmesine ilişkin kanıtlar birkaç aylık. [Benimseme & Yönetişim](/info/adoption-governance.html#status) güncel durumu içerir.
+
+<!--i:eti-hammer-->
+## Lolly ne zaman seçilmeli
 
 ::: cols
-## Lolly'ye şu durumlarda uzan
+## Şu durumlarda Lolly'yi seç
 
-- Aynı tür dosya tekrar tekrar gerekiyor: etkinlik karoları, rozetler, sertifikalar, uyarılar, sosyal medya kartları
-- Çok sayıda dosya bir şablondan ve bir değer tablosundan geliyor; [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) veya CLI ile
-- Renkler, yazı ve varlıklar, açık bir tuvalde bile tasarım sisteminin içinde kalmalı
-- Bitmiş bir Figma, Penpot, Illustrator, InDesign veya PDF tasarımı düzenlenebilir ve tekrarlanabilir olmalı ([Import a design](/info/design-import.html))
-- Dosyalar kendi cihazlarında veya sunucularında yapılmalı
+- Aynı tür dosyaya tekrar tekrar ihtiyaç varsa: etkinlik kartları, rozetler, sertifikalar, uyarılar, sosyal medya kartları
+- [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) veya CLI'da tek bir şablondan ve değer tablosundan çok sayıda dosya üretiliyorsa
+- Renkler, yazı tipleri ve varlıklar, açık bir tuvalde bile tasarım sisteminin içinde kalmalıysa
+- Bitmiş bir Figma, Penpot, Illustrator, InDesign, Affinity veya PDF tasarımının düzenlenebilir ve tekrarlanabilir olması gerekiyorsa ([Tasarım içeri aktar](/info/design-import.html))
+- Dosyalar kendi cihazlarında veya sunucularında üretilmeliyse
 
-## Başka bir şeye şu durumlarda uzan
+## Şu durumlarda başka bir şey seç
 
-- İş ayrıntılı fotoğraf rötuşu veya illüstrasyon
-- Bir uygulama arayüzü tasarlıyor ve prototipliyorsun
-- İlk günden hazır büyük bir stok ve şablon kitaplığına ihtiyacın var
-- Ölçekte uzun bir sicili olan yönetilen bir hizmete ihtiyacın var
+- İş, ayrıntılı fotoğraf rötuşu veya illüstrasyonsa
+- Bir uygulama arayüzü tasarlıyor ve prototipini hazırlıyorsan
+- İlk günden hazır, geniş bir stok içerik ve şablon kitaplığına ihtiyacın varsa
+- Büyük ölçekte uzun bir işletim geçmişine sahip, yönetilen bir hizmete ihtiyacın varsa
 :::
 
-İçe aktarılan tasarımlar ve paylaşılan tasarım token'ları bir ekibin Lolly'yi uzmanlaşmış uygulamalarla birleştirmesine izin verirken Lolly Work paylaşılan varlıkları, incelemeyi ve teslimatı yönetir.
+İçeri aktarılan tasarımlar ve paylaşılan tasarım token'ları, ekibin Lolly'yi uzman uygulamalarla birleştirmesini sağlar; Lolly Work ise paylaşılan varlıkları, incelemeyi ve teslimatı yönetir.
 
-Bütün bir slayt sunumu tavanı gösterir: **Markdown Slides** içinde bir sunum veri olarak bildirilir, canlı yerleştirilir ve yerel, düzenlenebilir bir PowerPoint dosyası olarak dışa aktarılır.
+Özenle düzenlenmiş bir DAM kullanan ekiplerde, o kitaplığı ve yöneticilerini yerinde tutarak başla. [SUSE'nin Brandfolder deneyimi](/info/suse-brandfolder.html), entegrasyonun benimsemeyi ve onay süreçlerindeki değişiklik yönetimini nasıl desteklediğini kaydeder. DAM tedarikçileri ve uygulama ortakları, aynı düzeni [iş ortağı iş akışı](/info/dam-partners.html) üzerinden değerlendirebilir.
 
-![Bölünmüş görünümde Markdown Slides: solda blok olarak listelenen sunumun slaytları, sağda yerleştirilmiş sunumun render'ı](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+**Lolly Markdown Slides** içinde, bütün bir sunum veri olarak yazılır, düzeni canlı olarak oluşturulur ve PowerPoint'in kendi biçiminde, düzenlenebilir bir dosya olarak dışa aktarılır.
 
-## Kurallar araçta yaşar
+![Bölünmüş görünümde Lolly Markdown Slides: solda bloklar olarak listelenen sunum slaytları, sağda düzeni oluşturulmuş sunumun render'ı](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
-Lolly yeniden kullanılabilir marka kurallarını araca koyar: renkler, yazı tipleri, taşma payları, aralık ve izin verilen girdiler. Şablon, bir alıcının değiştirmemesi gereken parçaları sabitler. Lolly Work bu şablonun etrafına grup erişimi ve girdi politikaları ekler; katalog gönderimleri ve teslimat için onay zincirleriyle.
+<!--i:eti-shield-check-->
+## Kurallar aracın içindedir
 
-Bir aracı bir kez denetlemek tekrarlanabilir üretimi kolaylaştırır, çünkü her çıktı düzen kurallarını devralır. Metin, yüklenen görseller ve kullanım hakları yine de denetim gerektirebilir ve Lolly Work bunun için paylaşılan katalogları ve onay adımlarını sağlar. Yaratıcı ekip için araç bir korkuluktur: veriyi, metni ve görseli yine sen getirirsin ve araç her sonucu markaya uygun tutar.
+Lolly, yeniden kullanılabilir marka kurallarını aracın içine koyar: renkler, yazı tipleri, taşma payları, aralıklar ve izin verilen girdiler. Şablon, alıcının değiştirmemesi gereken bölümleri sabitler. Lolly Work, bu şablonun çevresine grup erişimi ve girdi politikaları, katalog gönderimleri ve teslimat için de onay zincirleri ekler.
 
-![Üreticinin tüm işi: sözcükleri yazmak. Yazı, renk ve aralık araç yapılırken belirlendi](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+Bir aracı bir kez denetlemek, tekrarlanabilir üretimi kolaylaştırır; çünkü her çıktı, aracın düzen kurallarını devralır. Metinlerin, yüklenen görsellerin ve kullanım haklarının yine de denetlenmesi gerekebilir; Lolly Work bunun için paylaşılan kataloglar ve onay adımları sağlar. Yaratıcı ekip için araç bir korkuluktur: veriyi, metni ve görseli yine sen getirirsin ve araç her sonucu markaya uygun tutar.
 
-Bu yaklaşımı ayıran üç şey daha var:
+![Üreticinin bütün işi: sözcükleri yazmak. Yazı tipi, renk ve aralıklar araç yapılırken belirlenmişti](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
-- **Girdilerden nihai dosya.** Girdi girer, bitmiş dosya çıkar; "şimdi tasarım aracından kaydet ve düzelt" yoktur.
-- **Araçlar araçları oluşturur.** Bir araç, aralarında kod bağı olmadan, başka bir aracın render'ını tek bir bitmiş dosyaya gömebilir.
-- **En alta kadar açık.** Motor açık kaynaktır ve araçlar, varlıklar ve tasarım token'ları, sürüm denetiminde tutabileceğin veya Lolly Work'te yönetebileceğin dosyalardır; başkasının veritabanında satırlar değil.
+Üç fark daha:
 
-Maceracı tasarım korkulukların arasından sağ çıkar. Bu poster kalitesindeki şehir haritası, bir açılır menüden ve tasarım sisteminin dışına yönlendirilemeyen iki renk alanından gelen, gerçek vektör yol ve su yollarıdır:
+- **Girdilerden son dosyaya.** Girdiyi ver, bitmiş dosyayı al; "şimdi tasarım aracından kaydet ve düzelt" adımı yok.
+- **Araçlar araçları birleştirir.** Bir araç, aralarında kod bağımlılığı olmadan başka bir aracın render'ını tek bir bitmiş dosyaya gömebilir.
+- **Açık kaynak.** Motor açık kaynaklıdır; araçlar, varlıklar ve tasarım token'ları da başkasının veritabanındaki satırlar değil, sürüm kontrolünde tutabileceğin veya Lolly Work'te yönetebileceğin dosyalardır.
 
-![Amsterdam'ın kanal halkaları ve yol ağı, tasarım sisteminin kendi mürekkebiyle kenardan kenara çizilmiş; her çizgi elle değil şablonla yerleştirilmiş](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
+Cesur tasarım, sınırlar içinde de yaşar. Poster kalitesindeki bu şehir haritası, tasarım sisteminin dışına çıkamayan bir açılır menü ve iki renk alanından üretilen gerçek vektör yol ve su çizgilerinden oluşur:
 
-## Olasılıksal yenilik yap, deterministik olarak ölçeklendir
+![Amsterdam'ın kanal halkaları ve yol ağı, tasarım sisteminin kendi mürekkebiyle kenardan kenara çizilmiş; her çizgi elle değil, şablon tarafından yerleştirilmiş](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
 
-"Yapay zekâ yaratıcılığı" önerilerinin çoğu modeli eski bir çizginin yanlış tarafına koyar. Yazıcılar ve tezhipçiler çizginin nereden geçtiğini belirlemişti. Eskiz üzerinde gevşek çalışırsın; orada her şey denenebilir ve hiçbir şey taahhüt edilmez. Sonra taahhüt eden matbaaya gidersin. Sanatın olduğu yer eskizlerdi ve matbaa, onun yolculuk etme biçimiydi; basılı işe güvenilebilirdi, çünkü matbaa her baskıda sözünü tuttu.
+<!--i:eti-stamp-->
+## Olasılıksal olarak yenilik yap, deterministik olarak ölçekle
 
-Lolly matbaadır. Fikirlere ne istersen getir: bir model, bir tasarımcı veya kaba bir çizim; ancak bir fikir birçok dosyaya dönüşmek zorunda kaldığı anda, her seferinde aynı şekilde, herkesin geri okuyabileceği girdilerden render eden bir şeyden geçer. Yukarıdaki karşılaştırma gerçekte, bu taahhüt edilmiş adımı kimin tekrarlanabilir yaptığıyla ilgilidir.
+Çoğu "yapay zekâyla yaratıcılık" sunumu, modeli eski bir sınırın yanlış tarafına koyar. Hattatlar ve tezhip sanatçıları o sınırın yerini belirlemişti. Eskiz üzerinde serbestçe çalışırsın; her şey denenebilir ve hiçbir şey kesinleşmez. Sonra işi kesinleştiren matbaaya geçersin. Sanat eskizlerdeydi, matbaa ise onu yaymanın yoluydu ve basılı işe güvenilebilirdi, çünkü matbaa her baskıda sözünü tutardı.
 
-> Yaratıcı sürece güven, titizlikle ölçeklendir.
+Lolly matbaadır. Fikirler için istediğini getir: bir model, bir tasarımcı veya kaba bir çizim; ancak bir fikrin çok sayıda dosyaya dönüşmesi gerektiği anda, herkesin geri okuyabileceği girdilerden her seferinde aynı şekilde render eden bir süreçten geçer. Yukarıdaki karşılaştırma, aslında bu kesinleştirme adımını kimin tekrarlanabilir kıldığıyla ilgilidir.
 
-## Sonsuza dek ücretsiz
+> Yaratıcı sürece güven, titizlikle ölçekle.
 
-**Cihazında render ediliyorsa sonsuza dek ücretsizdir.** Motor, kabuklar, araçlar ve biçimler açık kaynaktır ve yayımlanmış bir sürüm geri alınamaz. Lolly Work da açık kaynaktır. Bir kuruluş, seçtiği altyapı ve işletme için öder; kendi sunucusunda barındırma için koltuk veya render başına yazılım lisansı ücreti yoktur. [Questions & answers](/info/faq.html) sözün arkasındaki hikâyeyi anlatır.
+<!--i:eti-tag-->
+## Sonsuza kadar ücretsiz
 
-## İçeriğin nerede yaşar
+**Cihazında render ediliyorsa sonsuza kadar ücretsizdir.** Motor, kabuklar, araçlar ve biçimler açık kaynaklıdır ve yayımlanmış bir sürüm geri alınamaz. Lolly Work de açık kaynaklıdır. Bir kuruluş, seçtiği altyapı ve işletim için ödeme yapar; kendi sunucunda barındırmada kullanıcı başına veya render başına yazılım lisans ücreti yoktur. [Sorular & yanıtlar](/info/faq.html), bu sözün arkasındaki hikâyeyi anlatır.
 
-Lolly'nin yaratıcı işi sahip olduğun donanımda çalışabilir ve tasarım token'ları, yazı tipleri, logolar ve araçlar saklayabileceğin dosyalardır. Lolly Work ile paylaşılan projeler, varlıklar, politika ve denetim kayıtları kuruluşunun yapılandırdığı depolamada yaşar. Bunun neden önemli olduğunu [Trust](/info/trust.html) açıklar ve [Privacy Policy](/info/privacy.html) ile [Verify It Yourself](/info/verify-yourself.html) bizim sözümüze güvenmek yerine iddiayı denetlemene izin verir.
+<!--i:eti-map-pin-->
+## İçeriğin nerede durur
 
+Lolly'nin yaratıcı işleri, sahibi olduğun donanımda çalışabilir; tasarım token'ları, yazı tipleri, logoları ve araçları da saklayabileceğin dosyalardır. Lolly Work ile paylaşılan projeler, varlıklar, politika ve denetim kayıtları, kuruluşunun yapılandırdığı depolamada tutulur. [Güven](/info/trust.html), bunun neden önemli olduğunu açıklar; [Gizlilik Politikası](/info/privacy.html) ve [Kendin doğrula](/info/verify-yourself.html) ise sözümüze güvenmek yerine iddiayı denetlemeni sağlar.
+
+<!--i:eti-grid-->
 ## Araç araç
 
-[Lolly compared, tool by tool](/info/compare.html), Lolly'yi Canva, Adobe, Figma, Penpot, marka portalları, render API'leri ve çevrimiçi dönüştürücülerle, her biri için bir sayfa olarak karşılaştırır ve [what runs where](/info/compare.html#what-runs-where) bölümünü ortaya koyar.
+[Lolly karşılaştırması, araç araç](/info/compare.html), her biri için bir sayfada Lolly'yi Canva, Adobe, Figma, Penpot, marka portalları, render API'leri ve çevrimiçi dönüştürücülerle karşılaştırır ve [neyin nerede çalıştığını](/info/compare.html#what-runs-where) açıklar.

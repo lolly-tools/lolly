@@ -42,6 +42,7 @@
  * authored metadata and stay as written until the template i18n sidecar ships.
  */
 
+import { closeButtonHtml } from '../lib/close-button.ts';
 import '../styles/template-chooser.css'; // async CSS chunk (lazy view - not on the landing)
 import { t, tRaw } from '../i18n.ts';
 import { escapeHtml } from '../lib/html.ts';
@@ -188,6 +189,8 @@ interface ChooserOpts {
   host?: HostV1;
   /** The tool's render.formats - the preview renders vector-first at displayFormatOf. */
   formats?: readonly string[];
+  /** The manifest's `galleryArt`, for a tool whose previews draw as a PNG (coverFormats). */
+  galleryArt?: 'render' | 'icon';
   /**
    * Called synchronously, once the modal exists, with a function that force-closes it - 
    * exactly as if Escape/backdrop/× had been used - and resolves the returned promise
@@ -210,6 +213,12 @@ interface ChooserOpts {
    * scratch" means what it says.
    */
   blankSeed?: () => Record<string, InputValue>;
+  /** No "Blank canvas" tile: the workspace set this tool to templates only, so its
+   *  published templates are the only starting points (lib/workspace-templates.ts). */
+  noBlank?: boolean;
+  /** With no templates to offer, this one line stands in for the grid; closing then
+   *  resolves `{}` as any close does. */
+  emptyText?: string;
   /**
    * Management (plans/226 WP-3). `hiddenDefaults` is the brand's
    * defaultHiddenTemplateRefs(); the chooser reads the person's hidden set and
@@ -296,9 +305,10 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
     /** The group name the caller listed the person's own templates under, so a refresh
      *  from the store re-files them under the same chip. */
     const ownCategory = opts.templates.find(v => v.own)?.category ?? t('Yours');
-    /** Own first, shipped after: the person's own starting points lead the grid. */
+    /** The workspace's own first, then the person's, then shipped: what a workspace
+     *  published for this person leads the grid. */
     const ownFirst = (list: readonly TemplateVariant[]): TemplateVariant[] =>
-      [...list.filter(v => v.own), ...list.filter(v => !v.own)];
+      [...list.filter(v => v.published), ...list.filter(v => v.own && !v.published), ...list.filter(v => !v.own && !v.published)];
 
     let hiddenRefs = new Set<string>();
     let startRef: TemplateStart | null = null;
@@ -319,7 +329,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
     /** A shipped tile this person has hidden. Own templates are deleted, never hidden. */
     const isHidden = (v: TemplateVariant): boolean => !!v.ref && !v.own && hiddenRefs.has(v.ref);
     /** The ref the tile menu acts on, or '' for a tile that has none (no menu is wired). */
-    const menuRefOf = (v: TemplateVariant): string => (profileHost && v.ref ? v.ref : '');
+    const menuRefOf = (v: TemplateVariant): string => (profileHost && v.ref && !v.published ? v.ref : '');
 
     // Memoised whole-file per template: the base `values` seed PLUS its preset
     // overlays (plans/142). An inline entry that already carries a non-empty
@@ -375,7 +385,9 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
       // Ownership reads as a glyph beside the name, never as a coloured edge (house rule).
       const ownMark = v.own
         ? `<span class="tmpl-chooser-tile-own" role="img" title="${escapeHtml(t('Yours'))}" aria-label="${escapeHtml(t('Yours'))}">${icon('user', { size: 12 })}</span>`
-        : '';
+        : v.published && v.category
+          ? `<span class="tmpl-chooser-tile-own" role="img" title="${escapeHtml(v.category)}" aria-label="${escapeHtml(v.category)}">${icon('building', { size: 12 })}</span>`
+          : '';
       // A hidden tile is only ever shown under the Hidden chip, and carries its way back.
       const restore = isHidden(v)
         ? `<span class="tmpl-chooser-tile-actions"><button type="button" class="btn btn--sm" data-restore>${escapeHtml(t('Restore'))}</button></span>`
@@ -390,7 +402,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
         ${tileChromeHtml(v, v.ref ?? '')}
         <span class="tmpl-chooser-tile-media">${media}</span>
         <span class="tmpl-chooser-tile-name">${ownMark}${escapeHtml(v.name)}</span>
-        ${v.description ? `<span class="tmpl-chooser-tile-desc">${escapeHtml(v.description)}</span>` : ''}
+        ${v.description ? `<span class="tmpl-chooser-tile-desc" title="${escapeHtml(v.description)}">${escapeHtml(v.description)}</span>` : ''}
         ${v.motion ? `<span class="tmpl-motion-beats">${escapeHtml(v.motion.beats.join(' → '))}</span><span class="tmpl-motion-actions"><button type="button" class="btn btn--sm" data-motion-play aria-pressed="false"${opts.host && opts.toolId === 'design' ? '' : ' disabled'}>${escapeHtml(t('Preview animation'))}</button><button type="button" class="btn btn--primary btn--sm">${escapeHtml(t('Use this'))} ↗</button></span>` : ''}
         ${chips}${restore}
       </${tag}>`;
@@ -437,8 +449,9 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
     };
 
     const gridHtml = (): string => {
+      if (!entries.length && opts.emptyText) return `<p class="tmpl-chooser-none">${escapeHtml(opts.emptyText)}</p>`;
       const showing = activeFilter === HIDDEN_FILTER ? entries.filter(isHidden) : entries.filter(v => !isHidden(v));
-      const blank = activeFilter === HIDDEN_FILTER ? '' : blankTileHtml();
+      const blank = activeFilter === HIDDEN_FILTER || opts.noBlank ? '' : blankTileHtml();
       return `<div class="tmpl-chooser-grid">${blank}${showing.map(tileHtml).join('')}</div>`;
     };
 
@@ -459,7 +472,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
         <header class="tmpl-chooser-header">
           <h2 id="tmpl-chooser-title">${escapeHtml(opts.title ?? tRaw('Start {tool}', { tool: opts.toolName }))}</h2>
           <input type="search" class="tmpl-chooser-search" placeholder="${escapeHtml(t('Search templates…'))}" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(t('Search templates'))}">
-          <button type="button" class="tmpl-chooser-close" aria-label="${escapeHtml(t('Close'))}">×</button>
+          ${closeButtonHtml({ className: 'tmpl-chooser-close' })}
         </header>
         <div class="tmpl-chooser-body">${bodyHtml()}</div>
       </div>
@@ -880,7 +893,8 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
           // Yield before the render-engine chunk is even requested: the tool is mounting
           // underneath this modal right now and its own lazy chunks are in flight.
           await whenIdle();
-          const { renderFeaturedVariant } = await import('../lib/featured-render.ts');
+          const { coverFormats, renderFeaturedVariant } = await import('../lib/featured-render.ts');
+          const previewFormats = coverFormats({ formats, galleryArt: opts.galleryArt });
           while (queue.length && !settled) {
             const id = queue.shift()!;
             const values = await getValues(id).catch(() => null);
@@ -894,7 +908,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
             try {
               const src = await renderFeaturedVariant(
                 host as Parameters<typeof renderFeaturedVariant>[0],
-                opts.toolId, formats, id, values as Record<string, unknown>, previewNs, byId.get(id)?.motion?.posterMs,
+                opts.toolId, previewFormats, id, values as Record<string, unknown>, previewNs, byId.get(id)?.motion?.posterMs,
               );
               refreshBrand();
               if (settled || !src || renderedBrandTag !== brandTagApplied) continue;

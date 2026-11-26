@@ -30,8 +30,17 @@ export async function readCatalogJson(response: Response): Promise<unknown> {
 }
 export const isCatalogAsset = (value: unknown): value is AssetMetaRecord => !!value && typeof value === 'object'
   && typeof (value as AssetMetaRecord).id === 'string' && Array.isArray((value as AssetMetaRecord).formats);
+/**
+ * A shared catalog asset id that is safe to place in an instance URL: `ext/` or `inst/`, then
+ * path segments of letters, digits, dots, underscores and hyphens, none of them empty, `.` or
+ * `..`, so the id can never step to another route.
+ */
+export function isSharedCatalogId(id: string): boolean {
+  if (!/^(ext|inst)\/[A-Za-z0-9._/-]+$/.test(id)) return false;
+  return id.split('/').every(segment => segment !== '' && segment !== '.' && segment !== '..');
+}
 export async function readCatalogAsset(id: string): Promise<AssetMetaRecord | null> {
-  if (!/^(ext|inst)\/[A-Za-z0-9._/-]+$/.test(id) || id.includes('..')) return null;
+  if (!isSharedCatalogId(id)) return null;
   const origin = getInstanceBase();
   const response = await instanceFetch(instancePath(`/api/v1/catalog/assets/${id}`), { cache: 'no-store', signal: AbortSignal.timeout(15_000) });
   if (response.status === 404) return null;

@@ -42,7 +42,8 @@ type Rec = Record<string, unknown>;
 const load = (path: string): Rec => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const WEFTHOUSE = (): Rec => load('./fixtures/colour-roles/wefthouse.tokens.json');
 const NO_ROLES: Record<string, () => Rec> = {
-  'Lolly Demo': () => load('../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json'),
+  // Lolly Demo as it was before it declared its own words (plans/352 R6, shipped-colour-roles.test.ts).
+  'Lolly Demo': () => load('./fixtures/colour-roles/lolly-demo-no-roles.json'),
   'Lolly Start': () => load('../brands/lolly-start/catalog/assets/lolly/tokens/brand.json'),
   'Lolly Demo with one lead': () => load('./fixtures/colourway/lolly-demo-single-lead.json'),
   'a derived system': () => deriveBrandTokens({ primary: '#2453ff', name: 'Fixture' }),

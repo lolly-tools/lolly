@@ -21,6 +21,7 @@ import { parseTemplateRef, shippedTemplateRef } from '../lib/template-ref.ts';
 import type { UserTemplate } from '../lib/user-templates.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
 import type { GalleryHost, GalleryTool } from './gallery.ts';
+import { templateChipLabel, type TemplateChip } from './gallery-tiles.ts';
 
 /**
  * What the About dialog needs to list a tool's starting points and let the person pick
@@ -100,7 +101,8 @@ export function startWithName(gt: GalleryTemplates, toolId: string): string | nu
   return null;
 }
 
-/** The card's quiet starting-point line: what it starts with, else how many there are. */
+/** The card's quiet starting-point line: what it starts with, else how many there are.
+ *  This is the full wording; the card shows it short (templateChip) and reads it whole. */
 export function templateLine(gt: GalleryTemplates, tool: GalleryTool): string {
   const name = startWithName(gt, tool.id);
   if (name) return tRaw('Starts with {name}', { name });
@@ -108,25 +110,34 @@ export function templateLine(gt: GalleryTemplates, tool: GalleryTool): string {
   return n === 0 ? '' : n === 1 ? t('1 template') : tRaw('{n} templates', { n });
 }
 
-/** Repaint one card's line in place after a "Start with" changes under the About dialog. */
+/**
+ * The card's starting-point chip: a document glyph and the short form of the line, the
+ * template's name when the person set a "Start with", else the count. `label` is the
+ * whole line, for the tooltip and the accessible name. Null when the line says nothing.
+ */
+export function templateChip(gt: GalleryTemplates, tool: GalleryTool): TemplateChip | null {
+  const label = templateLine(gt, tool);
+  if (!label) return null;
+  const name = startWithName(gt, tool.id);
+  return { short: name ?? String(shippedTemplatesOf(gt, tool).length + myTemplatesOf(gt, tool.id).length), label };
+}
+
+/** Repaint one card's chip in place after a "Start with" changes under the About dialog. */
 export function refreshTemplateLine(gt: GalleryTemplates, toolId: string): void {
   const tool = gt.toolById.get(toolId);
   if (!tool) return;
   const sel = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(toolId) : toolId;
   const card = gt.root.querySelector<HTMLElement>(`.gtile[data-tool-id="${sel}"]`);
-  const meta = card?.querySelector<HTMLElement>('.gtile-meta');
-  if (!meta) return;
-  const line = templateLine(gt, tool);
-  let el = meta.querySelector<HTMLElement>('.gtile-tpl');
-  if (!line) { el?.remove(); return; }
-  if (!el) {
-    el = document.createElement('a');
-    el.className = 'gtile-tpl btn';
-    el.setAttribute('href', `#/tool/${toolId}?template=${tool.openQuery ? `&${tool.openQuery}` : ''}`);
-    el.dataset.newTool = toolId;
-    meta.appendChild(el);
-  }
-  el.textContent = line;
+  // Every available tool card carries the chip, hidden when it has nothing to say.
+  const el = card?.querySelector<HTMLElement>('.gtile-cap > .gtile-tpl');
+  if (!el) return;
+  const chip = templateChip(gt, tool);
+  el.hidden = !chip;
+  if (!chip) { el.removeAttribute('title'); el.removeAttribute('aria-label'); return; }
+  // Set as TEXT: a template name is the person's own words.
+  el.querySelector<HTMLElement>('.gtile-tpl-n')!.textContent = chip.short;
+  el.title = chip.label;
+  el.setAttribute('aria-label', templateChipLabel(tool, chip));
 }
 
 /**

@@ -1,8 +1,17 @@
 # Run on Kubernetes
 
-This page is for a platform engineer who wants Lolly's web app on their own cluster: air-gapped, on premises or beside the rest of a platform. At the end, the web app answers on your hostname with TLS, and the optional MCP and CA services are one setting away.
+This page is for a platform engineer who wants Lolly's web app on their own cluster: air-gapped, on premises or beside the rest of a platform. At the end, the web app answers on your hostname with TLS, and the optional MCP and CA services are one setting away. For the Lolly Work server, with sign-in and shared projects, follow [Install Lolly Work on Kubernetes](/info/work-platform-deployment.html) instead.
 
-The chart is plain Kubernetes, so it deploys on any conformant distribution, including RKE2 and <!--l:k3s-->k3s, and on any managed service. Any static web server can host the web build too; [Choose a deployment](/info/deployment.html#host-the-web-app) covers that path and the routes and headers every host needs. The image described here already sends those headers.
+The chart is plain Kubernetes, so it deploys on Rancher, on RKE2 and <!--l:k3s-->K3s, on any other conformant distribution and on any managed service. Any static web server can host the web build too; [Choose a deployment](/info/deployment.html#host-the-web-app) covers that path and the routes and headers every host needs. The image described here already sends those headers.
+
+**What you'll do**, in four steps:
+
+::: steps
+- <!--i:eti-package--> **[Pick an image](#use-the-published-images)** A signed release image, or one you build and sign yourself.
+- <!--i:eti-download--> **[Install the chart](#install-the-chart)** From a checkout, pinned by digest, tried with a port-forward.
+- <!--i:eti-lock--> **[Add TLS](#tls-with-cert-manager)** cert-manager issues the Ingress certificate.
+- <!--i:eti-refresh--> **[Update](#update-the-application)** Promote a tested digest with `helm upgrade`.
+:::
 
 <!--lb:kubernetes helm-->
 
@@ -18,10 +27,15 @@ From Lolly 1.1.1, every release publishes signed, attested `linux/amd64` images 
 | `lolly-ca` | The Content Credentials identity service |
 | `lolly-penpot` | The Penpot pass-through |
 
-They carry the profile lolly.tools ships: [Lolly Demo](/info/lolly-demo.html) (`lolly-demo`) from 1.1.2, and the neutral `lolly-start` in 1.1.1. Each release lists every image's digest in its `images.json`. The [published images guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md#published-images) shows how to verify them with cosign, mirror them and pin a digest.
+::: note No 1.2.0 browser MCP image
+Lolly 1.2.0 published no `lolly-mcp-browser` image, so `lolly-mcp-browser:1.1.3` stays current until the next release ships one again. The other four images are at 1.2.0.
+:::
+
+They include the profile lolly.tools ships: [Lolly Demo](/info/lolly-demo.html) (`lolly-demo`) from 1.1.2, and the neutral `lolly-start` in 1.1.1. Each release lists every image's digest in its `images.json`. The [published images guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md#published-images) shows how to verify them with cosign, mirror them and pin a digest.
 
 Build your own image instead (see [Build your own image](#build-your-own-image)) for another brand profile, your own signing key or another base image.
 
+<!--i:eti-download-->
 ## Install the chart
 
 `deploy/helm/` is the chart. There is no hosted chart repository, so install from a checkout of this repository.
@@ -56,11 +70,12 @@ helm upgrade --install lolly ./deploy/helm -n lolly \
 
 ### What the chart deploys
 
-`web` is on by default: two stateless replicas behind a ClusterIP service, a TLS-ready ingress you turn on with a hostname and `/healthz` liveness and readiness probes. The web app holds no state on the server (everything lives in each browser's IndexedDB), so replicas are interchangeable and you can raise the count freely. `mcp` and `ca` stay off until you turn them on.
+`web` is on by default: two stateless replicas behind a ClusterIP service, a TLS-ready ingress you turn on with a hostname and `/healthz` liveness and readiness probes. The web app has no state on the server (everything is in each browser's IndexedDB), so replicas are interchangeable and you can raise the count freely. `mcp` and `ca` stay off until you turn them on.
 
 Every pod gets the same secure defaults:
 
 - runs as non-root under `RuntimeDefault` seccomp, with all capabilities dropped and no privilege escalation;
+- no SELinux or AppArmor setting of its own, so the node's policy applies. Run SELinux nodes, such as SLES 16 or openSUSE Leap 16, where you can: the browser sandbox profile below leaves SELinux on. Lolly Work's render worker has an opt-in AppArmor profile for nodes that still run AppArmor ([admission policy](/info/work-admission-policy.html));
 - a read-only root filesystem, with writable `emptyDir` volumes only where nginx needs them;
 - no ServiceAccount token mounted, because none of the components talk to the Kubernetes API;
 - soft pod anti-affinity, which spreads replicas without blocking a single-node cluster;
@@ -117,9 +132,10 @@ deploy/helm/
 ```
 :::
 
+<!--i:eti-sliders-->
 ## Turn on MCP or CA
 
-Both stay off until you ask for them, and both are stateless by default.
+Both are stateless by default.
 
 **MCP** (`--set mcp.enabled=true`) offers the tool catalog to AI agents over Streamable HTTP on port 8790. Its brand content is fixed when its image is built, exactly like the web image. The default `lolly-mcp` image ships no Chromium: SVG, data and resvg PNG work without a browser, and browser-tier formats are refused. For PNG, JPEG, PDF and video through Chromium, set `mcp.image.repository=ghcr.io/lolly-tools/lolly-mcp-browser` and point it at your web app with `--set mcp.webBase=https://lolly.example.com`. Liveness is a TCP socket check; readiness polls `/readyz`, which turns 503 while the server drains. The optional private result files (`mcp.privateFiles.enabled`) live in one process and expire on restart, so that mode needs `mcp.replicaCount: 1`.
 
@@ -128,6 +144,7 @@ Both stay off until you ask for them, and both are stateless by default.
 - **The default, `ca.config.issuerMode: legacy-root`,** needs a root key and certificate, made once with `node services/ca/scripts/gen-root.mjs`, plus a service secret (`openssl rand -hex 32`). Fill in `ca.secrets` and let the chart create the Secret, or, the production choice, set `ca.existingSecret` to one your platform's secret store manages and leave `ca.secrets` empty. The chart refuses to render a CA with a missing root.
 - **The managed mode, `ca.config.issuerMode: vault-pki`,** issues from a Vault PKI mount configured under `ca.config.managed`. The root key stays in Vault, the chart refuses root key or certificate values and a NetworkPolicy limits the CA's egress to the peers you list. With Vault's Kubernetes sign-in, the CA pod is the one exception to the no-token rule: it gets a ten-minute service-account token whose audience is Vault, not the Kubernetes API.
 
+<!--i:eti-hammer-->
 ## Build your own image
 
 `deploy/docker/web.Dockerfile` packages a frontend that was already compiled and signed. The image build runs no compiler and never receives a private key.
@@ -136,7 +153,11 @@ Both stay off until you ask for them, and both are stateless by default.
 From a reviewed commit to running pods. Signing happens before the image build, and the image build only checks and packages.
 :::
 
-The signed frontend comes from the reusable `release-frontend.yml` workflow, or your own equivalent: a protected job signs the source catalog, a separate job compiles with only the public pin and a second protected job signs the output catalog and a receipt binding the source commit, content profile, public key and every file. The [signed image guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md) covers key custody, the jobs and the release gate. Never put a private key in an image build argument, context or BuildKit mount.
+The signed frontend comes from the reusable `release-frontend.yml` workflow, or your own equivalent: a protected job signs the source catalog, a separate job compiles with only the public pin and a second protected job signs the output catalog and a receipt binding the source commit, content profile, public key and every file. The [signed image guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md) covers key custody, the jobs and the release gate.
+
+::: warning Keep private keys out of the image build
+Never put a private key in an image build argument, context or BuildKit mount.
+:::
 
 Package an approved frontend directory with its reviewed source commit and public pin. The **build context must be the repository root**:
 
@@ -155,19 +176,23 @@ The Dockerfile has two stages:
 - **verify:** `node:26-bookworm`, pinned by digest, with no network. It checks the WebGPU release gate, then verifies the receipt, every file, the signed catalog and the delivery configuration against the source commit, profile and public pin you supplied. A changed, extra, missing or symbolic-link file, or a different source, profile or key, fails the build. `--no-cache-filter verify` repeats these checks on every build.
 - **runtime:** `ghcr.io/nginx/nginx-unprivileged`, also pinned by digest, running as uid 101 on port **8080**. The verified frontend goes to `/usr/share/nginx/html`, `deploy/docker/nginx.conf` becomes `conf.d/default.conf`, and `security-headers.conf` and the delivery header files go into `/etc/nginx/`.
 
-The content profile (`lolly-demo`, `lolly-start` or `suse` with the private pack mounted at compile time) is fixed when the frontend is compiled and signed. `--build-arg LOLLY_PROFILE` must name the same profile, and the verify stage refuses another. Nothing is read at serve time, which is why the chart mounts no pack, configuration or secret for the web app; changing brand means a new signed frontend, a new image and a rolled deployment. Model files are the exception: the image ships none, and an optional read-only volume at `/usr/share/nginx/html/models` serves them (the published images guide gives its layout).
+The content profile (`lolly-demo`, `lolly-start` or `suse` with the private pack mounted at compile time) is fixed when the frontend is compiled and signed. `--build-arg LOLLY_PROFILE` must set the same profile, and the verify stage refuses another. Nothing is read at serve time, which is why the chart mounts no pack, configuration or secret for the web app; changing brand means a new signed frontend, a new image and a rolled deployment. Model files are the exception: the image ships none, and an optional read-only volume at `/usr/share/nginx/html/models` serves them (the published images guide gives its layout).
 
 `mcp.Dockerfile`, `mcp-browser.Dockerfile`, `ca.Dockerfile` and `penpot.Dockerfile` also build from the repository root and run their entry point on Node as the non-root `node` user: MCP, CA and Penpot on a digest-pinned `node:26-alpine`, and the browser MCP image on `node:26-bookworm-slim` with a lockfile-scoped Chromium. Build them only if you turn those components on and do not use the published images.
 
 ### What the nginx config already handles
 
-The web app is a single-page app, so the server has real work to do. Link deep links (`/?tool=qr-code`) must fall back to `index.html`, the service worker must never be cached, hashed files should be immutable, the HarfBuzz `.wasm` and the `.webmanifest` need correct MIME types, and the security headers belong on every response. `deploy/docker/nginx.conf` does all of that, and `tests/security-headers.test.ts` pins its CSP against the other shipped copies, so edit the file rather than writing a fresh one.
+The web app is a single-page app, so the server has real work to do. Deep links (`/?tool=qr-code`) must fall back to `index.html`, the service worker must never be cached, hashed files should be immutable, the HarfBuzz `.wasm` and the `.webmanifest` need correct MIME types, and the security headers belong on every response. `deploy/docker/nginx.conf` does all of that, and `tests/security-headers.test.ts` pins its CSP against the other shipped copies, so edit the file rather than writing a fresh one.
 
 - **Two servers.** The public server listens on port 8080 and proxies to an internal static server on `127.0.0.1:8081`, setting the content ETag that browsers revalidate against.
 - **Real files, then the app.** The internal server serves `/usr/share/nginx/html`. `/info/`, `/t/`, `/view/`, `/tools/` and `/catalog/` serve real files and return 404 when one is missing. `/api/`, `/live/` and `/tool/` return 404, because separate services own them. Everything else tries the file, its `.html` twin and a directory index before falling back to `index.html`.
 - **Headers on every location.** Each location includes `/etc/nginx/security-headers.conf`, which sends the security headers and the cache policy. The policy comes from `delivery-maps.conf`, generated by `scripts/build-delivery.ts` and keyed on status and path: `no-cache` for `sw.js`, long `immutable` caching for hashed `/_app/` files and other content-hashed paths, and revalidation for other successful responses.
 
-The repeated `include` is needed because nginx drops inherited `add_header` lines inside any location that declares its own; [Choose a deployment](/info/deployment.html#the-headers-you-must-serve) explains the trap. Keep the include when you add a location. The file also carries an unauthenticated `/healthz` for the chart's probes, explicit `types` for `.wasm`, `.avif` and `.webmanifest`, read-only CORS for `/models/` and the short clean-route aliases (`/d`, `/v`, `/a`, `/start`, `/batch` and the rest) that mirror the other shipped web server configurations. Mirror every clean route when you write your own.
+::: warning Keep the include when you add a location
+nginx drops inherited `add_header` lines inside any location that declares its own, so each location needs the repeated `include`. [Choose a deployment](/info/deployment.html#the-headers-you-must-serve) explains the trap.
+:::
+
+The file also has an unauthenticated `/healthz` for the chart's probes, explicit `types` for `.wasm`, `.avif` and `.webmanifest`, read-only CORS for `/models/` and the short clean-route aliases (`/d`, `/v`, `/a`, `/start`, `/batch` and the rest) that mirror the other shipped web server configurations. Mirror every clean route when you write your own.
 
 ::: details Use a SUSE nginx base image
 The runtime stage uses the upstream unprivileged nginx image so a plain `docker build` works with no registry credentials. To use a curated SUSE base instead, replace that one `FROM` line and leave the `COPY` lines alone. Two free and paid sources exist:
@@ -179,7 +204,7 @@ Check two things against whichever base you pick. The frontend must be copied wh
 :::
 
 ::: details Pull from the SUSE Application Collection
-The Collection's OCI registry is `dp.apps.rancher.io` (images under `/containers/<name>`, charts under `/charts/<name>`); `apps.rancher.io` is the catalog where you create credentials, and `docs.apps.rancher.io` holds its documentation. Pulls are never anonymous. You need a SUSE Customer Center account (`scc.suse.com`), then a personal **access token** (Settings, Access tokens) or an organisation **service account** (Settings, Service accounts).
+The Collection's OCI registry is `dp.apps.rancher.io` (images under `/containers/<name>`, charts under `/charts/<name>`); `apps.rancher.io` is the catalog where you create credentials, and `docs.apps.rancher.io` has its documentation. Pulls are never anonymous. You need a SUSE Customer Center account (`scc.suse.com`), then a personal **access token** (Settings, Access tokens) or an organisation **service account** (Settings, Service accounts).
 
 The free tier limits pulls, and its terms differ between personal tokens and service accounts, so unattended in-cluster pulls may need a paid organisation subscription. The terms can change; check the current ones on `apps.rancher.io`. If a subscription is not an option, use the free SUSE BCI image above.
 
@@ -200,12 +225,13 @@ kubectl create secret docker-registry application-collection \
   -n lolly
 ```
 
-The Collection carries charts for stateful services such as redis, postgresql, prometheus and cert-manager, but neither a generic static web server chart nor a Lolly chart: nginx is there as an image only. For the current registry paths, tags, chart versions and value keys, see the [Application Collection docs](https://docs.apps.rancher.io) and run `helm show values oci://dp.apps.rancher.io/charts/<chart>` before relying on any default.
+The Collection has charts for stateful services such as redis, postgresql, prometheus and cert-manager, but neither a generic static web server chart nor a Lolly chart: nginx is there as an image only. For the current registry paths, tags, chart versions and value keys, see the [Application Collection docs](https://docs.apps.rancher.io) and run `helm show values oci://dp.apps.rancher.io/charts/<chart>` before relying on any default.
 :::
 
+<!--i:eti-lock-->
 ## TLS with cert-manager
 
-Let cert-manager issue the Ingress certificate. Install it from wherever your platform takes charts. The Application Collection carries it as a real chart, installed with the pull secret from the section above:
+Let cert-manager issue the Ingress certificate. Install it from wherever your platform takes charts. The Application Collection has it as a real chart, installed with the pull secret from the section above:
 
 ```bash
 helm install cert-manager oci://dp.apps.rancher.io/charts/cert-manager \
@@ -216,6 +242,7 @@ helm install cert-manager oci://dp.apps.rancher.io/charts/cert-manager \
 
 Then add a `ClusterIssuer` (for example Let's Encrypt), point `web.ingress.tls[0]` at a secret name, and annotate the Ingress through `web.ingress.annotations` (`cert-manager.io/cluster-issuer: letsencrypt-prod`). `mcp` and `ca` take the same three keys under their own sections. Every Application Collection chart accepts the same `global.imagePullSecrets` setting.
 
+<!--i:eti-gauge-->
 ## Small clusters: the lean profile
 
 `deploy/helm/profiles/lean.yaml` is a small-cluster candidate: one pod per enabled public component, bounded CPU and memory and disk-backed temporary volumes. MCP and CA stay opt-in. Merge the profile before your instance settings:
@@ -232,13 +259,14 @@ With all three components on, requests total 100 millicores, 224 MiB of memory a
 K3s and RKE2 can share qualified node capacity between services. Cloud worker nodes may still be VMs, and containers do not remove their compute charges. The [Lolly Work SUSE deployment runbook](https://github.com/lolly-tools/lolly-work/blob/main/deploy/suse/README.md) covers operating-system support, resource profiles, UpCloud and Evroc storage drivers and Longhorn. Durable PostgreSQL storage and independently tested backups have a different lifecycle from reproducible shell and pack copies.
 
 ::: details Base images and dependencies for a K3s or RKE2 platform
-Prefer `registry.suse.com` BCI bases and [Application Collection](https://apps.rancher.io) dependencies when their versions meet the release requirements. Collection content comes from `dp.apps.rancher.io` and needs registry authentication and the account's entitlements. Build Lolly into the chosen base and test each architecture; a Node or nginx base alone does not contain the application. The optional Lolly Work BCI Node 24 Dockerfile is a candidate with its own build and boot checks. The public web, MCP and CA images keep their existing bases until another variant is qualified.
+Prefer `registry.suse.com` BCI bases and [Application Collection](https://apps.rancher.io) dependencies when their versions meet the release requirements. Build Lolly into the chosen base and test each architecture; a Node or nginx base alone does not contain the application. The optional Lolly Work BCI Node 24 Dockerfile is a candidate with its own build and boot checks. The public web, MCP and CA images keep their existing bases until another variant is qualified.
 
 Following the Collection's Penpot dependency model, Lolly Work can use a separately managed Collection PostgreSQL 18 release once it passes schema, version-compatibility and backup-and-restore checks. Its durable jobs already use PostgreSQL, so this adds no Redis requirement. A Redis TCP endpoint also cannot replace the public services' current REST admission adapter without an integration change.
 
-The original public chart does not install Lolly Work, its relay, Penpot or model hosting. The sovereign profile below adds the public routes and edge while leaving the private services to their own owners. Qualify every existing API route, authentication, shared editing, recovery and capacity before a public or private production cutover.
+The original public chart does not install Lolly Work, its relay, Penpot or model hosting. Qualify every existing API route, authentication, shared editing, recovery and capacity before a public or private production cutover.
 :::
 
+<!--i:eti-shield-check-->
 ## One node, public and private routes: the sovereign profile
 
 The optional [sovereign profile](https://github.com/lolly-tools/lolly/blob/main/deploy/helm/profiles/sovereign/README.md) is a separate chart at `deploy/helm/profiles/sovereign/`. It runs the public web app, MCP with its single public live relay, the CA and the Penpot adapter behind one Caddy edge. The edge has separate public and private host configuration: private sign-in, API, catalog, admin and collaboration routes reach an existing Lolly Work service, and private `/live/*` reaches its separate qualified relay. The profile does not replace Lolly Work, its database, worker or private relay, and it mounts no private content in public pods.
@@ -255,12 +283,14 @@ The profile starts at 352 MiB of memory requests and 1600 MiB of memory limits f
 The original chart and this chart keep separate defaults. The sovereign profile needs qualified image digests, distinct MCP and CA Secrets, measured exact proxy peers, reviewed admission and an existing model volume. It keeps the current durable REST rate limiter and CA email adapters until replacements are qualified. Before publishing, run real HTTPS routes, signed-catalog verification, admission refusal, cookie and authorisation custody, shared editing and invited-agent checks; schema validation alone does not qualify a cloud cutover.
 :::
 
+<!--i:eti-box-->
 ## Browser exports and the Chromium sandbox
 
 For browser-only public exports, the optional `mcp-browser.Dockerfile` and `browser.values.yaml` add Chromium with a bounded queue and larger resource budgets. The ordinary image stays browser-free. Set the exact public HTTPS web base and qualify sandbox startup and real exports. Keep the deployment's reviewed anonymous or bearer policy. Turning the browser on never grants access to private Lolly Work files or workspace documents.
 
 The optional [namespace sandbox profile](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/seccomp/README.md) keeps Chromium's own sandbox on under the container's dropped capabilities. Install and verify its exact hash on the chosen node first, then opt MCP into its Localhost seccomp profile; the other services keep `RuntimeDefault`. Qualify the namespace and seccomp diagnostics and real SVG, PNG and PDF exports after each browser or runtime change. The chart neither installs a host profile nor substitutes a sandbox bypass.
 
+<!--i:eti-refresh-->
 ## Update the application
 
 For a normal update, keep the cluster, database, Secrets, storage and hostname in place. Build and qualify the affected image from an exact reviewed commit, then promote its tested digest with `helm upgrade`. Keep the previous release's hashed files available for tabs that are already open (see [Delivery deployment](/info/deploy-delivery.html#build-and-retain-actual-files)).

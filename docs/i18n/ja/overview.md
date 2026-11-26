@@ -1,35 +1,37 @@
 # Lollyのアーキテクチャ
 
-![Lollyアイコン - 大きな緑と白のロリポップキャンディ](/info/icon.svg)
+![Lollyのアイコン - 緑と白の大きな棒付きキャンディー](/info/icon.svg)
 
-このページは、Lollyのコードを変更する人向けです。エンジン、シェル、ツールパックがどう組み合わさるか、それぞれがリポジトリのどこにあるか、あらゆる変更を縛る取り決めを説明します。Lollyが何をし、誰が使うのかを知りたい場合は、まず[Lollyの仕組み](/info/how-lolly-works.html)をお読みください。
+このページは、Lollyのコードを変更する人に向けたものです。エンジン、シェル、ツールパックがどう組み合わさるか、それぞれがリポジトリのどこにあるか、すべての変更が守るべき方針を説明します。Lollyで何ができ、誰が使うのかを知るには、まず[Lollyの仕組み](/info/how-lolly-works.html)をお読みください。
 
-さらに深く知るための補足が2つあります。[`engine/README.md`](../engine/README.md)は、コードから生成されたエンジンのモジュールごとの地図です。[脅威モデルと信頼境界](/info/threat-model.html)は、同じアーキテクチャを信頼境界として読み解いたもので、エンジンが何を信頼できないものとして扱うかについての疑問に答えるページです。
+[`engine/README.md`](https://github.com/lolly-tools/lolly/blob/main/engine/README.md)は、エンジンをモジュールごとに説明する、コードから生成された文書です。[脅威モデル & 信頼境界](/info/threat-model.html)では、同じアーキテクチャを信頼境界の観点から捉え、エンジンが何を信頼しないものとして扱うかを説明しています。
 
+<!--i:eti-layers-->
 ## 全体像
 
-最上位のツールはデータです。中間のエンジンはどのプラットフォームも知りません。最下位のシェルは1つの契約を実装し、カタログが内容を供給します。
+最上位には、データとしてのツールがあります。中央のエンジンは、どのプラットフォームにも依存しません。最下位のシェルが1つの契約を実装し、カタログがコンテンツを提供します。
 
-![ツールは共有エンジンにマニフェスト、テンプレート、フックを提供する。Web、Tauri、ターミナルのシェルはHostV1ケイパビリティブリッジを実装し、カタログからツールとアセットを読み込む。](/info/diagrams/concepts/platform-layers.svg)
+![ツールがマニフェスト、テンプレート、フックを共通のエンジンに提供します。Web、Tauri、ターミナルのシェルがHostV1機能ブリッジを実装し、カタログからツールとアセットを読み込みます。](/info/diagrams/concepts/platform-layers.svg)
 
-純粋なデータとHandlebarsで記述できるなら、それは**エンジン**に属します。DOM、ファイルシステム、ネットワーク、あるいはブラウザやオペレーティングシステムのAPIに触れるなら、それは**ホスト**、つまりブリッジのシェル側に属します。エンジンはオープンソースであり、特定のブランドやプラットフォームを知るものはエンジンに入りません。
+純粋なデータとHandlebarsで記述できるものは、すべて**エンジン**に属します。DOM、ファイルシステム、ネットワーク、ブラウザやOSのAPIに触れるものは、すべてブリッジのシェル側である**ホスト**に属します。エンジンはオープンソースです。特定のブランドに依存するものは、エンジンに入れません。
 
+<!--i:eti-folder-shared-->
 ## リポジトリの構成
 
-Lollyは1つのリポジトリです。以下のディレクトリはすべて、その中の通常のディレクトリですが、`brands/suse`は例外で、公開クローンが取得しない、SUSEのツールパックとカタログを収めた**非公開の**gitサブモジュールです。ビルドがどのパックを読むかはコンテンツプロファイル(`profiles.json`)で決まり、グローバルに切り替えるのではなく、プロセスごとに解決されます。クローンのコマンドと、非公開パックの中の変更をコミットする方法は、[ビルドガイド](/info/build-guide.html)にあります。
+Lollyは1つのリポジトリで構成されています。以下のディレクトリは、`brands/suse`を除き、すべて通常のディレクトリです。これは、SUSEのツールパックとカタログを含む**非公開**のgitサブモジュールで、公開リポジトリのクローンでは取得されません。コンテンツプロファイル(`profiles.json`)が、ビルドで読み込むパックを指定します。各プロセスが自身のプロファイルを解決し、全体を切り替えるスイッチはありません。[ビルドガイド](/info/build-guide.html)には、クローンのコマンドと、非公開パック内の変更をコミットする方法があります。
 
-| ディレクトリ | 収めるもの |
+| ディレクトリ | 内容 |
 |---|---|
 | `engine/` | プラットフォームに依存しないコア: ローダー、ランタイム、入力、テンプレート、URLモード、単位、形式モジュール |
-| `shells/` | Webアプリ、Tauriのデスクトップ・モバイルアプリ、CLI、TUI、ブラウザ拡張機能 |
-| `packages/` | ツール作者向けSDK(`@lolly-tools/core`)、共有のNodeシェル部品、ドキュメントレンダラーなど |
-| `community/` | ブランドに依存しないツールと、共有の絵文字パック |
-| `brands/` | ブランドパック: `lolly-demo`(lolly.toolsが使うデザインシステムのLolly Demo)、`lolly-start`(空のスターター)、非公開の`suse` |
-| `services/` | 任意のMCP、証明書、Penpotのサービスと、それらが共有するサーバーコード |
-| `schemas/` | ツールマニフェスト、アセットエントリ、アセット参照のJSON Schema |
-| `scripts/`、`tests/`、`docs/`、`api/` | ビルドとカタログのスクリプト、エンジンのテストスイート、これらのドキュメント、生成されたサーバーレスバンドル |
+| `shells/` | Webアプリ、Tauriのデスクトップアプリとモバイルアプリ、CLI、TUI、ブラウザ拡張機能 |
+| `packages/` | ツール作者向けSDK(`@lolly-tools/core`)、Nodeシェルの共通部分、ドキュメントレンダラーなど |
+| `community/` | ブランドに依存しないツールと、共通の絵文字パック |
+| `brands/` | ブランドパック: `lolly-demo`(lolly.toolsで使うデザインシステム、Lolly Demo)、`lolly-start`(空のスターター)、非公開の`suse` |
+| `services/` | 任意のMCP、証明書、Penpotサービスと、それらが共有するサーバーコード |
+| `schemas/` | ツールのマニフェスト、アセットのエントリー、アセット参照のJSON Schema |
+| `scripts/`, `tests/`, `docs/`, `api/` | ビルドとカタログのスクリプト、エンジンのテストスイート、このドキュメント、生成されたサーバーレスのバンドル |
 
-::: details 最初に目にするエンジンとシェルのファイル
+::: details 最初に見るエンジンとシェルのファイル
 ```
 engine/src/
   index.ts          public surface: loader, runtime, template, inputs, url-mode
@@ -55,127 +57,134 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 ```
 :::
 
-リポジトリのルートに`tools/`や`catalog/`ディレクトリはありません。`packages/node-shell/src/content-roots.ts`が、`profiles.json`から、問われたときに「ツール`<id>`はどこにあるか」「カタログはどこにあるか」に答えます。実際の`tools/`と`catalog/`の組が書き込まれるのは、`dist/`、RPMのペイロード、コンテナイメージなどのビルド出力だけです。ブラウザがその2つのパスをHTTPで取得するためです。
+::: note リポジトリのルートに`tools/`や`catalog/`ディレクトリはありません
+`packages/node-shell/src/content-roots.ts`は、`profiles.json`をもとに「ツール`<id>`がどこにあるか」と「カタログがどこにあるか」を解決します。実際の`tools/`と`catalog/`の組は、`dist/`、RPMのペイロード、コンテナイメージなどのビルド出力にだけ書き込まれます。ブラウザがこの2つのパスをHTTP経由で取得するためです。
+:::
 
-## Lollyが動作する場所
+<!--i:eti-monitor-->
+## Lollyが動く場所
 
-どの環境も、同じエンジンと同じツールファイルを使います。
+どの環境でも、同じエンジンと同じツールファイルを使います。
 
-- **Webアプリ。** サービスワーカーがツールとアセットをキャッシュした後はオフラインで動作するプログレッシブWebアプリです。アカウントは不要で、状態は各デバイスのIndexedDBにあります。1つのレスポンシブなレイアウトがデスクトップとスマートフォンに対応し、スマートフォンではコントロールがシートになり、書き出しコントロールはフローティングピルから開きます。
-- **デスクトップアプリとモバイルアプリ。** 同じWebアプリのTauriパッケージで、ネイティブのファイルダイアログ、ファイルシステムによる状態、完全なオフライン利用を備えます。
-- **CLI。** `lolly <tool-id> --input=value --output=file.png`は、ヘッドレスのDOMで同じエンジンを読み込み、ファイルを書き出します。これは別の実装ではなく、別の伝送路でのURLモードです。[CLI](/info/cli.html)をご覧ください。
-- **TUI。** 全画面でキーボード中心のターミナルアプリで、CLIのブリッジを再利用し、保存したセッションをディスクに保持し(アプリがインストールされていればデスクトップアプリ自身のフォルダ、そうでなければ`~/.lolly`の下)、形式がブラウザを必要とする場合にだけ、範囲を限定したヘッドレスブラウザを起動します。[TUI](/info/tui.html)をご覧ください。
+- **Webアプリ。** プログレッシブWebアプリです。サービスワーカーがツールとアセットをキャッシュすると、オフラインで動作します。アカウントは不要で、状態は各デバイスのIndexedDBに保存されます。1つのレスポンシブレイアウトがデスクトップとスマートフォンに対応します。スマートフォンでは、コントロールがシートになり、書き出しコントロールはフローティングピルから開きます。
+- **デスクトップアプリとモバイルアプリ。** 同じWebアプリをTauriでパッケージ化したものです。ネイティブのファイルダイアログ、ファイルシステムへの状態の保存、完全なオフライン利用に対応します。
+- **CLI。** `lolly <tool-id> --input=value --output=file.png`は、ヘッドレスDOMで同じエンジンを読み込み、ファイルを書き出します。異なる転送経路でURLモードを使うものです。[CLI](/info/cli.html)をご覧ください。
+- **TUI。** 全画面表示の、キーボード操作を中心とするターミナルアプリです。CLIのブリッジを再利用し、保存したセッションをディスクに保持します。デスクトップアプリがインストールされている場合はそのフォルダに、そうでない場合は`~/.lolly`の下に保存します。形式上必要な場合にだけ、用途を限定したヘッドレスブラウザを起動します。[TUI](/info/tui.html)をご覧ください。
 
-![デスクトップの分割ビュー: 左にマニフェストから生成されたコントロール、右にライブキャンバス](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
+![デスクトップの分割ビュー: 左側にマニフェストから生成したコントロール、右側にライブキャンバス](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
-同じツールをスマートフォンの幅で表示しても、別のレイアウトは要りません。コントロールが上部のシートになり、プレビューが画面を占めます。
+スマートフォンの画面幅では、コントロールのシートが上部にあり、プレビューが画面全体に広がります。
 
-![幅430pxの画面のオーディオグラム: 上にコントロールのシート、下に完成した正方形のアートワーク、そしてフローティングの書き出しピル](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![幅430pxの画面のオーディオグラム: 上部にコントロールのシート、下部に完成した正方形のアートワークと、フローティングの書き出しピル](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-Webアプリには、**Batch**(`#/batch`、`shells/web/src/pro/`)も同梱されています。1つまたは複数のツールにわたって多数の行を一度にレンダリングする、スプレッドシート形式のグリッドで、Batchについては[BatchとMulti-edit](/info/batch.html#make-many-versions-of-one-design)で扱っています。**Settings → Capabilities**には、プラットフォームができると宣言しているすべてのことの地図があります。
+Webアプリには**Batch**(`#/batch`、`shells/web/src/pro/`)も含まれています。スプレッドシート形式のグリッドで、1つまたは複数のツールにわたる多くの行を一度にレンダリングします。[BatchとLolly Multi-edit](/info/batch.html#make-many-versions-of-one-design)をご覧ください。**Settings → Capabilities**には、プラットフォームが対応を宣言しているすべての機能が一覧で表示されます。
 
-![新規インストール時のBatch: ツールを待つ空の行が1つあり、データが届く前にスプレッドシート画面とRenderボタンが用意されている](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
+![新規インストール直後のBatch: ツールの指定を待つ空の行が1つあり、データを入れる前からスプレッドシートとRenderボタンが表示されています](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-## アーキテクチャ上のコミットメント
+<!--i:eti-lock-->
+## アーキテクチャの基本方針
 
-これらの決定は確定済みです。コードベースのあらゆる他の決定を形作っているため、どれを変更するにも大きな取り組みが必要です。
+これらは確定した決定です。コードベース内のほかのすべての決定がこれらに依存するため、1つを変えるだけでも大がかりな作業になります。
 
-### 1. 宣言的なツール、命令的な逃げ道付き
+### 1. 宣言的なツールと、命令的な処理を使う手段
 
-ツールは、マニフェスト(`tool.json`)、テンプレート(`template.html`)、そして任意の`hooks.js`です。**マニフェストが入力を宣言し**、テンプレートは宣言しません。入力はHandlebarsのトークンから推測されません。ほとんどのツールはマニフェストとテンプレートだけで、そのおかげで開発者でない人も作成できます。
+ツールは、マニフェスト(`tool.json`)、テンプレート(`template.html`)、任意の`hooks.js`で構成されます。**マニフェストが入力を宣言します**。テンプレートのHandlebarsトークンから入力を推論することはありません。ほとんどのツールはマニフェストとテンプレートだけで構成されるため、開発者でなくても作成できます。
 
-![Street Mapのコントロール群: 都市のドロップダウン、テーマの選択、太さのスライダー、色のトリガー。どれもマニフェストの1行から描かれている](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&dark=1&filename=ov2-street-map-controls)
+![Street Mapのコントロールスタック: 都市のドロップダウン、テーマの選択、太さのスライダー、色の呼び出し。すべてマニフェストの行から生成されています](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&dark=1&filename=ov2-street-map-controls)
 
-QRのエンコードやグラフの整形など、値を計算するツールにはフックを追加します。これは、ケイパビリティブリッジが注入された状態でランタイムが呼び出す、名前付きのライフサイクル関数です。フックはセキュリティのサンドボックスではなく移植性の契約であり、時間の予算の範囲内で実行されます。フックがページのグローバルを使わないことが確認されたツールには`isolate: true`が付き、Workerで実行されます。ライフサイクルと予算は[ツールのフック](/info/tool-hooks.html)に、ページ内の実行機構が何を封じ込め、何を封じ込めないかは[脅威モデル](/info/threat-model.html)に書かれています。
+QRエンコードやグラフの整形など、値を計算するツールはフックを追加します。フックは名前付きのライフサイクル関数で、ランタイムが機能ブリッジを注入して呼び出します。フックは移植性のための契約であり、セキュリティサンドボックスではありません。決められた制限時間内で実行されます。フックがページのグローバル変数に依存しないと確認されたツールには`isolate: true`が付けられ、Workerで実行されます。[ツールのフック](/info/tool-hooks.html)には、ライフサイクルと制限時間が記載されています。[脅威モデル](/info/threat-model.html)では、ページ内の実行機構が何を封じ込め、何を封じ込めないかを説明しています。
 
-### 2. ツールとアセットはバンドルされたコードではなくデータである
+### 2. ツールとアセットは、バンドルされたコードではなくデータです
 
-WebアプリとTauriアプリは、起動時にツールとアセットのカタログを取得してキャッシュし、そこにあるもので動作するため、新しいツールやアセットのためにアプリのリリースは不要です。アセットのバイト列にはSHA-256のチェックサムが付き、アセットの`id`と`version`がキャッシュの無効化を左右します。
+WebアプリとTauriアプリは、起動時にツールとアセットのカタログを取得してキャッシュし、キャッシュされた内容で動作します。新しいツールやアセットの追加に、アプリのリリースは不要です。アセットのバイト列はSHA-256のチェックサムで検証されます。アセットの`id`と`version`が、キャッシュの無効化を決めます。
 
-### 3. ケイパビリティブリッジがツールの見る唯一のAPI
+### 3. ツールが使うAPIは機能ブリッジだけです
 
-ツールは、テンプレートの外のDOMに触れず、`fetch`を直接呼ばず、ファイルシステムも読みません。バージョン付きの`host.*`メソッドを呼び出します。契約の正式な定義は、ツール作者向けSDKの`@lolly-tools/core`である`packages/core/src/host-v1.ts`にあり、第三者がエンジンに依存せずにこれに対してビルドできます。`engine/src/bridge/host-v1.ts`はその型を再エクスポートします。
+ツールは、自身のテンプレートの外にあるDOMに触れず、`fetch`を直接呼び出さず、ファイルシステムも読みません。バージョン付きの`host.*`メソッドを呼び出します。この契約は、ツール作者向けSDKである`@lolly-tools/core`内の`packages/core/src/host-v1.ts`に定義されています。第三者は、エンジンに依存せずSDKを使って開発できます。`engine/src/bridge/host-v1.ts`は、その型を再エクスポートします。
 
-| 必須API | 内容 |
+| 必須API | 機能 |
 |---|---|
-| `host.profile` | ユーザーの詳細。`bindToProfile`を通じて入力を自動入力する |
-| `host.assets` | カタログのクエリ、アセットの解決、ホストのピッカー |
+| `host.profile` | ユーザーの情報。`bindToProfile`を通して入力を事前に埋める |
+| `host.assets` | カタログの検索、アセットの解決、ホストのピッカー |
 | `host.state` | 入力スロットの保存と読み込み: WebではIndexedDB、Tauriではファイルシステム、CLIではメモリ |
-| `host.clipboard` | テキストまたは画像をクリップボードに書き込む(プラットフォームごとの代替付き) |
-| `host.export` | レンダリング対象のラスタライズまたはシリアライズと、デバイス上のファイル変換経路 |
-| `host.log` | ホストへのレベル付きログ |
+| `host.clipboard` | プラットフォームに応じたフォールバック付きで、テキストや画像をクリップボードに書き込む |
+| `host.export` | レンダリング対象のラスタライズまたはシリアライズと、デバイス上でのファイル変換経路 |
+| `host.log` | ホストへのレベル別のログ出力 |
 
-それ以外のAPIはすべて任意で追加的なものです。`tokens`、`text`、`color`、`geom`、`pdf`、`compose`、`media`、`recorder`など多数があります。ツールのマニフェストは、フックが確認せずに呼び出す任意のAPIを`requires`に列挙し、それを欠くホストはツールのマウントを拒否します。残りについては、フックが機能を検出します。`recorder`など一部は、ツールが宣言するデバイスのケイパビリティも必要とします。`packages/core/src/host-v1/apis.ts`にすべてが一覧されており、それぞれは[Host API](/info/host-api.html)に記載されています。メソッドの追加はマイナーバージョン、削除や変更はメジャーバージョンであり、v2が出てもv1は動作し続けます。
+ほかのすべてのAPIは任意で、追加する形になっています。`tokens`、`text`、`color`、`geom`、`pdf`、`compose`、`media`、`recorder`など多数あります。マニフェストの`requires`には、フックが事前確認なしで呼び出す任意のAPIを列挙します。そのいずれかを持たないホストは、ツールのマウントを拒否します。それ以外は、フックが機能の有無を確認します。`recorder`などの一部のAPIは、ツールが宣言するデバイスの機能も必要とします。`packages/core/src/host-v1/apis.ts`にすべての一覧があり、[Host API](/info/host-api.html)でそれぞれを説明しています。メソッドの追加ではマイナーバージョンが変わります。削除や変更ではメジャーバージョンが変わり、v2がリリースされてもv1は動作し続けます。
 
-### 4. アセットIDは永久
+### 4. アセットIDは永続です
 
-`lolly/logo/primary`は契約です。一度公開されたIDは変更されず、再利用もされません。バイト列の変更ではアセットエントリの`version`が上がり、置き換えでは`deprecated: true`と、必要に応じて`replacedBy`が設定されるため、既存の参照は常に解決されます。これが、保存したセッションと共有リンクが何年も動き続ける理由です。
+`lolly/logo/primary`は契約です。公開されたIDは変更せず、再利用もしません。バイト列が変わると、アセットのエントリーの`version`を上げます。置き換える場合は、`deprecated: true`と、必要に応じて`replacedBy`を設定します。既存の参照は常に解決されるため、保存したセッションや共有リンクは何年も動作し続けます。
 
-### 5. URLモードはファーストクラスである
+### 5. URLモードは中心的な機能です
 
-すべての入力はURLパラメーターとして表現できるため、リンクは完成したファイルです。
+すべての入力をURLパラメーターで表せるため、リンクが完成したファイルになります。
 
 ```
 https://lolly.tools/t/qr-code?url=https://example.com&ecl=H
 ```
 
-![このリンクだけで、ほかに何もなくても、完成したファイルになる](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Fexample.com%26ecl%3DH%26full&width=760&height=760&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-url-mode-qr)
+![ほかに何も含まない、そのリンクだけで完成したファイルになります](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Fexample.com%26ecl%3DH%26full&width=760&height=760&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-url-mode-qr)
 
-パラメーターを変えると、別のファイルになります。このパレット全体は、1つのシード色、ハーモニー、ステップ数からできています。
+パラメーターを変えると、別のファイルが得られます。このパレットは、1つの基準色、配色の調和、段階数からできています。
 
-![4色相にわたる9段階、すべてリンクに含まれる単一のシード色から生成されています](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3De0521a%26harmony%3Dtetrad-4%26steps%3D9%26full&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-url-palette)
+![4つの色相それぞれに9段階。すべてリンクに含まれる1つの基準色から生成されています](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3De0521a%26harmony%3Dtetrad-4%26steps%3D9%26full&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-url-palette)
 
-CLIは、引数から同じURL状態を作って同じパイプラインを実行するため、CLIがアプリとずれることはありません。`engine/src/url-mode.ts`が解析とシリアライズを行い、予約された名前(`format`、`width`、`dpi`、`c2pa`、`z`など)はツールに渡されません。すべては[予約済みURLパラメーター](/info/url-parameters.html)に一覧があります。アセット入力は`id`で渡され、テンプレートが埋められる前に`host.assets.get()`で解決されます。
+CLIは、引数から同じURL状態を組み立て、同じ処理経路を実行するため、アプリと動作がずれることはありません。`engine/src/url-mode.ts`がURL状態を解析、シリアライズします。予約済みの名前(`format`、`width`、`dpi`、`c2pa`、`z`など)がツールに渡されることはありません。[予約済みURLパラメーター](/info/url-parameters.html)にすべての一覧があります。アセット入力は`id`で受け渡され、テンプレートを埋める前に`host.assets.get()`を通して解決されます。
 
-### 6. ストレージはブリッジを通る
+### 6. ストレージへのアクセスはブリッジを通します
 
-WebアプリはIndexedDB、Tauriはファイルシステム、CLIはメモリを使います。ツールに見えるのは`host.state.save(slot, data)`と`host.state.load(slot)`だけで、`localStorage`は使いません。アカウントなしで、ツールごとに名前付きの複数のセッションを保持できます。ブリッジが唯一の接点であるため、その状態は可搬でもあります。`shells/web/src/data-transfer.ts`がそれを1つの`lolly-backup`ファイルに読み出し、他のどのインストールにもインポートできます([データ移行](/info/data-transfer.html))。[同期](/info/sync.html)は、同じバンドルを利用者が選んだストレージに送ります。
+WebアプリはIndexedDB、Tauriはファイルシステム、CLIはメモリを使います。ツールが使うのは`host.state.save(slot, data)`と`host.state.load(slot)`だけで、`localStorage`は使いません。アカウントなしで、ツールごとに複数の名前付きセッションを保持できます。ブリッジだけが接点なので、状態も持ち運べます。`shells/web/src/data-transfer.ts`は、状態を1つの`lolly-backup`ファイルとして書き出します。このファイルは、ほかのどのインストール環境にもインポートできます([データの移行](/info/data-transfer.html))。[同期](/info/sync.html)は、同じバンドルをユーザーが選んだストレージに送ります。
 
-### 7. 成熟度タグは、ツールが何であるかを示す
+### 7. 成熟度タグがツールの位置付けを示します
 
-すべてのツールは`status: official | community | experimental`を宣言します。ギャラリーはステータス順に並び、experimentalのツールは既定で書き出しに透かしを入れます。ランタイムは、呼び出し側が`watermark: false`を渡さないかぎり透かしをオンにし、デバイス上で動作するツールは対象外です。チームがカタログの周りにどんなプロセスを置いても、それはこの上に載ります。
+すべてのツールが`status: official | community | experimental`を宣言します。ギャラリーはステータス順に並べます。実験的なツールは、既定で書き出しに透かしを入れます。呼び出し側が`watermark: false`を渡さないかぎり、ランタイムは透かしをオンにします。デバイス上で処理するツールは対象外です。チーム独自のカタログ管理プロセスは、これらのタグをもとに運用します。
 
-### 8. 入力はマニフェストで型付けされる
+### 8. 入力の型はマニフェストで指定します
 
-入力は`type`を宣言します。`text`、`longtext`、`number`、`boolean`、`color`、`select`、`asset`、`date`、`time`、`datetime-local`、`url`、`blocks`、`vector`、`table`、`file`のいずれかです。ホストは型ごとにコントロールを描画するため、ツールはコントロールのコードを書かず、どの入力にも`bindToProfile`を付けられます。特に重要なものが3つあります。
+入力は`type`を宣言します。`text`、`longtext`、`number`、`boolean`、`color`、`select`、`asset`、`date`、`time`、`datetime-local`、`url`、`blocks`、`vector`、`table`、`file`のいずれかです。ホストが型ごとのコントロールを描画するため、ツール側でコントロールのコードを書く必要はありません。どの入力にも`bindToProfile`を付けられます。特に重要なのは、次の3つの型です。
 
-- **`asset`**は、`filter`と`allowUpload`を持ち、アセットシステムへの橋渡しです。`allowUpload: false`はスロットをライブラリのアセットに限定し、ユーザーのアップロードはライブラリの`AssetRef`と同じ形を共有します。
-- **`blocks`**は、サイドパネルで編集する繰り返しのフィールドグループで、Meeting Planner、Wayfinding、Diagramsなどで使われます。描画されたブロックをクリックすると、その行にフォーカスが移ります。
-- **`file`**は、Strip Hidden DataやCompressなどのデバイス上のユーティリティのために、ユーザー自身のファイルをメモリに保持します。**`vector`**は、固定個数の数値を1つのコントロールにまとめます。
+- **`asset`**は、`filter`と`allowUpload`を備えた、アセットシステムへのブリッジです。`allowUpload: false`は、スロットをライブラリのアセットに限定します。ユーザーのアップロードも、ライブラリと同じ`AssetRef`の構造を使います。
+- **`blocks`**は、サイドパネルで編集する繰り返しのフィールドグループです。Meeting Planner、Wayfinding、Diagramsなどで使います。レンダリングされたブロックをクリックすると、その行にフォーカスが移ります。
+- **`file`**は、Lolly Strip Hidden DataやCompressなど、デバイス上で動作するユーティリティのために、ユーザー自身のファイルをメモリに保持します。**`vector`**は、固定された一組の数値を1つのコントロールにまとめます。
 
-### 9. テンプレートにロジックはない
+### 9. テンプレートはロジックを持ちません
 
-テンプレートはHandlebarsで、開発者でない人にも書けるように選ばれています。`{{x}}`はエスケープされ、`{{{x}}}`は明示的なオプトインです。ロジックは`hooks.js`にあり、明示的で、レビューできます。多くのテンプレートは、フックが計算したマークアップに`{{{`を使うため、各フックは渡すものをエスケープしなければなりません。ヘルパーは`default`、`upper`、`lower`、`eq`、`markdown`、`asset`、`framing`、`media`に加え、`.ics`、`.vcf`、`.csv`の兄弟テンプレート向けの`icsStamp`、`rfcText`、`csvCell`、`arrow`です。これらは[テンプレートとレンダリング](/info/tool-rendering.html)で扱っています。
+テンプレートはHandlebarsなので、開発者でなくても書けます。`{{x}}`はエスケープし、`{{{x}}}`はエスケープしないことを明示的に選ぶ記法です。ロジックは`hooks.js`に置かれ、そこでレビューできます。多くのテンプレートは、フックが生成したマークアップに`{{{`を使うため、各フックは渡す内容をエスケープする必要があります。ヘルパーには`default`、`upper`、`lower`、`eq`、`markdown`、`asset`、`framing`、`media`があり、対応する`.ics`、`.vcf`、`.csv`テンプレート向けに`icsStamp`、`rfcText`、`csvCell`、`arrow`もあります。[テンプレートとレンダリング](/info/tool-rendering.html)で説明しています。
 
-### 10. ツールはツールを合成する
+### 10. ツールはツールを合成します
 
-ツールは、ツール同士のインポートなしに、他のツールのレンダリングを埋め込めます。合成はエンジンが解決します。マニフェストは`composes: [{ id, tool, inputs }]`を宣言して子を`{{asset <id>}}`で配置でき、ポータブルな埋め込みURL(`https://lolly.tools/tool/<id>.svg?…`)が子をローカルでレンダリングします。DesignがライブのQRコードやグラフを配置するのは、この仕組みです。SVGの子は、SVGまたはPDFの親の中でもベクターのままです。子は中間生成物であり、透かしも署名も付かず、子をレンダリングできないシェルはそのスロットを空にしますが、親は引き続きレンダリングされます。詳細は[合成とブランドオーバーレイ](/info/tool-composition.html)にあります。
+ツール間でインポートを行わずに、別のツールのレンダリングを埋め込めます。エンジンが合成を解決します。マニフェストは`composes: [{ id, tool, inputs }]`を宣言し、`{{asset <id>}}`で子ツールを配置できます。持ち運べる埋め込みURL(`https://lolly.tools/tool/<id>.svg?…`)が子ツールをローカルでレンダリングします。Lolly Designはこの方法でライブのQRコードやグラフを配置します。子がSVGなら、親がSVGやPDFでもベクターのままです。子は中間生成物なので、透かしやスタンプは付きません。子をレンダリングできないシェルはスロットを空のままにし、親はそのままレンダリングされます。詳しくは[合成とブランドオーバーレイ](/info/tool-composition.html)をご覧ください。
 
-## あえてやらないこと
+<!--i:eti-scissors-->
+## 採用しなかったこと
 
-- **テンプレートに任意のJavaScriptは使わない。** ロジックは`hooks.js`にあります。
-- **必須のアセットサーバーはない。** アプリ内のAssetsにご自身のファイルを追加し、作業はセッションとして引き継ぎます。入力と設定にはリンク、アップロードも運ぶ場合には`.lolly`ファイルを使います。共有セッションは、ツールの選択画面でテンプレートにできます。管理されたカタログを求める組織は、Lolly Workのカタログ、承認、ポリシーを使うか、gitでブランドパックを管理してそこで変更をレビューできます。
-- **強制的なアクセス制御はない。** 公開のアプリは既定で公開されており、成熟度タグと透かしがブランドのリスクを担います。組織のサインイン、ロール、ポリシーは、チームが望む場合にLolly Workから提供されます。
-- **中央のデータベースはない。** ユーザーの状態は各デバイスにあり、任意の同期が、それを利用者が選んだストレージにコピーします。Lollyのデータベースにコピーされることはありません。
-- **ツールとエンジンの間で共有されるコードの経路はない。** エンジンとコミュニティツールはオープンソースで、非公開の`brands/suse/`のようなブランドパックは、独自のツールとカタログを独自の条件で持ちます。どのツールも`engine/`からインポートしないため、分離はきれいに保たれます。
+- **テンプレートに任意のJavaScriptを入れません。** ロジックは`hooks.js`に置きます。
+- **アセットサーバーを必須にしません。** ユーザーはアプリのAssetsに自分のファイルを追加し、セッションとして作品を引き渡します。入力と設定には共有リンクを使い、アップロードしたファイルも渡す場合は`.lolly`ファイルを使います。共有セッションは、ツールの選択画面でテンプレートにできます。管理されたカタログを必要とする組織は、Lolly Workのカタログ、承認、ポリシーを使うか、ブランドパックをgitで管理し、そこで変更をレビューできます。
+- **アクセス制御を強制しません。** オープンなアプリは、既定で公開されています。成熟度タグと透かしでブランド上のリスクを示します。チームが必要とする場合、Lolly Workが組織のサインイン、ロール、ポリシーを提供します。
+- **中央データベースはありません。** ユーザーの状態は各デバイスに保存され、任意の同期機能はユーザーが選んだストレージにコピーします。Lollyのデータベースにコピーすることはありません。
+- **ツールとエンジンの間でコードの経路を共有しません。** エンジンとコミュニティのツールはオープンソースです。非公開の`brands/suse/`などのブランドパックには、独自の条件のもとでツールとカタログが含まれます。どのツールも`engine/`からインポートしないため、分離が明確に保たれます。
 
+<!--i:eti-refresh-->
 ## 1回のレンダリングのライフサイクル
 
-誰かが`https://lolly.tools/t/qr-code?url=https://example.com&ecl=H`を開きます。
+ユーザーが`https://lolly.tools/t/qr-code?url=https://example.com&ecl=H`を開きます。
 
-1. **起動。** WebアプリはIndexedDBを開き、ケイパビリティブリッジを構築し、ツールとアセットのカタログを同期するか、オフラインならキャッシュから読み込みます。
-2. **ルーティング。** パスが`qr-code`のツールビューを選び、クエリがその初期値になります。
-3. **読み込み。** `loadTool`が`tool.json`を取得してスキーマで検証し、テンプレート、スタイル、フックを取得します。
+1. **起動。** WebアプリがIndexedDBを開き、機能ブリッジを構築し、ツールとアセットのカタログを同期します。オフラインの場合はキャッシュから読み込みます。
+2. **ルーティング。** パスが`qr-code`のツールビューを選び、クエリを初期値にします。
+3. **読み込み。** `loadTool`が`tool.json`を取得し、スキーマに照らして検証し、テンプレート、スタイル、フックを取得します。
 4. **リンクの解析。** `parseUrlState`がパラメーターを入力値に変換します。`?logo=lolly/logo/primary`のようなアセット参照は、未解決の`{ id }`になります。
-5. **ランタイムの開始。** `createRuntime(tool, host, initialValues)`が、プロフィールデータ、既定値、リンクから入力モデルを構築し、アセット参照を解決し、フックを読み込んで`onInit`を呼び出します。
-6. **レンダリング。** シェルはランタイムを購読し、モデルからコントロールを描画し、埋めたテンプレートを`#tool-canvas`に書き込みます。
-7. **操作。** 入力すると`runtime.setInput`が呼ばれ、制約を適用し、`onInput`を呼び出し、テンプレートを再び埋めて再描画します。
-8. **書き出し。** **Download**が`runtime.export(node, format)`を呼び、シェルの`host.export`がファイルを生成します。ラスター、DOMウォーカーによるベクター、PDF、ドキュメント、`schemas/tool.schema.json`にあるその他の形式のいずれかです。物理単位は形式ごとに変換され、メタデータとContent Credentialsは、形式が保持できる場合に埋め込まれます。experimentalのツールの透かしは、ツールではなくホストが付けます。書き出しの手順は[テンプレートとレンダリング](/info/tool-rendering.html)と[ファイルを書き出す](/info/exporting.html)で扱っています。
+5. **ランタイムの開始。** `createRuntime(tool, host, initialValues)`がプロフィールデータ、既定値、リンクから入力モデルを構築し、アセット参照を解決し、フックを読み込み、`onInit`を呼び出します。
+6. **レンダリング。** シェルがランタイムを購読し、モデルからコントロールを描画し、値を埋めたテンプレートを`#tool-canvas`に書き込みます。
+7. **操作。** 文字を入力すると`runtime.setInput`が呼ばれ、制約を適用し、`onInput`を呼び出し、テンプレートに再び値を埋めて描画し直します。
+8. **書き出し。** **Download**が`runtime.export(node, format)`を呼び出し、シェルの`host.export`がファイルを生成します。ラスター、DOMウォーカーからのベクター、PDF、ドキュメント、または`schemas/tool.schema.json`にあるその他の形式です。物理単位は形式ごとに変換されます。メタデータとContent Credentialsは、その形式が保持できる場合に埋め込まれます。実験的なツールの透かしは、ツールではなくホストが付けます。[テンプレートとレンダリング](/info/tool-rendering.html)と[ファイルを書き出す](/info/exporting.html)で、書き出しの手順を説明しています。
 
 ![?optionsで開く書き出しパネル: ファイル名と形式の組、出力サイズ、ファイルを書き出すコントロール](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
-同じライフサイクルは、Tauriでも、ヘッドレスのDOMを使うCLIでも動作し、出力はファイルまたは標準出力に送られます。
+Tauriでも、ヘッドレスDOMを使うCLIでも、同じライフサイクルが実行されます。CLIでは出力がファイルまたは標準出力に送られます。
 
+<!--i:eti-stamp-->
 ## ライセンス
 
-`engine/`、`shells/`、`services/`、`schemas/`、ドキュメントジェネレーターを含むコードは、1つの公開リポジトリ[`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)でMPL-2.0です。ドキュメントの文章はCC BY-SA 4.0です。ブランドパックは、各パックの`NOTICE.md`に独自の条件を持ちます。コミュニティツールはMPL-2.0で、非公開のSUSEパックはSUSEの専有です。ライセンスに関する全文の注記は[概要](/info/about.html)にあります。
+`engine/`、`shells/`、`services/`、`schemas/`、ドキュメント生成ツールを含むコードはMPL-2.0で、1つの公開リポジトリ[`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)にあります。ドキュメントの文章はCC BY-SA 4.0です。ブランドパックには、それぞれの`NOTICE.md`に独自の条件があります。コミュニティのツールはMPL-2.0で、非公開のSUSEパックはSUSEのプロプライエタリです。[概要](/info/about.html)にライセンスに関する注記の全文があります。

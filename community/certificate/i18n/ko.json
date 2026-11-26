@@ -1,6 +1,6 @@
 {
   "name": "인증서",
-  "description": "활성 디자인 시스템과 그 컬러웨이로 만드는 수료증과 상장이에요. 스타일 4가지, 인쇄용과 SNS용 크기, 공유용 모션을 갖췄고, 이름 하나씩 만들거나 행에서 일괄 생성으로 CSV 명단 전체를 한 번에 만들 수 있어요.",
+  "description": "수료증과 상장이에요. 스타일 4가지, 인쇄용과 SNS용 크기, 모션을 갖췄고, 이름 하나씩 만들거나 CSV 명단으로 한 번에 만들 수 있어요.",
   "a11yLabel": "{{default recipientName \"a recipient\"}}님의 {{default titleText \"Certificate\"}}",
   "inputs.certKind.label": "종류",
   "inputs.certKind.help": "문구를 정해요. 제목, 인증서의 용도를 알리는 윗줄, 인장의 표식이 바뀌어요.",

@@ -4,6 +4,7 @@
  * constants and pure helpers that used to sit above renderActions(). Moved here verbatim so
  * no feature module has to import the orchestrator file. The export actions bar under a mounted tool.
  */
+import { c2paDefaultOn } from '../../lib/c2pa-policy.ts';
 import { C2PA_FORMATS, PRINT_MARK_FORMATS, SEPARATING_FORMATS } from '@lolly/engine';
 import { fmtLabel } from '../../lib/export-format-info.ts';
 export { FMT_LABEL, fmtLabel, keepFormat, CMYK_TIFF_OK, TIFF_OK } from '../../lib/export-format-info.ts';
@@ -50,6 +51,21 @@ export const FMT_EXT: Record<string, string> = {
 // hidden and opts.c2pa never set, silently dropping the default provenance.
 export const isC2paFmt = (f: string | undefined): boolean =>
   !!f && (C2PA_FORMATS.includes(f) || f === 'webp-anim');
+
+/**
+ * The C2PA box is unticked by choice: on a tool that stamps by default, or against a link that
+ * said off. An unticked box on a tool that never stamps is nobody's choice, so that export
+ * keeps its bytes.
+ */
+export function c2paBoxOptedOut(
+  el: ParentNode | null | undefined,
+  exportDefaults: { c2pa?: { on: boolean } | null | undefined },
+  manifest: Parameters<typeof c2paDefaultOn>[0],
+): boolean {
+  const box = el?.querySelector<HTMLInputElement>('[data-action="pdf-c2pa"]');
+  if (!box || box.checked) return false;
+  return exportDefaults.c2pa?.on === false || c2paDefaultOn(manifest);
+}
 
 // The durable in-pixel watermark embeds two ways: the standalone raster encoders
 // (renderRaster/renderBitmap/renderTiff's opts.imprint branch), and - for the
@@ -103,6 +119,12 @@ export const isPressFmt = (f: string | undefined): boolean => SEPARATING_FORMATS
 // The `marks` CSV codec lives in lib/print-marks-csv.ts - one encoder, one
 // decoder, shared with the batch/folder render path (which previously had no way
 // to read a stored CSV back and so dropped print marks entirely).
+
+// The Colour profile card's "Print spot inks as process" box (engine 1.324). Read
+// whether or not the box is on screen: it lives in the CMYK card, which only CMYK
+// formats show, and the bridge ignores the option everywhere else.
+export const spotsAsProcessChecked = (el: Element | null | undefined): boolean =>
+  Boolean(el?.querySelector<HTMLInputElement>('[data-action="cmyk-spots-process"]')?.checked);
 
 // Read the Print marks card from an export-panel element `el` (empty when off).
 export const printEnabled = (el: Element | null | undefined): boolean =>

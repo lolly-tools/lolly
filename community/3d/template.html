@@ -1,4 +1,4 @@
-<div class="lolly3d-wrap" data-lolly-anno="{{scene}} {{background}} {{bgColor2}} {{cameraMove}} {{easing}} {{tint}}">
+<div class="lolly3d-wrap" data-export-error="The 3D scene is still drawing. Try again in a moment." data-lolly-anno="{{scene}} {{background}} {{bgColor2}} {{cameraMove}} {{easing}} {{tint}}">
   <canvas class="lolly3d-canvas" id="lolly3d-canvas" data-canvas-input="model" data-capture-stream></canvas>
 </div>
 <script type="application/json" id="lolly3d-state">{{{_state}}}</script>
@@ -95,11 +95,36 @@
   // else the same renderer's WebGL 2 backend. The probe is a rung on the
   // capability ladder - a browser that ships WebGPU later upgrades this tool with
   // no change here, and nothing downstream can tell which backend painted.
+  // An adapter alone is not enough. A software adapter (SwiftShader, as a headless
+  // browser or a machine without a GPU gets) can hand a WebGPU canvas an invalid texture,
+  // so the frame never reaches the page and every render comes out blank. Draw one
+  // frame and read it back, once per page, and take the WebGL 2 backend if it is empty.
   function probeWebGPU() {
-    try {
-      if (!navigator.gpu || typeof navigator.gpu.requestAdapter !== 'function') return Promise.resolve(false);
-      return navigator.gpu.requestAdapter().then(function (a) { return !!a; }, function () { return false; });
-    } catch (e) { return Promise.resolve(false); }
+    if (window.__lolly3dGpuProbe) return window.__lolly3dGpuProbe;
+    window.__lolly3dGpuProbe = (function () {
+      try {
+        if (!navigator.gpu || typeof navigator.gpu.requestAdapter !== 'function') return Promise.resolve(false);
+        return navigator.gpu.requestAdapter().then(function (adapter) {
+          if (!adapter) return false;
+          return adapter.requestDevice().then(function (device) {
+            try {
+              var c = document.createElement('canvas'); c.width = 4; c.height = 4;
+              var gpu = c.getContext('webgpu');
+              if (!gpu) return false;
+              gpu.configure({ device: device, format: navigator.gpu.getPreferredCanvasFormat(), alphaMode: 'premultiplied' });
+              var encoder = device.createCommandEncoder();
+              encoder.beginRenderPass({ colorAttachments: [{ view: gpu.getCurrentTexture().createView(), clearValue: { r: 1, g: 1, b: 1, a: 1 }, loadOp: 'clear', storeOp: 'store' }] }).end();
+              device.queue.submit([encoder.finish()]);
+              var out = document.createElement('canvas'); out.width = 1; out.height = 1;
+              var ctx = out.getContext('2d');
+              ctx.drawImage(c, 0, 0, 1, 1);
+              return ctx.getImageData(0, 0, 1, 1).data[3] > 0;
+            } finally { device.destroy(); }
+          });
+        }).catch(function () { return false; });
+      } catch (e) { return Promise.resolve(false); }
+    })();
+    return window.__lolly3dGpuProbe;
   }
   function createRenderer(THREE, target, forceWebGL) {
     var r = new THREE.WebGPURenderer({ canvas: target, antialias: true, alpha: true, forceWebGL: forceWebGL });
@@ -246,6 +271,8 @@
       }).then(function () {
         if (!alive() || disposed) return;
         renderFrame(0);
+        // A scene that has not drawn is not a picture, so export is refused until this frame exists.
+        if (canvas.parentNode && canvas.parentNode.removeAttribute) canvas.parentNode.removeAttribute('data-export-error');
         fireReady();
         if (!disposed) loop();
       });

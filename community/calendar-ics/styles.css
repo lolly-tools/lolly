@@ -278,3 +278,9 @@
   margin: 0;
   font-size: 11px;
 }
+
+.cal-stage { padding: calc(32px * var(--content-space, 1)); }
+.cal-main { padding: calc(24px * var(--content-space, 1)); }
+.cm-sheet { padding: calc(32px * var(--content-space, 1)); }
+
+.cal-title, .cm-title { font-family: var(--font-display, var(--font-brand, system-ui, sans-serif)); }

@@ -1,6 +1,6 @@
 {
   "name": "Subtítulos",
-  "description": "Subtítulos para un clip - transcríbelo en el dispositivo o añade un archivo SRT/VTT, da estilo a las líneas y exporta fotogramas con los subtítulos incrustados, además de archivos complementarios .srt y .vtt limpios.",
+  "description": "Subtítulos para un clip - transcríbelo en el dispositivo o añade un archivo SRT/VTT, y exporta fotogramas con los subtítulos incrustados más .srt y .vtt.",
   "inputs.style.section": "Subtítulos",
   "inputs.position.section": "Subtítulos",
   "inputs.fontSize.section": "Subtítulos",

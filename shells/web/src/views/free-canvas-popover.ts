@@ -36,24 +36,45 @@ export function placePopover(
   };
 }
 
+/**
+ * Does a floating editor surface go on the body, over the stage, rather than in the stage?
+ *
+ * The stage is `position: fixed`, which makes it a stacking context of its own: no
+ * z-index inside it lifts a menu or panel over a surface the body stacks above the
+ * stage. Two such surfaces can cover the stage. A trigger outside the stage sits in one
+ * of them (the docked column, a floating inspector, the phone's inspector sheet), so a
+ * surface appended to the stage opened behind its own trigger. And in Design's phone
+ * layout the inspector sheet and the navigator lie over the lower half of the stage,
+ * whichever control opened the surface, so there it always goes over. `anchor` is
+ * optional for a surface opened at a point (a context menu) rather than beside a control.
+ */
+export function overStage(stage: HTMLElement, anchor?: HTMLElement | null): boolean {
+  return stage.dataset.designLayout === 'compact' || (!!anchor && !stage.contains(anchor));
+}
+
 /** Mount and position the menu relative to the control that actually opened it. */
 export function positionEditorPopover(menu: HTMLElement, anchor: HTMLElement, stage: HTMLElement): void {
-  const detached = !stage.contains(anchor);
-  if (detached) menu.classList.add('fc-popover--viewport');
-  (detached ? document.body : stage).appendChild(menu);
+  const over = overStage(stage, anchor);
+  // A toggle, not an add: the camera controls are placed again on every move, and a
+  // window that leaves the phone layout puts them back in the stage.
+  menu.classList.toggle('fc-popover--viewport', over);
+  (over ? stage.ownerDocument.body : stage).appendChild(menu);
   const ar = anchor.getBoundingClientRect();
-  const sr = detached
+  const sr = over
     ? { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
     : stage.getBoundingClientRect();
   const actions = anchor.closest('.design-compact-actions');
   const viewport = window.visualViewport;
   const visibleTop = Math.max(sr.top, viewport?.offsetTop ?? 0);
   const visibleBottom = Math.min(sr.top + sr.height, (viewport?.offsetTop ?? 0) + (viewport?.height ?? window.innerHeight));
-  const menuBottom = actions ? Math.min(visibleBottom, actions.getBoundingClientRect().top) : sr.top + sr.height;
+  // The room ends at the phone layout's bottom bar wherever the menu was opened from, so
+  // a menu from the top bar scrolls above the bar instead of running under the bar.
+  const foot = sr.top + stageFoot(stage, sr);
+  const menuBottom = actions ? Math.min(visibleBottom, foot) : foot;
   if (actions) menu.style.maxHeight = `${Math.max(0, menuBottom - visibleTop - 12)}px`;
   const below = !!anchor.closest('.design-topbar');
   // A top-bar menu scrolls into the space below its trigger instead of covering it.
-  if (below) menu.style.maxHeight = `${Math.max(0, sr.height - (ar.bottom - sr.top) - 14)}px`;
+  if (below) menu.style.maxHeight = `${Math.max(0, menuBottom - ar.bottom - 14)}px`;
   const pr = menu.getBoundingClientRect();
   const pos = placePopover(
     { left: ar.left - sr.left, right: ar.right - sr.left, top: ar.top - sr.top,
@@ -62,4 +83,107 @@ export function positionEditorPopover(menu: HTMLElement, anchor: HTMLElement, st
   );
   menu.style.left = `${pos.left}px`;
   menu.style.top = `${actions ? Math.max(visibleTop - sr.top + 6, pos.top) : pos.top}px`;
+}
+
+/**
+ * Mount a floating editor PANEL (an `.fc-panel`, where the function above mounts a menu)
+ * so that nothing can paint over it, and report whether it went to the body (see
+ * overStage). On the body it carries the class a menu gets, and the stage's own layout
+ * values, which a panel's stylesheet may read and which no longer reach it by
+ * inheritance. The caller places it in viewport coordinates: `panelOrigin` is the offset.
+ */
+export function mountEditorPanel(panel: HTMLElement, anchor: HTMLElement | null, stage: HTMLElement): boolean {
+  const over = overStage(stage, anchor);
+  panel.classList.toggle('fc-popover--viewport', over);
+  if (over) {
+    const style = stage.ownerDocument.defaultView?.getComputedStyle(stage);
+    for (const name of STAGE_VARS) {
+      const value = style?.getPropertyValue(name).trim();
+      if (value) panel.style.setProperty(name, value);
+    }
+  }
+  (over ? stage.ownerDocument.body : stage).appendChild(panel);
+  return over;
+}
+
+/** The stage's layout values a panel's stylesheet reads (editor.css's `.fc-arch-panel`). */
+const STAGE_VARS = ['--design-actions-h', '--design-viewport-inset', '--stage-reserve-top'];
+
+/**
+ * Where the stage's top left corner is, in the coordinates a mounted panel is placed in:
+ * nothing to add for a panel in the stage, the stage's own viewport offset for one
+ * mountEditorPanel put on the body. Callers that work in stage-relative px add the offset.
+ */
+export function panelOrigin(panel: HTMLElement, stage: HTMLElement): { x: number; y: number } {
+  if (!panel.classList.contains('fc-popover--viewport')) return { x: 0, y: 0 };
+  const r = stage.getBoundingClientRect();
+  return { x: r.left, y: r.top };
+}
+
+/**
+ * Write a stage-relative position onto a panel that mountEditorPanel mounted, in the
+ * coordinates it is placed in: unchanged in the stage, moved by the stage's own offset on
+ * the body. The pair every panel used to write by hand, with that one difference.
+ */
+export function placeEditorPanel(panel: HTMLElement, stage: HTMLElement, at: { left?: number; top?: number }): void {
+  const o = panelOrigin(panel, stage);
+  if (at.left != null) panel.style.left = `${at.left + o.x}px`;
+  if (at.top != null) panel.style.top = `${at.top + o.y}px`;
+}
+
+/**
+ * Place a menu or panel opened at a POINT (a context menu, or a dialog asked from a menu
+ * row) with its top left corner there, kept inside the stage and above the phone
+ * layout's bottom bar. On the body, over a phone's sheets, one taller than that room is
+ * capped and scrolls. Stage-relative, so a wide window places it exactly as before.
+ */
+export function placeAtPoint(panel: HTMLElement, stage: HTMLElement, x: number, y: number): void {
+  const sr = stage.getBoundingClientRect();
+  const foot = stageFoot(stage, sr);
+  const room = foot - 12;
+  let h = panel.offsetHeight;
+  if (panel.classList.contains('fc-popover--viewport') && room > 0 && h > room) {
+    panel.style.maxHeight = `${room}px`;
+    panel.style.overflowY = 'auto';
+    h = room;
+  }
+  placeEditorPanel(panel, stage, {
+    left: Math.max(6, Math.min(x - sr.left, Math.max(6, sr.width - panel.offsetWidth - 6))),
+    top: Math.max(6, Math.min(y - sr.top, Math.max(6, foot - h - 6))),
+  });
+}
+
+/**
+ * Where the room for a floating panel ends, in stage-relative px: the top of Design's
+ * phone action bar while that bar is shown, otherwise the foot of the stage. Without
+ * this limit a panel on the body would cover the bar, and one in the stage slid under the bar.
+ */
+export function stageFoot(stage: HTMLElement, sr: { top: number; height: number }): number {
+  const bar = stage.querySelector<HTMLElement>('.design-compact-actions');
+  const r = bar && !bar.hidden ? bar.getBoundingClientRect() : null;
+  return r && r.height > 0 ? Math.min(sr.height, r.top - sr.top) : sr.height;
+}
+
+/**
+ * Where a panel opened beside its trigger goes, in stage-relative px: to the trigger's
+ * right, kept inside the stage, with its top level with the trigger's and pulled up so
+ * its foot stays above `foot`. A panel taller than the room gets a `maxHeight` and
+ * scrolls instead of running off the bottom. Pure numbers, so it is testable without a
+ * browser.
+ */
+export function placePanelBeside(
+  anchor: { right: number; top: number },
+  pop: { w: number; h: number },
+  stage: { w: number },
+  foot: number,
+  gap = 8,
+  pad = 6
+): { left: number; top: number; maxHeight?: number } {
+  // No measurable stage (display:none, or jsdom with no layout): keep the plain anchored
+  // placement, as placePopover does, rather than clamping against zeroes.
+  if (!(stage.w > 0) || !(foot > 0)) return { left: anchor.right + gap, top: Math.max(pad, anchor.top) };
+  const left = Math.max(pad, Math.min(anchor.right + gap, stage.w - pop.w - gap));
+  const room = foot - pad - gap;
+  if (pop.h <= room) return { left, top: Math.max(pad, Math.min(anchor.top, foot - pop.h - gap)) };
+  return { left, top: pad, maxHeight: Math.max(0, room) };
 }

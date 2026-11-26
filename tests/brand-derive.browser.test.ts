@@ -85,6 +85,10 @@ test('reference onboarding previews locally, applies exact colours, and restores
     assert.deepEqual(after.dark.color, report.proposedTokens.dark.color);
     assert.deepEqual(after.base.color, report.proposedTokens.base.color);
     assert.match(page.url(), /area=overview/);
+    // More lists the actions shown when it opens. Restore brand settings is shown once
+    // the import's checkpoint has been read back (views/start/rooms.ts syncRecovery),
+    // which on a slow runner comes after the dialog closes, so wait for that first.
+    await page.locator('[data-start-recovery]:not([hidden])').waitFor({ state: 'attached' });
     await page.locator('[data-ds-more]').click(); await page.getByRole('menuitem', { name: 'Restore brand settings', exact: true }).click();
     const restore = page.getByRole('dialog', { name: 'Restore brand settings', exact: true });
     // Applying a reference is an import, so recovery leads with undoing it and
@@ -94,6 +98,13 @@ test('reference onboarding previews locally, applies exact colours, and restores
     assert.equal(await restore.getByRole('button', { name: 'Restore checkpoint', exact: true }).count(), 0);
     await undo.click();
     await restore.waitFor({ state: 'detached' });
+    // A closed dialog pops its own history entry a moment later (lib/overlay-back.ts).
+    // The goto below adds an entry, and one added before that Back has finished is the
+    // entry the Back removes, so wait until the dialog's history has settled.
+    await page.evaluate(async () => {
+      const path = '/src/lib/overlay-back.ts';
+      await (await import(path)).historySettled(5000);
+    });
     const restored = await read();
     assert.deepEqual(restored.light, before.light);
     assert.deepEqual(restored.dark, before.dark);

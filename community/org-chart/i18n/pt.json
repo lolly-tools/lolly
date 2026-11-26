@@ -65,8 +65,6 @@
   "inputs.boxes.fields.weight.options.700": "Negrito",
   "inputs.boxes.fields.weight.options.800": "Extra-negrito",
   "inputs.boxes.fields.font.label": "Fonte",
-  "inputs.boxes.fields.font.options.SUSE": "SUSE Sans",
-  "inputs.boxes.fields.font.options.SUSE Mono": "SUSE Mono",
   "inputs.boxes.fields.lineHeight.label": "Altura da linha",
   "inputs.boxes.fields.tracking.label": "Espaçamento entre letras",
   "inputs.boxes.fields.ligatures.label": "Ligaduras",

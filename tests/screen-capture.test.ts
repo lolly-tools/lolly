@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.313.0', () => {
+test('ENGINE_VERSION is 1.354.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -586,7 +586,48 @@ test('ENGINE_VERSION is 1.313.0', () => {
   // 1.311.0 records a brand page's address on exports, when its publisher opts in.
   // 1.312.0 reads a token document's descriptions through the scope hints on import and in the brief; capture is unchanged.
   // 1.313.0 adds colour roles: a design system's colours in its own words. Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.313.0');
+  // 1.314.0 carries colour roles to agents and to every paint path. Capture is unchanged.
+  // 1.315.0 tests for a real emoji before loading a set. Capture is unchanged.
+  // 1.316.0 adds an optional direction to host.text.toPath and orders right-to-left runs. Capture is unchanged.
+  // 1.317.0 sends a Design row with right-to-left letters to the browser's own layout. Capture is unchanged.
+  // 1.318.0 carries colour roles through other formats and back. Capture is unchanged.
+  // 1.319.0 adds an optional fill flag to toPath's fallback fonts, for on-demand fallback fonts. Capture is unchanged.
+  // 1.320.0 puts an SVG's own credential in the root's metadata, past inlined artwork. Capture is unchanged.
+  // 1.321.0 writes a PowerPoint run's face in the East Asian slot too. Capture is unchanged.
+  // 1.322.0 gives a Word document its page, its styles and a PNG beside each SVG picture. Capture is unchanged.
+  // 1.323.0 carries the colour roles on a token inspection. Capture is unchanged.
+  // 1.324.0 adds the opt-in spotsAsProcess export choice for the CMYK formats. Capture is unchanged.
+  // 1.325.0 keeps the browser credential's record of placed pictures in a server credential. Capture is unchanged.
+  // 1.326.0 adds a stencil prim to the vector IR, for EPS and WMF text no font can draw. Capture is unchanged.
+  // 1.327.0 has preflight count no spot plate when spot inks print as process. Capture is unchanged.
+  // 1.328.0 draws the stencil prim in EMF too. Capture is unchanged.
+  // 1.329.0 records placed pictures as components of an export, not its parent. Capture is unchanged.
+  // 1.330.0 exports the asset rights reader and the .lolly credits text. Capture is unchanged.
+  // 1.331.0 adds the partnerMark intent role and exports writeDesignMd. Capture is unchanged.
+  // 1.332.0 has preflight count only the process plates for the CMYK TIFF and EPS. Capture is unchanged.
+  // 1.333.0 reads the `_text` URL param (EMF text as outlines) and counts an EMF's live text runs. Capture is unchanged.
+  // 1.334.0 records the partner beside the design system. Capture is unchanged.
+  // 1.335.0 adds the partner kit reader (partner-kit-v1). Capture is unchanged.
+  // 1.336.0 adds the template approval record and its Verify line. Capture is unchanged.
+  // 1.337.0 adds the guest-mark checks against a partner kit. Capture is unchanged.
+  // 1.338.0 adds the reserved _kit param for a partner kit attachment. Capture is unchanged.
+  // 1.339.0 words an unresolved palette truly for the CMYK TIFF and EPS. Capture is unchanged.
+  // 1.340.0 adds stamped paths to host.pdf.stamp (Sign's date in the design system's face). Capture is unchanged.
+  // 1.341.0 records a rendition tool's picture as the parent (renditionOf). Capture is unchanged.
+  // 1.342.0 lets a template approval's id segment start with - or _. Capture is unchanged.
+  // 1.343.0 records the partner kit beside the partner. Capture is unchanged.
+  // 1.344.0 offers icon colours and photo washes from the colourways. Capture is unchanged.
+  // 1.345.0 removes tags and Content Credentials from audio files (strip-audio). Capture is unchanged.
+  // 1.346.0 writes the music generator's CC BY 4.0 licence and credit into its files. Capture is unchanged.
+  // 1.347.0 makes the music credit line "Music made with Lolly (https://lolly.tools), CC BY 4.0". Capture is unchanged.
+  // 1.348.0 adds the select display "picker" with option glyphs and groups (chrome only). Capture is unchanged.
+  // 1.349.0 places a vector picture by its unrounded size and writes gradient stops as CSS holds them. Capture is unchanged.
+  // 1.350.0 refreshes the official C2PA trust list (6 more anchors, NETLOCK held back). Capture is unchanged.
+  // 1.351.0 moves the session record to format 5 (a picture reference beside the thumbnail). Capture is unchanged.
+  // 1.352.0 reads a GFM table in the markdown helper. Capture is unchanged.
+  // 1.353.0 stops charging an isolated hook for the time a host call takes. Capture is unchanged.
+  // 1.354.0 adds Verify's six findings. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.354.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

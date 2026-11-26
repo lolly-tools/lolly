@@ -22,6 +22,9 @@
 .tmpl-chooser-panel {
   position: fixed;
   inset: 8vh 8vw;
+  /* Clear of a side the system holds: its bar is wider than this margin on a small screen. */
+  left: max(8vw, calc(var(--safe-left) + 8px));
+  right: max(8vw, calc(var(--safe-right) + 8px));
   z-index: 100002;
   background: color-mix(in srgb, var(--ui-color-surface-canvas) 70%, var(--ui-color-surface-raised));
   color: hsl(var(--popover-foreground));
@@ -64,20 +67,6 @@
 .tmpl-chooser-search:focus { border-color: hsl(var(--primary)); }
 .tmpl-chooser-search::placeholder { color: hsl(var(--muted-foreground)); }
 
-.tmpl-chooser-close {
-  background: none;
-  border: none;
-  color: hsl(var(--muted-foreground));
-  font-size: 22px;
-  line-height: 1;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.tmpl-chooser-close:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
-
 .tmpl-chooser-body {
   flex: 1;
   min-height: 0;
@@ -103,7 +92,7 @@
   text-underline-offset: 2px;
   cursor: pointer;
 }
-.tmpl-chooser-startclear:hover { color: hsl(var(--primary)); }
+.tmpl-chooser-startclear:hover { color: hsl(var(--primary-text)); }
 .tmpl-chooser-startclear:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 
 /* Tag-filter chips - one row of pills (replaces the old per-category sections); "All" plus
@@ -197,6 +186,20 @@
   color: hsl(var(--foreground));
 }
 .tmpl-chooser-tile-icon svg { width: 22px; height: 22px; }
+/* A tile with no picture yet holds the picture's place: the glyph sits in a box of
+   the thumb's own proportions, so every tile in the grid is the same kind of card
+   and nothing moves when a rendered preview arrives. The blank tile's glyph is the
+   tile's own child and takes the same box. */
+.tmpl-chooser-tile-media > .tmpl-chooser-tile-icon,
+.tmpl-chooser-tile > .tmpl-chooser-tile-icon {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  color: var(--ui-color-text-muted);
+}
+.tmpl-chooser-tile[data-motion-template] .tmpl-chooser-tile-icon { aspect-ratio: 16 / 9; }
+/* Among motion templates the blank tile is one row across the grid and keeps its small glyph. */
+.tmpl-chooser-grid:has([data-motion-template]:not([hidden])) [data-template-id="__blank__"] > .tmpl-chooser-tile-icon { width: 40px; height: 40px; aspect-ratio: auto; }
 .tmpl-chooser-tile-thumb {
   width: 100%;
   aspect-ratio: 4 / 3;
@@ -219,10 +222,16 @@
   font-size: var(--fs-lg);
   font-weight: 600;
 }
+/* Two lines of description at most, at every width: the picture and the name choose
+   the template, and the whole sentence is the tile's tooltip. */
 .tmpl-chooser-tile-desc {
   font-size: var(--fs-sm);
   color: hsl(var(--muted-foreground));
   line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 /* Preset chips (plans/142 WP-3): the tile picks the template base, a chip picks
@@ -328,7 +337,8 @@
   align-items: center;
 }
 
-.tmpl-chooser-empty {
+.tmpl-chooser-empty,
+.tmpl-chooser-none {
   padding: 40px 12px;
   text-align: center;
   color: hsl(var(--muted-foreground));
@@ -338,11 +348,11 @@
 /* Keep responsive overrides AFTER the base rules they replace. The old block sat
    above them, so equal-specificity desktop declarations silently won on phones. */
 @media (max-width: 640px) {
-  .tmpl-chooser-panel { inset: max(8px, var(--safe-top, 0px)) 8px max(8px, var(--safe-bottom, 0px)); }
+  /* Each side reads its own inset: the panel stands beside a status column the system holds. */
+  .tmpl-chooser-panel { inset: max(8px, var(--safe-top, 0px)) max(8px, var(--safe-right)) max(8px, var(--safe-bottom, 0px)) max(8px, var(--safe-left)); }
   .tmpl-chooser-header { flex-wrap: wrap; padding: 10px 12px; }
   .tmpl-chooser-header h2 { flex: 1 1 auto; }
   .tmpl-chooser-search { order: 3; flex-basis: 100%; height: 44px; }
-  .tmpl-chooser-close { width: 44px; height: 44px; }
   .tmpl-chooser-body { padding: 10px  10px 16px; }
   .tmpl-chooser-filters {
     flex-wrap: nowrap;
@@ -356,12 +366,6 @@
   .tmpl-chooser-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .tmpl-chooser-tile { min-width: 0; gap: 6px; padding: 9px; }
   .tmpl-chooser-tile-name { font-size: var(--fs-md); }
-  .tmpl-chooser-tile-desc {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-  }
   .tmpl-chooser-presets { gap: 8px; }
   .tmpl-chooser-preset {
     min-height: 44px;

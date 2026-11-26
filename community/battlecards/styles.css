@@ -266,3 +266,14 @@
   outline: 0.35cqmin solid color-mix(in oklab, var(--bc-accent, #4f46e5) 60%, transparent);
   outline-offset: 0.5cqmin;
 }
+
+.bc-inner { padding: calc(5cqmin * var(--content-space)) calc(5.5cqmin * var(--content-space)); gap: calc(2.4cqmin * var(--content-space)); }
+.bc-fields { gap: calc(2cqmin * var(--content-space)); }
+.bc-card[data-layout="stack"] .bc-fields { grid-template-columns: minmax(0, 1fr); }
+.bc-card[data-layout="stack"] .bc-field { grid-column: auto; }
+.bc-card[data-layout="grid"] .bc-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.bc-card[data-layout="editorial"] .bc-fields { display: flex; flex-direction: column; }
+.bc-card[data-layout="editorial"] .bc-field { flex: 1; flex-direction: row; border-radius: 0; border-top: .2cqmin solid currentColor; background: transparent; }
+.bc-card[data-layout="editorial"] .bc-field-label { flex: 0 0 24%; }
+
+.bc-title { font-family: var(--font-display, var(--font-brand, system-ui, sans-serif)); }

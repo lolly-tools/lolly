@@ -217,3 +217,16 @@
 
 .st-slip .st-footline { padding-top: 2.4cqmin; font-size: 2.7cqmin; }
 .st-slip .st-edge { height: 2.2cqmin; }
+
+.st-card-inner, .st-sheet, .st-back-inner { padding: calc(8cqmin * var(--content-space)); gap: calc(4cqmin * var(--content-space)); }
+.st-piece[data-layout="stack"] .st-foot { flex-direction: column; align-items: flex-start; gap: calc(4cqmin * var(--content-space)); }
+.st-piece[data-layout="stack"] .st-contact { text-align: left; }
+.st-piece[data-layout="side"] .st-card-inner { flex-direction: row; align-items: center; }
+.st-piece[data-layout="side"] .st-foot { flex: 1; flex-direction: column; align-items: flex-start; }
+.st-piece[data-layout="side"] .st-card-inner > .st-mark { max-width: 40%; }
+.st-piece[data-layout="side"] .st-contact { text-align: left; }
+.st-piece[data-layout="side"] .st-head { flex-direction: row-reverse; }
+.st-piece[data-layout="stack"] .st-head { flex-direction: column; align-items: flex-start; }
+.st-piece[data-layout="stack"] .st-head-right { text-align: left; }
+
+.st-wordmark { font-family: var(--font-display, var(--font-brand, system-ui, sans-serif)); }

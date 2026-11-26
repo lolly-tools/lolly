@@ -1,6 +1,6 @@
 {
   "name": "رمز QR",
-  "description": "رموز QR لرابط، أو بطاقة تواصل، أو شبكة Wi-Fi، أو موعد في التقويم، أو موقع جغرافي، أو نص عادي.",
+  "description": "رموز قابلة للمسح من كل نوع: QR وMicro QR وData Matrix وAztec وPDF417 - إضافة إلى باركود التجزئة والخدمات اللوجستية من EAN-13 إلى MaxiCode.",
   "a11yLabel": "رمز QR يرتبط بـ {{default url \"(no URL set)\"}}",
   "featured.blurb": "رموز QR بأي لون من ألوان علامتك",
   "inputs.url.label": "URL",

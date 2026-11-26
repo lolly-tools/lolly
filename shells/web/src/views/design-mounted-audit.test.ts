@@ -114,6 +114,18 @@ test('font checks read inline runs, report the affected layer once and ignore ou
   assert.match(mountedDesignFindingMessage(fonts[0]!), /Add or choose a font.*before exporting/);
 });
 
+test('font checks hand each run its element and the canvas, and keep two languages apart', async () => {
+  const { canvas, report } = mounted();
+  canvas.querySelector('.lolly-box-text')!.innerHTML = '<span lang="ja">說明</span><span lang="zh-Hant">說明</span><span lang="ja">說明</span>';
+  const seen: Array<{ text: string; lang: string | null; root: boolean }> = [];
+  const audit = await auditMountedDesign(canvas, report, { resolveFont: async (_style, text, place) => {
+    seen.push({ text, lang: place?.at.getAttribute('lang') ?? null, root: place?.root === canvas });
+    return place?.at.getAttribute('lang') !== 'ja';
+  } });
+  assert.deepEqual(seen, [{ text: '說明', lang: 'ja', root: true }, { text: '說明', lang: 'zh-Hant', root: true }]);
+  assert.deepEqual(audit.findings.filter(finding => finding.id === 'design.font.unembeddable').map(finding => finding.layerId), ['title']);
+});
+
 test('mounted Design audit does not claim flat contrast over an overlapping image layer', async () => {
   const { canvas } = mounted();
   const title = canvas.querySelector<HTMLElement>('[data-box-id="title"]')!;

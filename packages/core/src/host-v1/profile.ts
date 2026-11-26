@@ -93,6 +93,32 @@ export interface Profile {
    *  Chrome only, like `a11y`: a tool's render never reads the field. Shells mirror it
    *  to their own device storage for the pre-paint restore. */
   hand?: 'left' | 'right';
+  /** The music generator's instrument preferences (the web shell's #/music). Each
+   *  entry is `<part>:<instrument>`, for example `lead:flute`. A shuffle draws a
+   *  favourite more often and never draws a blocked instrument, and a new tune puts
+   *  another instrument in place of a blocked one the composer drew, writing that
+   *  choice into the track's link so the link plays the same for everyone. A link
+   *  that sets a blocked instrument still plays that instrument. Optional: absent
+   *  means no preferences. Chrome only, like `a11y`: a tool's render never reads the field. */
+  music?: {
+    favourites?: string[];
+    blocked?: string[];
+    /** "Shuffle genres": absent or true, a shuffle draws a new genre; false keeps the
+     *  genre and draws a new seed and sound. */
+    shuffleGenres?: boolean;
+    /** The genres last played, newest first, at most six and each once: the genre
+     *  picker's Recent row. Entries are genre ids, for example `ska`. Optional:
+     *  absent means none played yet. */
+    recentGenres?: string[];
+    /** The genres a person starred: the genre picker's Favourites row, in the order
+     *  starred, and a shuffle draws them more often. Entries are genre ids. Optional:
+     *  absent means none. */
+    favouriteGenres?: string[];
+    /** The genres a person hid: the genre picker leaves them out and a shuffle never
+     *  draws one, though a link or the genre lock still plays a hidden genre. Entries
+     *  are genre ids. Optional: absent means none. */
+    hiddenGenres?: string[];
+  };
   /** How the app itself dresses - the shell's OWN use of the design system,
    *  which is secondary to what a design system is for (tools and exports).
    *  Additive + optional: absent means the defaults below, so a profile without

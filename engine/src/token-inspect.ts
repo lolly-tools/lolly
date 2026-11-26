@@ -6,14 +6,24 @@ import { resolveTokenSelection, tokenSetNames } from './token-selection.ts';
 import { canonicalJson } from './canonical-json.ts';
 import { tokenReferenceUses } from './token-composite.ts';
 import { brandSystemOf } from './brand-system.ts';
+import { readColourRoles } from './colour-roles.ts';
 
 type Rec = Record<string, unknown>;
 const record = (v: unknown): v is Rec => !!v && typeof v === 'object' && !Array.isArray(v);
 const pointer = (s: string): string => s.replaceAll('~', '~0').replaceAll('/', '~1');
 export const TOKEN_INSPECTION_LIMIT = 20000;
 
-/** Sidecar evidence. Retained definitions are never rewritten to resolved values. */
+/**
+ * Sidecar evidence. Retained definitions are never rewritten to resolved values. The
+ * answer carries the document's colour roles (`readColourRoles`), so a tool can read
+ * the design system's own words and order through `host.tokens.inspect()`.
+ */
 export function inspectTokenDocument(doc: unknown, opts: TokenResolveOptions = {}): TokenInspection {
+  return { ...traceTokenDocument(doc, opts), colourRoles: readColourRoles(doc) };
+}
+
+/** The traces alone. A diff compares values, so it skips the colour role reading. */
+function traceTokenDocument(doc: unknown, opts: TokenResolveOptions): TokenInspection {
   const selection = resolveTokenSelection(doc, opts);
   const d = record(doc) ? doc : {};
   const definitions = new Map<string, TokenSource[]>();
@@ -123,8 +133,8 @@ export interface TokenImpact {
 
 /** Reports indirect alias changes as well as edits to their definitions. */
 export function diffTokenDocuments(before: unknown, after: unknown, opts: TokenResolveOptions = {}, afterOpts: TokenResolveOptions = opts): TokenImpact[] {
-  const a = new Map(inspectTokenDocument(before, opts).tokens.map(t => [t.path, t]));
-  const b = new Map(inspectTokenDocument(after, afterOpts).tokens.map(t => [t.path, t]));
+  const a = new Map(traceTokenDocument(before, opts).tokens.map(t => [t.path, t]));
+  const b = new Map(traceTokenDocument(after, afterOpts).tokens.map(t => [t.path, t]));
   const changes: TokenImpact[] = [];
   for (const path of new Set([...a.keys(), ...b.keys()])) {
     const old = a.get(path), next = b.get(path);

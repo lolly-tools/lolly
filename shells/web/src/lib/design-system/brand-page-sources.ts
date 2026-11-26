@@ -226,7 +226,10 @@ export async function readBrandPageSources(host: BrandPageHost, opts: { allowMan
   const name = record?.label || snapshot?.system?.label || 'Design system';
   // Catalog material belongs to this page only when the catalog's system is the one active.
   const catalog = skillBelongsTo({ id: 'catalog', source: 'library' }, record) ? await host.assets.query({}).catch(() => []) : [];
-  const tokensLocked = catalog.some(ref => ref.type === 'tokens' && metaOf(ref).brandLock === true);
+  // A catalog's lock answers for its own system. Another tokens row beside it says nothing
+  // about this one, so the shipped record asks about its own head only.
+  const tokensLocked = catalog.some(ref => ref.type === 'tokens' && metaOf(ref).brandLock === true
+    && (record?.source.kind !== 'shipped' || ref.id === record.headId));
   const managed = record?.locked === true || tokensLocked;
   const allowManaged = opts.allowManaged === true;
   const held: BrandPageHeldV1[] = [];

@@ -22,7 +22,7 @@
 # The Helm chart wires these from a Secret. Health is liveness, not OIDC readiness.
 # ============================================================================
 
-FROM node:26-alpine@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a AS dependencies
+FROM node:26-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS dependencies
 WORKDIR /src
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY engine/package.json ./engine/package.json
@@ -39,7 +39,7 @@ COPY services/mcp/package.json ./services/mcp/package.json
 RUN npm install --global pnpm@11.26.0
 RUN pnpm --filter @lolly/ca-service install --prod --frozen-lockfile --ignore-scripts
 
-FROM node:26-alpine@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a AS runtime
+FROM node:26-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS runtime
 WORKDIR /app
 RUN apk add --no-cache libcrypto3=3.5.8-r0 libssl3=3.5.8-r0
 ENV NODE_ENV=production

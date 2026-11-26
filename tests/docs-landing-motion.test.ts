@@ -155,7 +155,6 @@ function chipPage(asked: Asked) {
     width: 0, height: 0, parentElement: band, getContext: () => ctx2d, getBoundingClientRect: () => ({ left: 0, top: 0 }),
   });
   const hero = canvas();
-  const masthead = canvas();
   class Observer {
     observe = () => undefined;
     disconnect = () => undefined;
@@ -173,7 +172,7 @@ function chipPage(asked: Asked) {
       documentElement: { dataset: rootDataset(asked) },
       createElement: () => { count.sprites++; return canvas(); },
       getElementById: (id: string) => (id === 'heroCanvas' ? hero : null),
-      querySelector: (selector: string) => (selector === '.docs-mast-canvas' ? masthead : null),
+      querySelector: () => null,
       addEventListener: (type: string, listener: (event: object) => void) => { if (type === 'pointerdown') pointerdown.push(listener); },
     },
   };
@@ -182,8 +181,8 @@ function chipPage(asked: Asked) {
   return { page, count, tap };
 }
 
-/** The chip field engine and one of its two callers, run on a fresh page. */
-function runField(caller: 'HERO_CANVAS_SCRIPT' | 'DOCS_MASTHEAD_SCRIPT', asked: Asked) {
+/** The chip field engine and its caller (the landing hero), run on a fresh page. */
+function runField(caller: 'HERO_CANVAS_SCRIPT', asked: Asked) {
   const run = chipPage(asked);
   runInNewContext(`${chipEngine()}\n;\n${script(literal(caller))}`, run.page);
   return run;
@@ -208,14 +207,6 @@ test('the landing chip field moves for a reader who asked for nothing, and holds
     const before = still.count.sprites;
     still.tap();
     assert.equal(still.count.sprites, before, `a tap bursts chips under ${signal}`);
-  }
-});
-
-test('the article masthead field holds still for either signal too', () => {
-  assert.ok(runField('DOCS_MASTHEAD_SCRIPT', {}).count.frames > 0,
-    'with no preference the masthead asked for no frame, so this sandbox cannot see motion at all');
-  for (const [signal, asked] of SIGNALS) {
-    assert.equal(runField('DOCS_MASTHEAD_SCRIPT', asked).count.frames, 0, `the masthead chip field animates under ${signal}`);
   }
 });
 

@@ -70,7 +70,9 @@ export async function extractAssetMetadata(ref: AssetRef): Promise<MetaField[]> 
     if (v) fields.push({ key, label, value: v });
   };
 
-  const fmt = String(ref.format ?? ref.type ?? '').toUpperCase();
+  // A saved tune is a recipe the station plays, not a file format a person would know by
+  // its id: say what it is.
+  const fmt = ref.format === 'lofi' ? t('Generated tune') : String(ref.format ?? ref.type ?? '').toUpperCase();
   const lfmt = String(ref.format ?? '').toLowerCase();
   const type = ref.type;
   let size: number | null = metaBytes(ref);

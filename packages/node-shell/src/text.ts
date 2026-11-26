@@ -13,11 +13,10 @@ import { base64ToBytes } from '../../../engine/src/bytes.ts';
  * This is what makes brand-lockup (and any host.text-in-hooks tool) render in the Node
  * shells instead of silently emitting an empty SVG. See the P2 gap in the shell audit.
  *
- * Scope (deliberate first increment): sfnt fonts only (ttf/otf), which is every
- * font a headless shell can reach: brand-lockup's tool-local SUSE-*.otf, the catalog
- * SUSE-*.ttf statics, and the shell's platform faces (SUSE variable, Outfit). woff2
- * (browser IndexedDB / Google Fonts) is unreachable headlessly and rejected with a clear
- * error rather than silently shaping .notdef.
+ * Scope: sfnt fonts (ttf/otf), which is every brand font a headless shell can reach:
+ * brand-lockup's tool-local SUSE-*.otf, the catalog SUSE-*.ttf statics, and the shell's
+ * platform faces (SUSE variable, Outfit). A woff2 file is decoded first, which is how the
+ * fallback fonts in community/fallback-fonts reach HarfBuzz here.
  */
 
 import { readFile, readdir } from 'node:fs/promises';
@@ -26,10 +25,13 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { catalogFile, contentRoots, contentUrlFile } from './content-roots.ts';
+import { shapingSegments } from './text-bidi.ts';
+import { fillSegments } from './fallback-fonts.ts';
 
 import type { AssetsAPI, TextAPI, TextPathCluster } from '@lolly-tools/core/host-v1';
 import { createTextCompositionAPI } from './text-composition.ts';
 import { createGlyphCache } from './text-glyphs.ts';
+import { nodeWoff2Runner, useNodeWoff2Runner } from './woff2-node.ts';
 import { strikeMetricsFact, type StrikeMetrics } from '../../../engine/src/text-decoration.ts';
 import type { Blob as HbBlob, Face as HbFace, Font as HbFont, Feature as HbFeature } from 'harfbuzzjs';
 
@@ -59,6 +61,8 @@ interface FontEntry {
   font: HbFont;
   upem: number;
   unicodes: Set<number>;
+  /** Draws only what the faces before it cannot (TextToPathOpts.fallbackFonts `fill`). */
+  fill?: boolean;
 }
 
 const faceCache = new Map<string, FaceEntry>();
@@ -121,11 +125,12 @@ async function loadFace(fontUrl: string, repoRoot: string): Promise<FaceEntry> {
 async function readFace(fontUrl: string, repoRoot: string, key: string): Promise<FaceEntry> {
   const hb = await loadHarfBuzz();
 
-  const buf = await loadFontBytes(fontUrl, repoRoot);
-  // woff2 is not sfnt. HarfBuzz reads it as .notdef for every glyph (a silently blank
-  // export). No headless-reachable font is woff2, so fail loud rather than blank out.
+  let buf = await loadFontBytes(fontUrl, repoRoot);
+  // woff2 is not sfnt: HarfBuzz reads it as .notdef for every glyph, a silently blank
+  // export. The fallback fonts (community/fallback-fonts) ship as woff2, so decode it
+  // here with the same pinned decoder, and the same checks, the web shell uses.
   if (buf.length >= 4 && buf[0] === 0x77 && buf[1] === 0x4f && buf[2] === 0x46 && buf[3] === 0x32) {
-    throw new Error(`host.text (node): ${fontUrl} is woff2, which the terminal shells can't decode - provide an sfnt (ttf/otf) font.`);
+    buf = await (await import('./woff2.ts')).decodeWoff2(buf, { runner: nodeWoff2Runner });
   }
   const blob = new hb.Blob(buf as unknown as ArrayBuffer);
   const face = new hb.Face(blob);
@@ -205,8 +210,8 @@ function fmt(n: number): number {
 // which is no longer the default but stays resolvable). Filenames follow the
 // FamilyName-FaceName convention (`SUSE-SemiBold.ttf`, `SUSEMono-BoldItalic.ttf`)
 // with variable faces carrying an axis suffix (`SUSE[wght].ttf`,
-// `SUSE-Italic[wght].ttf`); woff2 siblings are skipped (loadFace rejects them
-// anyway). Scanned once per repo root, catalog dir first, so a brand's own
+// `SUSE-Italic[wght].ttf`); woff2 siblings are skipped, since each has an sfnt twin
+// in the same folder. Scanned once per repo root, catalog dir first, so a brand's own
 // statics still shadow the shell's variable face.
 
 /** The content roots for a given root, or undefined where none resolve (a
@@ -331,6 +336,9 @@ function clustersFrom(
 }
 
 export function createNodeTextAPI({ repoRoot, assets, parseXml }: { repoRoot: string; assets?: AssetsAPI; parseXml?: (source: string) => Document }): TextAPI {
+  // Every WOFF2 decode in this process, including page-text's and text-fonts', gets a
+  // worker thread with its own decoder instance.
+  useNodeWoff2Runner();
   const composition = createTextCompositionAPI(async font => {
     if(font.source.kind==='embedded')return base64ToBytes(font.source.base64);
     if (font.source.kind === 'bundled') return loadFontBytes(font.source.path, repoRoot);
@@ -340,15 +348,17 @@ export function createNodeTextAPI({ repoRoot, assets, parseXml }: { repoRoot: st
   return {
     ...composition,
     async characters(fontUrl) { return [...(await loadFace(fontUrl, repoRoot)).unicodes].sort((a, b) => a - b); },
-    async toPath({ text, fontUrl, fontSize, features, letterSpacing = 0, variations, fallbackFonts, clusters: wantClusters, preserveWhitespaceAdvance = false }) {
+    async toPath({ text, fontUrl, fontSize, features, letterSpacing = 0, variations, fallbackFonts, clusters: wantClusters, preserveWhitespaceAdvance = false, direction }) {
       if (!text || (!preserveWhitespaceAdvance && !text.trim())) {
         return { d: '', advanceWidth: 0, bbox: null, notdef: 0, ...(wantClusters ? { clusters: [] } : {}) };
       }
 
-      const chain = [
+      const chain: FontEntry[] = [
         await loadFont(fontUrl, repoRoot, variations),
-        ...await Promise.all((fallbackFonts ?? []).map(f => loadFont(f.fontUrl, repoRoot, f.variations))),
+        ...await Promise.all((fallbackFonts ?? []).map(async f => (f.fill ? { ...await loadFont(f.fontUrl, repoRoot, f.variations), fill: true } : loadFont(f.fontUrl, repoRoot, f.variations)))),
       ];
+      // As the web shell: a fill face splits by cluster, a chain without one as before.
+      const split = chain.some(f => f.fill) ? (part: string) => fillSegments(part, chain) : (part: string) => segmentByFace(part, chain);
       const hb = _hb!;
 
       const feats = Array.isArray(features)
@@ -360,9 +370,8 @@ export function createNodeTextAPI({ repoRoot, assets, parseXml }: { repoRoot: st
       let notdef = 0;
       let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
       const pieces = wantClusters ? new Map<number, { d: string; x: number; advance: number }>() : null;
-      let segStart = 0;
 
-      for (const seg of segmentByFace(text, chain)) {
+      for (const seg of shapingSegments(text, direction, split)) {
         const { font, upem } = chain[seg.face]!;
         const scale = fontSize / upem;
         const lsUnits = Number.isFinite(letterSpacing) && letterSpacing ? letterSpacing / scale : 0;
@@ -370,6 +379,7 @@ export function createNodeTextAPI({ repoRoot, assets, parseXml }: { repoRoot: st
 
         const buf = new hb.Buffer();
         buf.addText(seg.text);
+        if (seg.script) { buf.setDirection(seg.rtl ? hb.Direction.RTL : hb.Direction.LTR); buf.setScript(seg.script); }
         buf.guessSegmentProperties();
         hb.shape(font, buf, feats.length ? (feats as HbFeature[]) : undefined);
 
@@ -393,7 +403,7 @@ export function createNodeTextAPI({ repoRoot, assets, parseXml }: { repoRoot: st
           const glyphD = rawPath ? transformPath(rawPath, ox, oy, scale) : '';
           if (glyphD) d += glyphD;
           if (pieces) {
-            const key = segStart + cluster;
+            const key = seg.start + cluster;
             const piece = pieces.get(key);
             const penPxHere = (originUnits + penX) * scale;
             const advPx = (xAdvance + lsUnits) * scale;
@@ -416,7 +426,6 @@ export function createNodeTextAPI({ repoRoot, assets, parseXml }: { repoRoot: st
           penX += xAdvance + lsUnits;
         }
         penPx += penX * scale;
-        segStart += seg.text.length;
       }
 
       return {

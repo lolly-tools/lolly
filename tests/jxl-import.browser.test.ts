@@ -33,6 +33,8 @@ test('Design keeps a JXL original through export, history and fresh-profile port
   });
   const page = await context.newPage(); page.setDefaultTimeout(20000);
   const diagnose = journeyDiagnostics(context, 'jxl-import');
+  // The receiving profile's own evidence: without it a failure there leaves none.
+  const diagnoseReceiver = journeyDiagnostics(fresh, 'jxl-import-receiver');
   try {
     await page.goto(`${origin}/#/tool/design`, { waitUntil: 'networkidle' }); await shellSettled(page);
     await page.getByText('Blank canvas', { exact: true }).click();
@@ -79,6 +81,10 @@ test('Design keeps a JXL original through export, history and fresh-profile port
     assert.equal(sources.length, 1); assert.deepEqual(sources[0]!.bytes, original);
     const receiver = await fresh.newPage(); receiver.setDefaultTimeout(20000);
     await receiver.goto(origin!, { waitUntil: 'networkidle' }); await shellSettled(receiver);
+    // Network idleness is not a boot signal. On a fresh profile the gallery mounts after
+    // the catalogue sync's local writes and loads its drop router after that, so on a
+    // slower runner the drop came before anything was listening and no chooser came.
+    await receiver.locator('#view[data-drop-ready]').waitFor({ state: 'attached' });
     await receiver.evaluate(bytes => {
       const transfer = new DataTransfer();
       transfer.items.add(new File([new Uint8Array(bytes)], 'JXL.lolly', { type: 'application/vnd.lolly+zip' }));
@@ -96,5 +102,5 @@ test('Design keeps a JXL original through export, history and fresh-profile port
       const [cached] = await Promise.all([page.waitForEvent('download'), page.locator('[data-action=download]').click()]);
       assert.ok(isJxl(await readFile((await cached.path())!)));
     }
-  } catch (error) { await diagnose(error); throw error; } finally { await context.close(); await fresh.close(); await closeBrowser(); }
+  } catch (error) { await diagnose(error); await diagnoseReceiver(error); throw error; } finally { await context.close(); await fresh.close(); await closeBrowser(); }
 });

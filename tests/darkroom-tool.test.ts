@@ -114,8 +114,10 @@ function parseBaked(text: string) {
 test('manifest: HDR editing declares the float-capable engine', () => {
   const m = tool.manifest;
   assert.equal(m.id, 'darkroom');
-  // Float editing requires the shared decoder and true-source export contract.
-  assert.equal(m.engineVersion, '^1.242.0');
+  // Float editing requires the shared decoder and true-source export contract (1.242);
+  // 1.341 records the graded photo as the export's parent (renditionOf).
+  assert.equal(m.engineVersion, '^1.341.0');
+  assert.deepEqual(m.renditionOf, { input: 'image', action: 'c2pa.color_adjustments', unlessSet: ['layers'] }, 'a layer stack replaces the photo as the source');
   assert.equal(m.render.liveMaxEdge, 1280);
   const lut = m.inputs.find((i: any) => i.id === 'lutFile');
   assert.equal(lut.type, 'file');

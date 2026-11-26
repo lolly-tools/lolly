@@ -2,7 +2,7 @@
 
 If you deploy Lolly in the EU, the AI Act may ask you to mark synthetic output and disclose deep fakes. Lolly gives your legal review three technical facts to work with. They support the assessment; they do not establish compliance.
 
-::: cols
+::: pillars eu-ai-act-preserved eu-ai-act-declared eu-ai-act-verified
 ## Preserved
 
 AI marks that arrive with a file stay. Its declared AI origin is copied onto Lolly's own manifest at ingest, and every export that uses it carries that origin forward.
@@ -30,4 +30,4 @@ Lolly's legal classification depends on how you deploy it, so it needs your coun
 
 - Lolly cannot mark what arrives unmarked. An AI image whose credential was already stripped reads as an ordinary image, and Lolly does not guess at origins it cannot read.
 - Marks travel with the file. A screenshot, or a re-save through a tool that discards metadata, can lose them downstream. That is true of every mark carried in metadata, C2PA included.
-- Compliance needs a classification and process assessment by counsel. Preserving declared provenance is one technical contribution; the applicable duties, and whether the marking and disclosure process is sufficient, remain for that review.
+- Preserving declared provenance is one technical contribution. The applicable duties, and whether the marking and disclosure process is sufficient, remain for your counsel's classification and process assessment.

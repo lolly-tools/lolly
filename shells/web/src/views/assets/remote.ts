@@ -123,7 +123,7 @@ export function remoteOps(cat: CatCtx) {
       <button type="button" class="btn btn--ghost" data-shared-action="refresh">${t('Refresh')}</button>
       <button type="button" class="btn btn--ghost" data-shared-action="live"${liveAllowed && !loading ? '' : ' disabled'} title="${t('Live search supports text and source only. Indexed browse supports exact filters.')}">${t('Search live sources')}</button>
       ${browser.mode === 'live' ? `<button type="button" class="btn" data-shared-action="refresh">${t('Indexed browse')}</button>` : ''}</div>
-      <p role="${error ? 'alert' : 'status'}">${esc(status)}</p>${partial}${notes}<p class="cat-remote-note">${t('Shared assets are ordered by name. Previews do not establish original availability. File access is checked when opened.')}</p>
+      <p role="${error ? 'alert' : 'status'}">${esc(status)}</p>
       ${page?.facets.truncated && Object.values(page.facets.truncated).some(Boolean) ? `<p class="cat-remote-note">${t('Only the most frequent filter values are listed.')}</p>` : ''}
       ${error ? `<button type="button" class="btn" data-shared-action="refresh">${t('Retry')}</button>` : ''}
       ${!loading && page ? `<div class="cat-grid">${assetListHead()}${browser.refs.filter(ref => !cat.hiddenSet.has(ref.id)).map(cat.thumbs.assetTile).join('')}</div>
@@ -131,6 +131,8 @@ export function remoteOps(cat: CatCtx) {
       <div class="cat-remote-controls" aria-label="${t('Shared asset pages')}"><button type="button" class="btn" data-shared-action="previous"${browser.index > 0 && browser.mode === 'indexed' ? '' : ' disabled'}>${t('Previous page')}</button><span>${t('Page {page}', { page: browser.index + 1 })}</span><button type="button" class="btn" data-shared-action="next"${page.nextCursor ? '' : ' disabled'}>${t('Next page')}</button></div>` : ''}
       ${browser.refs.some(ref => cat.selected.has(ref.id) && cat.assetById.get(ref.id)?.version !== ref.version) ? `<p class="cat-remote-note">${t('A selected asset has changed. Clear and select it again to use the latest listing.')}</p>` : ''}
       ${[...cat.selected].some(id => shared(cat.assetById.get(id)) && !browser.refs.some(ref => ref.id === id)) ? `<p class="cat-remote-note">${t('Your selection includes assets on other pages. Clear the selection before choosing a different batch.')}</p>` : ''}
+      ${/* The library's notes follow its records, so a phone shows the records first. */ ''}
+      ${partial}${notes}<p class="cat-remote-note">${t('Shared assets are ordered by name. Previews do not establish original availability. File access is checked when opened.')}</p>
     </section>`;
   };
   // Every paint of the section goes through here, so a later load knows what is on screen.

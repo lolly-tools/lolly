@@ -481,6 +481,17 @@ test('renderAudioExport: a whole, unmodified source in the requested format pass
   assert.equal(decoded, 1, 'the source is decoded once, to learn its true length');
 });
 
+test('renderAudioExport: a decoder that detaches its buffer, as decodeAudioData does, still passes the original bytes through', async () => {
+  const source = new Uint8Array([0x49, 0x44, 0x33, 3, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9]);
+  const blob = await renderAudioExport('mp3', {
+    audio: { url: 'blob:x' },
+    fetchBytes: async () => source.buffer.slice(0) as ArrayBuffer,
+    // Transferring the buffer away detaches the caller's copy, which is what Web Audio does.
+    decode: async (bytes) => { structuredClone(bytes, { transfer: [bytes] }); return tone(1000); },
+  });
+  assert.deepEqual(await bytesOf(blob), source);
+});
+
 test('renderAudioExport: forceEncode honours explicit compression settings instead of passing matching bytes through', async () => {
   const source = new Uint8Array([0x49, 0x44, 0x33, 3, 0, 0, 0, 0, 0, 0, 0, 0, 9, 9, 9]);
   const blob = await renderAudioExport('mp3', {

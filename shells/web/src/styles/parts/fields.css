@@ -679,6 +679,112 @@ input.field-range.is-upgraded { display: none; }
   padding: 8px 0;
 }
 
+/* ─── The ruler dial ──────────────────────────────────────────────────────
+   The slider's phone presentation (components/slider-ruler.ts), for the tools
+   trying it. The host is still the one role="slider" element; under `.cs-ruler`
+   its track gives way to a ruler that slides under a fixed centre mark, so the
+   finger rests on the ruler and the value above stays in view. Ticks are three
+   repeating gradients (every step, every five, every ten) on one strip that moves
+   by transform alone; the script sets the spacing as custom properties. */
+.custom-slider.cs-ruler {
+  padding: 0;
+  /* A vertical swipe still scrolls the sheet; a horizontal one turns the dial. */
+  touch-action: pan-y;
+}
+.custom-slider.cs-ruler > :is(.cs-track, .cs-ticks) { display: none; }
+.custom-slider:not(.cs-ruler) > .cs-dial { display: none; }
+
+.cs-dial {
+  position: relative;
+  height: calc(30px + 14px * var(--a11y-fs));
+  min-height: var(--ui-size-target);
+  border-radius: var(--ui-radius-control);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent);
+  color: var(--ui-color-text-muted);
+  cursor: grab;
+}
+.cs-ruler.dragging .cs-dial { cursor: grabbing; }
+.custom-slider.cs-ruler:focus-visible .cs-dial { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+/* The ruler fades out at both ends of the window, so it reads as a dial turning
+   under the mark rather than a strip that stops at the edge. */
+.cs-dial-window {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 18%, #000 82%, transparent);
+}
+
+.cs-dial-strip {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background-image:
+    repeating-linear-gradient(to right, currentColor 0 1px, transparent 1px var(--cs-dial-major)),
+    repeating-linear-gradient(to right, currentColor 0 1px, transparent 1px var(--cs-dial-mid)),
+    repeating-linear-gradient(to right, hsl(var(--muted-foreground) / .45) 0 1px, transparent 1px var(--cs-dial-px));
+  background-size: 100% 16px, 100% 10px, 100% 6px;
+  background-position: var(--cs-dial-major-at) 5px, var(--cs-dial-mid-at) 8px, 0 10px;
+  background-repeat: no-repeat;
+}
+
+.cs-dial-num {
+  position: absolute;
+  top: 26px;
+  transform: translateX(-50%);
+  font-size: var(--fs-2xs);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cs-dial-num.is-origin { color: var(--ui-color-text-default); font-weight: 600; }
+
+/* From the origin (zero, or the range's start) to the mark: which way, how far. */
+.cs-dial-band {
+  position: absolute;
+  top: 5px;
+  left: 0;
+  width: 1px;
+  height: 16px;
+  transform-origin: 0 0;
+  background: hsl(var(--primary) / .18);
+}
+
+.cs-dial-mark {
+  position: absolute;
+  top: 1px;
+  left: 50%;
+  width: 3px;
+  height: 24px;
+  margin-left: -1.5px;
+  border-radius: var(--radius-xs);
+  background: var(--ui-color-action-primary);
+  pointer-events: none;
+}
+
+/* The row's readout, while the dial shows: a button that opens a number field.
+   Both wear the compact field recipe at one height, so a tap swaps a button for a
+   field of the same box. The button's ::before stretches the tap target past 44px. */
+.cs-entry,
+.cs-entry-input {
+  margin-inline-start: auto;
+  height: var(--ui-size-control);
+  padding-block: 0;
+  font-variant-numeric: tabular-nums;
+}
+.cs-entry {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: text;
+}
+.cs-entry::before { content: ""; position: absolute; inset: -9px -6px; }
+.cs-entry > .input-value { margin: 0; font-size: inherit; color: inherit; }
+.cs-entry-input { width: 6.5em; text-align: end; }
+
 /* ─── Zero-specificity baseline for unclaimed native controls ────────────── */
 
 /* `:where()` contributes NO specificity, so every one of these is a floor that

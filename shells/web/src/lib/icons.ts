@@ -108,6 +108,9 @@ const PATHS = {
   ring: '<circle cx="12" cy="12" r="9"/>',
   // compound sort-direction glyph (two <g> arrows, toggled by CSS via .sd-up/.sd-down)
   sortDir: '<g class="sd-up"><path d="M8 20V5"/><polyline points="4 9 8 5 12 9"/></g><g class="sd-down"><path d="M16 4v15"/><polyline points="12 15 16 19 20 15"/></g>',
+  // Lucide `list-filter`: three centred lines, each shorter. The View options button
+  // wears this one, so the button and Settings (sliders) do not share a mark.
+  listFilter: '<path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/>',
   // merged: projects.ts FILTER_ICON === gallery.ts FILTER_ICON
   filterLines: '<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
   // merged: projects.ts HISTORY_ICON === gallery.ts HISTORY_ICON
@@ -194,6 +197,8 @@ const PATHS = {
   // The struck-through eye: a HIDDEN layer in the Design navigator, and the state its
   // own toggle shows. Same 24-grid and stroke weight as `eye`, so the two swap in place.
   eyeOff: '<path d="M3 3 21 21"/><path d="M10.2 5.2A11 11 0 0 1 12 5c7 0 11 7 11 7a19 19 0 0 1-3.4 4.3"/><path d="M6.9 7A19 19 0 0 0 1 12s4 7 11 7a11 11 0 0 0 4.4-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+  // Lucide "ban" - leave something out (the music generator's "Block from shuffle").
+  ban: '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
   heart: '<path d="M12 20.3 4.2 12.5a4.6 4.6 0 0 1 6.5-6.5l1.3 1.3 1.3-1.3a4.6 4.6 0 0 1 6.5 6.5z"/>',
   link: '<path d="M9 15 15 9"/><path d="M11 6l1-1a4 4 0 0 1 6 6l-1 1"/><path d="M13 18l-1 1a4 4 0 0 1-6-6l1-1"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.5 2"/>',
@@ -211,6 +216,9 @@ const PATHS = {
   building: '<path d="M4 22V4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v18"/><path d="M15 9h4a1 1 0 0 1 1 1v12"/><path d="M8 7h2M8 11h2M8 15h2M4 22h16"/>',
   cpu: '<rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/>',
   lock: '<rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.2" r="1.1"/>',
+  // The same padlock with its shackle swung open: the music generator's genre lock when
+  // shuffle may change the genre (closed, `lock`, keeps the genre).
+  lockOpen: '<rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 7.8-1.25"/><circle cx="12" cy="15.2" r="1.1"/>',
   mapPin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>',
   camera: '<path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L19 6h0a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/>',
   // The details list's row glyphs (lib/meta-rows.ts): Lucide ruler, hard-drive,
@@ -250,6 +258,12 @@ const PATHS = {
   // Horizontal twin of arrowsV - a left/right double-arrow. Pairs with it as the pitch (X)
   // / yaw (Y) tilt pair; roll (Z) is the circular rotateCw below.
   arrowsH: '<path d="M4 12h16"/><path d="m8 8-4 4 4 4"/><path d="m16 8 4 4-4 4"/>',
+  // Lucide orbit: a body circled by a path with two satellites. 3D Studio's Orbit mode,
+  // where a drag turns the camera round the subject.
+  orbit: '<circle cx="12" cy="12" r="3"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><path d="M10.4 21.9a10 10 0 0 0 9.941-15.416"/><path d="M13.5 2.1a10 10 0 0 0-9.841 15.416"/>',
+  // Lucide move: four arrows from the centre. Moving an object in any direction on a
+  // stage (the `move` name above is a different glyph, a folder that takes a file in).
+  move4: '<path d="M12 2v20"/><path d="m15 19-3 3-3-3"/><path d="m19 9 3 3-3 3"/><path d="M2 12h20"/><path d="m5 9-3 3 3 3"/><path d="m9 5 3-3 3 3"/>',
   // Single clockwise circular arrow (Lucide rotate-cw) - an in-plane spin, i.e. roll.
   rotateCw: '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>',
   // Translate handles - a double-arrow with a centre tick marking the moved object, so they
@@ -281,6 +295,12 @@ const PATHS = {
   transcript: '<path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2Z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/>',
   // A screen on a stand - "captured from the screen" (IPTC screenCapture). Deliberately
   // NOT the camera glyph: a screenshot is a different claim from a photograph.
+  // Lucide maximize-2, minimize-2, fullscreen and minimize: the music generator's
+  // visualiser growing in the page, shrinking back, filling the screen and leaving full screen.
+  expand: '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>',
+  collapse: '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/>',
+  fullscreen: '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect width="10" height="8" x="7" y="8" rx="1"/>',
+  fullscreenExit: '<path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>',
   monitor: '<rect x="2" y="3" width="20" height="13" rx="2"/><path d="M8 21h8M12 16v5"/>',
 
   // ---- sound-toggle.ts / neuro-dock.ts ----
@@ -288,6 +308,19 @@ const PATHS = {
   neuroBeat: '<path d="M2 12h3l2-7 4 18 3-14 2 7h6"/>',
   volumeOn: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
   volumeOff: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/>',
+  // The two ends of the sound shape slider (components/sound-toggle.ts), drawn solid
+  // ({ filled: true }): Köhler's round "bouba" blob and spiky "kiki" star, the shapes
+  // most people match to soft, rounded sounds and to sharp, bright ones.
+  bouba: '<path d="M12 3.1C12.9 2.6 14.3 2.3 15.1 2.7C16 3.1 16.4 4.7 16.9 5.5C17.4 6.4 17.6 7 18.3 7.6C19 8.2 20.7 8.4 21.3 9.1C22 9.8 22.5 11.1 22.2 12C21.9 12.9 20.2 13.7 19.5 14.3C18.7 15 18 15.2 17.7 15.9C17.3 16.7 17.7 18.2 17.3 19C16.8 19.8 15.9 20.8 15 20.8C14.1 20.9 12.9 19.8 12 19.5C11.1 19.1 10.7 18.8 9.7 18.8C8.7 18.8 7.3 19.8 6.2 19.6C5.2 19.5 3.9 18.8 3.5 17.9C3.1 17.1 3.9 15.5 4.1 14.5C4.2 13.5 4.7 12.9 4.5 12C4.3 11.1 3.2 10.1 3.1 9.2C3.1 8.3 3.4 7 4.1 6.5C4.9 6 6.6 6.3 7.6 6.2C8.5 6 9.1 6.2 9.8 5.6C10.6 5.1 11.1 3.6 12 3.1Z"/>',
+  kiki: '<path d="M12 1L13.5 8L19 4.6L16.2 9.9L22.9 9.6L16.1 12.5L20.5 16.9L15 15.5L15.1 22.4L11.7 16.4L8.8 21.9L9.4 15.3L2.4 17.6L7.3 12.8L2.4 9.7L8.4 9.6L4.9 4.2L10.3 7.8Z"/>',
+  // Lucide wand-sparkles: the music generator's Effects track, the sounds laid over the
+  // tune (the Lolly tag, the console, the sparkles and the sweeps).
+  wand: '<path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/>',
+  // Lucide headphones: the music generator's Solo, hearing one track alone (the star is a
+  // favourite instrument, never solo).
+  headphones: '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>',
+  // Lucide save: the music generator's Save at phone width, where the button shows its glyph.
+  save: '<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/>',
 
   // ---- tool-actions.ts export bar ----
   // Lucide rotate-cw - the "Regenerate music" button on the video audio-track card.
@@ -356,6 +389,8 @@ const PATHS = {
   cloudLightning: '<path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m13 12-3 5h4l-3 5"/>',
   bird: '<path d="M16 7h.01"/><path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20"/><path d="m20 7 2 .5-2 .5"/><path d="M10 18v3"/><path d="M14 17.75V21"/><path d="M7 18a6 6 0 0 0 3.84-10.61"/>',
   moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  // Lucide leaf: botanica's genre (lib/genre-icons.ts), a leaf on its stem.
+  leaf: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
   // Windchimes - no Lucide equivalent, so drawn in the same house style: the
   // suspension bar, four tubes of falling length, and the clapper disc below.
   chimes: '<path d="M4 4h16"/><path d="M7 4v9"/><path d="M11 4v12"/><path d="M15 4v8"/><path d="M19 4v11"/><circle cx="13" cy="19.5" r="2"/><path d="M13 16v1.5"/>',

@@ -84,8 +84,14 @@ export interface TextToPathOpts {
    * `Ł`, and its `latin-ext` file holds no ASCII), so a single face cannot
    * outline "Łódź". Characters no face covers shape as `.notdef` and are
    * counted in `notdef`. (v1.29)
+   *
+   * `fill` marks a face that draws only what every face before it cannot, the
+   * way a browser falls back to a later family in a `font-family` list: with one
+   * in the chain, the run is split by grapheme cluster and each cluster goes to
+   * the first face that maps all of it, so an earlier face keeps every character
+   * it can draw. A chain with no `fill` face splits as it always did. (v1.319)
    */
-  fallbackFonts?: Array<{ fontUrl: string; variations?: string[] }>;
+  fallbackFonts?: Array<{ fontUrl: string; variations?: string[]; fill?: boolean }>;
   /**
    * Also return the run broken into per-cluster pieces (`TextPathResult.clusters`)
    * - one entry per HarfBuzz cluster, which at the default clustering level is one
@@ -96,6 +102,15 @@ export interface TextToPathOpts {
    * way. Optional/additive (v1.159).
    */
   clusters?: boolean;
+  /**
+   * The direction of the paragraph this run sits in, as a browser resolves it: what a
+   * closing full stop or a Latin word inside Arabic is ordered against. The returned
+   * path always reads left to right from x=0, so a caller anchoring a right-to-left line
+   * places it `advanceWidth` left of the line's right edge. Omitted, a run holding
+   * right-to-left characters takes its direction from its first strong character.
+   * Optional/additive (v1.316).
+   */
+  direction?: 'ltr' | 'rtl';
 }
 
 /**

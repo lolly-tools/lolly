@@ -20,6 +20,8 @@ import type {
   BoxRow,
 } from '@lolly-tools/core/canvas-op-v1';
 import { ABUSE_REASONS } from '../collab/op-guard.ts';
+import { tRaw } from '../i18n.ts';
+import { viewingAs } from './view-as.ts';
 import type { OpGuard } from '../collab/op-guard.ts';
 import { getCollabClientId, initCollabClientId } from '../lib/collab-plumbing.ts';
 import type { CollabHistoryCapability } from '../lib/collab-history.ts';
@@ -1060,6 +1062,12 @@ export function createWorkCollabProvider(sessionId: string, opts: WorkCollabOpti
       return;
     }
     if (ended) return;
+    if (viewingAs()) {
+      reason = tRaw('Not while viewing as a partner');
+      dead = true;
+      setStatus('closed');
+      return;
+    }
     const Ctor = opts.socket ?? (globalThis as { WebSocket?: CollabSocketCtor }).WebSocket;
     if (!Ctor) {
       reason = 'no-websocket';

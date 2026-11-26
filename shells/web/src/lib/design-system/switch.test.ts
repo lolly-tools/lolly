@@ -131,6 +131,10 @@ test('the remountable set is the stateless views only, and instanceOf reads a ho
   const r = await rig();
   assert.equal(instanceOf((await r.registry.get('suse'))!), 'https://brand.suse.com');
   assert.equal(instanceOf((await r.registry.get('default'))!), '');
+  // An editing copy keeps its instance, so leaving a hosted system for a copy does not disconnect the instance.
+  const copy = { ...(await r.registry.get('default'))!, instanceEdit: { instance: 'https://brand.suse.com', host: 'brand.suse.com', sourceId: 'mounted', servedDigest: '' } };
+  assert.equal(instanceOf(copy), 'https://brand.suse.com');
+  assert.equal(instanceOf({ ...copy, instanceEdit: { ...copy.instanceEdit, instance: '' } }), '', 'a web app its instance serves has no base to keep');
 });
 
 test('an unknown id is refused before anything moves', async () => {

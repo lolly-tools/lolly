@@ -30,6 +30,7 @@ import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import type { Box } from './free-canvas-math.ts';
 import { clampRailPos, initFreeCanvas, placePopover } from './free-canvas.ts';
+import { mountEditorPanel, panelOrigin, placePanelBeside, positionEditorPopover } from './free-canvas-popover.ts';
 
 // ── jsdom bootstrap (same shape as free-canvas-tools.test.ts) ─────────────────
 const dom = new JSDOM('<!DOCTYPE html><body></body>');
@@ -260,6 +261,73 @@ test('placePopover keeps the anchored placement when the stage cannot be measure
   // clamping against zeroes would slam every menu into the corner.
   const pos = placePopover({ left: 10, right: 54, top: 40 }, { w: 0, h: 0 }, { w: 0, h: 0 });
   assert.deepEqual(pos, { left: 62, top: 40 });
+});
+
+test('placePanelBeside keeps the size panel where it always opened while it fits', () => {
+  // The old inline maths: left = min(right + 8, stage w - panel w - 8), top =
+  // max(6, min(anchor top, stage h - panel h - 8)). A desktop panel must not move.
+  assert.deepEqual(placePanelBeside({ right: 300, top: 120 }, { w: 262, h: 430 }, { w: 1100 }, 900), { left: 308, top: 120 });
+  assert.deepEqual(placePanelBeside({ right: 1090, top: 700 }, { w: 262, h: 430 }, { w: 1100 }, 900), { left: 830, top: 462 });
+});
+
+test('placePanelBeside stops the panel above a raised foot and scrolls a panel taller than the room', () => {
+  // A phone: the bottom bar's top at 784 is the foot, so a 550-tall panel opened from
+  // the sheet at 624 is pulled up to 226 and ends at 776.
+  assert.deepEqual(placePanelBeside({ right: 378, top: 624 }, { w: 350, h: 550 }, { w: 390 }, 784), { left: 32, top: 226 });
+  // A shorter phone with large text: 660 does not fit in 508 - 14, so it scrolls.
+  assert.deepEqual(placePanelBeside({ right: 300, top: 400 }, { w: 300, h: 660 }, { w: 320 }, 508), { left: 12, top: 6, maxHeight: 494 });
+  // Never off the left edge, whatever the panel's width.
+  assert.equal(placePanelBeside({ right: 300, top: 0 }, { w: 330, h: 100 }, { w: 320 }, 500).left, 6);
+});
+
+test('placePanelBeside writes no cap when the stage cannot be measured', () => {
+  assert.deepEqual(placePanelBeside({ right: 54, top: 40 }, { w: 0, h: 0 }, { w: 0 }, 0), { left: 62, top: 40 });
+});
+
+test('positionEditorPopover follows the layout: over the stage on a phone, back in it on a wide window', () => {
+  // The camera controls are placed again on every move of the camera they belong to, so
+  // a window that leaves the phone layout has to take them back into the stage and drop
+  // the fixed placement, not leave a stale class behind.
+  const doc = dom.window.document;
+  const stage = doc.createElement('div');
+  const anchor = doc.createElement('button');
+  stage.appendChild(anchor);
+  doc.body.appendChild(stage);
+  const controls = doc.createElement('div');
+  try {
+    stage.dataset.designLayout = 'compact';
+    positionEditorPopover(controls, anchor, stage);
+    assert.equal(controls.parentElement, doc.body);
+    assert.ok(controls.classList.contains('fc-popover--viewport'));
+    stage.dataset.designLayout = 'wide';
+    positionEditorPopover(controls, anchor, stage);
+    assert.equal(controls.parentElement, stage);
+    assert.ok(!controls.classList.contains('fc-popover--viewport'));
+  } finally { stage.remove(); controls.remove(); }
+});
+
+test('mountEditorPanel carries the stage layout values a panel reads onto the body with it', () => {
+  // `.fc-arch-panel` caps its height with the phone bar's height and the top bar's, values
+  // views/design-panels.ts and the top bar write on the stage. On the body they would no
+  // longer be inherited.
+  const doc = dom.window.document;
+  const stage = doc.createElement('div');
+  doc.body.appendChild(stage);
+  stage.style.setProperty('--design-actions-h', '60px');
+  stage.style.setProperty('--stage-reserve-top', '58px');
+  stage.getBoundingClientRect = () => ({ left: 0, top: 0, width: 390, height: 844, right: 390, bottom: 844, x: 0, y: 0, toJSON() { return this; } } as DOMRect);
+  const wide = doc.createElement('div');
+  const phone = doc.createElement('div');
+  try {
+    assert.equal(mountEditorPanel(wide, null, stage), false, 'no trigger, wide window: the stage');
+    assert.equal(wide.parentElement, stage);
+    assert.deepEqual(panelOrigin(wide, stage), { x: 0, y: 0 });
+    stage.dataset.designLayout = 'compact';
+    assert.equal(mountEditorPanel(phone, null, stage), true, 'the phone layout: the body');
+    assert.equal(phone.parentElement, doc.body);
+    assert.equal(phone.style.getPropertyValue('--design-actions-h'), '60px');
+    assert.equal(phone.style.getPropertyValue('--stage-reserve-top'), '58px');
+  } finally { stage.remove(); wide.remove(); phone.remove(); }
 });
 
 // ══ the Lolly menu ════════════════════════════════════════════════════════════

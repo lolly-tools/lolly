@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { unzipSync, strFromU8 } from 'fflate';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { pollPage } from './helpers/page-poll.ts';
 
 const origin = process.env.LOLLY_BATCH_TEST_URL ?? process.env.LOLLY_EXPORT_TEST_URL;
 const command = process.platform === 'darwin' ? 'Meta' : 'Control';
@@ -200,7 +201,7 @@ test('batch reuses the full format menu and copies and pastes rectangular cell r
       assert.equal(await td(row, 'firstname').locator('input').inputValue(), 'Shared');
     }
     await page.locator('[data-copy-cells]').click();
-    await page.waitForFunction(async () => (await navigator.clipboard.readText()).includes('Shared\tShared'));
+    await pollPage(page, async () => (await navigator.clipboard.readText()).includes('Shared\tShared'), undefined, { message: 'the copied cells on the clipboard' });
     assert.equal(await page.evaluate(() => navigator.clipboard.readText()), 'Shared\tShared\r\nShared\tShared\r\n');
     await page.screenshot({ path: '/tmp/lolly-batch-cells.png' });
 

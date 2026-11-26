@@ -12,6 +12,7 @@ const TEST_ROOTS = [
   'tests',
   'engine/src',
   'packages/core/test',
+  'packages/audio-dock/test',
   'packages/node-shell/test',
   'packages/docs-render/test',
   'packages/rondo/test',

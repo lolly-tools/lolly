@@ -1,0 +1,19 @@
+digraph mcp_endpoints {
+  rankdir=TB
+  node [shape=box]
+  agent [label="Agent\nany MCP client"]
+  open [label="Open endpoint\nno token, with limits"]
+  full [label="Full endpoint\naccess token"]
+  local [label="Your own machine\nstdio or local HTTP"]
+  nobrowser [label="No browser tier\nSVG-native tools only"]
+  browser [label="With a browser tier\nevery declared format"]
+  file [label="Same render path\nfile and editable link"]
+  agent -> open
+  agent -> full
+  agent -> local
+  open -> nobrowser
+  full -> browser
+  local -> browser
+  nobrowser -> file
+  browser -> file
+}

@@ -189,3 +189,20 @@ test('swapping the shared section in place keeps every device tile element', asy
     assert.equal(viewEl.querySelector('.catalog-body')!.firstElementChild!.hasAttribute('data-shared-library'), true, 'the section still leads the body');
   } finally { remote.dispose(); globalThis.fetch = original; _setBaseForTests(''); Reflect.deleteProperty(globalThis, 'IntersectionObserver'); Reflect.deleteProperty(globalThis, 'document'); }
 });
+
+test('the shared library shows its records first and its notes under them', async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = async () => Response.json({ capabilities, assets: [entry('first')], nextCursor: null, total: 1, version: 'fixture', complete: false,
+    sources: [{ id: 'dam', label: 'DAM', count: 1, status: 'stale' }], facets: { sources: [], sections: [], collections: [], types: [], tags: [] } });
+  const cat = fixture(), remote = remoteOps(cat); cat.remote = remote;
+  try {
+    await remote.load();
+    const html = remote.html(), record = html.indexOf('ext/dam/first');
+    assert.ok(record > 0, 'the record is drawn');
+    for (const note of ['The source listing may be incomplete', 'DAM: Cached listing', 'Shared assets are ordered by name']) {
+      assert.ok(html.indexOf(note) > record, `${note} follows the records`);
+    }
+    // The pager stays with the records, above the notes.
+    assert.ok(html.indexOf('Next page') > record && html.indexOf('Next page') < html.indexOf('Shared assets are ordered by name'));
+  } finally { remote.dispose(); globalThis.fetch = original; }
+});

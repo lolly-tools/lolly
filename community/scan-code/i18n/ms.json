@@ -1,5 +1,5 @@
 {
   "name": "Scan",
-  "description": "Baca kod QR dan kod bar pada peranti, tanpa apa-apa dihantar ke mana-mana awan. Pembaca, bukan pembuka: ia menyahkod, mengklasifikasikan dan menerangkan apa yang dibawa sesuatu kod - pautan, Wi-Fi, kenalan, kod produk - dan membolehkan anda bertindak secara sengaja. Salin sentiasa menjadi tindakan pertama; membuka, menyertai atau menambah adalah ketukan yang jelas dan termaklum.",
+  "description": "Baca kod QR dan kod bar pada peranti. Salin sentiasa menjadi tindakan pertama; membuka, menyertai atau menambah adalah ketukan yang jelas dan termaklum.",
   "featured.blurb": "Baca sebarang kod, dengan selamat dan luar talian"
 }

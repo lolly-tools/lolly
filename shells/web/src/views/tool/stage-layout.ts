@@ -7,12 +7,14 @@
  * a value (an event listener), goes through `tview.<module>.<fn>`. Extracted verbatim
  * from mountTool() by scripts/split-closure.ts.
  */
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import { flushAddressWrites, replaceRouteUrl, updateRouteParams } from '../../lib/url-state.ts';
 import { acquireCollabSession } from '../../lib/collab-session-source.ts';
 import { mountPeerViewport } from '../tool-peer-view.ts';
 import { mountViewAddress } from '../tool-view-address.ts';
 import { mountStageMotion } from '../../lib/stage-lod.ts';
 import { stageBottomReserve, stageSideReserve } from '../../lib/design-panel-layout.ts';
+import { hudClearance } from '../../lib/stage-hud-clearance.ts';
 import { carryMountState, willRemountForCollab } from '../../lib/collab-live-mount.ts';
 import { releaseTeamSessionOrigin } from '../../org/team-session-origin.ts';
 import type { ToolCollab } from '../tool-collab.ts';
@@ -27,11 +29,14 @@ import { applyBrandVars } from '../../brand-vars.ts';
 import { createDocumentThemeController, syncThemesRoute, themedHost } from '../../lib/document-theme.ts';
 import { refreshSwatches, setSwatches } from '../../components/color-field.ts';
 import { mountThemeSection, refreshThemeSwatches, trackToolTokenUsage } from './theme-section.ts';
+import { partnerKitOffer } from '../../lib/partner-kit-state.ts';
+import { readPartnerKitAttachment } from '../../../../../engine/src/url-mode.ts';
 import { toolTokenUsage } from '../../lib/theme-relevance.ts';
 import { createThemeToggle } from '../../components/theme-toggle.ts';
 import { createSoundToggle } from '../../components/sound-toggle.ts';
 import { createProfileControl } from '../../components/profile-menu.ts';
-import { mountScopedStyle } from '../../lib/scope-css.ts';
+import { addFallbackSlots } from '../../lib/fallback-slots.ts';
+import { mountScopedStyle, releaseLeavingStyles, removeStyleWithMarkup } from '../../lib/scope-css.ts';
 import { flickDirection, setupMobileSheet } from '../../lib/mobile-sheet.ts';
 import { wireExportPanelFloat } from '../../lib/export-panel-float.ts';
 import { dockedFullCount, isDocked, releaseDock } from '../../lib/edge-dock.ts';
@@ -48,6 +53,7 @@ import { bindOp, type ToolViewCtx } from './context.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { isPhoneLayout, phoneLayoutQuery } from '../../lib/layout-posture.ts';
 import { mountSplitView } from '../../lib/split-panes.ts';
+import { publishStageScale } from '../../lib/stage-scale.ts';
 
 export function setSidebarWidth(tview: ToolViewCtx, w: number, save = true): void {
   const { SIDEBAR_MIN, fullscreenToggle, layout, sidebarEl } = tview;
@@ -139,21 +145,25 @@ export function fitCanvas(tview: ToolViewCtx): void {
   // overlay is inset to the stage's padding box, so padding would drag the toolbars in with
   // it); justify-content:center then honours the margins, floating the canvas into the band.
   const cs = getComputedStyle(stageEl);
-  const hud = stageEl.querySelector<HTMLElement>('.stage-nav')?.getBoundingClientRect();
-  const hudReserve = window.matchMedia('(max-width: 640px)').matches && hud?.width && hud.height
-    ? Math.max(0, hud.bottom - stageRect.top - topPad)
-    : 0;
-  const reserveTop = Math.max(stageSideReserve(cs, 'top'), hudReserve);
   const pill = stageEl.parentElement?.querySelector<HTMLElement>('.render-pill')?.getBoundingClientRect();
   const pillReserve = pill?.width && pill.height && pill.left < stageRect.right && pill.right > stageRect.left
     ? Math.max(0, stageRect.bottom - pill.top)
     : 0;
   const reserveBottom = Math.max(stageBottomReserve(cs), pillReserve);
+  // The phone zoom HUD: the canvas sits below the folded swirl, and beside the tall
+  // unfolded column (lib/stage-hud-clearance.ts).
+  const hud = window.matchMedia('(max-width: 640px)').matches
+    ? stageEl.querySelector<HTMLElement>('.stage-nav')?.getBoundingClientRect()
+    : null;
+  const hudClear = hudClearance(hud, {
+    left: stageRect.left, top: stageRect.top + topPad, right: stageRect.right, bottom: stageRect.bottom - reserveBottom,
+  });
+  const reserveTop = Math.max(stageSideReserve(cs, 'top'), hudClear.top);
   // Left band: the free-canvas rail docks into a fixed-width left panel while the
   // timeline is open (see dockRailForTimeline). Same margin mechanism as top/bottom -
   // centring the margin box puts the canvas exactly centred in the remaining band.
-  const reserveLeft = stageSideReserve(cs, 'left');
-  const reserveRight = stageSideReserve(cs, 'right');
+  const reserveLeft = Math.max(stageSideReserve(cs, 'left'), hudClear.left);
+  const reserveRight = Math.max(stageSideReserve(cs, 'right'), hudClear.right);
   // The edge dock reduces the stage itself. Rules uses an explicit right reserve.
   const availW = Math.max(40, stageRect.width - reserveLeft - reserveRight - 32);
   const availH = Math.max(40, stageRect.height - topPad - reserveTop - reserveBottom - 32);
@@ -165,6 +175,8 @@ export function fitCanvas(tview: ToolViewCtx): void {
   outerEl.style.marginBottom = reserveBottom ? `${reserveBottom}px` : '';
   outerEl.style.marginLeft = reserveLeft ? `${reserveLeft}px` : '';
   outerEl.style.marginRight = reserveRight ? `${reserveRight}px` : '';
+  // Here the canvas scale is the whole on-screen scale: a zoomed view returned above.
+  publishStageScale(canvasEl, scale);
   tview.stageZoom?.sync(); // refresh the zoom % readout after a re-fit
 }
 // Reset pan/zoom and re-fit. Passed to renderActions so a dimension change always
@@ -314,7 +326,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
     ? `
     <div class="tool-notice" role="status" id="dropped-assets-notice">
       <span class="tool-notice-text">${droppedLines.join(' ')}</span>
-      <button type="button" class="tool-notice-close" id="dropped-assets-dismiss" aria-label="${escapeText(t('Dismiss this message'))}">✕</button>
+      ${closeButtonHtml({ size: 'sm', inherit: true, className: 'tool-notice-close', label: t('Dismiss this message'), attrs: { id: 'dropped-assets-dismiss' } })}
     </div>`
     : ''; tview.droppedNotice = droppedNotice;
 
@@ -325,7 +337,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
     <div class="tool-notice" role="status" id="capture-hint-notice">
       ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - docsAppHref() over a build-time slug constant, always '#/docs/…' */ ''}
       <span class="tool-notice-text">${t('Compose a shot and copy its recipe here. Saving it to a file needs the desktop app or browser extension.')} <a href="${escapeText(docsAppHref('create/extension'))}" target="_blank" rel="noopener">${t('Get the extension')}</a></span>
-      <button type="button" class="tool-notice-close" id="capture-hint-dismiss" aria-label="${escapeText(t('Dismiss this message'))}">✕</button>
+      ${closeButtonHtml({ size: 'sm', inherit: true, className: 'tool-notice-close', label: t('Dismiss this message'), attrs: { id: 'capture-hint-dismiss' } })}
     </div>`
     : ''; tview.captureNotice = captureNotice;
 
@@ -354,10 +366,13 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
               )
       }
         ${madeWithOnDevice ? ` <button type="button" class="tool-notice-link" id="made-with-switch">${t('Switch to {name}', { name: escapeText(madeWith.label) })}</button>` : ''}</span>
-      <button type="button" class="tool-notice-close" id="made-with-dismiss" aria-label="${escapeText(t('Dismiss this message'))}">✕</button>
+      ${closeButtonHtml({ size: 'sm', inherit: true, className: 'tool-notice-close', label: t('Dismiss this message'), attrs: { id: 'made-with-dismiss' } })}
     </div>`
     : ''; tview.madeWithNotice = madeWithNotice;
 
+  // The layout below replaces whatever tool was here. Its sheet was kept for as long as
+  // its markup showed (lib/scope-css.ts); both go in this one step.
+  releaseLeavingStyles();
   viewEl.innerHTML = `
     ${
       /* The editor layout's Home pill moves INTO the design top bar's left slot (plan 179
@@ -365,7 +380,14 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
           top of each other. mountBackPill() scans the whole view, so the one the bar emits
           (backHomeHtml, below) is wired by the same call, unsaved-changes intercept and all. */ ''
     }
-    ${noAside && !visitorPage && !isIframeMode() && !designChrome ? backPillHtml(backPillOpts) : ''}
+    ${
+      /* With no sidebar there is no header for the help button, so it sits beside the
+          floating pill in the shared top-left island (overrides.css .chrome-topleft),
+          hidden until the tool has steps or docs rows to show (plan 354 D6). */ ''
+    }
+    ${noAside && !visitorPage && !isIframeMode() && !designChrome
+      ? `<div class="chrome-topleft">${backPillHtml(backPillOpts)}${guideButtonHtml('tool-guide-fab', { hidden: !hasGuide(tview.tool.manifest), className: 'filter-fab tool-guide-fab' })}</div>`
+      : ''}
     <div class="tool-layout${chromeless ? ' is-editor' : ''}${documentLayout ? ' is-document' : ''}${pagedDoc ? ' is-paged' : ''}${webDoc ? ' is-webdoc' : ''}${visitorPage ? ' is-visitor' : ''}${hideSidebar && !visitorPage ? ' is-bare' : ''}" id="tool-layout"${documentLayout ? ' data-theme="light"' : ''} data-sidebar="${noAside ? 'hidden' : sidebarOpen ? 'open' : 'closed'}">
       ${
         showAside
@@ -378,7 +400,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
             <div class="sidebar-header-row">
               <span class="sidebar-title-wrap">
                 <span class="sidebar-title" title="${escapeText(tview.tool.manifest.name)}">${escapeText(tview.tool.manifest.name)}</span>
-                ${hasGuide(tview.tool.manifest) ? guideButtonHtml() : ''}
+                ${guideButtonHtml('tool-guide-btn', { hidden: !hasGuide(tview.tool.manifest) })}
                 ${canSaveSession ? `<button type="button" class="multi-edit-btn" id="multi-edit-btn" data-tip="${escapeText(t('Make variants'))}" aria-label="${escapeText(t('Make variants'))}" aria-haspopup="menu" aria-expanded="false">${icon('grid', { className: 'multi-edit-icon' })}</button>` : ''}
                 ${
                   /* "Templates" - the sidebar layout's door back to the chooser mid-session
@@ -518,7 +540,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
           <div class="export-popup" role="dialog" aria-modal="true" data-canvas-keys="off" aria-label="${escapeText(t('Export'))}">
             <div class="export-popup-head">
               <span class="export-popup-title">${t('Export')}</span>
-              <button type="button" class="export-popup-close" data-export-close aria-label="${escapeText(t('Close'))}">&#x2715;</button>
+              ${closeButtonHtml({ className: 'export-popup-close', attrs: { 'data-export-close': true } })}
             </div>
             <div class="export-popup-body" id="export-popup-body"></div>
           </div>
@@ -543,9 +565,12 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
 
   // Chromeless editors own their on-canvas affordances; ordinary tools get a focus hint.
   const focusHint = chromeless ? '' : `
-[data-canvas-input] { cursor: pointer; }
-[data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,0.35); outline-offset: 3px; border-radius: 2px; }`; tview.focusHint = focusHint;
+[data-canvas-input]:not([data-canvas-fixed]) { cursor: pointer; }
+[data-canvas-input]:not([data-canvas-fixed]):hover { outline: 2px dashed rgba(128,128,128,0.35); outline-offset: 3px; border-radius: 2px; }`; tview.focusHint = focusHint;
   const styleEl = mountScopedStyle(`${tview.tool.styles ?? ''}${focusHint}`, canvasScope); tview.styleEl = styleEl;
+  // A tool that sets its own fonts draws a script they lack in the same fallback font on
+  // the page as in its export (lib/fallback-slots.ts). The CSSOM only: the text stays.
+  addFallbackSlots(styleEl.sheet);
 
   const layout = viewEl.querySelector<HTMLElement>('#tool-layout')!; tview.layout = layout;
   const inputsEl = viewEl.querySelector<PanelEl>('#tool-inputs'); tview.inputsEl = inputsEl;
@@ -625,9 +650,28 @@ export function wireFilmstrip(tview: ToolViewCtx): void {
     refresh: (themed) => refreshThemeSwatches(themed, viewEl, { setSwatches, refreshSwatches }),
   }); tview.documentTheme = documentTheme;
   const stopUsage = trackToolTokenUsage(documentTheme, tview.tool, runtime);
-  const themeSection = mountThemeSection({ root: viewEl, controller: documentTheme,
-    after: (tview.tool.manifest.render as { themeChoicesAfter?: string } | undefined)?.themeChoicesAfter });
+  // A workspace template that keeps its colourway and mode offers neither, with no
+  // note: what cannot change is simply not offered (lib/workspace-templates.ts).
+  let kitLineVisible = (): boolean => false;
+  const themeSection: { refresh?(): void; destroy(): void } = tview.templateFixedTheme ? { destroy: () => {} } : mountThemeSection({ root: viewEl, controller: documentTheme,
+    after: (tview.tool.manifest.render as { themeChoicesAfter?: string } | undefined)?.themeChoicesAfter,
+    extraVisible: () => kitLineVisible() });
   tview.mountLifecycle.add('document theme', () => { stopUsage(); themeSection.destroy(); documentTheme.dispose(); });
+  // The partner kit this piece carries as a guest (plans/82 M8): its line heads the Design
+  // system section for a programme member only. The line and the kit reader load only when
+  // the piece opened with a kit or the person's company has one (views/tool/partner-kit-line.ts).
+  const openingKit = readPartnerKitAttachment(tview.initialValues.__partnerKit);
+  if (openingKit || partnerKitOffer()) {
+    void import('./partner-kit-line.ts').then(({ mountPartnerKitLine }) => {
+      if (!viewEl.isConnected) return;
+      const line = mountPartnerKitLine({ root: viewEl, host: tview.host, runtime, attachment: openingKit,
+        markDirty: () => { tview.session.markUserDirty(); tview.session.syncUrl(); },
+        refreshSection: () => themeSection.refresh?.() });
+      kitLineVisible = () => line.visible();
+      themeSection.refresh?.();
+      tview.mountLifecycle.add('partner kit', () => line.destroy());
+    });
+  }
   // Always present in the template (both layouts render #tool-stage), so treat it
   // as non-null - mirrors mountTool's unguarded uses (ro.observe, fitCanvas, …).
   const stageEl = viewEl.querySelector<HTMLElement>('#tool-stage')!; tview.stageEl = stageEl;
@@ -1281,9 +1325,23 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     placeActions();
     // ?options share-links land with the export panel already open (no focus grab).
     if (showExportPanel) openExport({ focus: false });
+    // A change of layout restyles the sheet from one look to the other, and its fade
+    // and slide are for opening and closing. Played on a layout change, they showed the
+    // closed sheet's scrim over the whole screen for a moment: a window narrowed past
+    // 640px, a phone turned upright. The sheet takes its new look at once instead.
+    const settleSheet = (): void => {
+      for (const el of [exportOverlay, exportPopup]) {
+        for (const anim of el.getAnimations?.() ?? []) if ('transitionProperty' in anim) anim.finish();
+      }
+    };
     const onBreakpoint = (): void => {
       placeActions();
       applyModality();
+      settleSheet();
+      // The layout is decided inside the resize event, ahead of the listeners that
+      // move a docked sheet back to its overlay, and that move restyles the sheet
+      // again. The frame that follows settles whatever they started, before any paint.
+      requestAnimationFrame(settleSheet);
     };
     mqMobile.addEventListener('change', onBreakpoint);
     tview.exportTeardown = () => {
@@ -1350,7 +1408,9 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     tview.vizModule?.destroyToolViz(); // else a WebGL2 context stays pinned per visited tool
     tview.studioModule?.destroyToolStudio(tview.contentEl);
     if (tview.onFocusRect && stageEl) stageEl.removeEventListener('fc-focus-rect', tview.onFocusRect);
-    styleEl.remove();
+    // The markup outlives this teardown: it fades out in the cross-view layer, or stays
+    // in place until the next tool has loaded. The sheet goes when the markup does.
+    removeStyleWithMarkup(styleEl, viewEl.querySelector(tview.canvasScope));
     shutter.destroy();
     ro.disconnect();
     cancelAnimationFrame(resizeFrame);
@@ -1360,6 +1420,8 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     tview.panelKeyTeardown = null;
     tview.framingTeardown?.();
     tview.framingTeardown = null; // framing overlay: listeners + its layer
+    tview.canvasRoleStop?.();
+    tview.canvasRoleStop = null;
     tview.filmstrip?.destroy();
     window.removeEventListener('keydown', tview.history.onHistoryKey);
     // Presence chrome first, transport last: the pill/rings/cursors come down, then

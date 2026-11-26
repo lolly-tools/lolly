@@ -82,12 +82,25 @@ const LABELS: Record<ViewToggleKey, string> = {
   catalog: 'Assets',
 };
 
-/** The tabs currently on offer - Utilities drops out with its feature flag. */
-function activeKeys(): ViewToggleKey[] {
-  return KEYS.filter(k => k !== 'utilities' || flagEnabledSync(UTILITIES_FLAG_ID));
+/** Whether the loaded catalogue offers no utility at all. Unknown (no index
+ *  yet) reads as "not empty", so the tab never flickers away on a cold start.
+ *  An organisation that gives a group no utilities (a partner programme in
+ *  Lolly Work, for one) would otherwise leave an empty tab that leads to a
+ *  "no tools available" page. */
+export function catalogHasNoUtilities(index: { tools?: Array<{ category?: string }> } | undefined): boolean {
+  return Array.isArray(index?.tools) && !index.tools.some(tool => tool?.category === 'utility');
 }
 
-export function viewToggle(active: ViewToggleKey): string {
+/** The tabs currently on offer - Utilities drops out with its feature flag,
+ *  and when the catalogue holds no utility. */
+function activeKeys(): ViewToggleKey[] {
+  const index = (globalThis as { __toolIndex?: { tools?: Array<{ category?: string }> } }).__toolIndex;
+  return KEYS.filter(k => k !== 'utilities' || (flagEnabledSync(UTILITIES_FLAG_ID) && !catalogHasNoUtilities(index)));
+}
+
+/** `active` null: a view that is none of the four (the docs reader) shows the tabs with
+ *  none marked current. */
+export function viewToggle(active: ViewToggleKey | null): string {
   const opt = (key: ViewToggleKey, href: string, label: string) =>
     `<a href="${href}" class="view-toggle-opt${active === key ? ' is-active' : ''}"` +
     // The active tab is a no-op navigation → stays silent; the others play the "navigate"

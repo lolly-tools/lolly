@@ -1,26 +1,31 @@
-# Manage
+# Zarządzanie
 
-Lolly działa na urządzeniu każdej osoby. Gdy zespół potrzebuje logowania, wspólnych projektów, nadzorowanych zasobów, przeglądów i zadań serwerowych, organizacja dodaje **Lolly Work**, serwer organizacji tego samego projektu open source. Te strony są dla tego, kto konfiguruje i utrzymuje ten serwer.
+Lolly działa na urządzeniu każdej osoby. Te strony są dla osób prowadzących **Lolly Work**, organizacyjny serwer projektu o otwartym kodzie źródłowym do logowania, współdzielonych projektów, nadzorowanych zasobów, przeglądów i zadań serwerowych.
 
-Zacznij od [Use Lolly at your organisation](/info/organisation.html), aby zobaczyć, co dostają członkowie, lub od [Lolly Work architecture](/info/work-overview.html), aby poznać odpowiedzialność serwera.
+Zacznij od [Używanie Lolly w organizacji](/info/organisation.html), aby zobaczyć, co otrzymują członkowie, lub od [Architektura Lolly Work](/info/work-overview.html), aby poznać działanie serwera.
 
-## Ustaw dostęp i politykę
+<!--i:eti-lock-->
+## Ustaw dostęp i zasady
 
-- [Adoption & Governance](/info/adoption-governance.html) omawia wdrożenie i rolę reguł marki.
-- [Identity and sessions](/info/work-identity.html) omawia logowanie i mapowanie grup. [Roles and grants](/info/work-permissions.html) wyjaśnia role, uprawnienia i zabezpieczenie właściciela.
-- [Policy and governance](/info/work-governance.html) omawia nakładki narzędzi, zablokowane dane wejściowe i politykę. [Manage organisation AI policy](/info/work-ai-policy.html) omawia zatwierdzenia i limity wykonania.
-- [Account data controls](/info/work-account-lifecycle.html) i [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) omawiają eksporty, odejście z organizacji, retencję i ich granice.
-- [Profiles, brands and tool configuration](/info/configuration.html) omawia, które narzędzia i systemy projektowe niesie kompilacja Lolly.
+- [Wdrożenie & nadzór](/info/adoption-governance.html) opisuje wdrażanie i rolę zasad marki.
+- [Tożsamość i sesje](/info/work-identity.html) opisuje logowanie i mapowanie grup. [Role i uprawnienia](/info/work-permissions.html) wyjaśnia role, nadane uprawnienia i zabezpieczenie właściciela.
+- [Zasady i nadzór](/info/work-governance.html) opisuje nakładki narzędzi, zablokowane dane wejściowe i zasady. [Zarządzanie zasadami AI w organizacji](/info/work-ai-policy.html) opisuje zatwierdzenia i limity wykonania.
+- [Kontrola danych konta](/info/work-account-lifecycle.html) oraz [Przechowywanie i cykl życia danych w Lolly Work](/info/work-data-lifecycle.html) opisują eksporty, odłączanie użytkowników, retencję i ich ograniczenia.
+- [Profile, marki i konfiguracja narzędzi](/info/configuration.html) opisuje, jakie narzędzia i systemy projektowe zawiera dany build Lolly.
 
-## Połącz zasoby i przeglądaj pracę
+<!--i:eti-link-->
+## Połącz zasoby i przeglądaj prace
 
-- [Design-system administration](/info/work-design-system-administration.html) omawia inwentarz źródeł, przeglądane zmiany i wycofywanie.
-- [Catalog and content](/info/work-catalog.html) omawia wspólne zasoby i reguły ekspozycji. [Provider guides](/info/work-provider-guides.html) podaje konfigurację i wymagania weryfikacji każdej platformy źródłowej.
-- [Approvals](/info/work-approvals.html) omawia łańcuchy przeglądu i rozdział obowiązków. [Rendering and sharing](/info/work-sharing.html) omawia linki i wyniki serwerowe.
-- [Invite an agent to a document](/info/work-document-agents.html) omawia dostęp do dokumentu w zakresie, wygaśnięcie i unieważnienie. Zaproszenie nie daje dostępu do wdrożenia ani infrastruktury.
+- [Używanie Lolly z obecnym DAM](/info/use-with-dam.html) wyjaśnia nadrzędność źródeł i tworzenie z użyciem połączonych zasobów. [Relacja SUSE z użycia Brandfolder](/info/suse-brandfolder.html) opisuje jedno wdrożenie. [Planowanie przejścia z DAM](/info/dam-transition.html) opisuje opcjonalną późniejszą migrację.
 
-## Znajdź następne zadanie
+- [Administrowanie systemem projektowym](/info/work-design-system-administration.html) opisuje inwentaryzację źródeł, przeglądane zmiany i wycofywanie zmian.
+- [Katalog i treść](/info/work-catalog.html) opisuje współdzielone zasoby i zasady udostępniania. [Przewodniki dostawców](/info/work-provider-guides.html) podają wymagania konfiguracji i weryfikacji każdej platformy źródłowej.
+- [Zatwierdzenia](/info/work-approvals.html) opisuje łańcuchy przeglądu i rozdział obowiązków. [Renderowanie i udostępnianie](/info/work-sharing.html) opisuje linki i wyniki pracy serwera.
+- [Zapraszanie agenta do dokumentu](/info/work-document-agents.html) opisuje dostęp do dokumentu o określonym zakresie, jego wygasanie i cofanie. Zaproszenie nie przyznaje dostępu do wdrożenia ani infrastruktury.
 
-- [Create](/info/creators.html) zawiera zadania twórcze i scenariusze zespołów.
-- [Deploy](/info/operate.html) omawia instalowanie i utrzymywanie Lolly i serwera Lolly Work. Konfiguracja instancji jest oddzielna od profilu treści osoby.
-- [Trust](/info/trust.html) wyjaśnia przepływy danych, podpisy i granice bezpieczeństwa.
+<!--i:eti-search-->
+## Znajdź kolejne zadanie
+
+- [Tworzenie](/info/creators.html) zawiera zadania twórcze i instrukcje pracy zespołowej.
+- [Wdrażanie](/info/operate.html) opisuje instalowanie i utrzymywanie Lolly oraz serwera Lolly Work. Konfiguracja instancji jest oddzielona od profilu treści użytkownika.
+- [Zaufanie](/info/trust.html) wyjaśnia przepływy danych, podpisy i granice bezpieczeństwa.

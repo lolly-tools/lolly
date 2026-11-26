@@ -1,0 +1,97 @@
+{
+  "about": "SHA-256 of the sfnt bytes woff2-encoder 2.0.0 (google/woff2 4721483, Brotli 1.0.3) returns for every public WOFF2 font in the tree. Any decoder that replaces it must return the same bytes.",
+  "fonts": {
+    "community/fallback-fonts/noto-sans-arabic.woff2": {
+      "bytes": 503172,
+      "sha256": "9ad08938909aaf36e8c7c737d50d0dedefe339b284f49a438c7e46269ef9f5c8"
+    },
+    "community/fallback-fonts/noto-sans-bengali.woff2": {
+      "bytes": 282676,
+      "sha256": "951e02ddc33cf411cbeb8996cae0df4ea4cd0959090d745836e75b38b7ee5b8e"
+    },
+    "community/fallback-fonts/noto-sans-cyrillic-italic.woff2": {
+      "bytes": 262388,
+      "sha256": "603214a21efa6948586c5524b3fc43f730a29300524480747b647b2580d1ab93"
+    },
+    "community/fallback-fonts/noto-sans-cyrillic.woff2": {
+      "bytes": 228856,
+      "sha256": "6e9f19d54b82a61d6c82135bb3869b876d874831756e29c10323e6b70284bb8a"
+    },
+    "community/fallback-fonts/noto-sans-devanagari.woff2": {
+      "bytes": 406356,
+      "sha256": "8a5ecc4665e4efb721780d8d21f3c32d309c35cb8dd5eee66560aee2c0e9fb23"
+    },
+    "community/fallback-fonts/noto-sans-greek-italic.woff2": {
+      "bytes": 201156,
+      "sha256": "afecde991d7692ff34281dfe9db3b6e02176661a0e37d50f372c1224b0267136"
+    },
+    "community/fallback-fonts/noto-sans-greek.woff2": {
+      "bytes": 200132,
+      "sha256": "ce588df2051e73898284ad0197f7ddacf0e34270e0eb05ea93afcd77773bfdbf"
+    },
+    "community/fallback-fonts/noto-sans-hebrew.woff2": {
+      "bytes": 76704,
+      "sha256": "bff0708ddd80376acebeac699f07443b4747124765a8cbb01e3d3874f32a585b"
+    },
+    "community/fallback-fonts/noto-sans-jp.woff2": {
+      "bytes": 4621724,
+      "sha256": "0a5a0738a9d2850834d30f17e03240a9746f61a6a47c92eefb0441fe08a90828"
+    },
+    "community/fallback-fonts/noto-sans-kr.woff2": {
+      "bytes": 7129628,
+      "sha256": "e74ff870af56d18443fac817f2e0f3d6ac05f960782fb2911c17bda7ab50681e"
+    },
+    "community/fallback-fonts/noto-sans-latin-italic.woff2": {
+      "bytes": 777544,
+      "sha256": "cf82621190bda320ea56cc09a62c8a5defbd8fe5764184acf5932b8c4961666f"
+    },
+    "community/fallback-fonts/noto-sans-latin.woff2": {
+      "bytes": 687092,
+      "sha256": "20a638ed03de1ed5936936acd3d12445c96548d40672984fb01f2366d00a1511"
+    },
+    "community/fallback-fonts/noto-sans-sc.woff2": {
+      "bytes": 4061788,
+      "sha256": "51d9641f83cb8c721ffc487542a8896026c0b538d4548a15b5cbae72b9dcbdd1"
+    },
+    "community/fallback-fonts/noto-sans-tc.woff2": {
+      "bytes": 8187360,
+      "sha256": "8637aac6be1facd0dc9c0a5f6593484075309467358265cf1614975389b6150b"
+    },
+    "community/fallback-fonts/noto-sans-thai.woff2": {
+      "bytes": 122500,
+      "sha256": "d989cf35a23dda14d03a25d05ff303b05ca8d97941164d46624af0050c425ddd"
+    },
+    "shells/web/public/fonts/NotoColorEmoji-COLRv1.woff2": {
+      "bytes": 5048184,
+      "sha256": "3407293cbf18f2a7e69c5785ea9e0c9de1f8e186822c7f9e527221a751a5d36b"
+    },
+    "shells/web/public/fonts/Outfit-latin-ext[wght].woff2": {
+      "bytes": 33956,
+      "sha256": "db022c80045c5a5ca02506df650b9f67ab4a19f5c50a8ca368089bb7dd13c39c"
+    },
+    "shells/web/public/fonts/Outfit-latin[wght].woff2": {
+      "bytes": 70368,
+      "sha256": "62daacd4b984adc6410c6062537bca95f9708586d054d969a8907bcac6353304"
+    },
+    "shells/web/public/fonts/SUSE-Italic[wght].woff2": {
+      "bytes": 223524,
+      "sha256": "990893010af4c049fa45a235c67b72ee8675953a32429875cc5c40e7136b4b60"
+    },
+    "shells/web/public/fonts/SUSEMono-Italic[wght].woff2": {
+      "bytes": 86192,
+      "sha256": "d055dc4eec9ab67ef018be03a0d53e4fdf5268568c4aaff4b1cf71417300e629"
+    },
+    "shells/web/public/fonts/SUSEMono[wght].woff2": {
+      "bytes": 88088,
+      "sha256": "aa76831dde528f0eb0a90ae52ff55edccddb8e22c7c242e1792ad2f3238526a3"
+    },
+    "shells/web/public/fonts/SUSE[wght].woff2": {
+      "bytes": 220848,
+      "sha256": "db0d2f34f2790e7fb25a5b1ea83b138c6b5096189888ba586feb40cda3c1ee1a"
+    },
+    "shells/web/public/info/fonts/cinzel-latin.woff2": {
+      "bytes": 57188,
+      "sha256": "2979ea627be24dc4965a5a03e08cd3f42be8ab8a4c15a35df4e205a2f1b4ae72"
+    }
+  }
+}

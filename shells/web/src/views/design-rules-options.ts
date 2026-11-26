@@ -7,6 +7,7 @@ import { wireReorderList } from '../components/reorder-list.ts';
 import { announce } from '../a11y.ts';
 import { t } from '../i18n.ts';
 import { captureDesignOption } from '../lib/design-tool-preflight.ts';
+import { colourFieldOptions } from '../lib/colour-role-swatches.ts';
 import { SVG, icon } from './free-canvas-icons.ts';
 
 function element<K extends keyof HTMLElementTagNameMap>(tag: K, text = '', className = ''): HTMLElementTagNameMap[K] {
@@ -143,7 +144,7 @@ export async function addApprovedProperty(draft: DesignToolDraftV1, fieldId: str
   const options: Array<{value:string;label:string}> = [];
   const images = new Map<string, unknown>();
   const add = (value: string, label = value): void => { if (value && !options.some(o => o.value === value)) options.push({value,label}); };
-  if (property === 'fg') for (const swatch of await host.tokens?.colors() || []) add(swatch.value, swatch.name || swatch.path);
+  if (property === 'fg') for (const option of await colourFieldOptions(host, await host.tokens?.colors() || [])) add(option.value, option.label ?? undefined);
   if (property === 'weight') for (const n of ['400','500','600','700']) add(n);
   if (property === 'font') for (const variant of draft.variants) for (const b of variant.boxes) if (b.kind === 'text' || b.text) add(String(b.font || 'sans'));
   if (property === 'text' || property === 'options') for (const option of source.input.options || [{value:String(source.input.default || ''),label:String(source.input.default || '')}]) add(option.value,option.label);

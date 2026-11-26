@@ -1,27 +1,31 @@
 # Lolly dan Figma
 
-_Disemak kali terakhir: 28 September 2026._
+_Semakan terakhir: 28 September 2026._
 
-Jika pereka anda bekerja dalam Figma, halaman ini menyatakan bagaimana Lolly duduk di sebelahnya: apa yang Figma lakukan yang Lolly tidak, dan di mana Lolly mengambil alih kerja berulang.
+Jika pereka anda bekerja dalam Figma, halaman ini menyatakan apa yang dilakukan Figma yang tidak dilakukan Lolly dan di mana Lolly mengambil alih kerja berulang.
 
+<!--i:eti-award-->
 ## Apa yang Figma lakukan dengan lebih baik
 
-[Figma Design](https://www.figma.com/design/) menggabungkan reka bentuk antara muka, komponen, prototaip interaktif dan serahan pembangun. Amalan reka bentuk produk dan ekosistemnya yang mantap penting apabila pasukan perlu mereka bentuk dan menentukan seluruh aplikasi, dan penyuntingan langsungnya berjalan pada skala yang belum dicapai collab kerja Lolly.
+[Figma Design](https://www.figma.com/design/) menggabungkan reka bentuk antara muka, komponen, prototaip interaktif dan penyerahan kepada pembangun. Amalan reka bentuk produk dan ekosistemnya yang mapan penting apabila pasukan mereka bentuk dan menetapkan spesifikasi seluruh aplikasi. Penyuntingan langsungnya berjalan pada skala yang belum dicapai oleh kolaborasi kerja Lolly.
 
-## Di mana kedua-duanya bertindih
+<!--i:eti-blend-->
+## Di mana keupayaannya bertindih
 
-Kedua-duanya membolehkan anda menyusun taip, bentuk dan imej pada kanvas dan bekerja dengan orang lain. Figma juga meliputi pengeluaran jenama berasaskan templat: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) membuat aset daripada templat dan mengisinya daripada fail CSV atau XLSX. [Import a design](/info/design-import.html) Lolly membuka fail Figma sebagai reka letak boleh sunting, jadi kedua-duanya boleh berkongsi kerja.
+Kedua-duanya membolehkan anda menyusun tipografi, bentuk dan imej pada kanvas serta bekerja dengan orang lain. Figma juga meliputi penghasilan kandungan jenama berasaskan templat: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) membuat aset daripada templat dan mengisinya daripada fail CSV atau XLSX. [Import reka bentuk](/info/design-import.html) Lolly membuka fail Figma sebagai reka letak yang boleh disunting, jadi kedua-duanya boleh berkongsi kerja.
 
-## Bagaimana Lolly melakukan tugas yang bertindih
+<!--i:eti-lolly-->
+## Cara Lolly melakukan tugas yang bertindih
 
-Lolly menukar reka bentuk menjadi [alat boleh guna semula dengan peraturan](/info/create-a-tool.html). Alat berjalan dalam pelayar atau CLI dan mengambil inputnya daripada pautan, skrip atau grid kelompok, jadi satu templat melayani orang yang menyunting satu fail dan pasukan yang membuat banyak.
+Lolly mengubah reka bentuk menjadi [alat boleh guna semula dengan peraturan](/info/create-a-tool.html). Alat itu berjalan dalam pelayar atau CLI. Ia menerima input daripada pautan, skrip atau grid kelompok. Satu templat memenuhi keperluan seseorang yang menyunting satu fail dan pasukan yang membuat banyak fail.
 
-![Kanvas terbuka Design, dengan Import a design dalam menu Lolly bar alat](/info/shots/design.svg)
+![Kanvas terbuka Lolly Design, dengan Import a design dalam menu Lolly pada bar alat](/info/shots/design.svg)
 
-[Collab peribadi](/info/collaborate.html) memasangkan dua peranti secara terus, tanpa akaun dan tanpa internet pada rangkaian dikongsi. Lolly kendiri merender luar talian. Content Credentials hidup secara lalai untuk eksport yang disokong, dan anda boleh mematikannya.
+[Kolaborasi peribadi](/info/collaborate.html) memasangkan dua peranti secara langsung, tanpa akaun dan tanpa memerlukan internet pada rangkaian bersama. Lolly kendiri merender luar talian. Content Credentials dihidupkan secara lalai untuk eksport yang disokong, dan anda boleh mematikannya.
 
-## Dengan organisasi
+<!--i:eti-building-->
+## Bersama organisasi
 
-Lolly Work menambah collab kerja disahkan dengan suntingan dikongsi, kursor langsung dan sesi pasukan tersimpan, serta log masuk tunggal, katalog dikongsi, kebenaran projek, kelulusan dan perenderan pelayan. [What runs where](/info/compare.html#what-runs-where) meletakkan kedua-dua bahagian bersebelahan.
+Lolly Work menambah kolaborasi kerja dengan pengesahan identiti, suntingan bersama, kursor langsung dan sesi pasukan tersimpan serta daftar masuk tunggal, katalog bersama, kebenaran projek, kelulusan dan render pelayan. [Apa berjalan di mana](/info/compare.html#what-runs-where) meletakkan kedua-dua bahagian bersebelahan.
 
-Figma ialah cap dagangan pemiliknya. Halaman ini menerangkan di mana kedua-dua produk bertindih dan tidak bergabung dengan Figma.
+Figma ialah tanda dagangan pemiliknya. Halaman ini menerangkan pertindihan keupayaan kedua-dua produk dan tidak mempunyai hubungan dengan Figma.

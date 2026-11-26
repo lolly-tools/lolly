@@ -247,6 +247,10 @@ export interface PreflightSettings {
   readonly durable?: boolean;
   readonly hdr?: boolean;
   readonly filename?: string;
+  /** "Print spot inks as process" (`_spots=process`, engine 1.324): every declared
+   *  spot INK prints as its process build and adds no plate. A finish keeps its own
+   *  plate. Absent or false keeps the named spot plates. */
+  readonly spotsAsProcess?: boolean;
 }
 
 /**
@@ -1259,13 +1263,37 @@ const checkVideoDurationDeclared: Check = c => {
 
 // ─── Checks: plates ─────────────────────────────────────────────────────────
 
+/** The declared spot INKS (finishes excluded), by plate name. */
+const spotInkNames = (c: Ctx): Set<string> =>
+  new Set(spotSwatches(c).filter(s => !s.spot.finish).map(s => s.spot.name));
+
+/** "Print spot inks as process" is on, so the inks fold into the four process plates. */
+const spotsAsProcess = (c: Ctx): boolean => c.job?.settings?.spotsAsProcess === true;
+
+/**
+ * The format writes the four process plates and nothing else. The CMYK TIFF is one
+ * four-channel raster and `eps-cmyk` sets DeviceCMYK colours only, so a spot ink goes in
+ * as its process build and a finish as its black mask (buildCmykPaletteMap), whether or
+ * not spot inks print as process. Only the CMYK PDF writes a named plate.
+ */
+const processOnly = (c: Ctx): boolean => !SPOT_PLATE_FORMATS.has(c.fmt);
+
 const checkProcessPlates: Check = c => {
   if (!SEPARATING_FORMATS.has(c.fmt)) return;
+  // When the inks go into the process plates, say where they went: a reader who knows
+  // the brand declares them should not have to guess why no spot plate is counted.
+  // The evidence lists the inks; a brand can declare dozens, too many for the sentence.
+  const folded = (spotsAsProcess(c) || processOnly(c)) && c.job?.palette?.known === true ? [...spotInkNames(c)] : [];
+  const n = folded.length;
+  const inks = n === 1 ? 'the spot ink prints as process and adds no plate.' : `the ${n} spot inks print as process and add no plates.`;
+  const where = processOnly(c) ? `This format has no named plates, so ${inks}` : `${inks.charAt(0).toUpperCase()}${inks.slice(1)}`;
   c.add({
     id: 'plates.process',
     severity: 'info',
-    message: '4 process plates. Whether all four carry ink cannot be known before the file is written.',
-    evidence: { format: c.fmt },
+    message: n > 0
+      ? `4 process plates. ${where} Whether all four carry ink cannot be known before the file is written.`
+      : '4 process plates. Whether all four carry ink cannot be known before the file is written.',
+    evidence: n > 0 ? { format: c.fmt, spotsAsProcess: folded.join(', ') } : { format: c.fmt },
     count: { kind: 'processPlates', value: 4, unit: 'plate', bound: 'ceiling', basis: 'format' },
   });
 };
@@ -1273,7 +1301,9 @@ const checkProcessPlates: Check = c => {
 const checkSpotCeiling: Check = c => {
   if (!SEPARATING_FORMATS.has(c.fmt)) return;
   if (c.job?.palette?.known !== true) return;
-  const names = new Set(spotSwatches(c).filter(s => !s.spot.finish).map(s => s.spot.name));
+  // The inks print in the process plates, so the file carries no spot plate to count.
+  if (spotsAsProcess(c) || processOnly(c)) return;
+  const names = spotInkNames(c);
   if (names.size === 0) return;
   c.add({
     id: 'plates.spot-ceiling',
@@ -1287,6 +1317,9 @@ const checkSpotCeiling: Check = c => {
 const checkFinishCeiling: Check = c => {
   if (!SEPARATING_FORMATS.has(c.fmt)) return;
   if (c.job?.palette?.known !== true) return;
+  // A finish goes into the black plate as a mask here, which print.finish-flattened-into-process
+  // reports as an error, so the file has no finish plate to count.
+  if (processOnly(c)) return;
   const names = [...new Set(finishSpots(c).map(s => s.spot.name))];
   if (names.length === 0) return;
   c.add({
@@ -1305,6 +1338,9 @@ const checkFinishCeiling: Check = c => {
  */
 const checkNoSpotsDeclared: Check = c => {
   if (!SEPARATING_FORMATS.has(c.fmt)) return;
+  // A format with no named plates never has a spot plate, so the sentence would say
+  // nothing about the brand.
+  if (processOnly(c)) return;
   if (c.job?.palette?.known !== true) return;
   if (spotSwatches(c).length > 0) return;
   c.add({
@@ -1385,7 +1421,11 @@ const checkPaletteUnresolved: Check = c => {
     id: 'plates.palette-unresolved',
     severity: 'info',
     needs: p.why,
-    message: 'No brand palette resolved, so plate count is unavailable.',
+    // A process-only format has its 4 plates whatever the palette holds (plates.process
+    // counts them), so what goes unchecked there is the brand colours, not the count.
+    message: processOnly(c)
+      ? 'No brand palette resolved, so the brand colours cannot be checked for ink limits or rich black. The plate count is still known: this format has only the 4 process plates.'
+      : 'No brand palette resolved, so plate count is unavailable.',
     evidence: { format: c.fmt, why: p.why },
   });
 };

@@ -25,7 +25,9 @@ Contract (`services/mcp/src/render-get.ts`):
   existence leak.
 - **Browser-free formats only**, the `TIER_A` set: `svg`, `emf`, `eps`,
   `eps-cmyk`, `dxf`, `exr`, `hdr`, `penpot`, `html`, `md`, `txt`, `json`, `csv`,
-  `ics`, `vcf`. Plus `png` for SVG-native tools (a tool whose formats include
+  `ics`, `vcf`, and the caption and palette files `srt`, `vtt`, `ttml`, `scc`,
+  `css`, `scss`, `gpl` (for a tool that declares them, such as `captions` and
+  `color-palette`). Plus `png` for SVG-native tools (a tool whose formats include
   `svg`). Any other format returns a 400 telling you to use the app or
   `lolly_render`.
 - **Content Credentials are off here**, always, so the vector and PNG output is
@@ -145,6 +147,9 @@ return an error. Codec availability depends on the browser tier.
 `link` (default true). `c2pa: "off"` means no credential on any format. Left out, a
 browser-free render has none and a browser-tier render keeps the web shell's. When
 you pass it, the result says what the file holds, read back from the file.
+`password` locks a `pdf` or `zip` with a weak deterrent (40-bit RC4 or ZipCrypto),
+and the result says it was read back. Any other format, a `pdf` with `bleed` or
+`marks`, or a non-ASCII `pdf` password fails the call with no file.
 
 **Design documents** are edited through `layerOperations` and `layerPatches`,
 accepted by `lolly_compile`, `lolly_inspect`, `lolly_measure`, `lolly_validate`,
@@ -196,7 +201,7 @@ Read-only context, no render:
   `lolly_check` checks against; the CLI tries `--file` and the terminal's active
   system first. Read it before composing anything on-brand.
 - `lolly://tool/{id}` and `lolly://tool/{id}/preview`: one tool's schema, or its
-  preview SVG.
+  gallery preview (SVG, or a WebP or PNG blob).
 - `lolly://asset/{id}`: one asset's bytes.
 
 ### Prompts

@@ -2,13 +2,14 @@
 
 Most tools need no code: the template prints what people type. Add a `hooks.js` when the picture depends on a calculation the template cannot do, such as laying out a chart from a pasted table, encoding a QR code or reacting to a camera.
 
-The Chart tool is a typical case. Its hook parses the pasted table, runs the layout and hands the template a finished list of shapes; the template only prints them.
+In the Chart tool, the hook parses the pasted table, runs the layout and hands the template a finished list of shapes. The template only prints the shapes.
 
 ![A treemap from the Chart tool - nested rectangles sized and placed by a hook, with the template only printing the shapes it was handed](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dtreemap%26full&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=at2-hooks-d3-treemap&try=1)
 
+<!--i:eti-code-->
 ## How a hook works
 
-A hook is a plain top-level function with a known name, such as `onInit` or `onInput`. Lolly calls each one at a known moment, passes it the current inputs and a `host` object and merges what it returns into the render:
+A hook is a top-level function with a known name, such as `onInit` or `onInput`. Lolly calls each hook at a set moment, passes it the current inputs and a `host` object and merges what it returns into the render:
 
 - A key that matches a declared input `id` changes that input's value.
 - Any other key becomes a computed value, an **extra**, that the template prints like an input.
@@ -26,25 +27,25 @@ function onInput({ id, value, model, host }) {
 }
 ```
 
-Flag each hook you define in the manifest's `hooks` object (`{ "onInit": true }`). A manifest with no `hooks` object never loads `hooks.js` at all, and validation and the shell read the flags, for example to wire the download for `exportFile`.
+Flag each hook you define in the manifest's `hooks` object (`{ "onInit": true }`). A manifest with no `hooks` object never loads `hooks.js`. Validation and the shell read the flags, for example to wire the download for `exportFile`.
 
 Hooks behave the same in the web app, the desktop apps and the command line when they use only `host.*`. [Host API](/info/host-api.html) lists everything `host` offers.
 
 ### When each hook runs
 
-Async results are time-boxed. The budget in each step below is how long the runtime waits for a hook's promise before it moves on:
+Async results are time-boxed. Each budget below is how long the runtime waits for a hook's promise:
 
 ::: timeline
 - <!--i:star--> **The tool opens: `onInit`, 5 seconds.** Runs once and seeds computed values.
 - <!--i:sliders--> **Each edit: `onInput`, 2 seconds.** Runs after every input change, with the changed input's `id` and `value`.
-- <!--i:download--> **An export starts: `beforeExport`, 5 seconds.** Adjust the node or call host APIs before the file is drawn. Receives `{ node, format, opts, host }`. If your template's frame clock declares `stillPose`, an SVG, PDF or other still that reads the page has already posed the tool at `t` 0 and frozen its loop when this hook runs; a raster calls the clock after this hook ([the frame clock](/info/tool-rendering.html#canvas-tools-readiness-the-frame-clock-and-gpu-rendering)).
-- <!--i:document--> **The tool makes the file itself: `exportStill` or `exportFile`, 10 seconds.** `exportStill` owns a raster still the 8-bit page render cannot make, such as a 16-bit or HDR PNG, OpenEXR or Radiance; it receives `opts` with depth, HDR, size and DPI, and returns `{ bytes, mime }`, or `null` to let the normal path draw that format. `exportFile` is the transform path for on-device utilities ([Assets and file utilities](/info/tool-files.html#producing-output-the-exportfile-hook-privacy-on-device)).
+- <!--i:download--> **An export starts: `beforeExport`, 5 seconds.** Adjust the node or call host APIs before the file is drawn. Receives `{ node, format, opts, host }`. If your template's frame clock declares `stillPose`, an SVG, PDF or other still that reads the page poses the tool at `t` 0 and freezes its loop before this hook runs. A raster calls the clock after this hook ([the frame clock](/info/tool-rendering.html#canvas-tools-readiness-the-frame-clock-and-gpu-rendering)).
+- <!--i:document--> **The tool makes the file itself: `exportStill` or `exportFile`, 10 seconds.** `exportStill` makes a raster still the 8-bit page render cannot make, such as a 16-bit or HDR PNG, OpenEXR or Radiance. It receives `opts` with depth, HDR, size and DPI and returns `{ bytes, mime }`, or `null` to let the normal path draw that format. `exportFile` is the transform path for on-device utilities ([Assets and file utilities](/info/tool-files.html#producing-output-the-exportfile-hook-privacy-on-device)).
 - <!--i:check--> **The export ends: `afterExport`, 5 seconds.** Runs after the file is made, for cleanup and chaining. Receives `{ node, format, blob, host }`.
 :::
 
-When a hook overruns, the runtime applies nothing at first, but the hook keeps running. A late `onInit` or `onInput` result **still applies when it arrives**, unless a newer `onInit` or `onInput` run has started since. Export hooks never apply late: a `beforeExport`, `exportFile` or `exportStill` overrun or error fails that export where people can see the failure. `afterExport` runs even when the render fails, so cleanup always happens; its overruns and errors are only logged. Errors in `onInit` and `onInput` are logged, never fatal. A synchronous overrun cannot be interrupted in the page, so it is measured and logged as a warning; in a Worker, an overrunning hook is stopped.
+When a hook overruns, the runtime applies nothing at first, but the hook keeps running. A late `onInit` or `onInput` result **still applies when it arrives**, unless a newer `onInit` or `onInput` run has started since. Export hooks never apply late: a `beforeExport`, `exportFile` or `exportStill` overrun or error fails that export visibly. `afterExport` runs even when the render fails. Its overruns and errors are only logged. Errors in `onInit` and `onInput` are logged, never fatal. A synchronous overrun cannot be interrupted in the page, so it is measured and logged as a warning. In a Worker, an overrunning hook is stopped.
 
-`onFrame` and `onLevel` run once per camera frame or audio sample, are **not** time-boxed and drop a sample while the previous one is still rendering. They are under [Live input](#live-input) below.
+`onFrame` and `onLevel` run once per camera frame or audio sample and are **not** time-boxed. See [Live input](#live-input).
 
 ### What every hook receives
 
@@ -60,15 +61,16 @@ When a hook overruns, the runtime applies nothing at first, but the hook keeps r
 
 `onInput` also gets `id` and `value`, the input that changed. Four reserved ids mark runs the runtime starts itself: `'__view'` (a view change, below), `'__tokens'` (a theme or colourway change, below), `'__canvasSize'` (a change of canvas size, below) and `'__emoji'`, which runs when the emoji set changes for a tool that drew emoji itself through `host.emoji.renderSvg`, `host.emoji.renderText` or `host.text.layoutRuns`.
 
+<!--i:eti-palette-->
 ## Reacting to the view and the design system
 
-**View changes.** Engine v1.255 adds an optional `ctx.view` for local presentation choices. Lolly Design uses `ctx.view.pageId` to render the page the viewer chose while `ctx.model` keeps the whole document. A shell can call `runtime.setViewState()` to refresh that view through `onInput` with `id: '__view'`; the patch from this run can update computed extras but cannot write declared inputs. View state stays out of saved sessions, links, undo and collaboration. A one-shot document render leaves `pageId` absent and renders every page.
+**View changes.** The optional `ctx.view` (engine v1.255) has local presentation choices. Lolly Design uses `ctx.view.pageId` to render the page the viewer chose, while `ctx.model` keeps the whole document. A shell can call `runtime.setViewState()` to refresh that view through `onInput` with `id: '__view'`. The patch from this run can update computed extras but cannot write declared inputs. View state stays out of saved sessions, links, undo and collaboration. A one-shot document render leaves `pageId` absent and renders every page.
 
 ### When the theme or colourway changes
 
-A person can switch a mounted tool to another theme or colourway from the sidebar's **Design system** section or Lolly Design's inspector, and the tool redraws in place. The shell calls `runtime.setTokenSelection()`. The runtime resolves every input linked to the design system again, runs `onInput` for each one whose colour moved, then runs `onInput` once more with `id: '__tokens'`, whether or not the tool links anything. `onInit` does not run again, because that would reset the person's inputs. As with `'__view'`, the patch from the `'__tokens'` run can update computed extras but cannot write declared inputs.
+A person can switch a mounted tool to another theme or colourway from the sidebar's **Design system** section or Lolly Design's inspector. The tool redraws in place. The shell calls `runtime.setTokenSelection()`. The runtime resolves every input linked to the design system again and runs `onInput` for each one whose colour moved. Then the runtime runs `onInput` once more with `id: '__tokens'`, whether or not the tool links anything. `onInit` does not run again, because that would reset the person's inputs. As with `'__view'`, the `'__tokens'` run's patch can update computed extras but cannot write declared inputs.
 
-Colours that reach the template through a linked input or a `var(--brand-*)` variable follow the switch with no work from the hook. A hook that read colours from `host.tokens` and kept them, such as a palette, a paper colour or a set of treatment seeds, drops what it kept when `id` is `'__tokens'` and reads again:
+Colours that reach the template through a linked input or a `var(--brand-*)` variable follow the switch with no hook work. A hook that read colours from `host.tokens` and kept them, such as a palette, a paper colour or a set of treatment seeds, drops them when `id` is `'__tokens'` and reads again:
 
 ```js
 var palette = null;   // read once, because onInput runs on every keystroke
@@ -80,13 +82,17 @@ async function onInput({ id, model, host }) {
 }
 ```
 
-An isolated hook sees the new choice too: before any hook runs under it, the runtime hands the Worker a fresh copy of the design system through the executor's `tokensChanged`. Return a computed colour under a name of its own, never under the id of a declared colour input. Writing that id replaces the input's design-system link with a fixed colour, and the next switch leaves the colour behind. `tests/tool-theme-switch.test.ts` mounts every community tool, switches it live and checks that the render matches a fresh mount in the new choice.
+An isolated hook sees the new choice too. Before any hook runs under the new choice, the runtime sends the Worker a fresh copy of the design system through the executor's `tokensChanged`. `tests/tool-theme-switch.test.ts` mounts every community tool, switches it live and checks that the render matches a fresh mount in the new choice.
+
+::: warning Return a computed colour under a name of its own
+Never return a colour under the id of a declared colour input. Writing that id replaces the input's design-system link with a fixed colour, and the next switch leaves the colour behind.
+:::
 
 ### When the canvas size changes
 
-People choose the size of what they make: a 1080 x 1920 story, an A4 page, a 3:1 banner. Engine v1.293 tells every hook that size as `ctx.canvasSize`, a `{ width, height }` in CSS pixels at 96 per inch, so an A4 page arrives as 793.7 x 1122.5. When nobody asked for a size it is the manifest's `render.width` x `render.height`. The web app reads it from the export size fields, the CLI from `--width`, `--height` and `--unit`, the TUI from its Export panel and the MCP server from the request, and each converts with the engine's `canvasSizeOf`, so every shell hands a tool the same numbers for the same request. Templates read the same size as `{{@canvasSize.width}}` and `{{@canvasSize.height}}` ([Templates and rendering](/info/tool-rendering.html#the-template-template-html)).
+People choose the size of what they make, such as a 1080 x 1920 story, an A4 page or a 3:1 banner. Engine v1.293 passes that size to every hook as `ctx.canvasSize`, a `{ width, height }` in CSS pixels at 96 per inch. An A4 page arrives as 793.7 x 1122.5. When nobody asked for a size, the size is the manifest's `render.width` x `render.height`. The web app reads the size from the export size fields, the CLI from `--width`, `--height` and `--unit`, the TUI from its Export panel and the MCP server from the request. Each converts with the engine's `canvasSizeOf`, so every shell hands a tool the same numbers for the same request. Templates read the same size as `{{@canvasSize.width}}` and `{{@canvasSize.height}}` ([Templates and rendering](/info/tool-rendering.html#the-template-template-html)).
 
-A tool whose layout follows the shape declares `"render": { "followsCanvasSize": true }`. When the size changes, the runtime runs `onInput` with `id: '__canvasSize'`, then repaints, so the live canvas shows the layout the export writes. As with `'__view'` and `'__tokens'`, the patch from that run can update computed extras but cannot write declared inputs, so the size never reaches the saved inputs, undo, links or collaboration. A tool without the key keeps rendering exactly as before: the runtime records the size for the next run the tool gets for its own reasons, and nothing re-runs or repaints. Declaring the key needs `"engineVersion": "^1.293.0"`.
+A tool whose layout follows the canvas shape declares `"render": { "followsCanvasSize": true }`. When the size changes, the runtime runs `onInput` with `id: '__canvasSize'`, then repaints, so the live canvas shows the layout the export writes. As with `'__view'` and `'__tokens'`, the patch from that run can update computed extras but cannot write declared inputs. The size never reaches the saved inputs, undo, links or collaboration. A tool without the key renders as before: the runtime records the size for the tool's next ordinary run, and nothing re-runs or repaints. Declaring the key needs `"engineVersion": "^1.293.0"`.
 
 ```js
 function layout(model, size) {
@@ -100,11 +106,11 @@ function onInit({ model, canvasSize }) { return layout(model, canvasSize); }
 function onInput({ model, canvasSize }) { return layout(model, canvasSize); }
 ```
 
-Do not declare hidden `width` and `height` inputs to get the size. The web shell writes into inputs with those ids, but the size then travels in links and undo, and the CLI warns that `--width` and `--height` shadow them. The export hooks see `ctx.canvasSize` too, beside `ctx.opts.width` and `ctx.opts.height`, the export's own size, which can differ: a batch row or a caller can ask for a size the canvas was never set to. [Lolly Logo Wall](/#/tool/logo-wall) is the reference tool: it lays the wall out for the canvas's shape and lays it out again in `beforeExport` only when the export's shape differs.
+Do not declare hidden `width` and `height` inputs to get the size. The web shell writes into inputs with those ids, but the size then travels in links and undo, and the CLI warns that `--width` and `--height` shadow them. The export hooks see `ctx.canvasSize` and also `ctx.opts.width` and `ctx.opts.height`, the export's own size. The two can differ: a batch row or a caller can ask for a size the canvas was never set to. [Lolly Logo Wall](/#/tool/logo-wall) is the reference tool. It lays the wall out for the canvas's shape, and again in `beforeExport` only when the export's shape differs.
 
 ### Showing what an empty colour input draws
 
-A colour input whose `default` is empty can be left empty, and the tool then picks the colour itself: Certificate's Ink follows the design system's text colour, Timezone's Text override follows the theme. In the web app's sidebar an empty colour input shows as automatic, with a neutral pattern and the word **Automatic**, and its picker offers the way back to empty. A hook can say which colour the tool draws there by returning `autoColors`, keyed by input id:
+A colour input whose `default` is empty can stay empty, and the tool then picks the colour. Certificate's Ink follows the design system's text colour, and Timezone's Text override follows the theme. In the web app's sidebar an empty colour input shows a neutral pattern and the word **Automatic**, and its picker offers a way back to empty. A hook can say which colour the tool draws there by returning `autoColors`, keyed by input id:
 
 ```js
 return {
@@ -116,17 +122,22 @@ return {
 };
 ```
 
-`value` is the colour the tool draws while that input is empty, worked out as if the input were empty even when the person has set a colour, so the picker's "Follow the design system" choice shows the colour the input returns to. `source: 'design-system'` makes the field read "Design system" and announce "Ink: follows the design system (Liquorice)"; without the key the field reads "Automatic". Leave `value` out when the template decides the colour later, as Lolly Chart's palette slots do, and the field keeps the neutral pattern. `autoColors` is an ordinary extra: the template never needs to read the value, and other shells ignore the key. [Lolly Certificate](/#/tool/certificate) is the reference tool.
+`value` is the colour the tool draws while that input is empty. Work it out as if the input were empty even when the person has set a colour, so the picker's "Follow the design system" choice shows the colour the input returns to. `source: 'design-system'` makes the field read "Design system" and announce "Ink: follows the design system (Liquorice)". Without the key the field reads "Automatic". Leave `value` out when the template decides the colour later, as Lolly Chart's palette slots do. The field then keeps the neutral pattern. `autoColors` is an ordinary extra: the template never needs to read the value, and other shells ignore the key. [Lolly Certificate](/#/tool/certificate) is the reference tool.
 
+<!--i:eti-camera-->
 ## Live input
 
 ### Motion-reactive tools (`onFrame`)
 
-Declare an `onFrame` hook and your tool can react to a **live camera**. The shell shows a **Go live** toggle wherever a camera is available (`host.media`), and the runtime calls `onFrame` once per frame with `{ frame, model, host }`, where `frame` is `{ width, height, data, t }` and `data` is RGBA pixels. Return a patch, as from `onInput`.
+Declare an `onFrame` hook to react to a **live camera**. The shell shows a **Go live** toggle wherever a camera is available (`host.media`). The runtime calls `onFrame` once per frame with `{ frame, model, host }`. `frame` is `{ width, height, data, t }`, and `data` is RGBA pixels. Return a patch, as from `onInput`.
 
-This is pure progressive enhancement: `onFrame` is never called where there is no camera, so the tool still works as an ordinary still-image tool. **Do not** add `camera` to `capabilities`, which would require a camera and hide the tool where there is none.
+`onFrame` is never called where there is no camera. There, the tool works as an ordinary still-image tool.
 
-The usual move is to wrap the pixels in a canvas the still pipeline already understands and reuse it:
+::: warning Do not declare `camera` for `onFrame`
+Adding `camera` to `capabilities` would require a camera and hide the tool where there is none.
+:::
+
+The usual pattern wraps the pixels in a canvas and reuses the still pipeline:
 
 ```js
 function onFrame({ frame, model }) {
@@ -137,18 +148,18 @@ function onFrame({ frame, model }) {
 }
 ```
 
-Keep it cheap: `onFrame` is not time-boxed, but the runtime drops a frame while the previous one is still rendering, so an expensive render only lowers the frame rate. The `filter` tool's effects are the reference (halftone, scanline, posterise and duotone). Pixel tracers wrap the frame as above, while the SVG-filter duotone hands the frame back as a data-URL image. The `render` keys that tune the camera are under [Live camera](/info/tool-manifest.html#live-camera).
+Keep `onFrame` cheap. It is not time-boxed, but the runtime drops a frame while the previous one is still rendering, so an expensive render only lowers the frame rate. The `filter` tool's effects are the reference (halftone, scanline, posterise and duotone). Pixel tracers wrap the frame as above. The SVG-filter duotone hands the frame back as a data-URL image. [Live camera](/info/tool-manifest.html#live-camera) lists the `render` keys that tune the camera.
 
 ### Recording tools (`render.capture` + `onLevel`)
 
-Set `render.capture` and the tool gets a **record** button that captures the person's microphone, camera or screen to a file, the audio and video counterpart to the `file` transform path. Four modes:
+Set `render.capture` to give the tool a **record** button. The button captures the person's microphone, camera or screen to a file, as the audio and video counterpart of the `file` transform path. There are four modes:
 
 - `"audio"` - **microphone only**, for a voice recorder. Also shows a live input-level meter when the tool declares an `onLevel` hook.
 - `"video"` - **camera only, silent**, with no microphone track.
 - `"av"` - **camera and microphone**, for a talking-head recorder. Use it rather than `"video"` when the clip needs sound. The shell also mounts a coaching display for audio level and background noise.
-- `"screen"` - **display capture** (engine v1.54). The shell mounts a Screenshot and Record pair, and the browser's own picker chooses the screen, window or tab, so the tool never sees a target it was not handed.
+- `"screen"` - **display capture** (engine v1.54). The shell mounts a Screenshot and Record pair. The browser's own picker chooses the screen, window or tab, so the tool never sees a target it was not given.
 
-Recording asks for a device permission, so, unlike the live camera, it **is** a gated capability: declare `microphone` for `audio`, `camera` for `video`, **both** for `av` and `screen` for `screen`. The tool is then unavailable on shells that cannot record; the headless CLI provides no `host.recorder`. The recorded bytes reach the person through the transform path (`host.export.file`, never watermarked) or become a template asset that a compositing tool wraps.
+Recording asks for a device permission, so, unlike the live camera, recording **is** a gated capability. Declare `microphone` for `audio`, `camera` for `video`, **both** for `av` and `screen` for `screen`. The tool is then unavailable on shells that cannot record. The headless CLI provides no `host.recorder`. The recorded bytes reach the person through the transform path (`host.export.file`, never watermarked) or become a template asset that a compositing tool wraps.
 
 ```json
 "render": { "width": 1080, "height": 1080, "formats": ["png", "svg"], "capture": "audio", "actions": ["download", "save"] },
@@ -156,7 +167,7 @@ Recording asks for a device permission, so, unlike the live camera, it **is** a 
 "hooks": { "onInit": true, "onLevel": true }
 ```
 
-**The `onLevel` hook** is a live level meter and sound check. The runtime calls it once per audio-level sample, from the meter before recording and again during the take, the same way `onFrame` handles camera frames: overlapping samples are dropped, and it is not time-boxed. It returns a patch, like `onInput`:
+**The `onLevel` hook** is a live level meter and sound check. The runtime calls the hook once per audio-level sample from the meter, before recording and during the take. As with `onFrame`, overlapping samples are dropped and the hook is not time-boxed. It returns a patch, like `onInput`:
 
 ```js
 function onLevel({ level, model, host }) {
@@ -179,14 +190,14 @@ Engine v1.19 adds four optional background-noise cues. Check for them first, bec
 - `hum` - from 0 to 1, the share of energy in the mains bands, a sign of electrical hum or a ground loop.
 - `hiss` - from 0 to 1, the spectral flatness, a sign of broadband fan or air-conditioning hiss.
 
-The noise cues are trustworthy only from the **raw** meter: the sound check runs the microphone with noise suppression and automatic gain off. A recording session turns them on for a clean file, so its noise floor reads lower than the room really is.
+The noise cues are trustworthy only from the **raw** meter: the sound check runs the microphone with noise suppression and automatic gain off. A recording session turns them on for a clean file, so its noise floor reads lower than the room's.
 :::
 
 `voice-recorder` (`capture: "audio"` with `onLevel` coaching), `record` (`capture: "av"`) and `screencap` (`capture: "screen"`, declaring `screen` and `microphone`) are the reference tools. The `host.recorder` bridge, with `meter` and `record`, is on [Host API](/info/host-api.html).
 
 ### Transcribing audio (`render.transcribe`)
 
-Engine **v1.150**. Point at an audio or video input and a text input, and the shell mounts the whole speech-to-text feature for you: consent for the one-time on-device model download, a background job whose notice shows progress and offers cancel and one undoable write into the target input.
+Engine **v1.150**. Name an audio or video input and a text input, and the shell mounts speech-to-text: consent for the one-time on-device model download, a background job with progress and cancel in its notice and one undoable write into the target input.
 
 ```json
 "render": {
@@ -200,11 +211,12 @@ Engine **v1.150**. Point at an audio or video input and a text input, and the sh
 - **`format`** - `"srt"` (the default) or `"vtt"` for numbered subtitle cue blocks or `"words"` for the plain spoken text, one cue per line with no timestamps.
 - **`auto`** - the optional id of a `boolean` input. While it is on, a freshly recorded or picked clip is processed with no click. The consent sheet still appears the first time the model is not on the device.
 
-Everything runs locally: the clip is decoded and read on the device, and nothing is uploaded. A clip with no speech writes an **empty value** and shows a note in the interface, never invented text. The declaration is feature-detected rather than capability-gated, so a shell without on-device speech, such as the headless CLI, mounts nothing and leaves the target input with the value the link or saved session gave. Pair it with a `template.srt` or `template.vtt` ([Data formats](/info/tool-rendering.html#data-formats-json-csv-ics-vcf)) to export the cues as a separate file.
+The clip is decoded and read on the device, and nothing is uploaded. A clip with no speech writes an **empty value** and shows a note in the interface, never invented text. The declaration is feature-detected, not capability-gated. A shell without on-device speech, such as the headless CLI, mounts nothing and leaves the target input with the value from the link or saved session. Pair the declaration with a `template.srt` or `template.vtt` ([Data formats](/info/tool-rendering.html#data-formats-json-csv-ics-vcf)) to export the cues as a separate file.
 
+<!--i:eti-globe-->
 ## Network access (`host.net`)
 
-Tools work offline first. By default a tool gets no `host.net`, so it has no supported way to reach the network. That is a contract checked in review, not isolation: [Portability and isolation](#portability-and-isolation) explains why. A live-data tool, such as weather, status, a news ticker or a calendar feed, opts in with two manifest declarations: the capability, and an explicit list of what it may fetch.
+By default a tool gets no `host.net`, so it has no supported way to reach the network. That is a contract checked in review, not isolation ([Portability and isolation](#portability-and-isolation)). A live-data tool, such as weather, status, a news ticker or a calendar feed, opts in with two manifest declarations: the capability and a list of what it may fetch.
 
 ```jsonc
 "capabilities": ["network"],
@@ -221,8 +233,8 @@ The allowlist rules:
 - **`https` only.** Entries are full URLs; plain `http` never validates.
 - **A bare entry allows exactly that URL**, including its query string.
 - **A trailing `/*` makes an entry a prefix**: `https://api.example.com/*` allows everything under that path. The wildcard must follow a path separator (`/*`, never a bare `*`), so a prefix cannot spill into a lookalike host: `https://api.example.com*` would also match `https://api.example.com.evil.io/`.
-- **1 to 32 entries.** Small on purpose: list the endpoints you call.
-- **Closed when unsure, everywhere.** No `network` block, or a URL no entry matches, means every `host.net.fetch` rejects, the same way in the web shell, off-screen batch and gallery renders, the CLI and the TUI. The host applies the allowlist per mounted tool, and nothing a hook does can widen the list. Response bodies are capped at 64 MB, so a wrong or compromised endpoint cannot stream unbounded bytes into memory.
+- **1 to 32 entries.** List only the endpoints you call.
+- **Closed when unsure, everywhere.** No `network` block, or a URL no entry matches, makes every `host.net.fetch` reject. This is true in the web shell, off-screen batch and gallery renders, the CLI and the TUI. The host applies the allowlist per mounted tool, and nothing a hook does can widen the list. Response bodies are capped at 64 MB, so a wrong or compromised endpoint cannot stream unbounded bytes into memory.
 
 In a hook, `host.net.fetch` is an ordinary `fetch` behind that gate:
 
@@ -240,18 +252,19 @@ async function onInit({ model, host }) {
 
 Keep fetches inside the hook budgets above, return extras the template can print as they are and always render something sensible when the fetch fails. A network tool that renders blank offline is a bug.
 
+<!--i:eti-box-->
 ## Portability and isolation
 
-`host.*` is the only surface every shell guarantees, so build on `host.*`.
+`host.*` is the only surface every shell guarantees.
 
-- **Stay away from `window`, `document`, `fetch` and `localStorage`.** Hooks are loaded with `new Function` and `host` injected as closure scope, so in a browser shell those globals are technically reachable. Using them ties your tool to browser shells, breaks headless rendering in the CLI and rules out strict Worker execution; sideloaded tools already run strictly isolated. The `onFrame` canvas pattern above is a deliberate browser-only exception. That this injection is a portability rule and not a security sandbox is set out in the [Threat Model](/info/threat-model.html#trust-boundaries).
+- **Stay away from `window`, `document`, `fetch` and `localStorage`.** Hooks are loaded with `new Function` and `host` injected as closure scope, so in a browser shell those globals are reachable. Using them ties your tool to browser shells, breaks headless rendering in the CLI and rules out strict Worker execution. The `onFrame` canvas pattern above is a browser-only exception. The [Threat Model](/info/threat-model.html#trust-boundaries) explains that this injection is a portability rule, not a security sandbox.
 - **No module imports.** Hooks are loaded as one source string, so `import` does not work.
 
 ### Run hooks in a Worker (`isolate`)
 
-A built-in tool can set `isolate: true` in its manifest (engine v1.105 and later) to ask the web shell to run its hooks in a Web Worker while the tool is open for editing. The executor keeps colour, geometry and design-token calls inside the Worker and forwards the other `host.*` calls to the shell. If a Worker cannot start, the shell runs the hooks in the page instead. The CLI runs hooks in a worker thread only when `LOLLY_HOOK_WORKER=1` is set.
+A built-in tool can set `isolate: true` in its manifest (engine v1.105 and later) to ask the web shell to run its hooks in a Web Worker while the tool is open for editing. The executor keeps colour, geometry and design-token calls inside the Worker and forwards the other `host.*` calls to the shell. If a Worker cannot start, the hooks run in the page. The CLI runs hooks in a worker thread only when `LOLLY_HOOK_WORKER=1` is set.
 
-Do not set the flag by hand. `node scripts/tool-isolation.ts --verify --write` sets it only when both checks pass: the hooks use none of the page-only globals a Worker lacks (`document`, `window`, `Image` and the like), and `lolly smoke` renders the tool byte for byte the same in the page and in a worker thread. A tool that later gains a page dependency fails `--verify` and loses the flag the same way.
+Do not set the flag by hand. `node scripts/tool-isolation.ts --verify --write` sets it only when both checks pass: the hooks use none of the page-only globals a Worker lacks (`document`, `window`, `Image` and the like), and `lolly smoke` renders the tool byte for byte the same in the page and in a worker thread. A tool that later gains a page dependency fails `--verify` and loses the flag.
 
 The flag is a request. A sideloaded or remote tool always runs its hooks in strict isolation, whatever its manifest says, and refuses to run when isolation is unavailable.
 
@@ -267,15 +280,18 @@ function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
 
 Never edit inside the markers. Edit the shared file and run `pnpm run sync:shared`; `pnpm run validate:catalog` fails on any drift. `community/_shared/README.md` has the details.
 
+<!--i:eti-search-->
 ## Newer optional host APIs (feature-detect)
 
-The bridge grows by addition: new `host.*` APIs arrive in minor engine versions, are never removed and are optional, so an older shell may not have them yet. Check for an API, and keep the tool working when the API is missing. If your tool cannot work without one, list it in `requires` ([Tool manifests](/info/tool-manifest.html#what-the-tool-needs-from-the-host)) or raise the manifest's `engineVersion` floor, so the engine refuses the tool clearly instead of a method being missing. Three recent additions tools reach for:
+New `host.*` APIs arrive in minor engine versions, are never removed and are optional, so an older shell may not have them. Check for an API and keep the tool working when the API is missing. If your tool cannot work without one, list it in `requires` ([Tool manifests](/info/tool-manifest.html#what-the-tool-needs-from-the-host)) or raise the manifest's `engineVersion` floor. The engine then refuses the tool clearly instead of failing on a missing method. Recent additions:
 
-- [`host.images`](/info/host-api.html#host-images) - decode, resize and re-encode images on the device. Read the result's `mime`, `width` and `height` rather than assuming the request was honoured exactly.
+- [`host.images`](/info/host-api.html#host-images) - decode, resize and re-encode images on the device. Read the result's `mime`, `width` and `height` instead of assuming the request was honoured.
 - [`host.geom`](/info/host-api.html#host-geom) - exact vector geometry on SVG path strings: booleans, offset, stroke, simplify and measurement. Failures are returned, never thrown.
 - [`host.text.fontUrl`](/info/host-api.html#host-text) - resolve a font family the host knows to a file for `host.text.toPath()`, with the `variations` a variable face needs. It resolves `null` when no file is found, so keep your `<text>` fallback.
+- [`host.calc`](/info/host-api.html#host-calc) - work out spreadsheet formulas on the device, with `evaluate`, `table` and `functions`. Sales Quote (`quote`, in the `community` folder and not listed on lolly.tools) is the reference tool.
+- [`host.audio.loudness`](/info/host-api.html#host-audio) and `host.audio.align` - EBU R128 loudness of a clip, and the offset between two recordings of one event. Both are optional members of `host.audio`, so check for each one.
 
-The pattern for any of them is to check, try and render something sensible either way. With `host.geom`:
+For example, with `host.geom`:
 
 ```js
 function onInput({ model, host }) {
@@ -288,4 +304,6 @@ function onInput({ model, host }) {
 }
 ```
 
-A throw out of a hook is only logged and discarded, leaving the tool silently unresponsive, which is why `host.geom` returns `{ ok: false, code, message }` instead of throwing.
+::: warning A throw leaves the tool unresponsive
+A throw out of a hook is only logged and discarded, and the tool stops responding with no message. That is why `host.geom` returns `{ ok: false, code, message }` instead of throwing.
+:::

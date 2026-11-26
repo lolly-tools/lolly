@@ -492,6 +492,16 @@ export interface ShotDef {
    * of them can be faked with `css=`, because the app builds them on demand.
    */
   drive?: DriveStep[];
+  /**
+   * Load a fixture design system before the shot (`system=<name>`): a name from
+   * scripts/data/shot-systems.json, installed through the shell's own loopback hook
+   * (`__lollyInstallBrand`) and active when the route loads. A recipe can then show a
+   * room on a system that is not the pinned lolly-demo brand - an invented brand that
+   * declares colour roles, or a new system with nothing chosen yet - without depending
+   * on what a live brand happens to hold. The state rides in the recipe, as a `z=`
+   * token does for a Design document.
+   */
+  system?: string;
   /** The verbatim recipe URL as written in the markdown (identity for dedup). */
   raw: string;
 }
@@ -636,6 +646,8 @@ export function parseShotRecipes(md: string): { recipes: ShotDef[]; problems: st
     };
     const tolerance = num('tolerance');
     if (tolerance !== undefined && !(tolerance >= 0 && tolerance <= 1)) problems.push(`${at}: tolerance must be within 0..1`);
+    const system = q.get('system') ?? undefined;
+    if (system !== undefined && !SLUG_RE.test(system)) problems.push(`${at}: system= must name a fixture design system in kebab-case`);
     const driveRaw = q.get('drive');
     let drive: DriveStep[] | undefined;
     if (driveRaw) {
@@ -656,6 +668,7 @@ export function parseShotRecipes(md: string): { recipes: ShotDef[]; problems: st
       waitSelector: q.get('waitSelector') ?? undefined,
       css: q.get('css') ?? undefined,
       drive,
+      ...(system !== undefined ? { system } : {}),
       pixelDiffFrac: tolerance,
       localize: q.get('localize') === '1' || q.get('localize') === 'true',
       dark: q.get('dark') === '1' || q.get('dark') === 'true',

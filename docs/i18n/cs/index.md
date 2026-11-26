@@ -1,4 +1,3 @@
-# Lolly - text úvodní stránky
+# Lolly - Text vstupní stránky
 
-Vytvářej hotové soubory. Měj svůj obsah pod kontrolou.
-Grafika, dokumenty, video a tisk ve tvých barvách a písmu: bez účtu, bez karty, soukromě a open source.
+Vytvářej hotovou grafiku, dokumenty, video a tiskoviny ve vlastních barvách a písmu. V soukromí, s otevřeným zdrojovým kódem, bez potřeby účtu.

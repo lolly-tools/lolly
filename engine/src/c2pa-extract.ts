@@ -11,11 +11,13 @@
  * it only parses bytes into structure. c2pa-verify.ts imports all of this back.
  */
 
-import { C2PA_BMFF_UUID, C2PA_ATTACHMENT_MIME } from './c2pa.ts';
+import { C2PA_BMFF_UUID, C2PA_ATTACHMENT_MIME, aiFactsFromSteps, renditionFromSteps, ingredientFormatOfMime } from './c2pa.ts';
+import type { AiIngredientDeclaration } from './c2pa.ts';
 import { aiKind } from './ai-kind.ts';
 import { EBML_ID, SEGMENT_ID, readId, readVint, idAt } from './video-meta.ts';
 import { concatBytes, bytesToHex as hexOf, bytesToBin, base64ToBytes } from './bytes.ts';
 import { locateOpusComment, parseOpusTags, commentKey, commentValue, OGG_C2PA_KEY } from './ogg.ts';
+import { locateSvgCredential } from './c2pa-svg.ts';
 // Type-only - no runtime cycle: c2pa-verify.ts imports VALUES from this file,
 // this file imports only a TYPE back (erased at compile time).
 import type { C2paHistoryStep } from './c2pa-verify.ts';
@@ -611,9 +613,16 @@ function extractC2paFromGif(gif: Uint8Array): { manifest: Uint8Array } | null {
   return null;
 }
 
+// The SVG's own credential is the one in a direct <metadata> child of the root, the
+// one c2pa-rs reads (locateSvgCredential, c2pa-svg.ts). A manifest further down belongs
+// to nested artwork, such as an inlined logo. A file with no root credential falls back
+// to the first manifest anywhere, which is where exports written before engine 1.320
+// put theirs, so a credential someone already holds reads as it did.
 function extractC2paFromSvg(svg: Uint8Array): { manifest: Uint8Array } | null {
   const bin = bytesToBin(svg);
-  const m = /<c2pa:manifest[^>]*>([^<]*)<\/c2pa:manifest>/.exec(bin);
+  const site = locateSvgCredential(bin)?.manifest;
+  const text = site && site.end >= 0 ? bin.slice(site.start, site.end) : null;
+  const m = text !== null && !text.includes('<') ? [null, text] : /<c2pa:manifest[^>]*>([^<]*)<\/c2pa:manifest>/.exec(bin);
   if (!m) return null;
   const b64 = m[1]!.trim();
   if (!b64) return null;
@@ -1965,6 +1974,106 @@ export function collectIngredientRecords(store: Uint8Array): C2paIngredientRecor
     }
   }
   return out;
+}
+
+/** What {@link placedPicturesOf} reads out of a credential. */
+export interface PlacedPictures {
+  /** Each credentialed ingredient the active manifest records, with the manifests it brought. */
+  ingredients: C2paIngredientData[];
+  /** The pieces its steps declare AI-made, as the export recorded them. */
+  aiIngredients: AiIngredientDeclaration[];
+  /** The model its steps say enlarged a placed picture. */
+  aiUpscale?: { model: string; version: string };
+  /** What its steps say was done to its parent, when the export was a rendition of one. */
+  rendition?: { action: string };
+}
+
+/**
+ * The record of placed pictures in a credential, for a shell that replaces that
+ * credential with its own: every credentialed ingredient the ACTIVE manifest names,
+ * with its title, format, relationship, AI source type and the manifests it brought,
+ * verbatim, plus the AI facts the manifest's steps state. Written into a new manifest
+ * (`ingredients`, and `exportActionSteps` with the AI facts), these give the same
+ * ingredient assertions and the same steps again, so the new credential records the
+ * pictures and nothing more.
+ *
+ * A source ingredient (an emoji glyph, a song) is not read here: those have their own
+ * census, and carrying them twice would list them twice. Nothing is verified: the
+ * caller reads only a credential it has verified. Never throws; a store it cannot
+ * follow gives an empty record.
+ */
+export function placedPicturesOf(store: Uint8Array): PlacedPictures {
+  const none: PlacedPictures = { ingredients: [], aiIngredients: [] };
+  let root: Superbox;
+  let active: C2paStoreParts;
+  try {
+    root = parseSuperbox(store, walkBoxes(store, 0, store.length)[0]!);
+    if (root.label !== 'c2pa' || !root.children.length) return none;
+    active = parseC2paStore(store);
+  } catch { return none; }
+  const manifests: { label: string; bytes: Uint8Array }[] = [];
+  for (const box of root.children.slice(0, -1)) {
+    let label = '';
+    try { label = parseSuperbox(store, box).label; } catch { /* an unreadable box gives no ingredient */ }
+    manifests.push({ label, bytes: store.slice(box.start, box.end) });
+  }
+  const decode = (content: Uint8Array): Map<unknown, unknown> | null => {
+    try { const v = decodeCbor(content); return v instanceof Map ? v : null; } catch { return null; }
+  };
+  const steps: { action?: unknown; description?: unknown; parameters?: unknown; digitalSourceType?: unknown }[] = [];
+  for (const a of active.assertions) {
+    if (a.label !== 'c2pa.actions' && a.label !== 'c2pa.actions.v2') continue;
+    const list = decode(a.content)?.get('actions');
+    if (Array.isArray(list)) {
+      for (const step of list) {
+        if (step instanceof Map) steps.push({ action: step.get('action'), description: step.get('description'), parameters: step.get('parameters'), digitalSourceType: step.get('digitalSourceType') });
+      }
+    }
+  }
+  // The AI source type an ingredient carried is on the step that points at its assertion.
+  const sourceTypeOf = (assertionLabel: string): string | undefined => {
+    const url = `self#jumbf=c2pa.assertions/${assertionLabel}`;
+    for (const step of steps) {
+      const refs = step.parameters instanceof Map ? step.parameters.get('ingredients') : undefined;
+      if (Array.isArray(refs) && refs.some((r) => r instanceof Map && r.get('url') === url)) {
+        return typeof step.digitalSourceType === 'string' ? step.digitalSourceType : undefined;
+      }
+    }
+    return undefined;
+  };
+  // An ingredient's manifests went into the store in the order its assertion was
+  // written, its own active manifest last, so each one's run ends at its label.
+  const ingredients: C2paIngredientData[] = [];
+  let at = 0;
+  for (const a of active.assertions) {
+    if (!INGREDIENT_LABEL.test(a.label)) continue;
+    const map = decode(a.content);
+    const ref = map?.get('activeManifest') ?? map?.get('c2pa_manifest');
+    const url = ref instanceof Map ? ref.get('url') : undefined;
+    if (!map || typeof url !== 'string' || !url.startsWith('self#jumbf=/c2pa/')) continue;
+    const activeLabel = url.slice('self#jumbf=/c2pa/'.length);
+    const end = manifests.findIndex((m, i) => i >= at && m.label === activeLabel);
+    if (end < 0) continue;
+    const manifestBoxes = manifests.slice(at, end + 1).map((m) => m.bytes);
+    at = end + 1;
+    let title: string | undefined;
+    try {
+      const claim = decodeCbor(parseC2paStore(store, activeLabel).claimBytes);
+      if (claim instanceof Map && typeof claim.get('dc:title') === 'string') title = claim.get('dc:title') as string;
+    } catch { /* an ingredient claim with no readable title keeps none */ }
+    const relationship = map.get('relationship');
+    const digitalSourceType = sourceTypeOf(a.label);
+    ingredients.push({
+      manifestBoxes,
+      activeLabel,
+      ...(title !== undefined ? { title } : {}),
+      format: ingredientFormatOfMime(map.get('dc:format')) ?? '',
+      ...(typeof relationship === 'string' ? { relationship } : {}),
+      ...(digitalSourceType ? { digitalSourceType } : {}),
+    });
+  }
+  const rendition = ingredients.some((i) => i.relationship === 'parentOf') ? renditionFromSteps(steps) : undefined;
+  return { ingredients, ...aiFactsFromSteps(steps), ...(rendition ? { rendition } : {}) };
 }
 
 /**

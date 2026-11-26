@@ -1,0 +1,518 @@
+// SPDX-License-Identifier: MPL-2.0
+/**
+ * The first-visit greeting, in place: the gallery's opening frame rather than a
+ * dialog over it (Andy approved the design on 2026-11-09). Lolly hands you a
+ * lollipop: one short branded gesture, one sentence, one obvious next step, and the
+ * gallery itself under it, loading as it would on any visit.
+ *
+ *   The mark       the swirl lollipop draws its line, closes into a shape and fills
+ *                  with colour, once (under 1.5 s), the first time the band is in
+ *                  view, and never on a later visit. Under Reduce motion it is simply
+ *                  the finished mark.
+ *   The sentence   "Make the next thing beautiful." The brand already says this on
+ *                  the featured poster, so the greeting and the product agree.
+ *   One action     chosen by who is visiting: on a shipped design system (Lolly
+ *                  Demo, lolly.tools) "Start making" opens Design on the lorikeet
+ *                  poster (its brand-starter template), under a row of colours; on a
+ *                  blank install the row of colours is the whole action ("Make it
+ *                  yours"), because there the brand is the point.
+ *                  One press makes a design system from that colour and the gallery
+ *                  under the card repaints in place (lib/design-system/one-colour.ts).
+ *                  The card then stays, with Undo and the door to Design System Setup.
+ *   Quiet lines    bring a file, the other audience's path, the privacy promise with
+ *                  its "What we store" link, and a language chip only when the
+ *                  detected language may be wrong.
+ *
+ * What it keeps from the dialog (components/welcome-dialog.ts, still reachable at
+ * #/?welcome=classic): the gate rules (views/gallery-welcome.ts decides who sees
+ * it), any explicit choice settles the welcome for good, a route change is not a
+ * dismissal, Escape and the close button dismiss, the language choice persists, the
+ * file path is the drop router's. Every explicit choice also acknowledges the
+ * privacy notice, because the promise is on the band itself.
+ *
+ * Maintenance waits (lib/welcome-gate.ts) only while the mark draws, and never more
+ * than MAX_HOLD_MS: a greeting in place can stay on the page for a whole visit, and
+ * background work must not wait that long. The gallery's previews do not wait at all.
+ *
+ * The greeting is a card that floats over the top of the gallery (Andy, 2026-11-13:
+ * floating, easy to dismiss, lit like an object). Three ways put it away: the close
+ * button, Escape, and on a touch screen a sideways swipe. When it goes, it fades and
+ * the space it held closes, so the gallery slides up rather than jumping.
+ *
+ * It arrives with the gallery, never before it (Andy, 2026-11-14: "it loads funny on
+ * first load"). A decision made while the page is still loading keeps the card out of
+ * the page until the gallery mounts and adopts it in the same task as its own markup,
+ * so the card is in the gallery's first paint: nothing below it moves, and it never
+ * shows half-styled in the empty view. It does not rise in, and its words do not wait
+ * for the mark; the mark's drawing is the one movement.
+ *
+ * Singleton, like the dialog: the gallery re-mounts after a catalog sync, and a
+ * second call while the greeting is up moves the same element into the new gallery
+ * and hands back the same promise, so the mark does not draw twice.
+ */
+import '../styles/parts/welcome-hero.css';
+import { currentLang, langOptions, setActiveLang, t, LANG_ICON_SVG, flagEmoji } from '../i18n.ts';
+import type { Lang } from '../i18n.ts';
+import { escape as escapeHtml, NAV_EVENTS, safeHref } from '../utils.ts';
+import { icon } from '../lib/icons.ts';
+import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import type { WebProfileAPI } from '../bridge/profile.ts';
+import type { PickerHost } from '../views/picker.ts';
+import { openDropFilePicker } from '../lib/drop-file-picker.ts';
+import { holdWelcomeGate, markWelcomeDismissed } from '../lib/welcome-gate.ts';
+import { overlayAbsorbsPopstate } from '../lib/overlay-back.ts';
+import type { OneColourHost, OneColourResult } from '../lib/design-system/one-colour.ts';
+
+/** Who the greeting is for: a shipped design system to try, or a blank install to brand. */
+export type WelcomeAudience = 'demo' | 'blank';
+/** How the greeting ended. `make` and `brand` have already navigated when the promise settles. */
+export type HeroChoice = 'make' | 'brand' | 'import' | 'explore' | 'dismiss';
+
+/** Set once the mark has drawn, so a later visit shows it finished. */
+const DRAWN_KEY = 'lolly-welcome-mark-drawn';
+/** How long the drawing runs, with a moment after (welcome-hero.css adds up to 1.2 s). */
+const INTRO_MS = 1600;
+/** The longest maintenance waits for the greeting, whether or not the band came into view. */
+const MAX_HOLD_MS = 4000;
+/** The longest a leaving card stays in the page if its animation never reports an end. */
+const LEAVE_MAX_MS = 900;
+/** How far a swipe travels, as a share of the card's width, before letting go dismisses. */
+const SWIPE_SHARE = 0.3;
+/** A quicker flick than this (pixels per millisecond) dismisses however short it was. */
+const SWIPE_FLICK = 0.6;
+
+/**
+ * The colours the card offers on a blank install. The first three are the studio's own
+ * starting looks (lib/design-system/look-library.ts exampleLooks), so a colour chosen
+ * here is one the person meets again in Design System Setup.
+ */
+const WELL_COLOURS: ReadonlyArray<{ hex: string; name: () => string }> = [
+  { hex: '#39734D', name: () => t('green') },
+  { hex: '#2F62C9', name: () => t('blue') },
+  { hex: '#8551C8', name: () => t('purple') },
+  { hex: '#C4386F', name: () => t('pink') },
+  { hex: '#BE522A', name: () => t('orange') },
+];
+
+/** What the colour row shows: the colour in use, if one was chosen here, and whether a press is being applied. */
+interface WellState { picked: string | null; busy: boolean }
+
+let openPromise: Promise<HeroChoice> | null = null;
+/** True from the first colour chosen on the card until the card closes: the person is using the card. */
+let holding = false;
+let current: {
+  el: HTMLElement; audience: WelcomeAudience;
+  close: (choice: HeroChoice | null) => void; settle: () => void; repaint: (audience: WelcomeAudience) => void;
+} | null = null;
+
+/** The lollipop's swirl: an Archimedean spiral from the centre out, about three turns. */
+function swirlPath(cx: number, cy: number, radius: number, turns: number): string {
+  const steps = 96;
+  const parts: string[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const along = i / steps;
+    const angle = along * turns * Math.PI * 2;
+    const r = along * radius;
+    parts.push(`${i ? 'L' : 'M'}${(cx + r * Math.cos(angle)).toFixed(1)} ${(cy + r * Math.sin(angle)).toFixed(1)}`);
+  }
+  return parts.join('');
+}
+
+/** The mark: a stick, a round candy and its swirl, each drawn as one line (see welcome-hero.css). */
+function markSvg(): string {
+  return `<svg class="welcome-hero-mark" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+    <path class="whm-stick" d="M76 76L106 106" pathLength="1"/>
+    <circle class="whm-candy" cx="50" cy="50" r="38" pathLength="1"/>
+    <path class="whm-swirl" d="${swirlPath(50, 50, 31, 3.2)}" pathLength="1"/>
+  </svg>`;
+}
+
+/** Whether the detected language may be wrong: the browser's first language is not the one in use. */
+export function languageMayBeWrong(): boolean {
+  const first = (globalThis.navigator?.languages?.[0] ?? globalThis.navigator?.language ?? '').toLowerCase().split('-')[0];
+  return !!first && first !== currentLang().toLowerCase().split('-')[0];
+}
+
+/** The privacy promise the band carries, and where "What we store" leads. */
+export interface WelcomePrivacy { text: string; href: string }
+
+/** The quiet privacy line. The caller words it (views/gallery-welcome.ts, from the notice). */
+function privacyLine(p: WelcomePrivacy): string {
+  // The link is the caller's, so its scheme is checked before it reaches the page.
+  // nosemgrep: lolly-href-escape-is-not-scheme-validation -- gated by safeHref() on this line
+  const link = safeHref(p.href) ? ` <a href="${escapeHtml(p.href)}">${t('What we store')}</a>` : '';
+  return `${escapeHtml(p.text)}${link}`;
+}
+
+function languageRow(open: boolean): string {
+  if (!open) {
+    const here = langOptions().find(o => o.code === currentLang());
+    return `<button type="button" class="welcome-hero-chip" data-lang-more aria-expanded="false">${LANG_ICON_SVG}<span>${escapeHtml(here?.nativeName ?? currentLang())}</span><span class="welcome-hero-dim">${t('Change')}</span></button>`;
+  }
+  return `<span class="welcome-hero-langs" role="group" aria-label="${t('Language')}">${langOptions().map(o => {
+    const flags = o.flags.length ? `<span aria-hidden="true">${o.flags.map(flagEmoji).join('')}</span>` : '';
+    return `<button type="button" class="welcome-hero-chip${o.code === currentLang() ? ' is-active' : ''}" data-lang="${o.code}" aria-pressed="${o.code === currentLang()}">${flags}${escapeHtml(o.nativeName)}</button>`;
+  }).join('')}</span>`;
+}
+
+/**
+ * The greeting's markup, painted again in place when the language changes. The close
+ * button comes last, so the first Tab stop after the navigation is the action; the
+ * stylesheet puts it in the card's corner.
+ */
+function wellMarkup(well: WellState): string {
+  const off = well.busy ? ' disabled' : '';
+  const picked = well.picked?.toLowerCase() ?? '';
+  const swatches = WELL_COLOURS.map(c => {
+    const on = c.hex.toLowerCase() === picked;
+    return `<button type="button" class="welcome-hero-swatch" data-colour="${c.hex}" style="--wh-swatch:${c.hex}" aria-label="${escapeHtml(c.name())}" title="${escapeHtml(c.name())}" aria-pressed="${on}"${off}></button>`;
+  }).join('');
+  // A colour of the person's own: Lolly's picker, opened from a swatch-sized button
+  // (components/welcome-colour-picker.ts). The button wears that colour once one is in use.
+  const own = picked && !WELL_COLOURS.some(c => c.hex.toLowerCase() === picked);
+  const custom = `<button type="button" class="welcome-hero-swatch welcome-hero-swatch--own" data-well-own aria-haspopup="dialog" aria-expanded="false" aria-pressed="${!!own}" aria-label="${escapeHtml(t('Pick a colour'))}" title="${escapeHtml(t('Pick a colour'))}"${own ? ` style="--wh-swatch:${escapeHtml(picked)}"` : ''}${off}>${own ? '' : icon('palette', { size: 16 })}</button>`;
+  return `<div class="welcome-hero-well" role="group" aria-labelledby="welcome-hero-well-label"${well.busy ? ' aria-busy="true"' : ''}>
+      <p class="welcome-hero-well-label" id="welcome-hero-well-label"><strong>${t('Make it yours')}</strong> <span>${t('One colour is enough')}</span></p>
+      <div class="welcome-hero-swatches">${swatches}${custom}</div>
+    </div>`;
+}
+
+function heroMarkup(audience: WelcomeAudience, withImport: boolean, langsOpen: boolean, privacy: WelcomePrivacy, well: WellState | null): string {
+  const start = `<button type="button" class="btn btn--primary btn--labelled welcome-hero-go" data-choice="make"><span class="btn-label">${t('Start making')}</span></button>`;
+  // Lolly Demo offers the colours too, above its Start making button.
+  const primary = audience === 'demo'
+    ? (well ? `${wellMarkup(well)}<span class="welcome-hero-row">${start}` : start)
+    : well ? wellMarkup(well)
+    : `<button type="button" class="btn btn--primary btn--labelled welcome-hero-go welcome-hero-go--sub" data-choice="brand"><span class="btn-label">${t('Make it yours')}</span><span class="welcome-hero-go-sub">${t('One colour is enough')}</span></button>`;
+  // With a colour chosen here the quiet links are the two ways on from that choice.
+  const chosen = !!well?.picked;
+  const other = chosen
+    ? `<button type="button" class="welcome-hero-link" data-choice="brand">${t('Open Design System Setup →')}</button>`
+    : audience === 'demo'
+    ? (well ? '' : `<button type="button" class="welcome-hero-link" data-choice="brand">${t('Make it yours')}</button>`)
+    : `<button type="button" class="welcome-hero-link" data-choice="explore">${t('Explore the tools')}</button>`;
+  const file = chosen
+    ? `<button type="button" class="welcome-hero-link" data-well-undo${well?.busy ? ' disabled' : ''}>${t('Undo')}</button>`
+    : withImport ? `<button type="button" class="welcome-hero-link" data-choice="import">${t('Bring a file')}</button>` : '';
+  return `
+    ${markSvg()}
+    <h2 class="welcome-hero-title" id="welcome-hero-title">${t('Make the next thing beautiful.')}</h2>
+    <div class="welcome-hero-act${well ? ' welcome-hero-act--well' : ''}">
+      ${primary}
+      <p class="welcome-hero-more">${(chosen ? [other, file] : [file, other]).filter(Boolean).join('<span class="welcome-hero-dot" aria-hidden="true">·</span>')}</p>${audience === 'demo' && well ? '</span>' : ''}
+    </div>
+    <p class="welcome-hero-quiet">${privacyLine(privacy)}${languageMayBeWrong() || langsOpen ? ` ${languageRow(langsOpen)}` : ''}</p>
+    <button type="button" class="welcome-hero-close" data-choice="dismiss" aria-label="${t('Close the welcome')}">${icon('close', { size: 18 })}</button>`;
+}
+
+/**
+ * Take the card out of the page. With motion on, the card fades first and then the
+ * space it held closes; the class changes at once, so the greeting counts as gone
+ * (a query for `.welcome-hero` finds nothing) while the card animates away.
+ */
+function leave(el: HTMLElement, animate: boolean): void {
+  if (!animate || !el.isConnected || prefersReducedMotion()) { el.remove(); return; }
+  el.style.setProperty('--wh-h', `${el.offsetHeight}px`);
+  el.className = 'welcome-hero-leaving';
+  const done = (): void => { clearTimeout(timer); el.remove(); };
+  const timer = setTimeout(done, LEAVE_MAX_MS);
+  el.addEventListener('animationend', (e) => { if (e.target === el) done(); });
+}
+
+/**
+ * A sideways swipe on a touch screen puts the card away. The card follows the
+ * finger and fades as it goes; let go past a third of its width, or with a flick,
+ * and it leaves that way; anything less and it settles back. Taps still reach the
+ * buttons: the card only takes the gesture once it is clearly sideways.
+ */
+function wireSwipe(card: HTMLElement, dismiss: () => void): void {
+  let id: number | null = null;
+  let x0 = 0; let y0 = 0; let t0 = 0; let dx = 0; let dragging = false;
+  const reset = (): void => { id = null; dragging = false; dx = 0; };
+  card.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' || id !== null) return;
+    id = e.pointerId; x0 = e.clientX; y0 = e.clientY; t0 = e.timeStamp; dx = 0; dragging = false;
+  });
+  card.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== id) return;
+    const mx = e.clientX - x0; const my = e.clientY - y0;
+    if (!dragging) {
+      if (Math.abs(my) > 10 && Math.abs(my) > Math.abs(mx)) { reset(); return; }
+      if (Math.abs(mx) < 10) return;
+      dragging = true;
+      card.classList.remove('is-settling');
+      card.setPointerCapture(e.pointerId);
+    }
+    dx = mx;
+    card.style.translate = `${dx}px 0`;
+    card.style.opacity = String(Math.max(0.2, 1 - Math.abs(dx) / card.offsetWidth));
+  });
+  const end = (e: PointerEvent): void => {
+    if (e.pointerId !== id) return;
+    const wasDragging = dragging;
+    const speed = Math.abs(dx) / Math.max(1, e.timeStamp - t0);
+    const out = wasDragging && e.type === 'pointerup'
+      && (Math.abs(dx) > card.offsetWidth * SWIPE_SHARE || speed > SWIPE_FLICK);
+    const sign = Math.sign(dx) || 1;
+    reset();
+    if (!wasDragging) return;
+    // The click that ends a drag is not a tap on whatever was under the finger.
+    // The browser sends it straight after pointerup, so the guard comes off on the next task.
+    const swallow = (c: Event): void => { c.stopPropagation(); c.preventDefault(); };
+    card.addEventListener('click', swallow, { capture: true, once: true });
+    setTimeout(() => card.removeEventListener('click', swallow, { capture: true }), 0);
+    card.classList.add('is-settling');
+    if (out) {
+      card.classList.add('is-flung');
+      card.style.translate = `${sign * 110}% 0`;
+      card.style.opacity = '0';
+      dismiss();
+    } else {
+      card.style.translate = '';
+      card.style.opacity = '';
+    }
+  };
+  card.addEventListener('pointerup', end);
+  card.addEventListener('pointercancel', end);
+}
+
+/**
+ * Show the greeting at the top of `root` (the gallery), or move the one already up
+ * there. With no gallery yet (`root` null: the decision came while the page was still
+ * loading) the card waits out of the page, and the gallery's mount places it with
+ * adoptWelcomeHero. Resolves with how it ended; a route change resolves 'dismiss'
+ * without settling anything, as the dialog does.
+ */
+export function showWelcomeHero(
+  root: HTMLElement | null,
+  opts: {
+    audience: WelcomeAudience; privacy: WelcomePrivacy;
+    /** Acknowledge the privacy notice: every explicit choice does, since the band carries the promise. */
+    ackPrivacy: () => void;
+    profileApi?: WebProfileAPI; uploadHost?: PickerHost;
+    /** The host a colour chosen on the card is installed through. Without one the card keeps its button to Design System Setup. */
+    brandHost?: OneColourHost;
+  },
+): Promise<HeroChoice> {
+  if (openPromise && current) {
+    // A card opened from the last visit's answer keeps its place; the decision only
+    // corrects who it is for.
+    if (current.audience !== opts.audience) current.repaint(opts.audience);
+    adoptWelcomeHero(root);
+    return openPromise;
+  }
+  const releaseGate = holdWelcomeGate();
+  const holdTimer = setTimeout(releaseGate, MAX_HOLD_MS);
+  const pending = new Promise<HeroChoice>((resolve) => {
+    let langsOpen = false;
+    let audience = opts.audience;
+    // The colour row, on a blank install with a host to install through.
+    const well: WellState | null = opts.brandHost ? { picked: null, busy: false } : null;
+    let applied: OneColourResult | null = null;
+    const el = document.createElement('section');
+    el.className = 'welcome-hero';
+    el.setAttribute('aria-labelledby', 'welcome-hero-title');
+    // The section places the card; the card is the floating surface, painted in place.
+    const card = document.createElement('div');
+    card.className = 'welcome-hero-card';
+    el.append(card);
+    let drawn = false;
+    try { drawn = localStorage.getItem(DRAWN_KEY) === '1'; } catch { drawn = true; }
+    // The mark draws once, when the band is first in view: a finished mark from the
+    // start on a later visit, under Reduce motion, or where nothing can tell when the
+    // band is seen.
+    let drawTimer: ReturnType<typeof setTimeout> | undefined;
+    let seen: IntersectionObserver | null = null;
+    const settle = (): void => {
+      clearTimeout(drawTimer);
+      seen?.disconnect();
+      el.classList.remove('is-drawing');
+      el.classList.add('is-settled');
+      try { localStorage.setItem(DRAWN_KEY, '1'); } catch { /* storage off: it draws again next time */ }
+      releaseGate();
+    };
+    const paint = (focus?: string): void => {
+      card.innerHTML = heroMarkup(audience, !!opts.uploadHost, langsOpen, opts.privacy, well);
+      if (focus) card.querySelector<HTMLElement>(focus)?.focus({ preventScroll: true });
+    };
+    paint();
+    root?.prepend(el);
+    if (drawn || prefersReducedMotion() || typeof IntersectionObserver !== 'function') {
+      settle();
+    } else {
+      seen = new IntersectionObserver((entries) => {
+        if (!entries.some(entry => entry.isIntersecting)) return;
+        seen?.disconnect();
+        el.classList.add('is-drawing');
+        drawTimer = setTimeout(settle, INTRO_MS);
+      }, { threshold: 0.5 });
+      seen.observe(el);
+    }
+
+    const close = (choice: HeroChoice | null): void => {
+      if (!current) return;
+      current = null;
+      openPromise = null;
+      holding = false;
+      picker?.close();
+      clearTimeout(holdTimer);
+      clearTimeout(drawTimer);
+      seen?.disconnect();
+      releaseGate();
+      for (const ev of NAV_EVENTS) window.removeEventListener(ev, onNav);
+      document.removeEventListener('keydown', onKey, true);
+      // Every explicit choice settles the welcome, and the band carried the privacy
+      // promise, so each also acknowledges the notice. A route change does neither.
+      if (choice) { markWelcomeDismissed(); opts.ackPrivacy(); }
+      // A choice that stays on the gallery animates away; one that navigates, or a
+      // route change, goes at once, since the gallery is leaving too.
+      leave(el, choice === 'dismiss' || choice === 'import' || choice === 'explore');
+      resolve(choice ?? 'dismiss');
+    };
+    const repaint = (next: WelcomeAudience): void => {
+      audience = next;
+      if (current) current.audience = next;
+      paint();
+    };
+    current = { el, audience, close, settle, repaint };
+    // A route change takes the card down. An overlay closing on a touch screen pops a
+    // history entry of its own at the same address (lib/overlay-back.ts); the card's own
+    // colour picker does, and that is not a route change.
+    const onNav = (e: Event): void => { if (e.type !== 'popstate' || !overlayAbsorbsPopstate()) close(null); };
+    // The card's own colour picker, while one is open (see openPicker below).
+    let picker: { close(returnFocus?: boolean): void; isOpen(): boolean } | null = null;
+    const onKey = (e: KeyboardEvent): void => {
+      // Escape dismisses the greeting, unless another dialog is open above the page.
+      // With the card's colour picker open, Escape belongs to the picker alone. This
+      // listener is in the capture phase, so it reads the picker before the picker's
+      // own listener has closed the popover.
+      if (e.key !== 'Escape' || picker?.isOpen()) return;
+      if (!document.querySelector('dialog[open]')) close('dismiss');
+    };
+    for (const ev of NAV_EVENTS) window.addEventListener(ev, onNav);
+    document.addEventListener('keydown', onKey, true);
+    wireSwipe(card, () => close('dismiss'));
+
+    // A colour chosen on the card: install the design system the colour makes and let
+    // the gallery repaint under the card. The module arrives on the first press.
+    const applyColour = async (hex: string): Promise<void> => {
+      if (!well || well.busy || !opts.brandHost) return;
+      well.busy = true;
+      paint();
+      try {
+        const { startFromColour } = await import('../lib/design-system/one-colour.ts');
+        // A colour is an explicit choice made on the card that carries the privacy
+        // promise, so the notice is answered before the gallery repaints under the card.
+        opts.ackPrivacy();
+        const result = await startFromColour(opts.brandHost, hex, applied !== null);
+        if (!result) {
+          // This device already holds a design system of the person's own: the studio is the place to change one.
+          close('brand');
+          window.location.hash = '#/start';
+          return;
+        }
+        applied ??= result;
+        well.picked = hex;
+        holding = true;
+      } catch { /* the starter stands; the row is ready for another press */ }
+      well.busy = false;
+      if (el.isConnected || current) paint(`[data-colour="${hex}"], [data-well-own]`);
+    };
+    const undoColour = async (): Promise<void> => {
+      if (!well || well.busy || !applied) return;
+      well.busy = true;
+      paint();
+      // The card stays held after Undo: the person is still using the card, whatever the
+      // welcome decision makes of the install on the mount that follows.
+      try { await applied.undo(); applied = null; well.picked = null; } catch { /* the chosen colour stands */ }
+      well.busy = false;
+      if (el.isConnected || current) paint('.welcome-hero-swatch');
+    };
+    // The palette button opens Lolly's own picker under it; Apply there is a colour press.
+    const openPicker = async (button: HTMLElement): Promise<void> => {
+      if (picker?.isOpen()) { picker.close(true); return; }
+      const { openWelcomeColourPicker } = await import('./welcome-colour-picker.ts');
+      if (!button.isConnected || !current) return;
+      picker = openWelcomeColourPicker(button, well?.picked ?? WELL_COLOURS[1]!.hex, (hex) => { void applyColour(hex); });
+    };
+
+    el.addEventListener('click', (e) => {
+      const target = e.target instanceof Element ? e.target : null;
+      const langBtn = target?.closest<HTMLButtonElement>('[data-lang]');
+      if (langBtn) {
+        const lang = langBtn.dataset.lang as Lang;
+        void (async () => {
+          await setActiveLang(lang, { persist: true });
+          if (opts.profileApi) {
+            try {
+              const saved = await opts.profileApi.get();
+              const { lang: _drop, ...rest } = saved as Record<string, unknown>;
+              await opts.profileApi.set(lang === 'en' ? rest : { ...rest, lang });
+            } catch { /* the preference save is best-effort */ }
+          }
+          langsOpen = false;
+          if (el.isConnected) paint('.welcome-hero-go');
+        })();
+        return;
+      }
+      if (target?.closest('[data-lang-more]')) {
+        langsOpen = true;
+        paint('[data-lang]');
+        return;
+      }
+      const swatch = target?.closest<HTMLElement>('[data-colour]');
+      if (swatch) { void applyColour(swatch.dataset.colour ?? ''); return; }
+      if (target?.closest('[data-well-undo]')) { void undoColour(); return; }
+      const own = target?.closest<HTMLElement>('[data-well-own]');
+      if (own) { void openPicker(own); return; }
+      const chosen = target?.closest<HTMLElement>('[data-choice]');
+      if (!chosen) return;
+      const choice = chosen.dataset.choice as HeroChoice;
+      close(choice);
+      if (choice === 'make') window.location.hash = '#/tool/design?template=brand-starter';
+      else if (choice === 'brand') window.location.hash = '#/start';
+      else if (choice === 'import' && opts.uploadHost) openDropFilePicker(opts.uploadHost);
+    });
+    // Focus stays where the page put it: the band is part of the page, not a modal, so
+    // the keyboard reaches its action in reading order, first after the navigation.
+  });
+  openPromise = pending;
+  return pending;
+}
+
+/**
+ * Move an open greeting into a gallery that has just mounted, in the same task as the
+ * gallery's markup, so the card is part of the gallery's first paint and nothing under
+ * it moves when it arrives. Moving an element restarts its CSS animations, so a drawing
+ * caught mid-way is shown finished instead of drawn twice. A no-op when no greeting is
+ * open.
+ */
+export function adoptWelcomeHero(root: HTMLElement | null): void {
+  if (!root || !current || current.el.parentElement === root) return;
+  if (current.el.classList.contains('is-drawing')) current.settle();
+  root.prepend(current.el);
+}
+
+/** Whether a greeting is up, or waiting for its gallery. */
+export function welcomeHeroOpen(): boolean {
+  return !!current;
+}
+
+/**
+ * Whether the person has chosen a colour on the card. From then on the install is no
+ * longer a blank one, so the welcome is no longer due, and the card still stays up: it
+ * holds Undo and the way on. The gallery asks before taking a card down as not due.
+ */
+export function welcomeHeroHolding(): boolean {
+  return holding && !!current;
+}
+
+/** The open greeting's own promise, which settles when the card closes; null when none is up. */
+export function welcomeHeroClosed(): Promise<HeroChoice> | null {
+  return current ? openPromise : null;
+}
+
+/** Take the greeting down without settling it (a host's safety hatch, and the tests'). */
+export function closeWelcomeHero(): void {
+  current?.close(null);
+}

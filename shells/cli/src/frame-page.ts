@@ -68,3 +68,20 @@ export function pickFramePage(canvas: Element, slide: string | null | undefined)
   const node = pages[pick.index]!;
   return { node, width: inlinePx(node, 'width'), height: inlinePx(node, 'height'), index: pick.index, total: pages.length };
 }
+
+/** Still formats that hold one picture, so a document of several pages becomes one image. */
+const SINGLE_PICTURE_FORMATS: ReadonlySet<string> = new Set(['png', 'jpg', 'jpeg', 'webp', 'svg']);
+
+/**
+ * The note a still export prints when the document has several pages and no `--s` picked
+ * one. The file shows the whole canvas, as it always has; the web shell's export panel
+ * writes one file per page instead, and nothing here said so. Null for one page or none,
+ * or a format that is not a single picture.
+ */
+export function wholeCanvasNote(canvas: Element, format: string, formats: readonly string[]): string | null {
+  if (!SINGLE_PICTURE_FORMATS.has(format)) return null;
+  const pages = canvas.querySelectorAll('[data-pdf-page]').length;
+  if (pages < 2) return null;
+  const every = formats.includes('pdf') ? ', or use --export=pdf for every page' : '';
+  return `This document has ${pages} pages. This file shows the whole canvas; add --s=1 to --s=${pages} for one page${every}.`;
+}

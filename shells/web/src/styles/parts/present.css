@@ -287,6 +287,14 @@
 }
 .pr-stage.pr-overview .pr-tap { display: none; }
 
+/* ---- Touch swiping (views/present-swipe.ts) ----------------------------------------- */
+/* The deck takes a sideways finger and leaves vertical scrolling and pinch zoom with the
+   browser. Nothing on the stage scrolls sideways, so no browser behaviour is lost. A
+   scroller inside a slide gets its own pans back, and a touch that starts on one is never
+   a swipe. Zoomed in, every pan is the browser's, so the slide can be read up close. */
+.pr-stage { touch-action: pan-y pinch-zoom; }
+.pr-stage.pr-zoomed { touch-action: auto; }
+
 /* ---- Edge tap zones (siblings of the frames, so slide content stays clickable) ------ */
 .pr-tap {
   position: absolute;

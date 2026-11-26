@@ -93,7 +93,9 @@ test('two frames → deck.slides.length === 2, in page order (order asc)', async
   // Page order: fb (order 0) before fa (order 1). Its bg is the frame bg, concrete hex.
   assert.equal(deck.slides[0].bg, '#0b1220', 'slide 0 is frame fb (order 0)');
   assert.equal(deck.slides[1].bg, '#ffffff', 'slide 1 is frame fa (order 1)');
-  assert.ok(!JSON.stringify(deck).includes('var('), 'no CSS var(...) leaks into a deck colour');
+  // A run's `font` is its slot's custom property, which the exporter resolves against
+  // the exported node; every colour is concrete.
+  assert.ok(!JSON.stringify(deck, (k, v) => (k === 'font' ? undefined : v)).includes('var('), 'no CSS var(...) leaks into a deck colour');
 });
 
 test('a text child → a deck text element at FRAME-LOCAL coords with the right run', async () => {
@@ -880,7 +882,7 @@ test('plan 275: the tool deck model lowers Design text line by line, and plain t
     ['number', 1, [['deep', false, false]]],
   ]);
   // lineSpacingPt is the canvas pitch: the default 1.12 line-height of a 32px box, in points.
-  assert.deepEqual(flat.paras, [{ align: 'ctr', runs: [{ text: 'Plain\nlines', sizePt: 24, color: '#11141f', bold: true }], lineSpacingPt: 26.88 }], 'plain text is the one run it always was');
+  assert.deepEqual(flat.paras, [{ align: 'ctr', runs: [{ text: 'Plain\nlines', sizePt: 24, color: '#11141f', bold: true, font: 'var(--font-brand)' }], lineSpacingPt: 26.88 }], 'plain text is the one run it always was');
 });
 
 // ─── plan 275 decision 32: a round trip keeps drawings as shapes ─────────────
@@ -1059,25 +1061,77 @@ test('a pill lowers to a roundRect at half its short side, a circle to the ellip
   assert.equal((xml.match(/<a:prstGeom prst="ellipse">/g) ?? []).length, 2, 'circle and ellipse draw as ellipses');
 });
 
-test('a mono run names --font-mono, which the export resolves to the brand mono face', async () => {
+test('a master-bound deck draws circles, pills and rounded boxes as the presets the deck model names', async () => {
+  // The bound lowering used to write every shape that was not `rounded` as a plain
+  // rectangle, so a circle came out square and a pill lost its ends.
+  const frames = withText(seededDeck(), { title: 'Garden day' });
+  frames[0]!.layers.push(
+    { id: 'sun', kind: 'box', frame: 'f1', x: 900, y: 100, w: 300, h: 300, shape: 'circle', bg: '#50c369' },
+    { id: 'oval', kind: 'box', frame: 'f1', x: 900, y: 450, w: 300, h: 120, shape: 'ellipse', bg: '#033633' },
+    { id: 'pill', kind: 'box', frame: 'f1', x: 100, y: 600, w: 470, h: 100, shape: 'pill', bg: '#033633' },
+    { id: 'card', kind: 'box', frame: 'f1', x: 600, y: 600, w: 300, h: 100, shape: 'rounded', radius: 24, bg: '#fac044' },
+    { id: 'dawn', kind: 'box', frame: 'f1', x: 950, y: 600, w: 200, h: 200, shape: 'circle', bg: '#ffffff', grad: 'lin_90_102030-0_ffffff-100' },
+    { id: 'tile', kind: 'box', frame: 'f1', x: 1200, y: 600, w: 60, h: 60, bg: '#fac044' },
+  );
+  const out = await designFramesToPptx({ frames, master, tokens });
+  const parts = buildPptxParts(out.slides, {
+    emuW: emuOf(out.size.w), emuH: emuOf(out.size.h),
+    theme: out.theme, layouts: out.layouts, now: '2026-11-06T00:00:00.000Z',
+  });
+  const slide = xmlOf(parts, 'ppt/slides/slide1.xml');
+  const geomAt = (x: number, y: number): string => {
+    const at = slide.indexOf(`<a:off x="${emuOf(x)}" y="${emuOf(y)}"/>`);
+    assert.ok(at > 0, `a shape sits at ${x},${y}`);
+    return /<a:prstGeom prst="[^"]+">(?:<a:avLst\/>|<a:avLst>.*?<\/a:avLst>)/.exec(slide.slice(at))![0];
+  };
+  assert.equal(geomAt(900, 100), '<a:prstGeom prst="ellipse"><a:avLst/>', 'a circle is the ellipse preset');
+  assert.equal(geomAt(900, 450), '<a:prstGeom prst="ellipse"><a:avLst/>', 'an ellipse is the ellipse preset');
+  assert.equal(geomAt(100, 600), '<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 50000"/></a:avLst>',
+    'a pill rounds by half its short side');
+  assert.equal(geomAt(600, 600), '<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 24000"/></a:avLst>',
+    'a radius that is not full is kept: 24 of a 100 short side');
+  assert.equal(geomAt(950, 600), '<a:prstGeom prst="ellipse"><a:avLst/>', 'a circle with a gradient is still an ellipse');
+  assert.equal(geomAt(1200, 600), '<a:prstGeom prst="rect"><a:avLst/>', 'a plain box stays a rectangle');
+  // Native, editable shapes: no picture stands in for any of them.
+  assert.equal(out.slides[0]!.media.length, 0, 'no shape became a picture');
+});
+
+test('every run names the custom property of its slot, which the export resolves to the brand face', async () => {
   const html = await mount([
     { id: 'f1', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, order: 0, bg: '#ffffff' },
     { id: 'year', kind: 'text', frame: 'f1', x: 10, y: 10, w: 200, h: 40, text: '1964', fontSize: 24, weight: '500', font: 'mono' },
     { id: 'body', kind: 'text', frame: 'f1', x: 10, y: 60, w: 200, h: 40, text: 'Body', fontSize: 24, weight: '400', font: 'sans' },
+    { id: 'head', kind: 'text', frame: 'f1', x: 10, y: 110, w: 200, h: 40, text: 'Head', fontSize: 24, weight: '700', font: 'display' },
+    { id: 'none', kind: 'text', frame: 'f1', x: 10, y: 160, w: 200, h: 40, text: 'Plain', fontSize: 24, weight: '400' },
   ]);
-  const [year, body] = deckOf(html).slides[0].elements;
+  const [year, body, head, none] = deckOf(html).slides[0].elements;
   assert.equal(year.paras[0].runs[0].font, 'var(--font-mono)');
-  assert.equal(body.paras[0].runs[0].font, undefined, 'sans takes the theme font');
+  assert.equal(body.paras[0].runs[0].font, 'var(--font-brand)', 'sans names the brand face');
+  assert.equal(head.paras[0].runs[0].font, 'var(--font-display, var(--font-brand))', 'display names the headings face');
+  assert.equal(none.paras[0].runs[0].font, 'var(--font-brand)', 'no font is the brand face, as on the canvas');
 
   const vars: Record<string, string> = {
     '--font-brand': "'SUSE', system-ui, sans-serif",
+    '--font-display': "'Outfit', 'SUSE', system-ui, sans-serif",
     '--font-mono': "'SUSE Mono', 'Roboto Mono', ui-monospace, monospace",
   };
   const resolve = (name: string): string | undefined => vars[name];
-  const yearShape = deckSyncShape(year, undefined, resolve) as { paras: Array<{ runs: Array<{ font?: string }> }> };
-  assert.equal(yearShape.paras[0]!.runs[0]!.font, 'SUSE Mono', 'the stack resolves to its first concrete family');
-  const unresolved = deckSyncShape(year) as { paras: Array<{ runs: Array<{ font?: string }> }> };
-  assert.equal(unresolved.paras[0]!.runs[0]!.font, undefined, 'no cascade: the run falls back to the theme font, never "var(...)"');
+  const fontOf = (el: unknown, r?: (name: string) => string | undefined): string | undefined =>
+    (deckSyncShape(el as never, undefined, r) as { paras: Array<{ runs: Array<{ font?: string }> }> }).paras[0]!.runs[0]!.font;
+  assert.equal(fontOf(year, resolve), 'SUSE Mono', 'the stack resolves to its first concrete family');
+  assert.equal(fontOf(body, resolve), 'SUSE');
+  assert.equal(fontOf(head, resolve), 'Outfit');
+  assert.equal(fontOf(none, resolve), 'SUSE');
+  // A design system with no headings face: display falls back to the brand face.
+  assert.equal(fontOf(head, (name) => (name === '--font-display' ? '' : vars[name])), 'SUSE');
+  // No cascade, or a generic-only stack: the run gets no face and the theme font applies.
+  assert.equal(fontOf(year), undefined, 'no cascade: never "var(...)"');
+  assert.equal(fontOf(body), undefined);
+  assert.equal(fontOf(body, () => 'system-ui, sans-serif'), undefined, 'a generic family is never a PowerPoint face');
+
+  // The written run carries the face in all three of DrawingML's slots.
+  const xml = buildPptxParts([{ shapes: [deckSyncShape(head, undefined, resolve)!], media: [] } as PptxSlide], {})['ppt/slides/slide1.xml'] as string;
+  assert.match(xml, /<a:latin typeface="Outfit"\/><a:ea typeface="Outfit"\/><a:cs typeface="Outfit"\/>/);
 });
 
 test('withBrandFonts fills the theme from --font-brand so unnamed runs do not land in Calibri', () => {

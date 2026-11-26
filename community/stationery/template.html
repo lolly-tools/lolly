@@ -1,6 +1,6 @@
 <div class="st-piece st-{{pieceKind}}{{#if isBack}} st-back{{/if}}"
      data-trim-w="{{trimW}}" data-trim-h="{{trimH}}" data-trim-unit="{{trimUnit}}"
-     style="--st-ink:{{inkColor}};--st-paper:{{paperColor}};--st-accent:{{accentColor}};--st-muted:{{mutedColor}};--st-rule:{{ruleColor}}">
+     data-content-surface data-ground="{{ground}}" data-density="{{density}}" data-layout="{{layout}}" data-motion="{{motion}}" style="--content-space:{{surfaceSpacing}};--st-ink:{{surfaceInk}};--st-paper:{{surfaceGround}};--st-accent:{{surfaceAccent}};--st-muted:{{surfaceMuted}};--st-rule:{{surfaceEdge}}">
   {{#if _logoWarning}}<p data-export-hide role="status" style="position:absolute;z-index:10;top:8px;left:8px;right:8px;margin:0;padding:10px 14px;border:1px solid #b45309;border-radius:6px;background:#fffbeb;color:#78350f;font:14px/1.4 sans-serif">{{_logoWarning}}</p>{{/if}}
 
   {{#if error}}

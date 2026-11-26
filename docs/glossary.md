@@ -1,56 +1,60 @@
 # Glossary
 
-Lolly uses a small set of words with exact meanings, and a few of them (profile, template, utility, room) also have everyday meanings that get in the way. The first half of this page is the words you meet in the app. The second half is for people who build tools or work on Lolly itself; the [architecture page](/info/overview.html) puts those words together.
+Lolly uses a small set of words with exact meanings, and some (profile, template, utility, room) also have everyday meanings. The first half covers words you meet in the app; the second half is for people who build tools or work on Lolly, and the [architecture page](/info/overview.html) puts those words together.
 
 ## Product and feature names in documentation
 
-Use **Lolly Work** for the organisation server in prose, headings, captions and link labels. Keep **work** for the ordinary activity or the material someone creates. This documentation uses the two-word product name consistently; **LollyWork** is also an unambiguous form.
+Use **Lolly Work** for the organisation server in prose, headings, captions and link labels. Keep **work** for the ordinary activity or the material someone creates. This documentation uses the two-word product name; **LollyWork** is also unambiguous.
 
-Give named tools, utilities and views the same context. Write **Lolly Design**, **Lolly Darkroom** or **Lolly Verify**, or use a description such as **the Design tool**, **the Scan utility** or **the Projects view** when that reads more naturally. The `/verify` view is **Lolly Verify** in prose; **Verify & Inspect** remains its exact interface label.
+Treat named tools, utilities and views the same way. Write **Lolly Design**, **Lolly Darkroom** or **Lolly Verify**, or a description such as **the Design tool**, **the Scan utility** or **the Projects view** when that reads better. The `/verify` view is **Lolly Verify** in prose; **Verify & Inspect** is its exact interface label.
 
-Keep literal labels in instructions: "Open the **Design** tool" tells someone which label to choose. Generic terms such as **design system**, **tool manifest** and **utility category** retain their ordinary meanings. Tool ids, routes, commands and quoted program output keep their exact spelling.
+Keep literal labels in instructions, such as "Open the **Design** tool". Generic terms such as **design system**, **tool manifest** and **utility category** keep their ordinary meanings. Tool ids, routes, commands and quoted program output keep their exact spelling.
 
 ## Words you will see in the app
 
 **Content sovereignty.** Control over how your content is created, governed, stored and moved across the systems you choose. In Lolly this includes local production, editable work, portable tools and optional organisation-controlled services. An existing DAM can remain the source of record. These controls do not override source licences or guarantee exact future renders; see [What is content sovereignty?](/info/content-sovereignty.html).
 
-**Design system.** Your colours, fonts, logos and a few rules, which every tool draws with. You set it up once in Lolly Design System Setup and switch between design systems in **Settings → Preferences → Design systems**. In the code the same thing is called a brand (see *Design system and brand* below).
+**Design system.** Your colours, fonts, logos and a few rules, which every tool draws with. You set it up in Lolly Design System Setup and switch between design systems in **Settings → Preferences → Design systems**. The code calls it a brand (see *Design system and brand* below).
 
-**Brand page.** One published folder that works as a press kit and an agent kit: logos, colours, type, rules and examples for people, with tokens, `DESIGN.md` and skills for agents. Lolly Design System Setup or `lolly system publish` writes the folder. You host the folder yourself or on Lolly Work. Not to be confused with a **brand pack**, the directory a build reads. [Brand pages](/info/brand-page.html) has the details.
+**Brand page.** One published folder that works as a press kit and an agent kit: logos, colours, type, rules and examples for people, with tokens, `DESIGN.md` and skills for agents. Lolly Design System Setup or `lolly system publish` writes the folder. You host the folder yourself or on Lolly Work. Different from a **brand pack**, the directory a build reads. See [Brand pages](/info/brand-page.html).
 
-**Lolly Design System Setup.** The part of the app where you make or change a design system, at `#/start`. Its areas are called rooms: Board, Colours, Type, Logos, Tokens, Files, Rules and Skills, with Versions once a version is published. A bar across the top carries the design system's name.
+**Lolly Design System Setup.** The part of the app where you make or change a design system, at `#/start`. Its areas are called rooms: Board, Colours, Type, Logos, Tokens, Files, Rules and Skills, with Versions once a version is published. A bar across the top shows the design system's name.
 
-**Lolly Demo.** Lolly's own sample design system, the one lolly.tools opens with; its lead colour is green. [Meet Lolly Demo](/info/lolly-demo.html) shows the whole design system.
+**Lolly Demo.** Lolly's own sample design system, which lolly.tools opens with. Its lead colour is green. See [Meet Lolly Demo](/info/lolly-demo.html).
 
 **Lolly Starter.** A blank, neutral design system to make your own, offered beside Lolly Demo.
 
 **Managed design system.** A design system your build or your organisation supplies. It shows a lock and stays read-only; you can make an editable copy.
 
-**Colourway.** One of several lead colours a design system offers, with the colour that sits on it and a partner colour, chosen per piece of work. Organisations that rotate their primary colour across pieces use colourways. A colourway combines with light and dark rather than replacing them. One colourway is canonical: work that chooses none is drawn in the canonical colourway. The app's own colours (its accent, favicon and logo tint) follow the colourway a person chose in **Settings → Appearance**, else the canonical one, and never the colourway of the piece on screen; new work starts in the person's colourway. See [Colourways](/info/colourways.html).
+**Colourway.** One of several lead colours a design system offers, with the colour that sits on it and a partner colour, chosen per piece of work. Organisations that rotate their primary colour across pieces use colourways. A colourway combines with light and dark rather than replacing them. One colourway is canonical. Work that chooses no colourway uses the canonical one. The app's own colours (accent, favicon and logo tint) follow the colourway a person chose in **Settings → Appearance**, else the canonical one. They never follow the colourway of the piece on screen. New work starts in the person's colourway. See [Colourways](/info/colourways.html).
 
-**Brand architecture.** How an organisation relates its brands to one another, from one masterbrand with coloured divisions to brands with no visible relationship. Lolly maps each arrangement onto design systems, colourways and logo identities; see [Brand architectures](/info/brand-architectures.html). Work that carries a partner's or sponsor's brand beside your own is covered in [Working with partners](/info/partners.html).
+**Colour role.** A design system's own word for one of its colours, such as Main or Accent, with a line saying what the colour is for. A role holds a colour in every colourway and look. The design system says what Lolly reads the role as: the lead colour, the partner colour, the background, the text or a name only. No tool draws a name-only role by itself. Not the role an intent gives a value (see *Role* below). See [Colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called).
 
-**Brand skill.** A brand's standards for one discipline (the overall brand, photography, motion, iconography and so on), written as an Agent Skill: a Markdown file, with optional text references, that people and AI agents read. It is a catalog asset of type `skill` with a permanent id such as `lolly/skill/photography`, carried with the design system it belongs to, and Lolly never rewrites its text. Each skill is `public` or `internal`, and internal skills stay out of every static catalog. A skill is guidance and never gives a pass or a fail; the design system's house rules are what Lolly checks. Not the Lolly skill, which says how to operate Lolly, and not a tool skill, which says how to operate one tool. See [Brand skills](/info/brand-skills.html).
+**Brand architecture.** How an organisation relates its brands to one another, from one masterbrand with coloured divisions to brands with no visible relationship. Lolly maps each arrangement onto design systems, colourways and logo identities; see [Brand architectures](/info/brand-architectures.html). For work that carries a partner's or sponsor's brand beside your own, see [Working with partners](/info/partners.html).
 
-**Tool.** One kind of thing Lolly makes, such as Lolly QR Code, Lolly Chart or Lolly Certificate, with the fields you fill in. The tool holds the layout and rules; you supply the words, pictures or data. Lolly Design is the tool with an open canvas.
+**Partner kit.** A light pack that would hold another brand's logos, colours and rules for use in work made in your design system. Lolly does not have partner kits yet. The partner's mark goes in as a picture from Assets or as a custom mark, and you check the mark against the partner's guidelines. On a piece with two brands, the **lead brand** is the one whose design system draws the piece, and the **partner** is the other. See [Working with partners](/info/partners.html).
 
-**Utility.** A tool in the `utility` category, listed in the app's **Utilities** tab (`#/u`) for one quick job, such as Lolly Strip Hidden Data, Lolly Scan or Lolly Countdown. Many utilities are *on-device*: they take your own file in and give a file back without uploading anything (strip data, compress a PDF, convert an image). The engine never watermarks an on-device tool's output or adds Content Credentials to it; Lolly Sign and Lolly Rondocode write a credential through their own export code.
+**Brand skill.** A brand's standards for one discipline (the overall brand, photography, motion, iconography and so on), written as an Agent Skill: a Markdown file, with optional text references, that people and AI agents read. It is a catalog asset of type `skill` with a permanent id such as `lolly/skill/photography`, carried with its design system. Lolly never rewrites its text. Each skill is `public` or `internal`; internal skills stay out of every static catalog. A skill is guidance and never gives a pass or a fail. Lolly checks the design system's house rules instead. Not the Lolly skill, which says how to operate Lolly, and not a tool skill, which says how to operate one tool. See [Brand skills](/info/brand-skills.html).
 
-**Utility view.** A workbench built into the app with no manifest, such as Lolly Compare or Lolly Verify, with a card in the same Utilities tab (see [Lolly Utilities](/info/utilities.html)). Neither word is a loose name for any tool.
+**Tool.** One kind of thing Lolly makes, such as Lolly QR Code, [Lolly Chart](/info/chart.html) or Lolly Certificate, with the fields you fill in. The tool holds the layout and rules; you supply the words, pictures or data. Lolly Design is the tool with an open canvas.
+
+**Utility.** A tool in the `utility` category, listed in the app's **Utilities** tab (`#/u`) for one quick job, such as Lolly Strip Hidden Data, Lolly Scan or Lolly Countdown. Many utilities are *on-device*: they take your file and give a file back without uploading anything (strip data, compress a PDF, convert an image). The engine never watermarks an on-device tool's output or adds Content Credentials to it; Lolly Sign and Lolly Rondocode write a credential through their own export code.
+
+**Utility view.** A workbench built into the app with no manifest, such as Lolly Compare or Lolly Verify, with a card in the Utilities tab (see [Lolly Utilities](/info/utilities.html)). Neither word is a loose name for any tool.
 
 **Saved session.** One tool with its inputs, saved with **Save** or **Save as** and listed in the **Projects** view. It stays in the browser or app you saved it in, unless you turn on Sync.
 
 **Project.** The Projects view groups saved sessions, renders and imported files for one piece of work.
 
-**Template.** A saved session promoted to a starting point, offered in that tool's "New from template" chooser and deep-linkable as `?template=<id>`. This is not the Handlebars template a tool is written with (see *Template, in a tool* below).
+**Template.** A saved session promoted to a starting point, offered in that tool's "New from template" chooser and deep-linkable as `?template=<id>`. Not the Handlebars template a tool is written with (see *Template, in a tool* below).
 
-**Share link.** A link that carries a tool's inputs and settings, so it reopens the same work on any device. Files you uploaded do not fit in a link; they travel in a `.lolly` file.
+**Share link.** A link that carries a tool's inputs and settings and reopens the same work on any device. Uploaded files do not fit in a link; they travel in a `.lolly` file.
 
 **`.lolly` file.** One file holding a design, the images it uses and, if you choose, the tool itself. Lolly also uses a `.lolly` file to pass on a tool made with **Share with rules**, and an organisation can send one that connects the app to its instance.
 
 **Lolly Batch.** Making one tool many times from a table of values, one file per row, at `#/batch`. **Lolly Multi-edit** (`#/multi`) is different: one person editing several saved sessions at once.
 
-**Collab.** Live editing by several people. A *private collab* is direct, device to device, with no server; a *work collab* runs through an organisation's Lolly Work instance. Two Ls, not "colab", and a collab is never called a room (rooms are the areas of Lolly Design System Setup).
+**Collab.** Live editing by several people. A *private collab* runs device to device with no server; a *work collab* runs through an organisation's Lolly Work instance. Spelled with two Ls, not "colab". A collab is never called a room (rooms are the areas of Lolly Design System Setup).
 
 **Settings.** Everything about the app on this device, at `#/settings`: **Preferences**, **This device**, **Design system**, **Capabilities** and **Activity & stats**.
 
@@ -58,11 +62,13 @@ Keep literal labels in instructions: "Open the **Design** tool" tells someone wh
 
 **Export.** Turning what a tool shows into a file in a format you choose, such as PNG, PDF or SVG. Physical sizes (`mm`, `in`, `pt`) and `dpi` are worked out per format at export time.
 
+**Fallback font.** An open Noto font that draws letters your design system's fonts do not have, such as Arabic or Cyrillic beside a Latin-only brand font. Those words then stay vector in an export instead of becoming a picture. Your design system's fonts always come first. A fallback font downloads only when a document needs one and then stays on the device. The export panel says which font drew which words. See [Fallback fonts](/info/fallback-fonts.html).
+
 **Content Credentials.** The signed record (C2PA) a file can carry, stating who made it and with what. Authoring tools turn credentials on by default unless their manifest opts out, and you can turn them off for an export. Inputs are recorded as fingerprints, not their values, and your name goes in only if you opt in. See [Content Credentials](/info/content-credentials-identity.html).
 
 **Imprint.** An invisible mark Lolly seals into an image's pixels, on by default for raster exports. It can survive a re-save or a metadata strip that removes the credential, so it is a hint that a file came from Lolly, not a cryptographic guarantee.
 
-**Watermark.** The visible mark an experimental tool puts on its exports. The app always adds the mark; code that calls the export directly can turn the mark off. Not the same thing as Content Credentials or the Imprint.
+**Watermark.** The visible mark an experimental tool puts on its exports. The app always adds the mark; code that calls the export directly can turn the mark off. Not the same as Content Credentials or the Imprint.
 
 **Lolly Work.** The organisation server of the Lolly project: sign-in, shared projects and assets, approvals, server rendering and audit records, on a server the organisation runs. **lolly.work** is the domain of its hosted demo, not the software.
 
@@ -70,7 +76,7 @@ Keep literal labels in instructions: "Open the **Design** tool" tells someone wh
 
 ## Words for builders
 
-These words matter when you build tools, run Lolly or read the code. The diagram shows how the first four fit together.
+These words matter when you build tools, run Lolly or read the code. The diagram shows how the first four connect.
 
 ![Tools supply a manifest, template and hooks to the shared engine. Web, Tauri and terminal shells implement the HostV1 capability bridge and read tools and assets from catalogs.](/info/diagrams/concepts/platform-layers.svg)
 
@@ -80,15 +86,15 @@ These words matter when you build tools, run Lolly or read the code. The diagram
 
 **Shell.** A host that runs the engine on one platform: the web PWA, the Tauri desktop and mobile apps, the CLI and the TUI. A shell supplies the capability bridge and renders the input model as controls. Every shell runs the same render path.
 
-**Capability bridge, or host.** The versioned API a shell hands to the engine and to tools, typed as `HostV1`. A tool calls `host.export`, `host.state`, `host.text` and so on, never the platform directly. Required parts are always present; optional parts are added in minor versions and never removed. It is the supported way in, not an enforced wall: see [Host API](/info/host-api.html).
+**Capability bridge, or host.** The versioned API a shell hands to the engine and to tools, typed as `HostV1`. A tool calls `host.export`, `host.state`, `host.text` and so on, never the platform directly. Required parts are always present; optional parts are added in minor versions and never removed. The bridge is the supported path, not an enforced boundary; see [Host API](/info/host-api.html).
 
-**Tool, as files.** A directory in a content pack (`community/<id>/`, or `brands/<name>/tools/<id>/`) holding a manifest, a template and optional hooks, styles and local assets. Tools are data, not bundled code: they sync to clients, so a new tool ships without an app update. A tool's `id` is permanent.
+**Tool, as files.** A directory in a content pack (`community/<id>/`, or `brands/<name>/tools/<id>/`) holding a manifest, a template and optional hooks, styles and local assets. Tools are data, not bundled code. They sync to clients, so a new tool ships without an app update. A tool's `id` is permanent.
 
 **Manifest.** The tool's `tool.json`, validated against `schemas/tool.schema.json`. It declares the inputs, the engine version range, status, capabilities and export options. Inputs are declared here, never inferred from the template.
 
 **Template, in a tool.** The tool's `template.html`, written in Handlebars and kept logic-less so non-developers can author templates. Different from a user's saved template above.
 
-**Hooks.** The tool's optional `hooks.js`, the imperative escape hatch. Hooks return a plain object: keys that match a declared input update that input, and every other key goes into `extras`, values the template can read without a user-facing control. They run with the host bridge injected and are time-boxed per hook; [Tool hooks](/info/tool-hooks.html) has the rules.
+**Hooks.** The tool's optional `hooks.js`, the imperative escape hatch. Hooks return a plain object: keys that match a declared input update that input, and every other key goes into `extras`, values the template can read without a user-facing control. They run with the host bridge injected and have a time limit per hook; see [Tool hooks](/info/tool-hooks.html).
 
 **Intent.** A statement of what a piece has to do for its reader, where it will be seen and what it has to say, resolved to a tool for each surface with the reasons recorded. Its vocabulary is closed and no model is in the path. See [Start from what the piece has to do](/info/visual-intent.html).
 
@@ -96,7 +102,7 @@ These words matter when you build tools, run Lolly or read the code. The diagram
 
 **Surface.** Where a piece will be seen, as a named size such as `social-square` or `a4-portrait`, or as any width and height.
 
-**Input model.** The single source of truth for what an input means, built by the engine from the manifest. Shells render it generically and never interpret manifest fields themselves, which is how web, desktop and CLI stay consistent.
+**Input model.** The single source of truth for what an input means, built by the engine from the manifest. Shells render it generically and never interpret manifest fields themselves. That keeps web, desktop and CLI consistent.
 
 **URL mode.** Every input is expressible as a URL parameter, so a link is a finished asset and a repeatable render. The CLI is URL mode over a different transport: `--foo=bar` on the command line is `?foo=bar` in the browser. A short list of parameter names is reserved for the engine (`format`, `width`, `dpi`, `c2pa` and others) and cannot be input ids; [Reserved URL parameters](/info/url-parameters.html) lists them.
 
@@ -104,9 +110,9 @@ These words matter when you build tools, run Lolly or read the code. The diagram
 
 **Status.** A tool is `official`, `community` or `experimental`. Status drives gallery sorting and approval messaging. Experimental tools watermark their exports by default; on-device tools are exempt.
 
-**Isolate.** A manifest flag (`isolate: true`) meaning the tool's hooks may run in a Worker rather than in the page. A script sets it from evidence, not by hand: the hooks use no page-bound globals and the render is byte-identical in both executors.
+**Isolate.** A manifest flag (`isolate: true`) meaning the tool's hooks may run in a Worker instead of the page. A script sets the flag from evidence, not by hand: the hooks use no page-bound globals and the render is byte-identical in both executors.
 
-**Compose.** One tool rendering another tool inside itself, either authored in the manifest (`composes`) or at run time when a user pastes a Lolly tool link into an asset picker and it becomes an image.
+**Compose.** One tool rendering another tool inside itself, either authored in the manifest (`composes`) or at run time when a user pastes a Lolly tool link into an asset picker and the link becomes an image.
 
 **Design-generated tool.** An ordinary tool compiled from a Lolly Design document through **Share with rules**. Its public inputs describe the changes recipients may make, and the rest of its artwork is fixed through the supported tool interface. The `.lolly` tool file carries its dependencies and no saved session. See [Share a design with rules](/info/create-a-tool.html).
 
@@ -126,7 +132,7 @@ These words matter when you build tools, run Lolly or read the code. The diagram
 
 **Theme group.** One choice a design system offers, such as light or dark, or roomy or compact. Each option turns on token sets, and a piece of work picks one option per group. A group can say what kind of choice it is: `mode` for light and dark, `colourway` for the lead colour and a few more. A group that says nothing behaves as a plain choice.
 
-**Design system and brand.** The same thing seen from two sides. User-facing copy says *design system* because people who do not think of themselves as a brand use Lolly too. Code contracts keep the word brand (`brands/`, `brand-*.ts`, `--brand-*`).
+**Design system and brand.** Two names for one thing. User-facing copy says *design system* because people who do not think of themselves as a brand also use Lolly. Code contracts keep the word brand (`brands/`, `brand-*.ts`, `--brand-*`).
 
 **Materialized root.** A real `tools/` and `catalog/` pair written out of the packs by `materializeInto`, for the places that serve those two paths over HTTP: a `dist/` build, an RPM payload, a container image, the desktop app's exported content root. A checkout has neither directory; every script and shell asks `packages/node-shell/src/content-roots.ts` where a tool and the catalog are instead. Not a UI view, which is a route in the web shell such as the gallery or a tool page.
 

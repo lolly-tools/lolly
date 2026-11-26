@@ -68,6 +68,9 @@ export const VALUE_FLAGS = new Set([
   // a bare form parsing to "1" names neither, so the render would quietly draw a
   // placeholder for every emoji and say only that a param was ignored.
   'emoji', 'emojifx', 'emojistyle',
+  // `--spots=process` (engine 1.324). A bare `--spots` parsing to "1" would ask for no
+  // known value, so it is refused here like every other value flag.
+  'spots',
   // The signing identity. Both take a PATH, and a bare form must never parse to the
   // string "1" and then be reported as an unreadable file called "1". There is
   // deliberately no flag that takes the KEY or its passphrase: argv is visible in `ps`
@@ -152,9 +155,10 @@ export const READ_VALUE_FLAGS = ['media', 'pages', 'max-chars', 'from'] as const
 /**
  * `lolly check` flags that take a value, refused bare in bin/lolly.ts. `page-cap` is
  * here because a bare one parsing to "1" would read one page and call the rest clean;
- * `file` because a bare one would read a design system from a file called "1".
+ * `file` because a bare one would read a design system from a file called "1", and
+ * `kit` because a bare one would read a partner kit from a file called "1".
  */
-export const CHECK_VALUE_FLAGS = ['source', 'file', 'theme', 'browser', 'page-cap', 'edits', 'themes'] as const;
+export const CHECK_VALUE_FLAGS = ['source', 'file', 'theme', 'browser', 'page-cap', 'edits', 'themes', 'kit'] as const;
 /**
  * `lolly read`'s on/off flags: `force` overwrites pictures, `thumbnails` draws each slide
  * beside them, `extract` writes blocks in reading order instead of the inventory,

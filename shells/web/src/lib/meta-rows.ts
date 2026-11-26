@@ -36,7 +36,7 @@ const ROWS = {
   // When
   taken: ['clock', 300], added: ['calendar', 310], modified: ['pen', 320], imported: ['upload', 330, 'added'], importedFrom: ['filePlus', 340],
   // Who it comes from, and what using it asks
-  source: ['package', 400], licence: ['scale', 410], credit: ['quote', 420], using: ['checklist', 430], author: ['user', 440, 'artist'], copyright: ['copyright', 450],
+  source: ['package', 400], maker: ['userCheck', 402], madeWith: ['tool', 404], licence: ['scale', 410], credit: ['quote', 420], using: ['checklist', 430], author: ['user', 440, 'artist'], copyright: ['copyright', 450],
   // How it is filed
   tags: ['tag', 500], projects: ['folder', 510],
   // Encoding and camera detail

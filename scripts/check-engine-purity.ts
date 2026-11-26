@@ -97,8 +97,16 @@ const ALLOWED_PACKAGES = new Set([
   '@lolly-tools/core/intent-v1',
   '@lolly-tools/core/brand-system-v1',
   '@lolly-tools/core/schema/brand-system-v1.schema.json',
+  // Sound profiles: the profile and recipe records and their static schema.
+  '@lolly-tools/core/sonic-profile-v1',
+  '@lolly-tools/core/schema/sonic-profile-v1.schema.json',
+  // Partner kits (plans/82 M8): the kit format, its bounds and its static schema.
+  '@lolly-tools/core/partner-kit-v1',
+  '@lolly-tools/core/schema/partner-kit-v1.schema.json',
   // engine/src/validate.ts - the asset-open intent record and its pure validator.
   '@lolly-tools/core/asset-open-v1',
+  // engine/src/validate.ts and runtime.ts - the rendition field's actions and reference check.
+  '@lolly-tools/core/rendition-v1',
   // Plan 291: the check report and the content inventory. Types and constants only.
   '@lolly-tools/core/check-v1',
   '@lolly-tools/core/content-inventory-v1',

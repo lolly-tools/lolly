@@ -94,9 +94,10 @@ export interface AssetAddInput {
 /**
  * A credentialed source asset's preserved provenance, carried into an export's
  * Content Credentials. The runtime gathers these from credentialed uploads used
- * in a design; the C2PA embedder copies their manifests into the export's store
- * and records a c2pa.ingredient assertion + c2pa.opened action (so an AI or
- * camera origin is never laundered away). Opaque to the shell - forwarded as-is.
+ * in a design, each one `componentOf` (a picture placed on a page is a part of
+ * the composition); the C2PA embedder copies their manifests into the export's
+ * store and records a c2pa.ingredient assertion + c2pa.placed action (so an AI
+ * or camera origin is never laundered away). Opaque to the shell - forwarded as-is.
  */
 export interface IngredientCredential {
   manifestBoxes: Uint8Array[];

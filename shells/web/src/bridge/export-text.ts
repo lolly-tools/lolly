@@ -6,12 +6,17 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { textStrokeAttrs, canVectoriseText, letterSpacingPx, featureSettingsToHb, textBaselineY, applyTextTransform } from './text-svg.ts';
 import type { FontStyleSlice } from './text-svg.ts';
 import type { VectorFont } from './font-registry.ts';
+import { exportFontFamily } from './fallback-font-source.ts';
 import { n2, parseCssColorFull } from './export-css.ts';
+import { stylePaintsBox } from './export-pdf-leaf.ts';
+import { firstStrongDirection, hasRtlText, type TextRunDirection } from '@lolly-tools/node-shell/text-bidi';
+import { originNow, type Origin } from './export-origin.ts';
 
 export interface InlineTextContext {
   readonly text: Pick<NonNullable<HostV1['text']>, 'toPath'> | null;
   readonly log: HostV1['log'] | undefined;
-  readonly resolveFont: (style: FontStyleSlice, text: string) => Promise<VectorFont | null>;
+  /** `at` is the run's element, whose `lang` the fallback fonts read (font-fill.ts). */
+  readonly resolveFont: (style: FontStyleSlice, text: string, at?: Element | null) => Promise<VectorFont | null>;
   readonly fontMetrics: (style: CSSStyleDeclaration, size: number) => { ascent: number; descent: number };
   readonly nextShadowId: () => string;
   /** Read text from the flattened tree (page snapshots, ExportOpts.shadowSlots):
@@ -47,7 +52,7 @@ export function mergeDeco(a: Deco, b: Deco): Deco { return { u: a.u || b.u, s: a
 // renderInlineContent for PDF.
 export async function emitInlineTextSvg(
   ctx: InlineTextContext, NS: string, blockEl: ParentNode, blockStyle: CSSStyleDeclaration,
-  rootRect: { left: number; top: number }, parentG: Element,
+  rootRect: Origin, parentG: Element,
 ): Promise<void> {
   const textApi = ctx.text;
   // Filters need a <defs>. This function is called from both walkers and does not
@@ -75,7 +80,7 @@ export async function emitInlineTextSvg(
       const fontSizePx = parseFloat(nodeStyle.fontSize) || 16;
       // SUSE statics, a user's Google font (decompressed on demand) or the
       // platform face - whichever the family stack resolves to first.
-      const vf = textApi ? await ctx.resolveFont(nodeStyle, text) : null;
+      const vf = textApi ? await ctx.resolveFont(nodeStyle, text, node.parentElement) : null;
       const fontUrl = vf?.url ?? null;
       const vectorise = canVectoriseText(nodeStyle, fontUrl, Boolean(textApi));
       // Tracking + OpenType feature toggles are baked into the shaped path so the
@@ -132,22 +137,28 @@ export async function emitInlineTextSvg(
         parentG.appendChild(el);
       };
 
-      // Emit one run, positioned at its own line box `r`. Used per visual line.
-      const placeLine = async (lineText: string, r: DOMRect) => {
+      const bidi = runBidi(node.parentElement);
+      // Emit one run, positioned at its own line box `r`, which was read in the layout
+      // `at` was read in. Used per visual line.
+      const placeLine = async (lineText: string, r: DOMRect, at: Origin) => {
         lineText = applyTextTransform(lineText, nodeStyle.textTransform);
-        const x = r.left - rootRect.left;
-        const top = r.top - rootRect.top;
-        if (vectorise) {
+        const x = r.left - at.left;
+        const top = r.top - at.top;
+        const direction = lineDirection(bidi, lineText);
+        const rtl = direction === 'rtl';
+        const ordered = rtl || hasRtlText(lineText);
+        // bidi-override reverses the characters themselves, which a shaper does not do.
+        if (vectorise && !(bidi.override && ordered)) {
           try {
             // `notdef` > 0 means this face has no glyph for something in the run - 
             // outlining would draw tofu, so keep the <text> fallback instead.
-            const { d, notdef } = await textApi!.toPath({ text: lineText, fontUrl: fontUrl!, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf!.variations, fallbackFonts: vf!.fallbacks });
+            const { d, notdef, advanceWidth } = await textApi!.toPath({ text: lineText, fontUrl: fontUrl!, fontSize: fontSizePx, features: features as string[], letterSpacing, variations: vf!.variations, fallbackFonts: vf!.fallbacks, ...(ordered ? { direction } : {}) });
             if (d && !notdef) {
               const { ascent, descent } = ctx.fontMetrics(nodeStyle, fontSizePx);
               const by = textBaselineY(top, r.height, ascent, descent);
               const p = document.createElementNS(NS, 'path');
               p.setAttribute('d', d);
-              p.setAttribute('transform', `translate(${n2(x)},${n2(by)})`);
+              p.setAttribute('transform', `translate(${n2(rtl ? r.right - at.left - advanceWidth : x)},${n2(by)})`);
               if (fillAttr)  p.setAttribute('fill', fillAttr);
               if (alphaAttr) p.setAttribute('fill-opacity', alphaAttr);
               for (const [k, v] of strokeAttrs) p.setAttribute(k, v);
@@ -159,13 +170,18 @@ export async function emitInlineTextSvg(
           }
         }
         const t = document.createElementNS(NS, 'text');
-        t.setAttribute('x',                 String(n2(x)));
+        // SVG text defaults to left to right, whatever the page around it did. A
+        // right-to-left line states its direction, which keeps a closing full stop or a
+        // Latin word where the browser put it, and is anchored at its right edge.
+        t.setAttribute('x',                 String(n2(rtl ? r.right - at.left : x)));
+        if (rtl) t.setAttribute('direction', 'rtl');
+        if (bidi.override && ordered) t.setAttribute('unicode-bidi', 'bidi-override');
         t.setAttribute('y',                 String(n2(top)));
         t.setAttribute('dominant-baseline', 'text-before-edge');
         t.setAttribute('font-size',         nodeStyle.fontSize);
         t.setAttribute('font-weight',       nodeStyle.fontWeight);
         t.setAttribute('font-style',        nodeStyle.fontStyle);
-        t.setAttribute('font-family',       nodeStyle.fontFamily);
+        t.setAttribute('font-family',       exportFontFamily(nodeStyle.fontFamily));
         if (nodeStyle.letterSpacing && nodeStyle.letterSpacing !== 'normal') {
           t.setAttribute('letter-spacing', nodeStyle.letterSpacing);
         }
@@ -178,10 +194,10 @@ export async function emitInlineTextSvg(
 
       // Draw underline / strikethrough as filled rects spanning the line box, in the
       // run's own colour - text-decoration is otherwise dropped by the vector walk.
-      const drawDeco = (r: DOMRect) => {
+      const drawDeco = (r: DOMRect, at: Origin) => {
         if (!fillAttr || (!deco.u && !deco.s)) return;
-        const x = r.left - rootRect.left;
-        const top = r.top - rootRect.top;
+        const x = r.left - at.left;
+        const top = r.top - at.top;
         const { ascent, descent } = ctx.fontMetrics(nodeStyle, fontSizePx);
         const by = textBaselineY(top, r.height, ascent, descent);
         const thick = Math.max(0.75, fontSizePx * 0.06);
@@ -206,11 +222,12 @@ export async function emitInlineTextSvg(
       let offset = 0;
       for (const seg of segs) {
         if (seg.trim().length > 0) {
-          for (const line of visualLines(node, offset, offset + seg.length)) {
-            if (line.rect.width > 0.5 && line.rect.height > 0.5) {
-              await placeLine(line.text, line.rect);
-              drawDeco(line.rect);
-            }
+          // Every line's box is read now, before placeLine's awaits, with the origin of the
+          // same layout: a root the page moves during the walk must not move a line.
+          const sized = (line: VisualLine): boolean => line.rect.width > 0.5 && line.rect.height > 0.5;
+          for (const { line: piece, at } of measuredLines(node, offset, offset + seg.length, bidi, rootRect, sized)) {
+            await placeLine(piece.text, piece.rect, at);
+            drawDeco(piece.rect, at);
           }
         }
         offset += seg.length + 1; // +1 for the '\n'
@@ -295,15 +312,24 @@ export function isReplaced(el: Element): boolean {
  *   the pass descends only through inline-level elements. A placement inside an
  *   inline-flex wrapper is the case in point, because a flex item is blockified. The
  *   SVG walker visits these through visitThroughInline; drawBox does the same here.
+ * - An inline-block or inline-flex box that paints a box of its own (a fill, a background
+ *   image, a border or a shadow) is drawn by `drawBox` too, wherever it sits in the line,
+ *   which paints the box and then its text and pseudo-content. The block loop leaves
+ *   these boxes to this pass, and this pass used to descend for their text alone, so a
+ *   `<button>` printed its label without its fill: white words on Claim's pale page. The
+ *   SVG walker visits every inline-block as a box (hasOwnBox in export-svg-walker.ts).
+ *   One that paints no box keeps the text-only path, and its bytes.
  *
- * A block's own children are left to the block loop and to this pass as before, and so
+ * A block's other children are left to the block loop and to this pass as before, and so
  * is anything inside an `<svg>`, which belongs to that picture and its painter.
  */
 export async function pdfInlineNonText(el: Element, blockEl: Node, drawBox: (box: Element) => Promise<void>): Promise<boolean> {
   const tag = el.tagName.toLowerCase();
   if (tag === 'br' || el.classList.contains('lolly-emoji-text')) return true;
   const parent = el.parentNode as Element | null;
-  if (parent === blockEl || parent?.namespaceURI === 'http://www.w3.org/2000/svg') return false;
+  if (parent?.namespaceURI === 'http://www.w3.org/2000/svg') return false;
+  if (paintedInlineBox(el)) { await drawBox(el); return true; }
+  if (parent === blockEl) return false;
   if (tag !== 'svg') {
     const display = getComputedStyle(el).display;
     if (display === 'none' || display === 'contents' || INLINE_LEVEL.has(display)) return false;
@@ -315,12 +341,101 @@ export async function pdfInlineNonText(el: Element, blockEl: Node, drawBox: (box
 /** The displays the PDF inline pass descends through. */
 const INLINE_LEVEL = new Set(['inline', 'inline-block', 'inline-flex']);
 
+/** An inline-block or inline-flex box, other than a picture, whose own style paints a box. */
+function paintedInlineBox(el: Element): boolean {
+  if (isReplaced(el)) return false;
+  const style = getComputedStyle(el);
+  return (style.display === 'inline-block' || style.display === 'inline-flex') && stylePaintsBox(style);
+}
+
+/** How the browser ordered the text in this element: its direction and any override. */
+export interface RunBidi { direction: TextRunDirection; override: boolean; plaintext: boolean }
+
+/**
+ * The bidi context a text node's parent gives its text, read from the browser's computed
+ * style, so `dir` on any ancestor, `dir="auto"` and CSS `direction` all arrive resolved.
+ * An inline element with no `unicode-bidi` does not open a context of its own: its
+ * `direction` only takes effect with one, so the answer comes from further up.
+ */
+export function runBidi(el: Element | null): RunBidi {
+  for (let cur = el; cur; cur = cur.parentElement ?? ((cur.getRootNode() as ShadowRoot).host ?? null)) {
+    const s = getComputedStyle(cur);
+    const ub = s.unicodeBidi || 'normal';
+    if (ub !== 'normal' || (s.display !== 'inline' && s.display !== 'contents')) {
+      return { direction: s.direction === 'rtl' ? 'rtl' : 'ltr', override: ub.includes('override'), plaintext: ub === 'plaintext' };
+    }
+  }
+  return { direction: 'ltr', override: false, plaintext: false };
+}
+
+/** The direction text is ordered in. `plaintext` takes that per paragraph from the text. */
+export function lineDirection(bidi: RunBidi, text: string): TextRunDirection {
+  return bidi.plaintext ? firstStrongDirection(text) : bidi.direction;
+}
+
+/**
+ * A line of a text node as the pieces the browser placed. Mostly that is one piece: a
+ * line of Arabic with a Latin word in it is shaped whole and comes out in the same
+ * order. It stops being one piece when something else sits inside the line: in
+ * `<p dir="rtl">Hello <b>World</b> again.</p>` the last text node has "again" to the
+ * right of the bold word and the full stop to the left of "Hello", so its box spans
+ * the bold word and no single run fits that box. Each stretch then takes the browser's
+ * place for that stretch. Left-to-right text never reaches any of this.
+ */
+export function bidiPieces(node: Node, line: VisualLine, bidi: RunBidi): VisualLine[] {
+  if (lineDirection(bidi, line.text) !== 'rtl' && !hasRtlText(line.text)) return [line];
+  const probe = document.createRange();
+  probe.setStart(node, line.start);
+  probe.setEnd(node, line.end);
+  const boxes = Array.from(probe.getClientRects()).filter((b) => b.width > 0 && b.height > 0).sort((a, b) => a.left - b.left);
+  if (!boxes.some((b, i) => i > 0 && b.left - boxes[i - 1]!.right > 1)) return [line];
+  const spans = new Map<DOMRect, { start: number; end: number }>();
+  const full = node.textContent as string;
+  for (let at = line.start; at < line.end;) {
+    const next = at + String.fromCodePoint(full.codePointAt(at)!).length;
+    probe.setStart(node, at);
+    probe.setEnd(node, next);
+    const r = probe.getClientRects()[0];
+    const box = r && (boxes.find((b) => r.left + r.width / 2 >= b.left - 0.5 && r.left + r.width / 2 <= b.right + 0.5) ?? boxes[0]);
+    if (box) {
+      const span = spans.get(box);
+      if (span) span.end = next; else spans.set(box, { start: at, end: next });
+    }
+    at = next;
+  }
+  const pieces: VisualLine[] = [];
+  for (const span of spans.values()) {
+    const slice = full.slice(span.start, span.end);
+    const start = span.start + slice.length - slice.trimStart().length;
+    const end = span.end - (slice.length - slice.trimEnd().length);
+    if (end <= start) continue;
+    probe.setStart(node, start);
+    probe.setEnd(node, end);
+    pieces.push({ text: full.slice(start, end), rect: probe.getBoundingClientRect(), start, end });
+  }
+  return pieces.length ? pieces : [line];
+}
+
+export interface VisualLine { text: string; rect: DOMRect; start: number; end: number }
+
+/**
+ * The visual lines of `node`'s [start, end), each split into its bidi pieces, with the
+ * export root's origin read in the same layout. Every box is read in this one call, so a
+ * caller that awaits between lines still subtracts each box from the origin of the layout
+ * the box was read in (export-origin.ts). `keep` drops a visual line before it is split.
+ */
+export function measuredLines(node: Node, start: number, end: number, bidi: RunBidi, origin: Origin, keep?: (line: VisualLine) => boolean): Array<{ line: VisualLine; at: Origin }> {
+  const pieces = visualLines(node, start, end).filter((line) => !keep || keep(line)).flatMap((line) => bidiPieces(node, line, bidi));
+  const at = originNow(origin);
+  return pieces.map((line) => ({ line, at }));
+}
+
 // Split a text node's [start,end) offset range into visual lines, so CSS soft
 // wrapping (which inserts no '\n') is honoured. We walk characters and start a
 // new line whenever a glyph's top jumps; each line's edge whitespace is trimmed
 // so its rect.left aligns with the first rendered glyph (collapsed leading spaces
-// would otherwise shift the shaped run). Returns [{ text, rect }] per line.
-export function visualLines(node: Node, start: number, end: number): { text: string; rect: DOMRect }[] {
+// would otherwise shift the shaped run). Returns [{ text, rect, start, end }] per line.
+export function visualLines(node: Node, start: number, end: number): VisualLine[] {
   const probe = document.createRange();
   const breaks = [start];
   let prevTop: number | null = null;
@@ -336,7 +451,7 @@ export function visualLines(node: Node, start: number, end: number): { text: str
   breaks.push(end);
 
   const full = node.textContent as string;
-  const out: { text: string; rect: DOMRect }[] = [];
+  const out: VisualLine[] = [];
   for (let k = 0; k + 1 < breaks.length; k++) {
     let s = breaks[k]!, e = breaks[k + 1]!;
     const slice = full.slice(s, e);
@@ -345,7 +460,7 @@ export function visualLines(node: Node, start: number, end: number): { text: str
     if (e <= s) continue;
     probe.setStart(node, s);
     probe.setEnd(node, e);
-    out.push({ text: full.slice(s, e), rect: probe.getBoundingClientRect() });
+    out.push({ text: full.slice(s, e), rect: probe.getBoundingClientRect(), start: s, end: e });
   }
   return out;
 }

@@ -23,8 +23,9 @@ import { brandPageFixtureInput } from '../scripts/build-brand-page-fixture.ts';
 const HOW = 'Lolly Work refuses what it does not know. See the steps at the top of this file.';
 
 /** Copied from Work's parser. */
-const MANIFEST_KEYS = ['version', 'id', 'name', 'revision', 'publishedVersion', 'origin', 'generator', 'usage', 'colourways', 'files', 'logos', 'held', 'checks', 'publishedAt', 'digest'];
+const MANIFEST_KEYS = ['version', 'id', 'name', 'revision', 'publishedVersion', 'origin', 'generator', 'usage', 'colourways', 'files', 'logos', 'colourRoles', 'held', 'checks', 'publishedAt', 'digest'];
 const LOGO_KEYS = ['id', 'name', 'path', 'surface', 'mono', 'primary', 'licence'];
+const COLOUR_ROLE_KEYS = ['id', 'label', 'description', 'token', 'fills'];
 const HELD_KINDS = ['policy', 'licence', 'unknown', 'content', 'limit'];
 
 const SEGMENT = '[A-Za-z0-9_-][A-Za-z0-9._-]*';
@@ -48,7 +49,7 @@ const LAYOUT: Record<string, RegExp> = {
 };
 
 /** The format as Work last learned the format. Moves only with the steps at the top. */
-const SCHEMA_SHA256 = 'c9956c92c13ade48faae08b827124a3a1e3187a609a6a1c8f8ad1d3a1de975ff';
+const SCHEMA_SHA256 = '7247afb3c92b529d69755718a44c55d961502ec941371bbc3e42d64f525164ef';
 
 test('the format is the one Lolly Work was last taught', () => {
   const sha = createHash('sha256').update(readFileSync(new URL('../schemas/brand-page-v1.schema.json', import.meta.url))).digest('hex');
@@ -61,6 +62,9 @@ test('a page with one of everything stays inside what Lolly Work accepts', async
   assert.ok(manifest.logos?.length, 'the fixture lists logos');
   for (const logo of manifest.logos ?? []) {
     for (const key of Object.keys(logo)) assert.ok(LOGO_KEYS.includes(key), `a logo row has a new key, ${key}. ${HOW}`);
+  }
+  for (const role of manifest.colourRoles ?? []) {
+    for (const key of Object.keys(role)) assert.ok(COLOUR_ROLE_KEYS.includes(key), `a colour role row has a new key, ${key}. ${HOW}`);
   }
   for (const held of manifest.held) assert.ok(HELD_KINDS.includes(held.kind), `a held row has a new kind, ${held.kind}. ${HOW}`);
   for (const file of manifest.files) {
@@ -78,4 +82,8 @@ test('the fixture holds one of everything Work needs to be tested against', asyn
   assert.equal(manifest.logos?.find(l => l.id === 'fixture/logo/primary')?.licence, 'Owner-published, not an open licence');
   assert.equal(manifest.logos?.find(l => l.id === 'fixture/logo/primary')?.primary, true);
   assert.ok(manifest.held.some(h => h.item === 'partner/logo/primary'), 'a logo held back');
+  assert.deepEqual(manifest.colourRoles, [
+    { id: 'evergreen', label: 'Evergreen', token: 'color.semantic.evergreen', fills: ['primary'] },
+    { id: 'signal', label: 'Signal', description: 'The small flag on a page.', token: 'color.semantic.signal', fills: [] },
+  ], 'colour roles, with and without a description, a slot and none');
 });

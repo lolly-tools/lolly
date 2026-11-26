@@ -1,55 +1,61 @@
 # Agenda screens and programmes
 
-You are running a two-day conference. The foyer needs a screen of what is on now, each room needs its own schedule, attendees want a page they can search, and speakers want calendar invites. **Agenda** makes all of them from one programme table, in your design system's typography, colours and logo.
+**Agenda** makes foyer screens, room schedules, a searchable attendee page and calendar invites from one programme table, in your design system's typography, colours and logo.
 
 ::: figure agenda-one-table
 One programme table feeds every screen, page and file.
 :::
 
+<!--i:eti-file-plus-->
 ## Start from a starter
 
-Open **Agenda** and choose a starter: **Foyer screen**, **Room screen**, **Animated overview**, **Interactive programme**, **Keynote spotlight**, **Wide ribbon**, **Starting soon**, **Intermission** or **Event close**. **Conference day**, **Two-day summit**, **Two-day conference** and **Evening meetup** come with sample programmes to replace; Two-day conference includes long titles, parallel tracks and an overnight session.
+Open **Agenda** and choose a starter: **Foyer screen**, **Room screen**, **Animated overview**, **Interactive programme**, **Keynote spotlight**, **Wide ribbon**, **Starting soon**, **Intermission** or **Event close**. **Conference day**, **Two-day summit**, **Two-day conference** and **Evening meetup** come with sample programmes to replace. Two-day conference includes long titles, parallel tracks and an overnight session.
 
 ![The Agenda sidebar, grouping its controls by what they change: content first, then style, then layout](/t/url-shot?url=%2F%23%2Ftool%2Fagenda&width=1440&height=900&waitMs=2600&format=svg&walker=1&cropSelector=.sidebar&filename=agenda-editor)
 
+<!--i:eti-table-->
 ## Enter the programme
 
 Type into the grid, or paste into a selected cell to fill a rectangle without touching the other sessions. Open **Edit programme** for a wide grid and a session form with date and time pickers, room and track suggestions, descriptions, links, status and optional image links.
 
-**Import programme** takes a spreadsheet paste, including HTML tables, or a CSV or TSV file of up to 10,000 rows and under 5 MB. Review the column mapping and sample rows, then choose **Add sessions** or **Replace programme**. Unknown columns stay in the source, and undo and redo restore whole table edits.
+**Import programme** takes a spreadsheet paste, including HTML tables, or a CSV or TSV file of up to 10,000 rows and under 5 MB. Review the column mapping and sample rows, then choose **Add sessions** or **Replace programme**. Unknown columns stay in the source. Undo and redo restore whole table edits.
 
-Insert, duplicate, delete or move sessions without rebuilding the table. **Shift times** moves the active session or every row by whole minutes and days, recording end dates when midnight is crossed. **Preview this time** sets the moment the screens show without changing the programme.
+You can insert, duplicate, delete or move sessions. **Shift times** moves the active session or every row by whole minutes and days, recording end dates when midnight is crossed. **Preview this time** sets the moment the screens show without changing the programme.
 
-Keep the **Session ID** column when you revise a session. With **Event ID**, it gives the calendar entry and the attendee page's session link a stable identity. New starters have IDs; an older programme gains them on its first table edit, and an untouched one stays readable without its link being rewritten.
+Keep the **Session ID** column when you revise a session. With **Event ID**, it gives the calendar entry and the attendee page's session link a stable identity. New starters have IDs. An older programme gains IDs on its first table edit. An untouched one stays readable, and its link is not rewritten.
 
 ::: details Keyboard editing
-Arrow keys select cells. Enter or F2 starts editing, and the arrows then move the text cursor. Enter commits and moves down, Shift+Enter moves up, Escape cancels and Alt+Enter adds a line. Shift and the arrows select a rectangle for copy, paste and Delete. Tab leaves the grid so keyboard users can reach the rest of the editor.
+Arrow keys select cells. Enter or F2 starts editing, and the arrows then move the text cursor. Enter commits and moves down, Shift+Enter moves up, Escape cancels and Alt+Enter adds a line. Shift and the arrows select a rectangle for copy, paste and Delete. Tab leaves the grid for the rest of the editor.
 :::
 
 ::: details Dates, times and checks
-Dates use YYYY-MM-DD, and Start and End are local to the event. A blank End means one hour. Use **End date** for an overnight or multi-day session; without one, End must follow Start on the same day, and 24:00 means the next midnight.
+Dates use YYYY-MM-DD. Start and End are local to the event. A blank End means one hour. Use **End date** for an overnight or multi-day session. Without one, End must follow Start on the same day, and 24:00 means the next midnight.
 
-Invalid dates, duplicate IDs and invalid or ambiguous daylight-saving times stay visible as data issues; fix them before exporting. Room, track and speaker overlaps are separate warnings. A cancelled session stays in calendar updates and on the attendee page but leaves the operational screens.
+Invalid dates, duplicate IDs and invalid or ambiguous daylight-saving times stay visible as data issues. Fix them before exporting. Room, track and speaker overlaps are separate warnings. A cancelled session stays in calendar updates and on the attendee page but leaves the operational screens.
 :::
 
+<!--i:eti-monitor-->
 ## Screens that rotate
 
-Every screen layout reads the same sessions: **Programme overview**, **Departures**, **Now and next**, **Session spotlight**, **Track chapters**, **Room wall**, **Wide ribbon**, **Timetable**, **Programme list**, **Starting soon**, **Intermission** and **Event close**. Room, track and day filters narrow one screen. The page count, event name and time-zone label keep viewers oriented while scenes rotate.
+Every screen layout reads the same sessions: **Programme overview**, **Departures**, **Now and next**, **Session spotlight**, **Track chapters**, **Room wall**, **Wide ribbon**, **Timetable**, **Programme list**, **Starting soon**, **Intermission** and **Event close**. Room, track and day filters narrow one screen. The page count, event name and time-zone label stay on screen while scenes rotate.
 
-**Reading distance** (At a desk, Across a room or Across a hall) sets the type size. Long titles hold at the start, travel at a steady speed and hold at the end, and a scene lasts longer when its text needs more time. Type is measured after the brand font loads, and it is never shrunk to fit an unlimited programme onto one screen.
+**Reading distance** (At a desk, Across a room or Across a hall) sets the type size. Long titles hold at the start, travel at a steady speed and hold at the end. A scene lasts longer when its text needs more time. Type is measured after the brand font loads and is never shrunk to fit an unlimited programme onto one screen.
 
-**Scenes and coverage** shows each scene's preview, duration, smallest title and anchor sizes, the longest wait and any fit or timing problems. Advanced **Scene order** takes session IDs; unlisted sessions follow in programme order.
+**Scenes and coverage** shows each scene's preview, duration, smallest title and anchor sizes, the longest wait and any fit or timing problems. Advanced **Scene order** takes session IDs. Unlisted sessions follow in programme order.
 
-Two clocks run a screen. The event clock decides which sessions are happening; the presentation clock decides which scene and title position to show. Set the event's time zone so a screen elsewhere uses the event's time. With no zone, times float and follow the screen's own clock. **Reference time** fixes one moment for review.
+The event clock decides which sessions are happening. The presentation clock decides which scene and title position to show. Set the event's time zone so a screen elsewhere uses the event's time. With no zone, times float and follow the screen's own clock. **Reference time** fixes one moment for review.
 
-**Programme style** changes how the programme is drawn, not only its tint. **Editorial** uses tinted track cards, **Minimal** uses ink and rules, and **Night** sets the programme on the design system's own dark colour. **Swiss** drops the cards for ruled rows under a colour bar, **Broadcast** adds a heading bar and a track strip on each card, **Gallery** centres light type like wall labels, **Festival** fills each card with its track colour, and **Quiet** keeps only type and small track dots.
+**Programme style** changes how the programme is drawn. **Editorial** uses tinted track cards, **Minimal** uses ink and rules, and **Night** sets the programme on the colourway's own dark colour. **Swiss** uses ruled rows under a colour bar instead of cards, **Broadcast** adds a heading bar and a track strip on each card, **Gallery** centres light type like wall labels, **Festival** fills each card with its track colour, and **Quiet** keeps only type and small track dots.
 
-**Motion** sets how each scene arrives. **Calm** fades in, **Editorial** rises slowly, **Expressive** springs up, **Broadcast** wipes in from the side, **Cascade** drops the cards in one by one and **Slide across** moves from scene to scene. The heading arrives first and each card after it, and scenes leave before the next one starts, so an exported loop has no jump. **Still** turns all of this off, and so does the system's reduced-motion setting.
+The piece's [colourway](/info/colourways.html) recolours the programme. Its lead colour is the accent, or its partner when the lead is too dark or too grey to glow. The lead and partner are the first track colours. The design system's other colours fill the remaining tracks without repeating a hue. Night, Broadcast and Festival sit on the lead when it is dark enough to carry pale type, and on a deep shade of the lead when it is not.
+
+**Motion** sets how each scene arrives. **Calm** fades in, **Editorial** rises slowly, **Expressive** springs up, **Broadcast** wipes in from the side, **Cascade** drops the cards in one by one and **Slide across** moves from scene to scene. The heading arrives first, then each card. Scenes leave before the next one starts, so an exported loop has no jump. **Still** turns motion off, and so does the system's reduced-motion setting.
 
 With no **Event logo** chosen, the design system's logo heads every screen and printed programme, in the version made for the chosen background. Turn off **Design system logo** under What to show to leave it out.
 
-**Background** offers Silk field, Colour planes, Paper and ink, Clear surface, Luminous, Contours, Brand pattern and Soft depth, all in the design system's colours, with reproducible intensity and variation. **Use only design system colours** turns off the blended shader treatment. Gallery and spotlight layouts can show session photos, and an optional background image keeps solid surfaces behind the text. Reading surfaces stay opaque, and one export clock drives both background and text.
+**Background** offers Silk field, Colour planes, Paper and ink, Clear surface, Luminous, Contours, Brand pattern and Soft depth, all in the design system's colours, with reproducible intensity and variation. **Use only design system colours** turns off the blended shader treatment. Gallery and spotlight layouts can show session photos. An optional background image keeps solid surfaces behind the text. Reading surfaces stay opaque, and one export clock drives both background and text.
 
+<!--i:eti-clock-->
 ## Video and its clocks
 
 A recorded video never receives programme updates, so **Video time** decides which moment it shows:
@@ -62,36 +68,48 @@ A recorded video never receives programme updates, so **Video time** decides whi
 
 Space pauses a screen, the arrow keys change scene, and the playback controls appear on focus or hover. Reduced-motion mode wraps titles and pauses automatic playback.
 
+<!--i:eti-users-->
 ## The attendee page
 
-Choose the **Interactive page** layout and export HTML. The file carries its own fonts, logo and presentation code, and offers search, day, track and room filters, session details, back and forward navigation, calendar downloads for all or chosen sessions, and print. It works without a server and still shows a readable programme with scripts turned off.
+Choose the **Interactive page** layout and export HTML. The file carries its own fonts, logo and presentation code. It offers search, day, track and room filters, session details, back and forward navigation, printing and calendar downloads for all or chosen sessions. It works without a server and still shows a readable programme with scripts turned off.
 
-The page's session links belong to that file or the copy you host. The ordinary Lolly link stays the way to edit and share the source programme. A screen HTML file can follow its device's clock, but its schedule is the one you exported, so export again after schedule changes.
+The page's session links belong to that file or the copy you host. Use the ordinary Lolly link to edit and share the source programme.
 
+::: note An exported file keeps the schedule you exported
+A screen HTML file can follow its device's clock, but it keeps the schedule you exported. Export again after schedule changes.
+:::
+
+<!--i:eti-file-->
 ## PowerPoint, PDF and print
 
-Editable PowerPoint and PDF use measured pages with full titles. **PowerPoint content** chooses **Editable text and shapes**, with fades and timed slide advances when motion is on, or **Embedded video and readable slides**. Editable slides name the brand fonts, so install them on the presenting computer to keep the typography. A single-image export that would need several pages explains the fit problem rather than leaving part of the programme out.
+Editable PowerPoint and PDF use measured pages with full titles. **PowerPoint content** chooses **Editable text and shapes**, with fades and timed slide advances when motion is on, or **Embedded video and readable slides**. A single-image export that would need several pages reports the fit problem instead of leaving part of the programme out.
 
-The video version embeds an H.264 MP4 and a poster, followed by readable slides, with autoplay and loop timing and speaker notes that describe the video time used. Opening, autoplay and looping were checked in PowerPoint for Mac; Windows and web playback are not yet checked. A browser that cannot encode H.264 offers the editable version instead. MP4 and WebM are also available on their own.
+::: note Install the brand fonts on the presenting computer
+Editable slides name the brand fonts, so install them on the presenting computer to keep the typography.
+:::
 
+The video version embeds an H.264 MP4 and a poster, then readable slides. It sets autoplay and loop timing, and its speaker notes describe the video time used. Opening, autoplay and looping were checked in PowerPoint for Mac. Windows and web playback are not yet checked. A browser that cannot encode H.264 offers the editable version instead. MP4 and WebM are also available on their own.
+
+<!--i:eti-package-->
 ## The event kit
 
-**Export ZIP** builds an event kit: a standalone programme page, a foyer screen, one screen per room, a contact sheet of scenes, a full-text PDF, a poster PNG, an ICS calendar and a README with the shared revision and video time. Tick **Include video in event kit** to add a recorded MP4. Room files are display settings over the one shared table, so there are no separate agendas to maintain. Each HTML file carries its own fonts and images and works offline; publish the files again after schedule changes.
+**Export ZIP** builds an event kit: a standalone programme page, a foyer screen, one screen per room, a contact sheet of scenes, a full-text PDF, a poster PNG, an ICS calendar and a README with the shared revision and video time. Tick **Include video in event kit** to add a recorded MP4. Room files are display settings over the one shared table. Each HTML file carries its own fonts and images and works offline. Publish the files again after schedule changes.
 
 ::: details Event kit limits
-The kit is built one file at a time, with up to 32 rooms, 32 MB of fetched resources per HTML file and 256 MB per kit. Kit video is limited to ten minutes; export a longer programme's video separately. The PDF and poster share one frozen reference moment.
+The kit is built one file at a time, with up to 32 rooms, 32 MB of fetched resources per HTML file and 256 MB per kit. Kit video is limited to ten minutes. Export a longer programme's video separately. The PDF and poster share one frozen reference moment.
 :::
 
 The programme editor, tool inputs and attendee controls are translated into all 26 interface languages. Programme content stays in the language you wrote it in.
 
+<!--i:eti-code-->
 ## Authoring contract
 
 This part is for tool authors who want an export like Agenda's attendee page.
 
 ::: details Portable presentations and the table editor
-`render.portable: true` declares a tool's `presentation.js`. The loader fetches and verifies it with the other signed tool files. Trusted installed tools can export the declared script with their hydrated markup through `ExportOpts.portableDocument`; remote and consented sideloads cannot use this executable export path.
+`render.portable: true` declares a tool's `presentation.js`. The loader fetches and verifies it with the other signed tool files. Trusted installed tools can export the declared script with their hydrated markup through `ExportOpts.portableDocument`. Remote and consented sideloads cannot use this executable export path.
 
 The browser presentation can expose `__lollyPresentation` on a `[data-presentation]` element. Its `prepare(format, opts)` returns a restoration function, so the export bridge can measure full-text pages and then restore live playback, including after an export failure. The per-canvas frame-clock contract supplies deterministic motion frames. Hooks remain independent of the DOM. From engine 1.216, export lifecycle hooks also receive the current input model for validation.
 
-`tableEditor` is an additive input-model hint. Fields have stable semantic keys and saved column names, optional aliases, editors, primary, required and identity flags, and paired dates. Labels can be translated independently of the saved table headings. Other tools can use this editor without Agenda-specific shell code.
+`tableEditor` is an additive input-model hint. Fields have stable semantic keys, saved column names, optional aliases, editors, paired dates and primary, required and identity flags. Labels can be translated independently of the saved table headings. Other tools can use this editor without Agenda-specific shell code.
 :::

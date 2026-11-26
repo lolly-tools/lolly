@@ -24,6 +24,8 @@ import type { ZoomHud } from '../components/zoom-hud.ts';
 import { deepActiveElement, isTypingTarget } from '../lib/typing-target.ts';
 import { icon } from '../lib/icons.ts';
 import { endCanvasCost, startCanvasCost } from '../lib/canvas-feedback.ts';
+import { ownsStageGestures } from '../lib/stage-gestures.ts';
+import { publishStageScale } from '../lib/stage-scale.ts';
 import { t } from '../i18n.ts';
 import {
   requestDock, releaseDock, isDocked, dockedFullCount, onDockChange,
@@ -205,6 +207,15 @@ export interface StageNav {
   /** Pan just enough to expose a native caret, preserving the person's zoom. */
   revealRect?(rect: StageRect, viewport: StageRect): void;
   /**
+   * Bring the selection into the visible band when a panel has just covered part of the
+   * stage, or the active artboard (else the whole work) when nothing is selected: no move when it is already in
+   * view, the smallest pan that brings it in when it fits, and a framing of it when it is
+   * larger than the band. A fit already frames the active artboard, so this moves the view
+   * only when the person has zoomed, or when the tool's own fit ignores the bands (a page
+   * strip, as Record's).
+   */
+  revealSelection?(): void;
+  /**
    * Multiply the current zoom about the stage centre - the zoom buttons' verb (the `+`/`-`
    * keys spend the same step about the pointer). A MULTIPLIER (1.25 in, 0.8 out), not an
    * absolute.
@@ -244,11 +255,12 @@ const isTyping = (): boolean => isTypingTarget();
 /**
  * Touch pinch-to-zoom + pan for the canvas stage.
  *
- * The page's native pinch-zoom is disabled (viewport user-scalable=no) so the
- * sticky sidebar header can't be stranded off-screen on mobile. To compensate,
- * the canvas preview gets gesture zoom here. It applies a transform to the OUTER
- * wrapper - fitCanvas only ever touches the inner canvas's width/height/transform,
- * so the two layers compose cleanly (fit-to-screen, then pinch on top of that).
+ * The page itself can be pinch-zoomed in every shell (WCAG 1.4.4), so the stage
+ * keeps the pinch for the canvas on its own element: touch-action: none, and on
+ * touch WebKit its gesture events refused there. Elsewhere a pinch zooms the page.
+ * The canvas zoom applies a transform to the OUTER wrapper - fitCanvas only ever
+ * touches the inner canvas's width/height/transform, so the two layers compose
+ * cleanly (fit-to-screen, then pinch on top of that).
  *
  * Returns { reset } so callers can snap back to the fitted view.
  */
@@ -283,8 +295,9 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   let lastTap = 0;
   let spaceDown = false;          // desktop: hold Space to drag-pan
   let mousePanPt: Point | null = null;          // desktop: previous mouse point while panning
-  // The current transform is a Fit-all framing (not a view a person chose). Set only by
-  // fitContent; cleared by reset() and by every user-driven zoom/pan below.
+  // The current transform is a framing the app chose (not a view a person chose). Set by
+  // fitContent, and kept by revealSelection; cleared by reset() and by every user-driven
+  // zoom/pan below.
   let contentFit = false;
   // Zoom-out floor widened by the last Fit-all, as a fit-multiplier. 1 = no widening.
   let contentFloor = 1;
@@ -379,6 +392,10 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     // Measured once and shared: the event carries the same absolute zoom the readouts
     // get, so a listener on the stage (the canvas level of detail) needs no read of its own.
     const abs = absScale();
+    // The same measure for tools that draw their own controls (lib/stage-scale.ts):
+    // screen pixels per canvas pixel, against the canvas's laid-out width, which is the
+    // page strip's rather than one page's on a carousel.
+    if (canvasEl && abs > 0) publishStageScale(canvasEl, (abs * nativeW) / (canvasEl.offsetWidth || nativeW));
     const EventType = stageEl.ownerDocument.defaultView?.CustomEvent;
     if (EventType) stageEl.dispatchEvent(new EventType('lolly:stage-view', { detail: { abs } }));
     for (const cb of zoomListeners) { try { cb(abs); } catch { /* a bad readout must not break the view */ } }
@@ -608,6 +625,36 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     if (r) fitContent(r);
   }
 
+  // Pan just enough to bring a client rect into a client viewport, keeping the zoom. A
+  // caret that the soft keyboard would cover, and a selection a panel has just covered.
+  function revealRect(rect: StageRect, viewport: StageRect): void {
+    if (![rect.x, rect.y, rect.w, rect.h, viewport.x, viewport.y, viewport.w, viewport.h].every(Number.isFinite) || viewport.w <= 0 || viewport.h <= 0) return;
+    const dx = rect.x < viewport.x ? viewport.x - rect.x : rect.x + rect.w > viewport.x + viewport.w ? viewport.x + viewport.w - rect.x - rect.w : 0;
+    const dy = rect.y < viewport.y ? viewport.y - rect.y : rect.y + rect.h > viewport.y + viewport.h ? viewport.y + viewport.h - rect.y - rect.h : 0;
+    if (Math.abs(dx) < .5 && Math.abs(dy) < .5) return;
+    captureOrigin(); tx += dx; ty += dy; contentFit = false; apply();
+  }
+
+  // A panel just covered part of the stage (Design's phone panel opening): bring the
+  // selection, else the active artboard, else the whole work, into the band left.
+  function revealSelection(): void {
+    // Last, the canvas itself: a page strip (Record) has no artboards to ask about.
+    const whole = (): StageRect => { const o = canvasEl?.getBoundingClientRect() ?? outerEl.getBoundingClientRect(); return { x: o.left, y: o.top, w: o.width, h: o.height }; };
+    const r = opts?.selectionRect?.() ?? opts?.activeRect?.() ?? opts?.contentRect?.() ?? whole();
+    if (!r || !(r.w > 0) || !(r.h > 0)) return;
+    const sr = stageBox();
+    const pad = 12;
+    const view = { x: sr.left + pad, y: sr.top + pad, w: sr.width - 2 * pad, h: sr.height - 2 * pad };
+    if (!(view.w > 0) || !(view.h > 0)) return;
+    // The app moves the view here, not a person. A view that was a fit stays one, so the
+    // next change of stage size frames the work again: unfolding a phone used to keep
+    // the phone's framing, because this pan had marked the view as the person's own.
+    const wasFit = !isUserZoomed();
+    if (r.w > view.w || r.h > view.h) focusRect(r.x, r.y, r.w, r.h, SEL_MARGIN);
+    else revealRect(r, view);
+    if (wasFit) contentFit = true;
+  }
+
   // Zoom to the current selection's AABB. Deliberately the same framing routine the
   // Artboards navigator gets, at its usual 85% - a selected box wants context around it,
   // where Fit-all wants the tightest honest gutter. Nothing selected = nothing to frame,
@@ -723,8 +770,15 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
       if (tapAt !== null) tapAtTime(tapAt);
     }
   };
+  // Fingers that went down on an element that handles its own presses. Their release is
+  // not the stage's either: the settle check below would read "scale 1" as "back at fit"
+  // and recentre a stage the person had panned.
+  const ownedTouches = new Set<number>();
   stageEl.addEventListener('pointerdown', e => {
     if (e.pointerType === 'mouse') return;
+    // A press on an element that handles its own presses (a 3-D canvas, the stage kit)
+    // is not tracked: that finger never pans the stage and never makes half a pinch.
+    if (ownsStageGestures(e.target)) { ownedTouches.add(e.pointerId); return; }
     touchDown(e.pointerId, e.clientX, e.clientY, e.timeStamp);
   });
   // A finger the Design canvas kept for an object press, handed back when a second
@@ -796,6 +850,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     // (tx/ty ≠ 0 → isZoomed() → fitCanvas preserves the view); letting go of the
     // button must not re-engage it.
     if (e.pointerType === 'mouse') return;
+    if (ownedTouches.delete(e.pointerId)) return;
     pts.delete(e.pointerId);
     if (pts.size < 2) { lastMid = null; pinchDist = 0; }
     if (pts.size === 1) {
@@ -815,9 +870,12 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   // Suppress native scroll/zoom on the stage so the gestures above own the touch.
   // Scoped here (not in CSS) so scrollable no-canvas tools keep normal touch scroll.
   stageEl.style.touchAction = 'none';
+  // Touch WebKit also sends a pinch as gesture events, and the page itself may zoom, so
+  // those are refused on the stage too. A fine pointer's are answered in the block below.
+  const isTouch = window.matchMedia('(pointer: coarse)').matches;
+  if (isTouch) for (const type of ['gesturestart', 'gesturechange'] as const) stageEl.addEventListener(type, e => e.preventDefault());
 
   // ── Desktop: trackpad-native zoom/pan + a Fit/% HUD + keyboard shortcuts ──────
-  const isTouch = window.matchMedia('(pointer: coarse)').matches;
   let hud: ZoomHud | null = null;
 
   // The HUD's "zoomed" state is what it says on the tin - the view is somewhere the USER
@@ -1170,7 +1228,9 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
         holdForWheel();
         const step = isNotchedWheel(e) ? notchLogZoom(e) : pinchLogZoom(pinch, e.deltaY, e.timeStamp);
         zoomAbout(Math.exp(step), e.clientX, e.clientY);
-      } else if ((e.target as Element | null)?.closest?.(STAGE_FLOATING_SURFACES)) {
+      } else if ((e.target as Element | null)?.closest?.(STAGE_FLOATING_SURFACES) || ownsStageGestures(e.target)) {
+        // A floating surface scrolls, and an element that handles its own wheel (a 3-D
+        // canvas zooming its camera) keeps it: neither is a pan.
         return;
       } else if (isZoomed() || opts?.editorLayout) {
         e.preventDefault();
@@ -1211,6 +1271,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     stageEl.addEventListener('pointerdown', e => {
       if (e.pointerType !== 'mouse') return;
       if (!(e.button === 1 || (e.button === 0 && spaceDown))) return;
+      if (ownsStageGestures(e.target)) return;
       e.preventDefault();
       stageEl.setPointerCapture(e.pointerId);
       mousePanPt = { x: e.clientX, y: e.clientY };
@@ -1251,6 +1312,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   let textFocusView:{scale:number;tx:number;ty:number;contentFit:boolean;contentFloor:number}|undefined;
   const onTextFocus=(event:Event)=>{const active=(event as CustomEvent<{active:boolean}>).detail?.active;if(active){textFocusView??={scale,tx,ty,contentFit,contentFloor};}else if(textFocusView){({scale,tx,ty,contentFit,contentFloor}=textFocusView);textFocusView=undefined;captureOrigin();apply();}};
   stageEl.addEventListener('fc-text-focus',onTextFocus);
+  stageEl.addEventListener('fc-reveal-selection', revealSelection);
   syncHud();
 
   // A layout change under a held burst releases it, so the next event measures afresh.
@@ -1263,6 +1325,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   function destroy(): void {
     destroyed = true;
     stageEl.removeEventListener('fc-text-focus',onTextFocus);
+    stageEl.removeEventListener('fc-reveal-selection', revealSelection);
     stageEl.removeEventListener('fc-touch-handoff', onTouchHandoff);
     stageEl.removeEventListener('fc-touch-tap', onTouchTap);
     window.removeEventListener('resize', onLayoutChange);
@@ -1324,13 +1387,8 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
       };
     },
     reset, isZoomed, isUserZoomed, sync: syncHud, fit, fitSelection, focusRect,
-    revealRect(rect, viewport) {
-      if (![rect.x, rect.y, rect.w, rect.h, viewport.x, viewport.y, viewport.w, viewport.h].every(Number.isFinite) || viewport.w <= 0 || viewport.h <= 0) return;
-      const dx = rect.x < viewport.x ? viewport.x - rect.x : rect.x + rect.w > viewport.x + viewport.w ? viewport.x + viewport.w - rect.x - rect.w : 0;
-      const dy = rect.y < viewport.y ? viewport.y - rect.y : rect.y + rect.h > viewport.y + viewport.h ? viewport.y + viewport.h - rect.y - rect.h : 0;
-      if (Math.abs(dx) < .5 && Math.abs(dy) < .5) return;
-      captureOrigin(); tx += dx; ty += dy; contentFit = false; apply();
-    },
+    revealRect,
+    revealSelection,
     zoomBy, zoomTo, actual: absScale,
     // Called back once immediately so a fresh readout paints the current view rather than
     // waiting for the first gesture (the bar mounts before anything has been zoomed).

@@ -12,9 +12,9 @@ never rides along in a profile export either.
 
 # Your favourites
 
-Put the handful of tools you actually use at the top of the gallery. Star a tool (or, on Utilities, a utility card) and a big tile for it appears in a strip above the grid, one star at a time.
+Put the tools you use most at the top of the gallery. Star a tool, or a utility card on Utilities, and a large tile for it appears in a strip above the grid.
 
-Until you star your first thing, the strip shows a short starter set: up to six featured tools on the Tools gallery, and Lolly Verify, Jump, Lolly Sandbox and Unpack on Utilities. Nothing is written to your profile for that set. Your first star replaces it with your own list, and if you later unstar everything, the strip goes away rather than bringing the starter set back.
+Until your first star, the strip shows a starter set: up to six featured tools on the Tools gallery, and Lolly Verify, Jump, Lolly Sandbox and Unpack on Utilities. Nothing is written to your profile for that set. Your first star replaces the starter set with your own list. If you later unstar everything, the strip goes away and the starter set does not come back.
 
 ![The Tools gallery with two favourited tools drifting past in the strip above the grid](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A%5Bdata-tool-id%3D%22qr-code%22%5D%7Cright%3Bclick%3A.folder-menu%20%5Bdata-act%3D%22fav%22%5D%3Bclick%3A%5Bdata-tool-id%3D%22battlecards%22%5D%7Cright%3Bclick%3A.folder-menu%20%5Bdata-act%3D%22fav%22%5D%3Bpress%3AHome%7Con%3Dbody%3Bwait%3A800&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&cropSelector=.featured&filename=fav-strip-gallery)
 <!--
@@ -31,12 +31,13 @@ Gallery/filmstrip mode for any automated capture and freezes the cross-fade, so
 no extra flag is needed to avoid Cover Flow here.
 -->
 
+<!--i:eti-pin-->
 ## Starring and unstarring
 
 You star a tool in two places, and both write to the same list:
 
 - **In its right-click menu** - **Add to favourites** / **Remove from favourites**. On a phone or tablet, press and hold the card for the same menu.
-- **In the selection bar** - tick a card's checkbox (or several: ⌘/Ctrl-click, Shift-click a range or drag a box across empty space) and an action bar appears along the bottom with a **Favourite** button that stars, or unstars, the whole selection in one go. Right-clicking inside a selection offers the same **Favourite** / **Unfavourite** row.
+- **In the selection bar** - tick a card's checkbox (or several: ⌘/Ctrl-click, Shift-click a range or drag a box across empty space). An action bar appears along the bottom with a **Favourite** button that stars or unstars the whole selection. Right-clicking inside a selection offers the same **Favourite** / **Unfavourite** row.
 
 ![The right-click menu of a tool card, with Add to favourites among its rows](/t/url-shot?url=%2F%23%2F&width=700&height=520&dpi=192&waitMs=1600&drive=click%3A%5Bdata-tool-id%3D%22qr-code%22%5D%7Cright&cropSelector=.folder-menu&walker=1&format=svg&dark=1&filename=fav-star-toggle)
 
@@ -45,22 +46,25 @@ SHOT NOTE (fav-star-toggle): tool cards carry no star of their own any more; fav
 lives in the card's right-click menu and the selection bar, so the shot opens that menu.
 -->
 
-The same star works on a **utility** card in the Utilities view - Lolly Verify, Lolly Colour Lab, Unpack, Spreadsheet and the rest. They aren't tools (no saved sessions, nothing to keep offline), but the strip treats a starred one exactly the same way: a tile of its own, icon-led since there's no preview to show.
+The same star works on a **utility** card in the Utilities view, such as Lolly Verify, Lolly Colour Lab, Unpack and Spreadsheet. Utilities have no saved sessions and nothing to keep offline, but a starred utility gets its own tile in the strip, led by its icon because it has no preview.
 
-> Not the strip you're after? The **★ Favourites** pill under **View options → Lolly Filter** shows the same starred set as an ordinary filtered list in the grid below, instead of the drifting strip up top - useful if you'd rather scan a plain list.
+::: note A plain list instead of the strip
+The **★ Favourites** pill under **View options → Filter** shows the starred set as a filtered list in the grid.
+:::
 
 **One star, two lists.** The star on an **asset** ([Assets](/info/using.html#assets-your-library)) is a separate list: it pins that logo, image or colour to the top of every asset picker. Starring a tool never touches your pinned assets, and pinning an asset never adds a tool.
 
 **The other way back.** Once you have saved work in three different tools, a **Yours** row of chips above the grid leads with your favourites, then the tools you used most recently.
 
+<!--i:eti-images-->
 ## Gallery or Cover Flow
 
-Open **View options** and, under **Favourites**, choose how the strip itself looks:
+In **View options**, under **Favourites**, choose how the strip looks:
 
-- **Gallery** - a slow, calm filmstrip that drifts sideways on its own and pauses the moment you touch the strip.
-- **Cover Flow** - the same tiles fanned out in 3-D, one centred and upright, the rest tucked back at an angle; drag or flick through them, then press **Open** on whichever one is centred.
+- **Gallery** - a slow filmstrip that drifts sideways and pauses when you touch the strip.
+- **Cover Flow** - the same tiles fanned out in 3-D, one centred and upright, the rest angled back. Drag or flick through them, then press **Open** on the centred one. A swipe glides to the cover it was thrown towards and stops in about a third of a second. A sideways trackpad swipe moves the covers as far as your fingers move. A sideways mouse wheel steps one cover per notch. The arrow keys, Home and End work too. On phones that support it, each cover passing the centre gives a light tick, never with Reduce motion on. When the fan stops, a screen reader announces the centred tool, such as "Chart, 2 of 6".
 
-A new install opens on Cover Flow at every screen width, and the fan works with touch as well as a mouse. Once you pick one yourself, Lolly remembers your choice.
+A new install starts on Cover Flow at every screen width. Once you pick one yourself, Lolly remembers your choice. The fan works with touch and with a mouse. Lolly remembers the mode you pick.
 
 <!--
 No screenshot of the Featured-view switch itself, and not for the same reason
@@ -94,11 +98,12 @@ either. Same documented blocker as the gallery's own Cover Flow shots
 (CLAUDE.md, "Docs screenshots are vector"). Prose only for that mode.
 -->
 
+<!--i:eti-home-->
 ## Your favourites stay on your device
 
-Your starred tools are saved on your [profile](/info/profile.html), the same on-device record that holds your name, your headshot and your other preferences.
+Your starred tools are saved on your [profile](/info/profile.html), the on-device record that holds your name, headshot and other preferences.
 
-- They are saved in this browser's own storage, with no account and nothing uploaded.
+- They are kept in this browser's storage, with no account and nothing uploaded.
 - They are separate from the **design system**: starring a tool is a shortcut for you and changes nothing on anyone else's install.
 - They travel only where your whole profile does: with [Sync](/info/sync.html) through the storage you chose, or in a backup you export and import yourself. They never go to a Lolly server.
 
@@ -106,4 +111,4 @@ The choice between **Gallery** and **Cover Flow** is kept in this browser only a
 
 ---
 
-**Related:** [Lolly Search](/info/search.html) for the other way back to something quickly. [Using Lolly](/info/using.html) for the gallery, hiding tools you never use and the rest of the app. [Profiles](/info/profile.html) for what else rides on that on-device record.
+**Related:** [Lolly Search](/info/search.html) for the other way back to something quickly. [Using Lolly](/info/using.html) for the gallery, hiding tools you never use and the rest of the app. [Profiles](/info/profile.html) for what else that on-device record has.

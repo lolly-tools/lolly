@@ -27,16 +27,20 @@
  */
 
 import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { physicalTextAnchor } from '@lolly-tools/node-shell/text-svg';
+import { firstStrongDirection, hasRtlText, type TextRunDirection } from '@lolly-tools/node-shell/text-bidi';
+import { nodeFillChain } from '@lolly-tools/node-shell/fallback-fonts-node';
+import type { FillUse } from '@lolly-tools/node-shell/fallback-fonts';
 
 /** Presentation properties inherited down the SVG tree that this walk reads. */
-const INHERITED = ['font-family', 'font-weight', 'font-style', 'font-size', 'letter-spacing', 'text-anchor', 'fill'] as const;
+const INHERITED = ['font-family', 'font-weight', 'font-style', 'font-size', 'letter-spacing', 'text-anchor', 'fill', 'direction'] as const;
 type InheritedProp = (typeof INHERITED)[number];
 
 /** Attributes that describe the TEXT LAYOUT and mean nothing on the outlined path. */
 const DROP_ON_PATH = new Set([
   'x', 'y', 'dx', 'dy', 'text-anchor', 'font-family', 'font-weight', 'font-style',
   'font-size', 'font-stretch', 'font-variant', 'letter-spacing', 'word-spacing',
-  'xml:space', 'dominant-baseline', 'alignment-baseline', 'textLength', 'lengthAdjust',
+  'xml:space', 'dominant-baseline', 'alignment-baseline', 'textLength', 'lengthAdjust', 'direction',
   'transform',   // re-composed with the glyph translate below
 ]);
 
@@ -45,6 +49,8 @@ export interface OutlineResult {
   outlined: number;
   /** Runs left as live `<text>`, with the reason, in document order. */
   fallbacks: Array<{ text: string; reason: string }>;
+  /** Fallback fonts that drew characters the run's own fonts lack, one entry per use. */
+  filled: FillUse[];
 }
 
 /**
@@ -68,6 +74,19 @@ function prop(el: Element, name: InheritedProp, getComputed: ((e: Element) => CS
   const camel = name.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
   const v = (cs as unknown as Record<string, unknown>)[camel];
   return typeof v === 'string' && v ? v : null;
+}
+
+/**
+ * A run's direction: the SVG `direction` property, else the nearest `dir` around it,
+ * with `dir="auto"` read from the run's own text, because this DOM has no layout.
+ */
+function textDirection(el: Element, raw: string, getComputed: ((e: Element) => CSSStyleDeclaration | null) | null): TextRunDirection {
+  const stated = prop(el, 'direction', getComputed)?.trim().toLowerCase();
+  if (stated === 'rtl') return 'rtl';
+  const dir = el.closest?.('[dir]')?.getAttribute('dir')?.trim().toLowerCase();
+  if (dir === 'rtl') return 'rtl';
+  if (dir === 'auto') return firstStrongDirection(raw);
+  return 'ltr';
 }
 
 /** First number of an SVG coordinate list ("10 20" / "10,20") - 0 when absent. */
@@ -128,7 +147,7 @@ export async function outlineSvgText(
   host: HostV1,
   opts: { getComputedStyle?: ((e: Element) => CSSStyleDeclaration | null) | null } = {},
 ): Promise<OutlineResult> {
-  const result: OutlineResult = { outlined: 0, fallbacks: [] };
+  const result: OutlineResult = { outlined: 0, fallbacks: [], filled: [] };
   const text = host.text;
   const doc = svg.ownerDocument;
   if (!text || !doc) {
@@ -140,6 +159,11 @@ export async function outlineSvgText(
   for (const el of runs) {
     const raw = (el.textContent ?? '').replace(/\s+/g, ' ').trim();
     if (!raw) continue;
+
+    const direction = textDirection(el, raw, getComputed);
+    const rtl = direction === 'rtl';
+    // A kept run stands alone in the file, and a direction set around the <svg> does not travel.
+    if (rtl) el.setAttribute('direction', 'rtl');
 
     const blocked = unplaceableReason(el);
     if (blocked) { result.fallbacks.push({ text: raw, reason: blocked }); continue; }
@@ -153,9 +177,10 @@ export async function outlineSvgText(
     // to a real sfnt wins. A generic keyword (sans-serif) is left to the last-resort
     // platform face below rather than looked up as a family name.
     let font: { url: string; variations?: string[] } | null = null;
-    for (const family of families) {
-      if (/^(sans-serif|serif|monospace|cursive|fantasy|system-ui)$/i.test(family)) continue;
-      font = (await text.fontUrl?.(family, { weight, italic })) ?? null;
+    const named = families.filter((family) => !/^(sans-serif|serif|monospace|cursive|fantasy|system-ui)$/i.test(family));
+    let at = 0;
+    for (; at < named.length; at++) {
+      font = (await text.fontUrl?.(named[at]!, { weight, italic })) ?? null;
       if (font) break;
     }
     // NO substitute face. Outlining a run in whatever font happens to be on disk would
@@ -167,7 +192,20 @@ export async function outlineSvgText(
       continue;
     }
 
-    let shaped: { d: string; advanceWidth: number } | null = null;
+    // Characters this family cannot draw take the later families of the stack, then the
+    // fallback font for their script (fallback-fonts.ts), as the web export does.
+    let fill: Awaited<ReturnType<typeof nodeFillChain>> = null;
+    if (text.characters && !/^\p{ASCII}*$/u.test(raw)) {
+      const later: Array<{ fontUrl: string; variations?: string[] }> = [];
+      for (const family of named.slice(at + 1)) {
+        const f = (await text.fontUrl?.(family, { weight, italic })) ?? null;
+        if (f) later.push({ fontUrl: f.url, ...(f.variations ? { variations: f.variations } : {}) });
+      }
+      const place = { at: el, document: doc.body ?? doc.documentElement };
+      fill = await nodeFillChain((url) => text.characters!(url), [{ fontUrl: font.url, ...(font.variations ? { variations: font.variations } : {}) }], later, raw, { weight, italic, place });
+    }
+
+    let shaped: { d: string; advanceWidth: number; notdef?: number } | null = null;
     try {
       shaped = await text.toPath({
         text: raw,
@@ -175,14 +213,19 @@ export async function outlineSvgText(
         fontSize,
         letterSpacing: letterSpacingPx(prop(el, 'letter-spacing', getComputed), fontSize),
         ...(font.variations ? { variations: font.variations } : {}),
+        ...(fill ? { fallbackFonts: fill.fallbacks } : {}),
+        ...(rtl || hasRtlText(raw) ? { direction } : {}),
       });
     } catch (e) {
       result.fallbacks.push({ text: raw, reason: `shaping failed - ${(e as Error).message}` });
       continue;
     }
     if (!shaped?.d) { result.fallbacks.push({ text: raw, reason: 'the font produced no glyph outlines' }); continue; }
+    // An outline of a glyph the face does not have is a row of boxes. Live text can still
+    // reach a font that has it, on the machine that opens the file.
+    if (shaped.notdef) { result.fallbacks.push({ text: raw, reason: `the font has no glyph for ${shaped.notdef} character${shaped.notdef === 1 ? '' : 's'} in this run` }); continue; }
 
-    const anchor = (prop(el, 'text-anchor', getComputed) ?? 'start').trim().toLowerCase();
+    const anchor = physicalTextAnchor(prop(el, 'text-anchor', getComputed), direction);
     const x = coord(el.getAttribute('x')) + coord(el.getAttribute('dx'));
     const y = coord(el.getAttribute('y')) + coord(el.getAttribute('dy'));
     const adv = shaped.advanceWidth || 0;
@@ -200,6 +243,7 @@ export async function outlineSvgText(
     path.setAttribute('transform', `${own ? own + ' ' : ''}translate(${round(tx)} ${round(y)})`);
     el.replaceWith(path);
     result.outlined++;
+    if (fill) result.filled.push(...fill.uses);
   }
   return result;
 }

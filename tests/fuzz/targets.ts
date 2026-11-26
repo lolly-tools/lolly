@@ -62,6 +62,7 @@ import { createTokenSet } from '../../engine/src/tokens.ts';
  *   - design-guides : v1/v2 guide text/JSON, canonical reparse and finite snap targets without DOM
  *   - dxf           : the DXF reader (WASM tag reader, entity list), then the flattener and Design boxes over what it returns
  *   - font-inspect  : inspectFont + glyphsForText over a real variable TTF, its WOFF wrapper and crafted overlapping cmap 4/12 tables (sfnt directory, name, fvar, cmap 4/12)
+ *   - woff2-preflight: preflightWoff2 over a real WOFF2 webfont and a crafted collection header (the bounds checked before the WOFF2 decoder runs)
  */
 
 import { storeZip } from '../../engine/src/zip.ts';
@@ -104,6 +105,8 @@ import { findVectorArtwork } from '../../engine/src/pdf-artwork.ts';
 import { findHiddenText, findHiddenTextInPages, describeHiddenText } from '../../engine/src/pdf-redaction.ts';
 import { extractFileMetadata } from '../../engine/src/file-metadata.ts';
 import { stripMetadata, type StripFormat } from '../../engine/src/strip-metadata.ts';
+import { AUDIO_STRIP_FORMATS, inspectAudioMetadata, stripAudioMetadata } from '../../engine/src/strip-audio.ts';
+import { buildFlac, buildFragmentedMp4, buildMp3, buildMp4, buildOpus, buildWav, XING_FRAMES } from '../helpers/audio-fixtures.ts';
 import { embedMp4Meta, embedWebmMeta, videoProvenanceTags } from '../../engine/src/video-meta.ts';
 import { parseDataRows } from '../../engine/src/data-import.ts';
 import {
@@ -162,6 +165,7 @@ import { contentSealConsensus, CONTENTSEAL_MESSAGE_BITS } from '../../engine/src
 import { zipSync } from 'fflate';
 import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exists)
 import { invokeLayoutAbi, layoutAbiSeeds, invokePenpotLayoutEvaluation, penpotLayoutSeeds } from './layout-targets.ts';
+import { invokeLollyRenderEnvelope, invokeLollyRenderPicture, lollyRenderEnvelopeSeeds, lollyRenderPictureSeeds, lollyRenderUnavailable } from './lolly-render-targets.ts';
 import { designGuideSeeds, invokeDesignGuides } from './design-guides-target.ts';
 import { designHierarchySeeds, invokeDesignHierarchy } from './design-hierarchy-target.ts';
 import { lollyHierarchySeeds, invokeLollyHierarchy } from './lolly-hierarchy-target.ts';
@@ -172,6 +176,11 @@ export interface FuzzTarget {
   seeds(): Promise<Uint8Array[]>;
   /** Feed one buffer through the parser. Throwing is fine; hanging/alloc is not. */
   invoke(bytes: Uint8Array): Promise<void>;
+  /**
+   * Why the parser cannot run on this machine (a native module that is not built), or
+   * null. A target that says so is skipped by name rather than passed without running.
+   */
+  unavailable?(): string | null;
 }
 
 const bytesOf = (s: string): Uint8Array => Uint8Array.from(s, (c) => c.charCodeAt(0) & 0xff);
@@ -480,6 +489,28 @@ export const stripMetadataTarget: FuzzTarget = {
   },
   async invoke(bytes) {
     for (const fmt of ['jpeg', 'png', 'svg'] as StripFormat[]) stripMetadata(bytes, fmt);
+  },
+};
+
+export const stripAudioTarget: FuzzTarget = {
+  name: 'strip-audio',
+  async seeds() {
+    return [
+      buildMp4({ udta: true, c2pa: 'tail', xmp: true, freeData: true, times: true, handlerName: 'x' }),
+      buildMp4({ udta: true, c2pa: 'head', co64: true }), buildFragmentedMp4(), buildWav(), buildMp3(), buildMp3(XING_FRAMES),
+      buildFlac(), buildOpus(),
+    ];
+  },
+  // Contract: fails closed. Anything it cannot walk throws a plain Error, which is the
+  // desired outcome; every format is tried on every input so a mutated magic still
+  // reaches each walker. The findings are the runner's classes (recursion, allocation,
+  // hangs): container nesting is capped at 8 and every count is clamped to the bytes.
+  async invoke(bytes) {
+    for (const format of AUDIO_STRIP_FORMATS) {
+      try { inspectAudioMetadata(bytes, format); stripAudioMetadata(bytes, format); } catch (err) {
+        if (/maximum call stack|invalid (typed )?array length|array buffer allocation|out of memory/i.test((err as Error).message)) throw err;
+      }
+    }
   },
 };
 
@@ -2520,6 +2551,18 @@ export const rondoStagedTarget: FuzzTarget = {
   },
 };
 
+// The lolly-render crate through its Node binding (tests/fuzz/lolly-render-targets.ts):
+// the envelope reader with admission, then each picture decoder on a placed picture.
+export const lollyRenderEnvelopeTarget: FuzzTarget = {
+  name: 'lolly-render-envelope',
+  seeds: lollyRenderEnvelopeSeeds,
+  async invoke(bytes) { invokeLollyRenderEnvelope(bytes); },
+  unavailable: lollyRenderUnavailable,
+};
+export const lollyRenderPngTarget: FuzzTarget = { name: 'lolly-render-png', seeds: lollyRenderPictureSeeds('png'), invoke: invokeLollyRenderPicture('png'), unavailable: lollyRenderUnavailable };
+export const lollyRenderJpegTarget: FuzzTarget = { name: 'lolly-render-jpeg', seeds: lollyRenderPictureSeeds('jpeg'), invoke: invokeLollyRenderPicture('jpeg'), unavailable: lollyRenderUnavailable };
+export const lollyRenderWebpTarget: FuzzTarget = { name: 'lolly-render-webp', seeds: lollyRenderPictureSeeds('webp'), invoke: invokeLollyRenderPicture('webp'), unavailable: lollyRenderUnavailable };
+
 export const layoutAbiTarget: FuzzTarget = {
   name: 'layout-abi',
   seeds: layoutAbiSeeds,
@@ -2550,6 +2593,37 @@ export const fontInspectTarget: FuzzTarget = {
   },
   // Contract: a coded Error for anything unreadable; never a hang or an unbounded allocation.
   async invoke(bytes) { inspectFont(bytes); glyphsForText(bytes, 'Hello, Wörld'); },
+};
+
+// WOFF2 preflight (packages/node-shell/src/woff2.ts): the header, table directory and
+// collection directory of a WOFF2 file, read before the WebAssembly decoder runs.
+// Contract: facts within the limits, or a Woff2Error; never a hang or an unbounded
+// allocation. Only the preflight runs here: the decoder that follows the preflight is
+// third-party C++ that starts a worker per font, too slow for a fuzz loop.
+export const woff2PreflightTarget: FuzzTarget = {
+  name: 'woff2-preflight',
+  async seeds() {
+    const webfont = new Uint8Array(readFileSync(new URL('../../shells/web/public/fonts/Outfit-latin-ext[wght].woff2', import.meta.url)));
+    // A collection header: two fonts sharing head (0) and pointing at glyf (1) and loca (2).
+    const collection = concat([
+      u32be(0x774f4632), u32be(0x74746366), u32be(0), Uint8Array.of(0, 3, 0, 0), u32be(0), u32be(8),
+      new Uint8Array(24),
+      Uint8Array.of(0x01, 54, 0x0a, 100, 80, 0x0b, 20, 0),
+      u32be(0x00010000), Uint8Array.of(2), Uint8Array.of(3), u32be(0x00010000), Uint8Array.of(0, 1, 2), Uint8Array.of(3), u32be(0x00010000), Uint8Array.of(0, 1, 2),
+      new Uint8Array(8 + 3), // eight bytes of compressed data, padded to a four-byte boundary
+    ]);
+    new DataView(collection.buffer).setUint32(8, collection.length);
+    return [webfont, collection];
+  },
+  async invoke(bytes) {
+    const { preflightWoff2, Woff2Error } = await import('../../packages/node-shell/src/woff2.ts');
+    try {
+      const facts = preflightWoff2(bytes);
+      if (facts.uncompressedSize > 30 * 1024 * 1024 || facts.headerBytes > 30 * 1024 * 1024) throw new Error('preflight accepted a size over its limit');
+    } catch (error) {
+      if (!(error instanceof Woff2Error)) throw error;
+    }
+  },
 };
 
 // Audio DSP module (packages/node-shell/wasm/audio-dsp): the raw byte ABI that the decoded PCM
@@ -2677,7 +2751,9 @@ export const designMdTarget: FuzzTarget = {
     const { writeDesignMd } = await import('../../engine/src/design-md.ts');
     const { deriveBrandTokens } = await import('../../engine/src/brand-derive.ts');
     const written = writeDesignMd({ doc: deriveBrandTokens({ primary: '#7c3aed', name: 'Seed' }), name: 'Seed' });
-    return [new TextEncoder().encode(written), new TextEncoder().encode(DESIGN_MD_FENCED)];
+    // A file with a colour role block, so the mutations reach the block's reader and the rebuild.
+    const roles = writeDesignMd({ doc: JSON.parse(readFileSync(new URL('../fixtures/colour-roles/wefthouse.tokens.json', import.meta.url), 'utf8')), name: 'Seed', selection: { colourway: 'madder', '': 'dark' } });
+    return [new TextEncoder().encode(written), new TextEncoder().encode(DESIGN_MD_FENCED), new TextEncoder().encode(roles)];
   },
   async invoke(bytes) {
     const { parseDesignMd } = await import('../../engine/src/design-md.ts');
@@ -2697,7 +2773,7 @@ export const ALL_TARGETS: FuzzTarget[] = [
   lottieTarget,
   emojiPackTarget, emojiSvgTarget, emojiTextTarget,
   prepareTarget, c2paVerifyTarget, cborTarget, mediaSniffTarget, outputFactsTarget, pdfMapTarget, pdfDerivedTarget, x509Target,
-  fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget, brandImportTarget, brandReferenceTarget, tarReadTarget,
+  fileMetadataTarget, stripMetadataTarget, stripAudioTarget, videoMetaTarget, dataImportTarget, brandImportTarget, brandReferenceTarget, tarReadTarget,
   epubReadTarget, jpegStructureTarget,
   rasterDecodeTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
@@ -2705,6 +2781,7 @@ export const ALL_TARGETS: FuzzTarget[] = [
   depthHintTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, smfTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
-  geomTarget, svgItemsTarget, fontInspectTarget, audioDspTarget, imageTraceTarget, intentTarget,
+  geomTarget, svgItemsTarget, fontInspectTarget, woff2PreflightTarget, audioDspTarget, imageTraceTarget, intentTarget,
+  lollyRenderEnvelopeTarget, lollyRenderPngTarget, lollyRenderJpegTarget, lollyRenderWebpTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

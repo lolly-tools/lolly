@@ -41,15 +41,7 @@
   margin-bottom: 20px;
   border-radius: 18px;
   background: color-mix(in oklab, hsl(var(--primary)) 14%, transparent);
-  color: hsl(var(--primary));
-}
-.mw-eyebrow {
-  margin: 0 0 6px;
-  font-size: calc(13px * var(--a11y-fs, 1));
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: hsl(var(--muted-foreground));
+  color: hsl(var(--primary-text));
 }
 .mw-title {
   margin: 0 0 12px;
@@ -120,7 +112,7 @@
   align-items: center;
   gap: 10px;
   margin-top: 8px;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-weight: 600;
 }
 .mw-done[hidden] { display: none; }

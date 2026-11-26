@@ -62,6 +62,8 @@ export function wireAudioViz(cat: CatCtx, dlg: HTMLElement, ref: AssetRef, meter
   // the live palette to wrap an artist preset with.
   let handle: VizHandle | null = null;
   let canvas: HTMLCanvasElement | null = null;
+  /** The analyser the picture is reacting to, to tell when a newer one is playing. */
+  let mountedAnalyser: AnalyserNode | null = null;
   // Which brand colour the visualiser is wearing. Shuffled independently of the preset,
   // so form and colour are two dials rather than one.
   let colourAt = cat.coverMap.get(assetBaseId(ref.id))?.colour ?? 0;
@@ -121,6 +123,7 @@ export function wireAudioViz(cat: CatCtx, dlg: HTMLElement, ref: AssetRef, meter
     // happen to press play looks broken; one that is calm until the music starts does
     // not.
     const live = meterHandle?.analyser() ?? null;
+    mountedAnalyser = live;
     const silence = new Uint8Array(1024).fill(128);   // 128 = zero amplitude
     // Pass the chosen colour as an EXPLICIT hero hint rather than shuffling it to the
     // front of the values. Without a hint, buildVizPalette re-derives a hero from the
@@ -277,6 +280,14 @@ export function wireAudioViz(cat: CatCtx, dlg: HTMLElement, ref: AssetRef, meter
     onTick: () => step(1),
   });
   cat.vizCycleStop = () => cycle.stop();
+
+  // Follow the music: a source whose analyser arrives after play (a generated tune, whose
+  // stream starts once its station has loaded) or changes (the tune played again after it
+  // ended) would otherwise leave the picture reacting to silence.
+  audioElOf(cat, dlg)?.addEventListener('playing', () => {
+    const live = meterHandle?.analyser() ?? null;
+    if (open && live && live !== mountedAnalyser) void mountLive();
+  });
 
   const flip = (): void => { void show(!open); };
   toggle.addEventListener('click', flip);

@@ -1,427 +1,484 @@
 # Mag-export ng file
 
-May ginawa ka at kailangan na nitong lumabas sa Lolly: PNG para sa chat, PDF para sa printer, deck na ipagpapatuloy i-edit ng kasamahan. Pindutin ang **Export**, ang kaliwang kalahati ng **Export | Save** pill. Pumili ng format sa tabi ng file name, saka pindutin ang **Download**. Ginagawa ang file sa device mo.
+Pindutin ang **Export**, ang kaliwang kalahati ng **Export | Save** pill, pumili ng format sa tabi ng pangalan ng file at pindutin ang **Download**. Sa device mo ginagawa ang file.
 
-Ang nakikita mo sa canvas ang laman ng file. Inililista lang ng format menu ang kayang gawin ng tool na ito sa browser na ito.
+Laman ng file ang nakikita mo sa canvas. Ang kaya lang gawin ng tool na ito sa browser na ito ang inililista ng format menu.
 
-Para sa karamihan ng trabaho, isa sa tatlong format ang tama:
+Isa sa tatlong format ang kailangan ng karamihan ng gawain:
 
 | Para sa | Piliin | Dahil |
 |---|---|---|
-| Isang screen, mensahe o slide | **PNG** | Nabubuksan ito ng bawat app, at pinananatili nito ang transparent na background kapag inaalok ito ng tool |
-| Isang tapos na page, o anumang ipi-print | **PDF** | Tunay na page size na nagpi-print kagaya ng tingin nito; ang **Print PDF**, kung saan inaalok ito ng isang tool, ay ang CMYK na bersyon para sa isang press |
-| Artwork na dapat manatiling matalas sa kahit anong sukat | **SVG** | Vector shapes, malinaw mula sa isang badge hanggang sa isang banner |
+| Screen, mensahe o slide | **PNG** | Nabubuksan ito ng bawat app, at napapanatili nito ang transparent na background kapag may ganoong opsyon ang tool |
+| Tapos na page, o anumang ipi-print | **PDF** | Totoong laki ng page na nai-print ayon sa nakikita; ang **Print PDF**, kapag iniaalok ng tool, ang CMYK na bersyon para sa press |
+| Artwork na kailangang manatiling malinaw sa anumang laki | **SVG** | Mga vector na hugis |
 
-::: check Suriin ang file sa sukat na gagamitin dito
-Bago mo ito ipadala, buksan ito sa screen na ginawan nito, o i-print ito sa tunay na sukat nito.
+::: check I-check ang file sa laki na gagamitin ito
+Bago mo ipadala ang file, buksan ito sa screen na pinaglaanan nito o i-print sa aktuwal nitong laki.
 :::
 
-::: details Mga approval at delivery gamit ang Lolly Work (opsyonal)
-Ang [organisasyong nagpapatakbo ng Lolly Work](/info/organisation.html) ay maaaring mamahala kung aling mga format at export setting ang nakikita ng mga miyembro nito. Kung kailangan ng approval, ang **Request approval** ang pumapalit sa **Download**. Sundin ang policy na ipinapakita ng instance mo.
+::: details Mga approval at paghahatid gamit ang Lolly Work (opsyonal)
+Puwedeng piliin ng [organisasyong nagpapatakbo ng Lolly Work](/info/organisation.html) kung aling mga format at export setting ang nakikita ng mga miyembro nito. Kapag kailangan ng approval, pumapalit ang **Request approval** sa **Download**. Sundin ang policy na ipinapakita ng instance mo.
 
-Maaari ring maghatid ang Lolly Work ng file sa mga naka-configure na S3, WebDAV at HTTP na destinasyon, na may mga hakbang sa approval, delivery receipt at audit record. Ang pagsusumite ng file para sa workflow na iyon ay nagpapadala nito sa serbisyo ng organisasyon; ang karaniwang download ay nananatili sa device mo. Hiwalay na kino-configure ang mga personal na Send destination at organisation delivery.
+Puwede ring maghatid ng file ang Lolly Work sa mga naka-configure na destinasyong S3, WebDAV at HTTP, na may mga hakbang sa approval, delivery receipt at audit record. Ipinapadala ng paghahatid na iyon ang file sa serbisyo ng organisasyon. Nananatili sa device mo ang karaniwang download. Magkahiwalay ang configuration ng mga personal na Send destination at paghahatid ng organisasyon.
 
-Itinatakda ito ng mga operator gamit ang [organisation delivery guide](/info/work-delivery.html). Para sa mga queued na server render at batch, tingnan ang [CLI batch at automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
+Ginagamit ng mga operator ang [gabay sa paghahatid ng organisasyon](/info/work-delivery.html) para i-set up ito. Para sa mga nakapilang server render at batch, tingnan ang [CLI batch at automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
 :::
 
-## Paano Gumagana ang Export
+<!--i:eti-cpu-->
+## Paano gumagana ang export
 
-Kapag nag-export ka, nire-render ang canvas ng tool sa format na pinili mo at ibinibigay sa iyo bilang download, o inilalagay sa clipboard mo.
+Tatlong paraan ang gumagawa ng file. Karamihan ng tool ay **nagre-render ng canvas**. Ang mga text at data format (HTML, Markdown, TXT, JSON, CSV, ICS, VCF) ay **ginagawa mula sa nilalaman ng tool**. Ang mga privacy utility tulad ng *Lolly Strip Hidden Data* ay **nagbabago ng file na pinili mo** sa device mo. Walang canvas, watermark o idinagdag na metadata ang resulta.
 
-Tatlong daan ang gumagawa ng file. Karamihan ng tool ay **nagre-render ng canvas**. Ang mga text at data format (HTML, Markdown, TXT, JSON, CSV, ICS, VCF) ay **binubuo mula sa nilalaman ng tool** sa halip na iginuguhit mula sa larawan. Ang mga privacy utility tulad ng *Strip Hidden Data* ay **nagbabago ng file na pinili mo**, sa device mo, at ibinabalik ito nang walang canvas, watermark o idinagdag na metadata, dahil sarili mo na itong file.
+![Tatlong paraan ng pag-export ang nagtatagpo sa tapos na file: i-render ang canvas, gumawa ng text o data mula sa nilalaman, o baguhin sa device ang napiling file.](/info/diagrams/concepts/three-export-paths.svg)
 
-![Tatlong export path ang nagtatagpo sa isang tapos na file: i-render ang canvas, bumuo ng text o data mula sa nilalaman, o baguhin ang napiling file sa device.](/info/diagrams/concepts/three-export-paths.svg)
+Pinipili ng may-akda ng tool kung aling mga aksyon ang iniaalok ng export panel. Copy, Download at Save ang default na set.
 
-Nag-aalok ang export panel ng mga aksyong ito. Ang may-akda ng tool ang pumipili kung alin ang lalabas; ang default na set ay Copy, Download at Save.
+- <!--i:download--> Sine-save ng **Download** ang file. Kung hindi mo ito mahanap pagkatapos, tingnan ang [Hanapin ang file na na-download mo](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> Inilalagay ng **Copy** ang larawan sa clipboard mo. Kapag hindi kayang mag-copy ng larawan ang browser, dina-download ng Copy ang file sa halip at ipinapaalam ito sa iyo.
+- <!--i:folder--> Itinatago ng **Save** ang kasalukuyang design sa Projects at hindi kailanman nagda-download ng file. Tinatanong ng **Save as**, sa tabi ng **Download**, kung saan (tingnan ang [Pag-save at pagpapatuloy](/info/using.html#saving-continuing)).
+- <!--i:link--> Binubuksan ng **Share** ang Share dialog: link na muling bumubuo sa design, mga toggle sa pagbukas (fullscreen, export panel, download o copy sa pagbukas) at opsyonal na **Shortest link** na naglalagay ng state sa compact na token (tingnan ang [URL Mode](/info/url-mode.html)).
 
-- <!--i:download--> Sine-save ng **Download** ang file. Kung hindi mo ito makita pagkatapos, tingnan ang [Hanapin ang na-download mong file](/info/find-your-work.html#find-a-file-you-downloaded).
-- <!--i:photos--> Inilalagay ng **Copy** ang larawan sa clipboard mo, handang i-paste sa chat, email o dokumento. Kung hindi kayang mag-copy ng larawan ang browser, nagda-download ito sa halip at sinasabi sa iyo.
-- <!--i:folder--> Iniingatan ng **Save** ang kasalukuyang design sa Projects sa isang click at hindi kailanman nagda-download ng file. Ang **Save as**, sa tabi ng **Download**, ay nagtatanong kung saan (tingnan ang [Saving and continuing](/info/using.html#saving-continuing)).
-- <!--i:link--> Binubuksan ng **Share** ang Share dialog: link na umuulit sa design, ang mga on-visit toggle (fullscreen, export panel, download o copy kapag binuksan) at opsyonal na **Shortest link** na nagpa-pack ng buong state sa compact na token (tingnan ang [URL Mode](/info/url-mode.html)).
+**Send to**, isang card sa export panel, ang nagpapadala ng file sa serbisyong ikinonekta mo. Pagkatapos magpadala sa Google Drive, Nextcloud, S3 bucket, Dropbox o OneDrive, puwedeng gumawa roon ng link ang **Create a share link** nang hindi nag-a-upload ulit. Ipinapadala ng seksyong **Share through your cloud** sa Share dialog ang `.lolly` file at ginagawa ang link nito sa iisang hakbang. Ipinapakita ng link panel kung sino ang puwedeng magbukas ng link, kung saan nakalagay ang file at kung kailan mag-e-expire ang link. Pinapayagan ka ng **Links you've shared**, sa Share dialog, na ihinto ang pagbabahagi. Puwedeng magkaroon ng password at petsa ng pag-expire ang mga Nextcloud link. Tumatagal nang 1 hanggang 7 araw ang mga S3 link at hindi puwedeng ihinto nang mas maaga. Walang itinatagong kopya ng file o sign-in token ang Lolly sa server. Inililista ng [Privacy](/info/privacy.html#every-network-request-the-app-can-make) ang natatanggap ng bawat serbisyo.
 
-![Ang export panel - format, laki at ang mga aksyong Copy / Download / Save / Share](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
+![Ang export panel - format, laki at mga aksyong Copy / Download / Save / Share](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
-Kapag nag-embed ang design ng render ng ibang tool, tulad ng Design image box na may hawak na QR Code link, ang nested na render ay iginuguhit sa export ng parent. Nananatili itong tunay na vector sa SVG at PDF at malinaw na nagra-rasterise sa PNG, JPG at WebP. Ang naka-embed na render ay walang watermark at walang sariling provenance; ang tapos na file lang ang mayroon. Hindi kayang hawakan ng mga HTML, Markdown at TXT export ang composed na render.
+Kapag nag-embed ang design ng render ng ibang tool, tulad ng image box sa Lolly Design na may QR Code link, iginuguhit ng export ng parent ang nested na render. Nananatili itong vector sa SVG at PDF at nagra-rasterise sa PNG, JPG at WebP. Walang sariling watermark o provenance ang naka-embed na render; ang tapos na file lang ang mayroon. Hindi kayang maglaman ng composed na render ang mga HTML, Markdown at TXT export.
 
+<!--i:eti-file-->
 ## Pumili ng format
 
-Magkasama ang pangalan ng file at ang format menu bilang isang `name.format` pair, sa ilalim ng **I-download**.
+Magkatabi ang pangalan ng file at format menu bilang iisang `name.format` pair, sa ilalim ng **Download**.
 
-![Ang filename field na kaisa ng format picker, kaya ang export ay nababasa bilang isang name.format pair](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
+![Ang filename field na kadugtong ng format picker, kaya nababasa ang export bilang iisang name.format pair](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-Magsimula sa kung saan pupunta ang file. Inililista ng bawat card ang mga format na bagay sa destinasyong iyon; ipinapakita lang ng tool ang kaya nitong gawin.
+Magsimula sa destinasyon ng file. Inililista ng bawat card ang mga format na angkop doon.
 
 ::: figure exporting-format-chooser
-Anim na destinasyon at ang mga format na bagay sa bawat isa.
+Anim na destinasyon at ang mga format na angkop sa bawat isa.
 :::
 
-Ang wordmark na nakatakda sa face ng design system mo ay nag-e-export bilang SVG na ang bawat letra ay outlined na path, kaya ang isang file ay nananatiling matalas sa laki ng business card at sa laki ng building wrap.
+Ang wordmark na gumagamit ng typeface ng design system mo ay nag-e-export bilang SVG na bawat letra ay outlined na path. Nananatiling malinaw ang file sa anumang laki.
 
-![Isang hairline na malapad ang tracking na wordmark na nagsasabing Aurora, ang uri ng purong vector artwork na tinutukoy ng SVG row ng table](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+Nakadepende sa mga font na mayroon ka ang text sa ibang wika. Kapag nasa font ng design system mo ang mga letra, iginuguhit ng SVG at PDF ang mga ito bilang outline, na hinubog at nakaayos ayon sa pagbasa, kasama ang mga linyang mula kanan pakaliwa. Kapag walang ganoong font, gumagamit ang Lolly ng [fallback font](/info/fallback-fonts.html), at ipinapakita ng export card ang font na iyon. Nananatiling live text sa SVG ang text na walang fallback font na sumasaklaw dito, na iginuguhit gamit ang sariling mga font ng viewer. Sa PDF, EPS o WMF, at sa EMF na naka-on ang **Outline fonts**, nagiging mga larawan ang text na iyon. Kamukha ng nasa page ang mga salitang iyon pero hindi mapipili o mahahanap. Inililista ng export card ang mga script na iyon. Magdagdag ng font na may mga letrang iyon para mapanatili ang mga ito bilang vector text.
 
-::: details Bawat format at para saan ito
-| Gusto mo | Gamitin | Bakit |
+![Wordmark na napakanipis at maluwag ang pagitan ng mga letra na may nakasulat na Aurora, ang uri ng purong vector artwork na tinutukoy ng SVG row sa table](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
+
+::: details Bawat format at ang gamit nito
+| Kailangan mo | Gamitin | Dahilan |
 |---|---|---|
-| Matatalas na logo o artwork na nag-i-scale | **SVG** | Vector: nasusukat, maliit at mae-edit; ang epektong hindi kayang iguhit ng vector export ay ine-embed bilang larawan |
-| Vector para sa Office at Windows app | **EMF** | Nape-paste bilang mae-edit na vector sa PowerPoint at Word, na may live text; binubuksan ito ng Google Drive sa Google Drawings |
-| Vector para sa print at design app | **EPS**, o **EPS (CMYK)** | PostScript vector para sa Illustrator at press workflow |
-| Vector para sa cutting machine | **DXF** | Laser cutter, vinyl plotter at CNC: outline path sa millimetro |
-| Mae-edit na slide deck | **PowerPoint** (PPTX) | Native na mae-edit na text at hugis, kasama ang mga larawan at vector na nananatiling makukuha |
-| Mae-edit na text document | **Word** (DOCX) o **OpenDocument** (ODT) | Tunay na mga talata at heading na maipagpapatuloy i-edit ng word processor (Doc Studio) |
-| Layout para sa InDesign | **InDesign IDML (static subset)** | Text, parihaba, oval at larawan, isang spread bawat artboard (Design) |
-| Mae-edit na Penpot document | **Penpot** | Mga board, hugis, text at naka-link na token |
-| Litrato o pangkalahatang larawan | **PNG** (lossless) o **JPG** (mas maliit) | Pangkalahatang raster |
-| Mas maliliit na modernong larawan | **WebP** o **AVIF** | Mas mahusay na compression, may transparency |
-| Print | **PDF**, o **Print PDF** (CMYK) | Tunay na laki ng page; CMYK para sa press |
-| Print raster para sa press | **Print TIFF** (CMYK) | DeviceCMYK pixel para sa RIP |
-| Animated para sa web | **GIF** | Tumutugtog saanman; mas malalaking file |
-| Animated na may buong kulay at tunay na transparency | **APNG** | Animated PNG: walang limitasyon sa palette |
-| Animated, pinakamaliit na file | **Animated WebP** | Buong kulay at transparency, mas maliit kaysa GIF o APNG |
-| Animated na vector na nag-i-scale | **Animated SVG** | Self-contained; umuulit sa browser o sa `<img>`, sa anumang laki (Lottie Ad) |
-| Animation na nananatiling mae-edit | **dotLottie** | Mga hugis, path at outer transform key mula sa timeline ng Design |
-| Hand-off sa Premiere | **Premiere XML + media** | Mga timed na clip at orihinal na media para sa Premiere (Design) |
-| Video para sa social at pagbabahagi | **MP4** o **WebM** | Pinakamagandang kalidad para sa laki ng file (tingnan ang [Video](#video)) |
-| Mga caption | **SRT** o **VTT** | Timed na text para sa video player (Captions, Audiogram at Record) |
-| Mga broadcast caption | **TTML** o **SCC** | IMSC1.1 timed text, o CEA-608 pop-on na caption (Captions; tingnan ang [Mga broadcast caption](#broadcast-captions)) |
-| Kurso sa pagsasanay | **SCORM (LMS)** | Versioned na website, SCORM o xAPI package (tingnan ang [SCORM](#scorm-course-packages)) |
-| Rich text o email signature | **HTML** | Nape-paste na may format sa mga mail client |
-| Payak na nilalaman | **MD** o **TXT** | Text lang |
-| Kaganapan sa kalendaryo | **ICS** | Naii-import sa anumang calendar app |
-| Contact card | **VCF** | Naii-import sa mga address book |
-| Structured na data na ii-import muli | **JSON** o **CSV** | Bumabalik-balik ang nilalaman ng tool |
-| Favicon | **ICO** | Multi-size na site icon; ang **ZIP** ay nagbibigkis ng ilang format |
+| Malinaw na logo o artwork na puwedeng i-scale | **SVG** | Vector: puwedeng i-scale, maliit at mae-edit; ine-embed bilang larawan ang epektong hindi kayang iguhit ng vector export |
+| Vector para sa mga Office at Windows app | **EMF** | Naipe-paste bilang mae-edit na vector sa PowerPoint at Word, na may live text; binubuksan ito ng Google Drive sa Google Drawings |
+| Vector para sa mga print at design app | **EPS**, o **EPS (CMYK)** | PostScript vector para sa Illustrator at mga press workflow |
+| Vector para sa mga cutting machine | **DXF** | Mga laser cutter, vinyl plotter at CNC: mga outline path na sinusukat sa millimetro |
+| Slide deck na mae-edit | **PowerPoint** (PPTX) | Native na mae-edit na text at mga hugis, na napapanatiling makukuha nang hiwalay ang mga larawan at vector |
+| Text document na mae-edit | **Word** (DOCX) o **OpenDocument** (ODT) | Mga talata at heading na patuloy na mae-edit ng word processor (Lolly Doc Studio) |
+| Layout para sa InDesign | **InDesign IDML (static subset)** | Text, mga parihaba, oval at larawan, isang spread bawat artboard (Lolly Design) |
+| Penpot document na mae-edit | **Penpot** | Mga board, hugis, text at naka-link na token |
+| Litrato o larawang pangkalahatan ang gamit | **PNG** (lossless) o **JPG** (mas maliit) | Raster na malawak na sinusuportahan |
+| Mas maliliit na modernong larawan | **WebP** o **AVIF** | Mas mahusay na compression, na may transparency |
+| Print | **PDF**, o **Print PDF** (CMYK) | Aktuwal na laki ng page; CMYK para sa press |
+| Print raster para sa press | **Print TIFF** (CMYK) | Mga DeviceCMYK pixel para sa RIP |
+| Animation para sa web | **GIF** | Nagpe-play saanman; mas malalaking file |
+| Animation na may buong kulay at tunay na transparency | **APNG** | Animated PNG: walang limitasyon sa palette |
+| Animation, pinakamaliit na file | **Animated WebP** | Buong kulay at transparency, mas maliit kaysa GIF o APNG |
+| Animated na vector na puwedeng i-scale | **Animated SVG** | Kumpleto sa iisang file; naglo-loop sa browser o `<img>`, sa anumang laki (Lottie Ad) |
+| Animation na nananatiling mae-edit | **dotLottie** | Mga hugis, path at outer transform key mula sa timeline ng Lolly Design |
+| Pagpapasa sa Premiere | **Premiere XML + media** | Mga clip na may timing at orihinal na media para sa Premiere (Lolly Design) |
+| Video para sa social at pagbabahagi | **MP4** o **WebM** | Pinakamahusay na kalidad para sa laki ng file (tingnan ang [Video](#video)) |
+| Mga caption | **SRT** o **VTT** | Text na may timing para sa video player (Captions, Audiogram at Record) |
+| Mga caption para sa broadcast | **TTML** o **SCC** | IMSC1.1 na text na may timing, o CEA-608 pop-on caption (Captions; tingnan ang [Mga caption para sa broadcast](#broadcast-captions)) |
+| Training course | **SCORM (LMS)** | Website, SCORM o xAPI package na may bersyon (tingnan ang [SCORM](#scorm-course-packages)) |
+| Rich text o email signature | **HTML** | Naipe-paste nang may formatting sa mga mail client |
+| Animation na nagpe-play sa browser | **HTML** | Player sa iisang file, mula sa timeline ng Lolly Design o Snippet (tingnan ang [Video](#video)) |
+| Simpleng nilalaman | **MD** o **TXT** | Text lang |
+| Event sa kalendaryo | **ICS** | Nai-import sa anumang calendar app |
+| Contact card | **VCF** | Nai-import sa mga address book |
+| Structured data na muling ia-import | **JSON** o **CSV** | Naie-export at naibabalik ang nilalaman ng tool |
+| Favicon | **ICO** | Site icon na may maraming laki; pinagsasama ng **ZIP** ang ilang format |
 :::
 
 ### Transparency
 
-Ang mga tool na sumusuporta rito ay nag-aalok ng transparent background toggle, tulad ng **No BG**. Pinapanatili ng PNG, WebP, AVIF, SVG, APNG at Animated WebP ang transparency, at ang GIF ay nagpapanatili ng matigas na gilid. Laging opaque ang JPG at PDF. Ang TIFF ay nagfa-flatten sa puti, o sa itim sa HDR path na inilalarawan sa ilalim ng [HDR](#hdr-bright-colours).
+May toggle para sa transparent na background ang mga tool na sumusuporta rito, tulad ng **No BG**. Pinapanatili ng PNG, WebP, AVIF, SVG, APNG at Animated WebP ang transparency, at pinapanatili ng GIF ang malinaw na hangganan. Laging opaque ang JPG at PDF. Pina-flatten ng TIFF sa puti, o sa itim kapag sa [HDR](#hdr-bright-colours) na paraan.
 
-## Laki at mga print unit
+<!--i:eti-crop-->
+## Laki at mga yunit sa print
 
-Ginagamit ng mga export ang native na pixel size ng tool maliban kung nag-aalok ang tool ng **dimensions**. Pagkatapos, itatakda mo ang lapad, taas at **unit**:
+Ginagamit ng mga export ang native na laki sa pixel ng tool maliban kung nag-aalok ang tool ng **mga sukat**. Kung mayroon, itatakda mo ang lapad, taas at **yunit**:
 
-- Ang **px** (ang default) ay eksaktong pixel.
-- Ang **mm, cm, in, pt** at **pc** ay pisikal na laki. Sa pisikal na unit, itinatakda mo rin ang **DPI** (300 bilang default). Ang **PDF** ay nagiging tunay na page sa laking iyon, ang **raster** ay nakakakuha ng bilang ng pixel para sa DPI na iyon at itinatala ang resolution, at ang **SVG** ay nagpapanatili ng pisikal na unit na may pixel viewBox.
+- Ang **px** (ang default) ay eksaktong mga pixel.
+- Ang **mm, cm, in, pt** at **pc** ay mga pisikal na sukat. Kapag pisikal na yunit ang gamit, itatakda mo rin ang **DPI** (300 ang default). Nagiging tunay na page sa sukat na iyon ang **PDF**. Nakukuha ng **raster** ang bilang ng pixel para sa DPI na iyon at itinatala ang resolution. Pinapanatili ng **SVG** ang pisikal na yunit na may pixel na viewBox.
 
-Para sa raster na mas mataas ang resolution, maglagay ng mas malaking lapad at taas, o pumili ng pisikal na unit at taasan ang DPI (pixel = laki × DPI). Ang lapad na `210`, taas na `297` at unit na `mm` ay gumagawa ng A4 na page.
+Para sa raster na mas mataas ang resolution, maglagay ng mas malaking lapad at taas, o pumili ng pisikal na yunit at taasan ang DPI (pixels = size × DPI). Ang lapad na `210`, taas na `297` at yunit na `mm` ay gumagawa ng A4 na page.
 
-![Ang dimensions row na naka-set sa 210 by 297 mm, na lumitaw ang DPI field dahil pisikal ang unit](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-dims&walker=1&dark=1&filename=exp-export-dims)
+![Ang row ng mga sukat na nakatakda sa 210 by 297 mm, na ipinapakita ang DPI field dahil pisikal ang yunit](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-dims&walker=1&dark=1&filename=exp-export-dims)
 
-## Mga Still Mula sa Naka-time na Komposisyon
+<!--i:eti-images-->
+## Mga still mula sa komposisyong may timing
 
-Ang timed na komposisyon, tulad ng [Sequence](/info/sequence-editor.html) timeline sa Design, ay gumagalaw, kaya ang still export ay kailangang pumili ng sandali: **ang frame sa playhead**. Iparada ang playhead kung saan mo gusto ang larawan at mag-export.
+Mula sa komposisyong may timing, tulad ng [Sequence](/info/sequence-editor.html) timeline sa Lolly Design, kinukuha ng still export **ang frame sa playhead**. Ilagay ang playhead kung saan mo gusto ang larawan at mag-export.
 
-Para sa higit sa isang sandali, lumilitaw ang **Frames** field sa tabi ng output size. Ipinapakita lang ito para sa timed na komposisyon at still format (PNG, JPG, WebP, SVG o PDF). Iwanan sa `1` para sa playhead frame. Taasan ito at makakakuha ka ng ganoong karaming still, pantay na nakakalat sa buong sequence:
+Para sa higit sa isang sandali, gamitin ang **Frames** field sa tabi ng laki ng output. Lumalabas lang ito para sa komposisyong may timing at still na format (PNG, JPG, WebP, SVG o PDF). Ibinibigay ng `1` ang frame sa playhead. Ang mas mataas na numero ay nagbibigay ng ganoong karaming still, na pantay ang pagitan sa buong sequence:
 
-- Ang PNG, JPG, WebP at SVG ay bumabalik bilang isang ZIP: `<name>-01.png`, `-02.png` at iba pa.
-- Ang PDF ay bumabalik bilang isang dokumento na may ganoong karaming page.
+- Dumarating ang PNG, JPG, WebP at SVG bilang iisang ZIP: `<name>-01.png`, `-02.png` at iba pa.
+- Dumarating ang PDF bilang iisang dokumento na may ganoong karaming page.
 
-Ang bawat still ay galing sa gitna ng hiwa nito ng timeline, kaya ang unang frame ay hindi kailanman kalahating-kupas na pagpasok at ang huli ay hindi kailanman ang walang lamang sandali pagkatapos matapos ang bawat clip.
+Kinukuha ang bawat still mula sa gitna ng bahagi nito sa timeline, kaya hindi kailanman kalahating fade-in ang una at hindi kailanman ang bakanteng sandali pagkatapos ng mga clip ang huli.
 
 ::: figure exporting-contact-sheet
-Frames: 4 ay hinahati ang sequence sa apat na pantay na hiwa at kinukuha ang gitna ng bawat isa.
+Hinahati ng Frames: 4 ang sequence sa apat na pantay na bahagi at kinukuha ang gitna ng bawat isa.
 :::
 
-Gamitin ito para sa storyboard, review contact sheet o social carousel na hiniwa mula sa video edit. Ang bilang ay may hangganang 64, at anumang ibang tina-type sa field ay bumabalik sa `1`. Ang bawat frame ay karaniwang still, kaya ang mga credential, ang Imprint, mga pisikal na unit at DPI ay kumikilos tulad ng sa isang export. Ang export link, ang CLI at ang MCP ay humihingi ng parehong sheet gamit ang `cuts=` (tingnan ang [Contact sheets](/info/url-export.html#contact-sheets)).
+Gamitin ang Frames para sa storyboard, contact sheet para sa review o social carousel mula sa inedit na video. Hanggang 64 ang bilang. Anumang ibang i-type sa field ay bumabalik sa `1`. Karaniwang still ang bawat frame, kaya gumagana ang mga credential, Imprint, pisikal na yunit at DPI tulad ng sa iisang export. Hinihingi ng export link, CLI at MCP ang parehong sheet gamit ang `cuts=` (tingnan ang [Mga contact sheet](/info/url-export.html#contact-sheets)).
 
-## Maraming file nang sabay
+<!--i:eti-copy-->
+## Maraming file nang sabay-sabay
 
-May tatlong paraan ang Lolly sa paggawa nang maramihan, bawat isa para sa magkaibang trabaho:
+May tatlong paraan ang Lolly para sa maramihang paggawa:
 
 ::: cols
-## Ang table ay nagiging isang dokumento
-Ang tool na may table input, tulad ng **Battlecards**, ay ginagawang page ang bawat row. Mag-paste ng table mula sa spreadsheet mo at makakuha ng isang PDF. Ayusin ang mga row sa spreadsheet at mag-paste muli.
-## Ang CSV ay nagiging isang file bawat row
-Ang **Batch** (`#/batch`) ay kumukuha ng CSV at nagre-render ng isang export para sa bawat row: mga name badge o sertipiko, isang file bawat isa, inihahatid sa ZIP. Tingnan ang [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
-## Ilang design, isang edit
-Ang **Multi-edit** ay nagbubukas ng ilang naka-save na session nang magkatabi para sa parehong ayos sa iba't ibang design. Tingnan ang [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
+## Nagiging iisang dokumento ang table
+Ang tool na ginawa para hatiin sa mga page ang table input ay ginagawang page ang bawat row. Mag-paste ng table mula sa spreadsheet mo para makakuha ng iisang PDF. Para ayusin ang mga row, i-edit ang spreadsheet at i-paste ulit. Battlecards ang sangguniang tool. Nasa open-source na `community` folder ito at hindi nakalista sa lolly.tools.
+## Nagiging isang file bawat row ang CSV
+Tumatanggap ang **Batch** (`#/batch`) ng CSV at nagre-render ng isang export para sa bawat row, tulad ng mga name badge o sertipiko, na ibinibigay sa ZIP. Tingnan ang [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
+## Iisang edit sa maraming design
+Binubuksan ng **Lolly Multi-edit** ang ilang naka-save na session nang magkakatabi para gawin ang parehong pagbabago sa bawat isa. Tingnan ang [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
-Mula sa **Projects**, ine-export ng **Render folder** ang bawat naka-save na session sa folder at mga sub-folder nito bilang isang naka-nest na ZIP, at ginagawa ng **Render selection** ang pareho para sa anumang multi-selection; ang isang naka-save na session ay nagre-render sa sarili nitong file. Ang naka-save na session ay maaari ring ibahagi muli bilang tool link mula sa Projects, na muling nagbubukas nito na may parehong setting.
+Ang tool na may maraming page, tulad ng Booklet, Print Sheet, Lolly Doc Studio o Lolly Markdown Slides, ay nag-e-export ng PNG, JPG, WebP, SVG at iba pang format para sa iisang larawan bilang isang file bawat page, sa ZIP kapag marami. Pinapanatili ng Print Sheet ang buong sheet at mga cut mark nito sa napiling DPI.
 
-## Mga file na nananatiling mae-edit sa iba
+Mula sa **Projects**, ine-export ng **Render folder** ang bawat naka-save na session sa folder at mga sub-folder nito bilang iisang nested na ZIP. Ganoon din ang ginagawa ng **Render selection** para sa maramihang seleksyon. Nire-render ang isang naka-save na session sa sarili nitong file. Puwede ring magbahagi ulit ang Projects ng naka-save na session bilang tool link na muling nagbubukas sa session na may parehong mga setting.
 
-Ang ilang format ay ipinapasa ang gawa mo sa ibang application bilang mae-edit na nilalaman sa halip na larawan.
+<!--i:eti-pen-->
+## Mga file na nananatiling mae-edit sa ibang app
+
+Ipinapasa ng ilang format ang gawa mo sa ibang application bilang mae-edit na nilalaman sa halip na larawan.
 
 ### PowerPoint (PPTX)
 
-Ang Design, Markdown Slides, Booklet, Doc Studio, Chart, Diagrams, Flow Chart at Agenda ay nag-e-export ng PowerPoint deck, isang slide bawat page. Ang bawat page ay hinihiwalay sa mga native na bagay, para maka-edit ang kasamahan ng deck at makakuha ng mga asset mula rito:
+Nag-e-export ng PowerPoint deck ang Lolly Design, Lolly Markdown Slides, Booklet, Lolly Doc Studio, Lolly Chart, Diagrams, Flow Chart at Agenda, isang slide bawat page. Hinahati ang bawat page sa mga native na bagay na mae-edit at makukuha nang hiwalay ng kasamahan:
 
-- <!--i:font--> Ang **Text** ay nagiging mae-edit na PowerPoint text box na may laki ng font, kulay, bigat, italic at alignment ng layout.
-- <!--i:pentool--> Ang **Mga vector** tulad ng logo at icon ay ine-embed bilang SVG picture; nananatili silang matalas, at kayang *Convert to Shape* ng PowerPoint ang mga ito.
-- <!--i:photos--> Ang **Mga larawan** ay dumarating sa native na resolution bilang sarili nilang larawan. Ang ginupit na hero ay nag-iingat ng buong larawan sa likod ng gupit, at ang anumang filter o blend dito ay naka-bake na.
-- <!--i:layers--> Ang **Mga background, border at rule** ay nagiging parihaba at linyang hugis.
+- <!--i:font--> Nagiging mae-edit na PowerPoint text box ang **text**, na may laki ng font, kulay, weight, italics at alignment ng layout. Itinatakda ng Lolly Design deck ang typeface ng brand sa bawat text run, kahit walang slide master.
+- <!--i:pentool--> Ine-embed bilang mga SVG na larawan ang mga **vector** tulad ng mga logo at icon, at puwedeng gawin sa mga ito ang *Convert to Shape* ng PowerPoint.
+- <!--i:photos--> Dumarating ang mga **larawan** bilang magkakahiwalay na larawan sa native na resolution. Pinapanatili ng naka-crop na hero ang buong larawan sa likod ng crop. Anumang filter o blend sa larawan ay permanenteng kasama na rito.
+- <!--i:layers--> Nagiging mga parihaba at linya ang mga **background, border at guhit**. Nananatiling native at mae-edit na hugis ang mga bilog, ellipse at pill mula sa Lolly Design.
 
-![Ang export panel na napili ang PowerPoint: isang slide bawat pahina, nananatiling nae-edit ang text at mga shape](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+![Ang export panel na PowerPoint ang napili: isang slide bawat page, nananatiling mae-edit ang text at mga hugis](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
 
-Tinatayang layout lang; ang layunin ay magagamit muling nilalaman. Anumang hindi kayang ipahayag nang native ng walker, tulad ng kumplikadong filtered o masked na rehiyon, ay ine-embed bilang larawan para walang mawala. Ang deck ay may iisang laki ng slide, kinuha mula sa unang page.
+Tinatantiya ang layout. Anumang hindi kayang ipahayag ng walker nang native, tulad ng komplikadong bahaging may filter o mask, ay ine-embed bilang larawan. Iisa ang laki ng slide sa deck, na kinukuha mula sa unang page.
 
-Daan din papasok ang PowerPoint: inililipat ng [Rebrand a deck](/info/rebrand.html) ang deck sa design system mo, at binubuksan ng [Import a design](/info/design-import.html) ang isa sa Design.
+Puwede ring magpasok gamit ang PowerPoint: inililipat ng [Ilipat ang deck sa ibang brand](/info/rebrand.html) ang deck sa design system mo, at binubuksan ng [Mag-import ng design](/info/design-import.html) ang deck sa Lolly Design.
 
 ### Penpot
 
-Karamihan ng tool na nag-e-export ng SVG ay nag-e-export din ng **Penpot file** (`.penpot`), handang ituloy ang pag-edit sa Penpot.
+Karamihan ng tool na nag-e-export ng SVG ay nag-e-export din ng **Penpot file** (`.penpot`).
 
 | Ang ginawa mo | Sa Penpot |
 |---|---|
-| Text | Mae-edit na text object: ayusin ang typo o i-restyle |
-| Mga hugis, path, gradient at larawan | Sarili nilang mae-edit na vector shape |
-| Kulay o font mula sa design-system token | Live na token link: i-edit ang token at susunod ang bawat hugis na nagmamana nito |
-| Ang buong design | Magagamit muling component sa Assets panel |
-| Kumplikadong ilustrasyon o live canvas | Naka-embed nang mag-isa bilang larawan, hindi ginagalaw ang mae-edit na nilalaman sa paligid nito |
+| Text | Mga mae-edit na text object |
+| Mga hugis, path, gradient at larawan | Mga mae-edit na vector na hugis |
+| Kulay o font mula sa design-system token | Live na link sa token: i-edit ang token at susunod ang bawat hugis na nagmamana rito |
+| Ang buong design | Reusable na component sa Assets panel |
+| Komplikadong ilustrasyon o live na canvas | Naka-embed na larawan; nananatiling mae-edit ang nilalaman sa paligid nito |
 
-Mula sa Design, ang bawat frame ay nagiging Penpot board. Ang mga kulay at typography ng design system ay napupunta sa Assets panel at ang buong token set nito sa Tokens panel. Nag-iingat ang Penpot ng sarili nitong kopya mula roon: ang token na na-edit sa Penpot ay bumabalik sa pamamagitan ng import sa [Lolly Design System Setup](/info/brand-studio.html).
+Mula sa Lolly Design, nagiging Penpot board ang bawat frame. Napupunta sa Assets panel ang mga kulay at typography ng design system at sa Tokens panel ang buong set ng mga token nito. Nag-iingat ang Penpot ng sarili nitong kopya. Bumabalik ang token na inedit sa Penpot sa pamamagitan ng import sa [Lolly Design System Setup](/info/brand-studio.html).
 
-![Ang export panel na napili ang Penpot: ang .penpot file, at ang Send to Penpot sa tabi ng download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+![Ang export panel na Penpot ang napili: ang .penpot file, at Send to Penpot sa tabi ng download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
-Para buksan ang file, simulan ang Penpot, pumili ng project at piliin ang **Import**. Kung naka-sign in ka sa Penpot mula sa export panel, ginagawa ng **Send to Penpot** ang hakbang na iyon para sa iyo.
+Para buksan ang file, simulan ang Penpot, pumili ng project at piliin ang **Import**. Kung mag-sign in ka sa Penpot mula sa export panel, ini-import ng **Send to Penpot** ang file para sa iyo.
 
 ### Word, OpenDocument at InDesign
 
-Ang **Doc Studio** ay nag-e-export ng **Word** (DOCX) at **OpenDocument** (ODT) na may tunay na mga talata at heading.
+**Lolly Doc Studio** ang nag-e-export ng **Word** (DOCX) at **OpenDocument** (ODT) na may mae-edit na mga talata at heading. Itinatakda ng Word file ang mga font at kulay ng text ng brand sa pamamagitan ng mga style ng dokumento, sinusunod ang laki ng page na pinili mo at nagdaragdag ng PNG sa tabi ng SVG na logo para sa mga app na hindi kayang gumuhit ng SVG.
 
-Ang **Design** ay nag-e-export ng **InDesign IDML (static subset)**: text, parihaba, oval at PNG o JPEG na larawan, isang spread bawat artboard. Ang sinusuportahang inline formatting ay nananatiling mae-edit, ang mga larawan ay sumasama sa `Links` at ang mga coordinate ay nagiging InDesign point. Ang relinking, font substitution at nagbagong wrapping ay maaaring mangailangan ng pansin. Ang mga epekto, animation, composed story at hindi sinusuportahang geometry ay humihinto sa export na may ulat na naglilista ng mga ito. Hindi iniingatan ng IDML ang orihinal na dokumento, kaya magpadala ng PDF para sa tapos na artwork.
+**Lolly Design** ang nag-e-export ng **InDesign IDML (static subset)**: text, mga parihaba, oval at PNG o JPEG na larawan, isang spread bawat artboard. Nananatiling mae-edit ang sinusuportahang inline formatting, sumasama ang mga larawan sa `Links` at nagiging InDesign point ang mga coordinate. Maaaring kailangang asikasuhin ang muling pag-link, pagpapalit ng font at nabagong pag-wrap. Pinapahinto ng mga epekto, animation, composed story at hindi sinusuportahang geometry ang export, na may ulat na naglilista sa mga ito. Hindi pinapanatili ng IDML ang orihinal na dokumento. Magpadala ng PDF para sa tapos na artwork.
 
 ### Mga timeline: dotLottie at Premiere
 
-Mula sa timeline ng Design, ang **dotLottie** ay nagsusulat ng animation na nananatiling mae-edit sa mga Lottie tool; inililista ng [Lottie animations](/info/sequence-editor.html#lottie-animations) kung ano ang iniingatan nito. Ang **Premiere XML + media** ay nagpa-pack ng mga timed na clip at orihinal na media nila para sa Premiere; tingnan ang [Premiere XML exchange](/info/sequence-editor.html#premiere-xml-exchange).
+Mula sa timeline ng Lolly Design, sumusulat ang **dotLottie** ng animation na nananatiling mae-edit sa mga Lottie tool; inililista ng [Mga Lottie animation](/info/sequence-editor.html#lottie-animations) ang pinapanatili nito. Ipinapackage ng **Premiere XML + media** ang mga clip na may timing at ang orihinal na media ng mga ito para sa Premiere; tingnan ang [Palitan gamit ang Premiere XML](/info/sequence-editor.html#premiere-xml-exchange).
 
 ### SCORM (mga course package)
 
-Naka-off ang course export hanggang i-on mo ang **Training and courses** sa ilalim ng Settings → Preferences → Feature flags.
+Naka-off ang course export hangga't hindi mo ino-on ang **Training and courses** sa ilalim ng Settings → Preferences → Feature flags.
 
-Pagkatapos, piliin ang **Export course** mula sa sinusuportahang tool, project folder o seleksyon. Sa Design, ang pagpili ng **SCORM (LMS)** at **Download** ay nagbubukas ng parehong course workflow. Sine-save ng Lolly ang gawa, hinahayaan kang i-review ang nilalaman at pagkakasunod-sunod ng kurso, saka binubuksan ang module at ang export dialog nito.
+Pagkatapos, piliin ang **Export course** mula sa sinusuportahang tool, project folder o seleksyon. Sa Lolly Design, binubuksan ng pagpili sa **SCORM (LMS)** at **Download** ang parehong course workflow. Sine-save ng Lolly ang gawa, ipinapakita ang nilalaman at pagkakasunod-sunod ng course para sa review, saka binubuksan ang module at ang export dialog nito.
 
-- <!--i:layers--> Pumili ng rendition para sa bawat source: still page, motion bilang video, audio o nada-download na resource. Magdagdag ng lesson text at reading alternative sa module.
-- <!--i:clock--> I-preview ang learner player at i-review ang mga paglalarawan at caption. Kasama ang motion bilang video, kasama ang tahimik na animation.
-- <!--i:document--> Pumili ng Website, SCORM 1.2, SCORM 2004 4th Edition o experimental na xAPI target. I-check ang nilalaman at laki ng ZIP, saka i-save at i-download ang sinuring bersyon.
-- <!--i:check--> Ang pagkumpleto ay nangangailangan ng pagkilala sa bawat kinakailangang lesson at pagpili ng Finish.
+- <!--i:layers--> Pumili ng rendition para sa bawat source: mga still na page, motion bilang video, audio o nada-download na resource. Magdagdag ng text ng aralin at mga alternatibong babasahin sa module.
+- <!--i:clock--> I-preview ang player para sa mag-aaral at suriin ang mga paglalarawan at caption. Kasama ang motion, pati ang animation na walang tunog, bilang video.
+- <!--i:document--> Piliin ang Website, SCORM 1.2, SCORM 2004 4th Edition o eksperimental na xAPI target. I-check ang nilalaman at laki ng ZIP, saka i-save at i-download ang na-check na bersyon.
+- <!--i:check--> Para makumpleto, kailangang kumpirmahin ang bawat kinakailangang aralin at piliin ang Finish.
 
-![Ang export panel sa isang Design deck na napili ang SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+![Ang export panel sa Lolly Design deck na SCORM (LMS) ang napili](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
-Hawak ng package ang tapos nitong nilalaman at hindi nangangailangan ng Lolly account. Ilagay ang Website ZIP sa HTTP(S) host; i-import ang LMS ZIP nang hindi binabago. Subukan ang destinasyon bago ibahagi ang kurso. Para sa kursong binuo mula sa ilang naka-save na likha, tingnan ang [Gumawa ng training course](/info/training-creators.html).
+Nasa package ang tapos na nilalaman nito at hindi kailangan ng Lolly account. Ilagay ang Website ZIP sa HTTP(S) host; i-import ang LMS ZIP nang walang pagbabago. Subukan ang destinasyon bago mo ibahagi ang course. Para sa course na binuo mula sa ilang naka-save na gawa, tingnan ang [Gumawa ng training course](/info/training-creators.html).
 
-### Mga broadcast caption
+### Mga caption para sa broadcast
 
-Maaari ring mag-export ang Captions tool ng **TTML** at **SCC**. Parehong isinusulat mula sa iisang listahan ng cue gaya ng mga SRT at VTT file, kaya magkatugma ang mga salita at oras.
+Puwede ring mag-export ng **TTML** at **SCC** ang Captions tool. Parehong isinusulat mula sa cue list na ginagamit ng mga SRT at VTT file, kaya magkatugma ang mga salita at oras.
 
-- Ang **TTML** ay ang IMSC1.1 Text Profile, na may media-time na clock time at isang bottom-centre na region. Wala itong kulay, font o posisyon sa bawat caption, dahil simula, wakas at text lang ang hawak ng mga caption ng Lolly.
-- Ang **SCC** ay may dalang CEA-608 pop-on na caption sa channel 1 sa 29.97 frame bawat segundo na may drop-frame timecode. Sinusuportahan nito ang mga pangunahing karakter ng North America pati ang special at extended. Kung may karakter ang caption na hindi kayang dalhin ng set, titigil ang export at sasabihin kung aling karakter, kaya walang maaalis nang walang abiso. Bawat caption ay nagwi-wrap sa 32 column at hanggang 15 row. Ang caption na hindi makakapag-load bago ang simula nito ay maaantala ng ilang frame.
-- Hindi isinusulat ang roll-up at paint-on na caption.
+- Ang **TTML** ay ang IMSC1.1 Text Profile, na may mga oras sa media-time clock at iisang rehiyon sa ibabang gitna. Wala itong kulay, font o posisyon para sa bawat caption, dahil simula, dulo at text lang ang laman ng mga caption ng Lolly.
+- Naglalaman ang **SCC** ng mga CEA-608 pop-on caption sa channel 1 sa 29.97 frame bawat segundo na may drop-frame timecode. Sinusuportahan nito ang mga basic na North American character pati ang mga special at extended. Kung may character sa caption na wala sa set, hihinto ang export at sasabihin kung aling character. Nagwa-wrap ang bawat caption sa 32 column at hanggang 15 row. Naaantala nang ilang frame ang caption na hindi mai-load bago ang oras ng simula nito.
+- Hindi isinusulat ang mga roll-up at paint-on caption.
 
-Hindi pa nasusuri ang SCC output laban sa totoong broadcast tool o hardware decoder. Subukan ang file sa sarili mong pipeline bago i-deliver.
+::: note Hindi pa na-check ang SCC sa broadcast tool
+Hindi pa rin ito nasusubukan sa hardware decoder. Subukan ang file sa sarili mong pipeline bago ihatid.
+:::
 
-### DXF (mga cut file)
+### DXF (mga file para sa pagputol)
 
-Ang Asset Export, Diagrams, Growth, Logo Wall, QR Code, Street Map, Wayfinding at Wordmark ay nag-e-export ng **DXF**, ang AutoCAD R12 interchange format na binabasa ng mga laser cutter, vinyl plotter at CNC software. Ang geometry ay isinusulat bilang outline path sa millimetro, outlined ang text at ang kulay ay nagma-map sa pinakamalapit na AutoCAD Color Index, na kadalasang nagtutulak sa operasyon ng cutter. Line art lang ang DXF: ang litrato o filtered na rehiyon ay walang cut path at inaalis, na may babala. Gamitin ang SVG o PDF para panatilihin ang raster na nilalaman.
+Nag-e-export ang Lolly Asset Export, Diagrams, Growth, Lolly Logo Wall, QR Code, Street Map, Wayfinding at Wordmark ng **DXF**, ang AutoCAD R12 interchange format na nababasa ng mga laser cutter, vinyl plotter at CNC software. Isinusulat ang geometry bilang mga outline path sa millimetro at ginagawang outline ang text. Itinutugma ang kulay sa pinakamalapit na AutoCAD Color Index, na karaniwang nagtatakda ng operasyon ng cutter. Line art lang ang DXF: walang cut path ang bahaging litrato o may filter at inaalis ito nang may babala. Gamitin ang SVG o PDF para mapanatili ang raster na nilalaman. Pinapahinto ng text na walang font na sumasaklaw dito, kahit [fallback font](/info/fallback-fonts.html), ang export na may mensaheng sumisipi sa text.
 
-Ang Street Map ang pinakamalinaw na kaso. Ang buong design ay mga stroke na, kaya ang bawat kalsada at kanal ay nagiging cut path.
+Puro stroke ang design sa Street Map, kaya nagiging cut path ang bawat kalsada at kanal.
 
 ::: showcase
-![Isang Street Map render ng Paris sa ink sa cream - purong line art, kaya bawat stroke ay nakakaligtas sa biyahe patungo sa isang cutter](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Dparis%26roadColor%3D1a1a2e%26waterColor%3D93c5fd%26background%3Dfaf7f2%26full&width=1440&height=900&dpi=96&waitMs=3200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-street-map-cut)
+![Render ng Paris sa Street Map na may tinta sa cream na background - purong line art, kaya napapanatili ang bawat stroke sa pagpapasa sa cutter](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Dparis%26roadColor%3D1a1a2e%26waterColor%3D93c5fd%26background%3Dfaf7f2%26full&width=1440&height=900&dpi=96&waitMs=3200&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-street-map-cut)
 
-Mag-scroll, at bumabalik ang camera papasok sa tunay na geometry: pitong paths, walang pixels kahit saan, bawat stroke ay hairline-crisp sa kahit anong zoom. Iyon ang parehong file na binabasa ng isang cutter.
+Mag-scroll, at lumalayo ang camera sa geometry: pitong path at walang pixel. Binabasa ng cutter ang parehong file.
 :::
 
+<!--i:eti-stamp-->
 ## Print
 
-Ang **Print PDF** ay nagsusulat ng CMYK laban sa pinangalanang press condition, **Coated FOGRA39** bilang default. Ang mga brand swatch na may sinukat na ink value ay nananatili sa mga value na iyon. Ang ibang kulay ay kino-convert gamit ang press profile: ang sariling Coated FOGRA39 profile ng Lolly bilang default, o ang sarili mong profile kapag pinili mo ang **Embed** row nito. Ang gray at itim ay nananatili sa black plate lang, kaya hindi nagkakamali ng register ang maliliit na type. Ang FOGRA51, SWOP at GRACoL ay gumagamit ng karaniwang device conversion. Ang **Print TIFF** ay nagsusulat ng DeviceCMYK pixel para sa RIP at itinatala ang parehong press condition sa TIFF metadata nito. Ang Colour profile control ang nagtutulak sa pareho; nasa [Mga colour profile](#colour-profiles) ang detalye.
+**Print PDF** ang sumusulat ng CMYK ayon sa pinangalanang press condition, **Coated FOGRA39** bilang default. Pinapanatili ng mga brand swatch na may sinusukat na halaga ng tinta ang mga halagang iyon. Kino-convert ang ibang kulay sa pamamagitan ng press profile: ang sariling Coated FOGRA39 profile ng Lolly bilang default, o ang sarili mong profile kapag pinili mo ang **Embed** row nito. Nananatili sa black plate lang ang mga abo at itim, kaya hindi magkakamali sa rehistro ang maliit na type. Gumagamit ang FOGRA51, SWOP at GRACoL ng standard na device conversion. Nag-o-overprint din ang itim na type sa kulay sa ilalim nito, kaya walang naiiwang puting gilid sa palibot ng mga letra kapag bahagyang hindi nakahanay ang press. Sumusulat ang **Print TIFF** ng mga DeviceCMYK pixel para sa RIP. Kinokontrol ng Colour profile ang pareho ([Mga colour profile](#colour-profiles)). Pinaghihiwalay ng Print TIFF at **EPS (CMYK)** ang mga kulay sa pamamagitan ng parehong press profile na gamit ng Print PDF.
 
-Ang **Print marks & bleed** ay may sariling card sa mga print format: ang bleed sa millimetro kasama ang Crop, Registration, Bleed, Colour bars at Stamp details.
+**Print marks & bleed** ay may sariling card sa mga print format: ang bleed sa millimetro kasama ang Crop, Registration, Bleed, Colour bars at Stamp details. Pini-print ng Stamp details ang petsa, tool at pangalan mo sa margin. Ang pangalan o pangalan ng tool na may mga letrang wala sa font ng margin, tulad ng Arabic, Chinese, Cyrillic o emoji, ay iginuguhit bilang larawan sa parehong kulay abo. Inililista ng export card ang mga script na iyon.
 
-Ang ilang tool ay gumagawa ng **multi-page PDF**: cover, nilalamang umaagos sa kasing-daming page na kailangan at back page, tulad sa *Booklet* tool. Ang bawat page ay tunay na portrait PDF page sa A4, US Letter o A5, at puwede mong pilitin ang anumang block sa bagong page. Mga RGB na dokumento ang mga ito na walang crop o bleed mark, na kabilang sa single-page na Print PDF. Ang Design PDF ay puwede ring **Notes handout**: portrait na page para sa bawat slide na may speaker note nito sa ilalim.
+Gumagawa ang ilang tool, tulad ng *Booklet*, ng **PDF na maraming page**: pabalat, nilalamang umaabot sa dami ng page na kailangan nito at page sa likod. Tunay na portrait PDF page sa A4, US Letter o A5 ang bawat page. Puwede mong piliting magsimula sa bagong page ang anumang block. Mga RGB na dokumento ang mga ito na walang crop o bleed mark; para sa single-page na Print PDF ang mga markang iyon. Puwede ring maging **Notes handout** ang Lolly Design PDF: portrait na page para sa bawat slide na may mga speaker note nito sa ilalim.
 
-**Bago ka mag-export.** Ang **Before you export** card sa paanan ng panel ay nagsasabi kung ano ang malapit nang makita ng print shop: format, laki at bleed, trim at bleed area, ink coverage, bilang ng plate at bilang ng page, na may hatol sa tabi ng heading nito. Hindi ito kailanman humaharang sa export. Laging ipinapakita ng Design ang card na may sarili nitong mga check, kasama ang mga house rule ng design system layer por layer at ang writing signal para sa text ng dokumento ([Before you export](/info/design.html#before-you-export)), at nagdaragdag ng mga print check na ito kapag naka-on ang **Print preflight**. Sa ibang tool, i-on ang **Print preflight** sa ilalim ng Settings → Preferences → Feature flags; naka-off ito bilang default, at ang Lolly Work deployment ay maaaring i-on ito para sa mga miyembro nito.
+**Bago ka mag-export.** Ipinapakita ng **Before you export** card sa ibaba ng panel ang makikita ng print shop: format, laki at bleed, mga trim at bleed area, saklaw ng tinta, bilang ng mga plate at bilang ng mga page, na may hatol sa tabi ng heading nito. Hindi kailanman hinaharang ng card ang export. Laging ipinapakita ng Lolly Design ang card na may sarili nitong mga check, kasama ang mga patakaran ng organisasyon sa design system sa bawat layer at ang writing signal para sa text ng dokumento ([Bago ka mag-export](/info/design.html#before-you-export)). Idinaragdag ng Lolly Design ang mga print check na ito kapag naka-on ang **Print preflight**. Sa ibang tool, i-on ang **Print preflight** sa ilalim ng Settings → Preferences → Feature flags. Naka-off ito bilang default, at puwedeng i-on ito ng Lolly Work deployment para sa mga miyembro nito.
 
-**Pagkatapos mong mag-export.** Kapag handa na ang file, binabasa ito pabalik ng Lolly at inihahambing sa pinili mo: format, laki ng pixel o page, haba ng clip, transparent na background, kulay na CMYK, HDR, Content Credentials at password ng PDF o ZIP. Anumang magkaiba ay isinusulat sa export card. Ang bawat sukat ay galing sa file, hindi kailanman sa setting, at ang property na hindi masagot ng file ay hindi binibilang bilang tugma. Isinusulat ng command line ang buong paghahambing gamit ang `--export-report` (tingnan ang [Mag-render gamit ang CLI](/info/cli-rendering.html)).
+**Pagkatapos mong mag-export.** Binabasa ulit ng Lolly ang tapos na file at inihahambing ito sa pinili mo: format, laki sa pixel o laki ng page, haba ng clip, transparent na background, CMYK na kulay, HDR, Content Credentials at password ng PDF o ZIP. Anumang pagkakaiba ay isinusulat sa export card. Galing sa file ang bawat sukat, hindi kailanman sa setting. Ang katangiang hindi masasagot ng file ay hindi binibilang bilang tugma. Isinusulat ng command line ang buong paghahambing gamit ang `--export-report` (tingnan ang [Mag-render gamit ang CLI](/info/cli-rendering.html)).
 
-**Mga PDF accessibility check.** Para sa PDF, inililista rin ng command line ang 32 accessibility check sa `--export-report` file, sa ilalim ng `pdfAccessibility`. Bawat check ay may id, simpleng paglalarawan, resulta at lugar sa file kung saan ito nakakita ng problema:
+::: details Mga check sa accessibility ng PDF mula sa command line
+**Mga check sa accessibility ng PDF.** Para sa PDF, naglilista rin ang command line ng 32 check sa accessibility sa `--export-report` file, sa ilalim ng `pdfAccessibility`. May id, malinaw na paglalarawan, resulta at lokasyon sa file kung saan nakita ang problema ang bawat check:
 
-- **Pumasa**: tumingin ang check sa isang bagay at walang nakitang mali.
-- **Nabigo**: may nakitang problema ang check. Nakalista ang mga page number o tag nito.
-- **Hindi applicable**: walang ganoong uri ng bagay sa file na titingnan, gaya ng table check sa file na walang table. Wala itong sinasabi tungkol sa file.
-- **Kailangan ng tao**: anim na check ang hindi kayang husgahan ng program (reading order, colour contrast, flashing, script, time limit at paulit-ulit na link).
+- **Passed**: may sinuri ang check at walang nakitang mali.
+- **Failed**: may nakitang problema ang check. Nakalista ang mga page number o tag nito.
+- **Not applicable**: walang ganoong uri ng bagay sa file na masusuri, tulad ng mga table check sa file na walang table. Wala itong sinasabi tungkol sa file.
+- **Needs a person**: hindi kayang hatulan ng program ang anim na check (pagkakasunod-sunod ng pagbasa, contrast ng kulay, pag-flash, mga script, limitasyon sa oras at paulit-ulit na link).
 
-Hindi hatol ang listahan. Hindi nito sinasabing sumusunod ang PDF sa PDF/UA o magagamit ito ng mga taong gumagamit ng assistive technology, at kailangan pa rin ng tao na suriin ang file gamit ang screen reader. Bumabagsak ngayon sa tagging check ang sariling mga PDF ng Lolly, dahil wala pang isinusulat na tag ang mga exporter. Binabasa ng check ang file sa device mo at wala itong binabago. Ang mga file na nangangailangan ng password ay pinangalanang hindi nasuri, hindi pumasa. Para suriin ang PDF na ipinadala sa iyo, i-drop ito sa [Strip Hidden Data](/info/utilities.html), na nagpapakita ng parehong listahan sa ilalim ng **PDF accessibility checks**.
-
-Hiwalay na mga check ang mga check ng inspector ng Design at ang paghahambing ng brand sa Design System Setup: tinitingnan nila ang design, habang ang dalawang card na ito ay tumitingin sa file.
-
-::: details Gastos mula sa rate card
-Sa ilalim ng preflight, ginagawang pera ng cost card ang parehong mga bilang, gamit lang ang mga presyong ibinigay ng isang tao. Binabasa nito ang mga bilang na iyon kahit naka-off ang preflight card mismo. Dalawang bagay ang kailangan nito: trabahong mapepresyuhan ng price list (plate, sheet, lawak, page, variant row o output file, kaya ang payak na logo PNG ay hindi kailanman nagpapakita nito) at **rate card**, isang JSON price list mula sa printer mo. Ang default na build ay walang dala at walang in-app na paraan para mag-load nito. Dumarating ang rate card bilang catalogue asset na kasama sa deployment, o sa pamamagitan ng opsyonal na rate-card extension na ino-on ng self-hoster o control plane. Kung walang rate card, walang ipinapakita.
-
-Ang bawat figure ay rate na ibinigay mo na pinarami sa dami na binilang ng Lolly, tulad ng `4 plate × €35.00`, at ang kabuuan ay dala ang pinagmulan nito: ang nag-isyu sa card at ang petsa ng mga rate nito. Walang default na currency at walang placeholder na presyo. Ang sinasabi ng file tungkol sa sarili nito ay nananatiling reported speech: *"The file says: … Lolly has not verified this."*
-
-Kapag hindi makalkula ang figure, binabawi ang table sa halip na punan:
-
-- Ang mga linyang hindi pinepresyuhan ng card ay nangangahulugang **walang kabuuan**, headline lang na nagsasabi kung ilan ang walang presyo.
-- Ang dami na kisame ay dala ang **"up to"** sa subtotal nito.
-- Ang mga rate na lampas sa valid-until na petsa ay nagpapakita ng **bilang lang** hanggang pindutin mo ang *Use these rates anyway*; ang petsa ng expiry ay sumasama na sa figure.
-- Kapag binuksan sa pamamagitan ng **link**, nananatiling nakatago ang pera hanggang hilingin mo ito sa device na ito. Tumatanggap ang CLI ng `--rate-card=<file.json>` bilang lokal na file at hindi kailanman bilang link parameter.
-
-Inaalis ang card sa bawat export stage, kaya hindi nito kailanman binabago ang file. Aritmetika ito, hindi quote; ang printer mo lang ang makakapag-quote.
+Hindi hatol ang listahan. Hindi nito sinasabing natutugunan ng PDF ang PDF/UA o na magagamit ang PDF ng mga taong gumagamit ng assistive technology. Kailangan pa ring i-check ng tao ang file gamit ang screen reader. Bumibigo sa mga tagging check ang sariling mga PDF ng Lolly sa ngayon, dahil hindi pa nagsusulat ng mga tag ang mga exporter. Binabasa ng check ang file sa device mo at wala itong binabago. Minamarkahang hindi na-check ang mga file na nangangailangan ng password, hindi pasado. Para i-check ang PDF na ipinadala sa iyo, i-drop ito sa [Lolly Strip Hidden Data](/info/utilities.html), na nagpapakita ng parehong listahan sa ilalim ng **PDF accessibility checks**.
 :::
 
+Sinusuri ng mga inspector check ng Lolly Design at ng brand comparison sa Lolly Design System Setup ang design. Sinusuri ng dalawang card na ito ang file.
+
+::: details Gastos mula sa rate card
+Sa ilalim ng preflight, ginagawang halaga ng cost card ang parehong mga bilang, kahit naka-off ang preflight card. Kailangan nito ng dalawang bagay: trabahong kayang presyuhan ng listahan ng presyo (mga plate, sheet, area, page, variant row o output file, kaya hindi kailanman nagpapakita ng card ang simpleng PNG na logo) at **rate card**, isang listahan ng presyo sa JSON mula sa printer mo. Walang kasamang rate card ang default na build at walang paraan sa app para mag-load nito. Dumarating ang rate card bilang catalog asset na kasama sa deployment, o sa pamamagitan ng opsyonal na rate-card extension na ino-on ng self-hoster o control plane. Kapag walang rate card, walang ipinapakita.
+
+Ang bawat halaga ay rate na ibinigay mo na pinarami sa daming binilang ng Lolly, tulad ng `4 plate × €35.00`. Ipinapakita ng kabuuan ang pinagmulan nito: ang naglabas ng card at ang petsa ng mga rate nito. Walang default na currency at walang placeholder na presyo. Ang sinasabi ng file tungkol sa sarili nito ay nananatiling iniulat na pahayag: *"Sabi ng file: … Hindi pa ito nave-verify ng Lolly."*
+
+Kapag hindi makalkula ang halaga, inaalis ang table sa halip na punan ito:
+
+- Ang mga linyang hindi pinipresyuhan ng card ay nangangahulugang **walang kabuuan**, heading lang na nagsasabi kung ilan ang walang presyo.
+- Ang daming nagsasaad ng pinakamataas na limitasyon ay may kasamang **"hanggang"** sa subtotal nito.
+- Ang mga rate na lampas na sa petsa ng bisa ay nagpapakita ng **mga bilang lang** hanggang pindutin mo ang *Use these rates anyway*; pagkatapos, mananatiling kasama ng halaga ang petsa ng pag-expire.
+- Kapag binuksan sa pamamagitan ng **link**, nananatiling nakatago ang mga halaga ng pera hanggang hilingin mo ang mga ito sa device na ito. Tinatanggap ng CLI ang `--rate-card=<file.json>` bilang lokal na file at hindi kailanman bilang parameter ng link.
+
+Inaalis ang card sa bawat yugto ng export at hindi nito kailanman binabago ang file. Pagkalkula ito, hindi pormal na alok ng presyo. Ang printer mo lang ang makakapagbigay ng ganoong alok.
+:::
+
+<!--i:eti-film-->
 ## Motion at tunog
 
 ### Video
 
-Ang mga animated na tool ay nag-e-export ng **MP4** at **WebM**. Ipinapakita lang ng picker ang mga container na kayang gawin ng browser na ito, at ang shared na `?format=` link na humihingi ng hindi kaya nito ay bumabalik sa isa pa, na may katugmang file name. Ang mga animated na tool ay nag-aalok din ng **Start after**, na pinananatiling tahimik ang canvas saglit para maayos ang mga animation at font bago mag-record, at **Duration**, ang haba ng tapos na clip. Ang **Motion blur** (Off, Draft quality, Standard o High, na may **Shutter angle**) ay bina-blur ang mabilis na galaw kapalit ng oras ng pag-render. Kung sinusuportahan ng browser, ang **Record live** ay nagre-record ng on-screen na preview nang real time sa pamamagitan ng screen share sa halip.
+Nag-e-export ng **MP4** at **WebM** ang mga animated na tool. Ang ibinahaging `?format=` link na humihingi ng container na hindi kayang gawin ng browser na ito ay bumabalik sa isa pa, na may katugmang pangalan ng file. Pinananatiling nakatigil ng **Start after** ang canvas para maging handa ang mga animation at font bago mag-record. Itinatakda ng **Duration** ang haba ng tapos na clip. Pinapalabo ng **Motion blur** (Off, Draft quality, Standard o High, na may **Shutter angle**) ang mabilis na galaw at pinapabagal ang render. Kapag sinusuportahan ng browser, nire-record ng **Record live** ang preview sa screen nang real time sa pamamagitan ng screen share.
 
-![Ang mga timing setting ng animated export: Start after, Duration, Motion blur na may Shutter angle nito, at Record live](/t/url-shot?url=%2F%23%2Ftool%2Flottie-digi-ad%3Fformat%3Dmp4%26options&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=.video-params&walker=1&format=svg&dark=1&filename=exp-video-settings)
+![Ang mga setting sa timing para sa animated na export: Start after, Duration, Motion blur kasama ang Shutter angle nito at Record live](/t/url-shot?url=%2F%23%2Ftool%2Flottie-digi-ad%3Fformat%3Dmp4%26options&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=.video-params&walker=1&format=svg&dark=1&filename=exp-video-settings)
 
-Pinipili ng **Quality** ang Smaller file, Balanced o Best quality. Binubuksan ng **Advanced** ang **Codec**, **Frame rate**, **Rate mode** at **Hardware acceleration**. Kung may mga caption ang tool, pinipili ng **Captions** ang **Embedded track** o **Sidecar .vtt + .srt** sa tabi ng video. Dala ng link ang quality, codec, frame rate, duration at start delay bilang `vq`, `codec`, `fps`, `seconds` at `wait` ([Mga URL parameter](/info/url-parameters.html)).
+**Quality** ang pumipili sa Smaller file, Balanced o Best quality. Binubuksan ng **Advanced** ang **Codec**, **Frame rate**, **Rate mode** at **Hardware acceleration**. Kapag may mga caption ang tool, pinipili ng **Captions** ang **Embedded track** o **Sidecar .vtt + .srt** sa tabi ng video. Kasama sa link ang kalidad, codec, frame rate, tagal at pagkaantala ng simula bilang `vq`, `codec`, `fps`, `seconds` at `wait` ([Mga URL parameter](/info/url-parameters.html)).
 
-Pinapanatili ng mga video export ang tunog nila. Ang tool ay maaaring maglatag ng **music bed** sa ilalim ng clip: audio asset na inuulit o tinatabas sa haba ng clip, na may fade, volume at ducking sa ilalim ng sariling tunog ng footage. Dinadala ng mga recording tool ang live nilang audio hanggang sa file.
+Pinapanatili ng mga video export ang tunog ng mga ito. Puwedeng maglagay ang tool ng **music bed** sa ilalim ng clip: audio asset na naka-loop o pinutol ayon sa haba ng clip, na may mga fade, volume at ducking sa ilalim ng sariling tunog ng footage. Isinasama ng mga recording tool sa file ang live na audio ng mga ito.
 
-Ang Design deck na nananatiling click deck ay maaari pa ring lumabas bilang video. Ang **Export slides as video** sa Present menu ay nagbubukas ng export sheet sa MP4. Bawat slide ay tumutugtog para sa sarili nitong dwell, o para sa Duration ng export sheet kapag wala itong sarili, at ang slide transition ng deck ay tumutugtog sa pagitan nila bilang dissolve. Hindi nagbabago ang mismong dokumento.
+Puwede ring mag-export bilang video ang click deck ng Lolly Design. Binubuksan ng **Export slides as video** sa Present menu ang export sheet sa MP4. Nagpe-play ang bawat slide ayon sa sarili nitong dwell, o sa Duration ng export sheet kapag wala itong itinakda. Nagpe-play ang slide transition ng deck bilang dissolve sa pagitan ng mga slide. Hindi nagbabago ang dokumento.
+
+**HTML** mula sa dokumento ng Lolly Design na may timing, o mula sa Snippet, ay player sa iisang file: mga kontrol sa play, paglipat sa ibang oras at tunog sa ibabaw ng animation, na naka-embed ang mga sinusuportahang font, larawan at tunog nito. Nagpe-play offline ang file. Nagdaragdag ng menu ng mga scene nito ang Lolly Design film na may mga scene. Hindi pa puwedeng i-export bilang HTML ang sequence na may video, Lottie o 3D clip; i-export ang sequence bilang video.
 
 ### Mga animated na larawan
 
-Ang **GIF** ay tumutugtog saanman at bagay sa chat at email; mas malaki ito at mas kaunti ang kulay kaysa video. Ang **APNG** at **Animated WebP** ay nag-iingat ng buong kulay at transparency. Ang **Lottie Ad** ay nag-e-export din ng **Animated SVG**: mga vector frame na may naka-embed na CSS keyframe, kaya nag-i-scale ito sa anumang laki at umuulit sa browser tab o sa `<img>` nang walang codec. Outlined ang text nito, at gumagamit ito ng mas mababang default na frame rate dahil mas mabigat ang bawat frame kaysa bitmap. Tahimik ang lahat ng ito.
+**GIF** ay nagpe-play saanman at bagay sa chat at email; mas malaki ito at mas kaunti ang kulay kaysa video. Pinapanatili ng **APNG** at **Animated WebP** ang buong kulay at transparency. Nag-e-export din ang **Lottie Ad** ng **Animated SVG**: mga vector frame na may naka-embed na CSS keyframe na nai-scale sa anumang laki at naglo-loop sa browser tab o `<img>` nang walang codec. Naka-outline ang text nito. Mas mababa ang default na frame rate nito dahil mas mabigat ang bawat frame kaysa bitmap. Walang tunog ang lahat ng ito.
 
 ### Audio
 
-Ang ilang tool ay nag-e-export ng tunog nang mag-isa. Ang **Voice Recorder** ay kumukuha ng take mula sa mikropono na may live level meter at sine-save ito bilang **MP3**, **WAV**, **M4A (AAC)** o **Opus (WebM)**, na ine-encode sa device mo. Ang `wav`, `mp3`, `m4a` at `opus` ay karaniwang format id, kaya ang audio export ay kasing-maibabahagi at kasing-ma-script ng PNG.
+May ilang tool na nag-e-export ng tunog lang. Kinukuha ng **Lolly Voice Recorder** ang take mula sa mikropono na may live na level meter at sine-save ito bilang **MP3**, **WAV**, **M4A (AAC)** o **Opus (WebM)**, na ine-encode sa device mo. Mga karaniwang format id ang `wav`, `mp3`, `m4a` at `opus`, kaya tulad ng PNG ang audio export sa kakayahang ibahagi at gamitin sa script.
 
-Tumatanggap ang asset picker ng malawak na hanay ng audio para sa music bed, mula MP3 at FLAC hanggang MIDI at tracker module; inililista ng [Mga format](/info/formats.html) ang mga ito. Ang [Rondocode song](/info/rondocode.html) ay tumutugtog sa anumang haba na hinihingi ng clip nito.
+Tumatanggap ang asset picker ng maraming audio format para sa music bed, mula MP3 at FLAC hanggang MIDI at mga tracker module; inililista ang mga ito sa [Mga format](/info/formats.html). Nagpe-play ang [kantang Lolly Rondocode](/info/rondocode.html) ayon sa haba na hinihingi ng clip nito.
 
+<!--i:eti-palette-->
 ## Kulay at HDR
 
-Binabasa ng Lolly ang bawat modernong CSS colour, ginagawa ang colour maths nito nang perceptual at isinusulat ang bawat file sa space na mabubuksan ng reader: sRGB para sa mga screen, CMYK para sa print at Rec.2100 PQ para sa HDR. Ipinapaliwanag ng [Colour sa engine](/info/colour-engine.html) kung paano. Ang Design document na nakatakda sa **Wide colour / HDR** ay sumusunod sa sarili nitong mga patakaran, na inilalarawan sa [Wide colour at HDR editing](/info/hdr-editing.html).
+Binabasa ng Lolly ang bawat modernong CSS na kulay, kinakalkula ang mga kulay ayon sa persepsyon at isinusulat ang bawat file sa colour space na mabubuksan ng reader: sRGB para sa mga screen, CMYK para sa print at Rec.2100 PQ para sa HDR ([Kulay sa engine](/info/colour-engine.html)). Sinusunod ng dokumento ng Lolly Design na nakatakda sa **Wide colour / HDR** ang sarili nitong mga patakaran: tingnan ang [Pag-edit ng wide colour at HDR](/info/hdr-editing.html).
 
 ### Mga colour profile
 
-Ang mga export ay may tag na colour profile, kaya ang mga colour-managed na app tulad ng print shop, Photoshop at browser ay binabasa ang mga kulay gaya ng nakita mo. Awtomatikong nangyayari ito; lumalaktaw sa tag ang mga thumbnail at preview para manatiling maliit.
+Nilalagyan ng tag na colour profile ang mga export, kaya nababasa ng mga app na may colour management, tulad ng sa mga print shop, Photoshop at mga browser, ang mga kulay ayon sa nakita mo. Walang tag ang mga thumbnail at preview para manatiling maliit.
 
-- Ang **PNG at JPG** ay may dalang naka-embed na **sRGB** ICC profile, ang space kung saan iginuguhit ang preview. Tinatagan ang mga pixel, hindi ini-encode muli.
-- Ang **Print PDF (CMYK)** ay nagdedeklara ng press condition nito sa *OutputIntent* nito, na nagsasabi sa print shop kung paano dapat basahin ang mga CMYK ink nito.
-- Ang **Print TIFF (CMYK)** ay nagsusulat ng walang-tag na DeviceCMYK pixel at itinatala ang press condition sa TIFF metadata nito. Hindi kayang mag-embed ng press profile ang TIFF, kaya ang **Embed** row ay nagtatala lang ng pangalan ng profile na iyon.
-- Ang **TIFF (RGB)** ay ang hindi-compressed na sRGB na kapatid para sa archive o editor round trip. Ina-flatten nito ang transparency sa puti. Parehong desktop-only ang dalawang TIFF, dahil hindi mapi-preview ng mga browser ang TIFF.
-- Ang **SVG**, **EMF**, **EPS** at **DXF** ay mga vector na walang naka-embed na profile: ang mga kulay ng SVG ay sRGB, gumagamit ng device RGB ang EMF at EPS, ang **EPS (CMYK)** ay nagsusulat ng DeviceCMYK at gumagamit ang DXF ng AutoCAD Color Index. Ang SVG, EPS at DXF ay nag-o-outline ng text papunta sa mga path. Pinapanatili ng EMF na live at mae-edit ang text sa Office at Google Slides, bumabalik lang sa outline para sa mga run na hindi kayang ipahayag ng format; ang **Outline fonts** option ng export panel ay pinipilit ang mga path saanman. Ginagaya rin ng SVG ang mga CSS box shadow, sa loob at labas.
+- Ang **PNG at JPG** ay may naka-embed na **sRGB** ICC profile, ang colour space na pinagguguhitan ng preview. Nilalagyan ng tag ang mga pixel, hindi ine-encode ulit.
+- Idinedeklara ng **Print PDF (CMYK)** ang press condition nito sa *OutputIntent* nito, na nagsasabi sa print shop kung paano dapat basahin ang mga CMYK na tinta nito.
+- Sumusulat ang **Print TIFF (CMYK)** ng mga DeviceCMYK pixel na walang tag at itinatala ang press condition sa TIFF metadata nito. Hindi kayang mag-embed ng TIFF ng press profile, kaya pangalan lang ng profile na iyon ang itinatala ng **Embed** row.
+- Ang **TIFF (RGB)** ang uncompressed na sRGB na bersyon para sa archive o pagpapasa sa editor at pagbabalik mula rito. Para lang sa desktop ang parehong TIFF, dahil hindi kayang mag-preview ng TIFF ang mga browser.
+- Ang **SVG**, **EMF**, **EPS** at **DXF** ay mga vector na walang naka-embed na profile: sRGB ang mga kulay ng SVG, device RGB ang gamit ng EMF at EPS, DeviceCMYK ang isinusulat ng **EPS (CMYK)** at AutoCAD Color Index ang gamit ng DXF. Ginagawang outline path ng SVG, EPS at DXF ang text. Pinapanatili ng EMF na live at mae-edit ang text sa Office at Google Slides at ginagawang outline lang ang mga run na hindi kayang ipahayag ng format. Pinipilit ng **Outline fonts** na opsyon sa export panel na maging path ang lahat ng text, tulad ng `_text=outline` sa link at `--text=outline` sa command line. Ginagaya rin ng SVG ang mga CSS box shadow, sa loob at labas.
 
 ::: details PDF/X-4 at ang sarili mong press profile
-May kasamang isang CMYK profile ang Lolly, na akma sa FOGRA39 characterisation data ng Fogra at inilabas sa ilalim ng CC0, at kino-convert nito ang mga kulay gamit iyon para sa default na press condition. Hindi naka-embed ang profile, dahil ICC version 4.3 ito at tumatanggap ang PDF/X-4 ng hanggang version 4.2. Kaya ang pinangalanang press condition ay nagsusulat ng output intent nang hindi nagke-claim ng PDF/X-4 conformance.
+May kasamang isang CMYK profile ang Lolly, na iniangkop sa FOGRA39 characterisation data ng Fogra at inilabas sa ilalim ng CC0, at kino-convert nito ang mga kulay sa pamamagitan nito para sa default na press condition. Hindi naka-embed ang profile, dahil ICC version 4.3 ito at hanggang version 4.2 ang tinatanggap ng PDF/X-4. Kaya isinusulat ng pinangalanang press condition ang output intent nang hindi inaangking sumusunod ito sa PDF/X-4.
 
-Mag-load ng sarili mong CMYK profile at piliin ang **Embed** row nito sa Colour profile control. Ine-embed ito bilang *DestOutputProfile* ng file, at nagke-claim ang PDF ng PDF/X-4 kapag pinapayagan ng natitirang bahagi ng file. Ang press condition na idinedeklara nito ay binabasa mula sa profile na iyon: rehistradong pangalan kung may napatunayan ang profile, o `Custom` sa ilalim ng sariling pangalan ng profile.
+Mag-load ng sarili mong CMYK profile at piliin ang **Embed** row nito sa Colour profile na kontrol. Ine-embed ito bilang *DestOutputProfile* ng file, at inaangkin ng PDF ang pagsunod sa PDF/X-4 kapag pinapayagan ng iba pang bahagi ng file. Binabasa mula sa profile na iyon ang press condition na idinedeklara nito: rehistradong pangalan kapag pinatutunayan ito ng profile, o `Custom` sa ilalim ng sariling pangalan ng profile.
 
-Tatlong bagay ang pumipigil sa claim habang iniingatan ang output intent: RGB artwork na hindi nakonberte ng CMYK pass, ang `prov` proof-margin credit text (iginuhit sa karaniwang font na hindi naka-embed) at **Strong** na password, dahil ipinagbabawal ng PDF/X-4 ang encryption. Bawat PDF ay may dala ring PDF/X-4 metadata: page box, XMP, document ID at sRGB output intent na may profile nito.
+Tatlong bagay ang pumipigil sa pag-angkin habang pinapanatili ang output intent: RGB na artwork na hindi na-convert ng CMYK pass, ang `prov` na credit text sa proof margin (iginuguhit sa standard na font na hindi naka-embed) at **Strong** na password, dahil ipinagbabawal ng PDF/X-4 ang encryption. May kasama ring PDF/X-4 metadata ang bawat PDF: mga page box, XMP, document ID at sRGB na output intent na may profile nito.
 :::
 
-### HDR (maliliwanag na kulay)
+### Mga spot ink bilang process
 
-Ito ang **HDR** card ng export panel, na pinasisigla ang karaniwang artwork para sa mga HDR screen. Ibang feature ang pag-iingat ng HDR original sa buong pag-edit: [Wide colour at HDR editing](/info/hdr-editing.html).
+Puwedeng magtalaga ang isang design system ng spot ink sa isang kulay, gaya ng kulay na Pantone o HLC. Ini-print ng **Print PDF** ang kulay na iyon sa sarili nitong plate. May spot ink ang bawat kulay ng Lolly Demo maliban sa mga puti nito, Sugar at Daylight, at sa itim nito, Void. Ang Print PDF na ginawa sa Lolly Demo ay nagpi-print ng karamihan sa mga kulay sa mga spot plate at ng itim sa black plate.
 
-Ang karaniwang export ay sRGB: ang saturated na brand colour ay kasing-liwanag lang ng normal na puti ng screen. Ang HDR display ay may headroom sa itaas niyon. Ang **HDR** card ay pinalalakas ang mga brand colour at puting text mo papunta sa peak brightness, habang nananatiling madilim ang mga madilim na lugar at nagbibigay ng contrast sa glow.
+Para sa karaniwang file na may apat na kulay, lagyan ng tsek ang **Print spot inks as process** sa Profile card ng export panel. Ipi-print ang bawat spot ink gamit ang cyan, magenta, yellow at black, ayon sa CMYK build na ibinibigay ng design system sa kulay na iyon. Ang kulay na walang sariling build ay gumagamit ng conversion ng press profile, tulad ng bawat ibang kulay sa artwork. Apat na process plate lang ang nasa file. Naka-off ang pagpipilian bilang default. Ipinapakita lang ng panel ang kahon para sa **Print PDF**, at kapag may kulay lang na binigyan ng spot ink ng design system.
 
-![Ang HDR card sa export panel, naka-on, na may White / Reach / Dark lift / Focus dials na nakalantad sa ilalim nito](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
+Ang finish ay hindi ink. Pinapanatili ng foil, emboss, deboss, spot varnish, soft touch, die cut, crease at perforation ang sarili nilang pinangalanang plate kahit may tsek ang kahon, dahil ang finish na ini-print bilang process ay maglalagay ng itim nitong mask sa page.
 
-- **Mga format.** PNG, JPG, AVIF at TIFF. Ang WebP ay 8-bit na walang gumaganang HDR decode path, at ang mga vector at PDF ay walang HDR model.
-- **Naka-off bilang default**, dahil binabago nito ang mga pixel. I-tsek ang card, o ipasa ang `hdr=1` sa share link.
-- **Ang mga dial.** **White** (ang kisame ng peak-brightness, 400 hanggang 2000 nits), **Reach** (gaano kalayo pababa sa mga tono kumakalat ang glow), **Dark lift** (gaano pinasisigla ang mga madilim; pinapanatiling madilim ng `0`) at **Focus** (gaano karaming yaman ng kulay ang iniingatan ng boost). Sumasama sila bilang isang value: ang `hdr=1600-60-0-50` ay White 1600, Reach 60, Dark lift 0 at Focus 50.
-- **Ang isinusulat.** Ang PNG ay nakakakuha ng 16-bit Rec.2100 PQ na may `cICP` chunk. Ang JPG ay ISO 21496-1 gain-map JPEG: karaniwang SDR na larawan kasama ang nakadugtong na gain map. Ang AVIF ay nakakakuha ng muling isinulat na `colr` box. Ang TIFF ay nakakakuha ng PQ pixel na may nabuong ICC v4 profile na may dalang `cicp` tag, at nagfa-flatten sa itim, dahil ang puti ay ang 10,000-nit code sa PQ at lalagyan ng halo ang bawat gilid. Sinusunod ng boost ang perceptual (OKLab) lightness at pinapanatili ang hue, kaya ang brand green ay lalong sumisigla, hindi nagiging minty.
-- **Kung saan lumilitaw ang glow.** Mga colour-managed na viewer sa HDR display: Preview, Quick Look at Safari sa mga Apple device, o Chrome sa HDR monitor. Ang SDR screen ay nagpapakita ng normal na larawan.
-- **Bago mo ipadala.** Maraming platform ang nag-e-encode muli ng mga upload at nag-aalis ng HDR signal, na maaaring mag-iwan ng larawan na madilim o kupas. Gamitin ang HDR kung saan kontrolado mo ang destinasyon, tulad ng sarili mong site, video wall o deck sa maliwanag na panel.
-- **Mula sa terminal.** Ang `--hdr=1` na may `--export=png` o `--export=jpg` ay nagsusulat ng parehong PNG at gain-map JPEG sa [CLI](/info/cli.html), mula sa parehong engine encoder, nang walang browser sa daan. Nananatiling web export muna ang AVIF at TIFF.
+Binibilang ng **Before you export** card at ng `lolly preflight` ang mga plate na magkakaroon ang file. Kapag may tsek ang kahon, binibilang nila ang apat na process plate at anumang finish plate at sinasabing ini-print ang mga spot ink bilang process at walang idinadagdag na plate. Kapag walang tsek ang kahon, binibilang nila ang hanggang isang spot plate para sa bawat spot ink na ibinibigay ng design system. Presyo para sa mga bilang na iyon ang nasa rate card, kaya hindi ito kailanman naniningil para sa spot plate na wala sa file.
 
-## Ang sumasama sa file mo
+Walang pinangalanang plate ang **Print TIFF** at **EPS (CMYK)**, kaya ini-print nila ang bawat ink bilang process, naka-on man o hindi ang pagpipilian. Para sa dalawang format na iyon, binibilang ng card at ng `lolly preflight` ang apat na process plate at hindi kailanman ang spot o finish plate. Napupunta sa mga ito ang finish bilang itim nitong mask sa black plate, at iniuulat iyon ng card bilang error.
 
-Ang tapos na file ay maaaring magdala ng ilang record bukod sa larawan. Ang ilan ay sumasabay sa mga pixel at nawawala kapag muling na-save o hinubdan ang file; dalawang marka ang nasa mismong mga pixel.
+Hinihiling ng link ang parehong file gamit ang `_spots=process`, ng command line gamit ang `--spots=process`, ng [MCP server](/info/mcp.html) gamit ang `spots: "process"` at ng terminal app gamit ang **Spot inks** row nito. Walang detalye ng pagpipilian ang napupunta sa file: ang mga ink lang ang nagbabago.
+
+### HDR (matitingkad na kulay)
+
+Pinapatingkad ng **HDR** card ng export panel ang karaniwang artwork para sa mga HDR screen. Para mapanatili ang mga orihinal na HDR habang nag-e-edit, tingnan ang [Pag-edit sa malawak na saklaw ng kulay at HDR](/info/hdr-editing.html).
+
+sRGB ang karaniwang export: ang saturated na kulay ng brand ay kasingliwanag ng normal na puti ng screen. Puwedeng mas maliwanag pa ang HDR display. Pinapataas ng **HDR** card ang liwanag ng mga kulay ng brand at puting text mo patungo sa pinakamataas na liwanag. Nananatiling madilim ang mga madilim na bahagi.
+
+![Ang HDR card sa export panel, naka-on, na nakikita sa ilalim ang mga dial na White / Reach / Dark lift / Focus](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
+
+- **Mga format.** PNG, JPG, AVIF at TIFF. 8-bit ang WebP at wala itong gumaganang HDR decode path, at walang HDR model ang mga vector at PDF.
+- **Naka-off bilang default**, dahil binabago nito ang mga pixel. Lagyan ng tsek ang card, o ipasa ang `hdr=1` sa share link.
+- **Ang mga dial.** **White** (ang pinakamataas na liwanag, 400 hanggang 2000 nits), **Reach** (hanggang saan umaabot ang glow pababa sa mga tono), **Dark lift** (kung gaano lumiliwanag ang mga madilim na bahagi; pinapanatili silang madilim ng `0`) at **Focus** (kung gaano karaming yaman ng kulay ang pinapanatili ng pagtaas ng liwanag). Magkakasama silang ipinapasa bilang isang value: ang `hdr=1600-60-0-50` ay White 1600, Reach 60, Dark lift 0 at Focus 50.
+- **Ano ang isinusulat.** Nagkakaroon ang PNG ng 16-bit Rec.2100 PQ na may `cICP` chunk. Ang JPG ay ISO 21496-1 gain-map JPEG: karaniwang SDR na larawan na may idinugtong na gain map. Nagkakaroon ang AVIF ng muling isinulat na `colr` box. Nagkakaroon ang TIFF ng mga PQ pixel na may binuong ICC v4 profile na may `cicp` tag. Fina-flatten ang TIFF sa itim, dahil ang puti ang 10,000-nit code sa PQ at maglalagay ng halo sa paligid ng bawat gilid. Sinusunod ng pagtaas ng liwanag ang perceptual (OKLab) lightness at pinapanatili ang hue, kaya lumiliwanag ang berde ng brand nang hindi nagiging mint ang kulay.
+- **Saan lumalabas ang glow.** Sa mga viewer na may color management sa HDR display: Preview, Quick Look at Safari sa mga Apple device, o Chrome sa HDR monitor. Karaniwang larawan ang ipinapakita ng SDR screen.
+- **Mula sa terminal.** Isinusulat ng `--hdr=1` na may `--export=png` o `--export=jpg` ang parehong PNG at gain-map JPEG sa [CLI](/info/cli.html) mula sa parehong engine encoder, nang walang browser. Sa ngayon, sa web lang ine-export ang AVIF at TIFF.
+
+::: warning Inaalis ng maraming platform ang HDR signal
+Puwedeng maging madilim o maputla ang larawan kapag muling ine-encode ng platform ang mga upload. Gamitin ang HDR kung kontrolado mo ang destinasyon, tulad ng sarili mong site, video wall o deck sa maliwanag na panel.
+:::
+
+<!--i:eti-badge-check-->
+## Ano ang sumasama sa file mo
+
+Puwedeng may ilang record ang tapos na file. Ang ilan ay nasa tabi ng mga pixel at nawawala kapag muling sine-save, kinukunan ng screenshot o nililinis ang file. Dalawang marka ang nasa mismong mga pixel.
 
 ::: figure exporting-what-travels
-Kung saan nakatira ang bawat record, kung naka-on ito bilang default at aling link parameter ang kumokontrol sa bawat isa.
+Kung saan naroon ang bawat record, kung naka-on ito bilang default at kung aling link parameter ang kumokontrol sa bawat isa.
 :::
 
-Tinitiklop ng export panel ang **Licence**, **Source credits**, *Password protect*, **C2PA Credentials**, ang **Lolly Imprint** at ang **Durable credential** sa isang **Content protection** group na nagpapakita lang ng mga card na magagamit ng napiling format. Kusa itong bumubukas kapag may idineklarang lisensya na ang link o dokumento, o kapag may source na nangangailangan ng desisyon mo. Ang **Design system** card ay nananatili sa labas ng group, nakikita sa bawat export.
+Inilalagay ng export panel ang **Licence**, **Source credits**, **Password**, **C2PA Credentials**, **Lolly Imprint** at **Durable credential** sa iisang **Content protection** group na nagpapakita lang ng mga card na magagamit ng napiling format. Kusang bumubukas ang group kapag may lisensyang idineklara na ang link o dokumento, o kapag kailangan ng source ang desisyon mo. Nananatili sa labas ng group ang **Design system** card, nakikita sa bawat export.
 
-![Ang Content protection group na nakabukas sa isang PNG export, na nagpapakita lang ng mga card na aplikable dito](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
+![Ang Content protection group na nakabukas sa isang PNG export, ipinapakita lang ang mga card na naaangkop dito](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
-### Provenance at watermark
+### Pinagmulan & watermark
 
-Kung may mga field ang format, ang mga export ay may dalang **provenance metadata**: ang software, ang source, ang pangalan ng tool at ang credit line ng profile mo, isinusulat sa PNG iTXt, JPEG EXIF, PDF info, SVG `<metadata>` o GIF comment. Authorship lang ang itinatala nito, at walang ina-upload. Ang mga **Experimental** na tool ay nagtatatak din ng nakikitang watermark, inilalapat ng host para hindi ito matanggal ng pag-edit sa tool.
+Kapag may mga field ang format, may **metadata ng pinagmulan** ang mga export: ang software, source, pangalan ng tool at credit line ng profile mo, na nakasulat sa PNG iTXt, JPEG EXIF, PDF info, SVG `<metadata>` o GIF comment. Itinatala lang nito ang pagiging may-akda. Walang ina-upload. Naglalagay din ng nakikitang watermark ang mga **Experimental** tool. Ang host ang naglalagay ng watermark, kaya hindi ito maaalis sa pag-edit ng tool.
 
-Ang **Lolly Imprint** ay di-nakikitang pixel watermark, **naka-on bilang default**. Sumasabay sa mga pixel ang credential at metadata at nawawala sa muling pag-save, screenshot o metadata strip. Ang Imprint ay nasa mga pixel at nananatili sa recompression, kaya ang kopya ay makikilala pa ring gawa ng Lolly. Pahiwatig ito at hindi cryptographic na garantiya, at walang dala itong personal na data. Sumasama ito sa JPEG XL, PNG, JPG, WebP, AVIF, TIFF at BMP, at sa mga raster na nire-render ng Lolly sa PDF o PPTX, hindi kailanman sa larawang ikaw ang nag-embed. I-untick ang **Lolly Imprint** o ipasa ang `imprint=0` para iwanan ang Imprint. Hindi pa naka-calibrate ang pananatili ng AVIF sa re-encoding. Dinidetekta ito ng [Verify](/verify) sa device mo; tingnan ang [Ang Lolly Imprint](/info/what-verify-checks.html#the-lolly-imprint).
+**Ang Lolly Imprint** ay hindi nakikitang watermark sa mga pixel, **naka-on bilang default**. Nananatili ito kahit muling i-compress, kaya makikilala pa rin ang isang kopya bilang gawa sa Lolly. Pahiwatig ito, hindi cryptographic na garantiya, at wala itong personal na data. Isinusulat ito sa JPEG XL, PNG, JPG, WebP, AVIF, TIFF at BMP, at sa mga raster na nire-render ng Lolly sa PDF o PPTX, hindi kailanman sa larawang in-embed mo. Alisin ang tsek sa **Lolly Imprint** o ipasa ang `imprint=0` para hindi isama ang Imprint. Hindi pa naka-calibrate ang pananatili nito sa AVIF pagkatapos ng muling pag-encode. Nakikita ng [Lolly Verify](/#/verify) ang Imprint sa device mo; tingnan ang [Ang Lolly Imprint](/info/what-verify-checks.html#the-lolly-imprint).
 
-Ang **Durable credential** ay nagsusulat ng id ng Lolly sa mga pixel gamit ang on-device na neural model sa TrustMark format, kaya ang "made with Lolly" link ay nananatili sa metadata strip at re-encode at nababasa ng mga TrustMark-aware na tool. **Naka-off ito bilang default**, dahil may gastos itong neural pass bawat export at minsanang model download. Sakop nito ang PNG, JPG, WebP, AVIF at TIFF; i-tsek ito sa panel o ipasa ang `durable=1`. Itinatago ng mga desktop at mobile app ang card, dahil wala silang pinagmulan para kunin ang model offline.
+**Ang Durable credential** ay nagsusulat ng id ng Lolly sa mga pixel gamit ang neural model sa device mo sa TrustMark format, kaya nananatili ang link na "ginawa gamit ang Lolly" kahit alisin ang metadata at muling i-encode, at nababasa ito ng mga tool na nakakaunawa sa TrustMark. **Naka-off ito bilang default**, dahil kailangan ng isang neural pass sa bawat export at isang beses na pag-download ng model. Sakop nito ang PNG, JPG, WebP, AVIF at TIFF. Lagyan ito ng tsek sa panel o ipasa ang `durable=1`. Itinatago ng mga desktop at mobile app ang card, dahil wala silang origin na mapagkukunan ng model kapag offline.
 
-**Licence.** Piliin kung paano magagamit ng iba ang gawa mo: *None (all rights reserved)* bilang default, CC0 1.0, ang Public Domain Mark 1.0, o Creative Commons 4.0 na lisensya (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Ang pangalan ng lisensya at link sa deed nito ay napupunta sa licence metadata ng file (EXIF, XMP at RIFF kung mayroon ang format) at sa Content Credential nito. Sine-save ang pagpili kasama ng dokumento at sumasama sa link bilang `licence=`. Isinusulat ng Lolly ang lisensyang pinili mo; hindi nito sinusuri o ipinapatupad ang mga tuntunin. Ang tool na may sariling licence field, tulad ng Claim, ay nag-iingat ng field na iyon sa halip.
+**Licence.** Piliin kung paano magagamit ng iba ang gawa mo: *None (all rights reserved)* bilang default, CC0 1.0, Public Domain Mark 1.0 o isang Creative Commons 4.0 licence (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Napupunta ang pangalan ng lisensya at link sa deed nito sa metadata ng lisensya ng file (EXIF, XMP at RIFF kung mayroon nito ang format) at sa Content Credential nito. Sine-save ang pagpipilian kasama ng dokumento at sumasama sa link bilang `licence=`. Isinusulat ng Lolly ang lisensyang pinili mo. Hindi sinusuri o ipinapatupad ng Lolly ang mga tuntunin. Ang tool na may sariling licence field, tulad ng Claim, ay pinapanatili ang field na iyon sa halip.
 
-### Ang design-system record
+### Ang record ng design system
 
-Itinatala ng export ang design system na gumawa ng file: ang pangalan nito, ang nailathalang bersyon na pinagguhitan (kapag hindi iyon ang working version) at ang [colourway](/info/colourways.html) kung saan ito iginuhit. Ang anumang ibang theme choice na idinedeklara ng design system, tulad ng density, ay itinatala sa parehong paraan. Hindi isinasama ang light o dark na pagpili, dahil ipinapakita na ng larawan kung alin ang ginamit.
+Itinatala ng export ang design system na gumawa ng file: ang pangalan nito, ang inilathalang bersyon na pinaghanguan nito (kapag hindi iyon ang kasalukuyang bersyong ginagawa) at ang [colourway](/info/colourways.html) na ginamit sa pagguhit. Anumang ibang theme choice na idinedeklara ng design system, tulad ng density, ay itinatala sa parehong paraan. Hindi isinasama ang pagpiling light o dark, dahil ipinapakita na ng larawan kung alin ang ginamit.
 
-**Nakikita mo ang record bago may isulat.** Ang **Design system** card, naka-tsek bilang default, ay nagpapakita ng eksaktong mga salitang dadalhin ng file, tulad ng *Records: Acme · Colourway: Beach*, at ang paglalarawan kung paano ito mababasa. Ang pangalan ng design system ay anumang tinype ng mga may-ari nito, kaya ipinapakita ito ng card ayon sa pagkakasulat. I-untick ang card para iwanan ang record sa export na iyon. Inililista ng document panel ng Design ang parehong mga salita sa ilalim ng *Embedded in exports*.
+**Nakikita mo ang record bago may isulat.** Ipinapakita ng **Design system** card, na may tsek bilang default, ang eksaktong mga salitang ilalagay sa file, tulad ng *Records: Acme · Colourway: Beach*, at ang paglalarawan. Ang pangalan ng design system ay kung ano ang tinype ng mga may-ari nito, at ipinapakita ng card ang pangalan ayon sa pagkakasulat. Alisin ang tsek sa card para hindi isama ang record sa export na iyon. Inililista ng document panel ng Lolly Design ang parehong mga salita sa ilalim ng *Embedded in exports*.
 
-**Ibinibigay ng paglalarawan ang colourway sa tabi ng tool.** Kapag naka-tsek ang card, ang *"Made with https://lolly.tools : Chart"* ay nagiging *"Made with https://lolly.tools : Chart (Beach colourway)"*. Ang sariling pangalan ng design system ay nananatili sa record, hindi sa paglalarawan. Ang paglalarawang walang pangalan ng tool, o isinulat ng tool mula sa sarili nitong input, ay iniiwan ayon sa dati. Ang tool na hindi pinapansin ang mga colourway sa pamamagitan ng `tokenAxes` ay walang itinatala, at sinusunod ng PDF proof credit (ang `prov` print mark) ang parehong rule.
+**Inilalagay ng paglalarawan ang colourway sa tabi ng tool.** Kapag may tsek ang card, ang *"Ginawa gamit ang https://lolly.tools : Chart"* ay nagiging *"Ginawa gamit ang https://lolly.tools : Chart (Beach colourway)"*. Nananatili sa record ang sariling pangalan ng design system, hindi sa paglalarawan. Hindi nagbabago ang paglalarawang walang pangalan ng tool, o ang isinusulat ng tool mula sa sarili nitong mga input. Walang colourway na itinatala ang tool na hindi sumusunod sa mga colourway sa pamamagitan ng `tokenAxes`, at sinusunod ng PDF proof credit (ang `prov` print mark) ang parehong tuntunin.
 
-**Mga brand skill na gumabay sa agent.** Kapag ang agent ang gumawa ng piraso at pinangalanan ang mga [brand skill](/info/brand-skills.html) na binasa at sinunod nito, inililista rin ng record ang bawat skill kasama ang revision nito, tulad ng *Guided by: acme-brand 1.0*. Ang ibig sabihin ng mga salita ay ginabayan ng skill ang gawa. Hindi ito check: hindi sinusubok ng Lolly ang piraso laban sa skill. Ang sariling pahayag lang ng agent ang nagdaragdag ng listahan, na sa ngayon ay ang argumentong `brandSkills` ng `lolly_render` ng [MCP server](/info/mcp.html), kaya ang piraso na ginawa sa app o mula sa share link ay walang dala. Hawak ng Content Credential ang listahan bilang `brandSkills`, isang JSON value na may id, pangalan, revision at SHA-256 hash ng bawat skill. Hawak ng XMP packet at SVG metadata ang parehong value bilang `lolly:BrandSkills`, ang PDF na isinulat mula sa record ay nakakakuha ng isang keyword bawat skill at nananatili ang paglalarawan ayon sa dati. Ang internal na skill ay itinatala ayon sa id, pangalan, revision at hash nito, hindi kailanman sa text nito. Ang parehong mga switch ay iniiwan ang listahan kasama ng natitirang record: ang **Design system** card, `_madewith=0`, `--no-madewith` at `madeWith: false`. Kapag iginuhit ng MCP server ang file sa browser (PDF, JPEG at iba pang format na hindi kayang isulat ng browser-free path nito), walang listahang hawak ang sariling metadata ng file at Content Credential lang ang makakahawak nito. Ipasa ang `c2pa` para panatilihin ang record; kung walang credential, nagbababala ang render na hindi naitala ang mga brand skill.
+::: details Mga brand skill, brand page at partner company sa record
+**Mga brand skill na gumabay sa isang agent.** Kapag agent ang gumawa ng piraso at pinangalanan nito ang mga [brand skill](/info/brand-skills.html) na binasa at sinunod nito, inililista rin ng record ang bawat skill kasama ang revision nito, tulad ng *Ginabayan ng: acme-brand 1.0*. Ibig sabihin ng mga salita na ginabayan ng skill ang gawa. Hindi sinusuri ng Lolly ang piraso ayon sa isang skill. Sariling pahayag lang ng agent ang nagdaragdag ng listahan. Sa ngayon, iyon ang `brandSkills` argument ng `lolly_render` ng [MCP server](/info/mcp.html), kaya wala nito ang pirasong ginawa sa app o mula sa share link. Hawak ng Content Credential ang listahan bilang `brandSkills`, isang JSON value na may id, pangalan, revision at SHA-256 hash ng bawat skill. Hawak ng XMP packet at SVG metadata ang parehong value bilang `lolly:BrandSkills`. Ang PDF na isinulat mula sa record ay nagkakaroon ng isang keyword bawat skill. Hindi nagbabago ang paglalarawan. Hindi kailanman itinatala ang text ng internal na skill. Inaalis ng parehong mga switch ang listahan kasama ng natitirang record: ang **Design system** card, `_madewith=0`, `--no-madewith` at `madeWith: false`. Kapag iginuguhit ng MCP server ang file sa browser (PDF, JPEG at iba pang format na hindi maisulat ng paraan nito na walang browser), walang listahan ang sariling metadata ng file. Content Credential lang ang puwedeng humawak ng listahan roon. Ipasa ang `c2pa` para mapanatili ang record. Kapag walang credential, nagbababala ang render na hindi naitala ang mga brand skill.
 
-**Pagbasa pabalik ng record.** Inililista ng [Verify](/verify) ang record bilang **Design system** sa mga detalye ng credential ng file at ang anumang brand skill bilang **Guided by**. Ang *Recreate with these settings* ay muling binubuksan ang tool sa naitalang bersyon at colourway. Bumubukas ang link gamit ang naitalang design system kapag may hawak ang device na ito na may parehong id at pangalan; kung hindi, bumubukas ito gamit ang aktibong design system mo.
+**Ang brand page, kapag pinili ng publisher na isama ito.** Puwedeng piliin ng publisher ng design system na itala ang address ng [brand page](/info/brand-page.html#lead-back-from-your-files) nito sa mga export. Bawat design system ang saklaw ng setting at naka-off ito bilang default. Idinaragdag ng card ang address sa parehong linya, tulad ng *Records: Acme · Colourway: Beach · Brand page: https://acme.example/brand/acme/*. Inaalis ng pag-alis ng tsek sa card ang address kasama ng iba pa. Hawak ng record ang address at wala nang iba tungkol sa page. Wala nang ibang nagbabago sa file. Ang design system na walang address ay nagsusulat ng parehong file tulad ng dati.
 
-::: details Ano ang isinusulat saan, at aling mga run ang nag-iiwan ng record
+**Hindi sumasama ang address sa pack.** Ang record sa isang pinirmahang file ay itinuturing na sariling record ng pumirma. Hindi dapat kusang ma-on ang address para sa isang taong hindi pumili ng address na iyon, at hindi dapat magawang ituro ng pack ang mga file ng ibang tao sa page na pinili nito. Ang `.lolly` pack, kopya o fork ng design system, **Try these colours**, na-restore na backup at tokens file na ibinigay para sa isang run ay lahat dumarating na naka-off ang setting. Puwede mong i-on mismo ang setting, gamit ang address na ita-type mo. Ang managed na design system ang tanging pagbubukod: pinapanatili nito ang address na itinakda ng manager nito sa source tokens. Nasa [Pabalik na link mula sa mga file mo](/info/brand-page.html#lead-back-from-your-files) ang mga detalye.
+
+**Ang partner company, sa isang Lolly Work partner programme.** Itinatala ng pirasong ginawa para sa partner company ang kumpanya at programme nito sa parehong linya, tulad ng *Records: Acme · Colourway: Beach · Partner: Northwind IT (Resellers, EMEA)*, kasama ang revision ng mga detalye ng kumpanya sa file. Walang tao, detalye sa pakikipag-ugnayan, address o currency sa record. Kapag nakakabit ang partner kit ng kumpanya, idinaragdag ng linya ang revision ng kit, tulad ng *, kit revision 2*, at hawak ng credential ang id at revision ng kit, hindi kailanman ang mga kulay o tuntunin nito. Inaalis ng pag-alis ng tsek sa card ang partner kasama ng natitirang record. Nagkakaroon ang PDF ng keyword na *Partner: Northwind IT*, at ipinapakita ng [Lolly Verify](/info/what-verify-checks.html#partner) ang record bilang **Partner** ([Ang partner record sa mga file](/info/manage/partner-programmes.html#the-partner-record-in-files)).
+:::
+
+**Muling pagbasa sa record.** Inililista ng [Lolly Verify](/#/verify) ang record bilang **Design system** sa mga detalye ng credential ng file at ang anumang brand skill bilang **Guided by**. Hiwalay na lumalabas ang brand page, bilang [record ng address mula sa pumirma](/info/what-verify-checks.html#brand-page). Muling binubuksan ng *Recreate with these settings* ang tool sa naitalang bersyon at colourway. Bumubukas ang link gamit ang naitalang design system kapag may hawak ang device na ito na may parehong id at pangalan; kung wala, bumubukas ito gamit ang aktibo mong design system.
+
+::: details Ano ang isinusulat at saan, at aling mga run ang hindi nagsasama ng record
 | Saan | Ano ang isinusulat |
 |---|---|
-| Content Credential | `designSystem` (ang id), `designSystemLabel`, `designVersion` at `themes` sa `tools.lolly.export` assertion, bawat isa ay payak na text value; ang `themes` ay JSON list ng mga pagpili |
-| PNG, JPEG, WebP at JXL | Ang parehong apat na value bilang mga `lolly:` property ng XMP packet ng file, sa namespace na `https://lolly.tools/ns/export/1.0/` |
+| Content Credential | `designSystem` (ang id), `designSystemLabel`, `designVersion` at `themes` sa `tools.lolly.export` assertion, bawat isa ay plain text value; ang `themes` ay JSON list ng mga pagpipilian. `brandPage` kapag pinili ng publisher na isama ito |
+| PNG, JPEG, WebP at JXL | Ang parehong mga value bilang mga `lolly:` property ng XMP packet ng file, sa namespace na `https://lolly.tools/ns/export/1.0/`. `lolly:BrandPage` kapag pinili ng publisher na isama ito |
 | SVG | Ang parehong mga `lolly:` property sa loob ng `<metadata>` block |
-| PDF | Mga keyword tulad ng *Design system: Acme* at *Colourway: Beach* |
+| PDF | Mga keyword tulad ng *Design system: Acme*, *Colourway: Beach* at, kapag pinili ng publisher na isama ito, *Brand page: https://acme.example/brand/acme/* |
 | Bawat format na may description field | Ang paglalarawan, na may colourway sa tabi ng tool |
 
-Lumilitaw lang ang card kapag may maitatala at kayang hawakan ng format ang record. Ang CSV, JSON, calendar file at iba pang text o data format ay walang hawak na metadata, at ang EPS, EMF, DXF at BMP ay walang field para sa record. Ang HTML, Markdown at CSS ay hawak ang record sa Content Credential lang nila, kaya para sa kanila ang card ay walang ipinapakitang description line at nagtatago kapag naka-off ang **C2PA Credentials**. Ang field na hindi ibinibigay ng design system ay hindi napupunta sa file.
+Lumalabas lang ang card kapag may maitatala at kayang hawakan ng format ang record. Walang metadata ang CSV, JSON, calendar file at iba pang text o data format, at walang field para sa record ang EPS, EMF, DXF at BMP. Sa Content Credential lang hinahawakan ng HTML, Markdown at CSS ang record, kaya para sa mga ito, walang linya ng paglalarawan ang card at nakatago ito habang naka-off ang **C2PA Credentials**. Hindi isinasama sa file ang field na hindi ibinibigay ng design system.
 
-Ang share link ay pinapatay ang record gamit ang `_madewith=0` ([Mga URL parameter](/info/url-parameters.html)); ang command line ay tumatanggap ng `--no-madewith`, ang `lolly_render` ng [MCP server](/info/mcp.html) ay tumatanggap ng `madeWith: false`, at ang export panel ng terminal app ay may **Design system** row. Ini-print ng command line ang mga salitang dala ng tapos na file sa standard error, para sa tool render at para sa bawat file na ine-export ng `lolly run` mula sa naka-save na Design session, at ini-print ng MCP render ang mga ito sa tabi ng file, parehong binabasa pabalik mula sa file. Ang PNG na iginuguhit ng command line nang walang browser ay walang file metadata, kaya ang record nito ay sumasama sa credential lang. Ang mga on-device utility ay walang idinaragdag na metadata.
+Ino-off ng share link ang record gamit ang `_madewith=0` ([Mga URL parameter](/info/url-parameters.html)). Tumatanggap ang command line ng `--no-madewith`, tumatanggap ang `lolly_render` ng [MCP server](/info/mcp.html) ng `madeWith: false` at may **Design system** row ang export panel ng terminal app. Ini-print ng command line sa standard error ang mga salitang nasa tapos na file, para sa render ng tool at para sa bawat file na ine-export ng `lolly run` mula sa na-save na Lolly Design session. Ini-print ng MCP render ang mga salita sa tabi ng file. Pareho nilang muling binabasa ang mga salita mula sa file. Walang file metadata ang PNG na iginuguhit ng command line nang walang browser, kaya sa credential lang sumasama ang record nito. Walang idinaragdag na metadata ang mga utility sa device.
 
-Ang mga run na walang **Design system** card ay iniiwan ang record: Batch run, folder na ine-export mula sa Projects at 3D collection export, at sa terminal app ang CSV batch, Projects folder o selection export at ang render-everything view. Mag-export ng isang file mula sa tool para maitala ang design system.
+Hindi isinasama ng mga run na walang **Design system** card ang record: isang Lolly Batch run, folder na na-export mula sa Projects at isang 3D collection export, at sa terminal app ay CSV batch, Projects folder o selection export at ang view na nagre-render ng lahat. Mag-export ng isang file mula sa tool para itala ang design system.
 :::
 
 ### Content Credentials (C2PA)
 
-Ang mga export ay maaaring magdala ng **Content Credentials**: isang signed na [C2PA](https://c2pa.org) manifest na nagtatala kung ano ang gumawa ng file, kailan at saan, nakatali sa hash ng mga byte ng file kaya natutuklasan ang anumang susunod na edit. Inilalathala ng C2PA ang specification, at nagsusulat ang Lolly ng mga karaniwang manifest na masusuri ng anumang C2PA reader.
+Puwedeng may **Content Credentials** ang mga export: isang pinirmahang [C2PA](https://c2pa.org) manifest na nagtatala kung ano ang gumawa ng file, kailan at saan, na nakatali sa hash ng mga byte ng file para matukoy ang anumang pagbabago pagkatapos. Nagsusulat ang Lolly ng mga standard na manifest na masusuri ng anumang C2PA reader.
 
-![Ang C2PA Credentials card, naka-tsek, na ang credential lifetime ay nasa tabi ng checkbox](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
+![Ang C2PA Credentials card, may tsek, na may haba ng bisa ng credential sa tabi ng checkbox](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26c2pa%3D30%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=exp-c2pa-card)
 
-- **Naka-on bilang default.** Ang **C2PA Credentials** card ay pre-selected para sa halos bawat tool. I-untick para sa isang export, o ipasa ang `c2pa=off` sa link. Ang tool ay maaaring mag-opt out sa manifest nito.
-- **Mga format.** PDF (RGB at Print), PNG at APNG, JPG, GIF, SVG at SVGZ, TIFF (RGB at Print), WebP (still at animated), AVIF, MP4, WebM, ang mga audio container na MP3, WAV, M4A, OGG/Opus at FLAC, at HTML, Markdown at CSS. Ang ZIP ay nagtatatak sa bawat sinusuportahang member, at ganito nakakakuha ng isa ang Animated SVG. Ginagamit ng MP4, AVIF at M4A ang karaniwang BMFF binding at ng MP3 ang ID3v2 mapping nito, kaya kayang i-verify ng `c2patool` at ibang reader ang mga ito. Ang WebM at OGG/Opus ay wala pang karaniwang mapping, kaya dinadala ng Lolly ang manifest bilang Matroska attachment at OpusTags field, na sinusuri ng sariling verifier ng Lolly. Ang SVGZ ay compressed na SVG, at walang tinutukoy na compressed na anyo ang C2PA specification, kaya isinusulat ang credential sa SVG bago ito i-compress: binabasa ng verifier ng Lolly ang file kung ano ito, at binabasa ng `c2patool` ang parehong credential kapag na-decompress na ang file (`gunzip`). Ang ICO, EPS, EMF, DXF, BMP, PPTX, ang mga Office format at ang iba pang text at data format ay walang C2PA container.
-- **Ang itinatala nito.** Ang tool at app na gumawa ng file, ang oras ng pagpirma, ang shell na nag-export nito, para sa Design page na na-export bilang larawan, SVG o PDF ang renderer na gumuhit nito (`route` sa `tools.lolly.export` assertion: `gpu` para sa GPU page renderer, `operations` para sa mga drawing operation na isinulat bilang vector, `compatibility` para sa sariling renderer ng browser) at ang bersyon ng renderer na iyon (`renderer`: ang GPU recipe, `design-draw-v` at ang bersyon nito, o `dom-to-image` at `dom-walker`; hindi kailanman itinatala ang bersyon ng mismong browser), ang [design system at colourway](#the-design-system-record) habang naka-tsek ang **Design system** card, at ang mga aktibong setting: mga menu choice, numero, switch at kulay ayon sa mga ito, at anumang tina-type (pamagat, pangalan, tala, link at petsa) bilang fingerprint lang, kaya wala ang mga salita sa file. Hindi isinasama ang mga profile-bound na field, mga hindi aktibong kontrol, bersyon ng browser at detalye ng operating system. Lumilitaw ang pangalan at email mo bilang author kapag naka-on lang ang **Use my details to create** sa Settings → Preferences → Your details. Ang mga source na inilalagay ng export ay sumasama bilang ingredient: [mga credited work](#source-credits) tulad ng emoji, at [Rondocode song](/info/rondocode.html#songs-in-the-credential) sa video o audio export.
-- **Ang nakikita ng mga tatanggap.** Ang mga C2PA tool tulad ng Adobe app, `c2patool` at contentcredentials.org/verify ay binabasa ang manifest at ipinapakita ang claim. Pumipirma ang Lolly gamit ang key na ginawa sa device mo, hindi certificate mula sa trust list, kaya nag-uulat ang mga viewer ng *unverified* na credential: totoo ang istruktura at tamper evidence, hindi pinatotohanan ang pumirma. Para baguhin iyon, mag-enrol ng **verified identity** sa ilalim ng Settings → Preferences → Content Credentials; tingnan ang [Content Credentials Identity](/info/content-credentials-identity.html).
-- **Pag-check ng file.** Mag-drop ng anumang file sa [Verify](/verify), o patakbuhin ang `lolly validate <file>`, para sa on-device na ulat na nangunguna sa kung ang Lolly ang gumawa ng file at kung nagbago ito mula noon. Tumitingin din ang Verify lampas sa credential; tingnan ang [Ano ang sinusuri ng Verify](/info/what-verify-checks.html).
-- **Privacy.** Ginagawa ang signing key para sa export at hindi kailanman lumalabas sa device mo, at ang claim ay may hawak lang ng dala na ng provenance metadata. Ang mga privacy utility na nagbabago ng sarili mong file ay walang idinaragdag na credential, at ang *Strip Hidden Data* ay nag-aalis ng C2PA manifest tulad ng anumang ibang metadata. Gumagawa ng bagong audio ang Rondocode utility, kaya pumipirma ito sa isinusulat nito ([Rondocode songs](/info/rondocode.html#files-from-the-rondocode-utility)).
-- **Mga interaksyon.** Ang PDF na protektado ng password ay hindi kayang magdala ng Content Credentials, sa alinmang tier. Huling idinaragdag ang credential, sa ibabaw ng tapos na mga byte, pagkatapos ng DPI, EXIF, colour profile, PDF/X metadata at print mark.
+- **Naka-on bilang default.** May tsek ang **C2PA Credentials** card para sa halos bawat tool. Alisin ang tsek para sa isang export, o ipasa ang `c2pa=off` sa link. Mawawalan ng credential ang file, at ang SVG na naglalagay ng artwork na may credential sa mismong nilalaman nito, tulad ng logo sa catalog, ay mawawalan din ng credential ng artwork na iyon. Nananatili ang Lolly Imprint at ang iba pang metadata ng file. Puwedeng piliin ng tool na hindi isama ito sa manifest nito.
+- **Mga format.** PDF (RGB at Print), PNG at APNG, JPG, GIF, SVG at SVGZ, TIFF (RGB at Print), WebP (still at animated), AVIF, MP4, WebM, HTML, Markdown, CSS at ang mga audio container na MP3, WAV, M4A, OGG/Opus at FLAC. Nilalagyan ng ZIP ang bawat suportadong miyembro nito, kaya nagkakaroon ng credential ang Animated SVG. Ginagamit ng MP4, AVIF at M4A ang standard na BMFF binding at ng MP3 ang ID3v2 mapping nito, kaya nave-verify sila ng `c2patool` at iba pang reader. Wala pang standard na mapping ang WebM at OGG/Opus, kaya inilalagay ng Lolly ang manifest bilang Matroska attachment at OpusTags field, na sinusuri ng sariling verifier ng Lolly. Ang SVGZ ay compressed na SVG. Walang tinutukoy na compressed na anyo ang C2PA specification, kaya isinusulat ang credential sa SVG bago i-compress. Binabasa ng verifier ng Lolly ang file kung paano ito naroon; binabasa ng `c2patool` ang parehong credential kapag na-decompress na ang file (`gunzip`). Walang C2PA container ang ICO, EPS, EMF, DXF, BMP, PPTX, mga Office format at iba pang text at data format.
+- **Ano ang itinatala nito.** Ang tool at app na gumawa ng file, ang oras ng pagpirma at ang shell na nag-export ng file. Para sa Lolly Design page na na-export bilang larawan, SVG o PDF, ang renderer na gumuhit ng page (`route` sa `tools.lolly.export` assertion: `gpu` para sa GPU page renderer, `operations` para sa mga drawing operation na isinulat bilang mga vector, `compatibility` para sa sariling renderer ng browser) at ang bersyon ng renderer na iyon (`renderer`: ang GPU recipe, `design-draw-v` at ang bersyon nito, o `dom-to-image` at `dom-walker`). Ang [design system at colourway](#the-design-system-record) habang may tsek ang **Design system** card. Ang mga aktibong setting: mga pagpipilian sa menu, numero, switch at kulay ayon sa mga ito, at anumang tinype (mga pamagat, pangalan, tala, link at petsa) bilang fingerprint lang, kaya wala sa file ang mga salita. Hindi isinasama ang mga field na nakatali sa profile, hindi aktibong kontrol, bersyon ng browser at detalye ng operating system. Lumalabas lang ang pangalan at email mo bilang may-akda kapag naka-on ang **Use my details to create** sa Settings → Preferences → Your details. Sumasama bilang mga ingredient ang mga source na inilalagay ng export. Bawat larawan sa page na may sariling Content Credential ay itinatala bilang bahagi ng page, kasama ang credential na iyon at anumang AI source type na idinedeklara nito. Ganito sa PNG, JPEG, WebP, AVIF, TIFF, SVG o PDF, at sa GIF, APNG, animated WebP, MP4 o WebM kapag iginuhit ang larawan sa kahit isang frame ng na-export na saklaw. Ang isang larawang binabago ng tool tulad ng Darkroom, Filter o Asset Export ay itinatala sa halip bilang parent ng file, binubuksan muna at sinusundan ng ginawa ng tool sa larawan. Ang iba pang ingredient ay [mga gawang binigyan ng credit](#source-credits) tulad ng emoji, [mga kanta ng Lolly Rondocode](/info/rondocode.html#songs-in-the-credential) sa video o audio export at [mga na-save na tugtugin](/info/generated-music.html#what-a-track-records) sa video o audio export. Bawat na-save na tugtugin ay may pangalan nito, lisensya kapag nagtala nito ang tugtugin, SHA-256 ng recipe nito, bersyon ng engine at algorithmic media. Idinaragdag lang ang gumawa ng na-save na tugtugin (ang pangalan sa profile noong na-save ito) habang naka-on ang **Use my details to create**, tulad ng sarili mong pangalan. Saka lang ipinapakita ng export panel ang gumawa bago ka mag-export.
+- **Isang approval, kapag may naitala.** Puwedeng may pangalawang pinirmahang record sa ibabaw ng credential na ito ang file na naaprubahan sa pamamagitan ng [Lolly Work](/info/work-approvals.html#review-an-exported-file): ang approval id, petsa ng desisyon at digest ng file na sinuri. Wala itong mga pangalan, email, group, komento o pangalan ng chain. May tsek ito bilang default sa request dialog at puwedeng alisin ang tsek para sa isang request o i-off para sa isang instance. Itinatala nito na nagpahayag ng desisyon ang isang pumirma. Hindi nito sinasabing nakakatugon ang gawa sa anumang pamantayan.
+- **Ano ang ipinagawa rito, para sa file na ginawa mula sa isang [intent](/info/visual-intent.html#what-goes-in-the-file).** Ang layunin, surface, tool, wika, mga bersyon ng tuntunin at bokabularyo at ang intent digest. Fingerprint lang ang okasyon, audience, rehiyon at prompt, maliban kung hilingin ng tao o agent na nagpapatakbo ng render na iyon na itala ang mga salita ng prompt. Ang render lang na nagsimula sa intent ang may record na ito. Sinasabi ng run kung ano ang naitala nito, at puwedeng hindi isama ang record.
+- **Ano ang nakikita ng mga tatanggap.** Binabasa ng mga C2PA tool tulad ng Adobe apps, `c2patool` at contentcredentials.org/verify ang manifest at ipinapakita ang claim. Pumipirma ang Lolly gamit ang key na ginawa sa device mo, hindi certificate mula sa trust list, kaya iniuulat ng mga viewer ang credential bilang *hindi na-verify*. Valid ang istruktura at ebidensya ng pakikialam, pero walang gumagarantiya sa pumirma. Para baguhin iyon, mag-enrol ng **verified identity** sa Settings → Preferences → Content Credentials; tingnan ang [Content Credentials Identity](/info/content-credentials-identity.html).
+- **Pagsusuri ng file.** Mag-drop ng anumang file sa [Lolly Verify](/#/verify), o patakbuhin ang `lolly validate <file>`, para sa ulat sa device na inuuna kung ginawa ng Lolly ang file at kung nagbago ito mula noon. Sinusuri rin ng Lolly Verify ang higit pa sa credential; tingnan ang [Ano ang sinusuri ng Lolly Verify](/info/what-verify-checks.html).
+- **Privacy.** Ginagawa ang signing key para sa export at hindi ito kailanman umaalis sa device mo. Hawak lang ng claim ang dati nang nasa metadata ng pinagmulan. Walang idinaragdag na credential ang mga privacy utility na nagbabago ng sarili mong mga file, at inaalis ng *Lolly Strip Hidden Data* ang C2PA manifest tulad ng anumang ibang metadata. Gumagawa ng bagong audio ang Rondocode utility, kaya pinipirmahan nito ang isinusulat nito ([Mga kanta ng Lolly Rondocode](/info/rondocode.html#files-from-the-rondocode-utility)). Pinipirmahan ng music generator ang bawat WAV o M4A download. Itinatala ng credential na ginawa ng music generator ng Lolly ang track at ang lisensyang saklaw ng musika, CC BY 4.0, kasama ang credit nito ([Ano ang itinatala ng track](/info/generated-music.html#what-a-track-records)).
+- **Mga interaksyon.** Hindi puwedeng magkaroon ng Content Credentials ang PDF na protektado ng password, sa alinmang tier. Huling idinaragdag ang credential, sa ibabaw ng mga tapos na byte, pagkatapos ng DPI, EXIF, color profile, PDF/X metadata at print mark.
 
-### Source credits
+### Mga credit sa source
 
-Ang export na naglalagay ng gawa ng iba ay itinatala ang source na iyon sa credential. Ang emoji na iginuhit mula sa napiling emoji set ang pang-araw-araw na kaso: ang gawa, ang lumikha, ang lisensya, kung saan galing ang eksaktong mga byte at kung ano ang nagbago ay pawang sumasama sa file. Ang text sa tool na ang template ay SVG ay nag-iingat ng sariling emoji ng system, kaya walang kinikilalang credit doon. Sinasabi ng **Source credits** row kung ano ang hinihingi ng mga source sa delivery bago ka mag-download, at pagkatapos ng download, binabasa nito pabalik ang mga naihatid na byte bago sabihing nasa file ang mga credit. Ang lisensyang nagpapapili sa iyo, tulad ng recolored na CC BY-SA glyph na ibabahagi mo na, ay nakakakuha ng card na may mga opsyon; hindi kailanman hinaharang ang download. Nasa [Creative rights at mga credit](/info/creative-rights.html) ang mga salita, ang mga nasuring lisensya at kung ano ang nananatiling sa iyo.
+Itinatala sa credential ng export ang source kapag naglalagay ito ng gawa ng ibang tao. Karaniwang halimbawa ang emoji mula sa napiling emoji set: ang gawa, gumawa nito, lisensya, pinanggalingan ng eksaktong mga byte at mga binago ay lahat sumasama sa file. Pinapanatili ng text sa tool na SVG ang template ang sariling emoji ng system, kaya walang binibigyan ng credit doon. Bago ka mag-download, sinasabi ng **Source credits** row kung ano ang hinihingi ng mga source sa paghahatid. Pagkatapos ng download, muling binabasa ng row ang mga naihatid na byte bago nito sabihing nasa file ang mga credit. Ang lisensyang humihiling sa iyong pumili, tulad ng CC BY-SA glyph na binago ang kulay na ibabahagi mo, ay nagkakaroon ng card na may mga pagpipilian. Hindi kailanman hinaharangan ang download. Nasa [Mga karapatan at credit sa likhang gawa](/info/creative-rights.html) ang mga salita, ang mga nasuring lisensya at kung ano ang nananatiling sa iyo.
 
-## Password protection
+<!--i:eti-lock-->
+## Proteksyon ng password
 
-Dalawang uri ng lock, parehong ginawa sa device mo. Ang *Password protect* card ng export panel ang nagtutulak sa dalawa.
+Gumagawa ang Lolly ng dalawang uri ng lock, pareho sa device mo. Itinatakda ng **Password** card ng export panel ang dalawa.
 
-![Ang Password protect card na naka-expand sa isang PDF export, kasama ang password field at ang dalawang lock tier](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+![Ang Password card na pinalawak sa isang PDF export, na may password field at dalawang lock tier](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-Ang **PDF open-password** ay may dalawang tier kapag nag-type ka ng password:
+**Ang password sa pagbubukas ng PDF** ay may dalawang tier kapag nag-type ka ng password:
 
-- **Weak**: 40-bit RC4, panakot at hindi proteksyon. Ang password nito ay maaaring sumama sa share link, sa malinaw na text. RGB na `pdf` lang.
-- **Strong**: AES-256 (PDF 2.0). Tina-type sa export at hindi kailanman inilalagay sa link. Naaangkop din ito sa mga Print PDF at sa bawat PDF sa loob ng batch ZIP. Ang Print PDF na Strong-locked ay nag-iingat ng CMYK, mga marka at output intent nito pero tinatanggal ang PDF/X-4 claim.
+- **Weak**: 40-bit RC4, para sa RGB `pdf` na walang print mark o bleed at may plain ASCII na password. Lumilipat sa Strong ang password na may ibang character, dahil hindi mabubuksan ng mga reader ang file na ni-lock nang ganoon sa tier na ito. Unang 32 character lang ang binibilang.
+- **Strong**: AES-256 (PDF 2.0). Naaangkop din ito sa mga Print PDF at sa bawat PDF sa loob ng batch ZIP. Pinapanatili ng Print PDF na ni-lock gamit ang Strong ang CMYK, mga mark at output intent nito pero inaalis ang PDF/X-4 claim.
 
-Ang **naka-lock na ZIP** ay sumasaklaw sa ZIP export, folder download mula sa Projects o batch, na may isang password sa dalawang tier: **Weak** (ZipCrypto, panakot; maaari itong sumama sa `?password=` link) o **Strong** (AES-256, tina-type sa export, hindi kailanman sa link). Pinoprotektahan ng password ang bawat member, at ang anumang PDF sa loob ay naka-lock din gamit ang AES-256 nang mag-isa, kaya nananatili itong naka-lock pagkatapos i-unpack ang ZIP. Lumilitaw ang prompt kapag nagsimula ang download; ang blangkong password ay nangangahulugang walang lock.
+::: warning Pampahirap lang ang Weak, hindi proteksyon
+Gamitin ang **Strong** para sa kumpidensyal na file.
+:::
 
-Ang **share link na may password** ay humihingi ng password sa tatanggap bago ito magbukas. Ang buong link state ay ine-encrypt gamit ang AES-256 sa ilalim ng key na hinango mula sa password (PBKDF2), kaya ciphertext lang ang sumasama at nangyayari ang decryption sa browser ng tatanggap. Ang server na naghahatid ng link ay hindi kailanman nakakakita ng password o ng design. I-on ito sa **Share** dialog. Ang naka-encrypt na link ay bumubukas lang sa Lolly, hindi kailanman bilang naka-embed na larawan. Tingnan ang [URL Mode](/info/url-mode.html).
+**Ang naka-lock na ZIP** ay sumasaklaw sa ZIP export, folder download mula sa Projects o batch, na may isang password sa dalawang tier: **Weak** (ZipCrypto, pampahirap lang) o **Strong** (AES-256). Pinoprotektahan ng password ang bawat miyembro. Bawat PDF sa loob ay hiwalay ding naka-lock gamit ang AES-256, kaya nananatiling naka-lock ang PDF pagkatapos i-unpack ang ZIP. Lumalabas ang prompt kapag nagsimula ang download. Walang lock kapag blangko ang password.
 
-## Sa telepono
+**Hindi isinasama sa mga link ang tinype na password sa parehong tier.** Kapag dumating ang file sa pamamagitan ng `?password=` link, binabasa ng Lolly ang value at agad itong inaalis sa address. Ang link na humihiling ng lock na hindi kayang hawakan ng file nito ay walang isinusulat na file at sinasabi kung bakit (tingnan ang [`password`](/info/url-parameters.html)).
 
-Ang mga export control ay nasa likod ng lumulutang na **Export** button, na nagbubukas ng **Export** sheet: ang parehong mga format, laki, copy, download at share, na akma sa touch.
+**Ang share link na may password** ay humihingi ng password sa tatanggap bago ito bumukas. Ine-encrypt ang state ng link gamit ang AES-256 sa ilalim ng key na hinango mula sa password (PBKDF2). Ciphertext lang ang ipinapasa, at nangyayari ang decryption sa browser ng tatanggap. Hindi kailanman nakikita ng server na naghahatid ng link ang password o ang design. I-on ito sa **Share** dialog. Sa Lolly lang bumubukas ang encrypted na link, hindi kailanman bilang naka-embed na larawan. Tingnan ang [URL Mode](/info/url-mode.html).
 
-## Mga format id para sa mga link at CLI
+<!--i:eti-monitor-->
+## Sa phone
 
-Ito ang mga value para sa URL `format=` parameter at CLI `--export=` flag (tingnan ang [Mga URL parameter](/info/url-parameters.html) at [CLI](/info/cli.html)). Ipinapakita lang ng menu ng tool ang mga format na kaya nitong gawin, kaya laging mas maikli ito kaysa sa listahang ito.
+Nasa likod ng lumulutang na **Export** button ang mga kontrol sa export, na nagbubukas ng **Export** sheet: ang parehong mga format, laki, copy, download at share, na ang laki ay para sa touch.
+
+<!--i:eti-code-->
+## Mga format id para sa mga link at sa CLI
+
+Ito ang mga value para sa URL `format=` parameter at CLI `--export=` flag (tingnan ang [Mga URL parameter](/info/url-parameters.html) at [CLI](/info/cli.html)). Ipinapakita lang ng menu ng tool ang mga format na kayang gawin ng tool na iyon.
 
 | Uri | Mga id |
 |---|---|
 | Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `jxl` · `jxl-lossless` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
-| Vector | `svg` · `svgz` (gzipped SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (cut file) |
+| Vector | `svg` · `svgz` (SVG na naka-gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (cut file) |
 | Page at dokumento | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) · `idml` (InDesign) · `penpot` (Penpot design file) · `scorm` (course package, isang ZIP) |
 | Motion | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` · `lottie` (dotLottie) · `premiere-xml` (Premiere XML + media) |
-| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (mga MIDI note, mula sa Rondocode) |
+| Audio | `wav` · `mp3` · `m4a` · `aac` · `opus` · `ogg` · `flac` · `mid` (mga MIDI note, mula sa Lolly Rondocode) |
 | Text at data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `srt` · `vtt` · `ttml` · `scc` · `css` · `scss` · `gpl` (GIMP palette) |
-| Mga bundle at package | `zip` · `rpm` at `tar.gz` (ang render na selyado sa Linux package) |
+| Mga bundle at package | `zip` · `rpm` at `tar.gz` (ang render na naka-seal sa Linux package) |
 
-Ang ilang id ay galing sa sariling export code ng tool: `ase` (Adobe Swatch Exchange, mula sa Palette Lab) at `exr` at `hdr` (high-dynamic-range raster, mula sa Darkroom). Ang **Convert Font** ay nagsusulat ng `ttf`, `otf` at `woff` mula sa font file na ibibigay mo, kaya ang hubad na link ay walang maire-render dito.
+May ilang id na galing sa sariling export code ng tool: `ase` (Adobe Swatch Exchange, mula sa Lolly Palette Lab) at `exr` at `hdr` (mga high-dynamic-range raster, mula sa Lolly Darkroom). Nagsusulat ang **Convert Font** ng `ttf`, `otf` at `woff` mula sa font file na ibinibigay mo, kaya walang mairender ang tool mula sa isang link lang.

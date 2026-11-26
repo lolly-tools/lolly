@@ -59,7 +59,7 @@
 .rt-tool.is-active {
   background: hsl(var(--primary) / 0.12);
   border-color: hsl(var(--primary));
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 /* The fill progress lives IN the bar so the eye never has to leave the image. */
 .rt-progress {

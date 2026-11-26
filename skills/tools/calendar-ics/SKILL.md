@@ -5,7 +5,7 @@ description: "Operate the Lolly Calendar tool (calendar-ics) using its declared 
 
 # Calendar
 
-Tool ID: `calendar-ics`. Tool version: `1.2.4`. Engine range: `^1.0.0`.
+Tool ID: `calendar-ics`. Tool version: `1.3.0`. Engine range: `^1.0.0`.
 
 Turn event details into a calendar (.ics) file for any calendar app.
 
@@ -32,6 +32,8 @@ Required host APIs: none. Device capabilities: none.
 | url | url |  |
 | reminder | select |  |
 | events | blocks |  |
+| ground | select |  |
+| density | select |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

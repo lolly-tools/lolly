@@ -129,6 +129,22 @@ export interface BrandPageLogoV1 {
   licence?: string;
 }
 
+/**
+ * A colour the design system names in its own words. The values are in the token files
+ * for each colourway and mode, and a reader takes them from there through `token`. The
+ * label and description are the brand's text: data, never instructions.
+ */
+export interface BrandPageColourRoleV1 {
+  /** Permanent within the design system. */
+  id: string;
+  label: string;
+  description?: string;
+  /** The token to use, `color.semantic.<id>`. */
+  token: string;
+  /** The slots Lolly reads this as. Empty means by name only: no tool picks it by itself. */
+  fills: Array<'primary' | 'secondary' | 'surface' | 'text' | 'muted' | 'edge'>;
+}
+
 /** `brand.json`. */
 export interface BrandPageV1 {
   version: typeof BRAND_PAGE_VERSION;
@@ -144,6 +160,8 @@ export interface BrandPageV1 {
   files: BrandPageFileV1[];
   /** Added after the first release of this format, so a reader treats it as optional. */
   logos?: BrandPageLogoV1[];
+  /** The brand's own colour words, in its order. Absent when it declares none, and on a page from before this field. */
+  colourRoles?: BrandPageColourRoleV1[];
   held: BrandPageHeldV1[];
   checks: BrandPageChecksSummaryV1;
   /** A host may add a publish time. It sits outside the digest, so it changes no identity. */

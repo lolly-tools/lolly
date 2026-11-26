@@ -21,5 +21,6 @@
     "differentiate": "colour",
     "donutRadius": 0.62,
     "sliceGap": 2
-  }
+  },
+  "galleryTheme": "light"
 }

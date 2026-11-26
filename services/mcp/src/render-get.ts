@@ -26,7 +26,13 @@
  *  - Every 200 carries `Content-Security-Policy: sandbox`: html/svg output is
  *    tool-authored markup fed by query params and must never execute in the
  *    lolly.tools origin when navigated to directly (as an `<img src>` the header
- *    is moot; this guards direct navigation).
+ *    is moot; this guards direct navigation). ttml is XML a browser opens as a
+ *    document too, so it gets the same header, and its writer escapes every cue.
+ *    `X-Content-Type-Options: nosniff` holds each body to its stated type, so scss
+ *    and the plain-text caption and palette files are never used as a stylesheet.
+ *    css is one, but only to a page that links it, and its body comes from the
+ *    engine's palette writer: slugged names and checked colours, nothing else.
+ *    test/text-formats.test.ts holds these headers and that body to a hostile query.
  *  - Self-hosters can switch the route off entirely: LOLLY_DISABLE_RENDER_GET=1
  *    makes every /tool/<id>.<ext> URL return 404.
  *
@@ -104,8 +110,8 @@ const MAX_DPI = 1200;
 export const MAX_RASTER_PIXELS = 2048 * 2048;
 
 // Reserved params this route never reads: the format is the path's extension,
-// Content Credentials are always off, no pdf is served (so no password), and
-// the rest steer the app or a download, not a GET render.
+// Content Credentials are always off, no pdf is served (a password is refused before
+// this list is read, in renderGet), and the rest steer the app or a download, not a GET render.
 const IGNORED_RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', 'c2pa', 'password', 'nostage', 'kiosk', 'present', 'options', 'full', 'iframe']);
 
 /** Params in `params` that cannot change this tool's render, in first-seen order. */
@@ -299,6 +305,9 @@ export async function renderGet(path: string, query: string, opts: RenderGetOpts
   try { expanded = await expandQuery(query); }
   catch { return errorResponse(400, 'Invalid packed render query.'); }
   const params = new URLSearchParams(expanded);
+  // Nothing on this route can lock a file, and a redirect that dropped the password would
+  // hand over an unlocked one as if it had been honoured. The value is never repeated.
+  if (params.has('password')) return errorResponse(400, 'This route cannot lock a file, so nothing was rendered. Take the password out of the address, and use lolly_render, the CLI or the export panel for a locked PDF or ZIP.');
   const dimErr = dimensionError(params, pngRequested);
   if (dimErr) return errorResponse(400, dimErr);
   // `_themes` (plan 291 M4) is the theme per token group, so one link can ask for a

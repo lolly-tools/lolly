@@ -1,10 +1,7 @@
 # Catalog and content
 
-This page is for the brand or library admin who decides what members can use in Lolly Work:
-which tools and brand assets they see, where those come from, how long each one stays
-available and how to retire an asset. The catalog holds tools, brand assets, tokens, fonts and
-logos from three sources, and every source passes through the same governance before it
-reaches a member.
+The catalog has tools, brand assets, tokens, fonts and logos from three sources, and every
+source passes through the same governance before it reaches a member.
 
 An existing DAM can remain the source of record. Lolly Work connects its selected assets to Lolly production while the organisation retains the choice to keep the connection or plan a transition. [Use Lolly with your existing DAM](/info/use-with-dam.html) explains the responsibilities; [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records successful integration and administrator change management.
 
@@ -14,6 +11,7 @@ The pack, connected providers and member submissions pass through exposure, life
 
 ![The governed catalog: served assets with lifecycle, expiry and one-click revocation](shots/catalog-assets.svg)
 
+<!--i:eti-package-->
 ## The pack
 
 `instance.pack` points at a directory, a "brand pack". Everything brand-shaped lives there,
@@ -41,6 +39,7 @@ the mounted catalog, and selection, retirement and suppression persist in Postgr
 changing mounted files. Source layouts, permissions, reference impact and rollback are on
 [Design-system administration](design-system-administration.md).
 
+<!--i:eti-lock-->
 ## Access modes
 
 `policy.defaultAccessMode` decides who may read the catalog at all:
@@ -56,6 +55,7 @@ that should not see them ([governance](governance.md#visibility)). Assets can be
 groups when they are submitted (below), and each provider has its own [exposure
 rules](#exposure-governance).
 
+<!--i:eti-upload-->
 ## Submitting an asset
 
 The pack does not change at runtime and providers are read-only, so submission is how a member
@@ -70,13 +70,15 @@ The file is the raw request body, and the declared metadata travels as query par
 (`name`, `description`, `tags`, `type`, `groups`). The response gives the new `inst/<id>`
 asset, its checksum and the state it arrived in.
 
-**Open to authors by default.** Anyone holding `catalog.submit` can submit, and the asset is
-live the moment it is stored. To require review, set `policy.submit.chain` to an approval
-chain. A submission then waits in state `submitted`, invisible in the feed, unservable at
-`/catalog/*` and not linkable, until an approver publishes the asset. If `policy.submit.chain` gives a
-chain this instance does not have (a rename, a deletion, a first boot in the wrong order),
-submissions are refused with `503 SUBMIT_CHAIN_MISSING`, giving the chain to fix. Lolly Work never
-falls back to publishing without review.
+::: note Open to authors by default
+Anyone holding `catalog.submit` can submit, and the asset is live the moment it is stored. To
+require review, set `policy.submit.chain` to an approval chain. A submission then waits in state
+`submitted`, invisible in the feed, unservable at `/catalog/*` and not linkable, until an approver
+publishes the asset. If `policy.submit.chain` gives a chain this instance does not have (a rename,
+a deletion, a first boot in the wrong order), submissions are refused with
+`503 SUBMIT_CHAIN_MISSING`, giving the chain to fix. Lolly Work never falls back to publishing
+without review.
+:::
 
 What happens to the file, in order:
 
@@ -95,7 +97,8 @@ that says `image/png` and is not one is stored as what it is.
 
 - **Exposure.** `groups` narrows who sees the asset, and only to groups the submitter is in, so
   nobody publishes into a group they are not a member of. With no `groups`, every member sees
-  it, like a pack asset.
+  it, like a pack asset. People in a [partner programme](partner-programmes.md#what-a-programme-does)
+  are the exception: an asset shared with everyone does not reach them.
 - **Quota.** A quota scope is a group name, and a submission is charged to **every** group its
   submitter belongs to, before the file is stored, so extra memberships only tighten a budget.
   A refused submission is refunded; a returned one is not, because the file was still stored.
@@ -106,7 +109,7 @@ that says `image/png` and is not one is stored as what it is.
   this origin, so a member's file never runs as whoever opens it: through `/catalog/*`, through
   a share link or in the review preview.
 
-The console's Catalog view has a **Submit an asset** button for anyone holding
+The console's Catalog view has a **Submit an asset** button for anyone with
 `catalog.submit`: choose a file or a template's JSON, give it a name and tags, then send the
 file. The button reports whether the asset went live or is waiting for review. From a terminal:
 
@@ -127,7 +130,7 @@ POST /api/v1/catalog/submit?type=user-tool                               # body:
 
 - A template body is `{ "toolId", "name", "description"?, "values" }`: the file the app's
   **Export as file** writes, plus the tool id, which `toolId=` supplies when the file does not
-  carry one.
+  have one.
 - A user tool body is `{ "baseToolId", "title", "description"?, "icon"?, "formats"?, "values" }`.
 - The `name` query parameter is optional for both; the document's own name is used.
 
@@ -141,7 +144,7 @@ draw inside every other member's app.
 The review queue shows what each one seeds ("Template for Lolly Design (design), 12 values") where a
 file would show a thumbnail, and keeps its type: a reviewer can rename or retag it but not turn
 it into an image. Once live, it appears in the feed as an asset of type `template` or
-`user-tool` with one `json` format, and its entry's `meta` carries `toolId` (or `baseToolId`)
+`user-tool` with one `json` format, and its entry's `meta` includes `toolId` (or `baseToolId`)
 and `valueCount`, so an app can offer it before downloading the collection.
 
 ### Reviewing what was submitted
@@ -153,7 +156,7 @@ PATCH /api/v1/catalog/submissions/<id>         { "name": "…", "tags": ["…"],
 POST  /api/v1/catalog/submissions/<id>/act     { "action": "approve" | "reject", "comment": "…" }
 ```
 
-The queue needs `catalog.read`, which the `viewer` role carries, but the rows are the real
+The queue needs `catalog.read`, which the `viewer` role has, but the rows are the real
 gate: a caller sees their own submissions plus the ones open on a step their groups may act on,
 the same two-sided rule the approvals inbox uses. Deciding goes through the approvals engine,
 so separation of duties and step eligibility are enforced in one place, and the same decision
@@ -169,7 +172,7 @@ this to their own submission while it waits. It touches nothing else: not the fi
 exposure the submitter chose. It refuses once the submission has settled, because a published
 asset is an ordinary catalog asset from then on.
 
-**Choosing a collection.** A reviewer who also holds `catalog.collection.manage` can set
+**Choosing a collection.** A reviewer who also has `catalog.collection.manage` can set
 `"collectionId": "launch-kit"` (or `null` to clear the choice). Nothing joins while the submission
 waits: on approval the asset is appended to that collection, keeping the curated order, and the
 approval's audit event records the collection. A collection deleted in the meantime is left
@@ -192,13 +195,14 @@ has nothing else to attach the event to), `catalog.approve-submission` and
 `catalog.return-submission` on the way out, and `catalog.edit-submission` with the before and
 after of every field a correction moved. These are audit actions, not grantable permissions.
 
+<!--i:eti-tag-->
 ## Org-defined metadata
 
 Tags are a flat list. Custom fields let your organisation define the fields it files assets
 under, and fill them in on any asset the deployment serves.
 
 **Definitions are policy.** They live in the [governance document](governance.md#policy-as-code)
-beside grants, overlays, chains and flags, so `lw export` and `lw apply` carry them, the boot
+beside grants, overlays, chains and flags, so `lw export` and `lw apply` include them, the boot
 seed brings a fresh deployment up with your taxonomy in place, and a change can be reviewed
 like any other policy change.
 
@@ -246,7 +250,7 @@ PUT /api/v1/catalog/assets/<id>/meta          # catalog.edit
 - Every change is audited as `catalog.edit` with its before and after. Defining or retiring a
   field is audited as `catalog.field.edit` or `catalog.field.delete`.
 
-Values reach the feed as one additional `fields` bag on the entry that carries them:
+Values reach the feed as one additional `fields` bag on the entry that has them:
 
 ```json
 { "id": "lolly/tokens/brand", "name": "Brand tokens",
@@ -282,7 +286,7 @@ with `PUT /api/v1/catalog/text-index/<assetId>`, sending `text`, `sourceRevision
 - Asset inspection returns `textIndex` status and `textIndexFiles` without returning the
   words. Indexed browse, and the local part of live search, leave out bound words once that
   indexed revision or file no longer matches.
-- Ordinary feeds and audit events carry no extracted words; audit records counts and source
+- Ordinary feeds and audit events include no extracted words; audit records counts and source
   identity.
 
 A revision binding is an indexed snapshot check. It does not verify historical bytes or promise
@@ -331,6 +335,7 @@ prefix. **Providers → Tags** on a provider's row opens the same list for that 
 provider that `instance.json` manages can declare `mapping.hiddenTags` there, and those show in
 the list as set in `instance.json`.
 
+<!--i:eti-folder-shared-->
 ## Collections
 
 A **collection** is a named, ordered set of catalog assets with its own group visibility: the
@@ -354,14 +359,14 @@ Members are **ids**, not rows, so:
 - one set mixes instance-owned (`inst/*`), federated (`ext/*`) and pack assets freely;
 - **the order is yours** and is kept exactly; a repeated id keeps its first position;
 - nothing reads a member until it is served, so an asset that is later expired, revoked or
-  deleted simply stops appearing. There is no repair step, and deleting a collection deletes
+  deleted stops appearing. There is no repair step, and deleting a collection deletes
   the list and nothing else.
 
 A `PUT` refuses any member the curator cannot see, and making a link to the set refuses any
 member the *link's maker* cannot see. Together those two keep a link from widening exposure
 ([the two rules](permissions.md#curating-a-shareable-set-catalogcollectionmanage)).
 
-The per-caller feed carries collections as one additional `collections` key beside `assets`:
+The per-caller feed includes collections as one additional `collections` key beside `assets`:
 
 ```json
 { "assets": [ ... ],
@@ -394,20 +399,23 @@ POST /api/v1/links   { "kind": "share", "target": { "collectionId": "launch-kit"
 
 The two link checks apply one level up: **exposure when the link is made**, and **lifecycle on
 every visit, per member**. Making the link requires seeing the collection *and* every asset it
-holds; a refusal is `403 MEMBER_NOT_VISIBLE`, reporting how many members were unseen, never
+has; a refusal is `403 MEMBER_NOT_VISIBLE`, reporting how many members were unseen, never
 which. An expired or revoked asset leaves the page and the archive together, on a link that is
 otherwise live, and the page says how many were left out, never which.
 
 The page shows **that collection only**: no search, no browsing past the set, no
 self-registration and no route into the rest of the catalog. Asking the link for an asset the
-collection does not hold is `404 NOT_IN_COLLECTION`, even with a valid signature.
+collection does not have is `404 NOT_IN_COLLECTION`, even with a valid signature.
 
 The zip is built in the process from Node's own `zlib`, streamed member by member with no temp
-files, and its entries are named for the asset and made unique. A set too large to zip is
+files, and its entries are named for the asset and made unique. Every zip starts with
+`CREDITS.txt` and `credits.json`, listing only the files in that zip, and the listing page shows
+one credit line where a licence asks for a credit. A set too large to zip is
 refused before a byte is sent, rather than cut short silently; download those assets one by
 one. Expiry, passwords, revocation and audit follow the ordinary [link
 rules](sharing.md#turning-a-link-off), and making a link audits as `link.create`.
 
+<!--i:eti-history-->
 ## Versions
 
 New bytes for an asset that is **already in the catalog** do not make a second asset. They
@@ -467,7 +475,7 @@ lw catalog version-rm inst/hero 2
 
 The **served** version is never deletable (roll back first, then delete), and a **held** asset
 refuses entirely with `409 ASSET_HELD`, because a [hold](#holds) only ever keeps things
-available. Version numbers are never reused after a delete: someone may still hold a `?v=N`
+available. Version numbers are never reused after a delete: someone may still have a `?v=N`
 address, and handing them different bytes under the same number would be worse than a 404.
 
 Retention is policy, and the default keeps everything:
@@ -502,9 +510,10 @@ Supersession is advice to consumers, never a takedown: the asset keeps serving u
 lifecycle says otherwise. The two work together: retire it in favour of the new one, then expire
 the old one on a date you choose.
 
+<!--i:eti-calendar-->
 ## Content lifecycle
 
-Every asset can carry a lifecycle row, the "stop sharing" control, as one action:
+Every asset can have a lifecycle row, the "stop sharing" control, as one action:
 
 ```
 GET /api/v1/catalog/lifecycle
@@ -517,6 +526,11 @@ PUT /api/v1/catalog/lifecycle/<assetId>     # catalog.expire (holds: catalog.hol
 | `validUntil` | expired at or after this instant |
 | `revokedAt` | revoked for good, whatever the dates say |
 | `onExpiry` | `hide` (default) or `warn` |
+
+::: warning Revoking an asset is for good
+A revoked asset never serves again. To take an asset out of use for a while, end its window
+with `validUntil` instead.
+:::
 
 ::: figure work-catalog-lifecycle
 An asset is scheduled, live, expired or revoked, and revoked always wins. A hold blocks only the changes that would remove the asset now.
@@ -549,9 +563,9 @@ While a hold is set, a revocation, or any edit that would make the asset unavail
 `validUntil` in the past, a `validFrom` in the future), is refused with `409 ASSET_HELD`, and the
 hold note travels with the refusal. Release the hold first; that friction is the point. Edits
 that remove nothing (scheduling a *future* expiry, extending a window) still go through, and a
-hold never blocks *serving*. Setting and releasing needs `catalog.hold` (admin, narrowable per
-resource with a grant), and is audited as `catalog.hold` and `catalog.hold.release`. An owner is
-not required, because a hold can only keep something available.
+hold never blocks *serving*. Setting and releasing needs `catalog.hold` (admin, grantable to a
+group or a person), and is audited as `catalog.hold` and `catalog.hold.release`. An owner is
+not required.
 
 A hold on a **federated** `ext/*` asset implies a pin: its bytes are copied into the instance's
 own store ([leaving a DAM](#leaving-a-dam)) while the identity stays `ext/*`, and the row reports
@@ -561,7 +575,7 @@ is already durable, because its bytes are on disk.
 
 ### Imported availability windows
 
-A federated asset can carry an **upstream availability window**: the DAM's own scheduling and
+A federated asset can have an **upstream availability window**: the DAM's own scheduling and
 expiry, imported where the provider exposes a window. Native fields are read on `brandfolder`,
 `acquia-dam`, `intelligencebank` and `optimizely-cmp`; a `mapping.availabilityFields`
 custom-field map serves `imagerelay`, `canto` and `webdav`. The window travels on the feed entry
@@ -570,7 +584,7 @@ as `availableFrom` and `availableUntil`.
 The window and the local lifecycle row combine **most restrictive first**: the asset is
 `scheduled` if either start is still in the future, and `expired` if either end has passed. A
 local admin can *narrow* an upstream window (pull the end earlier, delay the start) but never
-widen it past what the DAM allows, so the DAM stays the source of truth for its own asset.
+widen it past what the DAM allows, so the DAM is the source of truth for its own asset.
 **Upstream expiry always hides** and stops the bytes too, because `onExpiry: 'warn'` only softens
 a *local* expiry. Providers with no availability API set no window, and the manual
 `catalog.expire` control is the whole story for them.
@@ -580,9 +594,10 @@ separates **where each constraint came from**: local `validFrom`, `validUntil` a
 and the imported `upstream.availableFrom` and `upstream.availableUntil`. The console can then
 label a hidden asset "unavailable upstream" separately from a locally expired one.
 
+<!--i:eti-globe-->
 ## Catalog providers
 
-A provider is an admin-configured, **read-only** connector to a system that stays the source of
+A provider is an admin-configured, **read-only** connector to a system that is the source of
 truth. Its assets join the feed namespaced `ext/<providerId>/<remoteId>`, so lifecycle rows,
 grants and render-cache invalidation work on them unchanged. Lolly stores references plus its own
 governance overlays, and deleting a provider never touches remote content.
@@ -615,6 +630,7 @@ for the kinds that have one registered (`dropbox`, `gdrive`, `o365`). The other 
 capture the same sealed blob through `credential` until their authorize endpoint is confirmed
 against a real tenant. The console equivalent is **This Deploy → Providers**.
 
+::: details Notes on Cloudinary, Orange Logic, Image Relay, Canto and Optimizely CMP
 A few kinds need a note:
 
 - **Cloudinary and Orange Logic** use the advanced source form and sealed credentials. Their
@@ -631,6 +647,7 @@ A few kinds need a note:
   `is_public` (and not `is_archived`) as the approved gate; a folder name or a label can scope
   an `includeSections` slice. It is also the only kind that accepts [published
   exports](#publishing-lolly-exports-out).
+:::
 
 ### Exposure governance
 
@@ -646,6 +663,13 @@ The slice filters (`requireApproved`, `includeSections`, `excludeTags`) apply wh
 fragment is built, so excluded assets never enter the feed *or* the store. Group visibility
 applies per caller, when the feed is composed. `requireApproved` maps an upstream flag; it is not
 a general territory or channel check, and not proof that every historical file was approved.
+A provider shared with all members does not reach people in a [partner
+programme](partner-programmes.md#what-a-programme-does): it needs the programme's group. To give a
+programme, or one company in it, a single folder of a source, use [provider
+folders](partner-programmes.md#provider-folders). With the [licence
+gate](partner-programmes.md#licences) on, a file reaches partners only when its licence lets it
+be passed on, your team marked it as your own, its type is exempt or someone chose to share it
+anyway. `lw catalog rights` records marks and licences.
 
 ### Credentials
 
@@ -659,7 +683,7 @@ secret with `credentialRef` (an environment variable name), and are read-only in
 one returns `409 CONFIG_MANAGED`, so change the file and redeploy. This suits GitOps or
 air-gapped installs.
 
-A credential can carry the vendor's rotation date: `lw providers credential <id> --expires
+A credential can have the vendor's rotation date: `lw providers credential <id> --expires
 2026-12-01`. `lw providers list` then warns `cred expires in Nd`, and flags `CRED EXPIRED` once
 the date passes ([operations](operations.md)).
 
@@ -718,13 +742,14 @@ Providers are integrations, not replacements. Every deployment brings its own AP
 OAuth apps (none ship in the repository), and provider names appear descriptively only. Lolly
 Work *includes an integration for* those services and is not affiliated with them.
 
+<!--i:eti-info-->
 ## Reference
 
 ### Large catalogs
 
 The feed at `/catalog/assets/index.json` is composed once per input state and per caller
 visibility, then served again until the pack, a provider fragment, a governance row or a
-lifecycle date changes. Each response carries an `ETag`, and a client that sends it back in
+lifecycle date changes. Each response has an `ETag`, and a client that sends it back in
 `If-None-Match` gets `304 Not Modified` while nothing changed.
 
 ::: details Paging, browsing, caching and ranges
@@ -807,9 +832,9 @@ because a pinned copy is read from the store from its first byte.
 
 ### Cache versions and exact source references
 
-An asset group can hold several files, including two with the same format. Lolly Work selects a file by
+An asset group can have several files, including two with the same format. Lolly Work selects a file by
 its attachment identity, not by extension or list position, and a thumbnail and a selected
-original stay separate resources.
+original are separate resources.
 
 A federated entry's `version` is a cache change token calculated from the source's `updatedAt`
 and mapped file metadata (`server/src/catalog/federation.ts`). It does not hash the original
@@ -859,6 +884,7 @@ S3 access is hand-written SigV4 (signed GET, PUT, DELETE and multipart uploads),
 any asset. [Blob limits and integrity](configuration.md#blob-limits-and-integrity) covers each
 driver's size limits, memory use, checksums and the S3 permissions and lifecycle rule.
 
+<!--i:eti-link-->
 ## Related
 
 - **Per-provider setup:** [the provider guides](providers/README.md), one per platform.

@@ -133,7 +133,8 @@ test('Lolly Demo reads as its own material: names, both looks, faces, logos and 
   const chips = [...panel.querySelectorAll<HTMLElement>('#dash-palette .ds-chip-grid .ds-chip')];
   assert.equal(chips.length, 33, 'every named colour as a chip');
   assert.ok(chips.every(c => c.querySelector('.ds-chip-fill') && c.querySelector('.ds-chip-name') && c.querySelector('button.ds-hex[data-copy]')), 'each chip is a fill, a name and a hex that copies');
-  assert.equal(panel.querySelectorAll('#dash-palette .ds-role').length, 37, 'the colour roles, folded');
+  // 37 until Lolly Demo declared its colour roles (plans/352 R6): two on-colours joined and the six colourway copies left.
+  assert.equal(panel.querySelectorAll('#dash-palette .ds-role').length, 33, 'the colour roles, folded');
   assert.equal(panel.querySelectorAll('#dash-typedemo .ds-type-row').length, 4);
   assert.deepEqual([...panel.querySelectorAll('#dash-typedemo .ds-type-family')].map(f => f.textContent), ['Outfit', 'SUSE', 'SUSE', 'SUSE Mono']);
   assert.equal(panel.querySelectorAll('#dash-logos [data-logo-id]').length, 7);

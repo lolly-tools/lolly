@@ -68,7 +68,9 @@ export async function mountEmbedPanel(
     child = await createRuntime(tool, host, state.values);
     emojiStyle = await import('../lib/emoji-runtime-style.ts');
     await emojiStyle.seedEmojiRuntime(child, host, state.emoji ? { emoji: state.emoji, emojifx: state.emojiFx ?? '', emojistyle: state.emojiStyle ?? '' } : null);
-  } catch {
+  } catch (error) {
+    // The host shows "not available" for this, so the reason has to be written down here.
+    host.log('warn', `A placed tool's settings did not open: ${(error as Error).message}`, { toolId: parsed.toolId });
     return null;
   }
   const format = parsed.format || 'svg';

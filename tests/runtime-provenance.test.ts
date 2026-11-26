@@ -375,3 +375,49 @@ test('an upscaled asset placed in a BLOCKS sub-field still declares its AI origi
   await rt.export({} as any, 'png', { c2pa: true });
   assert.deepEqual(rendered[0].c2paAiUpscale, { model: 'realesr-general-x4v3', version: 'v3' });
 });
+
+// D1: a rendition's picture is its parent only while it is the source. A camera frame
+// replaces it, and stays its replacement until the picture itself changes: a frozen
+// frame keeps showing while an unrelated asset (a lower-third headshot) changes.
+test('a rendition does not name the stored picture as its parent while a camera frame shows', async () => {
+  const svg = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8"/></svg>');
+  const store = extractC2paStore(await embedC2pa(svg, 'svg', { title: 'Stored photo' }))!.store;
+  const { host, rendered, pushFrame } = makeHost({ store });
+  const tool = filterTool();
+  tool.manifest.inputs = [{ id: 'photo', type: 'asset' }, { id: 'headshot', type: 'asset' }];
+  tool.manifest.renditionOf = { input: 'photo', action: 'c2pa.filtered' };
+  const rt = await createRuntime(tool, host, { photo: { id: 'user/photo' } });
+  await rt.export({} as any, 'png', { c2pa: true });
+  assert.deepEqual(rendered[0].c2paRendition, { action: 'c2pa.filtered' }, 'the stored picture is the source');
+  await rt.startLive();
+  pushFrame(FRAME);
+  await sleep(10);
+  rt.stopLive?.();
+  await rt.setInput('headshot', { id: 'user/headshot', source: 'user', type: 'raster', format: 'png', url: 'blob:h' } as never);
+  await rt.export({} as any, 'png', { c2pa: true });
+  assert.equal(rendered[1].c2paRendition, undefined, 'the frozen camera frame is still the source');
+  await rt.setInput('photo', { id: 'user/photo', source: 'user', type: 'raster', format: 'png', url: 'blob:again' } as never);
+  await rt.export({} as any, 'png', { c2pa: true });
+  assert.equal(rendered[2].c2paRendition, undefined, 'the same picture chosen again does not replace the frozen frame');
+  await rt.setInput('photo', { id: 'user/photo-2', source: 'user', type: 'raster', format: 'png', url: 'blob:p' } as never);
+  await rt.export({} as any, 'png', { c2pa: true });
+  assert.deepEqual(rendered[3].c2paRendition, { action: 'c2pa.filtered' }, 'a new picture is the source again');
+});
+
+test('a decoded asset frame that replaces the camera makes the picture the source again', async () => {
+  const svg = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8"/></svg>');
+  const store = extractC2paStore(await embedC2pa(svg, 'svg', { title: 'Stored photo' }))!.store;
+  const { host, rendered, pushFrame } = makeHost({ store });
+  const tool = filterTool();
+  tool.manifest.renditionOf = { input: 'photo', action: 'c2pa.filtered' };
+  const rt = await createRuntime(tool, host, { photo: { id: 'user/photo' } });
+  await rt.startLive();
+  pushFrame(FRAME);
+  await sleep(10);
+  rt.stopLive();
+  assert.equal(await rt.startLive({ source: 'asset' }), true);
+  pushFrame(FRAME);
+  await sleep(10);
+  await rt.export({} as any, 'png', { c2pa: true });
+  assert.deepEqual(rendered[0].c2paRendition, { action: 'c2pa.filtered' });
+});

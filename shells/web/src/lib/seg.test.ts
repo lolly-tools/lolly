@@ -22,7 +22,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import type { BrowserType } from 'playwright';
 
-import { segHtml } from './seg.ts';
+import { segHtml, syncSeg, wireSeg } from './seg.ts';
 import { wireTabs } from './tabs.ts';
 
 const OPTS = [{ id: 'a', label: 'Original' }, { id: 'b', label: 'Proposed' }, { id: 'c', label: 'Both' }];
@@ -191,4 +191,74 @@ test('the chosen half is lighter than its track in every theme, and the tab form
   } finally {
     await browser.close();
   }
+});
+
+// ── The one wiring ───────────────────────────────────────────────────────────
+// Segmented controls were marked by hand wherever one was used: a loop over the buttons
+// setting aria-pressed, written again in each view. wireSeg and syncSeg are that loop, once.
+
+const mountSeg = (html: string): { dom: JSDOM; root: HTMLElement } => {
+  const dom = new JSDOM(`<body><div id="root">${html}</div></body>`);
+  return { dom, root: dom.window.document.getElementById('root') as unknown as HTMLElement };
+};
+const pressed = (root: ParentNode): string[] => [...root.querySelectorAll('[aria-pressed="true"]')].map(b => b.getAttribute('data-val') ?? '');
+
+test('an option with an icon draws the icon, keeps its label as the name and gains a tooltip', () => {
+  const html = segHtml('layout', [{ id: 'grid', label: 'Grid', icon: '<svg data-i="g"></svg>' }, { id: 'list', label: 'A & B' }], 'grid', 'Layout');
+  const { root } = mountSeg(html);
+  const [grid, list] = [...root.querySelectorAll('button')] as HTMLButtonElement[];
+  assert.ok(grid!.querySelector('.seg-icon[aria-hidden="true"] svg[data-i="g"]'));
+  assert.equal(grid!.querySelector('.seg-label')?.textContent, 'Grid');
+  assert.equal(grid!.getAttribute('title'), 'Grid');
+  assert.equal(grid!.textContent, 'Grid', 'the icon adds no text to the name');
+  assert.equal(list!.querySelector('.seg-icon'), null);
+  assert.equal(list!.hasAttribute('title'), false, 'an option with no icon is drawn as before');
+  assert.equal(list!.textContent, 'A & B');
+});
+
+test('wireSeg: a press marks its own control and hands the value on, once per change', () => {
+  const opts = [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }];
+  const { dom, root } = mountSeg(segHtml('one', opts, 'a', 'One') + segHtml('two', opts, 'c', 'Two'));
+  const [one, two] = [...root.querySelectorAll<HTMLElement>('[data-be-seg]')];
+  const seen: string[] = [];
+  wireSeg(one!, { onChange: value => { seen.push(value); } });
+  const click = (el: Element): void => { el.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })); };
+  click(one!.querySelector('[data-val="b"]')!);
+  assert.deepEqual(seen, ['b']);
+  assert.deepEqual(pressed(one!), ['b']);
+  assert.deepEqual(pressed(two!), ['c'], 'a second control in the same place keeps its own choice');
+  click(one!.querySelector('[data-val="b"]')!);
+  assert.deepEqual(seen, ['b'], 'the option already chosen changes nothing');
+  click(two!.querySelector('[data-val="a"]')!);
+  assert.deepEqual(seen, ['b'], 'a control that was not wired is not heard');
+});
+
+test('wireSeg: a caller\'s own value hook, a disabled option, an aborted signal and a held press', () => {
+  const opts = [{ id: 'light', label: 'Light' }, { id: 'dark', label: 'Dark' }];
+  const { dom, root } = mountSeg(segHtml('theme', opts, 'light', 'Theme', { attr: 'data-theme-seg' }));
+  const seen: string[] = [];
+  let reachedHost = 0;
+  root.addEventListener('click', () => { reachedHost++; });
+  const controller = new dom.window.AbortController();
+  wireSeg(root.querySelector('[data-be-seg]')!, { attr: 'data-theme-seg', stopPropagation: true, signal: controller.signal as unknown as AbortSignal, onChange: value => { seen.push(value); } });
+  const dark = root.querySelector<HTMLButtonElement>('[data-theme-seg="dark"]')!;
+  const light = root.querySelector<HTMLButtonElement>('[data-theme-seg="light"]')!;
+  const click = (el: Element): void => { el.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })); };
+  click(light);
+  assert.equal(reachedHost, 0, 'the press is held even on the option already chosen');
+  dark.disabled = true; click(dark);
+  assert.deepEqual(seen, [], 'a disabled option is not chosen');
+  dark.disabled = false; click(dark);
+  assert.deepEqual(seen, ['dark']);
+  assert.equal(dark.getAttribute('aria-pressed'), 'true');
+  controller.abort(); click(light);
+  assert.deepEqual(seen, ['dark'], 'nothing is heard after the signal aborts');
+});
+
+test('syncSeg marks every control that shares a value hook, for a choice shown in two places', () => {
+  const opts = [{ id: 'grid', label: 'Grid' }, { id: 'list', label: 'List' }];
+  const { root } = mountSeg(segHtml('bar', opts, 'grid', 'Layout', { attr: 'data-layout-mode' }) + segHtml('panel', opts, 'grid', 'Layout', { attr: 'data-layout-mode' }) + segHtml('other', opts, 'grid', 'Density'));
+  syncSeg(root, 'list', 'data-layout-mode');
+  assert.deepEqual([...root.querySelectorAll('[data-layout-mode][aria-pressed="true"]')].map(b => b.getAttribute('data-layout-mode')), ['list', 'list']);
+  assert.deepEqual(pressed(root.querySelector('[data-be-seg="other"]')!), ['grid'], 'a control with another hook is left alone');
 });

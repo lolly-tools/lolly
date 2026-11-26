@@ -58,7 +58,6 @@ export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[
         ${sources.length > 1 ? `<details class="convert-file-list"><summary>${t('See selected files')}</summary><ul>${sources.map(s => `<li>${escapeHtml(s.file.name)} <span>${fmtBytes(s.file.size)}</span></li>`).join('')}</ul></details>` : ''}
       </section>
       <section class="convert-settings" aria-label="${t('Conversion settings')}">
-        <p class="convert-eyebrow">${t('Make a useful copy')}</p>
         <h2>${t('What do you need?')}</h2>
         ${imageSource ? `<div class="convert-presets" role="group" aria-label="${t('Quick presets')}">
           <button type="button" class="btn" data-preset="png"><strong>${t('Keep detail')}</strong><span>${t('PNG · original size')}</span></button>
@@ -81,7 +80,7 @@ export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[
       </section>
     </div>
     <section class="convert-completed" data-completed hidden aria-label="${t('Converted files')}">
-      <div class="convert-completed-heading"><div><p class="convert-eyebrow">${t('Ready to use')}</p><h2>${t('Your converted files')}</h2></div><button type="button" class="btn" data-zip hidden>${t('Download all as ZIP')}</button></div>
+      <div class="convert-completed-heading"><div><h2>${t('Your converted files')}</h2></div><button type="button" class="btn" data-zip hidden>${t('Download all as ZIP')}</button></div>
       <p class="convert-retention">${isTauriShell() ? t('Completed copies are saved in Recent file operations on this device, including after a reload. Originals are not retained.') : t('Completed copies are saved in Recent file operations in this browser, including after a reload. Originals are not retained.')}</p>
       <button class="btn" type="button" data-batch-report>${t('Download batch report')}</button>
       <div data-outputs></div>

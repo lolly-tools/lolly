@@ -159,7 +159,7 @@ a.dm-chapter:hover { text-decoration: underline; }
   text-overflow: clip;
   line-height: 1.35;
 }
-a.dm-chapter[aria-current="page"] { color: var(--ui-color-action-primary); }
+a.dm-chapter[aria-current="page"] { color: var(--ui-color-text-accent); }
 .lp-sec-head.dm-head--current { background: var(--ui-color-selection-surface); }
 
 /* The house target size, not the glyph size: the row is already this tall, so a
@@ -370,7 +370,7 @@ html[data-a11y-motion="reduce"] .dm-hit { transition: none; }
 .dm-step-glyph {
   flex: none;
   display: inline-flex;
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
 }
 .dm-step-glyph svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
 .dm-step:hover { background: var(--ui-color-surface-muted); }
@@ -398,11 +398,11 @@ html[data-a11y-motion="reduce"] .dm-hit { transition: none; }
   display: inline-flex;
   align-items: center;
   gap: var(--sp-2);
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
 }
 .dm-source-glyph { display: inline-flex; }
 .dm-source-glyph svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
-.dm-status-link { color: var(--ui-color-action-primary); }
+.dm-status-link { color: var(--ui-color-text-accent); }
 
 /* ── Narrow ───────────────────────────────────────────────────────────────── */
 

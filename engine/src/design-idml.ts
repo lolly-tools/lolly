@@ -57,7 +57,7 @@ export async function exportDesignIdml(opts: ExportOpts, host: HostV1): Promise<
     let s = String(value ?? '');
     if (!s || s === 'transparent' || s === 'none') return 'Swatch/None';
     if (s.startsWith('{')) s = colorToHex(await host.tokens?.resolve(s)) ?? '';
-    const variable = /^var\(--brand-(primary|on-primary|secondary|surface|text|muted|edge)\s*(?:,\s*(.+))?\)$/.exec(s);
+    const variable = /^var\(--brand-([a-z][a-z-]*)\s*(?:,\s*(.+))?\)$/.exec(s);
     if (variable) s = colorToHex(await host.tokens?.resolve(`{color.semantic.${variable[1]}}`)) ?? variable[2] ?? '';
     const rgba = parseColorToSrgb8(s);
     if (rgba?.[3] !== 1) throw new Error(`IDML requires a solid opaque paint: ${String(value)}.`);

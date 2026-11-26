@@ -5,9 +5,9 @@ description: "Operate the Lolly Screen Capture tool (screencap) using its declar
 
 # Screen Capture
 
-Tool ID: `screencap`. Tool version: `1.1.2`. Engine range: `>=1.54.0 <2.0.0`.
+Tool ID: `screencap`. Tool version: `1.1.3`. Engine range: `>=1.54.0 <2.0.0`.
 
-Screenshot or record your whole screen, a window, or a browser tab. Drag on the canvas to crop - the export stays the exact pixels you captured.
+Screenshot or record your screen, a window, or a browser tab. Drag on the canvas to crop - the export stays the exact pixels you captured.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

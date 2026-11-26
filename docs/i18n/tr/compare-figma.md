@@ -1,27 +1,31 @@
 # Lolly ve Figma
 
-_Son kontrol: 28 Eylül 2026._
+_Son denetim: 28 Eylül 2026._
 
-Tasarımcıların Figma'da çalışıyorsa bu sayfa Lolly'nin onun yanında nasıl durduğunu söyler: Figma'nın Lolly'nin yapmadığı neleri yaptığı ve Lolly'nin tekrar eden işi nerede devraldığı.
+Tasarımcıların Figma'da çalışıyorsa bu sayfa Figma'nın yapıp Lolly'nin yapmadığı işleri ve Lolly'nin tekrarlanan işleri nerede devraldığını anlatır.
 
-## Figma'nın daha iyi yaptığı
+<!--i:eti-award-->
+## Figma neyi daha iyi yapar
 
-[Figma Design](https://www.figma.com/design/) arayüz tasarımını, bileşenleri, etkileşimli prototipleri ve geliştirici devrini bir araya getirir. Bir ekibin tüm bir uygulamayı tasarlaması ve belirtmesi gerektiğinde köklü ürün tasarımı pratiği ve ekosistemi önemlidir ve canlı düzenlemesi Lolly'nin work collab'larının ulaşmadığı ölçekte çalışır.
+[Figma Design](https://www.figma.com/design/) arayüz tasarımını, bileşenleri, etkileşimli prototipleri ve geliştiriciye devri birleştirir. Bir ekip bütün bir uygulamayı tasarlayıp özelliklerini belirlerken, yerleşik ürün tasarımı pratiği ve ekosistemi önemlidir. Canlı düzenleme özelliği, Lolly'nin ekip işbirliklerinin ulaşmadığı bir ölçekte çalışır.
 
-## Örtüştükleri alanlar
+<!--i:eti-blend-->
+## Nerede örtüşürler
 
-İkisi de bir tuvalde yazı, şekil ve görselleri düzenlemene ve başkalarıyla çalışmana izin verir. Figma ayrıca şablon tabanlı marka üretimini de kapsar: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) şablonlardan varlıklar yapar ve CSV veya XLSX dosyalarından doldurur. Lolly'nin [Import a design](/info/design-import.html) özelliği Figma dosyalarını düzenlenebilir düzenler olarak açar; böylece ikisi iş paylaşabilir.
+İkisi de bir tuvalde yazı, şekil ve görselleri düzenlemeni ve başka insanlarla çalışmanı sağlar. Figma, şablon tabanlı marka üretimini de kapsar: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) şablonlardan varlıklar yapar ve bunları CSV veya XLSX dosyalarından doldurur. Lolly'nin [Bir tasarımı içeri aktar](/info/design-import.html) özelliği Figma dosyalarını düzenlenebilir düzenler olarak açar, böylece ikisi iş paylaşabilir.
 
-## Lolly örtüşen işi nasıl yapar
+<!--i:eti-lolly-->
+## Lolly ortak işi nasıl yapar
 
-Lolly bir tasarımı [kurallı, yeniden kullanılabilir bir araca](/info/create-a-tool.html) dönüştürür. Araç tarayıcıda veya CLI'de çalışır ve girdilerini bir bağlantıdan, bir betikten veya bir toplu iş ızgarasından alır; böylece tek bir şablon, tek bir dosyayı düzenleyen bir kişiye ve çok sayıda dosya yapan bir ekibe hizmet eder.
+Lolly bir tasarımı [kuralları olan, yeniden kullanılabilir bir araca](/info/create-a-tool.html) dönüştürür. Araç tarayıcıda veya CLI'da çalışır. Bir bağlantıdan, betikten veya toplu işlem ızgarasından girdi alır. Tek bir şablon, tek dosya düzenleyen bir kişiye de çok sayıda dosya yapan bir ekibe de hizmet eder.
 
-![Design'ın açık tuvali; araç çubuğunun Lolly menüsünde Import a design ile](/info/shots/design.svg)
+![Araç çubuğunun Lolly menüsünde Import a design bulunan Lolly Design açık tuvali](/info/shots/design.svg)
 
-Bir [özel collab](/info/collaborate.html) iki cihazı doğrudan eşler; ortak bir ağda hesap ve internet gerekmez. Bağımsız Lolly çevrimdışı render eder. Content Credentials desteklenen dışa aktarmalarda varsayılan olarak açıktır ve kapatabilirsin.
+Bir [özel işbirliği](/info/collaborate.html), iki cihazı doğrudan eşler; hesap gerekmez ve ortak bir ağda internet de gerekmez. Bağımsız Lolly çevrimdışı render eder. Content Credentials, desteklenen dışa aktarmalarda varsayılan olarak açıktır ve kapatabilirsin.
 
+<!--i:eti-building-->
 ## Bir kuruluşla
 
-Lolly Work; paylaşılan düzenlemeler, canlı imleçler ve kayıtlı ekip oturumlarıyla kimliği doğrulanmış work collab'lar, ayrıca çoklu oturum açma (SSO), paylaşılan kataloglar, proje izinleri, onaylar ve sunucu render'ı ekler. [What runs where](/info/compare.html#what-runs-where) iki parçayı yan yana koyar.
+Lolly Work, ortak düzenlemeler, canlı imleçler ve kayıtlı ekip oturumları içeren kimlik doğrulamalı ekip işbirlikleri ile tek oturum açma, paylaşılan kataloglar, proje izinleri, onaylar ve sunucuda render ekler. [Ne nerede çalışır](/info/compare.html#what-runs-where) iki parçayı yan yana gösterir.
 
 Figma, sahibinin ticari markasıdır. Bu sayfa iki ürünün nerede örtüştüğünü anlatır ve Figma ile bağlantılı değildir.

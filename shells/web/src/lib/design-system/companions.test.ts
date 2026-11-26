@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import { createAssetsAPI } from '../../bridge/assets.ts';
 import { createTokensAPI, USER_TOKENS_ID } from '../../bridge/tokens.ts';
 import { createDesignSystemRegistry, type RegistryDb } from './registry.ts';
-import { readCompanionDesignSystems, seedCompanionDesignSystems, type CompanionHost } from './companions.ts';
+import { keepShippedDesignSystem, readCompanionDesignSystems, seedCompanionDesignSystems, type CompanionDesignSystem, type CompanionHost } from './companions.ts';
 import { removeDesignSystem, renameDesignSystem } from './manage.ts';
 import { DESIGN_SYSTEMS_LISTED_EVENT } from './list-event.ts';
 import { resetDesignSystem, resetKind } from './reset.ts';
@@ -22,7 +22,7 @@ import bundledStarter from '../../../../../brands/lolly-start/catalog/assets/lol
 
 const CATALOG_DOC = { color: { brand: { ink: { $type: 'color', $value: '#1d1d1d' } } } };
 const DEMO = { id: 'lolly/tokens/demo', name: 'Lolly Demo', doc: { color: { brand: { mint: { $type: 'color', $value: '#3fd1a4' } } } } };
-const STARTER = [{ tokens: 'lolly/tokens/brand', label: 'Lolly Starter' }];
+const STARTER: CompanionDesignSystem[] = [{ tokens: 'lolly/tokens/brand', label: 'Lolly Starter' }];
 const blobOf = (doc: unknown) => new Blob([JSON.stringify(doc)], { type: 'application/json' });
 
 function memDb() {
@@ -61,11 +61,15 @@ function memDb() {
   return db;
 }
 
-async function rig(opts: { legacy?: boolean; catalog?: { id: string; name: string; doc: unknown }; logos?: string[] } = {}) {
+async function rig(opts: { legacy?: boolean; catalog?: { id: string; name: string; doc: unknown }; logos?: string[]; brandLock?: boolean; also?: { id: string; name: string; doc: unknown }[] } = {}) {
   const db = memDb();
   const catalog = opts.catalog ?? { id: 'lolly/tokens/brand', name: 'Lolly Starter Tokens', doc: CATALOG_DOC };
   await db.put('asset-meta', { id: catalog.id, type: 'tokens', name: catalog.name, version: '1.0.0', formats: [{ format: 'json', url: '/x.json' }] });
   await db.put('asset-blob', blobOf(catalog.doc), `${catalog.id}:json:1.0.0`);
+  for (const extra of opts.also ?? []) {
+    await db.put('asset-meta', { id: extra.id, type: 'tokens', name: extra.name, version: '1.0.0', formats: [{ format: 'json', url: '/y.json' }] });
+    await db.put('asset-blob', blobOf(extra.doc), `${extra.id}:json:1.0.0`);
+  }
   for (const id of opts.logos ?? []) {
     await db.put('asset-meta', { id, type: 'vector', name: id, version: '1.0.0', formats: [{ format: 'svg', url: '/logo.svg' }] });
   }
@@ -76,7 +80,7 @@ async function rig(opts: { legacy?: boolean; catalog?: { id: string; name: strin
     await assets._uploadUserAsset({ id: 'user/raster/1700000000000-photo', type: 'raster', format: 'png', blob: new Blob(['p']), version: '1.0.0' });
   }
   const registry = createDesignSystemRegistry(db as unknown as RegistryDb, {
-    catalogTokens: async () => ({ id: catalog.id, name: catalog.name }),
+    catalogTokens: async () => ({ id: catalog.id, name: catalog.name, ...(opts.brandLock ? { brandLock: true } : {}) }),
     legacyHead: async () => assets._getUserRecord?.(USER_TOKENS_ID) ?? null,
   });
   const host = { assets, designSystems: registry } as { assets: typeof assets; designSystems: typeof registry; tokens?: ReturnType<typeof createTokensAPI> };
@@ -137,16 +141,32 @@ test('seeding tells a view already showing the list, once, and only when it adde
   }
 });
 
-test('a locked build gets no companion, and nor does a catalog naming its own system', async () => {
-  const locked = await rig({ catalog: DEMO });
-  await locked.db.put('asset-meta', { id: DEMO.id, type: 'tokens', name: DEMO.name, version: '1.0.0', brandLock: true, formats: [{ format: 'json', url: '/x.json' }] });
-  const lockedRegistry = createDesignSystemRegistry(locked.db as unknown as RegistryDb, {
-    catalogTokens: async () => ({ id: DEMO.id, name: DEMO.name, brandLock: true }),
-    legacyHead: async () => null,
-  });
-  assert.deepEqual(await seed({ ...locked.host, designSystems: lockedRegistry }), []);
+test('a catalog naming its own system gets no companion', async () => {
   const start = await rig();   // lolly-start ships the starter itself
   assert.deepEqual(await seed(start.host), []);
+});
+
+test('a locked catalog with an explicit list gets its companion, and its own lock stays', async () => {
+  const locked = await rig({ catalog: DEMO });
+  const SUSE_LIKE = { id: DEMO.id, name: DEMO.name, brandLock: true };
+  await locked.db.put('asset-meta', { ...SUSE_LIKE, type: 'tokens', version: '1.0.0', formats: [{ format: 'json', url: '/x.json' }] });
+  await locked.db.put('asset-meta', { id: 'acme/tokens/brand', type: 'tokens', name: 'Acme Tokens', version: '1.0.0', formats: [{ format: 'json', url: '/acme.json' }] });
+  await locked.db.put('asset-blob', blobOf(CATALOG_DOC), 'acme/tokens/brand:json:1.0.0');
+  const lockedRegistry = createDesignSystemRegistry(locked.db as unknown as RegistryDb, {
+    catalogTokens: async () => SUSE_LIKE,
+    legacyHead: async () => null,
+  });
+  await lockedRegistry.ensure();
+  const host = { ...locked.host, designSystems: lockedRegistry };
+  assert.deepEqual(await seed(host, []), [], 'no list, no second system');
+  const [made] = await seed(host, [{ tokens: 'acme/tokens/brand', label: 'Acme', assets: ['acme/tokens/brand', 'acme/logo/'] }]);
+  assert.equal(made?.label, 'Acme');
+  assert.equal(made?.locked, false, 'the companion is the person\'s to edit');
+  assert.deepEqual(made?.source, { kind: 'local', from: 'app', companion: { tokens: 'acme/tokens/brand', label: 'Acme', instance: true } });
+  const shipped = await lockedRegistry.get('shipped');
+  assert.equal(shipped?.locked, true, "the catalog's own system stays read-only");
+  assert.equal(await lockedRegistry.activeId(), 'shipped', 'seeding never switches, so the catalog system stays the default');
+  await assert.rejects(lockedRegistry.setShippedHidden(true), /locked build/);
 });
 
 test('a companion held in the catalog is copied from its own document', async () => {
@@ -186,16 +206,16 @@ test('Reset puts an edited Lolly Starter back: the starter document and name, sa
   assert.equal(await r.registry.activeId(), 'shipped', 'an inactive system stays inactive');
 });
 
-test('Reset on an edited Lolly Demo removes the edit and brings the original back, active', async () => {
+test('Reset on a copy made by editing Lolly Demo removes the copy and makes the original active', async () => {
   const r = await rig({ catalog: DEMO });
   await seed(r.host);
   assert.equal(resetKind((await r.registry.get('shipped'))!), null, 'the original itself has nothing to reset');
   await installUserTokens(r.host as never, { color: { brand: { mint: { $type: 'color', $value: '#000000' } } } });
   const edited = (await r.registry.get('default'))!;
   assert.deepEqual(edited.source, { kind: 'local', from: 'shipped' });
-  assert.equal(edited.label, 'Lolly Demo', 'an edit keeps the name');
+  assert.equal(edited.label, 'Lolly Demo copy', 'the edit is a copy with a name of its own');
   assert.equal(await r.registry.activeId(), 'default');
-  assert.deepEqual((await r.registry.visible()).map(x => x.id).sort(), ['default', 'lolly-starter'], 'the edit stands in for the original');
+  assert.deepEqual((await r.registry.visible()).map(x => x.id).sort(), ['default', 'lolly-starter', 'shipped'], 'the original stays listed beside the copy');
 
   const back = await resetDesignSystem(r.host as never, 'default');
   assert.equal(back.id, 'shipped');
@@ -211,4 +231,53 @@ test('a system made here, a file, a hosted one and a locked one have no Reset', 
   assert.equal(resetKind({ ...base, source: { kind: 'hosted', instance: 'https://a.example', packUrl: null, signature: 'verified' } }), null);
   assert.equal(resetKind({ ...base, locked: true, source: { kind: 'local', from: 'app' } }), null);
   assert.equal(resetKind({ ...base, source: { kind: 'local', from: 'app' } }), 'companion');
+});
+
+// Andy, 2026-11-23: Lolly Demo is always available, and an edit makes a new design system.
+test('the catalog system is kept once before a connection, and is one row while its catalog is current', async () => {
+  const r = await rig({ catalog: DEMO });
+  const kept = await keepShippedDesignSystem(r.host);
+  assert.ok(kept);
+  assert.equal(kept.label, 'Lolly Demo');
+  assert.deepEqual(kept.source, { kind: 'local', from: 'app', companion: { tokens: 'lolly/tokens/demo', label: 'Lolly Demo' } });
+  const doc = JSON.parse(await (await r.assets._getBlob(kept.headId))!.text());
+  assert.equal(doc.color.brand.mint.$value, '#3fd1a4', 'its colours are on the device');
+  assert.deepEqual(await r.registry.seeded(), ['lolly/tokens/demo']);
+  // The same catalog is still current, so the list shows the catalog's row only.
+  assert.deepEqual((await r.registry.visible()).map(x => x.id), ['shipped']);
+  assert.equal(await keepShippedDesignSystem(r.host), null, 'kept once');
+  // Removed by the person, it does not come back at the next connection.
+  await removeDesignSystem(r.host as never, kept.id);
+  assert.equal(await keepShippedDesignSystem(r.host), null);
+  assert.equal(await r.registry.get(kept.id), null);
+});
+
+test('a locked catalog system and the blank starter are not kept', async () => {
+  const locked = await rig({ catalog: DEMO, brandLock: true });
+  assert.equal(await keepShippedDesignSystem(locked.host), null);
+  const starter = await rig();
+  assert.equal(await keepShippedDesignSystem(starter.host), null);
+});
+
+test('the first edit of a companion makes a copy and leaves an untouched twin in its place', async () => {
+  const r = await rig({ also: [DEMO] });
+  const [made] = await seed(r.host, [{ tokens: 'lolly/tokens/demo', label: 'Lolly Demo' }]);
+  await r.registry.setActive(made!.id);
+  r.host.tokens!.bust();
+  await installUserTokens(r.host as never, { color: { brand: { mint: { $type: 'color', $value: '#000000' } } } });
+  const copy = (await r.registry.get(made!.id))!;
+  assert.equal(copy.label, 'Lolly Demo copy');
+  assert.equal(copy.source.kind, 'local');
+  assert.equal((copy.source as { from?: string }).from, undefined, 'the copy no longer stands for the original');
+  assert.equal(await r.registry.activeId(), made!.id, 'the edit stays where the person is working');
+  const twin = (await r.registry.list()).find(x => x.id !== made!.id && x.source.kind === 'local' && x.source.from === 'app');
+  assert.ok(twin);
+  assert.equal(twin.label, 'Lolly Demo');
+  assert.equal(twin.createdAt, made!.createdAt, 'the twin stands where the original stood');
+  assert.equal(JSON.parse(await (await r.assets._getBlob(twin.headId))!.text()).color.brand.mint.$value, '#3fd1a4', 'untouched');
+  assert.equal(JSON.parse(await (await r.assets._getBlob(copy.headId))!.text()).color.brand.mint.$value, '#000000');
+  // A second edit goes to the copy; no third system appears.
+  const before = (await r.registry.list()).length;
+  await installUserTokens(r.host as never, { color: { brand: { mint: { $type: 'color', $value: '#111111' } } } });
+  assert.equal((await r.registry.list()).length, before);
 });

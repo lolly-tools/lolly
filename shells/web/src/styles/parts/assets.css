@@ -99,6 +99,14 @@
   color: hsl(var(--muted-foreground));
 }
 .cat-src--lib  { background: hsl(var(--muted) / .8); color: hsl(var(--muted-foreground)); }
+/* The caption's quieter pieces: a tile's format (or file count) and a provider note. */
+.catalog .cat-tile-sub :is(.cat-tile-fmt, .cat-tile-note) { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: var(--fs-xs); color: var(--ui-color-text-muted); }
+/* Grid lets the picture and the name speak. "Catalogue" is where most assets come from,
+   so it says nothing a tile needs, and the format is in Card, List and the details
+   sheet. "Yours", "Shared project", a provider note and the Gen AI pill stay. A caption
+   left with nothing to show drops its line. */
+.catalog:not([data-browse-layout]) .cat-tile-sub :is(.cat-src--lib, .cat-tile-fmt) { display: none; }
+.catalog:not([data-browse-layout]) .cat-tile-sub:not(:has(> :not(.cat-src--lib, .cat-tile-fmt))) { display: none; }
 /* The Origins row: state line, then (own assets) the declare control + one
    quiet line of why. Buttons are ordinary .btn chips; the pressed one reads
    as chosen without colour doing the whole job. */
@@ -631,13 +639,13 @@
   min-height: calc(44px * var(--a11y-fs)); padding: var(--sp-3);
   background: hsl(var(--card)); border-bottom: 1px solid hsl(var(--border));
 }
-.cat-details-header .cat-details-close { position: static; margin-inline-start: auto; flex: none; }
+.cat-details-header .cat-details-close { position: static; margin-inline-start: auto; }
 .cat-edit-toolbar { position: relative; color: hsl(var(--foreground)); }
 .cat-edit-heading {
   display: inline-flex; align-items: center; gap: var(--sp-3); list-style: none;
   min-height: calc(40px * var(--a11y-fs)); cursor: pointer;
 }
-.cat-edit-heading::-webkit-details-marker { display: none; }
+.cat-edit-heading::after { content: none; }
 .cat-edit-heading svg { width: 18px; height: 18px; }
 .cat-edit-heading:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
 .cat-edit-menu {
@@ -694,7 +702,7 @@
 /* fill (background/color) is aliased in parts/buttons.css's .btn--primary list */
 .cat-act-fav.is-fav { border-color: hsl(var(--primary)); }
 .cat-act-fav.is-fav svg { fill: currentColor; }
-.cat-act-share.is-copied { color: hsl(var(--primary)); }
+.cat-act-share.is-copied { color: hsl(var(--primary-text)); }
 
 /* ── Content Credentials (details) ── the checker for any inspectable asset, plus the
    "Made with Lolly" lockup revealed only once the verifier confirms it (openDetails). */
@@ -736,6 +744,14 @@
 .cat-dl-img { max-width: 100%; max-height: 130px; object-fit: contain; }
 .cat-dl-section { margin-bottom: 14px; }
 .cat-dl-label { display: block; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: hsl(var(--muted-foreground)); margin-bottom: 6px; }
+/* An icon group's Colours row: the swatches, then the Dark ground switch that decides
+   which pairing each colourway offers (views/assets/filters.ts groundSwitchHtml). */
+.cat-group-colours-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-6); }
+/* In the toolbar the switch sits on the toolbar's own raised pill. Here it stands on the
+   page, so it carries a surface at rest to read as a control, and the house on-state of
+   a chosen option (parts/tool.css .badge-select-opt.is-on) while the ground is dark. */
+.cat-group-colours-row .cat-ground { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.cat-group-colours-row .cat-ground.is-on { background: hsl(var(--primary) / .14); box-shadow: var(--ui-effect-selected); color: hsl(var(--primary-text)); }
 .cat-dl-hint { color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); }
 .cat-dl-select { width: 100%; }
 .cat-dl-field { display: grid; gap: var(--sp-2); font-size: var(--fs-sm); }
@@ -757,11 +773,11 @@
   margin: 0 0 var(--sp-4); color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); line-height: 1.4;
 }
 .cat-dl-provenance { padding-left: 22px; position: relative; }
-.cat-dl-provenance::before { content: '✓'; position: absolute; left: 2px; color: hsl(var(--primary)); font-weight: 800; }
+.cat-dl-provenance::before { content: '✓'; position: absolute; left: 2px; color: hsl(var(--primary-text)); font-weight: 800; }
 .cat-dl-status:empty { display: none; }
 .cat-dl-media-mark {
   display: grid; place-items: center; width: 72px; height: 72px; margin: 0 auto var(--sp-6);
-  border-radius: var(--radius-round); color: hsl(var(--primary)); background: hsl(var(--primary) / .1);
+  border-radius: var(--radius-round); color: hsl(var(--primary-text)); background: hsl(var(--primary) / .1);
 }
 .cat-dl-media-mark svg { width: 34px; height: 34px; }
 .cat-dl-actions { display: flex; justify-content: flex-end; gap: var(--sp-4); margin-top: 4px; }
@@ -775,7 +791,7 @@
 .cat-send-row { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
 .cat-send-row .btn { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .cat-send-status { min-height: 1.2em; margin: var(--sp-3) 0 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
-.cat-send-status a { color: hsl(var(--primary)); }
+.cat-send-status a { color: hsl(var(--primary-text)); }
 .cat-send-empty { color: hsl(var(--muted-foreground)); font-size: var(--fs-lg); max-width: 40ch; }
 .cat-crop-work { position: relative; width: max-content; max-width: 100%; margin: 0 auto 14px; }
 .cat-crop-viewport {

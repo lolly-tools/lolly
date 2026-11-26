@@ -146,3 +146,14 @@
   .qt-due span:last-child { font-size: 11cqmin; line-height: 1; letter-spacing: -0.02em; }
   .qt-notes { grid-area: notes; font-size: 2.8cqmin; }
 }
+
+.qt-sheet { padding: calc(5.5cqmin * var(--content-space)) calc(6cqmin * var(--content-space)); gap: calc(3cqmin * var(--content-space)); }
+.qt-page[data-layout="page"] .qt-sheet { display: flex; }
+.qt-page[data-layout="summary"] .qt-sheet { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "head head" "lines sums" "notes sums"; }
+.qt-page[data-layout="summary"] .qt-head { grid-area: head; }
+.qt-page[data-layout="summary"] .qt-lines { grid-area: lines; align-self: start; }
+.qt-page[data-layout="summary"] .qt-sums { grid-area: sums; width: 100%; align-self: end; }
+.qt-page[data-layout="summary"] .qt-notes { grid-area: notes; }
+@container (max-aspect-ratio: 4 / 5) { .qt-page[data-layout="summary"] .qt-sheet { display: flex; } }
+
+.qt-customer { font-family: var(--font-display, var(--font-brand, system-ui, sans-serif)); }

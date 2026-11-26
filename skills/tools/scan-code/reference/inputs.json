@@ -52,21 +52,5 @@
       "mode": "paste"
     },
     "help": "Paste the exact text a scanner returned, to inspect it with the same safety checks without pointing a camera."
-  },
-  {
-    "id": "keepHistory",
-    "label": "Remember recent scans",
-    "type": "boolean",
-    "default": false,
-    "help": "Keeps a short list you can look back at, cleared with one tap. Passwords and other secrets are never kept."
-  },
-  {
-    "id": "beep",
-    "label": "Beep on scan",
-    "type": "boolean",
-    "default": true,
-    "showIf": {
-      "mode": "camera"
-    }
   }
 ]

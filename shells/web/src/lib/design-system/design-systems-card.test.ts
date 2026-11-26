@@ -252,7 +252,8 @@ test('removing an imported catalogue copy explains the fallback and retains its 
   assert.match(supplied.textContent ?? '', /acme\/tokens\/brand/);
   assert.match(supplied.textContent ?? '', /Asset namespace\s*acme\//);
   assert.equal(supplied.querySelector('[data-ds-act="remove"]'), null);
-  assert.equal(supplied.querySelector('.ds-row-origin a')?.getAttribute('href'), '/info/manage/profiles-and-brands.html#removing-a-catalogue-design-system');
+  // The in-app reader, so the docs' back pill returns to Settings (lib/back-nav.ts docsOrigin).
+  assert.equal(supplied.querySelector('.ds-row-origin a')?.getAttribute('href'), '#/docs/manage/profiles-and-brands?h=removing-a-catalogue-design-system');
   assert.match(await designSystemRemovalMessage(reopened, 'another'), /“Acme” will stay active/);
 });
 
@@ -303,6 +304,10 @@ test('only a locked catalogue system reads as managed; an editable one says wher
   const { _setBaseForTests } = await import('../instance.ts');
   const shipped = (headId: string, locked = false) => ({ id: 'shipped', label: 'X', ns: '', headId, source: { kind: 'shipped' }, locked, createdAt: 0, lastUsedAt: 0 }) as never;
   assert.equal(sourceLine(shipped('lolly/tokens/demo')), 'Came with this app');
+  const companion = (instance: boolean) => ({ id: 'c', label: 'C', ns: 'user/ds/c/', headId: 'user/ds/c/tokens/brand', locked: false, createdAt: 0, lastUsedAt: 0,
+    source: { kind: 'local' as const, from: 'app' as const, companion: { tokens: 't', label: 'C', ...(instance ? { instance: true } : {}) } } });
+  assert.equal(sourceLine(companion(false)), 'Came with this app', "lolly.tools' starter did come with the app");
+  assert.equal(sourceLine(companion(true)), 'From this instance', "an instance's companion did not");
   assert.equal(sourceLine(shipped('lolly/tokens/brand')), 'Came with this app');
   assert.equal(sourceLine(shipped('acme/tokens/brand')), 'Came with this app');
   assert.equal(sourceLine(shipped('acme/tokens/brand', true)), 'Managed by this instance');

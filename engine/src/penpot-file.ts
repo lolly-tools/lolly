@@ -42,6 +42,11 @@ import { pathBounds, pathFromSubPaths } from './geom/path.ts';
 import { sanitizeAppliedTokens, buildTokenTypeIndex, isSafeTokenPath } from './penpot-bindings.ts';
 import { clamp } from './clamp.ts';
 import { readTokenAxes } from './token-axes.ts';
+import { declaredColourRoleIds } from './colourway.ts';
+import { readColourRoles } from './colour-roles.ts';
+import { roleWordsText } from './colour-role-portable.ts';
+import { leaveOutScopedTokenText } from './token-scope.ts';
+import { brandSkillScopeHints } from './brand-skill.ts';
 import { compileDesignRow, type DrawPaint } from './design-draw.ts';
 import { designDrawPenpot, isPenpotPrimitiveRow } from './design-draw-penpot.ts';
 import { designStrokeAlign, designStrokeHasSides, designStrokeSides, designStrokeSidesApply, strokeSidesEqual } from './design-stroke.ts';
@@ -884,6 +889,19 @@ export function buildPenpotEntries(doc: PenpotDoc, opts: PenpotBuildOptions = {}
 // ─── tokens.json ──────────────────────────────────────────────────────────────
 
 /**
+ * A declared colour role's words, by id, for a Penpot token's description. Null with no
+ * declared roles, which is what leaves such a document's tokens.json as it was. The text
+ * scope hints flag stays out, as on every other route out.
+ */
+function penpotRoleWords(doc: Rec): Map<string, { label: string; description?: string; position: number; total: number }> | null {
+  if (!declaredColourRoleIds(doc).length) return null;
+  const { doc: clean } = leaveOutScopedTokenText(doc);
+  const roles = readColourRoles(clean).roles.filter(role => role.declared);
+  if (!roles.length) return null;
+  return new Map(roles.map((role, index) => [role.id, { label: role.label, ...(role.description ? { description: role.description } : {}), position: index + 1, total: roles.length }]));
+}
+
+/**
  * The brand's Tokens-Studio / DTCG document → what Penpot's multi-set reader
  * accepts: sets of nested groups whose leaves carry `$value` + a `$type` Penpot
  * knows (group-level `$type` is pushed down onto each leaf, unknown types such as
@@ -901,7 +919,8 @@ export function penpotTokensJson(doc: unknown, selection?: PenpotThemeSelection)
   const isTokenLeaf = (v: unknown): v is Rec => isRec(v) && ('$value' in v || 'value' in v);
   const sets: Record<string, unknown> = Object.create(null);
   const reserved = new Set(['$themes', '$metadata', '$description', '$extensions', '$type', '$schema']);
-  const convert = (node: Rec, inherited: string | null): Rec | null => {
+  const words = penpotRoleWords(doc);
+  const convert = (node: Rec, inherited: string | null, at: string): Rec | null => {
     const out: Rec = Object.create(null);
     let kept = 0;
     for (const [k, v] of Object.entries(node)) {
@@ -914,11 +933,14 @@ export function penpotTokensJson(doc: unknown, selection?: PenpotThemeSelection)
         if (typeof mapped !== 'string') continue;
         const leaf: Rec = { $value: '$value' in v ? v.$value : v.value, $type: mapped };
         const desc = v.$description ?? v.description;
-        if (typeof desc === 'string' && desc) leaf.$description = desc;
+        // A colour role's words: the one place Penpot has for them, and what the token said for itself stays after them.
+        const role = at === 'color.semantic' ? words?.get(k) : undefined;
+        if (role) leaf.$description = roleWordsText(role, typeof desc === 'string' && desc && !brandSkillScopeHints(desc).length ? desc : undefined);
+        else if (typeof desc === 'string' && desc) leaf.$description = desc;
         out[k] = leaf; kept++;
       } else if (isRec(v)) {
         const groupType = typeof v.$type === 'string' ? v.$type : inherited;
-        const sub = convert(v, groupType);
+        const sub = convert(v, groupType, at ? `${at}.${k}` : k);
         if (sub) { out[k] = sub; kept++; }
       }
     }
@@ -928,11 +950,11 @@ export function penpotTokensJson(doc: unknown, selection?: PenpotThemeSelection)
   if (hasSets) {
     for (const [name, v] of Object.entries(doc)) {
       if (reserved.has(name) || !isRec(v)) continue;
-      const set = convert(v, typeof v.$type === 'string' ? v.$type : null);
+      const set = convert(v, typeof v.$type === 'string' ? v.$type : null, '');
       if (set) sets[name] = set;
     }
   } else {
-    const set = convert(doc, typeof doc.$type === 'string' ? doc.$type : null);
+    const set = convert(doc, typeof doc.$type === 'string' ? doc.$type : null, '');
     if (set) sets.global = set;
   }
   const setNames = Object.keys(sets);
@@ -1832,15 +1854,73 @@ export function imageDimensions(bytes: Uint8Array, mtype?: string): { w: number;
   }
   const looksSvg = mtype === 'image/svg+xml' || (b.length > 5 && (b[0] === 0x3c || (b[0] === 0xef && b[3] === 0x3c)));
   if (looksSvg) {
-    const head = new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096)));
-    const tag = /<svg\b([^>]*)>/i.exec(head);
-    if (!tag) return null;
-    const a = parseAttrs(tag[1]!);
-    const vb = (a.viewbox ?? '').trim().split(/[\s,]+/).map(Number);
-    const vbW = vb.length === 4 && Number.isFinite(vb[2]) ? vb[2]! : 0, vbH = vb.length === 4 && Number.isFinite(vb[3]) ? vb[3]! : 0;
-    const w = parseLen(a.width, vbW, vbW), h = parseLen(a.height, vbH, vbH);
-    return w > 0 && h > 0 ? { w: Math.round(w), h: Math.round(h) } : null;
+    // Whole pixels for the callers that store a pixel size (Penpot media, a file's
+    // details). A caller that places the picture reads `svgIntrinsicSize` instead.
+    const size = svgIntrinsicSize(b);
+    return size ? { w: Math.round(size.w), h: Math.round(size.h) } : null;
   }
+  return null;
+}
+
+/** CSS px per unit for the absolute lengths an SVG root's width, height and font size can carry. */
+const SVG_ROOT_UNIT_PX: Record<string, number> = { '': 1, px: 1, pt: 4 / 3, pc: 16, in: 96, cm: 96 / 2.54, mm: 96 / 25.4 };
+const SVG_ROOT_LENGTH = /^\s*([0-9]*\.?[0-9]+(?:e[+-]?\d+)?)\s*(px|pt|pc|in|cm|mm|em|rem|%)?\s*$/i;
+
+/**
+ * The root's font size in CSS px, for an em or rem width or height: the inline style's
+ * winning declaration first (the last one, or the last marked important), then the
+ * `font-size` attribute, then the initial 16 px. Zero when the root gives a size this
+ * reader does not resolve (a keyword such as `larger`), so a side in em is then not
+ * read as a size of its own.
+ */
+function svgRootFontPx(a: Record<string, string>): number {
+  let styled: string | undefined, important = false;
+  for (const declaration of (a.style ?? '').split(';')) {
+    const m = /^\s*font-size\s*:\s*(.*?)\s*(!\s*important)?\s*$/i.exec(declaration);
+    if (!m) continue;
+    const marked = m[2] !== undefined;
+    if (marked || !important) { styled = m[1]; important ||= marked; }
+  }
+  const given = styled ?? a['font-size'];
+  if (given === undefined) return 16;
+  const m = SVG_ROOT_LENGTH.exec(given);
+  if (!m) return 0;
+  const n = Number.parseFloat(m[1]!), unit = (m[2] ?? '').toLowerCase();
+  // A relative font size on the root is relative to the initial 16 px.
+  const px = unit === '%' ? (16 * n) / 100 : unit === 'em' || unit === 'rem' ? 16 * n : n * SVG_ROOT_UNIT_PX[unit]!;
+  return Number.isFinite(px) && px > 0 ? px : 0;
+}
+
+/**
+ * An SVG's own size in CSS px, read the way a browser reads one for an `<img>`: an
+ * absolute width and height first (em and rem against the root's own font size), then
+ * one of them with the viewBox's aspect for the other, then the viewBox alone (`natural`
+ * false: the picture has an aspect and no size of its own). A percentage is not a size
+ * of its own. Unrounded, because the browser places a picture by the exact aspect: a
+ * 44.725 by 19.706 logo read as 45 by 20 is placed 1.3 px narrower at 90 px tall than
+ * the browser draws the logo. Null when the root gives neither a size nor a viewBox.
+ */
+export function svgIntrinsicSize(bytes: Uint8Array): { w: number; h: number; natural: boolean } | null {
+  const head = new TextDecoder().decode(bytes.subarray(0, Math.min(bytes.length, 8192)));
+  const tag = /<svg\b([^>]*)>/i.exec(head);
+  if (!tag) return null;
+  const a = parseAttrs(tag[1]!);
+  const length = (value: string | undefined): number => {
+    const m = SVG_ROOT_LENGTH.exec(value ?? '');
+    if (!m) return 0;
+    const unit = (m[2] ?? '').toLowerCase();
+    if (unit === '%') return 0;
+    const n = Number.parseFloat(m[1]!) * (unit === 'em' || unit === 'rem' ? svgRootFontPx(a) : SVG_ROOT_UNIT_PX[unit]!);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  };
+  const vb = (a.viewbox ?? '').trim().split(/[\s,]+/).map(Number);
+  const vbW = vb.length === 4 && Number.isFinite(vb[2]) && vb[2]! > 0 ? vb[2]! : 0;
+  const vbH = vb.length === 4 && Number.isFinite(vb[3]) && vb[3]! > 0 ? vb[3]! : 0;
+  const w = length(a.width), h = length(a.height);
+  if (w && h) return { w, h, natural: true };
+  if (w && vbW && vbH) return { w, h: (w * vbH) / vbW, natural: true };
+  if (h && vbW && vbH) return { w: (h * vbW) / vbH, h, natural: true };
+  if (vbW && vbH) return { w: vbW, h: vbH, natural: false };
   return null;
 }
 

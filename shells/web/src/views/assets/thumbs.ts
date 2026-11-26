@@ -37,7 +37,7 @@ import { aiModelSlot } from '../tsig-model-note.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
 import { photoTreatmentSwatch } from '../../lib/photo-treatment-swatch.ts';
-import { CHECK_ICON, emojiPackMeta, tileGround } from './shared.ts';
+import { CHECK_ICON, emojiPackMeta } from './shared.ts';
 import type { AiSignalsNote, RewordUiState } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 
@@ -141,9 +141,12 @@ export function thumbHtml(cat: CatCtx, ref: AssetRef, asSpan = false, full = fal
       const mod = isModuleFormat(ref.format);
       // A rondocode song is code: details-rondo.ts renders it in the `vm` class.
       const rondo = ref.format === 'rondo';
+      // A saved station tune is a recipe, which lib/lofi-tune.ts composes and renders.
+      const lofi = ref.format === 'lofi';
       const srcAttr = zz ? `data-zzfxm-url="${escapeText(ref.url)}"`
         : mod ? `data-mod-url="${escapeText(ref.url)}"`
         : rondo ? `data-rondo-url="${escapeText(ref.url)}"`
+        : lofi ? `data-lofi-url="${escapeText(ref.url)}"`
         : `src="${escapeText(ref.url)}"`;
       // A big live level meter above the controls (same bar look + theming as the
       // Neurospicy player's - lib/audio-meter.ts draws both). Wired in openDetails.
@@ -426,13 +429,17 @@ export async function rasterToOcrFrame(_cat: CatCtx, url: string): Promise<{ wid
   bmp.close?.();
   return frame;
 }
-// A row of two-colour theme swatches (the icon "colours" picker) - shared by the download
-// dialog, the asset-details modal and the icons-category header, so they all offer the same
-// control. Reuses the download dialog's .cat-dl-theme / .cat-dl-duo chrome; `active` marks
-// the current pairing.
+// A row of icon colour swatches (the icon "colours" picker) - shared by the asset-details
+// modal and the icons-category header, so they offer the same control as the download
+// dialog. "Original" leads (the icon's own colours, an empty id), then one pairing per
+// colourway of the design system (bridge/assets.ts _iconThemes). Reuses the download
+// dialog's .cat-dl-theme / .cat-dl-duo chrome; `active` marks the current pairing.
 export const iconSwatchRow = (cat: CatCtx, active: string | null): string =>
-  `<div class="cat-dl-themes" role="group" aria-label="${escapeText(t('Icon colours'))}">${cat.iconThemes.map(th =>
-      `<button type="button" class="cat-dl-theme${th.id === active ? ' is-active' : ''}" data-theme="${escapeText(th.id)}" data-sfx="shimmer" aria-pressed="${th.id === active}" title="${escapeText(th.label ?? th.id)}"><span class="cat-dl-duo" style="background:${escapeText(th.previewBg ?? '#fff')}"><i style="background:${escapeText(String(th.c2 ?? '#888'))}"></i><i style="background:${escapeText(String(th.c1 ?? '#333'))}"></i></span></button>`).join('')}</div>`;
+  `<div class="cat-dl-themes" role="group" aria-label="${escapeText(t('Icon colours'))}">`
+    + `<button type="button" class="cat-dl-theme${!active ? ' is-active' : ''}" data-theme="" aria-pressed="${!active}" title="${escapeText(t('Original'))}" style="width:auto;padding:0 9px;font-size:11px;font-weight:600">${t('Original')}</button>`
+    + cat.iconThemes.map(th =>
+      `<button type="button" class="cat-dl-theme${th.id === active ? ' is-active' : ''}" data-theme="${escapeText(th.id)}" data-sfx="shimmer" aria-pressed="${th.id === active}" title="${escapeText(th.label ?? th.id)}"><span class="cat-dl-duo" style="background:${escapeText(th.previewBg ?? '#fff')}"><i style="background:${escapeText(String(th.c2 ?? '#888'))}"></i><i style="background:${escapeText(String(th.c1 ?? '#333'))}"></i></span></button>`).join('')
+    + `</div>`;
 // The bitmap sibling of iconSwatchRow: a photo-treatment strip for raster groups. Leads
 // with an "Original" (no-treatment) button, then one gradient swatch per treatment
 // (lib/photo-treatment-swatch.ts, shared with the picker: a grey ramp, the duotone colours, or
@@ -550,13 +557,17 @@ export function assetTile(cat: CatCtx, ref: AssetRef): string {
       <div class="cat-tile${fav ? ' is-fav' : ''}${hidden ? ' is-hidden-asset' : ''}${sel ? ' is-selected' : ''}" data-id="${escapeText(ref.id)}" draggable="true">
         <button type="button" class="cat-check" data-select="${escapeText(ref.id)}" aria-pressed="${sel}" aria-label="${escapeText(tRaw('Select {name}', { name }))}" title="${escapeText(t('Select'))}">${CHECK_ICON}</button>
         <button type="button" class="cat-tile-open" data-open="${escapeText(ref.id)}" data-describedby="${escapeText(assetDetailsId(ref))}"${cat.catLayout === 'grid' ? '' : ` aria-describedby="${escapeText(assetDetailsId(ref))}"`} aria-label="${escapeText(tRaw('View {name} details', { name }))}">
-          <span class="cat-tile-fig${tileGround(ref) ? ` cat-tile-fig--${tileGround(ref)}` : ''}">${thumbHtml(cat, ref, true)}</span>
+          <span class="cat-tile-fig">${thumbHtml(cat, ref, true)}</span>
           <span class="cat-tile-cap">
             <span class="cat-tile-name" title="${escapeText((() => {
               const added = assetAddedAt(ref);
               return added ? `${name} - ${tRaw('added {date}', { date: new Date(added).toLocaleDateString() })}` : name;
             })())}">${escapeText(name)}</span>
-            <span class="cat-tile-sub"><span class="cat-src cat-src--${isUser ? 'user' : 'lib'}">${sourceLabel}</span>${ref.meta?.providerOriginalsAvailable === false ? ` · ${t('Renditions only')}` : ''}${assetFiles(ref.meta).length > 1 ? ` · ${assetFiles(ref.meta).length} files` : fmt ? ` · ${escapeText(fmt)}` : ''}${aiKind ? genAiPill(aiKind) : ''}${aiSignalsChip(ref)}${(() => {
+            <span class="cat-tile-sub"><span class="cat-src cat-src--${isUser ? 'user' : 'lib'}">${sourceLabel}</span>${ref.meta?.providerOriginalsAvailable === false ? `<span class="cat-tile-note">${t('Renditions only')}</span>` : ''}${
+              // The format (or the file count) is a piece of its own, not text after a
+              // separator, so Grid can leave it to Card, List and the details sheet
+              // (styles/parts/assets.css) and a narrow caption never strands a dot.
+              assetFiles(ref.meta).length > 1 ? `<span class="cat-tile-fmt">${assetFiles(ref.meta).length} files</span>` : fmt ? `<span class="cat-tile-fmt">${escapeText(fmt)}</span>` : ''}${aiKind ? genAiPill(aiKind) : ''}${aiSignalsChip(ref)}${(() => {
               // Match context (plans/132 WP-C item 4): while searching, say WHY a tile
               // is in the result set when the name alone doesn't show it.
               if (!cat.query) return '';

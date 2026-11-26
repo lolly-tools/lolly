@@ -15,6 +15,7 @@
  * shows that slot empty rather than broken.
  */
 import bundledStarter from '../../../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json' with { type: 'json' };
+import { companionOwning, type AssetScope } from './asset-scope.ts';
 
 /** The starter catalog's placeholder tokens asset (brands/lolly-start). Matching
  *  it is the shell's existing "unbranded" test - views/gallery.ts gates the
@@ -30,6 +31,7 @@ export interface StarterHost {
     _getBlob?(id: string): Promise<Blob | null>;
     /** The synced catalog's asset ids: what this build can serve. */
     _listCatalogAssetIds?(): Promise<string[]>;
+    _assetScope?(): Promise<AssetScope | null>;
   };
 }
 
@@ -70,7 +72,11 @@ async function dropUnservedLogos(host: StarterHost, doc: Doc): Promise<void> {
   try { catalog = new Set(await host.assets._listCatalogAssetIds?.() ?? []); }
   catch { return; }
   if (!catalog.size) return;
+  // A row a companion mounted is that system's own, not a blank slot's placeholder: Lolly's
+  // marks are not anyone else's logo. The slot stays empty, as it does with no companion.
+  const scope = await host.assets._assetScope?.().catch(() => null) ?? null;
   for (const [slot, token] of Object.entries(logos)) {
-    if (isDoc(token) && typeof token.$value === 'string' && !catalog.has(token.$value)) delete logos[slot];
+    if (!isDoc(token) || typeof token.$value !== 'string') continue;
+    if (!catalog.has(token.$value) || (scope && companionOwning(token.$value, scope.companions))) delete logos[slot];
   }
 }

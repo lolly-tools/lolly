@@ -29,6 +29,7 @@ import { durableCacheBytes, matteCacheBytes, ocrCacheBytes, singCacheBytes, upsc
 import { createTrash, trashHostOf } from '../../lib/trash.ts';
 import { openTrashDialog, showTrashUndoToast } from '../../components/trash-dialog.ts';
 import { clearAllLollyData, sealWebStorageUntilReload } from '../../lib/clear-all-data.ts';
+import { clearUntilDone } from './clear-report.ts';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { fmtBytes } from '../../folder-tiles.ts';
 import { openImageLightbox, userImageThumb } from '../profile-user-images.ts';
@@ -787,9 +788,8 @@ export async function loadStorage(pv: ProfileViewCtx) {
       // bridge), every IndexedDB store, every cache, the private file system and
       // web storage. 'audio-peaks' and the other derived caches go with the rest,
       // which matters for privacy as well as tidiness: their keys embed upload file
-      // names.
-      const report = await clearAllLollyData({ state: host.state as { _clearAll?(): Promise<void> } });
-      if (report.errors.length) host.log?.('warn', 'Clear all my data: some parts did not clear', { errors: report.errors });
+      // names. Anything left behind is listed, with Try again, in ./clear-report.ts.
+      await clearUntilDone(() => clearAllLollyData({ state: host.state as { _clearAll?(): Promise<void> } }), { log: errors => host.log?.('warn', 'Clear all my data: some parts did not clear', { errors }) });
       sealWebStorageUntilReload();
       host.profile.bust!();
       applyTheme('light');

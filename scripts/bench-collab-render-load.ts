@@ -13,6 +13,7 @@ import { traceCollabBrowser, beginCollabSample, readCollabTrace, startCpuProfile
 import { sampleProcessTrees } from './lib/collab-load-processes.ts';
 import { serveCollabBuild } from './lib/collab-load-static.ts';
 import { measureRenderCancellation } from './lib/collab-load-cancellation.ts';
+import { pollPage } from '../tests/helpers/page-poll.ts';
 
 const dist = process.env.LOLLY_WEB_DIST;
 const root = resolve(import.meta.dirname, '..'), work = resolve(root, '../lolly-work');
@@ -105,10 +106,10 @@ try {
       const invite = page.locator(`[data-collab-invite="${fixture!.sessionId}"] [data-act="open-collab"]`);
       await invite.focus(); await invite.press('Enter');
     } else {
-      await page.waitForFunction(async () => {
+      await pollPage(page, async () => {
         const config = '/src/org/collab-config.ts', mount = '/src/lib/collab-live-mount.ts';
         return (await import(config)).canJoinCollab() && (await import(mount)).liveCollabMountInstalled();
-      });
+      }, undefined, { message: 'the live collab mount' });
       const joined = await page.evaluate(async sessionId => {
         const path = '/src/org/collab-work-opener.ts';
         return (await import(path)).joinWorkCollabFromInvite({ sessionId, toolId: 'design' });

@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import { validateManifest } from '../engine/src/validate.ts';
-import { parseUrlState, serializeUrlState, serializeHdr, RESERVED, CUTS_MAX, cutTime, parseVideoParams, hasVideoParams, VIDEO_CODEC_STRINGS } from '../engine/src/url-mode.ts';
+import { parseUrlState, serializeUrlState, serializeHdr, RESERVED, CUTS_MAX, cutTime, parseVideoParams, hasVideoParams, VIDEO_CODEC_STRINGS, readPartnerKitAttachment, formatPartnerKitParam } from '../engine/src/url-mode.ts';
 import type { DepthSetting } from '../engine/src/url-mode.ts';
 import { parseFrameAddress, selectFramePage } from '../engine/src/frame-address.ts';
 import { buildInputModel, updateInput, modelToValues, tokenBindingsOf } from '../engine/src/inputs.ts';
@@ -144,6 +144,54 @@ test('url-mode: profile is a reserved export param', () => {
   assert.equal(new URLSearchParams(qs).get('profile'), 'fogra51');
 });
 
+test('url-mode: _spots=process is an opt-in export choice, never an input', () => {
+  const on = parseUrlState('heading=Hi&_spots=process', SAMPLE_MANIFEST);
+  assert.equal(on.spots, 'process');
+  assert.equal((on.values as Record<string, unknown>)._spots, undefined);
+  assert.equal(parseUrlState('heading=Hi&_spots=PROCESS', SAMPLE_MANIFEST).spots, 'process');
+  // Absent, empty or anything else keeps the named spot plates: a typo never flattens inks.
+  for (const q of ['heading=Hi', 'heading=Hi&_spots=', 'heading=Hi&_spots=1', 'heading=Hi&_spots=keep']) {
+    assert.equal(parseUrlState(q, SAMPLE_MANIFEST).spots, null, q);
+  }
+  assert.equal(new URLSearchParams(serializeUrlState([], { spots: 'process' })).get('_spots'), 'process');
+  // The default writes nothing, so every existing link keeps its bytes.
+  assert.equal(serializeUrlState([], {}), '');
+  assert.equal(serializeUrlState([], { spots: null }), '');
+  assert.equal(serializeUrlState([], { spots: 'keep' }), '');
+});
+
+test('url-mode: _kit carries a partner kit attachment, and only one that reads', () => {
+  const on = parseUrlState('heading=Hi&_kit=inst%2F5b2e-Q_x%402', SAMPLE_MANIFEST);
+  assert.deepEqual(on.partnerKit, { id: 'inst/5b2e-Q_x', revision: 2 });
+  assert.equal((on.values as Record<string, unknown>)._kit, undefined, 'a reserved param is never an input');
+  assert.deepEqual(parseUrlState('_kit=lolly/kits/acme@12', SAMPLE_MANIFEST).partnerKit, { id: 'lolly/kits/acme', revision: 12 });
+  for (const q of ['heading=Hi', '_kit=', '_kit=inst/x', '_kit=inst/x@', '_kit=inst/x@0', '_kit=inst/x@-1', '_kit=inst/x@1.5', '_kit=inst/x@01',
+    '_kit=inst/x@99999999', '_kit=@2', '_kit=inst/../x@2', '_kit=/inst/x@2', '_kit=https://e.com/k@2', '_kit=inst/x?v=1@2']) {
+    assert.equal(parseUrlState(q, SAMPLE_MANIFEST).partnerKit, null, q);
+  }
+  const link = new URLSearchParams(serializeUrlState([], { partnerKit: { id: 'inst/5b2e', revision: 2 } }));
+  assert.equal(link.get('_kit'), 'inst/5b2e@2');
+  assert.deepEqual(parseUrlState(link.toString(), SAMPLE_MANIFEST).partnerKit, { id: 'inst/5b2e', revision: 2 }, 'a written link reads back');
+  assert.equal(serializeUrlState([], {}), '', 'no attachment, no param');
+  assert.equal(serializeUrlState([], { partnerKit: { id: 'inst/x', revision: 0 } }), '', 'an attachment that does not read writes nothing');
+  assert.deepEqual(readPartnerKitAttachment({ id: 'inst/x', revision: 3, extra: true }), { id: 'inst/x', revision: 3 });
+  for (const v of [null, 'inst/x@3', [], { id: 'inst/x' }, { id: 'inst/x', revision: '3' }, { id: 'x'.repeat(201), revision: 1 }]) assert.equal(readPartnerKitAttachment(v), null);
+  assert.equal(formatPartnerKitParam({ id: 'inst/x', revision: 7 }), 'inst/x@7');
+  assert.equal(formatPartnerKitParam({ id: 'inst/x', revision: 1.5 }), null);
+  assert.equal(readPartnerKitAttachment(Object.create({ id: 'inst/x', revision: 2 })), null, 'inherited fields are not the record\'s');
+});
+
+test('url-mode: _text=outline is an opt-in EMF text choice, never an input', () => {
+  const on = parseUrlState('heading=Hi&_text=outline', SAMPLE_MANIFEST);
+  assert.equal(on.text, 'outline');
+  assert.equal((on.values as Record<string, unknown>)._text, undefined);
+  assert.equal(parseUrlState('heading=Hi&_text= Outline ', SAMPLE_MANIFEST).text, 'outline');
+  // Absent, empty or anything else keeps the live EMF text records.
+  for (const q of ['heading=Hi', 'heading=Hi&_text=', 'heading=Hi&_text=1', 'heading=Hi&_text=live']) {
+    assert.equal(parseUrlState(q, SAMPLE_MANIFEST).text, null, q);
+  }
+});
+
 test('url-mode: RESERVED set matches the documented reserved-param list', () => {
   // Mirrors the header doc-comment in engine/src/url-mode.js AND the table in
   // docs/url-parameters.md. The docs aren't programmatically importable, so this inline
@@ -157,6 +205,12 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
     '_themes',
     // The design-system record toggle (plans/319): `_madewith=0` leaves it out.
     '_madewith',
+    // Print declared spot inks as their process builds in the CMYK formats: `_spots=process`.
+    '_spots',
+    // The partner kit a piece carries as a guest (plans/82 M8): `_kit=<id>@<revision>`.
+    '_kit',
+    // Draw EMF text as vector outlines: `_text=outline`.
+    '_text',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 
@@ -903,6 +957,26 @@ test('template: markdown does bold, italic, strikethrough and paragraphs', () =>
   assert.equal(hydrate('{{{markdown t}}}', { t: '~~**both**~~' }),
     '<p><del><strong>both</strong></del></p>');
   assert.equal(hydrate('{{{markdown t}}}', { t: 'a\n\nb' }), '<p>a</p><p>b</p>');
+});
+
+test('template: markdown renders a GFM table as a classed table, cells escaped and aligned', () => {
+  assert.equal(hydrate('{{{markdown t}}}', { t: '| A | B |\n| --- | --- |\n| 1 | 2 |' }),
+    '<table class="md-table"><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table>');
+  // Alignment from the delimiter row, formatting and an escaped pipe inside a cell, a
+  // short row padded, and the lines around the table kept as their own paragraphs.
+  assert.equal(hydrate('{{{markdown t}}}', { t: 'Intro\n| A | B |\n|:--|--:|\n| **x** \\| y | <b> |\n| only |\nafter' }),
+    '<p>Intro</p><table class="md-table"><thead><tr><th class="md-align-left">A</th><th class="md-align-right">B</th></tr></thead>'
+    + '<tbody><tr><td class="md-align-left"><strong>x</strong> | y</td><td class="md-align-right">&lt;b&gt;</td></tr>'
+    + '<tr><td class="md-align-left">only</td><td class="md-align-right"></td></tr></tbody></table><p>after</p>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: '| A |\n|:-:|' }),
+    '<table class="md-table"><thead><tr><th class="md-align-center">A</th></tr></thead></table>');
+});
+
+test('template: markdown with no table is as it was: pipes and rules stay text', () => {
+  assert.equal(hydrate('{{{markdown t}}}', { t: 'a | b\n---\nc' }), '<p>a | b<br>---<br>c</p>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: 'Heading\n---' }), '<p>Heading<br>---</p>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: '| A | B |\n| --- |' }), '<p>| A | B |<br>| --- |</p>', 'the cell counts differ, so no table');
+  assert.equal(hydrate('{{{markdown t}}}', { t: 'yes | no' }), '<p>yes | no</p>');
 });
 
 test('template: markdown renders bullet lists; lone * stays literal', () => {

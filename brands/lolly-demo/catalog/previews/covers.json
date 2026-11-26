@@ -1,12 +1,15 @@
 {
  "v": 1,
+ "source": {
+  "fingerprint": "ca63edcb38f4a4d8fce6069a5668200c"
+ },
  "contexts": {
-  "6a124fd58f2de5173722776d5f98e7b3": "light",
-  "14b782511283cdeb1ad6c0d00daf0a26": "dark"
+  "777224d5ce5d0eae25bf94a772a6494d": "light",
+  "8a64201522908f2717606d292ffdbe10": "dark"
  },
  "covers": {
   "design": {
-   "version": "1.52.1",
+   "version": "1.52.2",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/design.light.webp"
@@ -17,7 +20,7 @@
    }
   },
   "darkroom": {
-   "version": "2.5.2",
+   "version": "2.6.0",
    "light": {
     "templateId": "warm-portrait",
     "file": "/catalog/previews/covers/darkroom.light.webp"
@@ -28,7 +31,7 @@
    }
   },
   "filter": {
-   "version": "1.5.3",
+   "version": "1.7.0",
    "light": {
     "templateId": "colour-scanlines",
     "file": "/catalog/previews/covers/filter.light.webp"
@@ -39,7 +42,7 @@
    }
   },
   "chart": {
-   "version": "1.27.2",
+   "version": "1.31.0",
    "light": {
     "templateId": "brand-bars",
     "file": "/catalog/previews/covers/chart.light.svg"
@@ -50,7 +53,7 @@
    }
   },
   "snippet": {
-   "version": "1.7.0",
+   "version": "1.7.1",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/snippet.light.svg"
@@ -61,7 +64,7 @@
    }
   },
   "qr-code": {
-   "version": "2.7.1",
+   "version": "2.8.0",
    "light": {
     "templateId": "website",
     "file": "/catalog/previews/covers/qr-code.light.svg"
@@ -72,7 +75,7 @@
    }
   },
   "quote-card": {
-   "version": "1.1.0",
+   "version": "1.0.0",
    "light": {
     "templateId": "speaker",
     "file": "/catalog/previews/covers/quote-card.light.webp"
@@ -80,53 +83,6 @@
    "dark": {
     "templateId": "speaker",
     "file": "/catalog/previews/covers/quote-card.dark.webp"
-   }
-  },
-  "week": {
-   "version": "1.0.0",
-   "light": {
-    "file": "/catalog/previews/covers/week.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/week.dark.svg"
-   }
-  },
-  "scorecard": {
-   "version": "1.0.0",
-   "light": {
-    "file": "/catalog/previews/covers/scorecard.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/scorecard.dark.svg"
-   }
-  },
-  "email": {
-   "version": "1.0.0",
-   "light": {
-    "file": "/catalog/previews/covers/email.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/email.dark.svg"
-   }
-  },
-  "brief": {
-   "version": "1.0.0",
-   "light": {
-    "file": "/catalog/previews/covers/brief.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/brief.dark.svg"
-   }
-  },
-  "quote": {
-   "version": "1.0.1",
-   "light": {
-    "templateId": "services",
-    "file": "/catalog/previews/covers/quote.light.svg"
-   },
-   "dark": {
-    "templateId": "services",
-    "file": "/catalog/previews/covers/quote.dark.svg"
    }
   },
   "work-avatar": {
@@ -141,7 +97,7 @@
    }
   },
   "wayfinding-signage": {
-   "version": "1.2.4",
+   "version": "1.3.0",
    "light": {
     "file": "/catalog/previews/covers/wayfinding-signage.light.svg"
    },
@@ -170,7 +126,7 @@
    }
   },
   "street-map": {
-   "version": "0.5.3",
+   "version": "0.5.4",
    "light": {
     "templateId": "city-poster",
     "file": "/catalog/previews/covers/street-map.light.webp"
@@ -181,7 +137,7 @@
    }
   },
   "stationery": {
-   "version": "1.0.4",
+   "version": "1.1.0",
    "light": {
     "templateId": "card-card-back",
     "file": "/catalog/previews/covers/stationery.light.svg"
@@ -202,8 +158,19 @@
     "file": "/catalog/previews/covers/signature.dark.svg"
    }
   },
+  "record": {
+   "version": "1.5.0",
+   "light": {
+    "templateId": "landscape-intro",
+    "file": "/catalog/previews/covers/record.light.webp"
+   },
+   "dark": {
+    "templateId": "landscape-intro",
+    "file": "/catalog/previews/covers/record.dark.webp"
+   }
+  },
   "print-sheet": {
-   "version": "2.0.3",
+   "version": "2.1.0",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/print-sheet.light.svg"
@@ -213,19 +180,8 @@
     "file": "/catalog/previews/covers/print-sheet.dark.svg"
    }
   },
-  "pricing-table": {
-   "version": "1.1.2",
-   "light": {
-    "templateId": "saas",
-    "file": "/catalog/previews/covers/pricing-table.light.svg"
-   },
-   "dark": {
-    "templateId": "saas",
-    "file": "/catalog/previews/covers/pricing-table.dark.svg"
-   }
-  },
   "org-chart": {
-   "version": "1.1.2",
+   "version": "1.2.0",
    "light": {
     "file": "/catalog/previews/covers/org-chart.light.svg"
    },
@@ -234,7 +190,7 @@
    }
   },
   "multi-page-pdf": {
-   "version": "1.1.4",
+   "version": "1.2.0",
    "light": {
     "templateId": "annual-report",
     "file": "/catalog/previews/covers/multi-page-pdf.light.webp"
@@ -245,7 +201,7 @@
    }
   },
   "meeting-planner": {
-   "version": "1.2.4",
+   "version": "1.3.1",
    "light": {
     "file": "/catalog/previews/covers/meeting-planner.light.svg"
    },
@@ -265,7 +221,7 @@
    }
   },
   "logo-wall": {
-   "version": "1.8.1",
+   "version": "1.9.0",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/logo-wall.light.svg"
@@ -276,7 +232,7 @@
    }
   },
   "link-card": {
-   "version": "1.0.4",
+   "version": "1.1.0",
    "light": {
     "templateId": "og",
     "file": "/catalog/previews/covers/link-card.light.webp"
@@ -320,7 +276,7 @@
    }
   },
   "frame": {
-   "version": "1.1.3",
+   "version": "1.2.0",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/frame.light.svg"
@@ -331,7 +287,7 @@
    }
   },
   "flythrough": {
-   "version": "0.2.5",
+   "version": "0.2.7",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/flythrough.light.webp"
@@ -342,7 +298,7 @@
    }
   },
   "finish-preview": {
-   "version": "1.1.2",
+   "version": "1.2.0",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/finish-preview.light.webp"
@@ -353,7 +309,7 @@
    }
   },
   "doc-studio": {
-   "version": "1.2.2",
+   "version": "1.4.0",
    "light": {
     "templateId": "field-report",
     "file": "/catalog/previews/covers/doc-studio.light.webp"
@@ -407,19 +363,8 @@
     "file": "/catalog/previews/covers/captions.dark.webp"
    }
   },
-  "calendar-ics": {
-   "version": "1.2.4",
-   "light": {
-    "templateId": "month",
-    "file": "/catalog/previews/covers/calendar-ics.light.svg"
-   },
-   "dark": {
-    "templateId": "month",
-    "file": "/catalog/previews/covers/calendar-ics.dark.svg"
-   }
-  },
   "booth-studio": {
-   "version": "0.3.3",
+   "version": "0.4.1",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/booth-studio.light.webp"
@@ -427,17 +372,6 @@
    "dark": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/booth-studio.dark.webp"
-   }
-  },
-  "battlecards": {
-   "version": "1.3.3",
-   "light": {
-    "templateId": "brand-starter",
-    "file": "/catalog/previews/covers/battlecards.light.svg"
-   },
-   "dark": {
-    "templateId": "brand-starter",
-    "file": "/catalog/previews/covers/battlecards.dark.svg"
    }
   },
   "backdrop": {
@@ -474,7 +408,7 @@
    }
   },
   "3d-studio": {
-   "version": "0.9.1",
+   "version": "0.11.0",
    "light": {
     "templateId": "studio-object",
     "file": "/catalog/previews/covers/3d-studio.light.webp"
@@ -485,7 +419,7 @@
    }
   },
   "3d": {
-   "version": "1.3.1",
+   "version": "1.3.3",
    "light": {
     "file": "/catalog/previews/covers/3d.light.webp"
    },

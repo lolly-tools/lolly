@@ -1,0 +1,359 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this lazy sheet sits in the `views` layer (order declared once in
+   styles/app.css), so its rules keep a fixed priority whenever Vite injects it. */
+@layer views {
+/*
+ * The first-visit greeting (components/welcome-hero.ts): a card floating over the
+ * top of the gallery, lit like an object. The light comes from the lollipop: a glow
+ * of the action colour behind the mark, a second colour pooling in the far corner and
+ * a soft coloured shadow under the card. Nothing outlines it in colour; a faint
+ * neutral edge and the bevel define the card.
+ *
+ * The layout is one grid on one rhythm (Andy, 2026-11-14: fix the spacing or lose
+ * the card). The same padding on every side. The mark is exactly as tall as the
+ * sentence and the action row together, so its top meets the sentence's line and its
+ * foot meets the button's. The sentence, the action row and the quiet line share one
+ * left edge. The close button sits on the sentence's line with its visible disc on
+ * the padding edge. The button and the two links share one baseline, so their words
+ * sit on one line. The card is as wide as its words, centred over the gallery.
+ *
+ * On a phone (a container query on the section's width) the mark shrinks to the
+ * height of the two-line sentence beside it, the button spans the card, and the
+ * links and the quiet line centre under the button.
+ *
+ * The sentence is set in the chrome face, which the shell loads before the first
+ * paint, so a first visit does not see it change face when the brand's display face
+ * arrives a second later. Every size is a token, so large text scales the card.
+ *
+ * The card is in the gallery's first paint and does not move in. When it goes it
+ * fades and the space it held closes, so the gallery slides up. A sideways swipe
+ * follows the finger (welcome-hero.ts).
+ *
+ * The mark draws in three strokes and then fills (the timings below add up to
+ * 1.2 s), once, when components/welcome-hero.ts marks the band .is-drawing on first
+ * sight. Until then the mark waits unseen; .is-settled is the finished mark (a later
+ * visit, Reduce motion, or once drawn). Either Reduce motion switch stops the drawing.
+ */
+.welcome-hero,
+.welcome-hero-leaving {
+  container: welcome / inline-size;
+  display: grid;
+  box-sizing: border-box;
+  /* Padding, not margin: a top margin here collapses through the view into the body
+     and moves the whole page down, floating navigation and all. The top clears the
+     floating navigation by the same tokens the navigation is placed with. */
+  --wh-gutter: var(--sp-7);
+  /* The side terms end the card where the navigation above ends, inside a side the
+     system holds (its clock and status column on a folding phone). */
+  padding: calc(var(--chrome-top) + var(--chrome-h) + var(--wh-gutter)) calc(var(--wh-gutter) + var(--safe-right)) var(--wh-gutter) calc(var(--wh-gutter) + var(--safe-left));
+}
+.welcome-hero-card {
+  /* The rhythm: one padding, one line for the sentence, and the mark sized from them. */
+  --wh-pad: var(--sp-8);
+  --wh-line: calc(var(--ui-type-lead) * 1.25);
+  --wh-mark: calc(var(--wh-line) + var(--sp-6) + var(--ui-size-target));
+  /* The close button's visible disc, and how far it sits inside its touch target. */
+  --wh-disc: var(--ui-size-control);
+  --wh-disc-inset: calc((var(--ui-size-target) - var(--wh-disc)) / 2);
+  /* The two lights: the action colour behind the mark, the brand's second colour opposite. */
+  --wh-key: var(--ui-color-action-primary);
+  --wh-fill: var(--job-candy-b);
+  --wh-key-mix: 34%;
+  --wh-fill-mix: 30%;
+  position: relative;
+  isolation: isolate;
+  justify-self: center;
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  display: grid;
+  grid-template-columns: var(--wh-mark) minmax(0, 1fr) auto;
+  grid-template-areas:
+    "mark title close"
+    "mark act   act"
+    ".    quiet quiet";
+  column-gap: var(--sp-7);
+  padding: var(--wh-pad);
+  border-radius: calc(var(--radius-lg) * 1.5);
+  color: var(--ui-color-text-default);
+  font-family: var(--ui-type-ui-family);
+  background:
+    radial-gradient(26rem 18rem at calc(var(--wh-pad) + var(--wh-mark) / 2) calc(var(--wh-pad) + var(--wh-mark) / 2), color-mix(in oklab, var(--wh-key) var(--wh-key-mix), transparent), transparent 70%),
+    radial-gradient(40rem 16rem at 100% 130%, color-mix(in oklab, var(--wh-fill) var(--wh-fill-mix), transparent), transparent 70%),
+    var(--ui-color-surface-raised);
+  box-shadow:
+    var(--bevel),
+    var(--ui-edge-faint),
+    var(--ui-elevation-panel),
+    0 36px 80px -32px color-mix(in oklab, var(--wh-key) 60%, transparent);
+  touch-action: pan-y;
+}
+[data-theme="light"] .welcome-hero-card {
+  /* On a light surface a dark action colour reads as a stain, not a glow: the light
+     there is the brand's pale second colour, with a breath of the action colour opposite. */
+  --wh-key: var(--job-candy-b);
+  --wh-fill: var(--ui-color-action-primary);
+  --wh-key-mix: 90%;
+  --wh-fill-mix: 10%;
+}
+
+/* The mark: top on the sentence's line, foot on the button's. */
+.welcome-hero-mark {
+  grid-area: mark;
+  align-self: start;
+  inline-size: var(--wh-mark);
+  block-size: var(--wh-mark);
+  overflow: visible;
+}
+.welcome-hero-title {
+  grid-area: title;
+  align-self: start;
+  margin: 0;
+  font: 600 var(--ui-type-lead) / 1.25 var(--ui-type-ui-family);
+  letter-spacing: var(--ui-type-tracking-tight);
+  text-wrap: balance;
+}
+
+/* The action row: the button, then the two other ways in, on the button label's baseline. */
+.welcome-hero-act {
+  grid-area: act;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-4) var(--sp-8);
+  margin-block-start: var(--sp-6);
+}
+.welcome-hero-go {
+  padding-block: 0;
+  padding-inline: var(--sp-8);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  line-height: 1.25;
+}
+/* The label's line box carries room for descenders, so centring the box left the
+   letters about 1px high. Trimmed to cap height and baseline, the pill centres the
+   letters themselves (Andy, 2026-11-14). Browsers without text-box keep the old box. */
+.welcome-hero-go:not(.welcome-hero-go--sub) > .btn-label { text-box: trim-both cap alphabetic; }
+/* The blank install's button carries a second, smaller line under its label. */
+.welcome-hero-go--sub { flex-direction: column; gap: 0; }
+/* The colour row on a blank install. The swatches are the card's one saturated
+   thing, so they carry the emphasis a filled button would: no dark pill here.
+   Each swatch is a target-sized button drawing a smaller disc, so the discs
+   sit close while a finger still has room. */
+.welcome-hero-act--well { flex-direction: column; align-items: flex-start; gap: var(--sp-3); }
+/* Lolly Demo: Start making and the quiet links share the row under the colours. */
+.welcome-hero-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-4) var(--sp-8); }
+.welcome-hero-well { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-7); }
+.welcome-hero-well-label { margin: 0; font-size: var(--fs-lg); line-height: 1.25; }
+.welcome-hero-well-label strong { font-weight: 600; }
+.welcome-hero-well-label span { color: var(--ui-color-text-muted); font-size: var(--fs-sm); margin-inline-start: var(--sp-3); }
+.welcome-hero-swatches { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-inline-start: calc(var(--wh-swatch-inset) * -1); }
+.welcome-hero-well { --wh-swatch-size: calc(28px * var(--a11y-fs)); --wh-swatch-inset: calc((var(--ui-size-target) - var(--wh-swatch-size)) / 2); }
+.welcome-hero-swatch {
+  position: relative;
+  box-sizing: border-box;
+  inline-size: var(--ui-size-target);
+  block-size: var(--ui-size-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  display: grid;
+  place-items: center;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+}
+.welcome-hero-swatch::before {
+  content: '';
+  grid-area: 1 / 1;
+  inline-size: var(--wh-swatch-size);
+  block-size: var(--wh-swatch-size);
+  border-radius: var(--radius-pill);
+  background: var(--wh-swatch, var(--ui-color-surface-raised));
+  box-shadow: var(--bevel), var(--ui-elevation-control);
+  transition: scale var(--dur-1) ease, box-shadow var(--dur-1) ease;
+}
+.welcome-hero-swatch > svg { grid-area: 1 / 1; position: relative; }
+.welcome-hero-swatch:hover::before { scale: 1.1; }
+/* The colour in use wears a ring a hairline off its edge, in the ink of the page. */
+.welcome-hero-swatch[aria-pressed="true"]::before {
+  box-shadow: var(--bevel), 0 0 0 2px var(--ui-color-surface-raised), 0 0 0 4px var(--ui-color-text-default);
+}
+.welcome-hero-swatch:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -4px; border-radius: var(--radius-pill); }
+.welcome-hero-swatch:disabled { cursor: progress; }
+.welcome-hero-well[aria-busy="true"] .welcome-hero-swatch::before { opacity: .6; }
+.welcome-hero-link:disabled { color: var(--ui-color-text-muted); cursor: progress; }
+.welcome-hero-go-sub { font-size: var(--fs-xs); font-weight: 400; opacity: .85; }
+.welcome-hero-more {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-4);
+  font-size: var(--fs-lg);
+  line-height: 1.25;
+}
+.welcome-hero-dot { color: var(--ui-color-text-muted); }
+/* The house text link (base.css), on a button: the action colour, a hairline
+   underline clear of descenders that goes full strength on hover. The block padding
+   gives a finger more to land on without moving the baseline. */
+.welcome-hero-link {
+  padding: var(--sp-3) 0;
+  border: 0;
+  background: none;
+  color: var(--ui-color-text-accent);
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .22em;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  transition: text-decoration-color var(--dur-1);
+  cursor: pointer;
+}
+.welcome-hero-link:hover { text-decoration-color: currentColor; }
+
+/* The quiet line: the privacy promise, set apart from the actions. It flows as one
+   run of text, link included, so a narrow card balances its two lines rather than
+   leaving the link alone on the second. */
+.welcome-hero-quiet {
+  grid-area: quiet;
+  margin: var(--sp-7) 0 0;
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  color: var(--ui-color-text-muted);
+  text-wrap: balance;
+}
+.welcome-hero-quiet a { color: inherit; }
+.welcome-hero-chip {
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-4);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--ui-color-text-default) 8%, transparent);
+  color: var(--ui-color-text-default);
+  font: inherit;
+  cursor: pointer;
+}
+.welcome-hero-chip svg { inline-size: var(--ui-size-icon-sm); block-size: var(--ui-size-icon-sm); }
+.welcome-hero-chip.is-active { background: color-mix(in oklab, var(--ui-color-action-primary) 24%, transparent); }
+.welcome-hero-dim { color: var(--ui-color-text-muted); }
+.welcome-hero-langs { display: inline-flex; flex-wrap: wrap; gap: var(--sp-1); }
+
+/* The close button: a full touch target centred on the sentence's first line, with
+   its visible disc's edge on the padding line. The equal negative block margins
+   keep the target from making that line any taller. */
+.welcome-hero-close {
+  grid-area: close;
+  align-self: start;
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: var(--ui-size-target);
+  block-size: var(--ui-size-target);
+  margin-block: calc((var(--wh-line) - var(--ui-size-target)) / 2);
+  margin-inline-end: calc(var(--wh-disc-inset) * -1);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--ui-color-text-default);
+  cursor: pointer;
+}
+.welcome-hero-close::before {
+  content: "";
+  position: absolute;
+  inset: var(--wh-disc-inset);
+  border-radius: inherit;
+  background: color-mix(in oklab, var(--ui-color-text-default) 9%, transparent);
+  transition: background-color var(--dur-1) var(--ease-out), scale var(--dur-1) var(--ease-out);
+}
+.welcome-hero-close:hover::before { background: color-mix(in oklab, var(--ui-color-text-default) 16%, transparent); scale: 1.06; }
+.welcome-hero-close:active::before { scale: .94; }
+.welcome-hero-close svg { position: relative; inline-size: var(--ui-size-icon-md); block-size: var(--ui-size-icon-md); }
+
+/* A swipe let go: the card settles back, or carries on out. */
+.welcome-hero-card.is-settling { transition: translate var(--dur-3) var(--ease-out), opacity var(--dur-3) var(--ease-out); }
+
+/* Leaving: the card fades, then the space it held closes and the gallery slides up. */
+@keyframes wh-fade { to { opacity: 0; translate: 0 -8px; scale: .97; } }
+@keyframes wh-close { to { block-size: 0; padding-block: 0; } }
+.welcome-hero-leaving { block-size: var(--wh-h); pointer-events: none; animation: wh-close var(--dur-3) var(--ease-out) var(--dur-2) both; }
+.welcome-hero-leaving > .welcome-hero-card:not(.is-flung) { animation: wh-fade var(--dur-2) var(--ease-out) both; }
+
+/* The mark, finished: the candy filled with the brand's action colour, the swirl
+   over it in the colour that reads on that fill, the stick in ink. */
+.welcome-hero-mark * { fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.welcome-hero-mark .whm-candy { fill: var(--ui-color-action-primary); stroke: var(--ui-color-action-primary); }
+.welcome-hero-mark .whm-swirl { stroke: var(--ui-color-action-on-primary); stroke-width: 5; }
+.welcome-hero-mark .whm-stick { stroke: var(--ui-color-text-default); stroke-width: 6; }
+
+/* Waiting to be seen: the mark is drawn from nothing, so nothing shows before. */
+.welcome-hero:not(.is-settled):not(.is-drawing) .welcome-hero-mark { opacity: 0; }
+
+@keyframes whm-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes whm-fill { from { fill-opacity: 0; } to { fill-opacity: 1; } }
+@keyframes whm-ink { from { stroke: var(--ui-color-text-default); } to { stroke: var(--ui-color-action-on-primary); } }
+
+/* The drawing: the swirl from its centre out, the candy's edge closing round it, then
+   the fill and the stick together. The words are there from the first paint. */
+.welcome-hero.is-drawing .whm-swirl {
+  animation: whm-draw calc(var(--dur-3) * 2.5) var(--ease-out) both, whm-ink var(--dur-3) var(--ease-out) calc(var(--dur-3) * 3) both;
+}
+.welcome-hero.is-drawing .whm-candy {
+  animation: whm-draw calc(var(--dur-3) * 2) var(--ease-out) var(--dur-3) both, whm-fill var(--dur-3) var(--ease-out) calc(var(--dur-3) * 3) both;
+}
+.welcome-hero.is-drawing .whm-stick {
+  animation: whm-draw var(--dur-3) var(--ease-out) calc(var(--dur-3) * 3) both;
+}
+/* Reduce motion, by either switch: the finished mark, nothing moving. (The greeting
+   does not start a drawing then either; these hold if a switch changes mid-way.) */
+@media (prefers-reduced-motion: reduce) {
+  .welcome-hero.is-drawing .whm-swirl,
+  .welcome-hero.is-drawing .whm-candy,
+  .welcome-hero.is-drawing .whm-stick { animation: none; }
+  .welcome-hero-card.is-settling,
+  .welcome-hero-link,
+  .welcome-hero-swatch::before,
+  .welcome-hero-close::before { transition: none; }
+}
+html[data-a11y-motion="reduce"] .welcome-hero.is-drawing .whm-swirl,
+html[data-a11y-motion="reduce"] .welcome-hero.is-drawing .whm-candy,
+html[data-a11y-motion="reduce"] .welcome-hero.is-drawing .whm-stick { animation: none; }
+html[data-a11y-motion="reduce"] .welcome-hero-card.is-settling,
+html[data-a11y-motion="reduce"] .welcome-hero-link,
+html[data-a11y-motion="reduce"] .welcome-hero-swatch::before,
+html[data-a11y-motion="reduce"] .welcome-hero-close::before { transition: none; }
+
+/* A phone: the mark beside the sentence at the sentence's two-line height, the
+   close on the same row, the button across the card in reach of a thumb, and the
+   links and the quiet line centred under the button. */
+@container welcome (max-width: 32rem) {
+  .welcome-hero-card {
+    --wh-pad: var(--sp-7);
+    --wh-mark: calc(var(--wh-line) * 2);
+    justify-self: stretch;
+    grid-template-areas:
+      "mark  title close"
+      "act   act   act"
+      "quiet quiet quiet";
+    column-gap: var(--sp-6);
+  }
+  .welcome-hero-mark,
+  .welcome-hero-title,
+  .welcome-hero-close { align-self: center; }
+  .welcome-hero-close { margin-block: 0; }
+  .welcome-hero-act { justify-content: center; margin-block-start: var(--sp-7); }
+  .welcome-hero-act--well { align-items: center; }
+  .welcome-hero-row { justify-content: center; inline-size: 100%; }
+  .welcome-hero-well { justify-content: center; }
+  .welcome-hero-swatches { margin-inline-start: 0; justify-content: center; }
+  .welcome-hero-go { flex: 1 1 100%; }
+  .welcome-hero-quiet { text-align: center; }
+}
+@media (max-width: 760px) {
+  .welcome-hero,
+  .welcome-hero-leaving { --wh-gutter: var(--sp-4); }
+}
+}

@@ -1,53 +1,58 @@
-# Wie Lolly funktioniert
+# So funktioniert Lolly
 
-Ein Lolly-Tool hält die Regeln für eine Art von Datei: das Layout, die Schrift, die Farben und welche Teile andere ändern dürfen. Sie, eine Kollegin, ein Skript oder ein KI-Agent füllen die Felder aus, und jede Datei wird richtig. Diese Seite zeigt, wer was tut, und die vier Wege von einem Tool zu einer fertigen Datei.
+Ein Lolly-Tool enthält die Regeln für eine Art von Datei: das Layout, die Schrift, die Farben und welche Teile andere ändern dürfen. Sie, eine Kollegin, ein Skript oder ein KI-Agent füllen die Felder aus, und jede Datei folgt diesen Regeln.
 
+<!--i:eti-repeat-->
 ## Ein Tool, Ihre Regeln, viele Dateien
 
-Die Markenregeln leben im Tool, nicht in jeder Datei, die es erzeugt. Wenn das Tool einmal stimmt, erbt jede Ausgabe dieselbe Schrift, Farbe und denselben Abstand, ob es eine Karte ist oder eine Tabelle voller Zeilen in einem Dutzend Sprachen.
+Die Markenregeln liegen im Tool. Richten Sie das Tool einmal ein, und jede Ausgabe erhält dieselbe Schrift, dieselbe Farbe und dieselben Abstände, von einer einzelnen Karte bis zu einer Tabelle voller Zeilen in einem Dutzend Sprachen.
 
-![Ein Wortmarken-Tool mit einem ausgefüllten Feld: Schrift, Farbe und Abstand wurden festgelegt, als das Tool entstand](/info/shots/aud-rules-in-the-tool.svg)
+![Ein Wortmarken-Tool mit einem ausgefüllten Feld: Schrift, Farbe und Abstände wurden beim Erstellen des Tools festgelegt](/info/shots/aud-rules-in-the-tool.svg)
 
-Wer die hundertste Datei erstellt, tippt nur die Worte. Wie Sie die Arbeit prüfen und wer sie prüft, bleibt Ihre Entscheidung. Lolly macht das, was geprüft werden muss, kleiner und die nächste Datei schneller erstellt.
+Wer die hundertste Datei erstellt, gibt nur noch den Text ein. Sie entscheiden, wie die Arbeit geprüft wird und wer sie prüft. Mit Lolly gibt es weniger zu prüfen, und die nächste Datei ist schneller fertig.
 
-## Wer ein Tool anfasst
+<!--i:eti-users-->
+## Wer mit einem Tool arbeitet
 
-Folgen Sie einer Kampagnenkarte durch eine Organisation, und es erscheinen drei Paar Hände. Jedes baut auf dem vorigen auf.
+Drei Rollen in einer Organisation arbeiten an einer Kampagnenkarte.
 
-![Eine Designerin legt die Regeln einmal in einem Tool fest; ein Entwickler führt es aus einem Skript aus, und jede und jeder kann seine Felder ausfüllen; beide erzeugen fertige Dateien](/info/diagrams/concepts/asset-relay.svg)
+![Eine Designerin legt die Regeln einmal in einem Tool fest; ein Entwickler führt es über ein Skript aus und alle können seine Felder ausfüllen; beide Wege erzeugen fertige Dateien](/info/diagrams/concepts/asset-relay.svg)
 
 ::: timeline
-- <!--i:pentool--> **Eine Designerin legt die Regeln fest.** Sie legt die Karte in Design mit Schrift und Farben der Marke an und wählt dann, welche Felder offen bleiben. Das tut sie einmal, damit niemand die Karte je wieder von Hand lokalisiert.
-- <!--i:code--> **Ein Entwickler skaliert das Tool.** Dasselbe Tool läuft in einem nächtlichen Skript über die Kommandozeile, sodass ein frisches Diagramm oder eine neue Sprachversion ankommt, ohne dass jemand das Design wieder öffnet.
-- <!--i:people--> **Jede und jeder füllt es aus.** Ein Vertriebsmitarbeiter im Flugzeug, ohne Netz und ohne Designausbildung, öffnet das Tool und erstellt die Karte für das Meeting von morgen.
+- <!--i:pentool--> **Eine Designerin legt die Regeln fest.** Sie gestaltet die Karte in Lolly Design mit der Schrift und den Farben der Marke und wählt dann, welche Felder offen bleiben. Das tut sie einmal, damit niemand die Karte erneut von Hand lokalisieren muss.
+- <!--i:code--> **Ein Entwickler erweitert den Einsatz des Tools.** Dasselbe Tool läuft über die Befehlszeile in einem nächtlichen Skript. Ein aktuelles Diagramm oder eine neue Sprachversion entsteht, ohne dass jemand das Design erneut öffnet.
+- <!--i:people--> **Alle können es ausfüllen.** Ein Vertriebsmitarbeiter im Flugzeug öffnet das Tool ohne Netz und ohne Designausbildung und erstellt die Karte für das morgige Treffen.
 :::
 
-Das frische Diagramm im Schritt des Entwicklers ist ein Rendering wie dieses, aus einem Datenstring und ein paar Einstellungen erzeugt, ohne dass jemand eine Design-Datei öffnet:
+Das aktuelle Diagramm des Entwicklers ist ein Rendering wie dieses, erstellt aus einer Datenzeichenfolge und wenigen Einstellungen:
 
-![Ein Flächendiagramm mit Titel, gestapelt, seine drei Datenreihen in einer kühlen Palette abgestuft, mit Achsen, Legende und Titel, die die Vorlage statt von Hand platziert](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3FchartType%3Darea%26stackMode%3Dstacked%26palette%3Dcool%26heading%3DProduct%2520mix%2520by%2520quarter%26full&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-lifecycle-chart)
+![Ein gestapeltes Flächendiagramm mit Titel und drei Datenreihen in einer kühlen Palette, dessen Achsen, Legende und Titel alle von der Vorlage statt von Hand platziert wurden](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3FchartType%3Darea%26stackMode%3Dstacked%26palette%3Dcool%26heading%3DProduct%2520mix%2520by%2520quarter%26full&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-lifecycle-chart)
 
-Die leichte Minute des Vertriebsmitarbeiters ist nur durch die Sorgfalt der Designerin und das Skript des Entwicklers möglich. Jede Rolle arbeitet mit demselben Tool, statt mit je einem eigenen Produkt.
+Dass der Vertriebsmitarbeiter nur eine Minute braucht, liegt an den Regeln der Designerin und dem Skript des Entwicklers. Alle Rollen arbeiten mit demselben Tool.
 
+<!--i:eti-train-->
 ## Vier Wege zu einer Datei
 
-Jeder Weg führt dieselbe Engine auf demselben Tool aus; die Datei, die ein Skript erzeugt, entspricht also der, die Sie in der App in der Vorschau sehen.
+Jeder Weg führt dieselbe Engine mit demselben Tool aus. So entspricht die Datei, die ein Skript erstellt, der Vorschau in der App.
 
-![URL-Parameter und Kommandozeilenargumente werden zum selben Eingabemodell und laufen durch eine gemeinsame Laufzeit und Export-Bridge](/info/diagrams/concepts/one-render-path.svg)
+![URL-Parameter und Befehlszeilenargumente werden zum selben Eingabemodell, das eine gemeinsame Laufzeit und Exportbrücke durchläuft](/info/diagrams/concepts/one-render-path.svg)
 
-- <!--i:people--> **In der App, eine nach der anderen.** Öffnen Sie ein Tool, füllen Sie die Felder aus und drücken Sie **Export**. [Ihre erste Datei erstellen](/info/make-something.html) führt Sie durch eine.
-- <!--i:layers--> **In der App, viele auf einmal.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) nimmt eine eingefügte oder importierte Tabelle und rendert je Zeile eine fertige Datei.
-- <!--i:cpu--> **Aus einem Skript oder von einem KI-Agenten.** Die [CLI](/info/cli.html) führt ein Tool headless aus, und der [MCP-Server](/info/mcp.html) lässt einen Agenten Tools finden und ausführen. Auch ein Link zu einem Tool trägt seine Eingaben, ein Link ist also eine vollständige Anfrage.
-- <!--i:server--> **Über den Server Ihrer Organisation.** [Lolly Work](/info/organisation.html) rendert auf dem Server unter der Anmeldung und Tool-Richtlinie Ihrer Organisation, führt Aufträge, die es fortsetzen kann, und hält die Ausgabe zum Download oder zur freigegebenen Lieferung bereit.
+- <!--i:people--> **In der App, eine Datei nach der anderen.** Öffnen Sie ein Tool, füllen Sie die Felder aus und drücken Sie **Export**. [Ihre erste Datei erstellen](/info/make-something.html) führt Sie durch ein Beispiel.
+- <!--i:layers--> **In der App, viele auf einmal.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) nimmt eine eingefügte oder importierte Tabelle und rendert pro Zeile eine fertige Datei.
+- <!--i:cpu--> **Über ein Skript oder einen KI-Agenten.** Die [CLI](/info/cli.html) führt ein Tool ohne grafische Oberfläche aus, und der [MCP-Server](/info/mcp.html) lässt einen Agenten Tools finden und ausführen. Ein Link zu einem Tool enthält auch dessen Eingaben, ist also eine vollständige Anfrage.
+- <!--i:server--> **Über den Server Ihrer Organisation.** [Lolly Work](/info/organisation.html) rendert auf dem Server gemäß den Anmelde- und Tool-Richtlinien Ihrer Organisation, speichert fortsetzbare Aufträge und hält die Ausgabe zum Download oder zur genehmigten Lieferung bereit.
 
-Welchen Weg ein Auftrag nutzen kann, hängt von den Formaten des Tools ab und davon, was der Host kann: Manche Formate brauchen einen Browser, weshalb die Kommandozeile sie an eine Browser-Stufe übergibt. [Mit der CLI rendern](/info/cli-rendering.html) listet auf, welche Formate wo gerendert werden.
+Welchen Weg ein Auftrag nutzen kann, hängt von den Formaten des Tools und den Möglichkeiten des Hosts ab. Manche Formate brauchen einen Browser, daher übergibt die Befehlszeile sie an eine Browser-Ebene. [Mit der CLI rendern](/info/cli-rendering.html) listet auf, welche Formate wo gerendert werden.
 
+<!--i:eti-monitor-->
 ## Was wo läuft
 
-Erstellen, Bearbeiten und Exportieren laufen auf Ihrem Gerät, ohne Konto. Eine Funktion, die einen Server braucht, etwa Sync oder das Senden einer Datei an einen verbundenen Dienst, verbindet sich nur, wenn Sie diese Funktion nutzen. Mit Lolly Work nutzen gemeinsame Projekte, Live-Bearbeitung im Team, Freigaben und Server-Aufträge den Server Ihrer Organisation. [Was wo läuft](/info/compare.html#what-runs-where) stellt die beiden Teile nebeneinander.
+Erstellen, Bearbeiten und Exportieren laufen ohne Konto auf Ihrem Gerät. Eine Funktion, die einen Server braucht, etwa Sync oder das Senden einer Datei an einen verbundenen Dienst, stellt nur dann eine Verbindung her, wenn Sie diese Funktion verwenden. Mit Lolly Work nutzen gemeinsame Projekte, Live-Bearbeitung im Team, Freigaben und Serveraufträge den Server Ihrer Organisation. [Was wo läuft](/info/compare.html#what-runs-where) stellt die beiden Teile gegenüber.
 
-## Als Nächstes lesen
+<!--i:eti-graduation-cap-->
+## Weiterlesen
 
 - [Ihre erste Datei erstellen](/info/make-something.html), um es jetzt auszuprobieren.
-- [Start](/info/quickstart.html), um Ihr eigenes Designsystem einzubringen.
-- [Automatisieren](/info/builders.html) für Kommandozeile, Links und Agenten.
-- [Lolly-Architektur](/info/overview.html), für Mitwirkende: die Engine, die Shells und die Regeln, die sie zusammenhalten.
+- [Start](/info/quickstart.html), um Ihr eigenes Designsystem einzubinden.
+- [Automatisieren](/info/builders.html), für die Befehlszeile, Links und Agenten.
+- [Lolly-Architektur](/info/overview.html), für Mitwirkende: die Engine, die Oberflächen und die Regeln, die sie zusammenhalten.

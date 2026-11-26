@@ -281,3 +281,31 @@ test('guardDocumentEdits: writes pass until the document is read-only; undo repl
   assert.deepEqual(wrote.at(-1), ['headline', 'C']);
   _clearInputPoliciesForTests();
 });
+
+test('a hidden input that carries a value holds it, by mode when it has one; other hidden inputs keep theirs', async () => {
+  const { setToolInputPolicies, policyValuesFor, _clearInputPoliciesForTests } = await import('./input-policy.ts');
+  _clearInputPoliciesForTests();
+  setToolInputPolicies('sheet', {
+    logo: { mode: 'hidden', value: 'inst/l', byMode: { light: 'inst/l', dark: 'inst/d' } },
+    details: { mode: 'hidden', value: 'Rita Ortiz' },
+    secret: { mode: 'hidden' },
+  });
+  const model = [{ id: 'logo', value: 'x' }, { id: 'details', value: 'y' }, { id: 'secret', value: 'kept' }];
+  assert.deepEqual(policyValuesFor('sheet', model), { logo: 'inst/l', details: 'Rita Ortiz' });
+  assert.deepEqual(policyValuesFor('sheet', model, 'dark'), { logo: 'inst/d', details: 'Rita Ortiz' });
+  _clearInputPoliciesForTests();
+});
+
+test('start values are per tool, replaced whole and cleared', async () => {
+  const { setToolStartValues, toolStartValues, clearToolStartValues, _clearInputPoliciesForTests } = await import('./input-policy.ts');
+  _clearInputPoliciesForTests();
+  assert.deepEqual(toolStartValues('sheet'), {}, 'empty by default');
+  setToolStartValues('sheet', { bg: '#fff' });
+  assert.deepEqual(toolStartValues('sheet'), { bg: '#fff' });
+  assert.deepEqual(toolStartValues('other'), {});
+  setToolStartValues('sheet', {});
+  assert.deepEqual(toolStartValues('sheet'), {});
+  setToolStartValues('sheet', { bg: '#000' });
+  clearToolStartValues();
+  assert.deepEqual(toolStartValues('sheet'), {});
+});

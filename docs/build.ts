@@ -11,13 +11,16 @@ import { syncDocsNavigation } from '../scripts/sync-docs-navigation.ts';
 import { publicWorkMarkdown, workApplicability } from './work-pages.ts';
 import { resolveSourceLink, unpublishedLinks } from './doc-links.ts';
 import { createIconSprite } from './icon-sprite.ts';
+import { etiquetteDocIcons } from './etiquette-icons.ts';
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, cpSync, existsSync, readdirSync, rmSync, statSync, watch } from 'node:fs';
 import { resolve, dirname, relative, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { generateOgImages } from './og-image.ts';
+import { generateOgImages, type OgCard } from './og-image.ts';
 import { LANGS, LANG_META, sortedLangs } from '../engine/src/lang.ts';
 import { ENGINE_VERSION } from '../engine/src/version.ts';
+// The one credit line Lolly's music asks for, as every file and saved tune carries the line.
+import { TUNE_CREDIT as MUSIC_CREDIT } from '../engine/src/tune-provenance.ts';
 import { buildAgentDocs, buildAgentInstructions, AGENT_FILES } from './agents-pages.ts';
 // The document model specification (plan 276): its own web document under
 // /info/spec/document-model/, built from docs/spec/document-model/*.md.
@@ -57,6 +60,16 @@ import { resolveDocsArt, inlineDocsArt, mastheadArtBand } from './docs-art.ts';
 // tests/docs-page-seal.test.ts, and importing build.ts would build the site.
 import { pageSealLink, sealPages, type SealTarget } from './page-seal.ts';
 import { DOC_LOGOS } from './logos.ts';
+// The music genre pages and the background music hub: the pure page model, and the
+// app's own genre list, titles, icons and taglines (all free of the DOM).
+import {
+  GENRE_SLUG, MUSIC_BASE, MUSIC_GROUP_TITLE, SAMPLES_DIR, genrePageSlug, isoDuration,
+  makeYourOwnHash, plainText, questionsFromMarkdown, registerProblems,
+  type GenreCopy, type MusicQuestion, type MusicRegister, type SampleRecipe, type SampleSet,
+} from './music-pages.ts';
+import { GENRE_GROUPS, genreIconSvg, genreTitle, type GenreCategory } from '../shells/web/src/lib/genre-icons.ts';
+import { genreTaglines } from '../shells/web/src/views/music-studio/genre-taglines.ts';
+import type { LofiMood } from '../engine/src/lofi-compose.ts';
 import { readShotAnatomy } from './shot-anatomy.ts';
 // The shots pipeline's own recipe parser, reused rather than re-implemented: the
 // capture params a credential wants to state are exactly the ones the capture read,
@@ -84,6 +97,10 @@ import {
   PROV_SEAL,
   inline as pkgInline,
   mdToHtml as pkgMdToHtml,
+  hasContents,
+  contentsRailHtml,
+  pageBarHtml,
+  type ContentsHeading,
   type DocsRenderContext,
   type CredentialFacts,
 } from '../packages/docs-render/src/index.ts';
@@ -94,6 +111,7 @@ import { buildSync } from 'esbuild';
 // The app's icon registry: pure path data with no imports, so the static build can use
 // the very glyphs the app draws (plan 277: the docs reading components).
 import { icon as appIcon } from '../shells/web/src/lib/icons.ts';
+import { lightboxIcons } from '../shells/web/src/lib/docs-lightbox.ts';
 // The /info locale list (LOLLY_INFO_LOCALES), parsed the same way the shell reads it so
 // the pages this build writes and the shell's docs links agree.
 import { parseInfoLocales } from '../shells/web/src/lib/info-locales.ts';
@@ -227,6 +245,8 @@ interface Page {
 // comment, so the markdown twin at /info/formats.md still reads as a document (the
 // line is invisible) and an author can move the table by moving one line.
 const FORMATS_TABLE_MARK = '<!-- the three-zone formats table renders here -->';
+// Where the formats page places the "Choose the format last" proof (formatLastFigure).
+const FORMAT_LAST_MARK = '<!-- the format-last figure renders here -->';
 
 // A retired slug that now redirects to its new home. Emitted as a tiny meta-refresh
 // stub so inbound links + bookmarks keep resolving after the IA rebuild.
@@ -249,18 +269,18 @@ const pages: Page[] = [
   { slug: 'quickstart', title: 'Start', src: 'quickstart.md', pathway: 'quickstart', canonicalPath: 'start/quickstart', contentLicense: 'CC-BY-SA-4.0', headingId: 'quickstart', isHub: true },
   { slug: 'what-is-lolly', title: 'What is Lolly?', src: 'what-is-lolly.md', pathway: 'quickstart', canonicalPath: 'start/what-is-lolly', contentLicense: 'CC-BY-SA-4.0', description: 'Make graphics, documents and video with Lolly, an open-source creative platform for content sovereignty, with local tools and optional organisation services.' },
   { slug: 'content-sovereignty', title: 'What is content sovereignty?', src: 'content-sovereignty.md', pathway: 'quickstart', canonicalPath: 'start/content-sovereignty', contentLicense: 'CC-BY-SA-4.0', description: 'Control how content is created, governed, stored and moved: local production, portable work and connected systems, with the limits of each control.' },
-  { slug: 'suse-brandfolder', title: 'How SUSE connected Brandfolder to Lolly', src: 'suse-brandfolder.md', pathway: 'quickstart', canonicalPath: 'start/suse-brandfolder', contentLicense: 'CC-BY-SA-4.0', description: 'How successful Brandfolder integration at SUSE supported adoption and administrator change management before a planned migration, with the evidence scope recorded.' },
-  { slug: 'how-lolly-works', title: 'How Lolly works', src: 'how-lolly-works.md', pathway: 'quickstart', canonicalPath: 'start/how-lolly-works', contentLicense: 'CC-BY-SA-4.0', description: 'One tool, your rules, many files: who sets a tool up, the four routes from a tool to a finished file and what runs on your device or on your organisation\'s server.' },
+  { slug: 'suse-brandfolder', title: 'How SUSE connected Brandfolder to Lolly', src: 'suse-brandfolder.md', pathway: 'quickstart', canonicalPath: 'start/suse-brandfolder', contentLicense: 'CC-BY-SA-4.0', description: 'How Brandfolder integration at SUSE supported adoption and administrator change management before a planned migration, with the evidence scope recorded.' },
+  { slug: 'how-lolly-works', title: 'How Lolly works', src: 'how-lolly-works.md', pathway: 'quickstart', canonicalPath: 'start/how-lolly-works', contentLicense: 'CC-BY-SA-4.0', description: 'Who sets a tool up, the four routes from a tool to a finished file and what runs on your device or on your organisation\'s server.' },
   { slug: 'make-something', title: 'Make your first file', src: 'make-something.md', pathway: 'quickstart', canonicalPath: 'start/make-something', contentLicense: 'CC-BY-SA-4.0', description: 'Make a QR code for a web address, download it, check that it scans, and save an editable copy you can reopen from Projects. No account needed.', render: renderMakeSomethingPage },
   { slug: 'lolly-demo', title: 'Meet Lolly Demo', src: 'lolly-demo.md', pathway: 'quickstart', canonicalPath: 'start/lolly-demo', contentLicense: 'CC-BY-SA-4.0', description: 'Lolly Demo is the look lolly.tools opens with. See the Lolly mark, the Opal colours and six colourways, Crossland type, Etiquette icons and the Fauna cast.' },
   { slug: 'lolly-demo-in-use', title: 'Lolly Demo in use', src: 'lolly-demo-in-use.md', pathway: 'quickstart', canonicalPath: 'start/lolly-demo-in-use', contentLicense: 'CC-BY-SA-4.0', description: 'Where Lolly Demo shows up in the app and in the files you export, how to pick a colourway, Clinic\'s do and don\'t, and how to switch to your own design system.' },
   { slug: 'faq', title: 'Questions & answers', src: 'faq.md', pathway: 'quickstart', canonicalPath: 'start/faq', contentLicense: 'CC-BY-SA-4.0', description: 'The things people ask most: why it is free, where your files go, why everything is green, how to get the apps, what to do about WebGPU and who made Lolly.', render: renderFaqPage },
-  { slug: 'organisation', title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', canonicalPath: 'start/organisation', contentLicense: 'CC-BY-SA-4.0', description: 'Reach your organisation\'s Lolly, sign in and see what changes with Lolly Work: managed settings, locked design systems, team projects and approvals. What stays on your device, and how to leave.' },
-  { slug: 'install', title: 'Install Lolly', src: 'install.md', pathway: 'quickstart', canonicalPath: 'start/install', contentLicense: 'CC-BY-SA-4.0', description: 'Every way to get Lolly: the Mac and Windows apps, Lolly Tools on the App Store, the Android APK, Linux packages (Flatpak, RPM, deb, Arch, AppImage), YunoHost and the container image, with versions and how to check a download.' },
+  { slug: 'organisation', title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', canonicalPath: 'start/organisation', contentLicense: 'CC-BY-SA-4.0', description: 'Reach your organisation\'s Lolly, sign in and see what changes with Lolly Work. What stays on your device, and how to leave.' },
+  { slug: 'install', title: 'Install Lolly', src: 'install.md', pathway: 'quickstart', canonicalPath: 'start/install', contentLicense: 'CC-BY-SA-4.0', description: 'Every way to get Lolly: the Mac and Windows apps, the App Store, the Android APK, Linux packages, YunoHost and the container image, and how to check a download.' },
   { slug: 'supported-environments', title: 'Supported environments', src: 'supported-environments.md', pathway: 'quickstart', canonicalPath: 'start/supported-environments', contentLicense: 'CC-BY-SA-4.0', description: 'Where the web app\'s WebGPU check has been tested, what to try when your browser is refused and the qualification evidence behind each result.' },
   { slug: 'creators', title: 'Create', src: 'creators.md', pathway: 'creators', canonicalPath: 'create/creators', contentLicense: 'CC-BY-SA-4.0', headingId: 'lolly-for-creators', isHub: true },
   { slug: 'using', title: 'Using Lolly', src: 'using.md', pathway: 'creators', canonicalPath: 'create/using', contentLicense: 'CC-BY-SA-4.0', description: 'Open a tool, change what it lets you change, save the result and share it as a link or a .lolly file, then make the home screen and your library your own.' },
-  { slug: 'design', title: 'Lolly Design: the free canvas', src: 'design.md', pathway: 'creators', canonicalPath: 'create/design', contentLicense: 'CC-BY-SA-4.0', description: 'Build layouts, decks and motion on Lolly Design\'s free canvas: shape boxes, draw paths, place 3D scenes and tools, add a timeline, check the result and present it.' },
+  { slug: 'design', title: 'Lolly Design: the free canvas', src: 'design.md', pathway: 'creators', canonicalPath: 'create/design', contentLicense: 'CC-BY-SA-4.0', description: 'Build layouts, decks and motion on Lolly Design\'s free canvas: shape boxes, draw paths, place 3D scenes and tools, add a timeline and present.' },
   { slug: 'builders', title: 'Automate', src: 'builders.md', pathway: 'builders', canonicalPath: 'build/builders', contentLicense: 'CC-BY-SA-4.0', headingId: 'lolly-for-builders', isHub: true },
   { slug: 'operators', title: 'Manage', src: 'operators.md', pathway: 'managers', canonicalPath: 'manage/organisation-management', contentLicense: 'CC-BY-SA-4.0', description: 'Run Lolly for a team with Lolly Work: access, roles and policy, shared assets, approvals and the data each part keeps.', headingId: 'lolly-for-operators', isHub: true },
   { slug: 'use-with-dam', title: 'Use Lolly with your existing DAM', src: 'use-with-dam.md', pathway: 'managers', canonicalPath: 'manage/use-with-dam', contentLicense: 'CC-BY-SA-4.0', description: 'Keep your DAM as the source of record while Lolly makes content from approved assets. Responsibilities, access, review, delivery and optional migration.' },
@@ -279,14 +299,15 @@ const pages: Page[] = [
   { slug: 'training-delivery', title: 'Deliver and update a course', src: 'training-delivery.md', pathway: 'creators', canonicalPath: 'create/training-delivery', contentLicense: 'CC-BY-SA-4.0', description: 'Choose a course format for each LMS or website, publish and test the package, release new versions and fix the problems people meet most.' },
   { slug: 'templates', title: 'Templates', src: 'templates.md', pathway: 'creators', canonicalPath: 'create/templates', contentLicense: 'CC-BY-SA-4.0', description: 'Saved starting points for a tool: how to keep one, how to open a tool on it every time, and how yours sit beside the ones a tool ships with.' },
   { slug: 'batch', title: 'Lolly Batch and Lolly Multi-edit', src: 'batch.md', pathway: 'creators', canonicalPath: 'create/batch', contentLicense: 'CC-BY-SA-4.0', description: 'Make many versions of one design from rows or a spreadsheet with Lolly Batch, or edit up to eight saved designs side by side with Lolly Multi-edit.' },
-  { slug: 'brand-studio', title: 'Lolly Design System Setup', src: 'brand-studio.md', pathway: 'creators', canonicalPath: 'create/brand-studio', contentLicense: 'CC-BY-SA-4.0', description: 'Make the design system yours at #/start: logo, colours, type, tokens, files and usage rules, then export it, move it between devices and manage the systems you keep.' },
+  { slug: 'brand-studio', title: 'Lolly Design System Setup', src: 'brand-studio.md', pathway: 'creators', canonicalPath: 'create/brand-studio', contentLicense: 'CC-BY-SA-4.0', description: 'Make the design system yours at #/start: logo, colours, type, tokens, files and usage rules, then export it, move it between devices.' },
   { slug: 'brand-architectures', title: 'Brand architectures', src: 'brand-architectures.md', pathway: 'creators', canonicalPath: 'create/brand-architectures', contentLicense: 'CC-BY-SA-4.0', description: 'How masterbrands, divisions, products, endorsed brands, clients and seasons map onto design systems, colourways and logo identities in Lolly.' },
   { slug: 'brand-page', title: 'Brand pages', src: 'brand-page.md', pathway: 'creators', canonicalPath: 'create/brand-page', contentLicense: 'CC-BY-SA-4.0', description: 'Publish one folder that works as a press kit and an agent kit: logos, colours, type, rules and examples, with a list of what the rights on record hold back.' },
   { slug: 'colourways', title: 'Colourways', src: 'colourways.md', pathway: 'creators', canonicalPath: 'create/colourways', contentLicense: 'CC-BY-SA-4.0', description: 'Keep several lead colours in one design system, choose one for each piece, and see what follows the canonical one. Lolly Demo ships six.' },
   { slug: 'partners', title: 'Working with partners', src: 'partners.md', pathway: 'creators', canonicalPath: 'create/partners', contentLicense: 'CC-BY-SA-4.0', description: 'Share your brand with a partner, work in a brand you were given, place a partner\'s logo and build a sponsor wall in Lolly, with what it does not do yet.' },
   { slug: '3d-studio', title: 'Lolly 3D Studio', src: '3d-studio.md', pathway: 'creators', canonicalPath: 'create/3d-studio', contentLicense: 'CC-BY-SA-4.0', description: 'Stage SVG artwork and meshes with materials, lighting, depth of field and transparent shadows.' },
-  { slug: 'find-your-work', title: 'Find and recover your work', src: 'find-your-work.md', pathway: 'creators', canonicalPath: 'create/find-your-work', contentLicense: 'CC-BY-SA-4.0', description: 'Where your saved work, downloads and earlier versions are, what a closed tab or cleared browser data takes with it, and how to move everything to another device.' },
-  { slug: 'sync', title: 'Sync your devices', src: 'sync.md', pathway: 'creators', canonicalPath: 'create/sync', contentLicense: 'CC-BY-SA-4.0', description: 'Keep your work the same on every device through storage you choose - Dropbox, Google Drive, OneDrive, your own Nextcloud or S3 - with no Lolly server in between.' },
+  { slug: 'chart', title: 'Lolly Chart', src: 'chart.md', pathway: 'creators', canonicalPath: 'create/chart', contentLicense: 'CC-BY-SA-4.0', description: 'Paste a table and draw it in your design system: vector charts, statistical plots, 3-D scenes and flights, from 43 templates to 20 export formats.' },
+  { slug: 'find-your-work', title: 'Find and recover your work', src: 'find-your-work.md', pathway: 'creators', canonicalPath: 'create/find-your-work', contentLicense: 'CC-BY-SA-4.0', description: 'Where your saved work, downloads and earlier versions are, and how to move everything to another device.' },
+  { slug: 'sync', title: 'Sync your devices', src: 'sync.md', pathway: 'creators', canonicalPath: 'create/sync', contentLicense: 'CC-BY-SA-4.0', description: 'Keep your work the same on every device through storage you choose - Dropbox, Google Drive, OneDrive, your own Nextcloud or S3 - with no Lolly server.' },
   { slug: 'search', title: 'Lolly Search', src: 'search.md', pathway: 'creators', canonicalPath: 'create/search', contentLicense: 'CC-BY-SA-4.0', description: 'Press Ctrl-Space and type to reach tools, saved work, assets, settings and the guides from the bar at the foot of the screen.' },
   { slug: 'dashboard', title: 'Settings', src: 'dashboard.md', pathway: 'creators', canonicalPath: 'create/dashboard', contentLicense: 'CC-BY-SA-4.0', description: 'Every tab of Settings in one map: your details, design systems, accessibility, sound, storage, offline downloads, this device, capabilities and activity.' },
   { slug: 'profile', title: 'Profiles', src: 'profile.md', pathway: 'creators', canonicalPath: 'create/profile', contentLicense: 'CC-BY-SA-4.0', description: 'The working identity Lolly creates as - your name, role and contact details, filled into tools automatically and stored on your own device.' },
@@ -295,8 +316,9 @@ const pages: Page[] = [
   { slug: 'design-import', title: 'Import a design', src: 'design-import.md', pathway: 'creators', canonicalPath: 'create/design-import', contentLicense: 'CC-BY-SA-4.0', description: 'Open a Figma, Penpot, Illustrator, InDesign, Photoshop or SVG file in Lolly Design as editable layers, on your device, on your design system.', render: renderDesignImportPage },
   { slug: 'design-layout', title: 'Layout in Lolly Design', src: 'design-layout.md', pathway: 'creators', canonicalPath: 'create/design-layout', contentLicense: 'CC-BY-SA-4.0', description: 'Flex and grid layouts, groups, pages and precise number fields in Lolly Design.' },
   { slug: 'darkroom', title: 'Lolly Darkroom', src: 'darkroom.md', pathway: 'creators', canonicalPath: 'create/darkroom', contentLicense: 'CC-BY-SA-4.0', description: 'Grade photos and video with film looks, LUTs, Adobe presets and your design system colours, then reuse the look.' },
-  { slug: 'rebrand', title: 'Rebrand a deck', src: 'rebrand.md', pathway: 'creators', canonicalPath: 'create/rebrand', contentLicense: 'CC-BY-SA-4.0', description: 'Move a PowerPoint or PDF deck someone else made onto your design system, on your device: review what Lolly Rebrand suggests for each slide, decide, and open the result in Lolly Design.' },
-  { slug: 'formats', title: 'Formats', src: 'formats.md', pathway: 'creators', canonicalPath: 'create/formats', contentLicense: 'CC-BY-SA-4.0', description: 'Every file format Lolly reads, every format it writes and the ones it does both ways, with a plain-language card behind every chip and what happens when a file comes in.', render: renderFormatsPage },
+  { slug: 'rebrand', title: 'Rebrand a deck', src: 'rebrand.md', pathway: 'creators', canonicalPath: 'create/rebrand', contentLicense: 'CC-BY-SA-4.0', description: 'Move a PowerPoint or PDF deck someone else made onto your design system, on your device: review what Lolly Rebrand suggests for each slide, decide.' },
+  { slug: 'formats', title: 'Formats', src: 'formats.md', pathway: 'creators', canonicalPath: 'create/formats', contentLicense: 'CC-BY-SA-4.0', description: 'Every file format Lolly reads, every format it writes and the ones it does both ways, with a plain-language card behind every chip.', render: renderFormatsPage },
+  { slug: 'fallback-fonts', title: 'Fallback fonts', src: 'fallback-fonts.md', pathway: 'creators', canonicalPath: 'create/fallback-fonts', contentLicense: 'CC-BY-SA-4.0', description: 'Which open fonts draw the scripts a design system\'s fonts cannot, when one downloads, how the page and the export agree, and what still becomes a picture.' },
   { slug: 'text-composition', title: 'Text in Lolly Design', src: 'text-composition.md', pathway: 'creators', canonicalPath: 'create/text-composition', contentLicense: 'CC-BY-SA-4.0', description: 'Edit text on canvas, flow articles through frames, compose typography and retain editable source.' },
   { slug: 'text-composition-engine', title: 'Authored text composition', src: '../engine/text-composition.md', pathway: 'builders', canonicalPath: 'build/text-composition-engine', contentLicense: 'CC-BY-SA-4.0', description: 'Literal text, pinned fonts, shared shaping, frame and path geometry, native editing and export receipts.' },
   { slug: 'colour-engine', title: 'Colour in the engine', src: 'colour-engine.md', pathway: 'builders', canonicalPath: 'build/colour-engine', contentLicense: 'CC-BY-SA-4.0', description: 'How Lolly reads every CSS colour, does its maths in OKLab and writes sRGB, CMYK or Rec.2100 PQ.' },
@@ -307,28 +329,31 @@ const pages: Page[] = [
   { slug: 'agenda', title: 'Agenda screens and programmes', src: 'agenda.md', pathway: 'creators', canonicalPath: 'create/agenda', contentLicense: 'CC-BY-SA-4.0', description: 'Turn an event programme into branded screens, an interactive page, video, calendars and PowerPoint slides.' },
   { slug: 'animating', title: 'Animating: keyframes, depth and a camera', src: 'animating.md', pathway: 'creators', canonicalPath: 'create/animating', contentLicense: 'CC-BY-SA-4.0', description: 'Pose a box at one moment, lift it off the page, and fly a camera over the result - keyframes, depth, the scene camera and Lift layers, all on your device.' },
   { slug: 'rondocode', title: 'Lolly Rondocode songs', src: 'rondocode.md', pathway: 'creators', canonicalPath: 'create/rondocode', contentLicense: 'CC-BY-SA-4.0', description: 'Play music written as code under a video, write and export a song, and see what its Content Credentials record.' },
+  { slug: 'background-music', title: 'Free background music generator', src: 'background-music.md', pathway: 'creators', canonicalPath: 'create/background-music', contentLicense: 'CC-BY-SA-4.0', description: 'Make free background music for videos, podcasts, streams and games in more than 50 genres, on your own device. Free for any use, even commercial, with credit.', render: renderMusicHubPage },
+  { slug: 'music-generator', title: 'Music generator', src: 'music-generator.md', pathway: 'creators', canonicalPath: 'create/music-generator', contentLicense: 'CC-BY-SA-4.0', description: 'Make a track in any of Lolly\'s genres: shuffle, choose instruments, set the tune and the mix, then download an M4A or WAV file that is free to use with credit.' },
+  { slug: 'generated-music', title: 'Generated music', src: 'generated-music.md', pathway: 'creators', canonicalPath: 'create/generated-music', contentLicense: 'CC-BY-SA-4.0', description: 'How a seed becomes a tune, what stays the same on every device, how each genre\'s instruments are made and measured, and what a track records.' },
   { slug: 'collaborate', title: 'Working together', src: 'collaborate.md', pathway: 'creators', canonicalPath: 'create/collaborate', contentLicense: 'CC-BY-SA-4.0', description: 'Edit a tool session with someone else: a private collab between two devices with no account or server, or a work collab through your organisation\'s Lolly Work.' },
   { slug: 'project-asset-transfers', title: 'Shared project assets', src: 'project-asset-transfers.md', pathway: 'creators', canonicalPath: 'create/project-asset-transfers', contentLicense: 'CC-BY-SA-4.0', description: 'With Lolly Work, browse shared project folders, copy files between projects, offer originals to the organisation library and send files to connected services.' },
-  { slug: 'utilities', title: 'Utilities', src: 'utilities.md', pathway: 'creators', canonicalPath: 'create/utilities', contentLicense: 'CC-BY-SA-4.0', description: 'Fix a file on your device: share it safely, compare two versions, change its format, get the words out or check a colour, with every utility in the Utilities tab.' },
+  { slug: 'utilities', title: 'Utilities', src: 'utilities.md', pathway: 'creators', canonicalPath: 'create/utilities', contentLicense: 'CC-BY-SA-4.0', description: 'Fix a file on your device: share it safely, compare two versions, change its format, get the words out or check a colour.' },
   { slug: 'exporting', title: 'Export a file', src: 'exporting.md', pathway: 'creators', canonicalPath: 'create/exporting', contentLicense: 'CC-BY-SA-4.0', description: 'Pick the right format for a screen, a printer or another app, set its size and print marks, export many files at once, and see what travels with each file.' },
   { slug: 'positioning', title: 'How Lolly compares', src: 'positioning.md', pathway: 'creators', canonicalPath: 'create/positioning', contentLicense: 'CC-BY-SA-4.0', description: 'Where Lolly fits alongside creative apps, DAMs and storage, with content sovereignty, capability comparisons and separate deployment and maturity limits.' },
-  { slug: 'compare', title: 'Lolly compared, tool by tool', src: 'compare.md', pathway: 'creators', canonicalPath: 'create/compare', contentLicense: 'CC-BY-SA-4.0', description: 'What runs on your device and what runs on a Lolly Work server, the limits every comparison shares and one page per product: Canva, Adobe, Figma, Penpot, brand portals, rendering APIs and converters.' },
+  { slug: 'compare', title: 'Lolly compared, tool by tool', src: 'compare.md', pathway: 'creators', canonicalPath: 'create/compare', contentLicense: 'CC-BY-SA-4.0', description: 'What runs on your device and what runs on a Lolly Work server, one page per product: Canva, Adobe, Figma, Penpot, brand portals, rendering APIs and converters.' },
   { slug: 'compare-canva', title: 'Lolly and Canva', src: 'compare-canva.md', pathway: 'creators', canonicalPath: 'create/compare-canva', contentLicense: 'CC-BY-SA-4.0', description: 'Making an on-brand graphic without a subscription: where Lolly and Canva overlap, and what Canva does better today.' },
   { slug: 'compare-adobe', title: 'Lolly and Adobe', src: 'compare-adobe.md', pathway: 'creators', canonicalPath: 'create/compare-adobe', contentLicense: 'CC-BY-SA-4.0', description: 'Converting, exporting and signing files without a Creative Cloud account: where Lolly and Adobe overlap.' },
   { slug: 'compare-figma', title: 'Lolly and Figma', src: 'compare-figma.md', pathway: 'creators', canonicalPath: 'create/compare-figma', contentLicense: 'CC-BY-SA-4.0', description: 'Laying out a design and turning it into a reusable output: where Lolly and Figma overlap, and what Figma does better.' },
-  { slug: 'compare-render-apis', title: 'Lolly and rendering APIs', src: 'compare-render-apis.md', pathway: 'creators', canonicalPath: 'create/compare-render-apis', contentLicense: 'CC-BY-SA-4.0', description: 'Running your own image production instead of a hosted rendering API like Bannerbear or Placid: what each does better, how the jobs line up, and what carries across.' },
+  { slug: 'compare-render-apis', title: 'Lolly and rendering APIs', src: 'compare-render-apis.md', pathway: 'creators', canonicalPath: 'create/compare-render-apis', contentLicense: 'CC-BY-SA-4.0', description: 'Running your own image production instead of a hosted rendering API like Bannerbear or Placid: what each does better, how the jobs line up.' },
   { slug: 'compare-converters', title: 'Lolly and online file converters', src: 'compare-converters.md', pathway: 'creators', canonicalPath: 'create/compare-converters', contentLicense: 'CC-BY-SA-4.0', description: 'Turning one file format into another on your own device, without uploading it to a stranger\'s server.' },
   { slug: 'compare-penpot', title: 'Lolly and Penpot', src: 'compare-penpot.md', pathway: 'creators', canonicalPath: 'create/compare-penpot', contentLicense: 'CC-BY-SA-4.0', description: 'Two open-source answers to design work: where Lolly and Penpot overlap, what Penpot does better today, and how the two projects work together.' },
-  { slug: 'compare-brand-portals', title: 'Lolly and brand portals', src: 'compare-brand-portals.md', pathway: 'creators', canonicalPath: 'create/compare-brand-portals', contentLicense: 'CC-BY-SA-4.0', description: 'Use Lolly alongside a brand portal or DAM: keep the approved library, make controlled outputs and understand where access, review and delivery responsibilities sit.' },
+  { slug: 'compare-brand-portals', title: 'Lolly and brand portals', src: 'compare-brand-portals.md', pathway: 'creators', canonicalPath: 'create/compare-brand-portals', contentLicense: 'CC-BY-SA-4.0', description: 'Use Lolly alongside a brand portal or DAM: keep the approved library, make controlled outputs and understand where access, review and delivery sit.' },
   { slug: 'dam-production', title: 'Create on-brand content from approved DAM assets', src: 'dam-production.md', pathway: 'creators', canonicalPath: 'create/dam-production', contentLicense: 'CC-BY-SA-4.0', description: 'Make an event card from a connected asset library: expose approved sources, constrain edits, produce variants, review finished bytes and check delivery.' },
   { slug: 'overview', title: 'Lolly architecture', src: 'overview.md', pathway: 'builders', canonicalPath: 'build/overview', contentLicense: 'CC-BY-SA-4.0', description: 'For contributors: how the engine, shells and tool packs fit, the repository layout, the ten architectural commitments and the lifecycle of one render.' },
   { slug: 'design-tokens', title: 'Design Tokens', src: 'design-tokens.md', pathway: 'builders', canonicalPath: 'build/design-tokens', contentLicense: 'CC-BY-SA-4.0', description: 'One named brand value feeds every tool, the colour picker and Penpot: where tokens come from, the DTCG format, how tools use them and how to theme the app.' },
   { slug: 'token-workflows', title: 'Token workflows', src: 'token-workflows.md', pathway: 'builders', canonicalPath: 'build/token-workflows', contentLicense: 'CC-BY-SA-4.0', description: 'For whoever looks after a design system: inspect a token, choose themes for one document, link fields, review a change and find what uses a token.' },
   { slug: 'brand-skills', title: 'Brand skills', src: 'brand-skills.md', pathway: 'builders', canonicalPath: 'build/brand-skills', contentLicense: 'CC-BY-SA-4.0', description: 'A brand\'s written standards for each discipline as Agent Skills, carried with the design system and handed to any model through MCP or an exported folder.' },
-  { slug: 'visual-intent', title: 'Start from what the piece has to do', src: 'visual-intent.md', pathway: 'builders', canonicalPath: 'build/visual-intent', contentLicense: 'CC-BY-SA-4.0', description: 'Say what a piece has to do, where it will be seen and what it has to say. Lolly chooses the tool for each surface, says why and shows what it could not fill, with no model in the path.' },
-  { slug: 'glossary', title: 'Glossary', src: 'glossary.md', pathway: 'quickstart', canonicalPath: 'start/glossary', contentLicense: 'CC-BY-SA-4.0', description: 'The words you meet in the app, such as design system, colourway, saved session and Lolly Work, then the builder words (engine, shell, bridge, tool, brand pack, profile and catalog) and what each is not.' },
-  { slug: 'document-model', title: 'Document model draft', src: 'document-model.md', pathway: 'builders', canonicalPath: 'build/document-model', contentLicense: 'CC-BY-SA-4.0', description: 'A draft specification of the Lolly document model: the records, operations, values, evaluation, policy, conformance and packaging rules that make a complete tool portable, and what is decided, open and not yet built.' },
-  { slug: 'constraints', title: 'Constraints', src: 'constraints.md', pathway: 'builders', canonicalPath: 'build/constraints', contentLicense: 'CC-BY-SA-4.0', description: 'Why output comes out right by construction: inputs declared in the manifest, logic-less templates and brand values resolved from tokens, with the tests that enforce each.' },
+  { slug: 'visual-intent', title: 'Start from what the piece has to do', src: 'visual-intent.md', pathway: 'builders', canonicalPath: 'build/visual-intent', contentLicense: 'CC-BY-SA-4.0', description: 'Say what a piece has to do, where it will be seen and what it has to say. Lolly chooses the tool for each surface, says why, with no model in the path.' },
+  { slug: 'glossary', title: 'Glossary', src: 'glossary.md', pathway: 'quickstart', canonicalPath: 'start/glossary', contentLicense: 'CC-BY-SA-4.0', description: 'The words you meet in the app, such as design system, colourway, saved session and Lolly Work, then the builder words and what each is not.' },
+  { slug: 'document-model', title: 'Document model draft', src: 'document-model.md', pathway: 'builders', canonicalPath: 'build/document-model', contentLicense: 'CC-BY-SA-4.0', description: 'A draft specification of the Lolly document model: the rules that make a complete tool portable, and what is decided, open and not yet built.' },
+  { slug: 'constraints', title: 'Constraints', src: 'constraints.md', pathway: 'builders', canonicalPath: 'build/constraints', contentLicense: 'CC-BY-SA-4.0', description: 'Why output comes out right: inputs declared in the manifest, logic-less templates and brand values resolved from tokens, with the tests that enforce each.' },
   { slug: 'determinism', title: 'Determinism', src: 'determinism.md', pathway: 'builders', canonicalPath: 'build/determinism', contentLicense: 'CC-BY-SA-4.0', description: 'Same inputs, same file: one render path behind every shell, what is byte-reproducible and what is not, and the receipts for both.' },
   { slug: 'reproducibility', title: 'Reproducibility', src: 'reproducibility.md', pathway: 'builders', canonicalPath: 'build/reproducibility', contentLicense: 'CC-BY-SA-4.0', description: 'The URL is the artifact: every input travels as parameters, so a link re-renders next year, and the limits of what a bare link can carry.' },
   { slug: 'authoring-tools', title: 'Build a tool', src: 'authoring-tools.md', pathway: 'builders', canonicalPath: 'build/authoring-tools', contentLicense: 'CC-BY-SA-4.0', description: 'Write a Lolly tool by hand: a working two-file tool, what each file in the folder does, and which guide covers each part of the manifest, template and hooks.' },
@@ -361,18 +386,18 @@ const pages: Page[] = [
   { slug: 'mcp', title: 'MCP Server', src: 'mcp.md', pathway: 'builders', canonicalPath: 'build/mcp', contentLicense: 'CC-BY-SA-4.0', description: 'Connect an AI assistant to Lolly over MCP: choose an endpoint, connect a client, then render, check and rebuild decks with the tools.' },
   { slug: 'open-document-agents', title: 'Agents in an open document', src: 'open-document-agents.md', pathway: 'builders', canonicalPath: 'build/open-document-agents', contentLicense: 'CC-BY-SA-4.0', description: 'Let an AI agent join a document you have open, by invitation, the desktop app, a pairing code or browser site tools, and stay in charge.' },
   { slug: 'extension', title: 'Browser extension', src: 'extension.md', pathway: 'creators', canonicalPath: 'create/extension', contentLicense: 'CC-BY-SA-4.0', description: 'Screenshot web pages and read a site for Lolly Design System Setup from the Lolly web app in a Chromium-based browser, approving every request in the extension.' },
-  { slug: 'contributing-setup', title: 'Get the source', src: 'contributing-setup.md', pathway: 'builders', canonicalPath: 'build/contributing-setup', contentLicense: 'CC-BY-SA-4.0', description: 'Clone Lolly, install what it needs and open the web app from source: the setup script, a full or partial clone, what a clone leaves out and how to fix a failed setup.' },
+  { slug: 'contributing-setup', title: 'Get the source', src: 'contributing-setup.md', pathway: 'builders', canonicalPath: 'build/contributing-setup', contentLicense: 'CC-BY-SA-4.0', description: 'Clone Lolly, install what it needs and open the web app from source: the setup script, a full or partial clone and how to fix a failed setup.' },
   { slug: 'build-guide', title: 'Build Guide', src: 'build-guide.md', pathway: 'builders', canonicalPath: 'build/build-guide', contentLicense: 'CC-BY-SA-4.0', description: 'Pick the Lolly app you want to build from source: the CLI and TUI, desktop, Android, iOS, Linux packages, the web app and its container image.' },
   { slug: 'build-terminal', title: 'Build the CLI and TUI', src: 'build-terminal.md', pathway: 'builders', canonicalPath: 'build/build-terminal', contentLicense: 'CC-BY-SA-4.0', description: 'Run the CLI and TUI from a checkout, see which formats need a browser, and package the CLI for other machines.' },
   { slug: 'build-desktop', title: 'Build the desktop app', src: 'build-desktop.md', pathway: 'builders', canonicalPath: 'build/build-desktop', contentLicense: 'CC-BY-SA-4.0', description: 'Run the desktop app from source and package it for macOS, Windows and Linux, with the brand each build ships.' },
   { slug: 'build-mobile', title: 'Build the mobile apps', src: 'build-mobile.md', pathway: 'builders', canonicalPath: 'build/build-mobile', contentLicense: 'CC-BY-SA-4.0', description: 'Run the Android app on an emulator or phone and build a signed APK and AAB; iOS has its own page.' },
   { slug: 'build-obs', title: 'Linux packages', src: 'build-obs.md', pathway: 'builders', canonicalPath: 'build/build-obs', contentLicense: 'CC-BY-SA-4.0', description: 'The RPM, deb, Flatpak and Arch recipes in the repository, what each package carries, building with no network, and what the Open Build Service would add.' },
   { slug: 'ios-build', title: 'Building for iOS', src: 'ios-build.md', pathway: 'builders', canonicalPath: 'build/ios-build', contentLicense: 'CC-BY-SA-4.0', description: 'Run Lolly in the iPhone Simulator, sign a build for a device or TestFlight, and release through the protected App Store workflow.' },
-  { slug: 'catalog-resource-reading', title: 'Read verified catalog resources', src: 'catalog-resource-reading.md', pathway: 'operators', canonicalPath: 'operate/catalog-resource-reading', contentLicense: 'CC-BY-SA-4.0', description: 'How a client verifies signed catalog resources before use, the read limits, and how exact source reads stay fixed in History.' },
-  { slug: 'connector-origins', title: 'Configure connector origins', src: 'connector-origins.md', pathway: 'operators', canonicalPath: 'operate/connector-origins', contentLicense: 'CC-BY-SA-4.0', description: 'Exact HTTPS connector origins, deployment headers and native request policy.' },
-  { slug: 'deployment', title: 'Choose a deployment', src: 'deployment.md', pathway: 'operators', canonicalPath: 'operate/deployment', contentLicense: 'CC-BY-SA-4.0', description: 'Pick how Lolly reaches people: hand out the apps, host the web app on any static server or Kubernetes, or add Lolly Work. The routes and headers a host must serve.' },
+  { slug: 'operate', title: 'Deploy', src: 'operate.md', pathway: 'operators', canonicalPath: 'operate/index', contentLicense: 'CC-BY-SA-4.0', headingId: 'deploy-operate', isHub: true },
   { slug: 'build-kubernetes', title: 'Run on Kubernetes', src: 'build-kubernetes.md', pathway: 'operators', canonicalPath: 'operate/build-kubernetes', contentLicense: 'CC-BY-SA-4.0', description: 'Install Lolly on your own cluster from the published images and Helm chart, turn on MCP or CA, build your own image, and use the lean and sovereign profiles.' },
-  { slug: 'deploy-delivery', title: 'Delivery deployment', src: 'deploy-delivery.md', pathway: 'operators', canonicalPath: 'operate/deploy-delivery', contentLicense: 'CC-BY-SA-4.0', description: 'Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks.' },
+  { slug: 'work-platform-deployment', title: 'Install on Kubernetes', src: 'work/platform-deployment.md', pathway: 'operators', canonicalPath: 'operate/platform-deployment', contentLicense: 'MPL-2.0', description: 'Try Lolly Work on a cluster in one command, then install it for production with Helm on K3s, RKE2 or Rancher, and prepare new SLES or openSUSE Leap hosts.' },
+  { slug: 'deployment', title: 'Choose a deployment', src: 'deployment.md', pathway: 'operators', canonicalPath: 'operate/deployment', contentLicense: 'CC-BY-SA-4.0', description: 'Pick how Lolly reaches people: hand out the apps, host the web app on Kubernetes or any static server, or add Lolly Work.' },
+  { slug: 'sovereign-production', title: 'Sovereign creative production', src: 'sovereign-production.md', pathway: 'operators', canonicalPath: 'operate/sovereign-production', contentLicense: 'CC-BY-SA-4.0', description: 'Make, sign and verify files locally as one part of content sovereignty. Inspect the dependencies, optional network services and limits of the workflow.', register: 'stage' },
   { slug: 'configuration', title: 'Profiles, brands and tool configuration', src: 'configuration.md', pathway: 'managers', canonicalPath: 'manage/profiles-and-brands', contentLicense: 'CC-BY-SA-4.0', description: 'Everything that shapes a Lolly instance: which brand it wears, which tools it exposes, and what each tool may do on the device it runs on.' },
   { slug: 'content-credentials-identity', title: 'Content Credentials', src: 'content-credentials-identity.md', pathway: 'trust', canonicalPath: 'trust/content-credentials-identity', contentLicense: 'CC-BY-SA-4.0', description: 'What a Content Credential tells you, what each Lolly Verify verdict means, and how to put your verified name on the files you export.' },
   { slug: 'what-verify-checks', title: 'What Lolly Verify checks', src: 'what-verify-checks.md', pathway: 'trust', canonicalPath: 'trust/what-verify-checks', contentLicense: 'CC-BY-SA-4.0', description: 'Beyond the credential: the Lolly Imprint, AI declarations, makers\' watermarks, the deep scan, SEAL signatures and hidden data, and where each check runs.' },
@@ -384,7 +409,7 @@ const pages: Page[] = [
   { slug: 'marketing', title: 'Lolly for marketing teams', src: 'marketing.md', pathway: 'creators', canonicalPath: 'create/marketing', contentLicense: 'CC-BY-SA-4.0', description: 'Every size, every language, one source of truth: paste a spreadsheet and get one finished file per row, with routine files made by the people who need them.' },
   { slug: 'legal', title: 'Lolly for legal teams', src: 'legal.md', pathway: 'creators', canonicalPath: 'create/legal', contentLicense: 'CC-BY-SA-4.0', description: 'Redact, anonymise, strip and compress on the device the file already lives on, check what you were sent and read the licence, creative-rights and AI-marking positions stated plainly.' },
   { slug: 'adoption-governance', title: 'Adoption & Governance', src: 'adoption-governance.md', pathway: 'managers', canonicalPath: 'manage/adoption-governance', contentLicense: 'CC-BY-SA-4.0', description: 'Adopting Lolly across a team: who approves tools, how brand rules become enforceable, and what changes in a creative workflow.' },
-  { slug: 'sovereign-production', title: 'Sovereign creative production', src: 'sovereign-production.md', pathway: 'operators', canonicalPath: 'operate/sovereign-production', contentLicense: 'CC-BY-SA-4.0', description: 'Make, sign and verify files locally as one part of content sovereignty. Inspect the dependencies, optional network services and limits of the workflow.', register: 'stage' },
+  { slug: 'work-self-host', title: 'Run Lolly Work', src: 'work/self-host.md', pathway: 'operators', canonicalPath: 'operate/run-your-own-server', contentLicense: 'MPL-2.0', description: 'Pick the path that matches what you have: Kubernetes, the public demo, a trial on your computer, one Linux server or YunoHost.' },
   { slug: 'security', title: 'Security & Verification', src: 'security-verification.md', pathway: 'trust', canonicalPath: 'trust/security', contentLicense: 'CC-BY-SA-4.0', description: 'The cryptography behind Lolly\'s Content Credentials, verification and encryption, summarised for a security reviewer with the limits stated as clearly as the guarantees.' },
   { slug: 'threat-model', title: 'Threat Model & Trust Boundaries', src: 'threat-model.md', pathway: 'trust', canonicalPath: 'trust/threat-model', contentLicense: 'CC-BY-SA-4.0', description: 'Every place Lolly accepts something it did not make, the code that checks it, the test that proves the check and the risk we accept.' },
   { slug: 'reading-files', title: 'How Lolly Reads Files', src: 'reading-files.md', pathway: 'trust', canonicalPath: 'trust/reading-files', contentLicense: 'CC-BY-SA-4.0', description: 'What happens when you open a file someone sent you: the limits every parser checks before reading, and the three ways a parser answers a bad file.' },
@@ -393,49 +418,60 @@ const pages: Page[] = [
   { slug: 'verify-yourself', title: 'Verify It Yourself', src: 'verify-yourself.md', pathway: 'trust', canonicalPath: 'trust/verify-yourself', contentLicense: 'CC-BY-SA-4.0', description: 'Check this site\'s claims against a real export, step by step. No account, no trust required, and nothing you cannot run yourself.' },
   { slug: 'privacy', title: 'Privacy Policy', src: 'privacy.md', pathway: 'trust', canonicalPath: 'trust/privacy', contentLicense: 'CC-BY-SA-4.0', description: 'What happens to your files and data: what stays on your device, every request the app can make, what the lolly.tools services keep and whom to ask.' },
   { slug: 'inclusive-design', title: 'Inclusive Design', src: 'inclusive-design.md', pathway: 'trust', canonicalPath: 'trust/inclusive-design', contentLicense: 'CC-BY-SA-4.0', description: 'Accessibility, language coverage and the ethical commitments Lolly holds itself to, with the tests that fail the build when one is broken.' },
+  { slug: 'without-ai', title: 'Lolly without AI', src: 'without-ai.md', pathway: 'trust', canonicalPath: 'trust/without-ai', contentLicense: 'CC-BY-SA-4.0', description: 'Lolly fills a template with your own words, pictures and data, the same way every time. Where a model can appear and how to keep every one of them out.' },
   { slug: 'ai-stance', title: 'Our AI Stance', src: 'ai-stance.md', pathway: 'trust', canonicalPath: 'trust/ai-stance', contentLicense: 'CC-BY-SA-4.0', description: 'AI is welcome as labour and refused as impersonation. Where Lolly stands on generated content, and the machinery that enforces each commitment.', register: 'stage' },
-  { slug: 'ai-features', title: 'Generated once, rendered the same', src: 'ai-features.md', pathway: 'trust', canonicalPath: 'trust/ai-features', contentLicense: 'CC-BY-SA-4.0', description: 'Text-to-speech, upscaling and background removal: generated once under guard-rails, then rendered identically everywhere. Why inventing pixels is marked AI and removing them is not.' },
+  { slug: 'ai-features', title: 'Generated once, rendered the same', src: 'ai-features.md', pathway: 'trust', canonicalPath: 'trust/ai-features', contentLicense: 'CC-BY-SA-4.0', description: 'Text-to-speech, upscaling and background removal: generated once, then rendered identically. Why inventing pixels is marked AI and removing them is not.' },
   { slug: 'eu-ai-act', title: 'AI marking and the EU AI Act', src: 'eu-ai-act.md', pathway: 'trust', canonicalPath: 'trust/eu-ai-act', contentLicense: 'CC-BY-SA-4.0', description: 'Article 50\'s transparency duties and the Commission\'s Code of Practice ask for signed, tamper-evident marks. How Lolly preserves arriving AI marks, declares its own AI operations and verifies files on-device.' },
   { slug: 'beatrice-warde', title: 'Beatrice Warde', src: 'beatrice-warde.md', pathway: 'trust', canonicalPath: 'trust/beatrice-warde', contentLicense: 'CC-BY-SA-4.0', description: 'The typographer whose 1932 lines this project adapted, who proved that the types the whole trade called Garamond had been cut by somebody else entirely.', register: 'stage' },
   { slug: 'shoulders-of-giants', title: 'Shoulders of giants', src: 'shoulders-of-giants.md', pathway: 'trust', canonicalPath: 'trust/shoulders-of-giants', contentLicense: 'CC-BY-SA-4.0', description: 'The open source projects and people Lolly is built from, and the story of how shared work made it possible: SUSE and three decades of the free desktop, Penpot and Inkscape, WebAssembly, WebGPU and the open models beside them.', pdf: 'shoulders-of-giants.pdf', register: 'stage' },
-  { slug: 'operate', title: 'Deploy', src: 'operate.md', pathway: 'operators', canonicalPath: 'operate/index', contentLicense: 'CC-BY-SA-4.0', headingId: 'deploy-operate', isHub: true },
-  { slug: 'work-self-host', title: 'Run Lolly Work', src: 'work/self-host.md', pathway: 'operators', canonicalPath: 'operate/run-your-own-server', contentLicense: 'MPL-2.0', description: 'Pick the path that matches what you have: the public demo, a trial on your computer, one Linux server, YunoHost or Kubernetes. Downloads and checksums for the current release.' },
-  { slug: 'work-release-1-1-3', title: 'Release 1.1.3', src: 'work/release-1-1-3.md', pathway: 'operators', canonicalPath: 'operate/release-1-1-3', contentLicense: 'MPL-2.0', description: 'The current release: Lolly Work 1.1.3 paired with Lolly 1.1.3, what Lolly 1.1.3 needs from Lolly Work, changes since 1.1.2, migrations, the first published chart and YunoHost packaging.' },
-  { slug: 'work-release-1-1-2', title: 'Release 1.1.2', src: 'work/release-1-1-2.md', pathway: 'operators', canonicalPath: 'operate/release-1-1-2', contentLicense: 'MPL-2.0', description: 'Lolly Work 1.1.2 paired with Lolly 1.1.2, what Lolly 1.1.2 needs from Lolly Work, changes since 1.1.1, migrations, images and YunoHost packaging.' },
-  { slug: 'work-past-releases', title: 'Past releases', src: 'work/past-releases.md', pathway: 'operators', canonicalPath: 'operate/past-releases', contentLicense: 'MPL-2.0', description: 'Lolly Work 1.1.1 and 1.1.0 kept as a record: matched components, changes, migrations, image digests and YunoHost packaging.' },
   { slug: 'work-overview', title: 'Lolly Work architecture', src: 'work/overview.md', pathway: 'operators', canonicalPath: 'operate/work-architecture', contentLicense: 'MPL-2.0', description: 'Lolly Work in one page: what stays on the device, what the server holds and serves, the two codebases and the trust model.' },
-  { slug: 'work-install', title: 'Install Lolly Work', src: 'work/install.md', pathway: 'operators', canonicalPath: 'operate/install-work', contentLicense: 'MPL-2.0', description: 'From a source checkout to a running instance on one server: try it locally, make it yours, add PostgreSQL and secrets, then run it with Compose, systemd or YunoHost.' },
-  { slug: 'work-ready-made-package', title: 'Install the ready-made package', src: 'work/ready-made-package.md', pathway: 'operators', canonicalPath: 'operate/ready-made-package', contentLicense: 'MPL-2.0', description: 'One Docker Compose folder with Lolly Work, PostgreSQL, the matching web app and automatic HTTPS, for a fresh VM, UpCloud, Dokploy or Coolify, with backup, restore and update steps.' },
-  { slug: 'work-platform-deployment', title: 'Install on Kubernetes', src: 'work/platform-deployment.md', pathway: 'operators', canonicalPath: 'operate/platform-deployment', contentLicense: 'MPL-2.0', description: 'Try Lolly Work on a cluster in one command, then install it for production with Helm on K3s, RKE2 or Rancher, and prepare new SLES or openSUSE Leap hosts.' },
+  { slug: 'work-install', title: 'Install Lolly Work', src: 'work/install.md', pathway: 'operators', canonicalPath: 'operate/install-work', contentLicense: 'MPL-2.0', description: 'From a source checkout to a running instance on one server: try it locally, add PostgreSQL and secrets, then run it with Compose, systemd or YunoHost.' },
+  { slug: 'work-ready-made-package', title: 'Install the ready-made package', src: 'work/ready-made-package.md', pathway: 'operators', canonicalPath: 'operate/ready-made-package', contentLicense: 'MPL-2.0', description: 'One Docker Compose folder with Lolly Work, PostgreSQL, the matching web app and automatic HTTPS, with backup, restore and update steps.' },
   { slug: 'work-official-installations', title: 'Official installation routes', src: 'work/official-installations.md', pathway: 'operators', canonicalPath: 'operate/official-installations', contentLicense: 'MPL-2.0', description: 'Which project packages exist, what each has passed, how to verify release signatures, and how to mirror every download for a restricted network.' },
+  { slug: 'work-deployment', title: 'How a Lolly Work deployment fits together', src: 'work/deployment.md', pathway: 'operators', canonicalPath: 'operate/work-deployment-options', contentLicense: 'MPL-2.0', description: 'The parts every Lolly Work deployment runs, which ones you can leave out, the two ways to render, the Helm values to know and offline operation.' },
+  { slug: 'work-cloud-deployment', title: 'Run Lolly Work on UpCloud or Evroc', src: 'work/cloud-deployment.md', pathway: 'operators', canonicalPath: 'operate/cloud-deployment', contentLicense: 'MPL-2.0', description: 'What the OpenTofu and Terraform modules create, how the two providers differ, moving a PostgreSQL database safely, and capacity and recovery checks.' },
+  { slug: 'work-edge-cdn', title: 'Put a CDN in front of Lolly Work', src: 'work/edge-cdn.md', pathway: 'operators', canonicalPath: 'operate/edge-cdn', contentLicense: 'MPL-2.0', description: 'Serve Lolly Work\'s public files through Bunny or Cloudflare: the per-hostname jurisdiction rule, configuration and credentials, purges and the probe.' },
+  { slug: 'work-aws-compatible', title: 'Run Lolly Work on AWS or MulgaDC Spinifex', src: 'work/aws-compatible.md', pathway: 'operators', canonicalPath: 'operate/aws-compatible', contentLicense: 'MPL-2.0', description: 'Run Lolly Work on AWS or on MulgaDC Spinifex: EKS with the chart, the Lolly appliance, one VM or managed PostgreSQL and S3.' },
+  { slug: 'work-wasm-deployment', title: 'WebAssembly and Kubewarden choices', src: 'work/wasm-deployment.md', pathway: 'operators', canonicalPath: 'operate/wasm-deployment', contentLicense: 'MPL-2.0', description: 'Optional WebAssembly tracks: evaluating Kubewarden admission policies and preparing a component host. A normal install needs neither.' },
+  { slug: 'work-kubewarden', title: 'How Lolly uses Kubewarden', src: 'work/kubewarden.md', pathway: 'operators', canonicalPath: 'operate/kubewarden', contentLicense: 'MPL-2.0', description: 'Where Lolly uses Kubewarden, what its policies check on a Lolly Work cluster, what an administrator sees in Setup and which Kubewarden release the policy set is qualified against.' },
+  { slug: 'work-admission-policy', title: 'Admission policy with Kubewarden', src: 'work/admission-policy.md', pathway: 'operators', canonicalPath: 'operate/admission-policy', contentLicense: 'MPL-2.0', description: 'What Lolly Work pods need from an admission policy, a ready Kubewarden policy set pinned by digest, a preflight check and how the set was qualified.' },
+  { slug: 'connector-origins', title: 'Configure connector origins', src: 'connector-origins.md', pathway: 'operators', canonicalPath: 'operate/connector-origins', contentLicense: 'CC-BY-SA-4.0', description: 'Exact HTTPS connector origins, deployment headers and native request policy.' },
   { slug: 'work-enterprise-identity', title: 'Set up enterprise identity', src: 'work/enterprise-identity.md', pathway: 'operators', canonicalPath: 'operate/enterprise-identity', contentLicense: 'MPL-2.0', description: 'Connect an enterprise identity provider with logout and optional assurance, qualify it, operate it, and mint SCIM and service tokens.' },
   { slug: 'work-identity-providers', title: 'Sign-in provider recipes', src: 'work/identity-providers.md', pathway: 'operators', canonicalPath: 'operate/sign-in-provider-recipes', contentLicense: 'MPL-2.0', description: 'Configure Google, Entra ID, Okta, Keycloak, Auth0, GitHub or a SAML broker, several providers at once, and reverse-proxy sign-in.' },
   { slug: 'work-customer-setup', title: 'Configure your first Lolly Work instance', src: 'work/customer-setup.md', pathway: 'operators', canonicalPath: 'operate/customer-setup', contentLicense: 'MPL-2.0', description: 'A six-step walk through Customer setup: deployment, owner identity, SCIM, assets and a checked sample, then applying the generated configuration.' },
-  { slug: 'work-deployment', title: 'How a Lolly Work deployment fits together', src: 'work/deployment.md', pathway: 'operators', canonicalPath: 'operate/work-deployment-options', contentLicense: 'MPL-2.0', description: 'The parts every Lolly Work deployment runs, which ones you can leave out, the two ways to render, the Helm values to know and offline operation.' },
-  { slug: 'work-cloud-deployment', title: 'Run Lolly Work on UpCloud or Evroc', src: 'work/cloud-deployment.md', pathway: 'operators', canonicalPath: 'operate/cloud-deployment', contentLicense: 'MPL-2.0', description: 'What the OpenTofu and Terraform modules create, how the two providers differ, moving a PostgreSQL database safely, and capacity and recovery checks.' },
-  { slug: 'work-edge-cdn', title: 'Put a CDN in front of Lolly Work', src: 'work/edge-cdn.md', pathway: 'operators', canonicalPath: 'operate/edge-cdn', contentLicense: 'MPL-2.0', description: 'Serve Lolly Work\'s public files through Bunny or Cloudflare: the per-hostname jurisdiction rule, configuration and credentials, the settings that must stay off, purges and the probe.' },
-  { slug: 'work-aws-compatible', title: 'Run Lolly Work on AWS or MulgaDC Spinifex', src: 'work/aws-compatible.md', pathway: 'operators', canonicalPath: 'operate/aws-compatible', contentLicense: 'MPL-2.0', description: 'Run Lolly Work on AWS or on MulgaDC Spinifex: one VM, managed PostgreSQL and S3, EKS with the chart or the Lolly appliance, behind a load balancer if you like, with the issues two Spinifex test runs found.' },
-  { slug: 'work-wasm-deployment', title: 'WebAssembly and Kubewarden choices', src: 'work/wasm-deployment.md', pathway: 'operators', canonicalPath: 'operate/wasm-deployment', contentLicense: 'MPL-2.0', description: 'Optional WebAssembly tracks: evaluating Kubewarden admission policies and preparing a component host. A normal install needs neither.' },
-  { slug: 'work-admission-policy', title: 'Admission policy with Kubewarden', src: 'work/admission-policy.md', pathway: 'operators', canonicalPath: 'operate/admission-policy', contentLicense: 'MPL-2.0', description: 'What Lolly Work pods need from an admission policy, a ready Kubewarden policy set pinned by digest, a preflight check and how the set was qualified.' },
-  { slug: 'work-security-platform', title: 'Lolly Work security overview', src: 'work/security-platform.md', pathway: 'trust', canonicalPath: 'trust/security-platform', contentLicense: 'MPL-2.0', description: 'Local work, connected services and the boundaries operators control.' },
   { slug: 'work-configuration', title: 'Lolly Work instance configuration', src: 'work/configuration.md', pathway: 'operators', canonicalPath: 'operate/instance-configuration', contentLicense: 'MPL-2.0', description: 'Every instance.json key and every LW_* environment variable, with defaults.' },
+  { slug: 'work-c2pa', title: 'Configure Lolly Work export signing', src: 'work/c2pa.md', pathway: 'operators', canonicalPath: 'operate/work-export-signing', contentLicense: 'MPL-2.0', description: 'Give a deployment a signing identity so server exports carry a verifiable Content Credential: a self-made root in one command, or your organisation\'s CA.' },
+  { slug: 'work-operations', title: 'Keep Lolly Work running', src: 'work/operations.md', pathway: 'operators', canonicalPath: 'operate/operations', contentLicense: 'MPL-2.0', description: 'Upgrades, backups and restores, secret rotation, health and storage alerts, rate limits, scan hooks, notifications and SIEM forwarding.' },
+  { slug: 'work-metrics', title: 'Metrics and alerts', src: 'work/metrics.md', pathway: 'operators', canonicalPath: 'operate/metrics', contentLicense: 'MPL-2.0', description: 'Every metric Lolly Work exports on /metrics with its type and labels, the suggested Prometheus alerts and the Grafana dashboard the Helm chart can install.' },
+  { slug: 'work-production-readiness', title: 'Check a deployment before production', src: 'work/production-readiness.md', pathway: 'operators', canonicalPath: 'operate/production-readiness', contentLicense: 'MPL-2.0', description: 'Run the read-only checker against your configuration or rendered manifests, read its results, and add the evidence only you can supply.' },
+  { slug: 'work-telemetry', title: 'Telemetry and dashboards', src: 'work/telemetry.md', pathway: 'operators', canonicalPath: 'operate/telemetry', contentLicense: 'MPL-2.0', description: 'What is recorded, what never is, and how attribution consent works.' },
+  { slug: 'work-security-platform', title: 'Lolly Work security overview', src: 'work/security-platform.md', pathway: 'trust', canonicalPath: 'trust/security-platform', contentLicense: 'MPL-2.0', description: 'Local work, connected services and the boundaries operators control.' },
+  { slug: 'work-audit', title: 'Audit log', src: 'work/audit.md', pathway: 'operators', canonicalPath: 'operate/audit', contentLicense: 'MPL-2.0', description: 'The hash-chained record, verification, and anchoring the head off-box.' },
   { slug: 'work-identity', title: 'Sign-in and sessions', src: 'work/identity.md', pathway: 'managers', canonicalPath: 'manage/sign-in-and-sessions', contentLicense: 'MPL-2.0', description: 'Choose how colleagues sign in, decide who gets in, set session length and renewal, link several sign-ins to one person, and end access.' },
   { slug: 'work-account-lifecycle', title: 'Account data controls', src: 'work/account-lifecycle.md', pathway: 'managers', canonicalPath: 'manage/account-data-controls', contentLicense: 'MPL-2.0', description: 'Owner metadata exports, scoped offboarding, documented limits and review of shared content.' },
   { slug: 'work-invitations', title: 'Invite people and handle requests', src: 'work/invitations.md', pathway: 'managers', canonicalPath: 'manage/invite-people', contentLicense: 'MPL-2.0', description: 'Invite people to the workspace or a project, send invite links, set passwords from a link, and answer requests to join and for access.' },
+  { slug: 'work-run-a-partner-programme', title: 'Run a partner programme', src: 'work/run-a-partner-programme.md', pathway: 'managers', canonicalPath: 'manage/run-a-partner-programme', contentLicense: 'MPL-2.0', description: 'For partner teams: what partners get and see, how a programme fits together and where to start, with a guide for each subject.' },
+  { slug: 'work-partner-co-branding', title: 'Co-branding and partner kits', src: 'work/partner-co-branding.md', pathway: 'managers', canonicalPath: 'manage/partner-co-branding', contentLicense: 'MPL-2.0', description: 'Give each partner company its details, logos for light and dark surfaces and a partner kit, and what a co-branded file records.' },
+  { slug: 'work-partner-templates', title: 'Partner templates', src: 'work/partner-templates.md', pathway: 'managers', canonicalPath: 'manage/partner-templates', contentLicense: 'MPL-2.0', description: 'Publish ready pieces to a partner programme, fill inputs from each company\'s details, and bring out new versions or retire a template.' },
+  { slug: 'work-partner-approvals', title: 'Partner approvals', src: 'work/partner-approvals.md', pathway: 'managers', canonicalPath: 'manage/partner-approvals', contentLicense: 'MPL-2.0', description: 'The reviews a team can turn on, off by default: contact edits, partner kit changes, requests from partners\' agents and one approval for a template\'s variants.' },
+  { slug: 'work-partner-shared-assets', title: 'Shared assets and licences', src: 'work/partner-shared-assets.md', pathway: 'managers', canonicalPath: 'manage/partner-shared-assets', contentLicense: 'MPL-2.0', description: 'What reaches partners: collections, provider folders, the licence gate, files marked as your own, and the credits that travel with links.' },
+  { slug: 'work-partner-agents', title: 'Partners\' agents', src: 'work/partner-agents.md', pathway: 'managers', canonicalPath: 'manage/partner-agents', contentLicense: 'MPL-2.0', description: 'Give a partner\'s AI agent a token that sees what the company\'s people see: scopes, expiry, limits and usage, and the context it reads over MCP.' },
+  { slug: 'work-partner-people', title: 'People and the partnership', src: 'work/partner-people.md', pathway: 'managers', canonicalPath: 'manage/partner-people', contentLicense: 'MPL-2.0', description: 'Create a partner programme, invite people by list or domain, then end a partnership at once or on a date with a notice, and reopen an end.' },
+  { slug: 'work-partner-programmes', title: 'Partner programmes', src: 'work/partner-programmes.md', pathway: 'managers', canonicalPath: 'manage/partner-programmes', contentLicense: 'MPL-2.0', description: 'The reference for partner programmes: tools and files, company details and logos, templates, licences, agent tokens, routes and audit events.' },
   { slug: 'work-document-agents', title: 'Invite an agent', src: 'work/document-agents.md', pathway: 'builders', canonicalPath: 'build/document-agents', contentLicense: 'MPL-2.0', description: 'Let an AI agent read or edit a shared document or project under your identity, for a period you choose, with every call recorded.' },
   { slug: 'work-design-system-administration', title: 'Design-system administration', src: 'work/design-system-administration.md', pathway: 'managers', canonicalPath: 'manage/design-system-administration', contentLicense: 'MPL-2.0', description: 'Choose which design system a deployment serves, preview and apply a switch or retirement, manage connect downloads and connect brand rules to tools.' },
   { slug: 'work-permissions', title: 'Roles and grants', src: 'work/permissions.md', pathway: 'managers', canonicalPath: 'manage/permissions', contentLicense: 'MPL-2.0', description: 'The seven roles, every action they carry and the deny-wins grants that adjust them, with owner-only powers and guests.' },
   { slug: 'work-governance', title: 'Policy and governance', src: 'work/governance.md', pathway: 'managers', canonicalPath: 'manage/governance', contentLicense: 'MPL-2.0', description: 'Tool overlays, input locking, profile policy, feature flags, policy-as-code.' },
   { slug: 'work-catalog', title: 'Catalog and content', src: 'work/catalog.md', pathway: 'managers', canonicalPath: 'manage/catalog', contentLicense: 'MPL-2.0', description: 'Brand packs, member submissions, metadata fields, collections, versions, expiry and holds, and read-only DAM providers.' },
   { slug: 'work-file-preview', title: 'Asset previews', src: 'work/file-preview.md', pathway: 'managers', canonicalPath: 'manage/asset-previews', contentLicense: 'MPL-2.0', description: 'Disposable PDF previews of EPS, EMF and WMF files in the asset viewer, and how the render worker converts them safely.' },
-  { slug: 'work-offboarding', title: 'Leave a DAM', src: 'work/offboarding.md', pathway: 'managers', canonicalPath: 'manage/leave-a-dam', contentLicense: 'MPL-2.0', description: 'Choose a DAM offboarding path: self-host Lolly Work, Nextcloud or Git, or export to a hosted drive. Lolly Compare transfer steps, originals, links and recovery.' },
+  { slug: 'work-offboarding', title: 'Leave a DAM', src: 'work/offboarding.md', pathway: 'managers', canonicalPath: 'manage/leave-a-dam', contentLicense: 'MPL-2.0', description: 'Choose a DAM offboarding path: self-host Lolly Work, Nextcloud or Git, or export to a hosted drive. Compare transfer steps, originals, links and recovery.' },
   { slug: 'work-approvals', title: 'Approvals', src: 'work/approvals.md', pathway: 'managers', canonicalPath: 'manage/approvals', contentLicense: 'MPL-2.0', description: 'Approval chains, separation of duties and what an approval can gate, including review of a frozen set of source files.' },
   { slug: 'work-sharing', title: 'Share renders and links', src: 'work/sharing.md', pathway: 'managers', canonicalPath: 'manage/share-renders-and-links', contentLicense: 'MPL-2.0', description: 'Signed links that expire and can be turned off, guest and password links, links to library assets and collections, server renders and provenance.' },
   { slug: 'work-team-projects', title: 'Team projects', src: 'work/team-projects.md', pathway: 'managers', canonicalPath: 'manage/team-projects', contentLicense: 'MPL-2.0', description: 'Who sees a team project, what each project role allows, saving from Lolly, shared files and subfolders, and saving conflicts.' },
-  { slug: 'work-move-from-render-api', title: 'Move from a hosted render API', src: 'work/move-from-render-api.md', pathway: 'managers', canonicalPath: 'manage/move-from-render-api', contentLicense: 'MPL-2.0', description: 'Move image production from Bannerbear or Placid to your own server, one template at a time: read the account, import or rebuild designs, keep your request shapes, and compare before you cut over.' },
+  { slug: 'work-move-from-render-api', title: 'Move from a hosted render API', src: 'work/move-from-render-api.md', pathway: 'managers', canonicalPath: 'manage/move-from-render-api', contentLicense: 'MPL-2.0', description: 'Move image production from Bannerbear or Placid to your own server: read the account, import or rebuild designs and compare before you cut over.' },
   { slug: 'work-renders', title: 'Render jobs and batches', src: 'work/renders.md', pathway: 'managers', canonicalPath: 'manage/render-jobs', contentLicense: 'MPL-2.0', description: 'Durable render jobs and batches that recover after a restart, file checks, execution evidence and render identity, and production still checks.' },
   { slug: 'work-delivery', title: 'Organisation delivery destinations', src: 'work/delivery.md', pathway: 'managers', canonicalPath: 'manage/organisation-delivery', contentLicense: 'MPL-2.0', description: 'Send finished exports to fixed organisation destinations: S3, WebDAV, signed HTTPS, Brandfolder or Cloudinary, with receipts, retries and optional approval.' },
-  { slug: 'work-c2pa', title: 'Configure Lolly Work export signing', src: 'work/c2pa.md', pathway: 'operators', canonicalPath: 'operate/work-export-signing', contentLicense: 'MPL-2.0', description: 'Give a deployment a signing identity so server exports carry a verifiable Content Credential: a self-made root in one command, or your organisation\'s CA.' },
+  { slug: 'catalog-resource-reading', title: 'Read verified catalog resources', src: 'catalog-resource-reading.md', pathway: 'operators', canonicalPath: 'operate/catalog-resource-reading', contentLicense: 'CC-BY-SA-4.0', description: 'How a client verifies signed catalog resources before use, the read limits, and how exact source reads stay fixed in History.' },
   { slug: 'work-ai-policy', title: 'Manage organisation AI policy', src: 'work/ai-policy.md', pathway: 'managers', canonicalPath: 'manage/managed-ai', contentLicense: 'MPL-2.0', description: 'Approval ceiling, operator stop switch, execution enforcement and online policy leases.' },
   { slug: 'work-data-lifecycle', title: 'Lolly Work storage and data lifecycle', src: 'work/data-lifecycle.md', pathway: 'trust', canonicalPath: 'trust/work-data-lifecycle', contentLicense: 'MPL-2.0', description: 'Store inventory, account-erasure preview, atomic removal and rights-workflow limits.' },
   { slug: 'work-provider-guides', title: 'Connect an asset source', src: 'work/providers/README.md', pathway: 'managers', canonicalPath: 'manage/provider-guides', contentLicense: 'MPL-2.0', description: 'Bring files from a drive, bucket, repository or DAM into the Lolly Work catalog: choose a source, connect it in four steps and see what each one supports.' },
@@ -443,25 +479,25 @@ const pages: Page[] = [
   { slug: 'work-provider-s3', title: 'S3 / S3-compatible', src: 'work/providers/s3.md', pathway: 'managers', canonicalPath: 'manage/provider-s3', contentLicense: 'MPL-2.0', description: 'AWS S3, MinIO or Ceph RGW: a private bucket federated read-only, every request freshly signed.' },
   { slug: 'work-provider-git', title: 'Git raw manifest', src: 'work/providers/git.md', pathway: 'managers', canonicalPath: 'manage/provider-git', contentLicense: 'MPL-2.0', description: 'Connect a catalog manifest and files from a Git repository, including a self-hosted forge. Review and commit a curated DAM export before connecting Lolly Work.' },
   { slug: 'work-provider-brandfolder', title: 'Brandfolder integration with Lolly', src: 'work/providers/brandfolder.md', pathway: 'managers', canonicalPath: 'manage/provider-brandfolder', contentLicense: 'MPL-2.0', description: 'Connect Brandfolder to Lolly Work: onboarding, approved assets and attachment checks, plus offboarding to self-hosted storage with S3, MinIO or Ceph.' },
-  { slug: 'work-provider-optimizely-cmp', title: 'Optimizely CMP integration with Lolly', src: 'work/providers/optimizely-cmp.md', pathway: 'managers', canonicalPath: 'manage/provider-optimizely-cmp', contentLicense: 'MPL-2.0', description: 'Connect Optimizely CMP to Lolly Work with scoped onboarding and optional export publishing. Understand offboarding limits before planning self-hosted S3 storage.' },
+  { slug: 'work-provider-optimizely-cmp', title: 'Optimizely CMP integration with Lolly', src: 'work/providers/optimizely-cmp.md', pathway: 'managers', canonicalPath: 'manage/provider-optimizely-cmp', contentLicense: 'MPL-2.0', description: 'Connect Optimizely CMP to Lolly Work with scoped onboarding and optional export publishing. Understand offboarding limits before planning S3 storage.' },
   { slug: 'work-provider-imagerelay', title: 'Image Relay integration with Lolly', src: 'work/providers/imagerelay.md', pathway: 'managers', canonicalPath: 'manage/provider-imagerelay', contentLicense: 'MPL-2.0', description: 'Connect Image Relay to Lolly Work with mapped expiry and scoped access. Plan offboarding to self-hosted S3 storage, including tenants moved to Canto.' },
   { slug: 'work-provider-canto', title: 'Canto integration with Lolly', src: 'work/providers/canto.md', pathway: 'managers', canonicalPath: 'manage/provider-canto', contentLicense: 'MPL-2.0', description: 'Connect Canto to Lolly Work: onboarding, approval and expiry checks, original-file qualification and offboarding to self-hosted S3, MinIO or Ceph storage.' },
   { slug: 'work-provider-acquia-dam', title: 'Acquia DAM / Widen integration with Lolly', src: 'work/providers/acquia-dam.md', pathway: 'managers', canonicalPath: 'manage/provider-acquia-dam', contentLicense: 'MPL-2.0', description: 'Connect Acquia DAM (Widen) to Lolly Work with approval, release and expiry checks. Plan offboarding to a self-hosted library using S3-compatible storage.' },
   { slug: 'work-provider-intelligencebank', title: 'IntelligenceBank integration with Lolly', src: 'work/providers/intelligencebank.md', pathway: 'managers', canonicalPath: 'manage/provider-intelligencebank', contentLicense: 'MPL-2.0', description: 'Connect IntelligenceBank to Lolly Work: onboarding with workflow and availability checks, then qualified offboarding to a self-hosted library with S3 storage.' },
   { slug: 'work-provider-cloudinary', title: 'Cloudinary integration with Lolly', src: 'work/providers/cloudinary.md', pathway: 'managers', canonicalPath: 'manage/provider-cloudinary', contentLicense: 'MPL-2.0', description: 'Connect Cloudinary to Lolly Work: onboarding with folder, metadata and original-file checks, plus conditional offboarding to self-hosted S3-compatible storage.' },
-  { slug: 'work-provider-orange-logic', title: 'Orange Logic integration with Lolly', src: 'work/providers/orange-logic.md', pathway: 'managers', canonicalPath: 'manage/provider-orange-logic', contentLicense: 'MPL-2.0', description: 'Connect Orange Logic renditions to Lolly Work with scoped onboarding. Understand offboarding limits and self-hosted S3 storage; protected originals block cutover.' },
+  { slug: 'work-provider-orange-logic', title: 'Orange Logic integration with Lolly', src: 'work/providers/orange-logic.md', pathway: 'managers', canonicalPath: 'manage/provider-orange-logic', contentLicense: 'MPL-2.0', description: 'Connect Orange Logic renditions to Lolly Work with scoped onboarding. Understand offboarding limits and S3 storage; protected originals block cutover.' },
   { slug: 'work-provider-penpot', title: 'Penpot', src: 'work/providers/penpot.md', pathway: 'managers', canonicalPath: 'manage/provider-penpot', contentLicense: 'MPL-2.0', description: 'Design tokens from a Penpot you host feed a Lolly Work design system; boards are imported one at a time.' },
   { slug: 'work-provider-dropbox', title: 'Dropbox', src: 'work/providers/dropbox.md', pathway: 'managers', canonicalPath: 'manage/provider-dropbox', contentLicense: 'MPL-2.0', description: 'Connect a Dropbox folder to Lolly Work, including files exported from a DAM. Read-only access, recursive listing and stable file identities.' },
   { slug: 'work-provider-gdrive', title: 'Google Drive', src: 'work/providers/gdrive.md', pathway: 'managers', canonicalPath: 'manage/provider-gdrive', contentLicense: 'MPL-2.0', description: 'Connect a Google Drive folder to Lolly Work, including files exported from a DAM. Guided setup, original-file checks and flat-folder limits.' },
   { slug: 'work-provider-o365', title: 'Microsoft 365 / SharePoint', src: 'work/providers/o365.md', pathway: 'managers', canonicalPath: 'manage/provider-o365', contentLicense: 'MPL-2.0', description: 'Connect OneDrive or SharePoint to Lolly Work, including a separate DAM export and upload. Check folder listing, drive-wide search and member access.' },
   { slug: 'work-provider-tenant-check', title: 'Check a source on your own tenant', src: 'work/providers/tenant-check.md', pathway: 'managers', canonicalPath: 'manage/provider-tenant-check', contentLicense: 'MPL-2.0', description: 'Before you rely on a source built from vendor documentation, confirm its fields, its original files and who sees them on your own tenant.' },
-  { slug: 'work-operations', title: 'Keep Lolly Work running', src: 'work/operations.md', pathway: 'operators', canonicalPath: 'operate/operations', contentLicense: 'MPL-2.0', description: 'Upgrades, backups and restores, secret rotation, health and storage alerts, rate limits, scan hooks, notifications and SIEM forwarding, in the order the jobs come round.' },
-  { slug: 'work-metrics', title: 'Metrics and alerts', src: 'work/metrics.md', pathway: 'operators', canonicalPath: 'operate/metrics', contentLicense: 'MPL-2.0', description: 'Every metric Lolly Work exports on /metrics with its type and labels, the suggested Prometheus alerts and the Grafana dashboard the Helm chart can install.' },
+  { slug: 'deploy-delivery', title: 'Delivery deployment', src: 'deploy-delivery.md', pathway: 'operators', canonicalPath: 'operate/deploy-delivery', contentLicense: 'CC-BY-SA-4.0', description: 'Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks.' },
+  { slug: 'work-release-1-2-0', title: 'Release 1.2.0', src: 'work/release-1-2-0.md', pathway: 'operators', canonicalPath: 'operate/release-1-2-0', contentLicense: 'MPL-2.0', description: 'The current release: Lolly Work 1.2.0 paired with Lolly 1.2.0, partner programmes, changes since 1.1.3, migrations and YunoHost packaging.' },
+  { slug: 'work-release-1-1-3', title: 'Release 1.1.3', src: 'work/release-1-1-3.md', pathway: 'operators', canonicalPath: 'operate/release-1-1-3', contentLicense: 'MPL-2.0', description: 'Lolly Work 1.1.3 paired with Lolly 1.1.3, changes since 1.1.2, migrations, the first published chart and YunoHost packaging.' },
+  { slug: 'work-release-1-1-2', title: 'Release 1.1.2', src: 'work/release-1-1-2.md', pathway: 'operators', canonicalPath: 'operate/release-1-1-2', contentLicense: 'MPL-2.0', description: 'Lolly Work 1.1.2 paired with Lolly 1.1.2, what Lolly 1.1.2 needs from Lolly Work, changes since 1.1.1, migrations, images and YunoHost packaging.' },
+  { slug: 'work-past-releases', title: 'Past releases', src: 'work/past-releases.md', pathway: 'operators', canonicalPath: 'operate/past-releases', contentLicense: 'MPL-2.0', description: 'Lolly Work 1.1.1 and 1.1.0 kept as a record: matched components, changes, migrations, image digests and YunoHost packaging.' },
   { slug: 'work-instance-pack-production', title: 'Build a verified instance pack', src: 'work/instance-pack-production.md', pathway: 'operators', canonicalPath: 'operate/instance-pack-production', contentLicense: 'MPL-2.0', description: 'Derive raw Lolly Work packs from signed releases while preserving asset addresses, renditions and release custody.' },
-  { slug: 'work-production-readiness', title: 'Check a deployment before production', src: 'work/production-readiness.md', pathway: 'operators', canonicalPath: 'operate/production-readiness', contentLicense: 'MPL-2.0', description: 'Run the read-only checker against your configuration or rendered manifests, read its results, and add the evidence only you can supply.' },
   { slug: 'work-shell-deployment-workflow', title: 'Shell deployment workflow', src: 'work/shell-deployment-workflow.md', pathway: 'operators', canonicalPath: 'operate/shell-deployment-workflow', contentLicense: 'MPL-2.0', description: 'Publish a qualified Lolly web app build to a private Lolly Work instance without rebuilding its image: prepare the request, then run and resume the deployment.' },
-  { slug: 'work-telemetry', title: 'Telemetry and dashboards', src: 'work/telemetry.md', pathway: 'operators', canonicalPath: 'operate/telemetry', contentLicense: 'MPL-2.0', description: 'What is recorded, what never is, and how attribution consent works.' },
-  { slug: 'work-audit', title: 'Audit log', src: 'work/audit.md', pathway: 'operators', canonicalPath: 'operate/audit', contentLicense: 'MPL-2.0', description: 'The hash-chained record, verification, and anchoring the head off-box.' },
   { slug: 'work-project-portability', title: 'Preview a project transfer', src: 'work/project-portability.md', pathway: 'managers', canonicalPath: 'manage/project-transfer-preview', contentLicense: 'MPL-2.0', description: 'Read-only project inventory, access mapping, file and history coverage, and preparation for moving work between instances.' },
   { slug: 'work-automation-api', title: 'Automate with the Lolly Work API', src: 'work/automation-api.md', pathway: 'builders', canonicalPath: 'build/work-automation-api', contentLicense: 'MPL-2.0', description: 'Render on-brand files from a script: a token, discovery, the effective schema, the document verbs, jobs, callbacks and batches.' },
   { slug: 'work-api', title: 'Lolly Work API reference', src: 'work/api.md', pathway: 'builders', canonicalPath: 'build/work-api', contentLicense: 'MPL-2.0', description: 'The routes the console, the lw CLI and the apps call, grouped by job, with who may call each one.' },
@@ -623,9 +659,9 @@ const MASTHEADS: Record<string, string> = {
   'mcp': 'mcp',                             // one port, bidirectional call-and-return (Fable 5)
 };
 
-// The documentation sections, in the order the pathways strip shows them (pathwaysStrip,
-// after its Welcome tab). The inner arrays are the clusters the old top bar divided;
-// the strip reads them flat. Home is the strip's Welcome tab, not an entry here.
+// The documentation sections, in the order the pathways strip shows them
+// (pathwaysStrip). The inner arrays are the clusters the old top bar divided; the strip
+// reads them flat. The docs front door is not a section and has no entry here.
 interface NavLink {
   label: string;
   href: string;
@@ -704,6 +740,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'colourways', label: 'Colourways' },
       { slug: 'partners', label: 'Working with partners' },
       { slug: '3d-studio', label: 'Lolly 3D Studio' },
+      { slug: 'chart', label: 'Lolly Chart' },
       { slug: 'design-import', label: 'Import a design' },
       { slug: 'design-layout', label: 'Layout in Lolly Design' },
       { slug: 'darkroom', label: 'Lolly Darkroom' },
@@ -723,6 +760,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
     ] },
     { label: 'Collaborate and export', items: [
       { slug: 'formats', label: 'Formats' },
+      { slug: 'fallback-fonts', label: 'Fallback fonts' },
       { slug: 'collaborate', label: 'Working together' },
       { slug: 'project-asset-transfers', label: 'Shared project assets' },
       { slug: 'exporting', label: 'Export a file' },
@@ -735,6 +773,11 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'agenda', label: 'Agenda screens and programmes' },
       { slug: 'animating', label: 'Animating: keyframes, depth and a camera' },
       { slug: 'rondocode', label: 'Lolly Rondocode songs' },
+    ] },
+    { label: 'Music', items: [
+      { slug: 'background-music', label: 'Free background music generator' },
+      { slug: 'music-generator', label: 'Music generator' },
+      { slug: 'generated-music', label: 'Generated music' },
     ] },
     { label: 'Team playbooks and comparisons', items: [
       { slug: 'positioning', label: 'How Lolly compares' },
@@ -821,14 +864,11 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'build-obs', label: 'Linux packages' },
       { slug: 'ios-build', label: 'Building for iOS' },
     ] },
-    { label: 'Jobs, sharing and delivery', items: [
+    { label: 'Also in other sections', items: [
       { slug: 'work-renders', label: 'Render jobs and batches' },
     ] },
   ] },
   managers: { title: 'Manage', groups: [
-    { label: 'Product, organisation and vocabulary', items: [
-      { slug: 'organisation', label: 'Use Lolly at your organisation' },
-    ] },
     { label: 'Administration, policy and approvals', items: [
       { slug: 'operators', label: 'Manage' },
       { slug: 'configuration', label: 'Profiles, brands and tool configuration' },
@@ -863,17 +903,21 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-provider-o365', label: 'Microsoft 365 / SharePoint' },
       { slug: 'work-provider-tenant-check', label: 'Check a source on your own tenant' },
     ] },
-    { label: 'Instance configuration, SSO and signing', items: [
-      { slug: 'work-identity-providers', label: 'Sign-in provider recipes' },
-    ] },
     { label: 'People and access', items: [
       { slug: 'work-identity', label: 'Sign-in and sessions' },
       { slug: 'work-account-lifecycle', label: 'Account data controls' },
       { slug: 'work-invitations', label: 'Invite people and handle requests' },
       { slug: 'work-permissions', label: 'Roles and grants' },
     ] },
-    { label: 'Agents, APIs and integrations', items: [
-      { slug: 'work-document-agents', label: 'Invite an agent' },
+    { label: 'Partners', items: [
+      { slug: 'work-run-a-partner-programme', label: 'Run a partner programme' },
+      { slug: 'work-partner-co-branding', label: 'Co-branding and partner kits' },
+      { slug: 'work-partner-templates', label: 'Partner templates' },
+      { slug: 'work-partner-approvals', label: 'Partner approvals' },
+      { slug: 'work-partner-shared-assets', label: 'Shared assets and licences' },
+      { slug: 'work-partner-agents', label: 'Partners\' agents' },
+      { slug: 'work-partner-people', label: 'People and the partnership' },
+      { slug: 'work-partner-programmes', label: 'Partner programmes' },
     ] },
     { label: 'Jobs, sharing and delivery', items: [
       { slug: 'work-sharing', label: 'Share renders and links' },
@@ -883,32 +927,33 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-delivery', label: 'Organisation delivery destinations' },
       { slug: 'work-project-portability', label: 'Preview a project transfer' },
     ] },
-    { label: 'Privacy, data and trust boundaries', items: [
-      { slug: 'work-data-lifecycle', label: 'Lolly Work storage and data lifecycle' },
-    ] },
-    { label: 'Operations, monitoring and recovery', items: [
+    { label: 'Also in other sections', items: [
+      { slug: 'organisation', label: 'Use Lolly at your organisation' },
+      { slug: 'work-identity-providers', label: 'Sign-in provider recipes' },
       { slug: 'work-audit', label: 'Audit log' },
+      { slug: 'work-document-agents', label: 'Invite an agent' },
+      { slug: 'work-data-lifecycle', label: 'Lolly Work storage and data lifecycle' },
     ] },
   ] },
   operators: { title: 'Deploy', groups: [
-    { label: 'URL and CLI automation', items: [
-      { slug: 'cli-signing', label: 'Signing from the terminal' },
-    ] },
-    { label: 'Build and contribute to the apps', items: [
-      { slug: 'build-guide', label: 'Build Guide' },
-      { slug: 'build-terminal', label: 'Build the CLI and TUI' },
-      { slug: 'build-desktop', label: 'Build the desktop app' },
-      { slug: 'build-mobile', label: 'Build the mobile apps' },
-      { slug: 'build-obs', label: 'Linux packages' },
-    ] },
-    { label: 'Updates, qualification and release history', items: [
-      { slug: 'catalog-resource-reading', label: 'Read verified catalog resources' },
-      { slug: 'deploy-delivery', label: 'Delivery deployment' },
-      { slug: 'work-release-1-1-3', label: 'Release 1.1.3' },
-      { slug: 'work-release-1-1-2', label: 'Release 1.1.2' },
-      { slug: 'work-past-releases', label: 'Past releases' },
-      { slug: 'work-instance-pack-production', label: 'Build a verified instance pack' },
-      { slug: 'work-shell-deployment-workflow', label: 'Shell deployment workflow' },
+    { label: 'Hosting and installation', items: [
+      { slug: 'operate', label: 'Deploy' },
+      { slug: 'build-kubernetes', label: 'Run on Kubernetes' },
+      { slug: 'work-platform-deployment', label: 'Install on Kubernetes' },
+      { slug: 'deployment', label: 'Choose a deployment' },
+      { slug: 'sovereign-production', label: 'Sovereign creative production' },
+      { slug: 'work-self-host', label: 'Run Lolly Work' },
+      { slug: 'work-overview', label: 'Lolly Work architecture' },
+      { slug: 'work-install', label: 'Install Lolly Work' },
+      { slug: 'work-ready-made-package', label: 'Install the ready-made package' },
+      { slug: 'work-official-installations', label: 'Official installation routes' },
+      { slug: 'work-deployment', label: 'How a Lolly Work deployment fits together' },
+      { slug: 'work-cloud-deployment', label: 'Run Lolly Work on UpCloud or Evroc' },
+      { slug: 'work-edge-cdn', label: 'Put a CDN in front of Lolly Work' },
+      { slug: 'work-aws-compatible', label: 'Run Lolly Work on AWS or MulgaDC Spinifex' },
+      { slug: 'work-wasm-deployment', label: 'WebAssembly and Kubewarden choices' },
+      { slug: 'work-kubewarden', label: 'How Lolly uses Kubewarden' },
+      { slug: 'work-admission-policy', label: 'Admission policy with Kubewarden' },
     ] },
     { label: 'Instance configuration, SSO and signing', items: [
       { slug: 'connector-origins', label: 'Configure connector origins' },
@@ -918,36 +963,32 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-configuration', label: 'Lolly Work instance configuration' },
       { slug: 'work-c2pa', label: 'Configure Lolly Work export signing' },
     ] },
-    { label: 'Hosting and installation', items: [
-      { slug: 'deployment', label: 'Choose a deployment' },
-      { slug: 'build-kubernetes', label: 'Run on Kubernetes' },
-      { slug: 'sovereign-production', label: 'Sovereign creative production' },
-      { slug: 'operate', label: 'Deploy' },
-      { slug: 'work-self-host', label: 'Run Lolly Work' },
-      { slug: 'work-overview', label: 'Lolly Work architecture' },
-      { slug: 'work-install', label: 'Install Lolly Work' },
-      { slug: 'work-ready-made-package', label: 'Install the ready-made package' },
-      { slug: 'work-platform-deployment', label: 'Install on Kubernetes' },
-      { slug: 'work-official-installations', label: 'Official installation routes' },
-      { slug: 'work-deployment', label: 'How a Lolly Work deployment fits together' },
-      { slug: 'work-cloud-deployment', label: 'Run Lolly Work on UpCloud or Evroc' },
-      { slug: 'work-edge-cdn', label: 'Put a CDN in front of Lolly Work' },
-      { slug: 'work-aws-compatible', label: 'Run Lolly Work on AWS or MulgaDC Spinifex' },
-      { slug: 'work-wasm-deployment', label: 'WebAssembly and Kubewarden choices' },
-      { slug: 'work-admission-policy', label: 'Admission policy with Kubewarden' },
-    ] },
-    { label: 'People and access', items: [
-      { slug: 'work-identity', label: 'Sign-in and sessions' },
-    ] },
-    { label: 'Privacy, data and trust boundaries', items: [
-      { slug: 'work-data-lifecycle', label: 'Lolly Work storage and data lifecycle' },
-    ] },
     { label: 'Operations, monitoring and recovery', items: [
       { slug: 'work-operations', label: 'Keep Lolly Work running' },
       { slug: 'work-metrics', label: 'Metrics and alerts' },
       { slug: 'work-production-readiness', label: 'Check a deployment before production' },
       { slug: 'work-telemetry', label: 'Telemetry and dashboards' },
       { slug: 'work-audit', label: 'Audit log' },
+    ] },
+    { label: 'Updates, qualification and release history', items: [
+      { slug: 'catalog-resource-reading', label: 'Read verified catalog resources' },
+      { slug: 'deploy-delivery', label: 'Delivery deployment' },
+      { slug: 'work-release-1-2-0', label: 'Release 1.2.0' },
+      { slug: 'work-release-1-1-3', label: 'Release 1.1.3' },
+      { slug: 'work-release-1-1-2', label: 'Release 1.1.2' },
+      { slug: 'work-past-releases', label: 'Past releases' },
+      { slug: 'work-instance-pack-production', label: 'Build a verified instance pack' },
+      { slug: 'work-shell-deployment-workflow', label: 'Shell deployment workflow' },
+    ] },
+    { label: 'Also in other sections', items: [
+      { slug: 'cli-signing', label: 'Signing from the terminal' },
+      { slug: 'build-guide', label: 'Build Guide' },
+      { slug: 'build-terminal', label: 'Build the CLI and TUI' },
+      { slug: 'build-desktop', label: 'Build the desktop app' },
+      { slug: 'build-mobile', label: 'Build the mobile apps' },
+      { slug: 'build-obs', label: 'Linux packages' },
+      { slug: 'work-identity', label: 'Sign-in and sessions' },
+      { slug: 'work-data-lifecycle', label: 'Lolly Work storage and data lifecycle' },
     ] },
   ] },
   trust: { title: 'Trust', groups: [
@@ -958,6 +999,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'input-not-impersonation', label: 'Input, not impersonation' },
       { slug: 'creative-rights', label: 'Creative rights and credits' },
       { slug: 'inclusive-design', label: 'Inclusive Design' },
+      { slug: 'without-ai', label: 'Lolly without AI' },
       { slug: 'ai-stance', label: 'Our AI Stance' },
       { slug: 'ai-features', label: 'Generated once, rendered the same' },
       { slug: 'eu-ai-act', label: 'AI marking and the EU AI Act' },
@@ -981,18 +1023,12 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'work-security-platform', label: 'Lolly Work security overview' },
       { slug: 'work-data-lifecycle', label: 'Lolly Work storage and data lifecycle' },
     ] },
-    { label: 'People and access', items: [
-      { slug: 'work-account-lifecycle', label: 'Account data controls' },
-    ] },
-    { label: 'Instance configuration, SSO and signing', items: [
+    { label: 'Also in other sections', items: [
       { slug: 'work-c2pa', label: 'Configure Lolly Work export signing' },
-    ] },
-    { label: 'Administration, policy and approvals', items: [
-      { slug: 'work-ai-policy', label: 'Manage organisation AI policy' },
-    ] },
-    { label: 'Operations, monitoring and recovery', items: [
       { slug: 'work-telemetry', label: 'Telemetry and dashboards' },
       { slug: 'work-audit', label: 'Audit log' },
+      { slug: 'work-account-lifecycle', label: 'Account data controls' },
+      { slug: 'work-ai-policy', label: 'Manage organisation AI policy' },
     ] },
   ] },
 };
@@ -1449,6 +1485,55 @@ function indexSections(html: string, slug: string, title: string): SearchRecord[
   return records;
 }
 
+/** One page's headings in order (h2 to h4), as indexSections reads them. */
+type PageHeadings = Array<{ a: string; h: string }>;
+function guideHeadingList(html: string): PageHeadings {
+  return [...html.matchAll(/<h([2-4])\s+id="([^"]*)"[^>]*>([\s\S]*?)<\/h\1>/g)].map(m => ({ a: m[2]!, h: htmlToText(m[3]!) }));
+}
+
+/** One "Read the guide" row: the page path, the section anchor ('' for the page), the
+ *  page title and the section heading ('' for the page), in the locale's own words. */
+export interface ToolGuideRow { p: string; a: string; t: string; h: string }
+
+/**
+ * The tool to docs list (plan 354 D6), from each manifest page's `tools`, for one locale.
+ * A tool's whole pages come first, then its sections, each in manifest order. Headings
+ * take different ids in each language (a translated slug, or section-N in a script with
+ * no Latin letters), so a section is found by its position among the page's headings in
+ * the English build. A locale whose page has a different number of headings keeps the
+ * row on the page itself, and tests/docs-tool-guides.test.ts fails on that drift.
+ */
+function toolGuides(
+  lang: Lang,
+  headings: Map<string, PageHeadings>,
+  english: Map<string, PageHeadings>,
+  titles: Map<string, string>,
+): Record<string, ToolGuideRow[]> {
+  const entries = DOCS_REGISTRY.pages.flatMap(page => (page.tools ?? []).map(entry => {
+    const [tool, anchor = ''] = entry.split('#') as [string, string?];
+    return { tool, path: page.path, anchor };
+  }));
+  const ordered = [...entries.filter(e => !e.anchor), ...entries.filter(e => e.anchor)];
+  const out: Record<string, ToolGuideRow[]> = {};
+  for (const { tool, path, anchor } of ordered) {
+    const title = titles.get(path);
+    if (title === undefined) throw new Error(`Tool guide for ${tool} names a page this build did not write: ${path}`);
+    let row: ToolGuideRow = { p: path, a: '', t: title, h: '' };
+    if (anchor) {
+      const en = english.get(path) ?? [];
+      const at = en.findIndex(x => x.a === anchor);
+      if (at < 0) throw new Error(`Tool guide ${tool}#${anchor}: no heading with that id on the English ${path}`);
+      const local = headings.get(path) ?? [];
+      if (local.length === en.length) row = { ...row, a: local[at]!.a, h: local[at]!.h };
+      else console.warn(`⚠  /${lang}/info/${path}: ${local.length} headings against ${en.length} in English, so the ${tool} guide row opens the page, not the section`);
+    }
+    const list = out[tool] ?? [];
+    list.push(row);
+    out[tool] = list;
+  }
+  return out;
+}
+
 // CONTENT_TOKEN + stripAuthoringComments now live in @lolly-tools/docs-render (imported above).
 
 // mdToHtml() binds the build-time docCtx to the shared block renderer
@@ -1581,6 +1666,9 @@ const DOC_ICONS: Record<string, string> = {
   pause:      `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>`,
   sunburst:   `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`,
   font:       `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>`,
+  // The Chart tool's own icon (community/chart/icon.svg): one glyph for the tool in
+  // the gallery and on its docs page.
+  chart:      `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 15c2.5 0 3-6 5-6s2.5 4 4.5 4 2.5-5 4.5-5"/><circle cx="7" cy="15" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="9" r="1.1" fill="currentColor" stroke="none"/><circle cx="16.5" cy="13" r="1.1" fill="currentColor" stroke="none"/></svg>`,
   moon:       `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`,
   neurobeat:  `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M2 12h3l2-7 4 18 3-14 2 7h6"/></svg>`,
   convert:    `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>`,
@@ -1639,6 +1727,9 @@ DOC_ICONS.image = appIcon('image');
 DOC_ICONS.zap = appIcon('zap');
 DOC_ICONS.play = appIcon('play');
 DOC_ICONS.film = appIcon('filmStrip');
+// The music pages' rail glyphs: the app's own note and headphones (the music generator's solo).
+DOC_ICONS.music = appIcon('music');
+DOC_ICONS.headphones = appIcon('headphones');
 DOC_ICONS.file = DOC_ICONS.document!;
 // The app registry has no book glyph, so this is drawn here in the same 24px
 // stroke style: an open book, for the guides and documentation bullet.
@@ -1653,10 +1744,8 @@ DOC_ICONS.puzzle = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M15.39 4.39a
 // AI-generated content, so the same idea wears the same glyph in both places.
 DOC_ICONS.sparkle = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/></svg>`;
 // The reading components' glyphs (packages/docs-render/src/components.ts), taken from
-// the app's registry so a note, a disclosure and Copy look the same in both readers.
-DOC_ICONS['adm-info'] = appIcon('info');
-DOC_ICONS['adm-alert'] = appIcon('alert');
-DOC_ICONS['adm-check'] = appIcon('circleCheck');
+// the app's registry so a disclosure and Copy look the same in both readers. A note,
+// warning or check draws a two-tone Etiquette icon instead, registered below.
 DOC_ICONS['adm-chevron'] = appIcon('chevronRight');
 DOC_ICONS['adm-more'] = appIcon('textL');
 DOC_ICONS['adm-clipboard'] = appIcon('clipboard');
@@ -1669,6 +1758,13 @@ DOC_ICONS['chrome-close'] = appIcon('close');
 DOC_ICONS['chrome-folder'] = appIcon('folder');
 DOC_ICONS['chrome-hash'] = appIcon('hash');
 DOC_ICONS['chrome-external'] = appIcon('externalLink');
+DOC_ICONS['chrome-back'] = appIcon('arrowLeft');
+DOC_ICONS['chrome-settings'] = appIcon('sliders');
+// Lolly Demo's two-tone Etiquette icons, as `eti-<slug>` (docs/etiquette-icons.ts): the
+// partner pages' cards and subject openings, and the admonitions. Painted from
+// --eti-accent and --eti-base, which the shared reading stylesheet (docs-components.css)
+// sets from the theme's roles, so they follow light, dark, brand and High contrast.
+Object.assign(DOC_ICONS, etiquetteDocIcons());
 const DOC_ICON_SPRITE = createIconSprite(DOC_ICONS);
 function docIcon(key: string): string {
   const svg = DOC_ICON_SPRITE.icon(key);
@@ -1804,8 +1900,9 @@ function englishAudienceH2s(): string[] {
  *
  * A tile with a `file` links STRAIGHT at that file on lolli.li - the stable
  * `lolly-latest.*` alias, overwritten in place on each release, so the link never
- * rots on a version bump. A tile without one (iPhone and iPad, YunoHost, Arch)
- * has nothing to hand out as a single file, so it opens its section of
+ * rots on a version bump. The iPhone and iPad tile has a `url`: the app's App
+ * Store listing, which installs and updates the app. A tile with neither (YunoHost,
+ * Arch) has nothing to hand out as a single file, so it opens its section of
  * /info/install.html instead, shows an arrow rather than the download glyph, and
  * says so in its accessible name. The "more" link opens the same page for
  * everything without a tile, and the checksum step.
@@ -1826,7 +1923,7 @@ function englishAudienceH2s(): string[] {
 type DownloadTile = {
   id: string; logo?: string; icon?: string;
   os: string; name: string; ext: string; note: string;
-  file?: string; slug?: string; hash?: string; version?: string; rail?: boolean;
+  file?: string; url?: string; slug?: string; hash?: string; version?: string; rail?: boolean;
 };
 type DownloadsContent = {
   label: string; lead: string;
@@ -1844,13 +1941,16 @@ function downloadsRail(lang: Lang): string {
   // label says the same thing once, so the internals are all aria-hidden.
   const tile = (it: DownloadTile): string => {
     const link = links.get(it.id) ?? it;
-    if (!link.file && !link.hash) throw new Error(`downloads.json tile "${it.id}" has neither a file nor an install-page anchor`);
-    const href = link.file ? `${RELEASE}/${link.file}` : `${localeHref(lang, link.slug ?? 'install')}#${link.hash}`;
+    if (!link.file && !link.hash && !link.url) throw new Error(`downloads.json tile "${it.id}" has neither a file, a store address nor an install-page anchor`);
+    const href = link.file ? `${RELEASE}/${link.file}` : link.url ?? `${localeHref(lang, link.slug ?? 'install')}#${link.hash}`;
     const named = link.version ? `${it.name} ${link.version}` : it.name;
     // A file-less tile opens a section of a docs page: the install guide for an app
     // store or a repository, the page's own guide for the terminal and automation row.
+    // A store tile is named from the tile's own words (its note says which store), so
+    // every language reads it without a new string.
     const label = link.file
       ? t('Install for {os}: {name}, {ext} file').replace('{os}', it.os).replace('{name}', named).replace('{ext}', it.ext)
+      : link.url ? `${it.os}: ${named}. ${it.note}`
       : (link.slug ?? 'install') === 'install'
         ? t('{os}: {name}. Opens the install guide').replace('{os}', it.os).replace('{name}', named)
         : t('{os}: {name}. Opens the guide').replace('{os}', it.os).replace('{name}', named);
@@ -1940,7 +2040,7 @@ const ASSURE_DOC_LINKS = (lang: Lang) => {
 function importBand(lang: Lang, opts: { cta?: boolean } = {}): string {
   const showCta = opts.cta !== false;
   const importData = loadSiteJson('import.json', lang) as {
-    eyebrow: string; heading: string; lead: string;
+    heading: string; lead: string;
     sources: { mono: string; name: string; fmt: string; color: string }[];
     flow: { icon: string; title: string; desc: string }[];
     points: { icon: string; title: string; desc: string }[];
@@ -1951,7 +2051,6 @@ function importBand(lang: Lang, opts: { cta?: boolean } = {}): string {
     <div class="import-lede reveal">
       ${credentialedMascot('/info/mascots/kookaburra.webp', 'import-mascot')}
       <div class="import-lede-text">
-        <span class="import-eyebrow">${esc(importData.eyebrow)}</span>
         <h2>${esc(importData.heading)}</h2>
         <p class="import-lead">${inline(importData.lead)}</p>
       </div>
@@ -2160,59 +2259,18 @@ function renderDesignImportPage(md: string, lang: Lang): string {
 /** /info/formats.html: the three-zone table, dropped where the source asks for it. */
 function renderFormatsPage(md: string, lang: Lang): string {
   const [before, after] = md.split(FORMATS_TABLE_MARK);
-  return `${mdToHtml(before ?? md)}\n${formatsSection(lang, { head: false })}\n${formatsReference(lang)}\n${after ? mdToHtml(after) : ''}`;
+  const table = `${formatsSection(lang, { head: false })}\n${formatsReference(lang)}`;
+  // The opening carries the landing's own sentence, then its proof. A page without the
+  // marker (a translation from before the figure) renders as it did.
+  const [opening, rest] = (before ?? md).split(FORMAT_LAST_MARK);
+  const head = rest === undefined ? mdToHtml(opening ?? '') : `${mdToHtml(opening ?? '')}\n${formatLastFigure()}\n${mdToHtml(rest)}`;
+  return `${head}\n${table}\n${after ? mdToHtml(after) : ''}`;
 }
 
 /** A deep link INTO THE APP (not the docs): `/#/tool/…`, carrying the reader's locale. */
 function appHref(lang: Lang, hash: string): string {
   return lang === 'en' ? `/${hash}` : `/?lang=${lang}${hash}`;
 }
-
-/**
- * Block 2 - "Make something, right now". Three worked examples from the reader's
- * own life; the caption names the SCENE, never the tool ("A code for the party",
- * not "QR Code Generator").
- *
- * Each card is a plain link into the app carrying the example's own inputs, so a
- * click opens the tool already filled in - the same "you get the config you saw"
- * contract the gallery's example carousel has, expressed as a URL because a
- * static page has no gallery to click.
- *
- * The three tools are pinned in tests/docs-claims.test.ts. All three are
- * community tools (present on every profile), declare no capabilities, and make
- * no network request of any kind - so this block keeps working with the Wi-Fi
- * off, which is the claim block 3 makes one screen further down.
- *
- * The picture is the tool's OWN preview of that exact look, copied out of the
- * active brand's catalog at build time (build(): /info/examples/). Faithful by
- * construction: what the card shows is what the click gives you. A profile whose
- * catalog has no preview for a look renders the card without its picture rather
- * than a broken image.
- */
-interface Scene { tool: string; look: string; query: string; scene: string; line: string; alt: string }
-const LANDING_SCENES: Scene[] = [
-  // The prefilled URL is the VISITOR's job, not ours (plans/168 WP-5): the card sells
-  // "a code for the invitation", so the first artifact a stranger makes must be that
-  // invitation. rsvp.example is a reserved example domain (RFC 2606) - obviously not a
-  // real organisation's link, per the no-invented-history rule.
-  { tool: 'qr-code', look: 'qr-code.look0.svg',
-    query: 'url=https%3A%2F%2Frsvp.example%2Fmidsummer-party&color=%231a1a2e&background=%23faf7f2',
-    scene: 'A code for the invitation',
-    line: 'Print it on the invite or pin it to the noticeboard, and everyone lands in the right place.',
-    alt: 'A square QR code in dark ink on warm paper' },
-  // Slot 2 is the audiogram (Andy, 2026-08-17): the camera-shy path deserves featuring.
-  // The query seeds the manifest's own look0 example so the preview and the click agree.
-  { tool: 'audiogram', look: 'audiogram.look0.svg',
-    query: 'title=Slow%20is%20smooth%2C%20smooth%20is%20fast&subtitle=The%20Build%20Notes%20podcast%20%C2%B7%20Ep.%2041&style=bars',
-    scene: 'Feeling shy? Your voice is plenty',
-    line: 'A voice note becomes a finished video: moving waveform, your words on the cover, your colours. No camera, no makeup needed.',
-    alt: 'An audiogram video cover with a title and a sound waveform' },
-  { tool: 'filter', look: 'filter.look1.svg',
-    query: 'effect=duotone',
-    scene: 'A photo, ready for the poster',
-    line: 'Drop in a picture and it takes on your two colours, so the poster looks like it was planned.',
-    alt: 'A photograph recoloured in two flat brand colours' },
-];
 
 /**
  * The FAQ, its own page since plans/177 (/info/start/faq.html): the same native
@@ -2375,11 +2433,11 @@ function renderMakeSomethingPage(md: string, _lang: Lang): string {
 // Every copy string is read through localizeSiteJson, which looks it up in the
 // site catalogue (t(), English-as-key, identity fallback) and leaves the keys in
 // LANDING_I18N_SKIP alone: routes, slugs, file names, css classes, counter
-// names and code notes are never copy. scripts/translate.ts carries the SAME
+// names, icon keys and code notes are never copy. scripts/translate.ts carries the SAME
 // list (its site corpus walks these files with it) and
 // tests/docs-landing-i18n.test.ts pins the two lists and the file list equal,
 // so a key added on one side cannot be quietly missed on the other.
-const LANDING_I18N_SKIP = ['href', 'slug', 'class', 'img', 'video', 'mascot', 'id', 'count', 'note'];
+const LANDING_I18N_SKIP = ['href', 'slug', 'class', 'img', 'video', 'mascot', 'id', 'count', 'note', 'icon'];
 function localizeSiteJson<T>(value: T, key = ''): T {
   if (typeof value === 'string') return (LANDING_I18N_SKIP.includes(key) ? value : t(value)) as T;
   if (Array.isArray(value)) return value.map((v) => localizeSiteJson(v, key)) as T;
@@ -2415,11 +2473,74 @@ interface Lane { tab: string; pitch: string; mascot?: string; links?: Array<{ la
 interface Door { id: string; name: string; sub: string; mascot: string; lanes: Lane[] }
 interface PersonaJson { title: string; doors: Door[] }
 interface BehindJson { eyebrow: string; sceptic: string; links: Array<{ label: string; slug: string }>; quiet: string }
-interface WorkJson { eyebrow: string; heading: string; body: string; links: Array<{ label: string; href: string }> }
+interface WorkJson { eyebrow: string; heading: string; line: string; points: Array<{ icon: string; title: string; text: string }>; links: Array<{ label: string; href: string }> }
 
 /** An app route (`#/tool/design`) goes through appHref (carries the reader's
  *  locale); anything else is a site path through localizeHref. */
 const landingCtaHref = (lang: Lang, href: string): string => (href.startsWith('#') ? appHref(lang, href) : localizeHref(lang, href));
+
+// ── Choose the format last (the proof on the formats page) ──────────────────────
+// One Lolly Demo piece, five files Lolly made from it, each drawn by the program a
+// recipient would open it in. scripts/build-format-last-art.ts makes the files, runs the
+// readers and signs the panels; the panels and originals sit in docs/figures/ as
+// formats-last-*. The formats page shows the panels with the reader that drew each one
+// and the file it came from. The landing no longer carries a band of its own (Andy,
+// 2026-11-14). Copy: docs/site/format-last.json.
+interface FormatLastOutput { id: string; kind: string; format: string; alt: string; drawn: string }
+interface FormatLastJson {
+  heading: string; line: string; label: string; outputs: FormatLastOutput[];
+  outLabel: string; out: string[]; inLabel: string; in: string[];
+  more: { label: string; slug: string }; caption: string; download: string;
+  /** A plain line on content sovereignty, with a link to the page that defines the term. */
+  control?: { text: string; label: string; slug: string };
+}
+/** Each panel's file and the original it came from; sizes are read off the files. The
+ *  two raster panels are raster because of what they show: a video frame is pixels, and
+ *  Ghostscript's separation device draws each ink plate as pixels, as a press RIP does. */
+const FORMAT_LAST_PANELS: Record<string, { art: string; source: string }> = {
+  slide: { art: 'formats-last-slide.svg', source: 'formats-last.pptx' },
+  page: { art: 'formats-last-page.svg', source: 'formats-last.docx' },
+  svg: { art: 'formats-last-svg.svg', source: 'formats-last-svg.svg' },
+  video: { art: 'formats-last-video.webp', source: 'formats-last.mp4' },
+  print: { art: 'formats-last-print.webp', source: 'formats-last-print.pdf' },
+};
+/** The originals the formats page offers beside its panels; build() copies them. */
+const FORMAT_LAST_FILES = ['formats-last.pptx', 'formats-last.docx', 'formats-last.mp4', 'formats-last-print.pdf', 'formats-last-video.webp', 'formats-last-print.webp'];
+
+function formatLastSize(id: string): { art: string; source: string; w: number; h: number } {
+  const p = FORMAT_LAST_PANELS[id];
+  if (!p) throw new Error(`docs/site/format-last.json: no panel for output "${id}" (one of ${Object.keys(FORMAT_LAST_PANELS).join(', ')})`);
+  const size = shotSize(p.art, resolve(__dirname, 'figures', p.art));
+  if (!size) throw new Error(`docs/figures/${p.art} is missing: run node scripts/build-format-last-art.ts`);
+  return { ...p, ...size };
+}
+function formatLastPanel(o: FormatLastOutput): string {
+  const p = formatLastSize(o.id);
+  return `<img src="/info/figures/${p.art}" width="${p.w}" height="${p.h}" alt="${esc(o.alt)}" loading="lazy" decoding="async">`;
+}
+
+/** The formats page's proof: the same panels, each with the reader that drew it, its
+ *  credential and the original file. */
+function formatLastFigure(): string {
+  const fl = loadLandingJson<FormatLastJson>('format-last.json');
+  const panels = fl.outputs.map((o) => {
+    const p = formatLastSize(o.id);
+    const src = `/info/figures/${p.art}`;
+    const cred = shotCredential(p.art, 'shot-cred--figure', { path: resolve(__dirname, 'figures', p.art), src, art: true });
+    const ext = p.source.slice(p.source.lastIndexOf('.') + 1).toUpperCase();
+    return `<figure class="fl-panel fl-panel--${esc(o.id)}">
+      <div class="fl-panel-art">${formatLastPanel(o)}${cred}</div>
+      <figcaption><b>${esc(o.kind)}</b> <span>${esc(o.drawn)}</span>
+        <a class="fl-panel-file" href="/info/figures/${esc(p.source)}" download aria-label="${esc(fl.download)} ${esc(ext)}">${esc(ext)} ${docIcon('download')}</a></figcaption>
+    </figure>`;
+  }).join('\n    ');
+  return `<div class="fl-figure" id="format-last-figure">
+  <div class="fl-panels">
+    ${panels}
+  </div>
+  <p class="fl-figure-caption" dir="auto">${esc(fl.caption)}</p>
+</div>`;
+}
 
 /**
  * The Cover Flow motion: shells/web/src/lib/covers-flow.ts, bundled ONCE per
@@ -2514,7 +2635,48 @@ function stripScript(): string {
     });
     _stripJs = out.outputFiles[0]!.text.trim();
   }
-  return `<script>\n${_stripJs}\n(function(){document.querySelectorAll('nav.docs-pathways').forEach(function(s){LollyDocsStrip.enhancePathwaysStrip(s);});})();\n</script>`;
+  return `<script>\n${_stripJs}\n(function(){document.querySelectorAll('nav.docs-pathways').forEach(function(s){LollyDocsStrip.enhancePathwaysStrip(s);});`
+    + `var rail=document.querySelector('aside.docs-sidebar');if(rail)LollyDocsStrip.revealCurrentPage(rail);})();\n</script>`;
+}
+
+/**
+ * The page's contents (rail and floating button): shells/web/src/lib/docs-contents.ts, the
+ * module the in-app reader imports, bundled once here so both readers mark the section
+ * being read and open and close the panel the same way. No `jump`: on /info every row is
+ * an ordinary #id link and the browser does the move (and the site's reduced-motion-aware
+ * scroll-behavior with it). The reading line sits under the fixed bar.
+ */
+/**
+ * The docs search ranking (plan 354 D4): shells/web/src/lib/search/docs-rank.ts, the module
+ * the app's spotlight ranks docs with, bundled once here so both searches read the one
+ * index the same way and put a page ahead of its sections. DOCS_SEARCH_SCRIPT calls the bundle.
+ */
+let _rankJs: string | null = null;
+function docsRankScript(): string {
+  if (_rankJs === null) {
+    const out = buildSync({
+      entryPoints: [resolve(repoRoot, 'shells/web/src/lib/search/docs-rank.ts')],
+      bundle: true, write: false, format: 'iife', globalName: 'LollyDocsRank',
+      minify: true, platform: 'browser', target: 'es2019', logLevel: 'silent',
+    });
+    _rankJs = out.outputFiles[0]!.text.trim();
+  }
+  return `<script>\n${_rankJs}\n</script>`;
+}
+
+let _contentsJs: string | null = null;
+function contentsScript(): string {
+  if (_contentsJs === null) {
+    const out = buildSync({
+      entryPoints: [resolve(repoRoot, 'shells/web/src/lib/docs-contents.ts')],
+      bundle: true, write: false, format: 'iife', globalName: 'LollyDocsContents',
+      minify: true, platform: 'browser', target: 'es2019', logLevel: 'silent',
+    });
+    _contentsJs = out.outputFiles[0]!.text.trim();
+  }
+  return `<script>\n${_contentsJs}\n(function(){var a=document.querySelector('main.docs-content');if(!a)return;`
+    + `var bar=document.querySelector('.site-bar');`
+    + `LollyDocsContents.enhanceDocsContents({article:a,root:document,readingLine:function(){return (bar?bar.getBoundingClientRect().bottom:0)+Math.round(innerHeight*0.2);}});})();\n</script>`;
 }
 
 /** The enhancer's words for this page, in its language, as one attribute on the article.
@@ -2529,6 +2691,48 @@ function readingAttr(content: string): string {
     icon: docIcon('adm-clipboard'),
   };
   return ` data-reading="${escAttr(JSON.stringify(words))}"`;
+}
+
+/**
+ * The picture viewer (lib/docs-lightbox.ts): a screenshot, diagram or figure opens full
+ * screen to zoom into. The in-app reader imports the same module; bundled once here, like
+ * the reading enhancer. Its words come from the page (lightboxAttr), in the page's
+ * language. Back closes it through one same-address history entry (sameEntryBack), which
+ * moves no anchor and fires no hashchange.
+ */
+let _lightboxJs: string | null = null;
+function lightboxScript(): string {
+  if (_lightboxJs === null) {
+    const out = buildSync({
+      entryPoints: [resolve(repoRoot, 'shells/web/src/lib/docs-lightbox.ts')],
+      bundle: true, write: false, format: 'iife', globalName: 'LollyDocsLightbox',
+      minify: true, platform: 'browser', target: 'es2019', logLevel: 'silent',
+    });
+    _lightboxJs = out.outputFiles[0]!.text.trim();
+  }
+  // The glyphs come from the app's own registry at build time, once for every page.
+  const icons = JSON.stringify(lightboxIcons((name) => appIcon(name))).replace(/</g, '\\u003c');
+  return `<script>\n${_lightboxJs}\n(function(){var root=document.querySelector('main.docs-content');if(!root)return;`
+    + `var l=null;try{l=JSON.parse(root.getAttribute('data-lightbox')||'null')}catch(e){}if(!l)return;`
+    + `var lang=document.documentElement.lang||undefined;function num(n){try{return Number(n).toLocaleString(lang)}catch(e){return String(n)}}`
+    + `function fill(s,k,v){return String(s).split(k).join(v)}`
+    + `LollyDocsLightbox.enhanceDocsLightbox(root,{back:LollyDocsLightbox.sameEntryBack(window),icons:${icons},labels:{`
+    + `enlarge:function(a){return a?fill(l.enlarge||'Enlarge: {alt}','{alt}',a):(l.enlargeBare||'Enlarge picture')},`
+    + `viewer:l.viewer||'Picture viewer',close:l.close||'Close',zoomIn:l.zoomIn||'Zoom in',zoomOut:l.zoomOut||'Zoom out',`
+    + `fit:l.fit||'Fit to screen',previous:l.previous||'Previous picture',next:l.next||'Next picture',`
+    + `position:function(n,t){return fill(fill(l.position||'{n} of {total}','{n}',num(n)),'{total}',num(t))}}});})();\n</script>`;
+}
+
+/** The viewer's words for this page, in its language, as one attribute on the article.
+ *  Only pages with a picture the viewer opens carry the attribute. */
+function lightboxAttr(content: string): string {
+  if (!/class="(?:shot|docs-diagram)[" ]|class="(?:showcase|docs-figure|asset-cred)"/.test(content)) return '';
+  const words = {
+    enlarge: t('Enlarge: {alt}'), enlargeBare: t('Enlarge picture'), viewer: t('Picture viewer'),
+    close: t('Close'), zoomIn: t('Zoom in'), zoomOut: t('Zoom out'), fit: t('Fit to screen'),
+    previous: t('Previous picture'), next: t('Next picture'), position: t('{n} of {total}'),
+  };
+  return ` data-lightbox="${escAttr(JSON.stringify(words))}"`;
 }
 
 let _coversJs: string | null = null;
@@ -2556,21 +2760,27 @@ function coversScript(): string {
  * in the public lolly-work repository and the hosted sandbox at lolly.work. Copy:
  * docs/site/work.json; the two links are external, so they open in a new tab.
  * Product-level only: what it does, where the code is, where to try it.
+ *
+ * One line and three short points (Andy, 2026-11-14: "easy to read, simple to look
+ * at"): sign-in and roles, a locked brand, audit and approvals, each led by a
+ * two-tone Etiquette icon that takes the reader's theme (docs-components.css).
  */
 function workBand(lang: Lang): string {
   const w = loadLandingJson<WorkJson>('work.json');
-  void lang;
+  // Source order is the reading order: the copy, the points, then the two links. The
+  // stylesheet lifts the links beside the copy on a wide screen.
   return `<section class="work-section" id="work">
   <div class="work-inner reveal">
-    <div class="work-cols">
-      <div class="work-copy">
-        <p class="work-eyebrow">${esc(w.eyebrow)}</p>
-        <h2 class="work-heading">${esc(w.heading)}</h2>
-        <p class="work-body">${esc(w.body)}</p>
-      </div>
-      <div class="work-links">
-        ${w.links.map((l, i) => `<a class="${i === 0 ? 'hero-btn btn-primary btn-compact' : 'work-link'}" href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('\n        ')}
-      </div>
+    <div class="work-copy">
+      ${crumbsHtml([{ label: w.eyebrow, href: localeHref(lang, 'organisation') }], 'work-crumbs')}
+      <h2 class="work-heading">${esc(w.heading)}</h2>
+      <p class="work-line">${esc(w.line)}</p>
+    </div>
+    <ul class="work-points">
+      ${w.points.map((p) => `<li class="work-point"><span class="work-point-ic">${docIcon(p.icon)}</span><span class="work-point-copy"><b>${esc(p.title)}</b> <span>${esc(p.text)}</span></span></li>`).join('\n      ')}
+    </ul>
+    <div class="work-links">
+      ${w.links.map((l, i) => `<a class="${i === 0 ? 'hero-btn btn-primary btn-compact' : 'work-link'}" href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('\n      ')}
     </div>
   </div>
 </section>`;
@@ -2681,9 +2891,10 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
     : `<img src="/info/shots/${esc(c.img)}" alt="${esc(c.alt)}" loading="lazy" decoding="async">`;
   // No heading row above the fan (Andy, 2026-09-02: "remove this row of text,
   // it's not needed"). One muted caption line sits under the dots instead (plan 341,
-  // Andy 2026-11-01): a first-time reader saw sixteen different-looking products,
-  // and the line says they are one app wearing sixteen design systems. It is outside
-  // the carousel region, so it shows in the scriptless filmstrip too.
+  // Andy 2026-11-01): a first-time reader saw many different-looking products, and
+  // the line says they are one app, at work and in the files it makes, in a different
+  // colourway from card to card. It is outside the carousel region, so it shows in
+  // the scriptless filmstrip too.
   const coversHtml = `<section class="covers-section" id="covers">
   <div class="covers-inner">
     <div class="covers" id="coversRoot" role="region" aria-roledescription="carousel" aria-label="${esc(cv.label)}" tabindex="0">
@@ -2931,9 +3142,8 @@ function renderFormatSideDoor(model: FormatPageModel, lang: Lang): string {
     : t('This format carries no Content Credential');
   const feats = model.featureLabels
     .map((label) => `<li>${esc(label)}</li>`).join('');
-  const cat = FMT_CAT_ICON[model.category] || '';
   return `<article class="sidedoor page-format">
-    <div class="sidedoor-eyebrow">${cat}<span>${esc(t('Format'))} · ${esc(model.category)}</span></div>
+    ${crumbsHtml([{ label: t('Formats'), href: localeHref(lang, 'formats') }, { label: model.category }])}
     <h1>${esc(model.name)}</h1>
     <p class="sidedoor-full">${esc(model.full)}</p>
     <p class="sidedoor-dir">${sideDoorDirLine(model.dir)}</p>
@@ -2977,7 +3187,7 @@ function renderConvertSideDoor(model: ConvertPageModel, lang: Lang): string {
   const carryLine = `${t('What carries over')}: ${carryNames}${carryTail}`;
   const outFeats = model.outFeatureLabels.map((label) => `<li>${esc(label)}</li>`).join('');
   return `<article class="sidedoor page-convert">
-    <div class="sidedoor-eyebrow">${DOC_ICONS.convert}<span>${esc(t('Convert'))}</span></div>
+    ${crumbsHtml([{ label: t('Formats'), href: localeHref(lang, 'formats') }])}
     <h1>${esc(model.title)}</h1>
     <div class="sidedoor-convert-cols">
       <div class="sidedoor-col">
@@ -3011,6 +3221,253 @@ function renderConvertSideDoor(model: ConvertPageModel, lang: Lang): string {
   </article>`;
 }
 
+// ── Music: the genre pages and the background music hub ─────────────────────
+// One generated page per genre at /info/music/<slug>/ and the hub page
+// (docs/background-music.md, slug background-music) that lists them by the genre
+// picker's groups. The genre copy is docs/site/music-genres.json, the listening
+// samples and their recipes are docs/music/ (scripts/build-music-samples.ts), and
+// the genres, their groups, titles and icons are the app's own
+// (shells/web/src/lib/genre-icons.ts). The page model is pure and lives in
+// ./music-pages.ts. The shared questions every genre page repeats are the hub's own
+// "Questions" section, so they have one source, which translates with the hub.
+//
+// The labels below pass through t(), like the format side doors' skeleton. The
+// genre copy is English; a locale twin at docs/i18n/<lang>/music-genres.json
+// replaces the fields it holds (musicCopy).
+
+const MUSIC_REGISTER = JSON.parse(readFileSync(resolve(__dirname, 'site', 'music-genres.json'), 'utf8')) as MusicRegister;
+const MUSIC_SAMPLES: SampleSet = existsSync(resolve(__dirname, 'music', 'samples.json'))
+  ? JSON.parse(readFileSync(resolve(__dirname, 'music', 'samples.json'), 'utf8')) as SampleSet
+  : { version: 1, excerpt: { seconds: 20, fadeIn: 0.5, fadeOut: 2.5, bitrate: 80_000, maxLeadIn: 2.6, warmupBars: 2 }, samples: [] };
+const MUSIC_SAMPLE = new Map(MUSIC_SAMPLES.samples.map(s => [s.style, s]));
+/** The hub page's slug, and where its markdown asks for the genre grid. */
+const MUSIC_HUB = 'background-music';
+const MUSIC_GRID_MARK = '<!-- the genre grid renders here -->';
+/** The guide's section on using and crediting the music. */
+const MUSIC_GUIDE = 'music-generator';
+const MUSIC_CREDIT_ANCHOR = 'use-your-music';
+/** The terms the music is offered under (Andy, 2026-11-15): CC BY 4.0. */
+const MUSIC_LICENCE_URL = 'https://creativecommons.org/licenses/by/4.0/';
+/** Every genre the picker lists, in its groups and its order, with copy to show. */
+const MUSIC_GENRES: Array<{ group: GenreCategory; mood: LofiMood }> = GENRE_GROUPS.flatMap(g => g.moods.map(mood => ({ group: g.id, mood })));
+{
+  const problems = registerProblems(MUSIC_REGISTER, MUSIC_GENRES.map(g => g.mood));
+  // A genre that arrives before its copy is left off the site with a warning rather than
+  // failing the build; tests/music-pages.test.ts is the gate that asks for the copy.
+  for (const p of problems) console.warn(`⚠  music pages: ${p}`);
+}
+
+const musicTwins = new Map<Lang, Map<string, Partial<GenreCopy>>>();
+/** A genre's copy in `lang`: the English register, with any field a locale twin holds. */
+function musicCopy(id: LofiMood, lang: Lang): GenreCopy | undefined {
+  const en = MUSIC_REGISTER.genres.find(g => g.id === id);
+  if (!en || lang === 'en') return en;
+  if (!musicTwins.has(lang)) {
+    const path = resolve(__dirname, 'i18n', lang, 'music-genres.json');
+    const twin = existsSync(path) ? (JSON.parse(readFileSync(path, 'utf8')) as { genres: Array<Partial<GenreCopy>> }).genres : [];
+    musicTwins.set(lang, new Map(twin.filter(g => g.id).map(g => [g.id!, g])));
+  }
+  return { ...en, ...musicTwins.get(lang)!.get(id), id: en.id, related: en.related };
+}
+
+/** The questions in the hub's markdown: its "Questions" section, under the heading's
+ *  translation or the English word. */
+function hubQuestions(md: string): MusicQuestion[] {
+  const local = questionsFromMarkdown(md, t('Questions'));
+  return local.length ? local : questionsFromMarkdown(md, 'Questions');
+}
+/** The hub's questions in `lang`, the ones every genre page repeats: the locale's hub
+ *  where it has them, else the English hub's. */
+function musicSharedQuestions(lang: Lang): MusicQuestion[] {
+  const hub = pages.find(p => p.slug === MUSIC_HUB);
+  if (!hub) return [];
+  const read = (l: Lang): MusicQuestion[] => {
+    try { return hubQuestions(readFileSync(resolvePageSrc(hub, l), 'utf8')); } catch { return []; }
+  };
+  const local = read(lang);
+  return local.length || lang === 'en' ? local : read('en');
+}
+
+/** {name} placeholders filled in a string t() has already looked up, so a translation can
+ *  move them. The literal stays inside t('...') for the site corpus (scripts/translate.ts). */
+const fill = (s: string, vars: Record<string, string>): string =>
+  Object.entries(vars).reduce((out, [k, v]) => out.split(`{${k}}`).join(v), s);
+/** The picker's group headings, each a literal t() for the site corpus. */
+const musicGroupLabel = (g: GenreCategory): string =>
+  ({ chill: t('Chill'), rock: t('Rock & Roots'), soul: t('Soul & Groove'), club: t('Club'), bass: t('Bass & Synth'), world: t('World') })[g] ?? MUSIC_GROUP_TITLE[g];
+
+const jsonLd = (data: unknown): string =>
+  `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`;
+
+/** The music generator as an application, for structured data. */
+function musicAppLd(): Record<string, unknown> {
+  return {
+    '@type': 'WebApplication',
+    '@id': `${SITE_URL}/#/music`,
+    name: 'Lolly music generator',
+    url: `${SITE_URL}/#/music`,
+    applicationCategory: 'MultimediaApplication',
+    operatingSystem: 'Web browser',
+    browserRequirements: 'Requires WebGPU',
+    description: `Make background music in any of Lolly's genres on your own device: change the instruments, the tempo, the key and the mix, then download an M4A or WAV file. Music you make comes under the Creative Commons Attribution 4.0 International licence (CC BY 4.0): free for any use, including commercial use, provided you credit it as ${MUSIC_CREDIT}.`,
+    isAccessibleForFree: true,
+    offers: { '@type': 'Offer', price: 0, priceCurrency: 'USD' },
+    license: CODE_LICENSE_URL,
+  };
+}
+const faqLd = (qs: MusicQuestion[]): Record<string, unknown> => ({
+  '@type': 'FAQPage',
+  mainEntity: qs.map(q => ({ '@type': 'Question', name: plainText(q.q), acceptedAnswer: { '@type': 'Answer', text: plainText(q.a) } })),
+});
+
+/** A question as the page shows it: a heading and its answer. */
+function musicQuestionHtml(q: MusicQuestion): string {
+  return `<div class="music-q"><h3>${esc(q.q)}</h3>${mdToHtml(q.a)}</div>`;
+}
+
+/** The licence block every genre page carries, in the guide's words. */
+function musicCreditHtml(lang: Lang): string {
+  return `<section class="music-credit" id="free-with-credit">
+    <h2>${esc(t('Free with credit'))}</h2>
+    <p>${esc(t('Music you make in the music generator comes under the Creative Commons Attribution 4.0 International licence'))} (<a rel="license" href="${MUSIC_LICENCE_URL}">CC BY 4.0</a>). ${esc(t('The licence also covers the sample on this page and the tunes the Neurospicy player\'s stations compose.'))}</p>
+    <p>${esc(t('The music is free for any use, including commercial use, provided you credit Lolly. Put this line wherever your credits go:'))}</p>
+    <p class="music-credit-line"><code>${esc(MUSIC_CREDIT)}</code></p>
+    <p><a href="${esc(localeHref(lang, MUSIC_GUIDE))}#${MUSIC_CREDIT_ANCHOR}">${esc(t('Where to put the credit'))}</a></p>
+  </section>`;
+}
+
+/** A genre as a card that links to its page: the icon, the title and what you hear. */
+function musicCardHtml(mood: LofiMood, lang: Lang): string {
+  return `<li class="music-card"><a href="${esc(localeHref(lang, genrePageSlug(mood)))}">${genreIconSvg(mood, 24)}`
+    + `<span class="music-card-text"><strong>${esc(genreTitle(mood))}</strong><span>${esc(genreTaglines()[mood] ?? '')}</span></span></a></li>`;
+}
+
+/** The sample player: a plain audio control, then what the sample is. */
+function musicSampleHtml(mood: LofiMood, s: SampleRecipe | undefined): string {
+  if (!s) return '';
+  const cap = fill(t('A {seconds}-second sample from the {section} section: {genre}, seed {seed}, {bpm} beats a minute in {key}. Made in the music generator, with Content Credentials. Credit: {credit}.'), {
+    seconds: String(MUSIC_SAMPLES.excerpt.seconds), section: s.anchorSection, genre: genreTitle(mood), seed: String(s.seed), bpm: String(s.bpm), key: s.key, credit: MUSIC_CREDIT,
+  });
+  return `<figure class="music-sample">
+    <audio controls preload="none" src="/info/${SAMPLES_DIR}/${esc(s.file)}">${esc(t('Your browser cannot play this sample.'))} <a href="/info/${SAMPLES_DIR}/${esc(s.file)}">${esc(t('Download the sample'))}</a></audio>
+    <figcaption>${esc(cap)}</figcaption>
+  </figure>`;
+}
+
+/** /info/music/<slug>/ - one page per genre. */
+function renderMusicGenrePage(copy: GenreCopy, group: GenreCategory, lang: Lang): string {
+  const mood = copy.id;
+  const slug = genrePageSlug(mood);
+  const url = `${SITE_URL}${localeHref(lang, slug)}`;
+  const hubUrl = `${SITE_URL}${localeHref(lang, MUSIC_HUB)}`;
+  const sample = MUSIC_SAMPLE.get(mood);
+  const make = appHref(lang, makeYourOwnHash(mood, sample?.seed ?? 1, sample?.bars ?? 64));
+  const title = genreTitle(mood);
+  const own = copy.faq ?? [];
+  const shared = musicSharedQuestions(lang);
+  const related = copy.related.filter(r => MUSIC_REGISTER.genres.some(g => g.id === r));
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      musicAppLd(),
+      faqLd([...own, ...shared]),
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: t('Free background music generator'), item: hubUrl },
+          { '@type': 'ListItem', position: 2, name: copy.title, item: url },
+        ],
+      },
+      ...(sample ? [{
+        '@type': 'MusicRecording',
+        name: `${title}: ${t('a sample from the music generator')}`,
+        genre: title,
+        duration: isoDuration(MUSIC_SAMPLES.excerpt.seconds),
+        url,
+        isAccessibleForFree: true,
+        license: MUSIC_LICENCE_URL,
+        creditText: MUSIC_CREDIT,
+        usageInfo: `${SITE_URL}${localeHref(lang, MUSIC_GUIDE)}#${MUSIC_CREDIT_ANCHOR}`,
+        audio: {
+          '@type': 'AudioObject',
+          contentUrl: `${SITE_URL}/info/${SAMPLES_DIR}/${sample.file}`,
+          encodingFormat: 'audio/mp4',
+          duration: isoDuration(MUSIC_SAMPLES.excerpt.seconds),
+          contentSize: `${Math.round(sample.bytes / 1024)} KB`,
+        },
+      }] : []),
+    ],
+  };
+  return `<article class="sidedoor music-genre">
+    ${crumbsHtml([{ label: t('Free background music'), href: localeHref(lang, MUSIC_HUB) }, { label: musicGroupLabel(group) }])}
+    <h1>${esc(copy.title)}</h1>
+    <p class="sidedoor-lead">${esc(copy.lead)}</p>
+    ${musicSampleHtml(mood, sample)}
+    <a class="sidedoor-cta" href="${esc(make)}">${esc(fill(t('Make your own {genre} track'), { genre: copy.name }))} <span aria-hidden="true">→</span></a>
+    <ul class="sidedoor-promise">
+      <li>${esc(t('Free with credit, even commercially'))}</li>
+      <li>${esc(t('No AI, no samples'))}</li>
+      <li>${esc(t('Runs on your device'))}</li>
+    </ul>
+    <section class="sidedoor-detail" id="sound">
+      <h2>${esc(fill(t('What {genre} sounds like'), { genre: title }))}</h2>
+      ${copy.sound.map(p => `<p>${esc(p)}</p>`).join('\n      ')}
+      <p><a href="${esc(localeHref(lang, 'generated-music'))}#the-genres-instruments">${esc(t('Every genre\'s instruments'))}</a></p>
+    </section>
+    <section class="sidedoor-detail" id="uses">
+      <h2>${esc(t('Good for'))}</h2>
+      <ul class="sidedoor-feats">${copy.uses.map(u => `<li>${esc(u)}</li>`).join('')}</ul>
+    </section>
+    ${musicCreditHtml(lang)}
+    <section class="sidedoor-detail music-faq" id="questions">
+      <h2>${esc(t('Questions'))}</h2>
+      ${[...own, ...shared].map(musicQuestionHtml).join('\n      ')}
+    </section>
+    <section class="sidedoor-detail" id="more-genres">
+      <h2>${esc(t('Try another genre'))}</h2>
+      <ul class="music-grid">${related.map(r => musicCardHtml(r, lang)).join('')}</ul>
+      <p><a href="${esc(localeHref(lang, MUSIC_HUB))}">${esc(t('Every genre, with a sample of each'))}</a> · <a href="${esc(localeHref(lang, MUSIC_GUIDE))}">${esc(t('How to use the music generator'))}</a></p>
+    </section>
+    ${jsonLd(ld)}
+  </article>`;
+}
+
+/** The hub's genre grid: a heading per picker group and a card per genre. */
+function musicGridHtml(lang: Lang): string {
+  const groups = GENRE_GROUPS.map(g => {
+    const moods = g.moods.filter(m => MUSIC_REGISTER.genres.some(c => c.id === m));
+    if (!moods.length) return '';
+    return `<h3 id="genres-${g.id}">${esc(musicGroupLabel(g.id))}</h3>\n<ul class="music-grid">${moods.map(m => musicCardHtml(m, lang)).join('')}</ul>`;
+  }).join('\n');
+  return `<div class="music-hub-grid">${groups}</div>`;
+}
+
+/** docs/background-music.md: the markdown, the genre grid at its mark, and the hub's structured data. */
+function renderMusicHubPage(md: string, lang: Lang): string {
+  // Split at the mark, as the formats page does, so the grid is never inside a paragraph.
+  // A translation without the mark renders as markdown alone.
+  const [before, after] = md.split(MUSIC_GRID_MARK);
+  const html = after === undefined ? mdToHtml(md) : `${mdToHtml(before ?? '')}\n${musicGridHtml(lang)}\n${mdToHtml(after)}`;
+  const url = `${SITE_URL}${localeHref(lang, MUSIC_HUB)}`;
+  const qs = hubQuestions(md);
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      musicAppLd(),
+      ...(qs.length ? [faqLd(qs)] : []),
+      {
+        '@type': 'ItemList',
+        name: t('Background music genres'),
+        url,
+        itemListElement: MUSIC_GENRES.filter(g => MUSIC_REGISTER.genres.some(c => c.id === g.mood)).map((g, i) => ({
+          '@type': 'ListItem', position: i + 1, name: genreTitle(g.mood), url: `${SITE_URL}${localeHref(lang, genrePageSlug(g.mood))}`,
+        })),
+      },
+    ],
+  };
+  return `${html}\n${jsonLd(ld)}`;
+}
+
 // ── HTML template ─────────────────────────────────────────────────────────────
 
 // The app's design tokens, inlined verbatim (comments/blank lines stripped) so the docs
@@ -3031,14 +3488,17 @@ const APP_TOKENS = readFileSync(resolve(repoRoot, 'shells/web/src/styles/tokens.
 // only; tokens.css and the app's themes are untouched, and the in-app reader keeps
 // following the active brand. Spearmint is the light primary and the band, Green
 // Apple the green for light on dark, Avocado washes the light surfaces, Pandanus draws
-// the light hairlines and Liquorice is the ink and the dark ground. Each block sets
+// the light hairlines and Liquorice is the ink and the dark ground. The accent for words
+// (--primary-text) reads 4.5:1 on each theme's surfaces and on an accent wash over them:
+// the primary in light and dark (Spearmint, Green Apple), and Pandanus on Brand's
+// Spearmint ground, where Green Apple on a green wash falls under. Each block sets
 // the same slots, so a later block never leaves an earlier one's value behind (:root
 // also matches a dark document at equal specificity). --muted and --border are left
 // out because the bridge below shadows both, and the High contrast blocks in
 // APP_TOKENS out-specify all three blocks, so High contrast keeps the app's values.
-const INFO_OPAL_TOKENS = `:root,[data-theme="light"]{--background:0 0% 100%;--foreground:201.2 48.6% 6.9%;--card:0 0% 100%;--card-foreground:201.2 48.6% 6.9%;--popover:0 0% 100%;--popover-foreground:201.2 48.6% 6.9%;--primary:176.5 89.5% 11.2%;--primary-foreground:0 0% 100%;--secondary:84.5 55% 92.2%;--secondary-foreground:201.2 48.6% 6.9%;--accent:121.1 46.9% 77.8%;--accent-foreground:201.2 48.6% 6.9%;--muted-foreground:207.7 10.6% 24.1%;--input:121.1 46.9% 77.8%;--ring:176.5 89.5% 11.2%;--warn:#72251c;--lolly-coin-glow:#edf6e0}
-[data-theme="dark"]{--background:201.2 48.6% 6.9%;--foreground:0 0% 100%;--card:203.3 33.3% 10.6%;--card-foreground:0 0% 100%;--popover:203.3 33.3% 10.6%;--popover-foreground:0 0% 100%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--secondary:202.1 25.3% 14.7%;--secondary-foreground:0 0% 100%;--accent:207.7 10.6% 24.1%;--accent-foreground:0 0% 100%;--muted-foreground:201.8 5.7% 62.2%;--input:207.7 10.6% 24.1%;--ring:133 48.9% 53.9%;--warn:#ee9138;--lolly-coin-glow:#121d24}
-[data-theme="brand"]{--background:176.5 89.5% 11.2%;--foreground:84.5 55% 92.2%;--card:176.5 70% 15%;--card-foreground:84.5 55% 92.2%;--popover:176.5 70% 15%;--popover-foreground:84.5 55% 92.2%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--secondary:176.5 60% 18%;--secondary-foreground:84.5 55% 92.2%;--accent:176.5 55% 21%;--accent-foreground:84.5 55% 92.2%;--muted-foreground:121.1 46.9% 77.8%;--input:176.5 35% 30%;--ring:133 48.9% 53.9%;--warn:#fac044;--lolly-coin-glow:#0b413e}`;
+const INFO_OPAL_TOKENS = `:root,[data-theme="light"]{--background:0 0% 100%;--foreground:201.2 48.6% 6.9%;--card:0 0% 100%;--card-foreground:201.2 48.6% 6.9%;--popover:0 0% 100%;--popover-foreground:201.2 48.6% 6.9%;--primary:176.5 89.5% 11.2%;--primary-foreground:0 0% 100%;--primary-text:176.5 89.5% 11.2%;--secondary:84.5 55% 92.2%;--secondary-foreground:201.2 48.6% 6.9%;--accent:121.1 46.9% 77.8%;--accent-foreground:201.2 48.6% 6.9%;--muted-foreground:207.7 10.6% 24.1%;--input:121.1 46.9% 77.8%;--ring:176.5 89.5% 11.2%;--warn:#72251c;--lolly-coin-glow:#edf6e0}
+[data-theme="dark"]{--background:201.2 48.6% 6.9%;--foreground:0 0% 100%;--card:203.3 33.3% 10.6%;--card-foreground:0 0% 100%;--popover:203.3 33.3% 10.6%;--popover-foreground:0 0% 100%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--primary-text:133 48.9% 53.9%;--secondary:202.1 25.3% 14.7%;--secondary-foreground:0 0% 100%;--accent:207.7 10.6% 24.1%;--accent-foreground:0 0% 100%;--muted-foreground:201.8 5.7% 62.2%;--input:207.7 10.6% 24.1%;--ring:133 48.9% 53.9%;--warn:#ee9138;--lolly-coin-glow:#121d24}
+[data-theme="brand"]{--background:176.5 89.5% 11.2%;--foreground:84.5 55% 92.2%;--card:176.5 70% 15%;--card-foreground:84.5 55% 92.2%;--popover:176.5 70% 15%;--popover-foreground:84.5 55% 92.2%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--primary-text:121.1 46.9% 77.8%;--secondary:176.5 60% 18%;--secondary-foreground:84.5 55% 92.2%;--accent:176.5 55% 21%;--accent-foreground:84.5 55% 92.2%;--muted-foreground:121.1 46.9% 77.8%;--input:176.5 35% 30%;--ring:133 48.9% 53.9%;--warn:#fac044;--lolly-coin-glow:#0b413e}`;
 
 // The landing bands, single-sourced as a real stylesheet: the static front door
 // below and the in-app docs reader (plans/123 decision D2) both render the same
@@ -3107,9 +3567,10 @@ ${INFO_OPAL_TOKENS}
      reading components (docs-components.css) look the same here as in the app. */
   --ui-color-surface-muted:hsl(var(--secondary));
   --ui-color-border-default:hsl(var(--input));
-  /* The app's type scale multiplies by the a11y text setting (parts/a11y.css), which a
-     static page has no control for. Declared at 1 so the app's type tokens resolve here
-     at their normal sizes instead of computing as invalid. */
+  /* The app's type scale multiplies by the a11y text setting (parts/a11y.css). A static
+     page has no switch of its own, so it reads the app's: the pre-paint script copies
+     Large text from the same mirror the app writes (lolly-a11y, THEME_INIT_SCRIPT) to
+     html[data-a11y-text], and the article and the chrome scale with it, as in the app. */
   --a11y-fs:1;
   --green:hsl(var(--primary));
   --dark:hsl(var(--foreground));
@@ -3235,6 +3696,15 @@ section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
    (buttons.css .btn--glass), holding the app's mark, the name and, on English
    pages, a quiet Beta chip. It pushes the rest of the row to the inline end. */
 .site-home{display:inline-flex;align-items:center;gap:var(--sp-4);flex:none;margin-inline-end:auto;box-sizing:border-box;min-height:var(--chrome-h);padding-block:0;padding-inline:var(--sp-3) var(--sp-7);border:1px solid transparent;border-radius:calc(var(--radius) * 1.5);font-size:var(--fs-md);font-weight:600;line-height:1;color:var(--ui-color-text-default);text-decoration:none;white-space:nowrap;box-shadow:inset 0 -.1em 1em 1px hsl(var(--primary) / .22),0 .1em .3em #0002}
+/* The six sections in the bar's middle, where the app keeps its view tabs (plan 354 D7).
+   One line: on a narrow bar the row scrolls, and lib/docs-strip.ts fades an edge with
+   tabs beyond it. From 48em down the menu's sheet carries the sections instead. */
+.site-tabs{flex:1 1 auto;min-width:0;display:flex;justify-content:center}
+.site-tabs .docs-pathways{--strip-fade-start:0px;--strip-fade-end:0px;flex-wrap:nowrap;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding-block:2px;-webkit-mask-image:linear-gradient(to right,transparent,black var(--strip-fade-start),black calc(100% - var(--strip-fade-end)),transparent);mask-image:linear-gradient(to right,transparent,black var(--strip-fade-start),black calc(100% - var(--strip-fade-end)),transparent)}
+.site-tabs .docs-pathways::-webkit-scrollbar{display:none}
+.site-tabs .docs-pathways[data-strip-edges~="start"]{--strip-fade-start:2rem}
+.site-tabs .docs-pathways[data-strip-edges~="end"]{--strip-fade-end:2rem}
+[dir="rtl"] .site-tabs .docs-pathways{-webkit-mask-image:linear-gradient(to left,transparent,black var(--strip-fade-start),black calc(100% - var(--strip-fade-end)),transparent);mask-image:linear-gradient(to left,transparent,black var(--strip-fade-start),black calc(100% - var(--strip-fade-end)),transparent)}
 .site-home:hover{background:hsl(var(--primary) / .16);box-shadow:inset 0 0 0 1px hsl(var(--primary) / .34);text-decoration:none}
 .site-home:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
 .site-home img{display:block;width:calc(26px * var(--a11y-fs));height:calc(26px * var(--a11y-fs));border-radius:var(--radius-round)}
@@ -3259,6 +3729,17 @@ section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
 .site-launch:hover{text-decoration:none}
 .site-launch svg{width:calc(15px * var(--a11y-fs));height:calc(15px * var(--a11y-fs))}
 [dir="rtl"] .site-launch svg{transform:scaleX(-1)}
+/* The way back (ORIGIN_SCRIPT), beside Launch App: the back arrow and the name of the
+   app view this tab came from, cut short with an ellipsis when it is long. Hidden
+   until the script finds one. */
+/* The same pill as the Lolly home button opposite (.site-home): glass, the bar's
+   radius, the inset glow and the drop, so the bar's two pills read as one pair. */
+.site-return{display:inline-flex;align-items:center;gap:var(--sp-3);flex:0 1 auto;min-width:0;box-sizing:border-box;min-height:var(--chrome-h);padding-inline:var(--sp-6);border:1px solid transparent;border-radius:calc(var(--radius) * 1.5);font-size:var(--fs-md);font-weight:600;line-height:1;color:var(--ui-color-text-default);text-decoration:none;white-space:nowrap;box-shadow:inset 0 -.1em 1em 1px hsl(var(--primary) / .22),0 .1em .3em #0002}
+.site-return[hidden]{display:none}
+.site-return:hover{text-decoration:none}
+.site-return svg{flex:none;width:calc(15px * var(--a11y-fs));height:calc(15px * var(--a11y-fs))}
+[dir="rtl"] .site-return svg{transform:scaleX(-1)}
+.site-return-label{display:block;max-width:14em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* Language menu: the app's language popover (topbar.css .lang-menu, the same
    role tokens), a raised card with the sort tabs and one column of languages.
@@ -3345,12 +3826,22 @@ html[data-a11y-motion="reduce"] .site-menu[open] .site-sheet{animation:none}
   .site-bar.is-searching .docs-search{display:flex;position:absolute;inset-inline:var(--site-bar-inset);inset-block:calc(var(--sp-4) + var(--safe-top)) calc(var(--sp-4) + 1px);z-index:2}
   .site-bar.is-searching .docs-search-input{inline-size:100%}
 }
-@media(max-width:48em){.site-menu{display:block}}
+/* The same fold when the sections need the field's room (DOCS_SEARCH_SCRIPT sets
+   .site-bar--tight from the sections' own width). */
+.site-bar--tight .docs-search{display:none}
+.site-bar--tight .site-fab--search{display:inline-flex}
+.site-bar--tight.is-searching .docs-search{display:flex;position:absolute;inset-inline:var(--site-bar-inset);inset-block:calc(var(--sp-4) + var(--safe-top)) calc(var(--sp-4) + 1px);z-index:2}
+.site-bar--tight.is-searching .docs-search-input{inline-size:100%}
+@media(max-width:48em){.site-menu{display:block}.site-tabs{display:none}}
 @media(min-width:40.0625em){.site-sheet-tools,.site-sheet .site-launch{display:none}}
 @media(max-width:40em){
   :root{--site-bar-inset:var(--sp-6)}
   .site-bar{gap:var(--sp-4)}
   .site-fab--theme,.site-fab--lang,.site-fab--github,.site-bar>.site-launch,.site-beta{display:none}
+  /* A reader who came from the app keeps the way back in the bar on a phone: one
+     press, not the menu. Launch App waits in the menu. */
+  .site-return{padding-inline:var(--sp-5)}
+  .site-return-label{max-width:8em}
 }
 @media(max-width:22.5em){.site-home img{display:none}.site-home{padding-inline:var(--sp-7)}}
 
@@ -3363,11 +3854,12 @@ ${LANDING_CSS}
 .hero-wrap{--green:hsl(var(--band-accent));--hero-cta-ink:#09141a}
 
 /* Docs layout */
-.docs-wrap{display:grid;grid-template-columns:220px 1fr;max-width:1180px;margin:0 auto;min-height:calc(100vh - 3.5rem - 60px)}
+.docs-wrap{display:grid;grid-template-columns:13.75rem 1fr;max-width:73.75rem;margin:0 auto;min-height:calc(100vh - 3.5rem - 60px)}
 .docs-sidebar{padding:2rem 1.25rem;border-right:1px solid var(--border);position:sticky;top:var(--site-bar-h);height:calc(100vh - var(--site-bar-h));overflow-y:auto}
 /* Format / convert side-door pages (plan 116 workstream A). */
-.sidedoor-eyebrow{display:flex;align-items:center;gap:.5rem;font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--green);margin-bottom:.75rem}
-.sidedoor-eyebrow svg{width:1.25rem;height:1.25rem}
+/* A generated page opens on the same trail as every other page (crumbsHtml). It has no
+   page bar on a phone to give the way back, so its trail shows at every width. */
+.sidedoor>.docs-crumbs{display:flex;margin:0 0 1rem}
 .sidedoor .sidedoor-full{color:var(--muted);font-size:1.0625rem;margin:-1rem 0 1.25rem}
 .sidedoor-dir{font-weight:600;margin:0 0 1rem}
 .sidedoor-lead{font-size:1.0625rem;line-height:1.7;margin-bottom:1.5rem}
@@ -3394,6 +3886,25 @@ ${LANDING_CSS}
 .sidedoor-foot-links{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem}
 .sidedoor-foot-link{font-weight:700;text-decoration:none;color:var(--green)}
 .sidedoor-foot-link:hover{text-decoration:underline}
+/* The music genre pages and the background music hub (renderMusicGenrePage, musicGridHtml). */
+.music-sample{margin:0 0 1.25rem;padding:1rem 1.15rem;background:hsl(var(--card));border:1px solid var(--border);border-radius:.75rem}
+.music-sample audio{display:block;width:100%}
+.music-sample figcaption{margin-top:.6rem;font-size:.875rem;line-height:1.5;color:var(--muted)}
+.music-credit{margin-top:2rem;padding:1.25rem 1.35rem;background:hsl(var(--card));border:1px solid var(--border);border-radius:.75rem}
+.music-credit h2{margin-top:0}
+.music-credit-line{margin:.75rem 0}
+.music-credit-line code{display:inline-block;font-size:1.0625rem;font-weight:700;padding:.4rem .8rem;border-radius:.5rem;user-select:all}
+.music-q h3{font-size:1rem;margin:1.25rem 0 .35rem}
+.music-q p{margin:0 0 .5rem}
+.music-grid{list-style:none;padding:0;margin:.75rem 0 1.75rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:.75rem}
+.music-card a{display:flex;align-items:flex-start;gap:.75rem;height:100%;box-sizing:border-box;padding:.85rem 1rem;background:hsl(var(--card));border:1px solid var(--border);border-radius:.75rem;color:inherit;text-decoration:none}
+.music-card a:hover,.music-card a:focus-visible{border-color:var(--green)}
+.music-card svg{flex:none;width:1.5rem;height:1.5rem;color:var(--green)}
+.music-card-text strong{display:block;font-size:.9375rem}
+.music-card-text span{display:block;margin-top:.15rem;font-size:.8125rem;line-height:1.45;color:var(--muted)}
+.docs-content .music-card a,.docs-content .music-card a:hover{text-decoration:none}
+.music-genre h1{font-size:clamp(1.75rem,3vw,2.35rem);line-height:1.15}
+.music-hub-grid h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:1.5rem 0 0}
 /* The rail has three tiers and they have to be told apart at a glance: the
    PATHWAY is a name (17px, bold, full ink, on a rule), a GROUP LABEL is an
    eyebrow over a run of links (11px, uppercase, tracked, muted, one weight step
@@ -3403,8 +3914,20 @@ ${LANDING_CSS}
    half of this: a first group whose label only repeats the pathway is dropped. */
 .sidebar-label{font-size:.6875rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin:2rem 0 .5rem}
 .sidebar-label:first-child{margin-top:0}
-.sidebar-home{display:block;font-size:.8125rem;color:var(--muted)!important;margin-bottom:1rem;padding:0!important}
-.sidebar-home:hover{color:var(--green)!important;background:none!important}
+/* The rail's folds (buildSidebar): each group is a native disclosure whose summary is
+   the group's eyebrow, open where the current page is. The summary keeps the eyebrow's
+   type and gains the chevron the sitemap uses; the gap above it is the group break. */
+.sidebar-group{margin-top:1rem}
+.sidebar-group>summary.sidebar-label{display:flex;align-items:center;justify-content:space-between;gap:.5rem;min-height:32px;margin:0 0 .25rem;padding:0 .5rem;border-radius:5px;cursor:pointer;list-style:none}
+.sidebar-group>summary::-webkit-details-marker{display:none}
+.sidebar-group>summary:hover{background:var(--pale);color:var(--text)}
+.sidebar-group>summary:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
+.sidebar-chev{display:inline-flex;flex:none;width:1em;height:1em;transform:rotate(90deg);transition:transform var(--ui-motion-feedback)}
+.sidebar-chev svg{width:100%;height:100%}
+.sidebar-group[open]>summary .sidebar-chev{transform:rotate(270deg)}
+@media(prefers-reduced-motion:reduce){.sidebar-chev{transition:none}}
+html[data-a11y-motion="reduce"] .sidebar-chev{transition:none}
+@media(pointer:coarse){.sidebar-group>summary.sidebar-label{min-height:var(--ui-size-target)}}
 /* Docs search - in the TOPBAR, not the rail. It sits with the other whole-site
    controls (language, theme, launch) because it acts on the whole site: the rail
    answers "what is there", the box answers "where is the thing I already know I
@@ -3472,6 +3995,10 @@ ${LANDING_CSS}
 .spec-heads a{font-size:.8125rem;color:var(--muted);padding:.2rem .5rem}
 .spec-heads a.is-sub{padding-left:1.1rem}
 .sidebar-pathway{font-size:1.0625rem;font-weight:700;color:var(--dark);margin-top:2rem; margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+/* The heading is the section's hub page, a link (plan 354); out-specify the rail's row rule. */
+.docs-sidebar a.sidebar-pathway{display:block;margin-top:0;padding:0 .5rem .75rem;border-radius:0;font-size:1.0625rem;color:var(--dark)}
+.docs-sidebar a.sidebar-pathway:hover{color:var(--green);background:none}
+.docs-sidebar a.sidebar-pathway.active{color:var(--green);background:none}
 .docs-sidebar a{display:flex;align-items:flex-start;gap:.5rem;padding:.3rem .5rem;font-size:.875rem;color:var(--text);border-radius:5px}
 .docs-sidebar a:hover{color:var(--green);background:var(--pale);text-decoration:none}
 .docs-sidebar a.active{color:var(--green);font-weight:600;background:var(--pale)}
@@ -3583,11 +4110,49 @@ ${LANDING_CSS}
   .md-timeline .icon-list>li.ic:not(:last-child)::before{left:.875rem;top:1.75rem}}
 .li-icon{flex-shrink:0;width:1.35rem;height:1.35rem;margin-top:.2rem;color:var(--green)}
 .li-icon svg{width:100%;height:100%;display:block}
+/* Etiquette icons (eti-<slug>, docs/etiquette-icons.ts) take their two colours from the
+   reading stylesheet (docs-components.css), which both readers share, so an icon on /info
+   and the same icon in the app follow the theme the same way. */
+/* The terminal's colours (docs-components.css) read the app's syntax roles. On Opal's light
+   theme the primary is Spearmint, which on the Avocado code panel sits a shade from the ink,
+   so flags, variables and placeholder tints take Spearmint lifted toward Green Apple (5.3:1
+   on the panel) and comments and punctuation a lighter grey (5.1:1). The command keeps
+   Spearmint, in bold. Dark and Brand keep their roles, and High contrast keeps the app's. */
+html:not([data-theme="dark"]):not([data-theme="brand"]):not([data-a11y-contrast="high"]){--ui-color-syntax-type:color-mix(in oklab,hsl(var(--primary)) 55%,hsl(var(--band-accent)));--ui-color-syntax-number:var(--ui-color-syntax-type);--ui-color-syntax-comment:color-mix(in oklab,var(--muted) 75%,var(--pale));--ui-color-syntax-operator:var(--ui-color-syntax-comment)}
+/* ::: cards: an icon list drawn as cards on a pale panel, the way the banked figures
+   lay out their parts. A card whose text opens with a bold link IS that link: the
+   link's ::after covers the card, so the whole card is one target with one name. */
+.md-cards{margin:1.75rem 0 2.25rem;padding:12px;border-radius:26px;background:var(--pale)}
+.docs-content .md-cards ul.icon-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,14.5rem),1fr));gap:10px;margin:0}
+.docs-content .md-cards ul.icon-list>li.ic{position:relative;flex-direction:column;gap:.7rem;margin:0;padding:1.05rem 1.1rem 1.15rem;border-radius:14px;background:hsl(var(--card));box-shadow:0 0 0 1px var(--border);color:var(--muted);font-size:.9375rem;line-height:1.5;transition:box-shadow var(--dur-2) ease,transform var(--dur-2) ease}
+.md-cards li.ic .li-icon{width:2.25rem;height:2.25rem;margin:0}
+.md-cards li.ic>span:not(.li-icon)>strong:first-child{display:block;margin-bottom:.25rem;color:var(--text);font-size:1.0625rem;font-weight:600;line-height:1.3}
+.md-cards li.ic>span:not(.li-icon)>strong:first-child>a{color:inherit;text-decoration:none}
+.md-cards li.ic>span:not(.li-icon)>strong:first-child>a::after{content:'';position:absolute;inset:0;border-radius:14px}
+.md-cards li.ic>span:not(.li-icon)>strong:first-child>a:focus-visible{outline:none}
+.md-cards li.ic>span:not(.li-icon)>strong:first-child:has(>a)::after{content:'\\2192';display:inline-block;margin-inline-start:.35em;color:var(--green)}
+[dir="rtl"] .md-cards li.ic>span:not(.li-icon)>strong:first-child:has(>a)::after{transform:scaleX(-1)}
+.docs-content .md-cards ul.icon-list>li.ic:has(>span>strong:first-child>a):hover{box-shadow:0 0 0 1.5px var(--green),0 8px 22px hsl(var(--foreground) / .08);transform:translateY(-1px)}
+.docs-content .md-cards ul.icon-list>li.ic:has(>span>strong:first-child>a:focus-visible){outline:2px solid hsl(var(--ring));outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.docs-content .md-cards ul.icon-list>li.ic{transition:none}.docs-content .md-cards ul.icon-list>li.ic:hover{transform:none}}
+html[data-a11y-motion="reduce"] .docs-content .md-cards ul.icon-list>li.ic{transition:none}
+html[data-a11y-motion="reduce"] .docs-content .md-cards ul.icon-list>li.ic:hover{transform:none}
+/* One column on a phone: the icon moves beside the words, so six cards stay a short list. */
+@media(max-width:600px){.md-cards{padding:8px;border-radius:22px}.docs-content .md-cards ul.icon-list{gap:8px}.docs-content .md-cards ul.icon-list>li.ic{flex-direction:row;gap:.85rem;padding:.85rem .95rem}.md-cards li.ic .li-icon{width:1.9rem;height:1.9rem;margin-top:.1rem}}
+/* ::: intro <icon>: a subject page's opening paragraph, led by the subject's icon. */
+.md-intro{display:flex;gap:1.1rem;align-items:flex-start;margin:0 0 2rem}
+.docs-content>.md-intro{max-width:68ch}
+.md-intro-icon{flex:none;display:grid;place-items:center;width:3.5rem;height:3.5rem;border-radius:18px;background:var(--pale)}
+.md-intro-icon svg{width:2.1rem;height:2.1rem;display:block}
+.md-intro-body{min-width:0}
+.docs-content .md-intro-body>p{margin:0;color:var(--text);font-size:1.125rem;line-height:1.6}
+.docs-content .md-intro-body>p+p{margin-top:.75rem}
+@media(max-width:600px){.md-intro{gap:.85rem}.md-intro-icon{width:2.75rem;height:2.75rem;border-radius:14px}.md-intro-icon svg{width:1.7rem;height:1.7rem}.docs-content .md-intro-body>p{font-size:1.0625rem}}
 .docs-content{padding:2.75rem 3.5rem 6rem;min-width:0}
 /* No band (a page with no h1 at all): the column clears the fixed bar by itself. */
 .docs-content.no-mast{padding-top:calc(var(--site-bar-h) + 2.25rem)}
-/* ── Article masthead (docsMasthead + DOCS_MASTHEAD_SCRIPT) ───────────────────
-   The page's own h1 over the chip field, FULL VIEWPORT WIDTH: the band is a sibling
+/* ── Article masthead (docsMasthead) ──────────────────────────────────────────
+   The section strip and the page's own h1, FULL VIEWPORT WIDTH: the band is a sibling
    of .docs-wrap, so the sidebar rail and the article both begin underneath it. That
    is the landing page's own grammar (its hero spans the window and the content
    starts below), and a band inset to one column would have read as an illustration
@@ -3598,22 +4163,20 @@ ${LANDING_CSS}
    this one up with the column the article is about to start in makes the band feel
    structural instead of pasted on. Logical padding, so an RTL locale mirrors it.
 
-   isolation:isolate keeps the canvas's blend mode inside the band - without it the
-   dark theme's color-dodge would reach the page behind. */
-.docs-masthead{position:relative;isolation:isolate;overflow:hidden;padding:calc(var(--site-bar-h) + 2.25rem) 0 2.25rem;min-height:clamp(14rem,30vh,20rem);display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,var(--pale) 0%,var(--page) 100%)}
-/* The dark plate stays a PLATE - a green a couple of steps up from the page - because
-   color-dodge divides by the backdrop: over near-black (#061816) the chips resolve to
-   near-black too and the field disappears. The gradient's last stop still reaches the
-   page colour, so the band ends where the article begins. */
+   It holds words only (no chip field since 2026-11-06), so it is as tall as its two
+   rows and the article starts right under the title. A banked masthead (MASTHEADS,
+   docs-art.ts) brings its own art and height. */
+.docs-masthead{position:relative;isolation:isolate;overflow:hidden;padding:calc(var(--site-bar-h) + 2.25rem) 0 2.25rem;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,var(--pale) 0%,var(--page) 100%)}
+/* In dark the band is a plate a couple of green steps up from the page; the
+   gradient's last stop reaches the page colour, so the band ends where the article
+   begins. */
 [data-theme="dark"] .docs-masthead,[data-theme="dark"] .docs-strip-band:not(.docs-strip-band--flow){background:linear-gradient(180deg,#0a4744 0%,#052927 58%,var(--page) 100%)}
 /* Same box as .docs-wrap, then indented past the rail: the h1 starts exactly where
    the article's text will. Below 768px the rail is gone and so is the indent. It
    holds two rows (plan 277 step 3c): the pathways strip, then the title row. */
-.docs-mast-inner{position:relative;z-index:2;max-width:1180px;width:100%;margin:0 auto;padding-inline:calc(220px + 3.5rem) 3.5rem;display:flex;flex-direction:column;gap:1.4rem}
-.docs-mast-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.55}
-/* The chips are decoration under the title; the bar and the pathways strip above it
-   carry words, so the field fades in only below them. The banked art takes the same
-   line. --mast-clear sits on the band: MAST_CLEAR_SCRIPT sets it to the strip's own
+.docs-mast-inner{position:relative;z-index:2;max-width:73.75rem;width:100%;margin:0 auto;padding-inline:calc(13.75rem + 3.5rem) 3.5rem;display:flex;flex-direction:column;gap:1.4rem}
+/* Banked art fades in only below the bar and the pathways strip, which carry words.
+   --mast-clear sits on the band: MAST_CLEAR_SCRIPT sets it to the strip's own
    foot, which moves with the band's height and the title's length; the values here
    are the estimate a reader without JavaScript gets. */
 .docs-masthead{--mast-clear:calc(var(--site-bar-h) + 5rem)}
@@ -3623,7 +4186,6 @@ ${LANDING_CSS}
    a normal blend, because dodging on a near-white band blows the chips out to
    invisible white. Blend and opacity live here rather than in the JS: they are how
    the field MEETS the page, and the page's own theme rules already know that. */
-[data-theme="dark"] .docs-mast-canvas{mix-blend-mode:color-dodge;opacity:.6}
 /* Two scrims, both above the canvas and below the h1 (::before/::after are z-index 1,
    the heading is 2). The first is legibility insurance - the heading is currentColor,
    so decoration must never be allowed to eat its contrast; the second melts the band
@@ -3642,11 +4204,18 @@ ${LANDING_CSS}
    is (0,1,1) and gives every page heading a bottom rule and 2rem of padding. Inside a
    band that rule is a second horizontal line under a heading that already sits on
    one, so it has to be out-specified rather than tied with. */
-.docs-masthead h1{margin:0;padding:0;border-bottom:0;color:var(--dark);font-size:clamp(2.25rem,3.4vw,3rem);font-weight:300;line-height:1.15}
+.docs-masthead h1{margin:0;padding:0;border-bottom:0;color:var(--dark);font-size:calc(clamp(2.25rem,3.4vw,3rem) * var(--a11y-fs));font-weight:300;line-height:1.15}
 /* The title row: the page's h1 (the in-app reader's title size and weight) with
    a page's print edition beside it as an app button, on the title's last line
    rather than over the article's first. On a phone the button wraps under the title. */
 .mast-title{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem 2rem}
+/* The trail over the title (pageWayfinding): a row of the band's own. It keeps a
+   clear gap from the title, because it is a way back up and not a label for the heading. */
+.docs-mast-inner .docs-crumbs{margin-bottom:-.5rem}
+/* A page with no trail keeps the trail's row, so the title sits at one height on every
+   page and a decorated band keeps its art clear of the title. The trail is hidden below
+   1100px, so the row is kept only at that width and wider. */
+@media(min-width:1100px){.docs-mast-inner>.mast-title:first-child{margin-top:calc(var(--fs-md) * 1.4 + .9rem)}}
 .mast-title h1{flex:1 1 18rem;min-width:0}
 .mast-title .docs-edition-bar{margin:0 0 .35rem}
 /* The pathways strip at the top of the band (docs-chrome.css, which also makes it
@@ -3716,6 +4285,13 @@ ${LANDING_CSS}
    keeps it from opening up the last line's leading; the glyph does not move. */
 .docs-figure figcaption>p:last-of-type{display:inline}
 .docs-figure figcaption .shot-cred{position:relative;inset:auto;display:inline-flex;vertical-align:-.4em;margin-inline-start:.45em;margin-block:-.2rem}
+/* A ::: pillars picture keeps its mark in the top right corner, where every drawing
+   leaves room, and the card opens downward over the picture it describes. The drawings
+   are not mirrored for a right-to-left page, so the corner is physical, not logical,
+   and the card grows leftward over the picture in either direction. */
+.md-pillar-art .shot-cred{inset:.55rem .7rem auto auto}
+.md-pillar-art .shot-cred .shot-cred-line{inset-block-end:auto;inset-block-start:calc(100% + .4rem);left:auto;right:0;transform:translateY(-.25rem)}
+.md-pillar-art .shot-cred .shot-cred-line::after{inset-block-start:auto;inset-block-end:100%}
 .docs-content img{height:auto;    max-width: min(100%, 40em);    height: auto;   margin: 0 auto; display: block;}
 /* App screenshots (docs/shots.json captures) read at full column width, framed like a window. */
 .docs-content img[src*="/info/shots/"]{max-width:100%;min-width:50%;border-radius:1.2em;background-color:color-mix(in oklab, var(--ui-color-surface-muted) 60%, var(--ui-color-surface-canvas));
@@ -4092,39 +4668,89 @@ html[data-a11y-motion="reduce"] .showcase-art [data-sc-i]{opacity:1}
    bytes are exactly what Lolly exported - never re-encode it in a build step.
    Full column width: it is the page's one image and the argument's evidence. */
 .docs-content img[src*="the-flood"]{width:100%;max-width:100%;border-radius:1.2em;box-shadow:0 3px 6px #0002, 0 6px 2em #0001}
-.docs-content h2{font-size:1.75rem;font-weight:350;letter-spacing:normal;text-transform:none;border-top:1px solid var(--border);padding-top:2rem;margin-top:2.5rem;margin-bottom:1rem;color:var(--dark)}
+.docs-content{font-size:calc(1rem * var(--a11y-fs))}
+html[data-a11y-text="large"]{--a11y-fs:1.2}
+/* ── Reading at every size ──────────────────────────────────────────────────
+   A wide screen reads the same page larger rather than as a small island in the
+   middle: from 1600px the root size steps up with the window, so the type, the
+   rail, the contents and the grid's own widths (all in rem) grow together, up to
+   1.45 times on the widest. Each step also asks for half its width in height, so
+   a short ultrawide (3440 by 1440) stops where its height does and a line never
+   outgrows what fits on screen. Steps of 160px read as one smooth curve. The
+   breakpoints below are in em, which media queries take from the browser's own
+   size, so they do not move with the zoom. Large text multiplies on top. */
+:root{--docs-zoom:1}
+@media(min-width:1600px) and (min-height:800px){:root{--docs-zoom:1.04}}
+@media(min-width:1760px) and (min-height:880px){:root{--docs-zoom:1.09}}
+@media(min-width:1920px) and (min-height:960px){:root{--docs-zoom:1.13}}
+@media(min-width:2080px) and (min-height:1040px){:root{--docs-zoom:1.17}}
+@media(min-width:2240px) and (min-height:1120px){:root{--docs-zoom:1.21}}
+@media(min-width:2400px) and (min-height:1200px){:root{--docs-zoom:1.26}}
+@media(min-width:2560px) and (min-height:1280px){:root{--docs-zoom:1.3}}
+@media(min-width:2720px) and (min-height:1360px){:root{--docs-zoom:1.34}}
+@media(min-width:2880px) and (min-height:1440px){:root{--docs-zoom:1.39}}
+@media(min-width:3040px) and (min-height:1520px){:root{--docs-zoom:1.43}}
+@media(min-width:3200px) and (min-height:1600px){:root{--docs-zoom:1.45}}
+html{font-size:calc(100% * var(--docs-zoom))}
+/* The app's chrome sizes are pixels (tokens.css); on the site they are the same
+   sizes in rem, so the bar, the rail and the menus grow with the page. */
+:root{--fs-2xs:calc(.625rem * var(--a11y-fs));--fs-xs:calc(.6875rem * var(--a11y-fs));--fs-sm:calc(.75rem * var(--a11y-fs));--fs-md:calc(.8125rem * var(--a11y-fs));--fs-lg:calc(.875rem * var(--a11y-fs));--fs-xl:calc(1rem * var(--a11y-fs))}
+/* One centre line. Running text keeps its measure (68ch, docs-components.css), and
+   the rest of the reading flow (headings and their icons, notes, disclosures, steps,
+   the pager) takes the same measure, centred in the column, so every line of the
+   page starts and ends on the same two edges instead of the text hugging the left
+   of a wider column. The wide pieces (tables, code, figures, screenshots, the
+   column, card, picture and logo layouts) take the whole column, centred on the
+   same line. Doubled class for weight over the components' own margin shorthands. */
+:root{--measure:calc(40.8rem * var(--a11y-fs))}
+main.docs-content.docs-content>*{margin-inline:max(0px,calc((100% - var(--measure)) / 2))}
+main.docs-content.docs-content>:is(.table-wrap,.doc-code,pre,figure,.md-cols,.md-pillars,.md-cards,.md-pictures,.md-logos,.md-img,.fl-figure,.fmt-reference,section,article,.doc-details:has(>.doc-details-body>:is(.doc-code,.table-wrap))),
+main.docs-content.docs-content>p:has(>img,>a>img,>picture){margin-inline:0;max-width:none}
+/* The band over the article (the eyebrow, the title, the pathways strip) is as wide as
+   the article's own box at every size, so the same margins put its words on the
+   same left edge as the text under it. */
+.docs-masthead .docs-mast-inner>*,.docs-strip-band .docs-mast-inner>*{margin-inline:max(0px,calc((100% - var(--measure)) / 2))}
+.docs-content h2{font-size:calc(1.75rem * var(--a11y-fs));font-weight:350;letter-spacing:normal;text-transform:none;border-top:1px solid var(--border);padding-top:2rem;margin-top:2.5rem;margin-bottom:1rem;color:var(--dark)}
 .docs-content h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
-.docs-content h3{font-size:1.15rem;margin-top:1.75rem;margin-bottom:.5rem;color:var(--dark)}
-.docs-content h4{font-size:1rem;margin-top:1.25rem;margin-bottom:.35rem;color:var(--muted)}
-/* The top bar is fixed, so a heading reached by an #anchor (the jump nav below, a
+.docs-content h3{font-size:calc(1.15rem * var(--a11y-fs));margin-top:1.75rem;margin-bottom:.5rem;color:var(--dark)}
+.docs-content h4{font-size:calc(1rem * var(--a11y-fs));margin-top:1.25rem;margin-bottom:.35rem;color:var(--muted)}
+/* The top bar is fixed, so a heading reached by an #anchor (the page's contents, a
    search result, a shared deep link) would otherwise sit UNDER it. Same idea as
    section[id] on the landing page, with room for the heading's rule. */
 .docs-content h2[id],.docs-content h3[id],.docs-content h4[id]{scroll-margin-top:calc(var(--site-bar-h) + 1.75rem)}
 .docs-content ul,.docs-content ol{margin-bottom:1rem}
-/* ── "On this page" jump nav (long docs pages only - pageJumpNav) ─────────────
-   Bottom-right, deliberately quiet: a 2.25rem disc that reads as page furniture
-   until you want it. Logical inset so the Arabic build puts it in the corner an RTL
-   reader reaches for. Tokens only (--text/--muted/--border/--pale, all redefined by
-   .dark) so dark mode needs no second palette here. */
-.doc-jump{position:fixed;bottom:1rem;inset-inline-end:1rem;z-index:88}
-.doc-jump-btn{display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border-radius:999px;border:1px solid var(--border);background:var(--pale);color:var(--muted);cursor:pointer;box-shadow:0 2px 10px #0336331f;transition:color .12s,border-color .12s}
-.doc-jump-btn svg{width:1.1rem;height:1.1rem}
-.doc-jump-btn:hover,.doc-jump-btn[aria-expanded="true"]{color:var(--green);border-color:var(--green)}
-/* The first six declarations are RESETS, not choices. A bare nav element selector
-   used to be the site's top bar (fixed, full-width, flex) and landed on any <nav>
-   on the page; the bar is its own .site-bar now, and the resets stay so no element
-   rule can ever lay this panel out as a strip across the bottom of the window. */
-.doc-jump-nav{position:absolute;display:block;top:auto;width:auto;height:auto;overflow-x:hidden;transition:none;bottom:calc(100% + .5rem);inset-inline-end:0;min-width:14rem;max-width:min(20rem,calc(100vw - 2rem));max-height:min(60vh,26rem);overflow-y:auto;padding:.4rem;background:var(--pale);border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 34px #03363326}
-.doc-jump-nav[hidden]{display:none}
-.doc-jump-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:.15rem .5rem .35rem}
-.doc-jump-nav a{display:block;padding:.32rem .5rem;border-radius:6px;font-size:.875rem;line-height:1.35;color:var(--text);text-decoration:none}
-.doc-jump-nav a:hover{background:#50c36918;color:var(--green);text-decoration:none}
-[data-theme="brand"] .doc-jump-nav a:hover{color:#ace1ad}
-.doc-jump-top{margin-top:.25rem;border-top:1px solid var(--border);padding-top:.45rem;color:var(--muted)}
-@media(prefers-reduced-motion:reduce){.doc-jump-btn{transition:none}}
-html[data-a11y-motion="reduce"] .doc-jump-btn{transition:none}
-@media print{.doc-jump{display:none}}
-.docs-content h1{font-size:3rem;color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
+/* ── The page's contents: where they sit on /info (their look is docs-chrome.css's) ──
+   From 1100px the rail is a third column beside the article, sticky under the bar,
+   and the wrap and the masthead widen by its width so the article keeps its place
+   under the title. Below 1100px the page bar takes over: sticky under the site bar,
+   its sheet holding the sections, the headings and the pages. It sits before the
+   band, so the band no longer clears the site bar itself; on a phone the band's own
+   strip goes, because the bar's sheet carries the sections. */
+.docs-onpage{display:none}
+.doc-pagebar{top:var(--site-bar-h);margin-top:var(--site-bar-h);z-index:90;padding-inline:max(1rem,calc((100% - 46rem) / 2))}
+@media(max-width:1099px){
+  .doc-pagebar+.docs-masthead{padding-top:1.5rem}
+  .doc-pagebar+.docs-strip-band{padding-top:1.25rem}
+}
+@media(max-width:768px){.doc-pagebar+.docs-masthead{padding-top:1rem;min-height:0}}
+@media(max-width:640px){
+  .doc-pagebar+.docs-masthead .docs-pathways{display:none}
+  .doc-pagebar+.docs-strip-band:not(:has(.docs-edition-bar)){display:none}
+  .doc-pagebar+.docs-strip-band .docs-pathways{display:none}
+  .doc-pagebar+.docs-masthead{padding-bottom:1rem}
+  .doc-pagebar+.docs-masthead .docs-mast-inner{gap:0}
+  .doc-pagebar+.docs-masthead h1{font-size:calc(2.1rem * var(--a11y-fs))}
+  .doc-pagebar~.docs-wrap .docs-content{padding-top:1.25rem}
+}
+@media(min-width:1100px){
+  .doc-pagebar{display:none}
+  .docs-wrap--rail{grid-template-columns:13.75rem minmax(0,1fr) 14rem;max-width:calc(73.75rem + 14rem)}
+  .docs-wrap--rail .docs-content{padding-inline-end:2rem}
+  .docs-wrap--rail .docs-onpage{display:block;position:sticky;top:var(--site-bar-h);align-self:start;max-height:calc(100vh - var(--site-bar-h));max-height:calc(100dvh - var(--site-bar-h));overflow-y:auto;overscroll-behavior:contain;padding:2.75rem 1.25rem 2rem 0;box-sizing:border-box}
+  .page-has-rail .docs-masthead .docs-mast-inner,.page-has-rail .docs-strip-band .docs-mast-inner{max-width:calc(73.75rem + 14rem);padding-inline-end:calc(14rem + 2rem)}
+}
+@media print{.doc-pagebar,.docs-onpage{display:none!important}}
+.docs-content h1{font-size:calc(3rem * var(--a11y-fs));color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem; font-weight:300;}
 
 /* Table */
 .table-wrap{overflow-x:auto;margin-bottom:2rem;box-shadow: 0 0 0 1px hsl(var(--border)), 0 .2rem .4rem #00000018; border-radius: 1.5em;}
@@ -4169,7 +4795,7 @@ footer a:hover{color:var(--dark)}
 footer .founded-badge{margin-top:.5rem}
 .docs-license{margin:.5rem 0 0;font-size:.6875rem;font-weight:300;line-height:1.6}
 /* Shared site map layout and controls live in docs-chrome.css. */
-.footer-sitemap{max-width:1180px;margin:0 auto 1.75rem;padding-bottom:1.75rem;border-bottom:1px solid var(--border);text-align:start}
+.footer-sitemap{max-width:73.75rem;margin:0 auto 1.75rem;padding-bottom:1.75rem;border-bottom:1px solid var(--border);text-align:start}
 
 /* Mobile */
 @media(max-width:900px){
@@ -4321,7 +4947,7 @@ const GITHUB_LINK    = `<a class="site-fab site-fab--github" href="https://githu
 // pages never load the app's base.css. The read has its own try, so a damaged copy
 // cannot cost the reader the theme. tests/docs-landing-motion.test.ts runs this script
 // against the copy the app's own writer produces.
-const THEME_INIT_SCRIPT = `<script>(function(){var c=localStorage.getItem('theme'),s=window.matchMedia('(prefers-color-scheme:dark)').matches;var t=(c==='light'||c==='dark'||c==='brand')?c:(s?'dark':'light');var r=document.documentElement;r.dataset.theme=t;r.classList.toggle('dark',t==='dark'||t==='brand');try{var ax=JSON.parse(localStorage.getItem('lolly-a11y')||'null');if(ax&&ax.reduceMotion)r.dataset.a11yMotion='reduce';}catch(e){}})();</script>`;
+const THEME_INIT_SCRIPT = `<script>(function(){var c=localStorage.getItem('theme'),s=window.matchMedia('(prefers-color-scheme:dark)').matches;var t=(c==='light'||c==='dark'||c==='brand')?c:(s?'dark':'light');var r=document.documentElement;r.dataset.theme=t;r.classList.toggle('dark',t==='dark'||t==='brand');try{var ax=JSON.parse(localStorage.getItem('lolly-a11y')||'null');if(ax&&ax.reduceMotion)r.dataset.a11yMotion='reduce';if(ax&&ax.largeText)r.dataset.a11yText='large';}catch(e){}})();</script>`;
 
 // Pre-paint, beside the theme flag and for the same reason: it decides how the
 // first frame is painted. It only ARMS the screenshot motion - SHOT_MOTION_SCRIPT
@@ -4339,7 +4965,7 @@ const NOSCRIPT_NAV = `<noscript><style>.docs-search,.site-fab--search,.site-fab-
 // moves a shot under no-preference.
 const SHOT_MOTION_INIT = `<script>if(document.documentElement.dataset.a11yMotion!=='reduce')document.documentElement.classList.add('shots-motion');</script>`;
 
-// The masthead's decoration (the chip canvas or banked art) stays out of the pathways
+// A banked masthead's art stays out of the pathways
 // strip's row: it may only appear from the strip's foot down. That foot moves with the
 // band's height and the title's length, so it is measured here and kept current as the
 // band resizes; the stylesheet's --mast-clear is the estimate without JavaScript.
@@ -5089,42 +5715,28 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
   window.__lollyChipField(canvas,{burst:true});
 })();</script>`;
 
-/**
- * The article masthead's instance of the same field.
- *
- * The effect was built for one dark plate and hardcoded to it (deep green chips,
- * bright green labels, color-dodge). Docs pages are read in every theme, so here the
- * palette comes from the page's own tokens and the chips are RE-BAKED when the
- * theme changes - the toggle stamps [data-theme] (light/dark/brand) on <html>, and a
- * reader on "system" gets the same flip from the OS; palette() treats brand as a dark
- * ground. Blend + opacity are CSS's job (.docs-mast-canvas), so
- * the JS only ever decides two colours.
- */
-const DOCS_MASTHEAD_SCRIPT = `<script>(function(){
-  var canvas=document.querySelector('.docs-mast-canvas');
-  if(!canvas)return;
-  function tok(name,fallback){
-    var v=getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    return v||fallback;
-  }
-  function palette(){
-    var th=document.documentElement.dataset.theme;
-    var dark=th==='dark'||th==='brand';  // brand is a dark ground too
-    // Dark: the landing's own chip fill (Opal's deep plate green) over the dark band,
-    // under color-dodge - the same glow the front door has. Light: a Pandanus chip on a
-    // near-white band, normal blend, so the field reads as watermark rather than
-    // decoration. The light fill reads --border, not --input: the bridge makes --border
-    // a finished hsl() colour, while --input is a bare triple a canvas cannot parse.
-    return dark
-      ? {fill:'#0a4744', label:tok('--green','#50c369')}
-      : {fill:tok('--border','#ace1ad'), label:tok('--green','#033633')};
-  }
-  var field=window.__lollyChipField(canvas,{palette:palette,pause:true,reduceMotion:true,burst:true,burstGuard:true});
-  // The [data-theme] flip (docs theme toggle) and the OS preference both change the answer.
-  new MutationObserver(function(){ field.rebake(); })
-    .observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-  var mq=window.matchMedia('(prefers-color-scheme:dark)');
-  if(mq.addEventListener) mq.addEventListener('change',function(){ field.rebake(); });
+
+// The way back to the app. The app notes the view a tab leaves it from (sessionStorage
+// lolly:leftApp, shells/web/src/lib/back-nav.ts rememberViewOnLeave): same tab, same
+// origin, read here and never sent anywhere. The served pages carry Referrer-Policy:
+// no-referrer, so that note is the only way this static page can know where the reader
+// was. When it is there, the return pill beside Launch App shows "<- <that view>" and
+// points at its exact address; across /info pages the note stays, so the way back
+// survives any number of hops. It is a plain link: Back stays Back. The address must be
+// a path on this origin outside /info, and the name is set as text.
+const ORIGIN_SCRIPT = `<script>(function(){
+  var raw=null;try{raw=sessionStorage.getItem('lolly:leftApp');}catch(e){}
+  if(!raw)return;
+  var v=null;try{v=JSON.parse(raw);}catch(e){return;}
+  if(!v||typeof v.href!=='string'||typeof v.label!=='string'||!v.label)return;
+  if(!/^\\/(?!\\/)\\S*$/.test(v.href)||/^\\/info(\\/|$)/.test(v.href))return;
+  var name=v.label.slice(0,80);
+  document.querySelectorAll('a.site-return').forEach(function(a){
+    a.setAttribute('href',v.href);
+    var l=a.querySelector('.site-return-label');if(l)l.textContent=name;
+    a.setAttribute('aria-label',(a.getAttribute('data-back-label')||'Back to {view}').replace('{view}',name));
+    a.hidden=false;
+  });
 })();</script>`;
 
 // Links into the app's /verify view open as a POPOUT WINDOW, not a tab - the
@@ -5145,34 +5757,16 @@ var out=document.getElementById('docs-search-results');
 var base=wrap.getAttribute('data-search-base')||'/info';
 var records=null,pending=null,active=-1,timer;
 
-// Fold case and diacritics, so "recuperer" finds "récupérer" and the reverse.
-// NFD splits an accented letter into base + combining mark and the range strip
-// removes the mark; scripts that neither case-fold nor decompose pass through
-// unchanged, which is the correct no-op rather than a wrong transform.
-function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');}
-
+// Folding and ranking are LollyDocsRank (docsRankScript, the app's own docs-rank.ts):
+// case and diacritics fold, every term must match (adding a word narrows), and a page
+// matched in its title leads its sections.
 function load(){
   if(records)return Promise.resolve(records);
   if(!pending)pending=fetch(base+'/search-index.json')
     .then(function(r){return r.ok?r.json():[];})
-    .then(function(j){records=j.map(function(r){r._=norm(r.h+' '+r.t+' '+r.x);return r;});return records;})
+    .then(function(j){records=LollyDocsRank.prepareRecords(j);return records;})
     .catch(function(){records=[];return records;});
   return pending;
-}
-
-// Every term must appear somewhere in the record - an AND, so adding a word
-// narrows rather than widens. Where it matched decides the rank: a heading beats
-// a page title beats body prose.
-function score(r,terms){
-  var h=norm(r.h),t=norm(r.t),s=0;
-  for(var i=0;i<terms.length;i++){
-    var q=terms[i];
-    if(r._.indexOf(q)<0)return 0;
-    if(h.indexOf(q)===0)s+=8;else if(h.indexOf(q)>=0)s+=5;
-    else if(t.indexOf(q)>=0)s+=3;else s+=1;
-  }
-  if(!r.h)s+=1;
-  return s;
 }
 
 function close(){out.hidden=true;out.textContent='';active=-1;input.setAttribute('aria-expanded','false');input.removeAttribute('aria-activedescendant');}
@@ -5189,6 +5783,21 @@ function syncClear(){if(!clearBtn)return;var open=!!bar&&bar.classList.contains(
 function openField(){if(!bar)return;bar.classList.add('is-searching');fab.setAttribute('aria-expanded','true');input.focus();load();syncClear();}
 function foldField(focusFab){if(!bar||!bar.classList.contains('is-searching'))return;bar.classList.remove('is-searching');if(fab){fab.setAttribute('aria-expanded','false');if(focusFab)fab.focus();}syncClear();}
 if(fab)fab.addEventListener('click',openField);
+
+// The sections share the bar with the field (plan 354 D7). When they do not fit beside
+// it (a narrower window, or a language with long section names) the field folds into
+// its round button, as below 1000px, and opens again once both fit. The fold remembers
+// the room it freed, so the bar does not flip back and forth at the edge.
+var tabRow=bar&&bar.querySelector('.site-tabs'),tabNav=tabRow&&tabRow.querySelector('.docs-pathways');
+if(tabNav&&window.ResizeObserver){
+  var freed=0;
+  var roomy=function(){
+    var spare=tabRow.clientWidth-tabNav.scrollWidth;
+    if(!bar.classList.contains('site-bar--tight')){if(spare<0){freed=wrap.offsetWidth-(fab?fab.offsetWidth:0);bar.classList.add('site-bar--tight');}}
+    else if(spare>freed+16&&!bar.classList.contains('is-searching'))bar.classList.remove('site-bar--tight');
+  };
+  new ResizeObserver(roomy).observe(bar);roomy();
+}
 if(clearBtn)clearBtn.addEventListener('click',function(){if(input.value){input.value='';close();syncClear();input.focus();}else foldField(true);});
 input.addEventListener('input',syncClear);
 
@@ -5230,11 +5839,8 @@ function run(){
   if(!q){close();return;}
   load().then(function(rs){
     if(input.value.trim()!==q)return;   // a later keystroke already won
-    var terms=norm(q).split(/\\s+/).filter(Boolean);
-    var hits=[];
-    for(var i=0;i<rs.length;i++){var s=score(rs[i],terms);if(s>0)hits.push({r:rs[i],s:s});}
-    hits.sort(function(a,b){return b.s-a.s;});
-    render(hits.slice(0,12).map(function(x){return x.r;}));
+    var hits=LollyDocsRank.rankDocs(rs,LollyDocsRank.tokenize(q));
+    render(hits.slice(0,12).map(function(x){return x.rec;}));
   });
 }
 
@@ -5274,21 +5880,6 @@ menu.addEventListener('focusout',function(e){if(menu.open&&e.relatedTarget&&!men
 menu.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.site-sheet a[href]'))close(false);});
 })();</script>`;
 
-// The "On this page" jump nav (pageJumpNav, near wrapPage). Deliberately does NOT
-// touch scrolling: the links are ordinary anchors, so the browser's own jump - and
-// the site's own `scroll-behavior` (already reduced-motion-aware in CSS) - does the
-// move. Closing on link click is the only thing the click handler does; the default
-// navigation runs after it. Esc closes and RETURNS FOCUS to the button, so keyboard
-// reading resumes where it left off rather than at the top of the document.
-const DOC_JUMP_SCRIPT = `<script>(function(){
-  var btn=document.getElementById('docJumpBtn'),nav=document.getElementById('docJumpNav');
-  if(!btn||!nav)return;
-  function setOpen(open){nav.hidden=!open;btn.setAttribute('aria-expanded',open?'true':'false');}
-  btn.addEventListener('click',function(e){e.stopPropagation();setOpen(nav.hidden);});
-  nav.addEventListener('click',function(e){if(e.target.closest('a'))setOpen(false);});
-  document.addEventListener('click',function(e){if(!nav.hidden&&!nav.contains(e.target)&&!btn.contains(e.target))setOpen(false);});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!nav.hidden){setOpen(false);btn.focus();}});
-})();</script>`;
 
 // ── i18n: site chrome (nav/sidebar/footer labels) + per-locale page sources ──
 //
@@ -5611,7 +6202,7 @@ const LANG_PICKER_SCRIPT = `<script>
 </script>`;
 
 /**
- * The pathways strip: Welcome (the landing) and the five documentation sections, as
+ * The pathways strip: the documentation sections, as
  * text tabs (plan 277 step 3c, decision D15). The in-app reader adopts this very
  * element from the fetched page (lib/docs-nav.ts extractPathways), so both readers
  * show one strip rather than two copies built apart. The current section is
@@ -5623,17 +6214,20 @@ const LANG_PICKER_SCRIPT = `<script>
  * not a second navigation landmark of the same name, and not a `nav.docs-pathways`,
  * so the in-app reader always adopts the page's own strip.
  */
-function pathwaysStrip(lang: Lang, activeHref: string, activePathway: Pathway | undefined, isLanding: boolean, inSheet = false): string {
-  const tab = (href: string, label: string, current: '' | 'page' | 'true', extra = ''): string =>
-    `<a class="docs-pathway${extra}${current ? ' active' : ''}" href="${localeHref(lang, hrefToSlug(href))}"${current ? ` aria-current="${current}"` : ''}>${esc(label)}</a>`;
-  const home = tab('/info/index.html', t('Welcome'), isLanding ? 'page' : '', ' docs-pathway-home');
+function pathwaysStrip(lang: Lang, activeHref: string, activePathway: Pathway | undefined, isLanding: boolean, inSheet: boolean | 'links' = false): string {
+  const tab = (href: string, label: string, current: '' | 'page' | 'true'): string =>
+    `<a class="docs-pathway${current ? ' active' : ''}" href="${localeHref(lang, hrefToSlug(href))}"${current ? ` aria-current="${current}"` : ''}>${esc(label)}</a>`;
+  // The sections only. The docs front door is not a section: the bar's Lolly pill goes
+  // there on /info, and the app's bottom bar calls it Docs (Andy, 2026-11-06, plan 354
+  // D2: "Docs" everywhere, and "Welcome" leaves the section tabs).
   const links = NAV.flat().map((n) => {
     const current = isLanding ? '' : n.href === activeHref ? 'page' : NAV_PATHWAY[n.href] === activePathway ? 'true' : '';
     return tab(n.href, t(n.label), current);
   }).join('');
+  if (inSheet === 'links') return links;
   return inSheet
-    ? `<div class="site-sheet-sections" role="group" aria-label="${esc(t('Documentation sections'))}">${home}${links}</div>`
-    : `<nav class="docs-pathways" aria-label="${esc(t('Documentation sections'))}">${home}${links}</nav>`;
+    ? `<div class="site-sheet-sections" role="group" aria-label="${esc(t('Documentation sections'))}">${links}</div>`
+    : `<nav class="docs-pathways" aria-label="${esc(t('Documentation sections'))}">${links}</nav>`;
 }
 
 /** The strip in a slim band of its own, for a page with no masthead: at the top of the
@@ -5666,18 +6260,25 @@ interface SheetParts {
 
 /**
  * The site bar: the app's top row (decision D14). The home pill on the inline start;
- * then search, Language, Theme, GitHub and Launch App; and, below 48em, the menu
- * button whose sheet is the app's profile menu. The five section links left the bar
- * for the pathways strip (pathwaysStrip). The landing's bar starts transparent over
- * its hero (NAV_SOLID_JS adds the ground once the hero has scrolled away).
+ * the six sections in the middle, where the app keeps its view tabs (plan 354 D7: the
+ * pathways strip moved here from the masthead); then search, Language, Theme, GitHub
+ * and Launch App; and, below 48em, the menu button whose sheet is the app's profile
+ * menu and carries the sections instead. The landing keeps its strip in the page under
+ * the hero, so its bar has none. The landing's bar starts transparent over its hero
+ * (NAV_SOLID_JS adds the ground once the hero has scrolled away).
  *
  * The sheet puts navigation first (the sections, this section's pages, this page's
  * headings), then the tools (theme, Language, GitHub), then Launch App. The tools and
  * Launch App show only below 40em, where they have left the bar.
  */
-function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, sheet: SheetParts) {
+function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, sheet: SheetParts, strip: string) {
   const launchHref = esc(localizeHref(lang, '/'));
   const launch = `<a href="${launchHref}" class="btn btn--primary site-launch">${esc(t('Launch App'))}${docIcon('chrome-arrow')}</a>`;
+  // The way back, beside Launch App rather than in its place (plan 354 D7): hidden until
+  // the origin script (ORIGIN_SCRIPT) finds the app view this tab came from, then it
+  // names that view and points at its exact address, so it reads "<- QR Code".
+  const back = `<a href="${launchHref}" class="btn--glass site-return" data-back-label="${esc(t('Back to {view}'))}" hidden>${docIcon('chrome-back')}<span class="site-return-label"></span></a>`;
+  const settingsRow = `<a class="profile-menu-item" href="${esc(`${localizeHref(lang, '/')}#/settings`)}"><span>${esc(t('Settings'))}</span>${docIcon('chrome-settings')}</a>`;
   // Beta: English only, and deliberately not run through t() - it must not enter the
   // translation corpora, because it is meant to come straight back out again once the
   // docs are no longer a draft.
@@ -5698,10 +6299,11 @@ function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, shee
   const disclosures = pages || onPage ? `<div class="docs-compact-nav">${pages}${onPage}</div>` : '';
   const menu = `<details class="site-menu"><summary class="site-fab" aria-label="${esc(t('Menu'))}" title="${esc(t('Menu'))}">`
     + `<span class="site-menu-open">${docIcon('chrome-menu')}</span><span class="site-menu-close">${docIcon('chrome-close')}</span></summary>`
-    + `<div class="site-sheet">${sheet.sections}${disclosures}<div class="site-sheet-tools"><hr class="site-sheet-rule">${themeSeg}${langRow}${githubRow}</div>${launch}</div></details>`;
+    + `<div class="site-sheet">${sheet.sections}${disclosures}<div class="site-sheet-tools"><hr class="site-sheet-rule">${themeSeg}${langRow}${settingsRow}${githubRow}</div>${launch}</div></details>`;
   // Search sits first in the cluster of whole-site controls. Docs pages only - there is
   // no index behind the landing page, and a box that returns nothing is worse than no box.
-  return `<header class="site-bar${isLanding ? ' site-bar--over-hero' : ''}">${home}${isLanding ? '' : searchBox(lang)}${langPickerHtml(lang, slug)}${THEME_TOGGLE}${GITHUB_LINK}${launch}${menu}</header>`;
+  const tabs = isLanding ? '' : `<div class="site-tabs">${strip}</div>`;
+  return `<header class="site-bar${isLanding ? ' site-bar--over-hero' : ''}">${home}${tabs}${isLanding ? '' : searchBox(lang)}${langPickerHtml(lang, slug)}${THEME_TOGGLE}${GITHUB_LINK}${back}${launch}${menu}</header>`;
 }
 
 /**
@@ -5731,10 +6333,11 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'quickstart', label: 'Product, organisation and vocabulary', slugs: ['index', 'content-sovereignty', 'suse-brandfolder', 'faq', 'organisation', 'glossary', 'work-status', 'about'] },
   { hub: 'quickstart', label: 'First steps', slugs: ['what-is-lolly', 'how-lolly-works', 'make-something', 'install', 'supported-environments'] },
   { hub: 'quickstart', label: 'The Lolly Demo brand', slugs: ['lolly-demo', 'lolly-demo-in-use'] },
-  { hub: 'creators', label: 'Design and templates', slugs: ['using', 'design', 'create-a-tool', 'training-creators', 'training-delivery', 'templates', 'batch', 'brand-studio', 'brand-architectures', 'brand-page', 'colourways', 'partners', '3d-studio', 'design-import', 'design-layout', 'darkroom', 'rebrand', 'text-composition', 'utilities', 'extension'] },
+  { hub: 'creators', label: 'Design and templates', slugs: ['using', 'design', 'create-a-tool', 'training-creators', 'training-delivery', 'templates', 'batch', 'brand-studio', 'brand-architectures', 'brand-page', 'colourways', 'partners', '3d-studio', 'chart', 'design-import', 'design-layout', 'darkroom', 'rebrand', 'text-composition', 'utilities', 'extension'] },
   { hub: 'creators', label: 'Find and keep your work', slugs: ['find-your-work', 'sync', 'search', 'dashboard', 'profile', 'ask', 'favourites'] },
-  { hub: 'creators', label: 'Collaborate and export', slugs: ['formats', 'collaborate', 'project-asset-transfers', 'exporting'] },
+  { hub: 'creators', label: 'Collaborate and export', slugs: ['formats', 'fallback-fonts', 'collaborate', 'project-asset-transfers', 'exporting'] },
   { hub: 'creators', label: 'Motion and presenting', slugs: ['hdr-editing', 'sequence-editor', 'presenting', 'interactive-pages', 'agenda', 'animating', 'rondocode'] },
+  { hub: 'creators', label: 'Music', slugs: ['background-music', 'music-generator', 'generated-music'] },
   { hub: 'creators', label: 'Team playbooks and comparisons', slugs: ['positioning', 'compare', 'compare-canva', 'compare-adobe', 'compare-figma', 'compare-render-apis', 'compare-converters', 'compare-penpot', 'compare-brand-portals', 'dam-production', 'sales', 'press', 'marketing', 'legal'] },
   { hub: 'builders', label: 'Architecture and contracts', slugs: ['design-tool-contract', 'text-composition-engine', 'colour-engine', 'overview', 'document-model', 'constraints', 'determinism', 'reproducibility', 'host-api', 'data-transfer'] },
   { hub: 'builders', label: 'Agents, APIs and integrations', slugs: ['ai-agents', 'learning-integration', 'tool-skills', 'mcp', 'open-document-agents', 'work-document-agents', 'work-automation-api', 'work-api', 'work-resumable-uploads'] },
@@ -5744,12 +6347,13 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'managers', label: 'Shared assets and provider connections', slugs: ['use-with-dam', 'dam-partners', 'dam-transition', 'work-design-system-administration', 'work-catalog', 'work-file-preview', 'work-offboarding', 'work-provider-guides', 'work-provider-webdav', 'work-provider-s3', 'work-provider-git', 'work-provider-brandfolder', 'work-provider-optimizely-cmp', 'work-provider-imagerelay', 'work-provider-canto', 'work-provider-acquia-dam', 'work-provider-intelligencebank', 'work-provider-cloudinary', 'work-provider-orange-logic', 'work-provider-penpot', 'work-provider-dropbox', 'work-provider-gdrive', 'work-provider-o365', 'work-provider-tenant-check'] },
   { hub: 'managers', label: 'Administration, policy and approvals', slugs: ['configuration', 'adoption-governance', 'work-governance', 'work-approvals', 'work-ai-policy'] },
   { hub: 'managers', label: 'People and access', slugs: ['work-identity', 'work-account-lifecycle', 'work-invitations', 'work-permissions'] },
+  { hub: 'managers', label: 'Partners', slugs: ['work-run-a-partner-programme', 'work-partner-co-branding', 'work-partner-templates', 'work-partner-approvals', 'work-partner-shared-assets', 'work-partner-agents', 'work-partner-people', 'work-partner-programmes'] },
   { hub: 'managers', label: 'Jobs, sharing and delivery', slugs: ['work-sharing', 'work-team-projects', 'work-move-from-render-api', 'work-renders', 'work-delivery', 'work-project-portability'] },
-  { hub: 'operators', label: 'Updates, qualification and release history', slugs: ['catalog-resource-reading', 'deploy-delivery', 'work-release-1-1-3', 'work-release-1-1-2', 'work-past-releases', 'work-instance-pack-production', 'work-shell-deployment-workflow'] },
+  { hub: 'operators', label: 'Hosting and installation', slugs: ['build-kubernetes', 'work-platform-deployment', 'deployment', 'sovereign-production', 'work-self-host', 'work-overview', 'work-install', 'work-ready-made-package', 'work-official-installations', 'work-deployment', 'work-cloud-deployment', 'work-edge-cdn', 'work-aws-compatible', 'work-wasm-deployment', 'work-kubewarden', 'work-admission-policy'] },
   { hub: 'operators', label: 'Instance configuration, SSO and signing', slugs: ['connector-origins', 'work-enterprise-identity', 'work-identity-providers', 'work-customer-setup', 'work-configuration', 'work-c2pa'] },
-  { hub: 'operators', label: 'Hosting and installation', slugs: ['deployment', 'build-kubernetes', 'sovereign-production', 'work-self-host', 'work-overview', 'work-install', 'work-ready-made-package', 'work-platform-deployment', 'work-official-installations', 'work-deployment', 'work-cloud-deployment', 'work-edge-cdn', 'work-aws-compatible', 'work-wasm-deployment', 'work-admission-policy'] },
   { hub: 'operators', label: 'Operations, monitoring and recovery', slugs: ['work-operations', 'work-metrics', 'work-production-readiness', 'work-telemetry', 'work-audit'] },
-  { hub: 'trust', label: 'Principles, rights and AI', slugs: ['status-quo', 'tenets', 'input-not-impersonation', 'creative-rights', 'inclusive-design', 'ai-stance', 'ai-features', 'eu-ai-act', 'beatrice-warde', 'shoulders-of-giants'] },
+  { hub: 'operators', label: 'Updates, qualification and release history', slugs: ['catalog-resource-reading', 'deploy-delivery', 'work-release-1-2-0', 'work-release-1-1-3', 'work-release-1-1-2', 'work-past-releases', 'work-instance-pack-production', 'work-shell-deployment-workflow'] },
+  { hub: 'trust', label: 'Principles, rights and AI', slugs: ['status-quo', 'tenets', 'input-not-impersonation', 'creative-rights', 'inclusive-design', 'without-ai', 'ai-stance', 'ai-features', 'eu-ai-act', 'beatrice-warde', 'shoulders-of-giants'] },
   { hub: 'trust', label: 'Credentials and verification', slugs: ['content-credentials-identity', 'what-verify-checks', 'verify-ai-evidence', 'content-credentials-engineering', 'security', 'verify-yourself'] },
   { hub: 'trust', label: 'Privacy, data and trust boundaries', slugs: ['threat-model', 'reading-files', 'parser-inventory', 'server-surface', 'privacy', 'work-security-platform', 'work-data-lifecycle'] },
 ];
@@ -5886,6 +6490,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'colourways': 'palette',
   'partners': 'people',
   '3d-studio': 'layers',
+  'chart': 'chart',
   'find-your-work': 'folder',
   'sync': 'convert',
   'search': 'search',
@@ -5898,6 +6503,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'darkroom': 'photos',
   'rebrand': 'convert',
   'formats': 'convert',
+  'fallback-fonts': 'document',
   'text-composition': 'document',
   'text-composition-engine': 'code',
   'colour-engine': 'palette',
@@ -5908,6 +6514,9 @@ const SIDEBAR_ICON: Record<string, string> = {
   'agenda': 'checklist',
   'animating': 'layers',
   'rondocode': 'clock',
+  'background-music': 'headphones',
+  'music-generator': 'music',
+  'generated-music': 'neurobeat',
   'collaborate': 'people',
   'project-asset-transfers': 'folder',
   'utilities': 'wrench',
@@ -5969,11 +6578,11 @@ const SIDEBAR_ICON: Record<string, string> = {
   'build-mobile': 'box',
   'build-obs': 'box',
   'ios-build': 'box',
-  'catalog-resource-reading': 'shieldcheck',
-  'connector-origins': 'globe',
-  'deployment': 'upload',
+  'operate': 'server',
   'build-kubernetes': 'box',
-  'deploy-delivery': 'download',
+  'work-platform-deployment': 'document',
+  'deployment': 'upload',
+  'sovereign-production': 'server',
   'configuration': 'sliders',
   'content-credentials-identity': 'seal',
   'what-verify-checks': 'checklist',
@@ -5985,7 +6594,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'marketing': 'photos',
   'legal': 'lock',
   'adoption-governance': 'people',
-  'sovereign-production': 'server',
+  'work-self-host': 'server',
   'security': 'shieldcheck',
   'threat-model': 'lock',
   'reading-files': 'document',
@@ -5994,35 +6603,46 @@ const SIDEBAR_ICON: Record<string, string> = {
   'verify-yourself': 'check',
   'privacy': 'eyeoff',
   'inclusive-design': 'people',
+  'without-ai': 'check',
   'ai-stance': 'sparkle',
   'ai-features': 'sparkle',
   'eu-ai-act': 'document',
   'beatrice-warde': 'font',
   'shoulders-of-giants': 'people',
-  'operate': 'server',
-  'work-self-host': 'server',
-  'work-release-1-1-3': 'document',
-  'work-release-1-1-2': 'document',
-  'work-past-releases': 'document',
   'work-overview': 'server',
   'work-install': 'server',
   'work-ready-made-package': 'server',
-  'work-platform-deployment': 'document',
   'work-official-installations': 'document',
-  'work-enterprise-identity': 'usercheck',
-  'work-identity-providers': 'usercheck',
-  'work-customer-setup': 'document',
   'work-deployment': 'server',
   'work-cloud-deployment': 'document',
   'work-edge-cdn': 'document',
   'work-aws-compatible': 'document',
   'work-wasm-deployment': 'document',
+  'work-kubewarden': 'shieldcheck',
   'work-admission-policy': 'document',
-  'work-security-platform': 'document',
+  'connector-origins': 'globe',
+  'work-enterprise-identity': 'usercheck',
+  'work-identity-providers': 'usercheck',
+  'work-customer-setup': 'document',
   'work-configuration': 'document',
+  'work-c2pa': 'document',
+  'work-operations': 'server',
+  'work-metrics': 'server',
+  'work-production-readiness': 'document',
+  'work-telemetry': 'document',
+  'work-security-platform': 'document',
+  'work-audit': 'document',
   'work-identity': 'usercheck',
   'work-account-lifecycle': 'document',
   'work-invitations': 'usercheck',
+  'work-run-a-partner-programme': 'usercheck',
+  'work-partner-co-branding': 'palette',
+  'work-partner-templates': 'document',
+  'work-partner-approvals': 'checklist',
+  'work-partner-shared-assets': 'folder',
+  'work-partner-agents': 'sparkle',
+  'work-partner-people': 'people',
+  'work-partner-programmes': 'usercheck',
   'work-document-agents': 'document',
   'work-design-system-administration': 'document',
   'work-permissions': 'usercheck',
@@ -6036,7 +6656,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'work-move-from-render-api': 'document',
   'work-renders': 'document',
   'work-delivery': 'document',
-  'work-c2pa': 'document',
+  'catalog-resource-reading': 'shieldcheck',
   'work-ai-policy': 'document',
   'work-data-lifecycle': 'document',
   'work-provider-guides': 'globe',
@@ -6056,13 +6676,13 @@ const SIDEBAR_ICON: Record<string, string> = {
   'work-provider-gdrive': 'globe',
   'work-provider-o365': 'globe',
   'work-provider-tenant-check': 'globe',
-  'work-operations': 'server',
-  'work-metrics': 'server',
+  'deploy-delivery': 'download',
+  'work-release-1-2-0': 'document',
+  'work-release-1-1-3': 'document',
+  'work-release-1-1-2': 'document',
+  'work-past-releases': 'document',
   'work-instance-pack-production': 'document',
-  'work-production-readiness': 'document',
   'work-shell-deployment-workflow': 'document',
-  'work-telemetry': 'document',
-  'work-audit': 'document',
   'work-project-portability': 'document',
   'work-automation-api': 'document',
   'work-api': 'document',
@@ -6129,20 +6749,81 @@ function repeatsPathwayTitle(groupLabel: string, pathwayTitle: string): boolean 
   return bare(groupLabel) === bare(pathwayTitle);
 }
 
+/**
+ * The page's place in its section and the next step for reading (plan 354 D3): the trail over the
+ * title ("Create > Collaborate and export") and Previous and Next at the article's end,
+ * both generated from the manifest's rail order and never written into page text. The
+ * search index and the Markdown twins read the page before this chrome is added, so
+ * neither carries the trail or the pager. A page outside its section's own rail (a
+ * borrowed or loose page) gets neither.
+ *
+ * The trail is a breadcrumb, so it holds the steps ABOVE the page and never the page's
+ * own name. A section's own page gets no trail: its title is the section, and a line
+ * that says the title again over the title is decoration, not wayfinding. The section
+ * is a link to its page. A group is a heading in the rail with no page of its own, so it
+ * is text.
+ */
+/** The one breadcrumb trail: the steps above a page, each a link where the step has a page
+ *  of its own and plain text where it does not. Never the page's own name. */
+function crumbsHtml(steps: ReadonlyArray<{ label: string; href?: string }>, extraClass = ''): string {
+  if (!steps.length) return '';
+  const items = steps.map((s) => `<li>${s.href ? `<a href="${esc(s.href)}">${esc(s.label)}</a>` : esc(s.label)}</li>`).join('');
+  return `<ol class="docs-crumbs${extraClass ? ` ${extraClass}` : ''}">${items}</ol>`;
+}
+
+function pageWayfinding(lang: Lang, page: Page): { trail: string; pager: string } {
+  const pathway = page.pathway;
+  if (!pathway) return { trail: '', pager: '' };
+  const sb = SIDEBARS[pathway];
+  const own = sb.groups.filter((g) => g.label !== 'Also in other sections');
+  const hub = PATHWAY_HUB[pathway];
+  // Reading order: the hub, then every row of the section's own groups.
+  const order: Array<{ slug: string; label: string }> = [{ slug: hub, label: sb.title }];
+  for (const g of own) for (const it of g.items) if (it.slug !== hub) order.push(it);
+  const at = order.findIndex((it) => it.slug === page.slug);
+  if (at < 0) return { trail: '', pager: '' };
+  const group = own.find((g) => g.items.some((it) => it.slug === page.slug));
+  const says = (a: string, b: string): boolean => a.trim().toLowerCase() === b.trim().toLowerCase();
+  const repeatsPage = (label: string): boolean => says(label, page.title) || says(label, order[at]!.label);
+  const groupLabel = group && !repeatsPathwayTitle(group.label, sb.title) && !repeatsPage(group.label) ? group.label : '';
+  const trail = page.slug === hub || repeatsPage(sb.title)
+    ? ''
+    : crumbsHtml([{ label: t(sb.title), href: localeHref(lang, hub) }, ...(groupLabel ? [{ label: t(groupLabel) }] : [])]);
+  const link = (it: { slug: string; label: string } | undefined, dir: 'prev' | 'next'): string => it
+    ? `<a class="docs-pager-link docs-pager-${dir}" href="${localeHref(lang, it.slug)}" rel="${dir}"><span class="docs-pager-dir">${esc(t(dir === 'prev' ? 'Previous' : 'Next'))}</span><span class="docs-pager-title">${esc(t(it.label))}</span></a>`
+    : '<span class="docs-pager-link docs-pager-empty" aria-hidden="true"></span>';
+  const prev = order[at - 1];
+  const next = order[at + 1];
+  const pager = prev || next
+    ? `<nav class="docs-pager" aria-label="${esc(t('Previous and next pages'))}">${link(prev, 'prev')}${link(next, 'next')}</nav>`
+    : '';
+  return { trail, pager };
+}
+
 function buildSidebar(lang: Lang, page: Page, activeHref: string) {
   const pathway: Pathway = page.pathway ?? 'builders';
   const sb = SIDEBARS[pathway];
+  // The section's hub is the rail's heading, a link (plan 354), so it is not a row too.
+  const hub = PATHWAY_HUB[pathway];
+  const hubHref = `/info/${hub}.html`;
+  const holds = (g: SideGroup): boolean => g.items.some((it) => `/info/${it.slug}.html` === activeHref);
+  const anyOpen = sb.groups.some(holds);
   const groups = sb.groups.map((g, i) => {
-    const links = g.items.map(it => sidebarLinkHtml(lang, it, activeHref, true)).join('\n    ');
-    // The first group's links hang straight off the pathway heading when its own
-    // label would only say that heading again. Every later group keeps its
-    // eyebrow: those are the real divisions in the rail.
-    if (i === 0 && repeatsPathwayTitle(g.label, sb.title)) return links;
-    return `<div class="sidebar-label">${esc(t(g.label))}</div>\n    ${links}`;
+    const items = g.items.filter((it) => it.slug !== hub);
+    if (!items.length) return '';
+    const links = items.map(it => sidebarLinkHtml(lang, it, activeHref, true)).join('\n    ');
+    // The first group's links hang straight off the heading when its own label would
+    // only say the heading again. Every later group is a fold: open where the current
+    // page is (or the first one, on the hub), closed elsewhere, so a rail of fifty pages
+    // reads as a handful of names until a reader opens one.
+    if (i === 0 && repeatsPathwayTitle(g.label, sb.title)) return `<div class="sidebar-lead">${links}</div>`;
+    const open = holds(g) || (!anyOpen && i === 0);
+    return `<details class="sidebar-group"${open ? ' open' : ''}><summary class="sidebar-label"><span>${esc(t(g.label))}</span>`
+      + `<span class="sidebar-chev" aria-hidden="true">${docIcon('adm-chevron')}</span></summary>${links}</details>`;
   }).join('\n    ');
+  const current = hubHref === activeHref ? ' aria-current="page"' : '';
   return `<aside class="docs-sidebar">
-    <a href="${localeHref(lang, 'index')}" class="sidebar-home">${esc(t('← Home'))}</a>
-    <div class="sidebar-pathway">${esc(t(sb.title))}</div>
+    <a href="${localeHref(lang, hub)}" class="sidebar-pathway${current ? ' active' : ''}"${current}>${esc(t(sb.title))}</a>
     ${groups}
   </aside>`;
 }
@@ -6159,12 +6840,15 @@ function buildSidebar(lang: Lang, page: Page, activeHref: string) {
  */
 function sheetPagesHtml(lang: Lang, pathway: Pathway, activeHref: string): { title: string; body: string } {
   const sb = SIDEBARS[pathway];
-  const groups = sb.groups.map((g, i) =>
-    (i === 0 && repeatsPathwayTitle(g.label, sb.title)
+  const hub = PATHWAY_HUB[pathway];
+  const groups = sb.groups.map((g, i) => {
+    const items = g.items.filter((it) => it.slug !== hub);
+    if (!items.length) return '';
+    return (i === 0 && repeatsPathwayTitle(g.label, sb.title)
       ? ''
       : `<div class="sidebar-label">${esc(t(g.label))}</div>`)
-    + g.items.map(it => sidebarLinkHtml(lang, it, activeHref, true)).join(''),
-  ).join('');
+      + items.map(it => sidebarLinkHtml(lang, it, activeHref, true)).join('');
+  }).join('');
   return { title: t(sb.title), body: `<div class="docs-compact-list">${groups}</div>` };
 }
 
@@ -6228,22 +6912,13 @@ function editionBarHtml(page: Page, lang: Lang): string {
   return chip ? `<div class="docs-edition-bar">${chip}</div>` : '';
 }
 
-// ── "On this page" jump nav ──────────────────────────────────────────────────
-// A long reference page (build-guide runs to nine sections and 60 KB of rendered
-// HTML) gives a reader arriving from search no way back out of the middle of it: the
-// left rail lists PAGES, and the section they want is a scroll away with nothing
-// naming it. So on long pages only, a small fixed control opens the page's own h2
-// list - the ids mdToHtml already stamped, as plain anchors.
-//
-// LONG is measured, not declared per page, so nobody has to remember to turn it on:
-// six sections is where a rail stops being scannable in one glance, and 25 KB of
-// rendered HTML is roughly the same page from the other direction (a page with few
-// but enormous sections still buries its landmarks). Either qualifies.
-const JUMP_MIN_H2 = 6;
-const JUMP_MIN_BYTES = 25_000;
-// A contents mark: three rules, ragged like a list of headings. Not `checklist` from
-// DOC_ICONS - its ticks say "done", and nothing here is done.
-const JUMP_ICON = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M4 7h16M4 12h11M4 17h13"/></svg>`;
+// ── The page's contents and the page bar ─────────────────────────────────────────
+// Two forms of one list (packages/docs-render contents.ts): a rail beside the article
+// from 1100px, and below that the page bar ("Create v Export a file"), whose one sheet
+// holds the sections, this page's headings and this section's pages, so every way
+// around is one press away from any point in the page, also on a phone. The headings
+// are plain #id links; the bundled lib/docs-contents.ts marks the section being read
+// and opens and closes the sheet.
 
 /** A page's h2 headings, in order, as the ids mdToHtml stamped and their text. The jump
  *  nav and the phone menu's "On this page" list both read them. */
@@ -6257,52 +6932,67 @@ function pageHeadings(content: string): Array<{ id: string; text: string }> {
   return items;
 }
 
-function pageJumpNav(content: string): string {
-  const items = pageHeadings(content);
-  // The two thresholds are OR'd; `content` is the rendered body this page will ship,
-  // so the measurement is of the real thing rather than of its source.
-  if (items.length < JUMP_MIN_H2 && content.length < JUMP_MIN_BYTES) return '';
-  const label = t('On this page');
-  const links = items
-    .map(it => `<a href="#${esc(it.id)}">${esc(it.text)}</a>`)
-    .join('');
-  // "#top" is the HTML spec's own name for the top of the document when nothing
-  // carries that id - a browser default, so no script is involved in the scroll.
-  const top = `<a class="doc-jump-top" href="#top">${esc(t('Back to top'))}</a>`;
-  return `<div class="doc-jump">`
-    + `<button type="button" class="doc-jump-btn" id="docJumpBtn" aria-expanded="false" aria-controls="docJumpNav" aria-label="${esc(label)}" title="${esc(label)}">${JUMP_ICON}</button>`
-    + `<nav class="doc-jump-nav" id="docJumpNav" aria-label="${esc(label)}" hidden>`
-    + `<p class="doc-jump-title">${esc(label)}</p>${links}${top}</nav></div>`;
+/** A page's sections and subsections, as the rail lists them. */
+function pageContents(content: string): ContentsHeading[] {
+  const items: ContentsHeading[] = [];
+  for (const m of content.matchAll(/<h([23])\s+id="([^"]*)"[^>]*>([\s\S]*?)<\/h\1>/g)) {
+    const id = m[2]!;
+    const text = htmlToText(m[3]!);
+    if (id && text) items.push({ id, text, level: m[1] === '3' ? 3 : 2 });
+  }
+  return items;
+}
+
+/** The rail (two sections or more) and the page bar for one page. The bar's sheet holds
+ *  the sections, this page's headings and this section's pages (`pages`, the same list
+ *  the rail shows, or a generated page's own). A generated page keeps its one column,
+ *  so it gets the bar and no rail. */
+function pageNavParts(lang: Lang, page: Page, activeHref: string, content: string, pages: { title: string; body: string } | null): { rail: string; bar: string } {
+  const headings = pageContents(content);
+  const labels = { title: t('On this page') };
+  const rail = !page.generated && hasContents(headings) ? `<div class="docs-onpage">${contentsRailHtml(headings, labels)}</div>` : '';
+  const hub = NAV.flat().find((n) => NAV_PATHWAY[n.href] === page.pathway);
+  const bar = pageBarHtml({
+    section: hub ? t(hub.label) : t('Docs'),
+    page: t(page.title),
+    headings,
+    labels: { ...labels, sections: t('Documentation sections') },
+    sectionsHtml: pathwaysStrip(lang, activeHref, page.pathway, false, 'links'),
+    pages: pages ? { title: pages.title, html: pages.body } : null,
+    chevron: docIcon('adm-chevron'),
+  });
+  return { rail, bar };
 }
 
 /**
- * Hoist a page's own h1 into a masthead band with the chip field behind it.
+ * Hoist a page's own h1 into a masthead band, under the pathways strip.
  *
- * Every article page opened with a bare h1 on white - correct, and completely
- * silent about what site you had landed on. The landing page's hero already says it
- * (formats drifting past the name), so the docs get the same greeting rather than a
- * second invented one. plans/105 records why this is the DEFAULT rather than a
- * per-page choice, and why it carries no credential line: it is shell decoration
- * drawn at read time, nothing signed and nothing claimed.
+ * The band used to carry the landing's drifting file-format chips behind the title
+ * (plans/105). Andy removed them from article pages on 2026-11-06: a reader came for
+ * the text, the site bar already says which site this is, and the chips sat behind
+ * the section tabs. The landing hero keeps its field. A page mapped in MASTHEADS
+ * still gets its banked art in the same band.
  *
  * THE H1 MOVES BUT ITS IDENTITY DOES NOT. The element is re-emitted verbatim, id
  * and all, because that id is a published anchor - deep links, the search index's
  * page record, and anything a reader has bookmarked. Rebuilding the heading from
  * page.title instead would have quietly renamed every one of them.
  */
-function docsMasthead(content: string, slug: string, top: { strip: string; edition: string }): { band: string; rest: string; canvas: boolean } | null {
+function docsMasthead(content: string, slug: string, top: { strip: string; edition: string; trail?: string }): { band: string; rest: string; canvas: boolean } | null {
   const m = /<h1(\s[^>]*)?>([\s\S]*?)<\/h1>/.exec(content);
   if (!m) return null; // a page with no h1 keeps its plain top
   const rest = content.slice(0, m.index) + content.slice(m.index + m[0].length);
   // The band's two rows (plan 277 step 3c, decisions D15 and D16): the pathways strip,
   // then the title row, where the h1 keeps its element and id and a print edition sits beside the heading.
-  const heading = `${top.strip}<div class="mast-title">${m[0]}${top.edition}</div>`;
+  const heading = `${top.strip}${top.trail ?? ''}<div class="mast-title">${m[0]}${top.edition}</div>`;
   const art = mastheadArt(slug, heading);
   if (art) return { band: art, rest, canvas: false };
+  // The band carries words only: the sections and the title. Its drifting chip field
+  // went on 2026-11-06 (Andy: no chips on article pages; the landing hero keeps its
+  // decoration), so a reader opens every page on the title, not on motion behind it.
   const band = `<div class="docs-masthead">`
-    + `<canvas class="docs-mast-canvas" aria-hidden="true"></canvas>`
     + `<div class="docs-mast-inner">${heading}</div></div>`;
-  return { band, rest, canvas: true };
+  return { band, rest, canvas: false };
 }
 
 /**
@@ -6366,8 +7056,9 @@ const DOCS_JS = [
   CHIP_FIELD_JS,
   FORMATS_DIALOG_SCRIPT, THEME_INTERACT_SCRIPT, SHOT_MOTION_SCRIPT, SHOWCASE_SCRIPT,
   SHOT_CRED_SCRIPT, SCROLL_REVEAL_SCRIPT, LIQUID_GLASS_SCRIPT, HERO_CANVAS_SCRIPT,
-  DOCS_MASTHEAD_SCRIPT, VERIFY_POPOUT_SCRIPT, DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
-  DOC_JUMP_SCRIPT, LANG_PICKER_SCRIPT, readingScript(), stripScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
+  VERIFY_POPOUT_SCRIPT, docsRankScript(), DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
+  LANG_PICKER_SCRIPT, ORIGIN_SCRIPT, readingScript(), stripScript(), contentsScript(), agentCopyScript(), MAST_CLEAR_SCRIPT,
+  lightboxScript(),
 ].map(stripScriptTags).join('\n;\n');
 const fingerprint = (s: string): string =>
   createHash('sha256').update(s).digest('base64url').slice(0, 16);
@@ -6382,7 +7073,7 @@ const DOCS_JS_TAG = `<script src="/info/${DOCS_JS_FILE}" defer></script>`;
 
 const NAV_ICON_SPRITE = createIconSprite({
   language: LANG_ICON_SVG, sun: THEME_SVG_SUN, moon: THEME_SVG_MOON, brand: THEME_SVG_BRAND,
-  seal: PROV_SEAL, edition: EDITION_ICON, jump: JUMP_ICON,
+  seal: PROV_SEAL, edition: EDITION_ICON,
   ...Object.fromEntries([...GITHUB_LINK.matchAll(/<svg\b[\s\S]*?<\/svg>/g)].map((match, i) => [`nav-${i}`, match[0]])),
   ...Object.fromEntries(Object.entries(SITE_ICONS).map(([key, svg]) => [`site-${key}`, svg])),
   ...Object.fromEntries(Object.entries(FMT_CAT_ICON).map(([key, svg]) => [`format-${key}`, svg])),
@@ -6415,9 +7106,8 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   const edition = editionBarHtml(page, lang);
 
   // Docs pages only: the landing page already carries its own sticky quicknav, and
-  // a second on-page nav in the corner would be two answers to one question. A
-  // generated side-door page has no sidebar to mirror, so it skips the jump nav too.
-  const jump = (isLanding || page.generated || page.immersive) ? '' : pageJumpNav(content);
+  // a second on-page nav would be two answers to one question. A generated side-door
+  // page and an immersive page are built as bands, not sections, so they skip it too.
 
   // The masthead band, and the article body with its h1 lifted out of it. The band
   // opens with the pathways strip and carries the print edition in the title row beside
@@ -6428,14 +7118,23 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // (buildLandingContent). The print edition stays at the top of such a page's <main>,
   // or beside the strip on an immersive page, whose own bands begin at once.
   const strip = pathwaysStrip(lang, activeHref, page.pathway, !!isLanding);
-  const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip, edition });
+  const nav = (isLanding || page.generated || page.immersive) ? { trail: '', pager: '' } : pageWayfinding(lang, page);
+  const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip: '', edition, trail: nav.trail });
   const article = mast ? mast.rest : content;
   const lead = mast ? '' : edition;
-  const reading = readingAttr(content);
-  const sheet: SheetParts = {
-    pages: isLanding ? null
-      : page.rail ? { title: page.rail.mobileTitle, body: page.rail.mobile }
-      : sheetPagesHtml(lang, page.pathway ?? 'builders', activeHref),
+  const reading = readingAttr(content) + lightboxAttr(content);
+  const sectionPages = isLanding ? null
+    : page.rail ? { title: page.rail.mobileTitle, body: page.rail.mobile }
+    : sheetPagesHtml(lang, page.pathway ?? 'builders', activeHref);
+  // The page bar and the rail. The landing and an immersive page are built as bands,
+  // not sections: the landing has its own quicknav, and both keep the phone menu's
+  // sections instead of a bar.
+  const contents = (isLanding || page.immersive) ? { rail: '', bar: '' } : pageNavParts(lang, page, activeHref, article, sectionPages);
+  const wrapClass = contents.rail ? 'docs-wrap docs-wrap--rail' : 'docs-wrap';
+  // Where the bar is, it holds the sections, the pages and the headings, so the phone
+  // menu keeps only the site's own controls (plan 354).
+  const sheet: SheetParts = contents.bar ? { pages: null, headings: [], sections: '' } : {
+    pages: sectionPages,
     headings: (isLanding || page.immersive) ? [] : pageHeadings(article),
     sections: pathwaysStrip(lang, activeHref, page.pathway, !!isLanding, true),
   };
@@ -6451,9 +7150,10 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // to .docs-content sit at (0,1,1) and would out-specify every band rule at (0,1,0),
   // restyling all of the landing headings.
   const body = isLanding ? `<main class="docs-landing page-${slugClass}"${mainAttrs}>${edition}${content}</main>`
-    : page.immersive ? `<main class="docs-landing docs-immersive page-${slugClass}"${mainAttrs}>${pathwaysBand(strip + edition, { wide: true })}${content}</main>`
+    : page.immersive ? `<main class="docs-landing docs-immersive page-${slugClass}"${mainAttrs}>${pathwaysBand(edition, { wide: true })}${content}</main>`
     : page.generated ? `
-${pathwaysBand(strip)}
+${contents.bar}
+${pathwaysBand('')}
 <div class="docs-wrap">
   ${page.rail?.aside ?? buildSidebar(lang, page, activeHref)}
   <main class="docs-content no-mast page-${slugClass}"${mainAttrs}${reading}>
@@ -6462,13 +7162,16 @@ ${pathwaysBand(strip)}
   </main>
 </div>`
     : `
-${mast ? mast.band : pathwaysBand(strip)}
-<div class="docs-wrap">
+${contents.bar}
+${mast ? mast.band : pathwaysBand('')}
+<div class="${wrapClass}">
   ${page.rail?.aside ?? buildSidebar(lang, page, activeHref)}
   <main class="docs-content${mast ? '' : ' no-mast'} page-${slugClass}"${mainAttrs}${reading}>
     ${lead}
     ${article}
+    ${nav.pager}
   </main>
+  ${contents.rail}
 </div>`;
 
   const pageTitle  = isLanding ? LANDING_TITLE : `${t(page.title)} - Lolly`;
@@ -6525,12 +7228,11 @@ ${DOCS_INIT_TAG}
 ${DOCS_CSS_LINK}
 ${NOSCRIPT_NAV}
 </head>
-<body class="page-${slugClass}">
+<body class="page-${slugClass}${contents.rail ? ' page-has-rail' : ''}">
 <a class="skip-link" href="#docs-main">${esc(t('Skip to content'))}</a>
-${buildNav(lang, page.slug, isLanding, sheet)}
+${buildNav(lang, page.slug, isLanding, sheet, strip)}
 ${body}
 ${FOOTER(lang, page)}
-${jump}
 ${DOCS_JS_TAG}
 </body>
 </html>`);
@@ -6688,6 +7390,19 @@ async function build() {
     }
   }
 
+  // The music genre pages (/info/music/<slug>/) and their listening samples, rendered by
+  // scripts/build-music-samples.ts into docs/music/samples/ and served from
+  // /info/music/samples/. Mirrored, not accumulated: a retired genre or sample must not
+  // stay behind in the (gitignored) output.
+  rmSync(resolve(outDir, MUSIC_BASE), { recursive: true, force: true });
+  const musicSamplesSrc = resolve(__dirname, 'music', 'samples');
+  if (existsSync(musicSamplesSrc)) {
+    const files = readdirSync(musicSamplesSrc).filter(f => f.endsWith('.m4a'));
+    mkdirSync(resolve(outDir, SAMPLES_DIR), { recursive: true });
+    for (const f of files) copyFileSync(resolve(musicSamplesSrc, f), resolve(outDir, SAMPLES_DIR, f));
+    console.log(`✓  /info/${SAMPLES_DIR}/ (${files.length} listening samples)`);
+  }
+
   // The imported Work marks and licence retain their original bytes.
   rmSync(resolve(outDir, 'work'), { recursive: true, force: true });
   mkdirSync(resolve(outDir, 'work'), { recursive: true });
@@ -6714,25 +7429,9 @@ async function build() {
     console.log(`✓  /info/diagrams/ (${copyDiagrams(diagramsSrc, resolve(outDir, 'diagrams'))} specification diagrams)`);
   }
 
-  // Block 2's worked examples (plan 117): each card shows the tool's OWN preview of
-  // the exact look its link seeds, so what the reader sees is what the click gives
-  // them. Copied verbatim out of the ACTIVE brand's catalog - these are signed
-  // artifacts, so they are copied, never rewritten - and mirrored, not accumulated.
-  // A brand whose catalog has no preview for a look ships that card without a
-  // picture, which is why this is a warning, not a fail.
+  // The landing's worked-example pictures are retired. An older local build can still
+  // hold the folder, so it is removed rather than left to ride into the offline download.
   rmSync(resolve(outDir, 'examples'), { recursive: true, force: true });
-  const previewDir = catalogFile('previews');
-  const havePreviews = LANDING_SCENES.filter(s => existsSync(resolve(previewDir, s.look)));
-  if (havePreviews.length) {
-    mkdirSync(resolve(outDir, 'examples'), { recursive: true });
-    for (const s of havePreviews) copyFileSync(resolve(previewDir, s.look), resolve(outDir, 'examples', s.look));
-    console.log(`✓  /info/examples/ (${havePreviews.length} worked-example previews)`);
-  }
-  for (const s of LANDING_SCENES) {
-    if (!existsSync(resolve(previewDir, s.look))) {
-      console.warn(`⚠  landing example: this brand's catalog has no ${s.look} - the "${s.scene}" card ships without its picture`);
-    }
-  }
 
   // Banked art - the signed mastheads and figures, served verbatim at
   // /info/mastheads/ and /info/figures/ (the shots precedent). The page inlines a
@@ -6756,7 +7455,8 @@ async function build() {
     console.log(`✓  /info/${bank}/ (${art.length} signed ${art.length === 1 ? 'artifact' : 'artifacts'})`);
   }
   // Native Design exports accompanying the signed SVG previews.
-  for (const file of ['tenets-print.pdf', 'tenets-screen.png', 'tenets-motion.mp4']) {
+  // The format-last figure's raster panels and originals ride along (FORMAT_LAST_FILES).
+  for (const file of ['tenets-print.pdf', 'tenets-screen.png', 'tenets-motion.mp4', ...FORMAT_LAST_FILES]) {
     copyFileSync(resolve(__dirname, 'figures', file), resolve(outDir, 'figures', file));
   }
   // Print editions: only the files a page names, mirrored so a withdrawn edition is
@@ -6788,6 +7488,10 @@ async function build() {
       .filter((p) => !p.isLanding && p.slug && existsSync(resolve(outDir, 'og', `${p.slug}.png`)))
       .map((p) => p.slug),
   );
+  for (const { mood } of MUSIC_GENRES) {
+    const slug = genrePageSlug(mood);
+    if (existsSync(resolve(outDir, 'og', `${slug}.png`))) ogSlugs.add(slug);
+  }
 
   // English at /info/, every other locale mirrored under /info/<lang>/ - same
   // page set, same slugs, translated chrome + (where a docs/i18n/<lang>/<slug>.md
@@ -6820,12 +7524,16 @@ async function build() {
   for (const lang of LANGS) {
     if (lang !== 'en' && !BUILT_LANGS.includes(lang)) rmSync(resolve(outDir, lang), { recursive: true, force: true });
   }
+  const englishGuideHeadings = new Map<string, PageHeadings>();
+  if (BUILT_LANGS[0] !== 'en') throw new Error('English must be built first: its headings place every locale\'s tool guide rows.');
   for (const lang of BUILT_LANGS) {
     activeCatalog = loadSiteCatalog(lang);
     activeLang = lang;
     const localeOutDir = lang === 'en' ? outDir : resolve(outDir, lang);
     mkdirSync(localeOutDir, { recursive: true });
     const searchRecords: SearchRecord[] = [];
+    const guideHeadings = new Map<string, PageHeadings>();
+    const guideTitles = new Map<string, string>();
 
     for (const page of pages) {
       const srcPath = resolvePageSrc(page, lang);
@@ -6864,6 +7572,8 @@ async function build() {
       // The record's `p` is the PATH slug (create/using): the search script builds
       // hrefs as /info/<p>.html, which is exactly the doored file.
       searchRecords.push(...indexSections(content, pathSlug(page.slug), t(page.title)));
+      guideHeadings.set(pathSlug(page.slug), guideHeadingList(content));
+      guideTitles.set(pathSlug(page.slug), t(page.title));
       console.log(`✓  ${localeHref(lang, page.slug)}`);
       if (lang === 'en') {
         sitemapUrls.push({ slug: page.slug, isLanding: page.isLanding });
@@ -6937,10 +7647,38 @@ async function build() {
     }
     console.log(`✓  ${lang === 'en' ? '' : `/${lang}`}/info format side-door pages (${sideDoorCount})`);
 
+    // The music genre pages: one per genre at /info/music/<slug>/, generated like the
+    // format side doors (English copy, or a locale twin's, in localized chrome).
+    if (lang !== 'en') rmSync(resolve(localeOutDir, MUSIC_BASE), { recursive: true, force: true });
+    let musicCount = 0;
+    for (const { group, mood } of MUSIC_GENRES) {
+      const copy = musicCopy(mood, lang);
+      if (!copy) continue;
+      const slug = genrePageSlug(mood);
+      const gp: Page = { slug, title: copy.title, src: '', description: copy.description, pathway: 'creators', generated: true };
+      const content = renderMusicGenrePage(copy, group, lang);
+      const html = doorizeLinks(wrapPage(lang, gp, content, ogSlugs, ''));
+      auditLinks(localeHref('en', slug), lang, html);
+      const dir = resolve(localeOutDir, MUSIC_BASE, GENRE_SLUG[mood]);
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(resolve(dir, 'index.html'), html, 'utf-8');
+      searchRecords.push(...indexSections(content, slug, gp.title));
+      if (lang === 'en') sitemapUrls.push({ slug });
+      musicCount++;
+    }
+    console.log(`✓  ${lang === 'en' ? '' : `/${lang}`}/info/${MUSIC_BASE}/ genre pages (${musicCount})`);
+
     // One index per locale, fetched lazily by the sidebar search on first use - 
     // never on page load, so a reader who doesn't search pays nothing for it.
     writeFileSync(resolve(localeOutDir, 'search-index.json'), JSON.stringify(searchRecords), 'utf-8');
     console.log(`✓  ${lang === 'en' ? '' : `/${lang}`}/info/search-index.json (${searchRecords.length} sections)`);
+
+    // The tool to docs list the app's help button reads (plan 354 D6), fetched once
+    // when a tool opens. English is built first, and its headings place the sections.
+    if (lang === 'en') for (const [path, list] of guideHeadings) englishGuideHeadings.set(path, list);
+    const guides = toolGuides(lang, guideHeadings, englishGuideHeadings, guideTitles);
+    writeFileSync(resolve(localeOutDir, 'tool-guides.json'), JSON.stringify({ version: 1, tools: guides }), 'utf-8');
+    console.log(`✓  ${lang === 'en' ? '' : `/${lang}`}/info/tool-guides.json (${Object.keys(guides).length} tools)`);
   }
   activeCatalog = {};
   activeLang = 'en';
@@ -7190,11 +7928,22 @@ function writeDocsManifest(): void {
 // own copy instead of one shared tagline. The md is read once here (cheap, English only;
 // the cards are language-neutral). A page whose source can't be read keeps whatever
 // explicit description it had, and generateOgImages falls back to the site tagline.
-const ogPages = pages.map((p) => {
+const ogPages: Array<Page & { card?: OgCard }> = pages.map((p) => {
   if (p.description || p.isLanding) return p;
   try { return { ...p, description: mdDescription(readFileSync(resolve(__dirname, p.src), 'utf-8')) || undefined }; }
   catch { return p; }
 });
+// The genre pages' cards: the share card that shows a genre's icon, its name and its
+// lead, linking to the page (docs/og-image.ts, OgPage.card).
+for (const { mood } of MUSIC_GENRES) {
+  const copy = musicCopy(mood, 'en');
+  if (!copy) continue;
+  const slug = genrePageSlug(mood);
+  ogPages.push({
+    slug, title: copy.title, description: copy.description, src: '', generated: true,
+    card: { kicker: `Background music · ${genreTitle(mood)}`, line: copy.lead, url: `${new URL(PREVIEW_URL).host}/info/${slug}/`, iconSvg: genreIconSvg(mood, 24) },
+  } as Page & { card: OgCard });
+}
 const ogGenerated = await generateOgImages(ogPages, outDir, repoRoot, (m) => console.log(m));
 const ogExpected = pages.filter((p) => !p.isLanding && p.slug && p.title).length;
 if (ogExpected > 0 && ogGenerated.size < ogExpected) {

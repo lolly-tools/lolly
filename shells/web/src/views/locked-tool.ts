@@ -7,6 +7,7 @@ import { announce } from '../a11y.ts';
 import { t } from '../i18n.ts';
 import { mountLockedActions } from './locked-tool-actions.ts';
 import { resetDesignInputs } from '../lib/design-input-reset.ts';
+import { icon } from '../lib/icons.ts';
 import '../styles/parts/locked-tool.css';
 
 /** Presentation only. The engine owns the editable fields and output rules. */
@@ -25,8 +26,14 @@ export function mountLockedTool(opts: { view: HTMLElement; canvas: HTMLElement; 
   const instructions = document.createElement('p'); instructions.className = 'locked-instructions'; instructions.textContent = opts.runtime.manifest.description || t('Edit the inputs, preview your result, then download.');
   sidebar.querySelector('.sidebar-body')?.prepend(instructions);
   const stopActions = opts.actions ? mountLockedActions(view, opts.actions, opts.runtime.manifest.render.formats, () => { void resetDesignInputs(opts.runtime, sidebar); }) : undefined;
-  const done = document.createElement('button'); done.type = 'button'; done.className = 'btn locked-inputs-done'; done.textContent = t('Preview');
-  sidebar.querySelector('.sidebar-header')?.append(done);
+  // Preview closes the inputs so the result fills the screen. It sits at the right end
+  // of the title row, where every other tool keeps its collapse toggle (hidden for a
+  // locked tool), instead of a row of its own under the title.
+  const done = document.createElement('button'); done.type = 'button'; done.className = 'btn btn--glass btn--sm btn--labelled locked-inputs-done';
+  done.setAttribute('aria-controls', sidebar.id);
+  const doneLabel = document.createElement('span'); doneLabel.className = 'btn-label'; doneLabel.textContent = t('Preview');
+  done.innerHTML = icon('eye'); done.append(doneLabel);
+  (sidebar.querySelector('.sidebar-header-row') ?? sidebar.querySelector('.sidebar-header'))?.append(done);
   const syncReserves = (): void => {
     const reserves = { top: view.classList.contains('locked-inputs-open') ? 0 : heading.getBoundingClientRect().height, bottom: view.querySelector('.locked-actions')?.getBoundingClientRect().height || 88 };
     view.style.setProperty('--locked-actions-h', `${Math.ceil(reserves.bottom)}px`);

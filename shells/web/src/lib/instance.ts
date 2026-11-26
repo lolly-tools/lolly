@@ -61,6 +61,7 @@
 // scripts/check-bundle-budget.ts.
 import { ENGINE_VERSION } from '../../../../engine/src/version.ts';
 import { openDB } from '../bridge/db.ts';
+import { markViewEnded, viewAsHeader, viewingAs } from '../org/view-as.ts';
 import { initPackStore, packActive, packAssetEntries, packFetch } from './pack-store.ts';
 
 /** Key of the persisted base inside the 'profile' KV store. */
@@ -76,6 +77,11 @@ const INSTALL_ID_KEY = 'install-id';
  *  (org/index.ts) parks the pair here and tauriRemoteFetch attaches it - to the
  *  instance base origin ONLY, never to any other URL this transport fetches. */
 const INSTANCE_SESSION_KEY = 'instance-session';
+/** The IndexedDB 'profile' key for the catalog key the person accepted when they
+ *  connected the app to an instance: the instance's origin and the key's id (an RFC
+ *  7638 thumbprint). catalog/integrity.ts lets that one key, and no other, verify
+ *  the instance's catalog beside the key this build pins. */
+const INSTANCE_CATALOG_KEY = 'instance-catalog-key';
 
 let base = '';
 let initPromise: Promise<void> | null = null;
@@ -89,11 +95,35 @@ interface InstanceSession {
   cookiePair: string;
 }
 let instanceSession: InstanceSession | null = null;
+/** The catalog key id accepted for the connected instance, or null. */
+let instanceCatalogKey: { origin: string; keyId: string } | null = null;
+const KEY_ID = /^[A-Za-z0-9_-]{43}$/;
 
 function instanceOrigin(value = base): string | null {
   try {
     return value ? new URL(value).origin : typeof location === 'undefined' ? null : location.origin;
   } catch { return null; }
+}
+
+/** An instance set aside for this page load (suspendInstanceBase), or ''. */
+let suspended = '';
+
+/**
+ * Stop using the saved instance for this page load and return its base. The saved
+ * choice stays in storage, so the next start asks that instance again. Only the
+ * person leaving the instance (lib/instance-leave.ts) removes the choice. catalog/sync.ts calls this
+ * when the instance's catalog is signed by a key this build does not trust, so the
+ * app shows the tools built into it instead of none.
+ */
+export function suspendInstanceBase(): string {
+  const was = base;
+  if (was) { suspended = was; base = ''; instanceSession = null; }
+  return was;
+}
+
+/** The instance set aside for this page load, or '' when none was. */
+export function suspendedInstanceBase(): string {
+  return suspended;
 }
 
 /** The active instance base URL ('' = bundled same-origin content). */
@@ -130,9 +160,11 @@ export async function setInstanceBase(url: string | null): Promise<void> {
   if (changedOrigin) {
     instanceSession = null;
     installTag = null;
+    instanceCatalogKey = null;
   }
   const db = await openDB();
   if (changedOrigin) {
+    await db.delete('profile', INSTANCE_CATALOG_KEY);
     await db.delete('profile', INSTANCE_SESSION_KEY);
     await db.delete('profile', INSTALL_ID_KEY);
   }
@@ -173,6 +205,13 @@ export function initInstanceBase(): Promise<void> {
         instanceSession = { origin: sess.origin, cookiePair: sess.cookiePair };
       } else if (sess) {
         await db.delete('profile', INSTANCE_SESSION_KEY);
+      }
+      const accepted = await db.get('profile', INSTANCE_CATALOG_KEY);
+      if (accepted && typeof accepted === 'object' && base
+        && accepted.origin === instanceOrigin() && typeof accepted.keyId === 'string' && KEY_ID.test(accepted.keyId)) {
+        instanceCatalogKey = { origin: accepted.origin, keyId: accepted.keyId };
+      } else if (accepted) {
+        await db.delete('profile', INSTANCE_CATALOG_KEY);
       }
     } catch {
       base = ''; // unreadable/invalid - fall back to bundled content
@@ -220,7 +259,47 @@ export async function clearInstallId(): Promise<void> {
   try { await (await openDB()).delete('profile', INSTALL_ID_KEY); } catch { /* best-effort */ }
 }
 
+// ── The connected instance's catalog key (native shells) ─────────────────────
+
+/** The id of the catalog key the person accepted for the connected instance, or ''.
+ *  Bound to the instance's origin: another instance, or none, answers ''. */
+export function instanceCatalogKeyId(): string {
+  return base && instanceCatalogKey && instanceCatalogKey.origin === instanceOrigin() ? instanceCatalogKey.keyId : '';
+}
+
+/** Record (or with null forget) the catalog key the person accepted for the
+ *  connected instance. Refused for anything that is not a key id, and when no
+ *  instance is connected. */
+export async function setInstanceCatalogKeyId(keyId: string | null): Promise<void> {
+  const origin = base ? instanceOrigin() : null;
+  instanceCatalogKey = origin && keyId && KEY_ID.test(keyId) ? { origin, keyId } : null;
+  const accepted = instanceCatalogKey;
+  try {
+    const db = await openDB();
+    if (accepted) await db.put('profile', accepted, INSTANCE_CATALOG_KEY);
+    else await db.delete('profile', INSTANCE_CATALOG_KEY);
+  } catch { /* best-effort - the in-memory copy still serves this run */ }
+}
+
 // ── Stored instance session (native shells; browsers keep their own cookie) ──
+
+/**
+ * What an answer's Set-Cookie headers say about the session: the new pair, null when
+ * the instance cleared the cookie (signed out, or an expiry in the past), undefined
+ * when they say nothing about the session. Pure, exported for tests.
+ */
+export function renewedSessionPair(headers: ReadonlyArray<readonly [string, string]>): string | null | undefined {
+  let found: string | null | undefined;
+  for (const [name, value] of headers) {
+    if (name.toLowerCase() !== 'set-cookie') continue;
+    const [pair = '', ...attributes] = value.split(';').map((part) => part.trim());
+    if (!pair.startsWith('lw_session=')) continue;
+    const cleared = pair === 'lw_session=' || attributes.some((a) => /^max-age=(0|-\d+)$/i.test(a))
+      || attributes.some((a) => { const m = /^expires=(.+)$/i.exec(a); return !!m && Date.parse(m[1]!) <= Date.now(); });
+    found = cleared ? null : /^lw_session=[^;\s]+$/.test(pair) ? pair : found;
+  }
+  return found;
+}
 
 /** Persist (or with null clear) the session cookie pair the device-code
  *  sign-in collected. Loaded by initInstanceBase; attached by tauriRemoteFetch
@@ -296,7 +375,7 @@ export function adoptBootFetch(path: string): Promise<Response> | null {
   const pending = window.__lollyBootFetch?.[path];
   if (!pending) return null;
   delete window.__lollyBootFetch?.[path];
-  if (base || packActive()) return null;
+  if (base || packActive() || viewingAs()) return null;
   return pending;
 }
 
@@ -334,9 +413,18 @@ export function instanceFetch(input: string | URL, init?: RequestInit, limits?: 
   return transportFetch(url, init, limits);
 }
 
-function transportFetch(url: string, init?: RequestInit, limits?: InstanceFetchLimits): Promise<Response> {
-  if (hasTauriInternals() && isCrossOrigin(url)) return tauriRemoteFetch(url, withClientHeader(init), undefined, limits);
-  return (limits?.fallbackFetch ?? fetch)(url, isCrossOrigin(url) ? init : withClientHeader(init));
+async function transportFetch(url: string, init?: RequestInit, limits?: InstanceFetchLimits): Promise<Response> {
+  const crossOrigin = isCrossOrigin(url);
+  const response = await (hasTauriInternals() && crossOrigin
+    ? tauriRemoteFetch(url, withClientHeader(init, false), undefined, limits)
+    : (limits?.fallbackFetch ?? fetch)(url, crossOrigin ? init : withClientHeader(init)));
+  if (!crossOrigin && response.status === 403 && viewingAs()) {
+    try {
+      const body = await response.clone().json();
+      if (body?.error?.code === 'VIEWING_AS_ENDED') markViewEnded();
+    } catch { /* non-JSON responses still pass through unchanged */ }
+  }
+  return response;
 }
 
 /** The root-relative path of an instance URL (absolute or already relative).
@@ -387,9 +475,11 @@ async function packMergedAssetIndex(url: string, init: RequestInit | undefined, 
  * CROSS-origin fetch forces a CORS preflight, which a plain static host
  * serving a remote instance would fail - those requests stay untagged.
  */
-function withClientHeader(init?: RequestInit): RequestInit {
+function withClientHeader(init?: RequestInit, sameOrigin = true): RequestInit {
   const headers = new Headers(init?.headers);
   if (!headers.has('x-lolly-client')) headers.set('x-lolly-client', clientHeaderValue());
+  const token = sameOrigin ? viewAsHeader() : null;
+  if (token && !headers.has('x-lw-view-as')) headers.set('x-lw-view-as', token);
   return { ...init, headers };
 }
 
@@ -414,9 +504,12 @@ function hasTauriInternals(): boolean {
 }
 
 function isCrossOrigin(url: string): boolean {
-  if (!/^https?:/i.test(url)) return false;
+  // Resolved against the page, so a scheme-relative (`//host/...`) or backslashed URL,
+  // which fetch would send to another origin, counts as cross-origin and never carries
+  // this tab's headers.
   try {
-    return new URL(url).origin !== location.origin;
+    const page = new URL(location.href ?? location.origin);
+    return new URL(url, page).origin !== page.origin;
   } catch {
     return false;
   }
@@ -499,6 +592,16 @@ async function tauriRemoteFetch(url: string, init?: RequestInit, allowedOrigins?
       ...(limits?.maxResponseBytes ? { maxResponseBytes: limits.maxResponseBytes } : {}),
     },
   });
+  // The instance renews the session by sending the cookie again with a later expiry
+  // (Work does on its session, org-config and inbox answers). A browser's own jar
+  // takes that in; this transport has no jar, so the pair is read here, before the
+  // Response below drops the header as the fetch rules require. Only from an answer
+  // of the instance itself to a request that carried this session.
+  if (!allowedOrigins && instanceSession && instanceSession.origin === instanceOrigin()
+    && isInstanceOrigin(url) && isInstanceOrigin(resp.url)) {
+    const renewed = renewedSessionPair(resp.headers);
+    if (renewed !== undefined && renewed !== instanceSession.cookiePair) void setInstanceSession(renewed);
+  }
   const body = resp.body instanceof ArrayBuffer ? new Uint8Array(resp.body) : Uint8Array.from(resp.body);
   // Null-body statuses (fetch spec) - Response() throws if handed bytes for them.
   const nullBody = [101, 103, 204, 205, 304].includes(resp.status);

@@ -36,7 +36,7 @@
       "type": "object",
       "maxProperties": 64,
       "propertyNames": {
-        "enum": ["address", "awarddate", "awardtopic", "bgImage", "body", "company", "cta", "currency", "data", "email", "eventEnd", "eventLocation", "eventName", "eventStart", "firstname", "heading", "headshot", "image", "jobTitle", "lastname", "phone", "recipient", "sender", "sourceAuthor", "subheading", "url"]
+        "enum": ["address", "awarddate", "awardtopic", "bgImage", "body", "company", "cta", "currency", "data", "email", "eventEnd", "eventLocation", "eventName", "eventStart", "firstname", "heading", "headshot", "image", "jobTitle", "lastname", "partnerMark", "phone", "recipient", "sender", "sourceAuthor", "subheading", "url"]
       },
       "description": "Content by role. The `roles` section of schemas/canonical-inputs.json says what each one is."
     },

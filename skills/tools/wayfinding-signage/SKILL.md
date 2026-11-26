@@ -5,7 +5,7 @@ description: "Operate the Lolly Wayfinding tool (wayfinding-signage) using its d
 
 # Wayfinding
 
-Tool ID: `wayfinding-signage`. Tool version: `1.2.5`. Engine range: `^1.0.0`.
+Tool ID: `wayfinding-signage`. Tool version: `1.3.0`. Engine range: `^1.0.0`.
 
 Directional event signs - destinations, each with an arrow. Print-ready.
 
@@ -27,6 +27,9 @@ Required host APIs: none. Device capabilities: none.
 | directions | blocks |  |
 | background | color |  |
 | accent | color |  |
+| ground | select |  |
+| density | select |  |
+| layout | select |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

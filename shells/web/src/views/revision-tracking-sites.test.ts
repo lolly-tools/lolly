@@ -35,6 +35,9 @@ interface Site {
 }
 
 const SITES: readonly Site[] = [
+  { file: 'views/tool-template-notices.ts', line: 'await opts.runtime.applyPatch(newVersionPatch(values, declared, editable));', kind: 'tracked',
+    why: '"Use new version" on a saved copy brings in what a workspace template fixes, as one edit the person chose',
+    proof: { file: 'views/tool-template-notices.ts', pattern: /applyPatch\(newVersionPatch\(values, declared, editable\)\);\s*opts\.changed\?\.\(\);/ } },
   { file: 'views/free-canvas/select.ts', line: 'void runtime.applyPatch(values).catch(fc.layout.failure);', kind: 'tracked',
     why: 'a canvas without a transaction port commits layout tracks and layers as one user edit',
     proof: { file: 'views/free-canvas/select.ts', pattern: /fc\.history\?\.changed\?\.\(\);\s*void runtime\.applyPatch\(values\)\.catch\(fc\.layout\.failure\)/ } },
@@ -58,6 +61,8 @@ const SITES: readonly Site[] = [
     proof: { file: 'lib/studio-library.ts', pattern: /applyPatch\(\{ studioRef: '', studioOverrides: '' \}\);\s*changed\?\.\(\);/ } },
   { file: 'views/tool/setup.ts', line: 'await runtime.applyPatch(policyValues);', kind: 'mount-time',
     why: "a locked policy value put into the runtime as the tool opens" },
+  { file: 'views/tool/setup.ts', line: 'await runtime.applyPatch(patch as Record<string, InputValue>);', kind: 'mount-time',
+    why: "a partner company's logo following the document's light or dark mode (plans/82 M3), as the tool opens and after each theme switch; the switch is the edit, and undoing it brings the logo back the same way" },
   { file: 'views/tool/setup.ts', line: 'await runtime.applyPatch(seed, { restoreTokenRefs });', kind: 'mount-time',
     why: 'the starting point picked in the template chooser that opens with a blank document; not the first edit' },
   { file: 'lib/row-id.ts', line: 'if (Object.keys(values).length) await runtime.applyPatch(values);', kind: 'mount-time',

@@ -53,3 +53,8 @@ test('a Design document export follows the source runtime\'s switch, so an untic
   const body = RENDER_EXPORT.slice(RENDER_EXPORT.indexOf('export async function mountDocumentExport'));
   assert.match(body.slice(0, body.indexOf('mountToolCanvas(')), /runtime\.setMadeWith\(source\.madeWith\(\)\);/);
 });
+
+test('a Design document export records the partner the source runtime holds, so the files say what the card said (plans/82 M3)', () => {
+  const body = RENDER_EXPORT.slice(RENDER_EXPORT.indexOf('export async function mountDocumentExport'));
+  assert.match(body.slice(0, body.indexOf('mountToolCanvas(')), /runtime\.setPartner\(source\.partner\(\)\);/);
+});

@@ -33,6 +33,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { createTokenSet } from '../../../../engine/src/tokens.ts';
 import type { Box } from './free-canvas-math.ts';
 import { ARRANGE_OPS, initDesignInspector } from './design-inspector.ts';
+import { mountDesignPanels } from './design-panels.ts';
 
 // The timeline panel imports its own stylesheet and free-canvas reaches it through a
 // dynamic import; Node has no idea what a .css module is (Vite resolves it for real).
@@ -96,6 +97,7 @@ const childBox = (id: string, frame: string, x: number): Box =>
   ({ kind: 'box', id, frame, x, y: 20, w: 100, h: 60, bg: '#ccc', text: 'hi' } as Box);
 
 interface MountOpts {
+  canvas?: Record<string, unknown>;
   chrome?: Record<string, unknown>;
   withActions?: boolean;
   withHistory?: boolean;
@@ -149,6 +151,7 @@ function mount(initial: Box[] = [], o: MountOpts = {}): Fixture {
       'exitField', 'enterMsField', 'enterEaseField', 'exitMsField', 'muteField', 'laneField']) delete cfg[k];
   }
   if (o.withImport) cfg.import = { formats: ['svg', 'penpot', 'pdf'] };
+  Object.assign(cfg, o.canvas);
   const handle = initFreeCanvas({
     viewEl, stageEl, canvasEl,
     runtime: runtime as never,
@@ -1036,6 +1039,122 @@ test('a mark OUTSIDE the stage (the docked HUD) opens its menu in the viewport, 
   } finally { f.destroy(); }
 });
 
+test('the size panel opened from a door OUTSIDE the stage goes over it, takes focus, and Escape hands focus back', () => {
+  // The inspector's Size door lives in the docked column, a floating inspector or the
+  // phone's sheet: all body-level surfaces over the stage. The stage is position:fixed,
+  // so a panel inside it opened BEHIND the door that asked for it, on a phone under the
+  // sheet whose rows then took the taps meant for the presets.
+  const f = mount([frameBox('f1', 0, 0)], { chrome: {} });
+  try {
+    f.stageEl.getBoundingClientRect = () => rect(40, 20, NATIVE, NATIVE);
+    const door = dom.window.document.createElement('button');
+    door.dataset.act = 'documentsize';
+    door.getBoundingClientRect = () => rect(300, 120, 120, 32);
+    dom.window.document.body.appendChild(door);   // not a stage descendant
+    door.focus();
+    f.design.inspectorActions.openDocumentSize!(door);
+    assert.equal(f.stageEl.querySelector('.fc-size-panel'), null, 'not in the stage');
+    const panel = dom.window.document.body.querySelector<HTMLElement>(':scope > .fc-size-panel')!;
+    assert.ok(panel, 'on the body');
+    assert.ok(panel.classList.contains('fc-popover--viewport'), 'flagged for the fixed placement over the stage');
+    // Placed against the STAGE as it always was (the door's right edge plus 8, its own
+    // top, both stage-relative), then moved by the stage's own offset into viewport space.
+    assert.equal(panel.style.left, `${300 + 120 - 40 + 8 + 40}px`);
+    assert.equal(panel.style.top, `${120 - 20 + 20}px`);
+    assert.equal(panel.getAttribute('role'), 'dialog');
+    assert.equal(panel.getAttribute('aria-label'), 'Artboard size');
+    assert.equal(dom.window.document.activeElement, panel, 'focus moved into the panel');
+    // The inspector rebuilds its column on a model change, so the door that opened the
+    // panel can be a new node by the time it closes.
+    door.remove();
+    const rebuilt = dom.window.document.createElement('button');
+    rebuilt.dataset.act = 'documentsize';
+    dom.window.document.body.appendChild(rebuilt);
+    panel.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    assert.equal(dom.window.document.querySelector('.fc-size-panel'), null, 'Escape closes it wherever it lives');
+    assert.equal(dom.window.document.activeElement, rebuilt, 'and focus goes back to the Size door');
+    rebuilt.remove();
+  } finally { f.destroy(); }
+});
+
+test('in the phone layout the size panel goes over the stage even from a control inside it', () => {
+  // The bottom bar's More menu lives inside the stage, but in the phone layout the
+  // inspector sheet and the navigator lie over the stage's lower half, so a panel opened
+  // from it has to clear them too, and stop above the bar.
+  const f = mount([frameBox('f1', 0, 0)], { chrome: {} });
+  try {
+    f.stageEl.dataset.designLayout = 'compact';
+    const bar = dom.window.document.createElement('div');
+    bar.className = 'design-compact-actions';
+    bar.getBoundingClientRect = () => rect(0, 940, NATIVE, 60);
+    const more = dom.window.document.createElement('button');
+    more.getBoundingClientRect = () => rect(700, 950, 100, 44);
+    bar.appendChild(more);
+    f.stageEl.appendChild(bar);
+    f.design.inspectorActions.openDocumentSize!(more);
+    const panel = dom.window.document.body.querySelector<HTMLElement>(':scope > .fc-size-panel')!;
+    assert.ok(panel?.classList.contains('fc-popover--viewport'), 'over the stage');
+    // jsdom lays the panel out at zero size, so only the foot rule moves it: its top is
+    // pulled up from the trigger's 950 to 8 above the bar.
+    assert.equal(panel.style.top, `${940 - 8}px`);
+    bar.remove();
+  } finally { f.destroy(); }
+});
+
+test('in the phone layout a menu opened from a control INSIDE the stage goes over it and ends above the bar', () => {
+  // The inspector sheet is a body-level fixed surface over the stage's lower half, and the
+  // stage is a stacking context of its own, so a menu appended to the stage had its lower
+  // rows painted under the sheet whatever its z-index. In the phone layout every menu goes
+  // to the body, whichever control opened the menu.
+  const f = mount([frameBox('f1', 0, 0)], { chrome: {} });
+  try {
+    f.stageEl.dataset.designLayout = 'compact';
+    const bar = dom.window.document.createElement('div');
+    bar.className = 'design-compact-actions';
+    bar.getBoundingClientRect = () => rect(0, 700, 1024, 60);
+    const more = dom.window.document.createElement('button');
+    more.setAttribute('aria-haspopup', 'menu');
+    more.getBoundingClientRect = () => rect(800, 708, 100, 44);
+    bar.appendChild(more);
+    f.stageEl.appendChild(bar);
+    f.design.openLollyMenu(more);
+    assert.equal(f.stageEl.querySelector('.fc-popover'), null, 'not in the stage');
+    const pop = dom.window.document.body.querySelector<HTMLElement>(':scope > .fc-popover')!;
+    assert.ok(pop?.classList.contains('fc-popover--viewport'), 'on the body, flagged for the fixed placement');
+    // Its room ends at the bar's top (700), 12 short of it, from the top of the screen.
+    assert.equal(pop.style.maxHeight, `${700 - 12}px`);
+    pop.querySelector<HTMLElement>('.fc-pop-item')!.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    assert.equal(dom.window.document.querySelector('.fc-popover'), null, 'Escape closes it on the body too');
+    bar.remove();
+  } finally { f.destroy(); }
+});
+
+test('in the phone layout a panel opened at a point (no trigger) goes over the stage too', () => {
+  // The two-finger tap's context menu, the confirm and lift dialogs and the connector
+  // panel open at a point or over the canvas rather than beside a control. On a wide
+  // window they stay in the stage, as they always did.
+  const f = mount([frameBox('f1', 0, 0), childBox('b1', 'f1', 40)], { chrome: {} });
+  try {
+    const target = f.canvasEl.querySelector<HTMLElement>('[data-box-id="b1"]') ?? f.canvasEl;
+    const open = (): HTMLElement | null => {
+      target.dispatchEvent(new W.MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 120, clientY: 80 }));
+      return dom.window.document.querySelector<HTMLElement>('.fc-popover');
+    };
+    let menu = open();
+    assert.ok(menu, 'a right-click opens the menu');
+    assert.equal(menu!.parentElement, f.stageEl, 'in the stage on a wide window');
+    assert.ok(!menu!.classList.contains('fc-popover--viewport'));
+    menu!.dispatchEvent(new W.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    f.stageEl.dataset.designLayout = 'compact';
+    menu = open();
+    assert.equal(menu!.parentElement, dom.window.document.body, 'on the body in the phone layout');
+    assert.ok(menu!.classList.contains('fc-popover--viewport'));
+    // The stage sits at the viewport's corner here, so the point is the same either way.
+    assert.equal(menu!.style.left, '120px');
+    assert.equal(menu!.style.top, '80px');
+  } finally { f.destroy(); }
+});
+
 test('mounting the inspector pins the object bar; unmounting it lets the bar auto-hide again', () => {
   const f = mount([frameBox('f1', 0, 0)], { chrome: {} });
   try {
@@ -1045,5 +1164,141 @@ test('mounting the inspector pins the object bar; unmounting it lets the bar aut
     assert.equal(bar.classList.contains('fc-ctxbar--pinned'), true, 'the Design chrome makes it the selection toolbar');
     f.design.setInspector(null);
     assert.equal(bar.classList.contains('fc-ctxbar--pinned'), false);
+  } finally { f.destroy(); }
+});
+
+function compactMenuRow(key: string): HTMLButtonElement | null {
+  return document.querySelector<HTMLButtonElement>(`.fc-popover [data-pop="${key}"]`);
+}
+
+for (const path of [false, true]) for (const bindings of [undefined, 'bindStartField', 'bindEndField']) for (const grid of [false, true]) {
+  test(`compact menus follow the rail gates: path ${path}, bindings ${bindings}, grid ${grid}`, () => {
+    const f = mount([], { canvas: {
+      ...(path ? { pathField: 'path' } : {}),
+      ...(bindings ? { [bindings]: 'binding' } : {}),
+      ...(grid ? { grid: { size: 32 } } : {}),
+    } });
+    try {
+      const anchor = document.createElement('button');
+      f.stageEl.append(anchor);
+      const rail = f.stageEl.querySelector('.fc-toolbar')!;
+      const railCount = rail.querySelectorAll('button').length;
+      const line = rail.querySelector<HTMLButtonElement>('.fc-btn-line');
+      const pen = rail.querySelector<HTMLButtonElement>('.fc-btn-pen');
+      const snap = rail.querySelector('[aria-label="Snap to grid"]');
+      const existingKeys = (): string[] => [...document.querySelectorAll<HTMLElement>('.fc-popover [data-pop]')].map(row => row.dataset.pop!);
+      f.design.openLollyMenu(anchor);
+      const wideKeys = existingKeys();
+      f.design.openAddMenu!(anchor);
+      assert.deepEqual([...document.querySelectorAll('.fc-pop-item')].map(row => row.textContent), ['Box', 'Artboard']);
+
+      f.stageEl.dataset.designLayout = 'compact';
+      f.design.openAddMenu!(anchor);
+      for (const tool of ['line', 'pen', 'pencil']) assert.equal(!!compactMenuRow(tool), tool === 'line' ? !!line : !!pen);
+      const addRows = [...document.querySelectorAll<HTMLElement>('.fc-pop-item')];
+      assert.deepEqual(addRows.slice(0, 2).map(row => row.textContent), ['Box', 'Artboard']);
+      assert.deepEqual(addRows.slice(2).map(row => row.dataset.pop), path ? ['line', 'pen', 'pencil'] : []);
+      assert.equal(!!document.querySelector('.fc-popover [role="separator"]'), path);
+      if (path) {
+        // One word each. The rail's tooltip also gives a shortcut and a hold gesture,
+        // and a phone has neither.
+        assert.deepEqual(['line', 'pen', 'pencil'].map(tool => compactMenuRow(tool)!.textContent), ['Line', 'Pen', 'Pencil']);
+        assert.equal(compactMenuRow('line')!.querySelector('svg')!.innerHTML, line!.querySelector('svg')!.innerHTML);
+        for (const tool of ['pen', 'pencil']) {
+          assert.equal(compactMenuRow(tool)!.querySelector('svg')!.innerHTML, pen!.querySelector(`.fc-slot-${tool}`)!.innerHTML);
+        }
+      }
+      f.design.openLollyMenu(anchor);
+      assert.equal(!!compactMenuRow('edit-points'), !!pen);
+      assert.equal(!!compactMenuRow('auto-arrange'), !!line?.hasAttribute('aria-haspopup'));
+      assert.equal(!!compactMenuRow('snap-grid'), !!snap);
+      assert.deepEqual(existingKeys().filter(key => !['edit-points', 'auto-arrange', 'snap-grid'].includes(key)), wideKeys);
+      if (grid) {
+        assert.equal(compactMenuRow('snap-grid')!.getAttribute('role'), 'menuitemcheckbox');
+        assert.equal(compactMenuRow('snap-grid')!.getAttribute('aria-checked'), snap!.getAttribute('aria-pressed'));
+      }
+      f.stageEl.dataset.designLayout = 'wide';
+      f.design.openLollyMenu(anchor);
+      assert.deepEqual(existingKeys(), wideKeys);
+      assert.equal(rail.querySelectorAll('button').length, railCount);
+    } finally { f.destroy(); }
+  });
+}
+
+for (const [tool, activeClass] of [['line', 'fc-lining'], ['pen', 'fc-penning'], ['pencil', 'fc-penciling']]) {
+  test(`compact Add starts ${tool} and Done returns to the pointer`, async () => {
+    const f = mount([], { canvas: { pathField: 'path' } });
+    const oldWidth = window.innerWidth;
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 });
+    const panels = mountDesignPanels({
+      stage: f.stageEl, canvas: f.canvasEl, design: f.design,
+      navigator: { isOpen: () => false, width: () => 0, setOpen() {} } as never,
+      inspector: { isOpen: () => false, setOpen() {} } as never,
+      more: anchor => f.design.openLollyMenu(anchor),
+    });
+    const paint = (): Promise<void> => new Promise(resolve => requestAnimationFrame(() => resolve()));
+    try {
+      const bar = f.stageEl.querySelector<HTMLElement>('.design-compact-actions')!;
+      const done = bar.querySelector<HTMLButtonElement>('.design-text-done')!;
+      assert.equal(done.hidden, true);
+      [...bar.querySelectorAll('button')].find(button => button.textContent === 'Add')!.click();
+      compactMenuRow(tool!)!.click();
+      assert.equal(document.querySelector('.fc-popover'), null);
+      assert.equal(f.stageEl.classList.contains(activeClass!), true);
+      await paint();
+      assert.equal(done.hidden, false);
+      done.click();
+      await paint();
+      assert.equal(f.stageEl.matches('.fc-lining, .fc-penning, .fc-penciling'), false);
+      assert.equal(f.stageEl.querySelector('.fc-btn-pointer')!.getAttribute('aria-pressed'), 'true');
+      assert.equal(done.hidden, true);
+    } finally {
+      panels.destroy(); f.destroy();
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: oldWidth });
+    }
+  });
+}
+
+test('compact More shares auto-arrange and grid snap with the rail', () => {
+  const initial = [childBox('a', '', 10), childBox('b', '', 200),
+    { kind: 'path', id: 'link', x: 0, y: 0, w: 100, h: 100, bindStart: 'a', bindEnd: 'b' } as Box];
+  const f = mount(initial, { canvas: {
+    pathField: 'path', bindStartField: 'bindStart', bindEndField: 'bindEnd', grid: { size: 32, default: false },
+  } });
+  try {
+    const anchor = document.createElement('button');
+    f.stageEl.append(anchor);
+    f.stageEl.dataset.designLayout = 'compact';
+    const snap = f.stageEl.querySelector<HTMLButtonElement>('[aria-label="Snap to grid"]')!;
+    f.design.openLollyMenu(anchor);
+    assert.equal(compactMenuRow('snap-grid')!.getAttribute('aria-checked'), 'false');
+    compactMenuRow('auto-arrange')!.click();
+    assert.equal(document.querySelector('.fc-popover'), null);
+    assert.equal(f.commits(), 1);
+    assert.equal(f.boxes()[0]!.x, 450);
+    assert.ok(Number(f.boxes()[1]!.y) > Number(f.boxes()[0]!.y));
+    const arranged = structuredClone(f.boxes());
+    f.design.openLollyMenu(anchor);
+    compactMenuRow('snap-grid')!.click();
+    assert.equal(document.querySelector('.fc-popover'), null);
+    assert.equal(snap.getAttribute('aria-pressed'), 'true');
+    assert.equal(snap.classList.contains('is-armed'), true);
+    f.design.openLollyMenu(anchor);
+    assert.equal(compactMenuRow('snap-grid')!.getAttribute('aria-checked'), 'true');
+    compactMenuRow('auto-arrange')!.click();
+    assert.equal(f.boxes()[0]!.x, 448);
+    assert.equal(f.commits(), 2);
+
+    f.stageEl.dataset.designLayout = 'wide';
+    snap.click();
+    assert.equal(snap.getAttribute('aria-pressed'), 'false');
+    const line = f.stageEl.querySelector<HTMLButtonElement>('.fc-btn-line')!;
+    line.dispatchEvent(new W.MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+    [...document.querySelectorAll<HTMLButtonElement>('.fc-pop-item')].find(row => row.textContent === 'Auto-arrange the connected cards')!.click();
+    assert.deepEqual(f.boxes(), arranged);
+    assert.equal(f.commits(), 3);
+    f.stageEl.dataset.designLayout = 'compact';
+    f.design.openLollyMenu(anchor);
+    assert.equal(compactMenuRow('snap-grid')!.getAttribute('aria-checked'), 'false');
   } finally { f.destroy(); }
 });

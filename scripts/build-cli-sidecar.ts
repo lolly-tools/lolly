@@ -232,6 +232,9 @@ const result = await build({
     cli: join(REPO, 'shells/cli/bin/lolly.ts'),
     tui: join(REPO, 'shells/tui/src/main.tsx'),
     'rebrand-worker': join(REPO, 'shells/cli/src/rebrand-worker.ts'),
+    // Each WOFF2 font decodes in a worker thread of its own (woff2-node.ts looks for
+    // `./_woff2-worker.js` beside its chunk), so the decoder rides along inlined.
+    '_woff2-worker': join(REPO, 'packages/node-shell/src/woff2-worker.ts'),
   },
   outdir: join(LIB, 'dist'),
   bundle: true,
@@ -255,7 +258,7 @@ const result = await build({
 });
 
 const outputs = Object.keys(result.metafile.outputs);
-for (const name of ['cli', 'tui', 'rebrand-worker']) {
+for (const name of ['cli', 'tui', 'rebrand-worker', '_woff2-worker']) {
   if (!outputs.some(o => o.endsWith(`/dist/${name}.js`))) {
     throw new Error(`esbuild produced no dist/${name}.js (outputs: ${outputs.join(', ')})`);
   }

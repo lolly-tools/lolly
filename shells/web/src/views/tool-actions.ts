@@ -17,7 +17,7 @@ import { marksToCsv } from '../lib/print-marks-csv.ts';
 import { documentWords, mountActionHistory } from './tool-revision-history.ts';
 import type { ActionsApi, ActionsExperience, ExportDefaults, ExportUnscaled, PanelEl, ToolRuntime, WebToolHost } from './tool.ts';
 import { c2paDefaultOn } from '../lib/c2pa-policy.ts';
-import { extFor, isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks } from './tool-actions/shared.ts';
+import { extFor, isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks, spotsAsProcessChecked } from './tool-actions/shared.ts';
 import type { ActionsCtx } from './tool-actions/context.ts';
 import { savingOps } from './tool-actions/saving.ts';
 import { formatRulesOps } from './tool-actions/format-rules.ts';
@@ -37,7 +37,7 @@ import { approvalStateOps } from './tool-actions/approval-state.ts';
 import { startingFormat } from '../lib/touch-export-format.ts';
 
 
-export { captureThumbnail, exportTargetNode, flatExportNode } from './tool-action-helpers.ts';
+export { captureThumbnail, capturePreview, exportTargetNode, flatExportNode } from './tool-action-helpers.ts';
 
 // Content Credentials default: the shared policy in lib/c2pa-policy.ts (also
 // applied by the offscreen batch/zip renderer, so zips sign like this button).
@@ -232,6 +232,7 @@ function renderActions(
   ta.genWavKey = '';
   ta.songWavUrl = null; // a rondocode song's audition WAV, revoked when replaced
   ta.songNoteNames = []; // the songs the sheet says the next credential records (notes.ts)
+  ta.tuneNoteNames = []; // and the saved tunes
   ta.songNoteSeq = 0;
   ta.songNoteTimer = null;
 
@@ -275,6 +276,8 @@ function renderActions(
   ta.wiring.readPassword();
 
   ta.wiring.wirePrint();
+
+  ta.refresh.wireSpotsToggle();
 
   ta.wiring.wireC2pa();
   // Whether the dimension fields still hold their manifest-derived defaults.
@@ -448,4 +451,5 @@ export {
   readBleed,
   readMarks,
   renderActions,
+  spotsAsProcessChecked,
 };

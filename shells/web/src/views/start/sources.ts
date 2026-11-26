@@ -7,6 +7,7 @@
  * function as a value (an event listener), goes through `start.<module>.<fn>`. Extracted verbatim
  * from mountStart() by scripts/split-closure.ts.
  */
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import { mountModal } from '../../components/modal.ts';
 import { updateRouteParams } from '../../lib/url-state.ts';
 import { adoptionOf } from '../../lib/design-system/adoption-material.ts';
@@ -120,8 +121,7 @@ export function openImport(start: StartCtx, source: StartSource | null = null): 
            card fills the screen and neither is something you can see. -->
       <div class="start-import-head">
         <h2 class="modal-title">${t('Add from…')}</h2>
-        <button type="button" class="start-import-close" data-ds-src-close
-          aria-label="${escapeText(t('Close'))}">&#x2715;</button>
+        ${closeButtonHtml({ className: 'start-import-close', attrs: { 'data-ds-src-close': true } })}
       </div>
       <p class="modal-msg" data-ds-src-intro>${t('Bring across what you already have. Everything is read on this device.')}</p>
       <ul class="ds-src-tiles" role="list" data-ds-src-tiles>

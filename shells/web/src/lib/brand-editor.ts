@@ -93,6 +93,7 @@ import { gridOps } from './brand-editor/grid.ts';
 import { addColorOps } from './brand-editor/add-color.ts';
 import { rolesOps } from './brand-editor/roles.ts';
 import { colourwaysOps } from './brand-editor/colourways.ts';
+import { colourRolesOps } from './brand-editor/colour-roles.ts';
 import { typeOps } from './brand-editor/type.ts';
 import { compareStageOps } from './brand-editor/compare-stage.ts';
 import { logosOps } from './brand-editor/logos.ts';
@@ -202,6 +203,8 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   bedit.addColor = addColorOps(bedit);
   bedit.roles = rolesOps(bedit);
   bedit.colourways = colourwaysOps(bedit);
+  bedit.colourRoles = colourRolesOps(bedit);
+  bedit.rolesRoom = null;
   bedit.type = typeOps(bedit);
   bedit.compareStage = compareStageOps(bedit);
   bedit.logos = logosOps(bedit);
@@ -545,6 +548,8 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
   bedit.roles.wireRolesStrip();
   // The colourway the strip edits, chosen above it (plans/319 A3).
   bedit.colourways.wireColourways();
+  // The vocabulary those colourways hold values for (plans/352).
+  bedit.colourRoles.wireColourRoles();
 
   await bedit.roles.wireUseAs();
 
@@ -684,7 +689,7 @@ export async function mountBrandEditor(root: HTMLElement, host: EditorHost, opts
     reload: bedit.pack.reload,
     // The host calls this on every room change, which is also when a post-add
     // chip stops being about anything the person can see.
-    closeOverlays: () => { bedit.swatchEditor.closeEditor(); bedit.addColor.clearAddedChip(); bedit.roleChips?.close(); },
+    closeOverlays: () => { bedit.swatchEditor.closeEditor(); bedit.addColor.clearAddedChip(); bedit.roleChips?.close(); bedit.rolesRoom?.close(); },
     onPalette: (cb) => { paletteObservers.add(cb); return () => { paletteObservers.delete(cb); }; },
     openColorChart: () => {
       if (!bedit.chartDetails) return false;

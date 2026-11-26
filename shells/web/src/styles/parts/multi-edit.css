@@ -114,7 +114,7 @@
   padding: .65rem .8rem; cursor: pointer; list-style: none;
   user-select: none;
 }
-.me-card > summary::-webkit-details-marker { display: none; }
+.me-card > summary::after { content: none; }
 .me-card > summary::before {
   content: ""; flex: 0 0 auto; align-self: center;
   width: .45rem; height: .45rem;

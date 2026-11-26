@@ -13,12 +13,12 @@
     },
     {
       "name": "libopenmpt-wasm",
-      "version": "0.8.7",
+      "version": "0.8.10",
       "license": "BSD-3-Clause",
       "path": "shells/web/src/vendor/libopenmpt/libopenmpt.mjs",
-      "sha256": "eefd22838a75987983582c5cc8b8371d721a1a06711cbaa6baf16704743b3b2f",
+      "sha256": "43b00b85466d3ebe5cb6693f87810f42487cc4b921d623cec8f5e665054a8e24",
       "repository": "https://lib.openmpt.org/",
-      "source": "https://lib.openmpt.org/files/libopenmpt/src/libopenmpt-0.8.7+release.makefile.tar.gz",
+      "source": "https://lib.openmpt.org/files/libopenmpt/src/libopenmpt-0.8.10+release.makefile.tar.gz",
       "localChanges": false
     },
     {
@@ -39,6 +39,86 @@
       "sha256": "be2d6bdad6e0508f3a486659893748eebc7063933e53dbb917da8cfa8028f20e",
       "repository": "https://github.com/storytold/craft-libs",
       "source": "https://github.com/storytold/craft-libs/blob/f8f8829cc7be65d466d687dae381d1ca60e31242/crates/cms/profiles/craft-coated-fogra39.icc",
+      "localChanges": false
+    },
+    {
+      "name": "@hayderkg/detent",
+      "version": "0.1.1",
+      "license": "MIT",
+      "path": "shells/web/src/lib/detent-physics.ts",
+      "sha256": "379de0c4f337b86bb91815b4497d4f4ae9953b3f2b1c8999eb06a66bad97fe73",
+      "repository": "https://github.com/hayderkg/detent",
+      "source": "https://github.com/hayderkg/detent/tree/2887e4abcc3ddfbdb3f2b76bec6049665e1bbb94/src",
+      "localChanges": true
+    },
+    {
+      "name": "libjxl",
+      "version": "0.13.0",
+      "license": "BSD-3-Clause",
+      "path": "packages/node-shell/wasm/jxl/lolly-jxl.wasm",
+      "sha256": "5f688a3590bccf90fa65e5a70629840a5db6d50781d3681a86394631f11ec982",
+      "repository": "https://github.com/libjxl/libjxl",
+      "source": "https://github.com/libjxl/libjxl/tree/5a7da83447212fe4900fc29ce97430b881caa67e",
+      "localChanges": false
+    },
+    {
+      "name": "brotli",
+      "version": "1.2.1",
+      "license": "MIT",
+      "path": "packages/node-shell/wasm/jxl/lolly-jxl.wasm",
+      "sha256": "5f688a3590bccf90fa65e5a70629840a5db6d50781d3681a86394631f11ec982",
+      "repository": "https://github.com/google/brotli",
+      "source": "https://github.com/google/brotli/tree/db24a98aed38a16de78cc05ca15cdd8dc2a0d92d",
+      "localChanges": false
+    },
+    {
+      "name": "highway",
+      "version": "1.2.0",
+      "license": "Apache-2.0 OR BSD-3-Clause",
+      "path": "packages/node-shell/wasm/jxl/lolly-jxl.wasm",
+      "sha256": "5f688a3590bccf90fa65e5a70629840a5db6d50781d3681a86394631f11ec982",
+      "repository": "https://github.com/google/highway",
+      "source": "https://github.com/google/highway/tree/457c891775a7397bdb0376bb1031e6e027af1c48",
+      "localChanges": false
+    },
+    {
+      "name": "skcms",
+      "version": "96d9171c94b937a1b5f0293de7309ac16311b722",
+      "license": "BSD-3-Clause",
+      "path": "packages/node-shell/wasm/jxl/lolly-jxl.wasm",
+      "sha256": "5f688a3590bccf90fa65e5a70629840a5db6d50781d3681a86394631f11ec982",
+      "repository": "https://github.com/google/skcms",
+      "source": "https://github.com/google/skcms/tree/96d9171c94b937a1b5f0293de7309ac16311b722",
+      "localChanges": false
+    },
+    {
+      "name": "@babel/standalone",
+      "version": "8.0.4",
+      "license": "MIT",
+      "path": "community/sandbox/lib/babel.min.js",
+      "sha256": "9a4b639c5c1e174ec4702ed5ba6cc897dd8dcbbb6faf59c3a4b817a896c8ae2f",
+      "repository": "https://github.com/babel/babel",
+      "source": "https://registry.npmjs.org/@babel/standalone/-/standalone-8.0.4.tgz",
+      "localChanges": false
+    },
+    {
+      "name": "react",
+      "version": "18.3.1",
+      "license": "MIT",
+      "path": "community/sandbox/lib/react.production.min.js",
+      "sha256": "d949f1c3687aedadcedac85261865f29b17cd273997e7f6b2bfc53b2f9d4c4dd",
+      "repository": "https://github.com/facebook/react",
+      "source": "https://registry.npmjs.org/react/-/react-18.3.1.tgz",
+      "localChanges": false
+    },
+    {
+      "name": "react-dom",
+      "version": "18.3.1",
+      "license": "MIT",
+      "path": "community/sandbox/lib/react-dom.production.min.js",
+      "sha256": "35f4f974f4b2bcd44da73963347f8952e341f83909e4498227d4e26b98f66f0d",
+      "repository": "https://github.com/facebook/react",
+      "source": "https://registry.npmjs.org/react-dom/-/react-dom-18.3.1.tgz",
       "localChanges": false
     }
   ],

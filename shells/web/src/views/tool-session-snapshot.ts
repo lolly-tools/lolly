@@ -5,6 +5,8 @@ import type { EmojiStyleV1 } from '@lolly-tools/core';
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import { tokenRestoreRefsOf } from '../../../../engine/src/inputs.ts';
+import { readPartnerKitAttachment } from '../../../../engine/src/url-mode.ts';
+import type { PartnerKitAttachmentV1 } from '@lolly-tools/core/partner-kit-v1';
 import type { ToolRuntime, ActionsExperience } from './tool.ts';
 import type { SavedStateData } from '../bridge/state.ts';
 
@@ -15,10 +17,27 @@ export function sessionInputValues(runtime: Pick<ToolRuntime, 'getModel'>): Reco
   return Object.fromEntries(runtime.getModel().map((i) => [i.id, i.value]));
 }
 
+/** What a saved document carries beside its inputs and export settings. */
+export interface SnapshotExtras {
+  /**
+   * The partner kit the piece carries as a guest (plans/82 M8), saved as `__partnerKit`
+   * the way `__tokenSelection` is. Absent, or an attachment that does not read, saves
+   * nothing, so a piece with no kit keeps the bytes it always had.
+   */
+  partnerKit?: PartnerKitAttachmentV1 | null;
+}
+
+/** The partner kit a saved document carries (`__partnerKit`), or null when it has none that reads. */
+export function savedPartnerKit(values: Readonly<Record<string, unknown>> | null | undefined): PartnerKitAttachmentV1 | null {
+  // The record's own key only, never one its prototype supplies.
+  return values && Object.hasOwn(values, '__partnerKit') ? readPartnerKitAttachment(values.__partnerKit) : null;
+}
+
 export function snapshotSession(el: HTMLElement | null, manifest: ToolManifest, runtime: ToolRuntime,
   experience: ActionsExperience, readBleed: (el: Element | null) => string,
-  readMarks: (el: Element | null) => string): SavedStateData & { __export_format: string } {
+  readMarks: (el: Element | null) => string, extras: SnapshotExtras = {}): SavedStateData & { __export_format: string } {
     const values = sessionInputValues(runtime);
+    const partnerKit = readPartnerKitAttachment(extras.partnerKit);
     // The effective export format (user-selected, or the tool's default). Drives
     // a vector (SVG) thumbnail for vector tools - see captureThumbnail.
     const fmt = el?.querySelector<HTMLSelectElement>('[data-action="format"]')?.value ?? '';
@@ -32,6 +51,7 @@ export function snapshotSession(el: HTMLElement | null, manifest: ToolManifest, 
       ...values,
       ...(Object.keys(tokenRestoreRefsOf(runtime.getModel())).length ? { __tokenLinks: tokenRestoreRefsOf(runtime.getModel()) } : {}),
       ...(runtime.tokenSelection ? { __tokenSelection: structuredClone(runtime.tokenSelection) } : {}),
+      ...(partnerKit ? { __partnerKit: partnerKit } : {}),
       ...(runtime.emoji?.style ? { __emoji: emojiParams(runtime.emoji.style), __emojiAssets: runtime.emoji.assets ?? [] } : { __emoji: { emoji: 'none', emojifx: '' }, __emojiAssets: [] }),
       ...meta,
       __emojiUsage: runtime.emoji?.sources?.map(({ pack, assetId }) => ({ packId: pack.id, version: pack.pin.version, checksum: pack.checksum, assetId })),
@@ -105,8 +125,9 @@ export function awaitsEmojiPins(data: Readonly<Record<string, unknown>>): boolea
  * What a TEMPLATE keeps from a saved document (plans/226). A template is a starting
  * point, so it drops the per-document identity - the title (`__label`, and its twin
  * `__export_filename`, which would otherwise name every document it seeds) and the
- * tool stamp (the record carries `toolId`) - and every `file` input, whose value is bytes
- * in memory rather than a seed. Everything else stays verbatim, including the
+ * tool stamp (the record carries `toolId`), the partner kit attachment (`__partnerKit`:
+ * a partner's new work takes its own company's kit when it starts, never one a template
+ * carried) - and every `file` input, whose value is bytes in memory rather than a seed. Everything else stays verbatim, including the
  * `__export_*` settings, so a template opens at the size, format and dpi it was saved
  * at. The same helper feeds the editor's "Save as a template" and the Projects
  * "Save as a template..." on a session tile, so the two produce identical records.
@@ -116,15 +137,19 @@ export function templateValuesFromSnapshot(
   manifest: { inputs?: ReadonlyArray<{ id: string; type?: string }> },
 ): Record<string, unknown> {
   const fileInputs = new Set((manifest.inputs ?? []).filter((i) => i.type === 'file').map((i) => i.id));
+  // An ordinary object, as every caller expects, filled with data properties, so a key
+  // is only ever a value: an input called `constructor` or `prototype` keeps its
+  // value, no setter runs, and nothing a template drops (such as `__partnerKit`) can
+  // come back through the prototype. `__proto__` itself is never a value a template carries.
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(snapshot)) {
-    if (TEMPLATE_DROPPED_KEYS.has(key) || fileInputs.has(key) || value === undefined) continue;
-    out[key] = value;
+    if (key === '__proto__' || TEMPLATE_DROPPED_KEYS.has(key) || fileInputs.has(key) || value === undefined) continue;
+    Object.defineProperty(out, key, { value, enumerable: true, writable: true, configurable: true });
   }
   return out;
 }
 
 /** The per-document keys a template never carries (see templateValuesFromSnapshot). */
 export const TEMPLATE_DROPPED_KEYS: ReadonlySet<string> = new Set([
-  '__label', '__toolId', '__toolVersion', '__export_filename',
+  '__label', '__toolId', '__toolVersion', '__export_filename', '__partnerKit',
 ]);

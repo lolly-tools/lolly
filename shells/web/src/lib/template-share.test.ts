@@ -98,11 +98,10 @@ test('brand-locked catalog art a template points at never rides along', async ()
   assert.equal(byId['suse/logo/primary']!.licensed, true);
 });
 
-test('catalog art with no licence recorded stays home, and CREDITS.txt gives the reason', async () => {
-  // BEHAVIOUR CHANGE (plan 253): this path used to match the licence label against
-  // `proprietary|all-rights-reserved|licenseref|premiumbeat` and let everything else
-  // travel, so art with no licence at all was passed on. It now takes the same
-  // redistribution() answer as a session share.
+test('catalog art with no licence recorded travels with a warning, an uninterpreted licence stays home, and CREDITS.txt says which is which', async () => {
+  // Plan 253 replaced a label regex with the redistribution() answer, which held back art
+  // with no licence recorded. Andy, 2026-11-12: warn, do not stop, so such art travels and
+  // is named; a recorded licence that is not yet interpreted is still held back.
   const svg = (n: number) => new Blob([new Uint8Array([60, 115, 118, 103, n])], { type: 'image/svg+xml' });
   const { host, out } = shareHost({
     blobs: {
@@ -123,9 +122,9 @@ test('catalog art with no licence recorded stays home, and CREDITS.txt gives the
   const byId = Object.fromEntries(parsed.manifest.assets.map(a => [a.id, a]));
 
   const unmarked = byId['lolly-start/pattern/unmarked']!;
-  assert.equal(unmarked.kind, 'asset-ref', 'it used to travel by default; it no longer does');
-  assert.equal(unmarked.licensed, true);
-  assert.equal(unmarked.holdReason, 'licence not recorded');
+  assert.equal(unmarked.kind, 'asset', 'art with no licence recorded travels');
+  assert.equal(unmarked.licensed, undefined, 'and is not marked as held back');
+  assert.equal(unmarked.unrecorded, 'licence not recorded', 'with the warning recorded');
 
   const ref = byId['lolly-start/pattern/ref']!;
   assert.equal(ref.kind, 'asset-ref');
@@ -136,9 +135,9 @@ test('catalog art with no licence recorded stays home, and CREDITS.txt gives the
   assert.equal(lorikeet.licence, 'CC BY 4.0');
 
   const credits = new TextDecoder().decode(parsed.files['CREDITS.txt']!);
-  assert.ok(credits.includes('Held back (2)'));
+  assert.ok(credits.includes('Held back (1)'));
   assert.ok(credits.includes('Unmarked pattern (lolly-start/pattern/unmarked)'));
-  assert.ok(credits.includes('reason:  licence not recorded'));
+  assert.ok(credits.includes('check:   licence not recorded; check the terms before you reuse or publish this work'), 'the recipient is asked to check');
   assert.ok(credits.includes('reason:  LicenseRef-acme-house is recorded and not yet interpreted'));
   assert.ok(credits.includes('credit:  Lorikeet by A. Person, CC BY 4.0.'), 'the carried work keeps its credit');
   assert.ok(parsed.manifest.integrity?.['CREDITS.txt'], 'the credits ride the integrity map');

@@ -1,6 +1,6 @@
 {
   "name": "QR কোড",
-  "description": "লিঙ্ক, কন্টাক্ট কার্ড, Wi-Fi নেটওয়ার্ক, ক্যালেন্ডার ইভেন্ট, লোকেশন বা সাধারণ টেক্সটের জন্য QR কোড।",
+  "description": "সব ধরনের স্ক্যানযোগ্য কোড: QR, Micro QR, Data Matrix, Aztec ও PDF417 - সঙ্গে EAN-13 থেকে MaxiCode পর্যন্ত খুচরা ও লজিস্টিক বারকোড।",
   "a11yLabel": "QR কোড, লিঙ্ক: {{default url \"(no URL set)\"}}",
   "featured.blurb": "যেকোনো ব্র্যান্ড রঙে QR কোড",
   "inputs.url.label": "URL",

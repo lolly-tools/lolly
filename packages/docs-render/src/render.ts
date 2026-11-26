@@ -7,8 +7,9 @@
 
 import { esc } from './esc.ts';
 import { PROV_SEAL, headingId, parseCells, stripAuthoringComments } from './markdown.ts';
-import { COMPONENT_GLYPH, bodyHasHeading, codeBlock, detailsBlock, fenceCopies, fenceCopyMode, fenceLabel, noteBlock, parseComponentFence, parseFenceInfo } from './components.ts';
+import { COMPONENT_GLYPH, bodyHasHeading, codeBlock, detailsBlock, fenceCopies, fenceCopyMode, fenceLabel, logoStrip, noteBlock, parseComponentFence, parseFenceInfo, pillarsBlock, sectionIcon, stepsBlock } from './components.ts';
 import { renderCredential } from './credential.ts';
+import { codeRunsHtml, isShellLang, shellRuns } from './shell-highlight.ts';
 import { parseFigureFence, figureBlock } from './art.ts';
 import type { DocsRenderContext } from './context.ts';
 
@@ -23,6 +24,10 @@ function shotTry(file: string, ctx: DocsRenderContext): string {
 // before the image sets the plate a mark is drawn for (a reverse mark needs a dark one).
 const PICTURE_GROUND = /^<!--g:(light|dark|brand)-->\s*/;
 const PICTURE_ITEM = /^(!\[[^\]]*\]\([^)\s]+\))\s*([\s\S]*)$/;
+// `::: intro <icon>`: a subject page's opening paragraph, led by the subject's doc icon.
+const INTRO_FENCE = /^intro(?:\s+([a-z0-9-]+))?$/;
+// `::: pillars <figure-id> …`: the few things a page stands on, as one row of cards.
+const PILLARS_FENCE = /^pillars((?:\s+[a-z0-9][a-z0-9-]*)*)$/;
 
 export function inline(text: string, ctx: DocsRenderContext): string {
   let s = esc(text);
@@ -203,6 +208,87 @@ function buildFigure(id: string, body: string, ctx: DocsRenderContext): string {
   });
 }
 
+/**
+ * The layout fences: each draws an ordinary Markdown body in a shape, so the markdown twin
+ * and the console still read the body as written. Null for any other label.
+ */
+function layoutFence(label: string, body: string, ctx: DocsRenderContext): string | null {
+  if (label === 'cols') {
+    const parts = body.split(/\n(?=## )/).filter(p => p.trim());
+    return `<div class="md-cols">${parts.map(part => `<div class="md-col">${mdToHtml(part, ctx)}</div>`).join('')}</div>`;
+  }
+  if (label === 'timeline') return `<div class="md-timeline">${mdToHtml(body, ctx)}</div>`;
+  // An icon list drawn as a grid of cards. An item that opens with a bold link
+  // makes the whole card that link (the stylesheet stretches it); the body stays
+  // an ordinary list, so the markdown twin and the console read a plain list.
+  if (label === 'cards') return `<div class="md-cards">${mdToHtml(body, ctx)}</div>`;
+  // The same cards in reading order: a numbered row, for the few steps a page walks through.
+  if (label === 'steps') return stepsBlock(mdToHtml(body, ctx));
+  if (label === 'logos') return buildLogos(body, ctx);
+  const pillars = PILLARS_FENCE.exec(label);
+  if (pillars) return buildPillars(pillars[1]!.trim().split(/\s+/).filter(Boolean), body, ctx);
+  if (INTRO_FENCE.test(label)) {
+    // A subject page's opening: its icon beside the paragraph that says what the
+    // subject covers. The icon is decoration, so a reader without it loses nothing.
+    const key = INTRO_FENCE.exec(label)![1];
+    const glyph = key ? ctx.docIcon(key) : '';
+    return `<div class="md-intro">${glyph ? `<span class="md-intro-icon" aria-hidden="true">${glyph}</span>` : ''}<div class="md-intro-body">${mdToHtml(body, ctx)}</div></div>`;
+  }
+  return null;
+}
+
+/**
+ * `::: pillars <figure-id> …` - each `## ` section is a card, led by the banked figure
+ * named at the same position on the opening line (docs/figures/<id>.svg). The ids are
+ * canonical, the same in every locale copy, as a `::: figure` id is, so a translated page
+ * changes only the words inside. The picture illustrates the heading below, so a screen
+ * reader skips the picture; the credential mark beside the picture stays reachable.
+ */
+function buildPillars(ids: string[], body: string, ctx: DocsRenderContext): string {
+  const parts = body.split(/\n(?=## )/).filter(p => p.trim());
+  if (ids.length !== parts.length) {
+    console.warn(`⚠  ::: pillars names ${ids.length} figure(s) for ${parts.length} section(s); a card without one shows no picture`);
+  }
+  return pillarsBlock(parts.map((part, n) => {
+    const id = ids[n];
+    const art = id ? ctx.art('figures', id) : null;
+    if (id && !art) console.warn(`⚠  ::: pillars - no docs/figures/${id}.svg (or it did not inline); its card shows no picture`);
+    const credential = art
+      ? renderCredential(ctx.credential(art.file, { assetSrc: art.src, art: true }), { file: art.file, extraClass: 'shot-cred--pillar', fromPresent: true }, ctx)
+      : '';
+    if (art && !credential) console.warn(`⚠  ::: pillars - ${art.file} carries no readable Content Credential; run 'node scripts/sign-docs-art.ts'`);
+    return { art: art?.html ?? '', credential, bodyHtml: mdToHtml(part, ctx) };
+  }), ctx.docIcon('chrome-arrow'));
+}
+
+/** `::: logos` - the marks a page is about, each with its alt text as its visible name. */
+function buildLogos(body: string, ctx: DocsRenderContext): string {
+  const marks = [...body.matchAll(/!\[([^\]]*)\]\(([^)\s]+)\)/g)].map(m => ({
+    // The name is printed beside the mark, so the image itself is silent.
+    imgHtml: inline(`![](${m[2]})`, ctx),
+    nameHtml: esc(m[1]!.trim()),
+  }));
+  if (!marks.length) {
+    console.warn('⚠  ::: logos holds no images; its body renders as plain Markdown');
+    return mdToHtml(body, ctx);
+  }
+  return logoStrip(marks);
+}
+
+/**
+ * A whole line that is a block of its own: `<!--lb:kubernetes helm-->` is a row of
+ * technology marks, and `<!--i:eti-flask-->` is the large icon that opens the next
+ * section. Null for any other line.
+ */
+function markerBlock(line: string, ctx: DocsRenderContext): string | null {
+  const t = line.trim();
+  const lb = /^<!--lb:([a-z0-9 -]+)-->$/.exec(t);
+  if (lb) return ctx.docLogoBlock(lb[1]!.trim().split(/\s+/));
+  const icon = /^<!--i:([a-z-]+)-->$/.exec(t);
+  if (icon) return sectionIcon(ctx.docIcon(icon[1]!));
+  return null;
+}
+
 export function mdToHtml(md: string, ctx: DocsRenderContext): string {
   const lines = stripAuthoringComments(md).split('\n');
   const out: string[] = [];
@@ -216,9 +302,13 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
     // as code, so it keeps the bare element that page's styles expect. The info string
     // is kept from the removed docs narration, which skipped these verses.
     if (lang === 'narrate-skip') return `<pre><code class="language-narrate-skip">${esc(code.join('\n'))}</code></pre>`;
+    // A shell example is drawn as a terminal (shell-highlight.ts); any other block is plain.
+    const text = code.join('\n');
+    const wrap = flags.has('wrap');
+    const runs = isShellLang(lang) ? shellRuns(text) : [{ kind: '' as const, text }];
     return codeBlock({
-      lang, label: fenceLabel(lang, ctx.t), copy: fenceCopies(lang, flags), copyMode: fenceCopyMode(lang), wrap: flags.has('wrap'),
-      codeHtml: esc(code.join('\n')),
+      lang, label: fenceLabel(lang, ctx.t), copy: fenceCopies(lang, flags), copyMode: fenceCopyMode(lang), wrap,
+      codeHtml: codeRunsHtml(runs, wrap), wrapped: true,
     });
   };
   /** Reads the fence opening at lines[i] and moves i past its closing line. An unindented
@@ -269,11 +359,9 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
       }
       i++; // the closing fence
       const body = inner.join('\n');
-      if (label === 'cols') {
-        const parts = body.split(/\n(?=## )/).filter(p => p.trim());
-        out.push(`<div class="md-cols">${parts.map(part => `<div class="md-col">${mdToHtml(part, ctx)}</div>`).join('')}</div>`);
-      } else if (label === 'timeline') {
-        out.push(`<div class="md-timeline">${mdToHtml(body, ctx)}</div>`);
+      const layout = layoutFence(label, body, ctx);
+      if (layout !== null) {
+        out.push(layout);
       } else if (label === 'showcase') {
         out.push(buildShowcase(body, ctx));
       } else if (parseFigureFence(label)) {
@@ -301,10 +389,9 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
       continue;
     }
 
-    // A whole-line `<!--lb:kubernetes helm-->` is a block of its own.
-    const lb = /^<!--lb:([a-z0-9 -]+)-->$/.exec(line.trim());
-    if (lb) {
-      out.push(ctx.docLogoBlock(lb[1]!.trim().split(/\s+/)));
+    const marker = markerBlock(line, ctx);
+    if (marker !== null) {
+      out.push(marker);
       i++; continue;
     }
 

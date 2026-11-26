@@ -10,6 +10,7 @@
 import { isDurableFmt } from '../export-durable-card.ts';
 import { isC2paFmt, isHdrFmt, isImprintFmt } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
+import { standardPdfPasswordIsTypable } from '../../lib/export-password.ts';
 
 // Print marks card: reveal its body when enabled, and hide the open-password
 // card while it's on (marks/bleed route through pdf-lib, which can't encrypt).
@@ -57,8 +58,9 @@ export function refreshPrintUi(ta: ActionsCtx): void {
   if (protectionEl) {
     // Print marks live in their own section now (data-printmarks-only), so the
     // protection wrapper's visibility does NOT include isPrintFmt.
+    const madeWithShown = el!.querySelector<HTMLElement>('[data-madewith-section]')?.hidden === false;
     const anyValid =
-      fmt === 'pdf' || fmt === 'pdf-cmyk' || fmt === 'zip' || isC2paFmt(fmt) || isImprintFmt(fmt) || ta.hasLicence;
+      fmt === 'pdf' || fmt === 'pdf-cmyk' || fmt === 'zip' || isC2paFmt(fmt) || isImprintFmt(fmt) || ta.hasLicence || madeWithShown;
     protectionEl.style.display = anyValid ? 'flex' : 'none';
   }
   // The audio / loudness / HDR fold: every child is gated by its own format flag, so
@@ -70,7 +72,32 @@ export function refreshPrintUi(ta: ActionsCtx): void {
     );
     videoOptions.hidden = empty;
   }
+  refreshSpotsUi(ta);
   refreshNotesHandoutUi(ta);
+}
+/**
+ * "Print spot inks as process" (engine 1.324): shown for the Print PDF, the one
+ * format that writes named spot plates, and only once the design system is known
+ * to declare a spot ink. A palette of finishes alone has nothing to convert, and an
+ * unresolved palette is not evidence of an ink. Called again when the palette arrives.
+ */
+export function refreshSpotsUi(ta: ActionsCtx): void {
+  const { el, formatEl, initialFmt } = ta;
+  const row = el?.querySelector<HTMLElement>('[data-spots-only]');
+  if (!row) return;
+  const fmt = formatEl?.value ?? initialFmt;
+  const palette = ta.palette;
+  const declaresInk = palette?.known === true && palette.value.some((s) => !!s.spot?.name && !s.spot.finish);
+  row.style.display = fmt === 'pdf-cmyk' && declaresInk ? 'flex' : 'none';
+}
+/** The box changes the plates, so the preflight counts and the address follow the box. */
+export function wireSpotsToggle(ta: ActionsCtx): void {
+  const { el, onUrlSync } = ta;
+  el?.querySelector<HTMLInputElement>('[data-action="cmyk-spots-process"]')?.addEventListener('change', () => {
+    ta.preflight.refreshPreflight();
+    onUrlSync?.('spots');
+  });
+  refreshSpotsUi(ta);
 }
 /** Design-only layout switch: a handout needs artboards and the multi-page RGB PDF path. */
 export function refreshNotesHandoutUi(ta: ActionsCtx): void {
@@ -87,7 +114,7 @@ export function refreshNotesHandoutUi(ta: ActionsCtx): void {
   }
 }
 export function refreshLockTier(ta: ActionsCtx): void {
-  const { STD_LOCK_HINT, STRONG_LOCK_HINT, el, formatEl, initialFmt, onUrlSync } = ta;
+  const { STD_LOCK_HINT, STRONG_LOCK_HINT, el, formatEl, initialFmt } = ta;
   const tierEl = el!.querySelector<HTMLSelectElement>('[data-action="pdf-lock-tier"]');
   if (!tierEl) return;
   const fmt = formatEl?.value ?? initialFmt;
@@ -96,7 +123,9 @@ export function refreshLockTier(ta: ActionsCtx): void {
     el!.querySelector<HTMLInputElement>('[data-action="print-enable"]')?.checked ?? false;
   // ZIP: both tiers always apply. PDF: RC4 "standard" needs a plain RGB pdf with no
   // finishing pass; print / CMYK / crop-marks force the strong (encrypt-last) tier.
-  const standardOk = isZip || (fmt === 'pdf' && !marksOn);
+  // A non-ASCII password opens nothing at the weak PDF tier, so it takes the strong one.
+  const typed = el!.querySelector<HTMLInputElement>('[data-action="pdf-password"]')?.value ?? '';
+  const standardOk = isZip || (fmt === 'pdf' && !marksOn && (!typed || standardPdfPasswordIsTypable(typed)));
   const stdOpt = tierEl.querySelector<HTMLOptionElement>('option[value="standard"]');
   if (stdOpt) stdOpt.disabled = !standardOk;
   if (!standardOk) tierEl.value = 'strong';
@@ -104,10 +133,7 @@ export function refreshLockTier(ta: ActionsCtx): void {
   // the tier is strong (whether force-flipped here or picked by the user).
   if (tierEl.value === 'strong' && ta.pwFromUrl) {
     const pwEl = el!.querySelector<HTMLInputElement>('[data-action="pdf-password"]');
-    if (pwEl?.value) {
-      pwEl.value = '';
-      onUrlSync?.('password');
-    }
+    if (pwEl?.value) pwEl.value = '';
     ta.pwFromUrl = false;
   }
   // The strength choice and its hint mean nothing without a password, so both
@@ -119,13 +145,13 @@ export function refreshLockTier(ta: ActionsCtx): void {
     hintEl.hidden = !hasPw;
     const strong = tierEl.value === 'strong';
     hintEl.textContent = strong
-      ? (standardOk ? '' : 'Print, CMYK and crop-marked PDFs use the strong lock. ') +
+      ? (standardOk ? '' : (fmt === 'pdf' && !marksOn ? 'A password with characters beyond plain ASCII uses the strong lock. ' : 'Print, CMYK and crop-marked PDFs use the strong lock. ')) +
         STRONG_LOCK_HINT
       : STD_LOCK_HINT;
   }
 }
 export function refreshC2paUi(ta: ActionsCtx, changed?: string): void {
-  const { c2paEl, formatEl, initialFmt, onUrlSync, pdfPassEl } = ta;
+  const { c2paEl, formatEl, initialFmt, pdfPassEl } = ta;
   if (!c2paEl) return;
   // The exclusion is a PDF-only fact (only an encrypted PDF can't take the
   // credential); on any other format a lingering password in the hidden
@@ -138,7 +164,6 @@ export function refreshC2paUi(ta: ActionsCtx, changed?: string): void {
   }
   if (changed === 'c2pa' && c2paEl.checked && pdfPassEl.value) {
     pdfPassEl.value = '';
-    onUrlSync?.('password');
     refreshLockTier(ta);
   }
   if (pdfPassEl.value) c2paEl.checked = false;
@@ -165,6 +190,8 @@ export function refreshOps(ta: ActionsCtx) {
     refreshNotesHandoutUi: bindOp(ta, refreshNotesHandoutUi),
     refreshLockTier: bindOp(ta, refreshLockTier),
     refreshC2paUi: bindOp(ta, refreshC2paUi),
+    refreshSpotsUi: bindOp(ta, refreshSpotsUi),
+    wireSpotsToggle: bindOp(ta, wireSpotsToggle),
     dimUnit: bindOp(ta, dimUnit),
   };
 }

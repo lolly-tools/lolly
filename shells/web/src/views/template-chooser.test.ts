@@ -3,8 +3,20 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { previewContextSignature } from '../lib/preview-context.ts';
-const previewSig = async (values: unknown) => JSON.stringify([values, await previewContextSignature({} as Parameters<typeof previewContextSignature>[0])]);
+import { previewContextSignature } from '../lib/preview-recipe.ts';
+void previewContextSignature;
+const { previewSeams, lookRecipe } = await import('../lib/featured-render.ts');
+/** The preview store as these tests see it (plan 373): a cache whose every lookup is
+ *  recorded and answered by `answer`, and a render that must never run. The keys are
+ *  recipe hashes, so a test finds the look it expects through `keyOf`. */
+function stubStore(answer: (key: string) => string | null | Promise<string | null>) {
+  const keys: string[] = [];
+  previewSeams.cached = async (key: string) => { keys.push(key); return answer(key); };
+  previewSeams.render = async () => { throw new Error('a preview render ran in a unit test'); };
+  return keys;
+}
+const keyOf = async (toolId: string, values: Record<string, unknown>, scope?: string) =>
+  (await lookRecipe({} as never, toolId, values, undefined, scope)).key;
 import { openTemplateChooser, parseTemplates, templateValuesById } from './template-chooser.ts';
 import { shippedVariants, userVariants } from '../lib/template-ref.ts';
 import type { UserTemplate } from '../lib/user-templates.ts';
@@ -163,18 +175,9 @@ test('openTemplateChooser: eagerly renders a preview for every non-blank templat
   // Spy host: previews.get records the cache key the drain probes for each template, and
   // returns a HIT (sig === JSON.stringify(values)) so renderFeaturedVariant returns THUMB
   // without importing the render engine.
-  const getKeys: string[] = [];
-  const host = {
-    previews: {
-      get: async (key: string) => {
-        getKeys.push(key);
-        const id = key.match(/^template:design:(.+):svg$/)?.[1];
-        const values = id ? inline[id] : undefined;
-        return values ? { sig: await previewSig(values), thumb: THUMB } : null;
-      },
-      put: async () => {},
-    },
-  } as never;
+  const expected = new Map([[await keyOf('design', inline.poster!), 'poster'], [await keyOf('design', inline.carousel!), 'carousel']]);
+  const getKeys = stubStore((key) => (expected.has(key) ? THUMB : null));
+  const host = {} as never;
 
   // Fire-and-forget: the returned promise only settles on select/close, which we never do.
   void openTemplateChooser({
@@ -186,9 +189,9 @@ test('openTemplateChooser: eagerly renders a preview for every non-blank templat
   // Both templates were drained (get probed once each) - vector-first svg key, 'template'
   // namespace - and none for the Blank tile.
   assert.deepEqual(
-    getKeys.slice().sort(),
-    ['template:design:carousel:svg', 'template:design:poster:svg'],
-    'both non-blank templates were enqueued + drained (get probed per template)',
+    getKeys.map(key => expected.get(key)).sort(),
+    ['carousel', 'poster'],
+    'both non-blank templates were enqueued + drained (the store probed per template)',
   );
   // The IO was still wired for off-screen prioritisation, but it never fired - so the
   // previews above are attributable solely to the eager enqueue.
@@ -210,30 +213,20 @@ test('openTemplateChooser: refreshes previews when the mounted brand scope arriv
   const values = { boxes: [{ id: 'a' }] };
   const templates = parseTemplates([{ id: 'poster', name: 'Poster', values }]);
   const brandThumb = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"><rect fill="red"/></svg>';
-  const getKeys: string[] = [];
-  const host = {
-    previews: {
-      get: async (key: string) => {
-        getKeys.push(key);
-        if (key.startsWith('template:')) {
-          brandRoot.style.setProperty('--brand-primary', '#d40000');
-        }
-        return {
-          sig: await previewSig(values),
-          thumb: key.startsWith('template@') ? brandThumb : THUMB,
-        };
-      },
-      put: async () => {},
-    },
-  } as never;
+  const neutral = await keyOf('design', values);
+  const getKeys = stubStore((key) => {
+    if (key === neutral) { brandRoot.style.setProperty('--brand-primary', '#d40000'); return THUMB; }
+    return brandThumb;
+  });
+  const host = {} as never;
 
   void openTemplateChooser({
     toolName: 'Design', toolId: 'design', templates, host, formats: ['svg'],
   });
-  for (let i = 0; i < 200 && !getKeys.some((key) => key.startsWith('template@')); i++) {
+  for (let i = 0; i < 200 && !getKeys.some((key) => key !== neutral); i++) {
     await new Promise(r => setTimeout(r, 0));
   }
-  assert.ok(getKeys.some((key) => key.startsWith('template@')), 'the new brand gets its own preview namespace');
+  assert.ok(getKeys.some((key) => key !== neutral), 'the new brand scope is part of the recipe: its own picture');
   const img = document.querySelector<HTMLImageElement>('.tmpl-chooser-tile-media img');
   assert.equal(img?.src, brandThumb, 'the late neutral result cannot overwrite the brand-correct preview');
   document.querySelector<HTMLButtonElement>('.tmpl-chooser-close')?.click();
@@ -256,20 +249,10 @@ test('openTemplateChooser: yields to idle before the render chunk and between re
       { id: 'a', name: 'A', values: inline.a },
       { id: 'b', name: 'B', values: inline.b },
     ]);
-    const getKeys: string[] = [];
     let idleBeforeFirstRender = -1;
-    const host = {
-      previews: {
-        get: async (key: string) => {
-          if (!getKeys.length) idleBeforeFirstRender = idleTimeouts.length;
-          getKeys.push(key);
-          const id = key.match(/^template:t:(.+):svg$/)?.[1];
-          const values = id ? inline[id] : undefined;
-          return values ? { sig: await previewSig(values), thumb: THUMB } : null;
-        },
-        put: async () => {},
-      },
-    } as never;
+    let probes = 0;
+    const getKeys = stubStore(() => { if (!probes++) idleBeforeFirstRender = idleTimeouts.length; return THUMB; });
+    const host = {} as never;
 
     void openTemplateChooser({ toolName: 'T', toolId: 't', templates, host, formats: ['svg'] });
     for (let i = 0; i < 200 && getKeys.length < 2; i++) await new Promise(r => setTimeout(r, 0));
@@ -294,20 +277,10 @@ test('openTemplateChooser: settling cancels the rest of the preview queue', asyn
   const templates = parseTemplates(
     ['a', 'b', 'c'].map(id => ({ id, name: id.toUpperCase(), values: inline[id] })),
   );
-  const getKeys: string[] = [];
-  const host = {
-    previews: {
-      get: async (key: string) => {
-        getKeys.push(key);
-        // Close the chooser DURING the first render - deterministic, no timing race.
-        if (getKeys.length === 1) document.querySelector<HTMLElement>('.tmpl-chooser-close')!.click();
-        const id = key.match(/^template:t2:(.+):svg$/)?.[1];
-        const values = id ? inline[id] : undefined;
-        return values ? { sig: await previewSig(values), thumb: THUMB } : null;
-      },
-      put: async () => {},
-    },
-  } as never;
+  let probes = 0;
+  // Close the chooser DURING the first render - deterministic, no timing race.
+  const getKeys = stubStore(() => { if (!probes++) document.querySelector<HTMLElement>('.tmpl-chooser-close')!.click(); return THUMB; });
+  const host = {} as never;
 
   const seed = await openTemplateChooser({ toolName: 'T', toolId: 't2', templates, host, formats: ['svg'] });
   assert.deepEqual(seed, {}, 'closing resolves a blank seed');

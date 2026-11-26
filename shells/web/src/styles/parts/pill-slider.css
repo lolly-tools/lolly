@@ -1,0 +1,68 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* The pill slider (components/pill-slider.ts): a rounded bar that fills from the start
+   edge as its value rises, its name at the start and its value at the end, written over
+   the fill. A transparent native range input covers the whole pill and takes every press,
+   drag and key. The text is drawn twice, and the second copy, in the action colour's
+   on-colour, is clipped to the fill, so both halves stay readable. --pill-pct is the
+   fill, set inline by the component. */
+@layer primitives {
+  .pill-slider {
+    --pill-pct: 50%;
+    --pill-clip: inset(0 calc(100% - var(--pill-pct)) 0 0);
+    position: relative;
+    display: block;
+    min-width: 0;
+    min-height: var(--ui-size-target);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--ui-color-text-muted) 16%, transparent);
+    color: var(--ui-color-text-default);
+    font-size: var(--fs-sm);
+    overflow: hidden;
+    isolation: isolate;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pill-slider:dir(rtl) { --pill-clip: inset(0 0 0 calc(100% - var(--pill-pct))); }
+  .pill-slider-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--ui-color-action-primary);
+    clip-path: var(--pill-clip);
+  }
+  .pill-slider:hover .pill-slider-fill { filter: brightness(1.06); }
+  .pill-slider-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    padding-inline: var(--sp-4);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .pill-slider-text--over { color: var(--ui-color-action-on-primary); clip-path: var(--pill-clip); }
+  .pill-slider-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .pill-slider-value { flex: none; font-variant-numeric: tabular-nums; }
+  /* The input is the whole pill, unseen. A one-pixel thumb as tall as the pill puts a
+     press exactly where the value lands. pan-y keeps a vertical swipe scrolling the page. */
+  .pill-slider-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: ew-resize;
+    appearance: none;
+    background: transparent;
+    touch-action: pan-y;
+  }
+  .pill-slider-input::-webkit-slider-thumb { appearance: none; width: 1px; height: var(--ui-size-target); }
+  .pill-slider-input::-moz-range-thumb { width: 1px; height: var(--ui-size-target); border: 0; border-radius: 0; }
+  .pill-slider-input::-moz-range-track { background: transparent; }
+  .pill-slider:has(.pill-slider-input:focus-visible) { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .pill-slider:has(.pill-slider-input:disabled) { opacity: .5; }
+  .pill-slider:has(.pill-slider-input:disabled) .pill-slider-input { cursor: not-allowed; }
+}

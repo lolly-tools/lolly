@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
+import type { ColourRolesReadingV1 } from '../brand-system-v1.ts';
+
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
 export interface TokenResolveOptions {
@@ -123,6 +125,15 @@ export interface TokenInspection {
   truncated: boolean;
   /** Counts cover token references and declared roles in this document only. */
   scope: 'token-document';
+  /**
+   * The document's colour roles as the engine reads them (v1.323, plans/352): the
+   * declared roles in the design system's own order and words, then any undeclared
+   * ones, and the slot each fills. Structure only, so the read options do not change
+   * it; read a role's colour with `resolve('{' + role.path + '}')`. `state` is
+   * `default` for a document with no colour roles. Optional/additive: an older host
+   * omits it, so a tool feature-detects the field.
+   */
+  colourRoles?: ColourRolesReadingV1;
 }
 
 export interface TokensAPI {

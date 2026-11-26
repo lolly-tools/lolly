@@ -27,7 +27,7 @@ async function paint(value: unknown, host: HostV1): Promise<number[] | null> {
   let text = String(value ?? 'transparent');
   if (text === 'transparent' || text === 'none' || !text) return null;
   if (text.startsWith('{')) text = colorToHex(await host.tokens?.resolve(text)) ?? '';
-  const variable = /^var\(--brand-(primary|on-primary|secondary|surface|text|muted|edge)\s*(?:,\s*(.+))?\)$/.exec(text);
+  const variable = /^var\(--brand-([a-z][a-z-]*)\s*(?:,\s*(.+))?\)$/.exec(text);
   if (variable) text = colorToHex(await host.tokens?.resolve(`{color.semantic.${variable[1]}}`)) ?? variable[2] ?? '';
   const rgba = parseColorToSrgb8(text);
   if (!rgba) throw new Error(`dotLottie: colour ${String(value)} could not be resolved to a solid paint.`);

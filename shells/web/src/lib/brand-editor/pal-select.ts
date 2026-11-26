@@ -20,7 +20,7 @@ import { announce } from '../../a11y.ts';
 import { playSfx } from '../sfx.ts';
 import type { SelectTile } from '../design-system/palette-select.ts';
 import { duplicateSwatches } from '../design-system/palette-duplicate.ts';
-import { ROLE_IDS, assignRole, roleLabel } from '../design-system/roles.ts';
+import { ROLE_IDS, assignRole, roleLabel, roleWords } from '../design-system/roles.ts';
 import type { RoleId } from '../design-system/roles.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
 
@@ -169,7 +169,8 @@ export const giveSelectionRoles = (bedit: BrandEditorCtx, from: RoleId): void =>
   bulkWrite(bedit, tRaw('Give {n} swatches a role', { n: pairs.length }), t('Before assigning roles'), () => {
     for (const p of pairs) assignRole(bedit.doc, p.role, p.s.key, bedit.state.editContext());
   });
-  const said = pairs.map(p => tRaw('{role} is now {name}', { role: roleLabel(p.role), name: p.s.name })).join(' ');
+  const words = roleWords(bedit.doc);
+  const said = pairs.map(p => tRaw('{role} is now {name}', { role: roleLabel(p.role, words), name: p.s.name })).join(' ');
   const spare = items.length - pairs.length;
   const left = spare > 0 ? ` ${tRaw('{n} colours had no role left to take.', { n: spare })}` : '';
   announce(`${said}${left} ${t('Undo with Control Z.')}`);

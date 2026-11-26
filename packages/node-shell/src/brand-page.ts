@@ -11,7 +11,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { createTokenSet, designBrief } from '@lolly/engine';
+import { contrastRatio, createTokenSet, designBrief } from '@lolly/engine';
 import type {
   BrandPageAssetInputV1, BrandPageDocumentInputV1, BrandPageFontInputV1, BrandPageInputV1, BrandPageSkillInputV1,
 } from '../../../engine/src/brand-page.ts';
@@ -22,6 +22,8 @@ import { readProfileBriefCatalog, readProfileTokenDocument } from './design-brie
 import { activeNodeDesignSystem } from './design-systems.ts';
 import { assetsOf } from './rebrand/design-system.ts';
 import { resolveStateDir } from './state-dir.ts';
+import { createNodeTextShaper, measureFontsFromTokens } from './text-measure.ts';
+import { measureDesignText, textMeasureSpecOfRow } from '../../../engine/src/design-text-measure.ts';
 
 interface CatalogAsset {
   id: string; name?: string; type?: string; tags?: string[]; license?: unknown; rights?: unknown; attribution?: unknown;
@@ -152,15 +154,105 @@ export const BRAND_PAGE_EXAMPLES = [
 ] as const;
 
 /**
+ * How far apart a shape's colour must stand from the colours under and over the shape.
+ * These shapes are decoration, which WCAG's 3:1 for graphics leaves out, so the floor is
+ * visibility: a shape at 2:1 is plainly there, and the template's own colour keeps the
+ * colourway's look. The disc this replaced stood at 1:1, the colour of its ground.
+ */
+const SHAPE_CONTRAST = 2;
+/** The slots a shape tries first in place of its own colour. Every other colour the design system names follows. */
+const SHAPE_SLOTS = ['secondary', 'primary', 'on-primary', 'surface', 'text', 'muted', 'edge'] as const;
+const COLOUR_FIELDS = ['bg', 'fg', 'stroke', 'shadowColor'] as const;
+
+type Row = Record<string, unknown>;
+const num = (v: unknown): number => Number(v) || 0;
+/** How much of `b`'s box lies inside `a`'s, from 0 to 1. A box is a generous stand-in for an ellipse. */
+const coverage = (a: Row, b: Row): number => {
+  const w = Math.min(num(a.x) + num(a.w), num(b.x) + num(b.w)) - Math.max(num(a.x), num(b.x));
+  const h = Math.min(num(a.y) + num(a.h), num(b.y) + num(b.h)) - Math.max(num(a.y), num(b.y));
+  const area = num(b.w) * num(b.h);
+  return w > 0 && h > 0 && area > 0 ? (w * h) / area : 0;
+};
+/** A text box covering less of a shape than this is its empty margin, not words on the shape. */
+const TEXT_OVER_SHAPE = 0.05;
+
+/**
+ * Every shape in an example readable under any design system. A template's shape reads a
+ * slot such as `--brand-primary`, which can be the very colour of the ground the example
+ * paints: Lolly Demo's poster lost its disc that way. So each shape is measured against
+ * the ground, the shapes drawn before it that it crosses and the text it sits under, and
+ * keeps its own colour when that reads, else takes the first of the system's colours that
+ * does, slots first, else the one that reads best. The rows are changed in place, in
+ * drawing order.
+ */
+function readableShapes(boxes: Row[], ground: string, colours: readonly string[]): void {
+  const placed: Row[] = [];
+  const texts = boxes.filter(b => b.kind === 'text' && typeof b.fg === 'string');
+  for (const box of boxes) {
+    if (box.kind === 'frame' || box.kind === 'text' || box.kind === 'image' || typeof box.bg !== 'string') continue;
+    const against = [ground, ...placed.filter(p => coverage(p, box) > 0).map(p => p.bg as string), ...texts.filter(t => coverage(t, box) >= TEXT_OVER_SHAPE).map(t => t.fg as string)];
+    const worst = (colour: string): number => Math.min(...against.map(other => contrastRatio(colour, other)).map(r => (Number.isFinite(r) ? r : 0)));
+    const candidates = [...new Set([box.bg, ...colours])];
+    const good = candidates.find(c => worst(c) >= SHAPE_CONTRAST);
+    box.bg = good ?? candidates.reduce((best, c) => (worst(c) > worst(best) ? c : best));
+    placed.push(box);
+  }
+}
+
+/** Whether a point lies on a shape: an ellipse by its own curve, any other shape by its box. */
+function covers(box: Row, x: number, y: number): boolean {
+  const w = num(box.w), h = num(box.h);
+  if (w <= 0 || h <= 0) return false;
+  const dx = (x - num(box.x)) / w, dy = (y - num(box.y)) / h;
+  if (box.shape === 'ellipse') return (dx - 0.5) ** 2 + (dy - 0.5) ** 2 <= 0.25;
+  return dx >= 0 && dx <= 1 && dy >= 0 && dy <= 1;
+}
+
+/** Where a mark may go, in order: the template's corner, then lower down and further in. */
+const LOGO_PLACES: ReadonlyArray<Row> = [{ x: 1500, y: 70, w: 260, h: 110 }, { x: 1580, y: 200, w: 260, h: 110 }];
+/** A mark is a graphic that carries meaning, so it takes WCAG's 3:1 for graphics. */
+const LOGO_CONTRAST = 3;
+
+/**
+ * Which logo goes in, and in which place. Nine points on a place's edges and centre each
+ * take the colour of the topmost shape there, or the ground, and each variant is measured
+ * against the worst of them by the ink it is made for: a logo for light grounds is dark,
+ * one for dark grounds is light. A place that lies on one colour and reaches 3:1 comes
+ * first, then any place that reaches 3:1, then the place and variant that read best. The title slide's mark sits on its accent disc,
+ * not on the light ground the slide is named for, so a fixed choice drew dark on dark,
+ * and the content slide's mark straddled the edge of its disc.
+ */
+function readableLogo(boxes: Row[], ground: string, logos: { onLight?: string | null; onDark?: string | null }): { image: string; place: Row } | null {
+  const shapes = boxes.filter(b => b.kind === 'box' && typeof b.bg === 'string');
+  const choices = [['#000000', logos.onLight], ['#ffffff', logos.onDark]].filter((c): c is [string, string] => typeof c[1] === 'string' && !!c[1]);
+  if (!choices.length) return null;
+  const options = LOGO_PLACES.flatMap(place => {
+    const under: string[] = [];
+    for (const fx of [0, 0.5, 1]) for (const fy of [0, 0.5, 1]) {
+      const x = num(place.x) + num(place.w) * fx, y = num(place.y) + num(place.h) * fy;
+      under.push(String([...shapes].reverse().find(s => covers(s, x, y))?.bg ?? ground));
+    }
+    const plain = new Set(under).size === 1;
+    const worst = (ink: string): number => Math.min(...under.map(colour => contrastRatio(ink, colour)).map(r => (Number.isFinite(r) ? r : 0)));
+    return choices.map(([ink, image]) => ({ image, place, plain, score: worst(ink) }));
+  });
+  const pick = options.find(o => o.plain && o.score >= LOGO_CONTRAST) ?? options.find(o => o.score >= LOGO_CONTRAST)
+    ?? options.reduce((best, o) => (o.score > best.score ? o : best));
+  return { image: pick.image, place: pick.place };
+}
+
+/**
  * The Design input values for one example, with every colour and face read from the tokens
  * so the render needs no theme of its own. A logo appears only when the caller says it may
- * be published, because an example must not carry artwork the page holds back.
+ * be published, because an example must not carry artwork the page holds back. `logos`
+ * offers both variants and the one that reads on the colours under the mark is placed; `logo`
+ * places one as given.
  */
 export function brandPageExampleValues(
   doc: unknown,
   selection: Record<string, string>,
   example: (typeof BRAND_PAGE_EXAMPLES)[number],
-  opts: { logo?: string | null; root?: string } = {},
+  opts: { logo?: string | null; logos?: { onLight?: string | null; onDark?: string | null }; root?: string } = {},
 ): { boxes: Array<Record<string, unknown>> } | null {
   let roots: ContentRoots;
   try { roots = contentRoots(opts.root ? { root: opts.root } : {}); } catch { return null; }
@@ -200,10 +292,54 @@ export function brandPageExampleValues(
     if (raw.id === bodyId) box.text = example.id === 'slide-content' ? EXAMPLE_TEXT.dense : EXAMPLE_TEXT.body;
     if (raw.id === accentId) box.bg = accent;
     if (example.id === 'slide-content' && raw.id === bodyId) { box.fontSize = 40; box.lineHeight = 1.4; box.h = 560; }
+    // A colour the template leaves as a brand variable is read here, in the selection asked for.
+    for (const field of COLOUR_FIELDS) {
+      const value = box[field];
+      const name = typeof value === 'string' ? /^var\(\s*--brand-([a-z][a-z-]*)\s*(?:,\s*([^)]*))?\)$/i.exec(value.trim()) : null;
+      if (name) box[field] = slot(name[1]!.toLowerCase()) ?? name[2]?.trim() ?? value;
+    }
     boxes.push(box);
   }
-  if (opts.logo) boxes.push({ id: 'brand-device', kind: 'image', image: opts.logo, x: 1500, y: 70, w: 260, h: 110, frame: example.frame, fit: 'contain' });
+  const named = tokens.colors().filter(c => /^color\.semantic\.[a-z-]+$/.test(c.path) && typeof c.value === 'string').map(c => c.value);
+  readableShapes(boxes, ground, [...SHAPE_SLOTS.map(slot).filter((c): c is string => !!c), ...named]);
+  const logo = opts.logo ? { image: opts.logo, place: LOGO_PLACES[0]! } : opts.logos ? readableLogo(boxes, ground, opts.logos) : null;
+  if (logo) boxes.push({ id: 'brand-device', kind: 'image', image: logo.image, ...logo.place, frame: example.frame, fit: 'contain' });
   return { boxes };
+}
+
+/** The smallest share of its set size a heading may shrink to. Past that the example keeps the smallest size. */
+const SMALLEST_FIT = 0.4;
+
+/**
+ * Shrink each text layer whose words the box would cut, to the largest whole size that
+ * fits, never larger than the template set. Design's "Shrink text to fit" does this on
+ * the canvas, but the drawing an example is made with does not carry that setting, so
+ * the size is worked out here, with the faces and the measure the drawing itself uses.
+ * The example's words are longer than the template's, and a design system's face can be
+ * wider than the one the template was laid out in. Changes the rows in place.
+ */
+export async function fitBrandPageExampleText(
+  values: { boxes: Array<Record<string, unknown>> },
+  doc: unknown,
+  opts: { repoRoot?: string } = {},
+): Promise<void> {
+  const shaper = createNodeTextShaper(opts.repoRoot ? { repoRoot: opts.repoRoot } : {});
+  const fonts = measureFontsFromTokens(doc);
+  const clipped = async (row: Row, size: number): Promise<boolean> => {
+    try { return !!(await measureDesignText({ ...textMeasureSpecOfRow({ ...row, fontSize: size }, fonts), fonts }, shaper)).overflow?.clipped; } catch { return false; }
+  };
+  for (const row of values.boxes) {
+    if (row.kind !== 'text' || typeof row.text !== 'string' || !row.text.trim()) continue;
+    const set = Math.round(num(row.fontSize));
+    if (set <= 0 || !(await clipped(row, set))) continue;
+    let low = Math.max(1, Math.floor(set * SMALLEST_FIT)), high = set - 1;
+    if (await clipped(row, low)) { row.fontSize = low; continue; }
+    while (low < high) {
+      const mid = Math.ceil((low + high) / 2);
+      if (await clipped(row, mid)) high = mid - 1; else low = mid;
+    }
+    row.fontSize = low;
+  }
 }
 
 export { brandPageOutlines } from '../../../engine/src/brand-page.ts';

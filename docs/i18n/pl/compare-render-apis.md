@@ -1,29 +1,68 @@
 # Lolly i API renderowania
 
-_Ostatnio sprawdzono: 28 września 2026._
+_Ostatnio sprawdzono: 5 listopada 2026._
 
-Jeśli dziś generujesz obrazy z szablonów przez API, ta strona mówi, jak Lolly wykonuje to samo zadanie na Twoim własnym urządzeniu, w CI lub na Twoim własnym serwerze.
+Jeśli generujesz obrazy z szablonów przez API, ta strona opisuje, co się zmienia, gdy uruchamiasz taką produkcję na własnym urządzeniu, w CI lub na kontrolowanym przez siebie serwerze. [Przejście z hostowanego API renderowania](/info/work-move-from-render-api.html) podaje kolejne kroki.
 
-## Co lepiej robią hostowane API renderujące
+<!--i:eti-award-->
+## Co hostowane API renderowania robią lepiej
 
-[Bannerbear](https://www.bannerbear.com/) i [Placid](https://placid.app/) pakują renderowanie jako zarządzane usługi, z własną infrastrukturą, integracjami i wsparciem. Wysyłasz żądanie, a ktoś inny prowadzi serwery.
+[Bannerbear](https://www.bannerbear.com/) i [Placid](https://placid.app/) to usługi zarządzane: wysyłasz żądanie, a ktoś inny utrzymuje serwery.
 
-## Gdzie się pokrywają
+- **Nic do utrzymywania.** Bez serwera, bazy danych, pamięci masowej, aktualizacji i planowania wydajności.
+- **Hostowany edytor szablonów** z szablonami gotowymi do dostosowania.
+- **Więcej rodzajów plików wynikowych z jednego API.** Oba udostępniają punkty końcowe dla wideo i PDF, a Bannerbear dokumentuje też animowane wyniki, WebP i AVIF, zrzuty ekranu i usuwanie tła przez AI.
+- **Własne integracje i wsparcie.**
 
-Oba zamieniają szablon plus dane wejściowe w media. Lolly bierze dane wejściowe z [linku](/info/url-mode.html), [CLI](/info/cli.html), siatki batch lub punktu końcowego serwera.
+Jeśli takiego rozwiązania szukasz, te usługi są dobrym wyborem.
 
-## Jak Lolly wykonuje wspólne zadanie
+<!--i:eti-home-->
+## Co daje własny hosting
 
-To samo narzędzie renderuje się na laptopie, w zadaniu CI lub na serwerze, z tych samych danych wejściowych. Renderowanie lokalne i w CI nie wymaga żadnej usługi.
+- **Twoje treści zostają w Twoich systemach.** Dane wejściowe, zasoby i wyniki znajdują się na wybranej przez Ciebie infrastrukturze. Renderowanie na urządzeniu lub w CI nie wymaga usługi.
+- **Reguły są w narzędziu.** Kolory, typografia, logotypy i zablokowane dane wejściowe pochodzą z Twojego [systemu projektowego](/info/brand-studio.html), więc wywołujący może zmienić tylko to, na co pozwalasz. [Lolly Work](/info/compare.html#what-runs-where) stosuje widoczność narzędzi i polityki danych wejściowych do każdego żądania.
+- **To samo narzędzie wszędzie.** Narzędzie renderuje z tych samych danych wejściowych na laptopie, w zadaniu CI lub na serwerze. Ludzie mogą edytować to samo narzędzie w aplikacji.
+- **Zapisy pozostają u Ciebie.** [Potwierdzenia renderowania](/info/work-renders.html#evidence-and-identity), ślad audytowy i Content Credentials tam, gdzie skonfigurujesz tożsamość podpisującą.
+- **Otwarty kod i brak opłat za użycie.** Uruchamiasz kod i płacisz tylko za własną infrastrukturę.
 
-![Ustawienia eksportu Batch: nazwa pliku, domyślny format, jednostki, DPI i liczba wierszy do renderowania](/info/shots/use-batch-toolbar.svg)
+Przejmujesz pracę, którą te usługi wykonują za Ciebie. Trwały serwer wymaga trwałej bazy danych i magazynu wyników. Narzędzia wymagające przeglądarki potrzebują procesu roboczego Chromium. [Instalacja Lolly Work](/info/work-install.html) opisuje oba wymagania.
 
-Na serwerze [Lolly Work](/info/compare.html#what-runs-where) uruchamia silnik Lolly za API i stosuje widoczność narzędzi i polityki danych wejściowych. Jego [usługa renderowania z odzyskiwaniem](/info/work-renders.html) obsługuje pojedyncze zadania i partie, idempotentne zgłaszanie, status, ograniczone ponowienia, anulowanie i zachowane wyniki, a przerwana praca wznawia się po restarcie, gdy skonfigurowano trwały magazyn.
+<!--i:eti-table-->
+## Jak odpowiadają sobie zadania
 
-Serwer ma szybką ścieżkę SVG i PNG oraz opcjonalnego workera Chromium dla narzędzi potrzebujących przeglądarki. Automatyzacja loguje się tokenami usługi, gotowe wyniki mogą przejść przez [zatwierdzone dostarczanie](/info/work-delivery.html) do miejsc docelowych organizacji, a skonfigurowana tożsamość podpisująca dodaje Content Credentials do obsługiwanych wyników.
+| Zadanie | Hostowane API renderowania | Lolly |
+|---|---|---|
+| Wypełnianie szablonu danymi | Żądanie API wskazujące szablon i jego warstwy | [URL](/info/url-mode.html), [CLI](/info/cli.html) lub [API serwera](/info/work-automation-api.html) wskazujące narzędzie i jego dane wejściowe |
+| Wiele plików z tabeli | Partie i kolekcje | [Przetwarzanie wsadowe](/info/batch.html) na Twoim urządzeniu lub [partie renderowania](/info/work-renders.html#batches-with-durable-rows) na serwerze |
+| Oczekiwanie na wynik lub odpytywanie o niego | Odpytywanie lub opcja synchroniczna | Trwale zapisywane rendery, o które odpytujesz, lub natychmiastowy render |
+| Wywołanie webhooka po zakończeniu | Tak | [Podpisane wywołania zwrotne](/info/work-renders.html) do dozwolonych przez Ciebie originów |
+| Dynamiczny URL obrazu | Tak | [Linki udostępniania i adresy URL `/render`](/info/url-mode.html) |
+| Edycja szablonu | Hostowany edytor | [Design](/info/using.html), na Twoim urządzeniu |
+| Agenci | Oba udostępniają serwer MCP | [MCP](/info/mcp.html), z punktem końcowym organizacji podlegającym polityce tokenu w Lolly Work |
 
-## Kto prowadzi usługę
+Własne rodzaje plików wynikowych Lolly są wymienione w [Eksporcie](/info/exporting.html). Na serwerze Work trwale zapisywane rendery tworzą obecnie SVG, PNG, JPG i PDF, a [wideo pozostaje na urządzeniu, w CLI i MCP](/info/work-renders.html#production-still-checks-and-permitted-repairs).
 
-Z Lolly osoba renderuje lokalnie albo zespół prowadzi Lolly Work na własnej infrastrukturze. Zgłoszenie zadania serwerowego wysyła jego dane wejściowe i wymagane zasoby do tej instancji, co różni się od ścieżki na urządzeniu. Trwała usługa potrzebuje trwałej bazy danych i magazynu wyników, a narzędzia zależne od przeglądarki potrzebują workera Chromium; [Install Lolly Work](/info/work-install.html) opisuje oba.
+<!--i:eti-folder-move-->
+## Co można przenieść, a czego nie
 
-Bannerbear i Placid są znakami towarowymi swoich właścicieli. Ta strona opisuje, gdzie produkty się pokrywają, i nie jest powiązana z żadnym z nich.
+| | Bannerbear V5 | Bannerbear V2 | Placid |
+|---|---|---|---|
+| Twoje żądania | API migracji Work przyjmuje tę samą strukturę | Tak samo | Tak samo |
+| Twoje szablony | **Import** jako edytowalne dokumenty, z wyjątkiem typów warstw bez potwierdzonego schematu | Tylko nazwy pól i podgląd. Odtwórz każdy szablon | Tylko nazwy pól i podgląd. Odtwórz każdy szablon |
+| Istniejące dynamiczne adresy URL | Nieobsługiwane | Nieobsługiwane | Podpisane adresy URL działają dalej po zmianie hosta, z Twoim starym prywatnym tokenem |
+| Webhooki | Zarejestrowane webhooki nie są obsługiwane | `webhook_url` działa | `webhook_success` działa |
+| Wyniki WebP i AVIF | Odrzucane po nazwie | Niedostępne | WebP odrzucany po nazwie |
+| Animacje, wideo, kolekcje, zrzuty ekranu | Niedostępne w API migracji | Niedostępne w API migracji | Niedostępne w API migracji |
+
+::: note Stworzone na podstawie publicznej dokumentacji
+Stworzono to na podstawie publicznej dokumentacji każdego dostawcy i nie uruchamiano z aktywnym kontem. Jeśli masz konto, [przewodnik migracji](/info/work-move-from-render-api.html#check-it-on-your-own-account) zawiera krótką listę kontrolną.
+:::
+
+Możesz przenieść jeden szablon, a resztę zostawić tam, gdzie jest. [Odejście z Lolly](/info/work-move-from-render-api.html#leave-lolly-too) jest równie otwarte: narzędzia to zwykłe pliki, a CLI renderuje je bez serwera.
+
+<!--i:eti-building-->
+## Kto utrzymuje usługę
+
+W Lolly pojedyncza osoba renderuje lokalnie lub zespół uruchamia Lolly Work na własnej infrastrukturze. Zadanie serwerowe wysyła swoje dane wejściowe i wymagane zasoby do tej instancji. Ścieżka na urządzeniu tego nie robi.
+
+Bannerbear i Placid są znakami towarowymi swoich właścicieli. Ta strona opisuje, gdzie możliwości produktów się pokrywają, na podstawie ich publicznej dokumentacji, i nie jest powiązana z żadnym z nich.

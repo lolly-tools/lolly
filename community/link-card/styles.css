@@ -71,7 +71,7 @@
 }
 
 .lc-placeholder-mark {
-  font-size: 26cqmin;
+  font-size: calc(26cqmin * var(--content-fit, 1));
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -108,7 +108,7 @@
   border-radius: 1.8cqmin;
   background: var(--lc-accent, #1f5f52);
   color: var(--lc-accent-ink, #ffffff);
-  font-size: 4cqmin;
+  font-size: calc(4cqmin * var(--content-fit, 1));
   font-weight: 700;
   line-height: 1;
 }
@@ -120,14 +120,14 @@
 }
 
 .lc-host {
-  font-size: 3.4cqmin;
+  font-size: calc(3.4cqmin * var(--content-fit, 1));
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0.01em;
 }
 
 .lc-site {
-  font-size: 2.9cqmin;
+  font-size: calc(2.9cqmin * var(--content-fit, 1));
   line-height: 1.25;
   color: var(--lc-muted, #6b7780);
 }
@@ -138,7 +138,7 @@
    exported card, which reads as a broken render rather than a trimmed one.
    tests/link-card.test.ts holds the sheet to it. */
 .lc-heading {
-  font-size: 7.6cqmin;
+  font-size: calc(7.6cqmin * var(--content-fit, 1));
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.02em;
@@ -157,7 +157,7 @@
 }
 
 .lc-desc {
-  font-size: 3.7cqmin;
+  font-size: calc(3.7cqmin * var(--content-fit, 1));
   line-height: 1.42;
   color: var(--lc-muted, #6b7780);
   max-height: 2.84em;   /* 2 lines */
@@ -180,18 +180,35 @@
 .lc-error {
   padding: 6cqmin;
   color: var(--lc-muted, #6b7780);
-  font-size: 4cqmin;
+  font-size: calc(4cqmin * var(--content-fit, 1));
   line-height: 1.4;
 }
 
 /* ── Per-size trims ───────────────────────────────────────────────────────── */
 
 /* The square has the most room, so the type grows into it. */
-.lc-square .lc-heading { font-size: 7cqmin; max-height: 4.4em; }    /* 4 lines */
-.lc-square .lc-desc { font-size: 3.4cqmin; max-height: 4.26em; }    /* 3 lines */
+.lc-square .lc-heading { font-size: calc(7cqmin * var(--content-fit, 1)); max-height: 4.4em; }    /* 4 lines */
+.lc-square .lc-desc { font-size: calc(3.4cqmin * var(--content-fit, 1)); max-height: 4.26em; }    /* 3 lines */
 .lc-square .lc-body { padding: 6cqmin; gap: 3.4cqmin; }
 
 /* The summary card is the shortest of the three; the description gets one line
    less rather than a smaller size. */
-.lc-twitter-summary .lc-heading { font-size: 7cqmin; max-height: 2.2em; }  /* 2 lines */
+.lc-twitter-summary .lc-heading { font-size: calc(7cqmin * var(--content-fit, 1)); max-height: 2.2em; }  /* 2 lines */
 .lc-twitter-summary .lc-desc { max-height: 1.42em; }                       /* 1 line */
+
+.lc-body { padding: calc(6cqmin * var(--content-space)); gap: calc(3cqmin * var(--content-space)); }
+.lc-card[data-layout="split"] { flex-direction: row-reverse; }
+.lc-card[data-layout="split"] .lc-media { width: 41%; height: 100%; }
+.lc-card[data-layout="stack"] { flex-direction: column; }
+.lc-card[data-layout="stack"] .lc-media { width: 100%; height: 42%; }
+.lc-card[data-layout="text"] .lc-media { display: none; }
+.lc-card[data-layout="text"] .lc-heading { font-size: calc(9cqmin * var(--content-fit, 1)); }
+.lc-card .lc-heading, .lc-card .lc-desc { max-height: none; flex-shrink: 0; }
+
+[data-content-clock] { position: absolute; width: 0; height: 0; pointer-events: none; }
+[data-content-play] { position: absolute; top: 1cqmin; right: 1cqmin; z-index: 5; border: 1px solid currentColor; border-radius: 99px; background: transparent; color: inherit; padding: .3em .7em; font: 12px/1.3 system-ui; cursor: pointer; }
+[data-content-play]:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
+[data-content-fit-warning]:not([hidden]) { position: absolute; bottom: 1cqmin; left: 2cqmin; right: 2cqmin; margin: 0; padding: .6em; background: #fff4ce; color: #3d2a00; font: 14px/1.3 system-ui; z-index: 5; }
+
+.lc-heading { font-family: var(--font-display, var(--font-brand, system-ui, sans-serif)); }

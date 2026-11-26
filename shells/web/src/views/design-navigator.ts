@@ -1547,6 +1547,9 @@ export function initDesignNavigator(opts: DesignNavigatorOpts): DesignNavigatorH
     if ((ev.target as Element | null)?.closest?.('[data-nav-rail-slot]')) return;
     if (ev.key === 'Escape') {
       if (menuEl) { ev.stopPropagation(); closeMenu(true); return; }
+      // In a phone's drop-down panel (views/design-phone-panel.ts) Escape folds the panel
+      // and hands focus back to its opener, so the key goes on to the panel.
+      if (el.closest('.design-phone-panel')) return;
       // ESCAPE LEAVES THE COLUMN (review finding, 2026-09-02) - it does not fall through
       // to the editor's own Escape ladder, whose first rung clears the selection. Someone
       // pressing Escape in a list of slides means "put me back on the canvas", and losing

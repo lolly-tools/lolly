@@ -19,24 +19,32 @@ import {
   parseDimension, toPixels, canvasSizeOf, PENPOT_MIME,
   attributionCredits, checkAttributionReadback, verifyC2pa, describeIgnoredTokenChoice,
   ignoresTokenAxes, pinIgnoredTokenAxes, resolveTokenSelection, designRecordWords, guidedByWords, readDesignRecord, confirmIntentRecord,
+  pdfWithoutCredential,
 } from '@lolly/engine';
-import type { C2paIntentRecord, IntentRecordOutcome, C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes, DesignRecord, CanvasSize } from '@lolly/engine';
+import type { C2paIntentRecord, IntentRecordOutcome, C2paSourceIngredient, IgnoredTokenChoice, ToolTokenAxes, DesignRecord, CanvasSize, PlacedPictures } from '@lolly/engine';
 import type { RightsEvaluationV1 } from '@lolly-tools/core/rights-v1';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import type { ExportBrandSkill, ExportFormat, ExportMeta, ExportOpts, Profile, InputFile, HostV1, IngredientCredential } from '@lolly-tools/core/host-v1';
 import type { DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
+// Deep relative import, as resources.ts does for the design brief: the engine keeps its
+// table of text formats out of the barrel, and this server reads it rather than a copy.
+import { DATA_FORMATS } from '../../../engine/src/runtime.ts';
 
 import type { ToolManifest } from '../../../engine/src/loader.ts';
 // Relative imports (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // Vercel MCP bundle, where a bare workspace specifier would dangle (see bridge.ts).
 import { assertRenderOk, RenderIntegrityError } from '@lolly-tools/node-shell/render-integrity';
-import { isDeepFormat, DeepSourceError, needsFloatScene, drawnRootSvg } from '@lolly-tools/node-shell/raster';
-import { buildExportC2paOpts, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
-import { stripSvgC2pa } from '@lolly-tools/node-shell/lolly-file';
+import { isDeepFormat, DeepSourceError, needsFloatScene, drawnRootSvg, finishTierAPng } from '@lolly-tools/node-shell/raster';
+import { admitForResvg, isResvgRefusal, placeSvg, readLayout, ResvgRefusedError, routeRefusals, toolAdmission, type ResvgRouteFacts, type SvgPlacement } from '@lolly-tools/node-shell/resvg-admission';
+import { pixelWorkCount } from '@lolly-tools/node-shell/canvas';
+import { buildExportC2paOpts, placedPicturesIn, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
+import { withoutSvgCredentials } from '@lolly-tools/node-shell/lolly-file';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
 import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
+import { CPU_CANVAS_ARGS } from '@lolly-tools/node-shell/canvas-launch';
 import { observeProductionInputs } from '@lolly-tools/node-shell/production-browser';
 import { waitForExport, type ExportWait } from '@lolly-tools/node-shell/export-wait';
+import { assertExportLocked, exportPasswordRefusal, exposeExportPassword, type ExportLockReading } from '@lolly-tools/node-shell/export-lock';
 import { checksInOpenedPage, openSessionInPage, OpenSessionError, packageDesignSession, sessionQuery, shortenUrls } from '@lolly-tools/node-shell/open-session';
 import { readFile, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -53,10 +61,20 @@ import {
 } from './browser-jobs.ts';
 import { installBrowserEgressPolicy } from './egress.ts';
 
-/** A Design page the Node bridge drew from the operations: its route and the credentialed pictures it drew (plan 326). */
+/** A Design page the Node bridge drew from the operations: its route and every credentialed picture the document places, on any page (plan 326). */
 export interface DrawnHere { pictures: IngredientCredential[]; route: DesignExportRouteRecord | null }
 
 export { closeWebShell };
+
+/** The text formats the engine fills from a tool's sibling template (`DATA_FORMATS` in
+ *  engine/src/runtime.ts): json, csv, ics and vcf, then the caption files srt, vtt, ttml
+ *  and scc and the palette files css, scss and gpl. The engine hands the host finished
+ *  text and nothing is drawn, so each one renders here with no browser. This list used
+ *  to be typed out by hand and fell behind the engine: an MCP render of `captions` to
+ *  srt went looking for a browser. Reading the engine's table keeps the two together,
+ *  and test/text-formats.test.ts pins what the public GET route serves for each one,
+ *  so a new engine format fails that test until its headers have been looked at. */
+export const ENGINE_TEXT_FORMATS: readonly string[] = Object.keys(DATA_FORMATS);
 
 /** Formats the pure engine can produce without a browser engine (NODE_FORMATS).
  *  Includes the PRO FLOAT formats exr / .hdr (plans/61-deeprichpixels.md section 6 B3): those
@@ -67,8 +85,9 @@ export { closeWebShell };
  *  `penpot` belongs here for the same reason emf/eps do (plans/178): the .penpot
  *  writer is pure engine over the tool's own `<svg>` - no rasteriser and no browser
  *  anywhere in the path - so an SVG-native tool's archive builds in-process. An
- *  HTML-layout tool has no root `<svg>` and escalates to Tier B, exactly as emf does. */
-export const TIER_A = new Set(['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'exr', 'hdr', 'penpot', 'html', 'md', 'txt', 'json', 'csv', 'ics', 'vcf']);
+ *  HTML-layout tool has no root `<svg>` and escalates to Tier B, exactly as emf does.
+ *  The text formats at the end are the engine's own list, above. */
+export const TIER_A = new Set(['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'exr', 'hdr', 'penpot', 'html', 'md', 'txt', ...ENGINE_TEXT_FORMATS]);
 
 /** Longest raster edge the resvg fast path will produce. A content-sized SVG
  *  (unbounded text → a viewBox that scales with input length) must never dictate
@@ -121,6 +140,10 @@ export interface RenderOpts {
   rondo?: RondoCaps;
   /** The design-system record (the `_madewith` param, plans/319): false leaves it out. */
   madeWith?: boolean | null;
+  /** Spot inks as process for the CMYK formats (the `_spots` param, engine 1.324). The
+   *  browser tier reads it from the query; the browser-free eps-cmyk gets it as an export
+   *  option. Absent keeps the spot plates. */
+  spots?: 'process' | null;
   /**
    * The brand skills the agent declared it read and followed for this piece (plan
    * 323), already resolved against the profile. Recorded beside the design-system
@@ -187,6 +210,8 @@ export interface RenderResult {
   credentialFromIntent?: boolean;
   /** What an explicit `c2pa` asked for and what the delivered bytes hold. Absent when the caller did not name `c2pa`. */
   credential?: CredentialReadback;
+  /** The password lock read back from the delivered bytes. Absent when no password was asked for. */
+  lock?: ExportLockReading;
 }
 
 /** What an explicit `c2pa` asked for, against what the delivered file holds. */
@@ -218,6 +243,14 @@ async function readBackCredential(bytes: Uint8Array, setting: { on: boolean; day
   } catch {
     return { asked, holds: 'unread', days: null, selfSigned: false };
   }
+}
+
+/** The line a `lolly_render` result prints when a password was asked for. Empty when none was. */
+export function lockText(lock: ExportLockReading | null | undefined): string {
+  if (!lock) return '';
+  const how = lock.opens ? 'opens with the password you gave, read back from the file' : 'is encrypted, read back from the file';
+  const weak = lock.scheme === '40-bit RC4' ? ' That is a deterrent, not protection for confidential files.' : '';
+  return `Password: this file ${how} (${lock.scheme}).${weak}`;
 }
 
 /** The line a `lolly_render` result prints when the caller named `c2pa`. Empty when it did not. */
@@ -307,12 +340,24 @@ export function mimeForFormat(fmt: string): string {
     case 'csv': return 'text/csv';
     case 'ics': return 'text/calendar';
     case 'vcf': return 'text/vcard';
+    // The caption and palette files, with the types the engine's DATA_FORMATS gives
+    // them (test-pinned). SubRip, Scenarist and GIMP palettes have no registered type
+    // of their own, so they go as plain text.
+    case 'srt': case 'scc': case 'gpl': return 'text/plain';
+    case 'vtt': return 'text/vtt';
+    case 'ttml': return 'application/ttml+xml';
+    case 'css': return 'text/css';
+    case 'scss': return 'text/x-scss';
     default: return 'application/octet-stream';
   }
 }
 
+/** Formats whose bytes are UTF-8 text: the render route adds `charset=utf-8`, and
+ *  `lolly_render` returns them as text rather than base64. */
+const TEXT_FORMATS = new Set(['svg', 'html', 'md', 'txt', 'eps', 'eps-cmyk', 'dxf', ...ENGINE_TEXT_FORMATS]);
+
 export function isTextFormat(fmt: string): boolean {
-  return ['svg', 'html', 'md', 'txt', 'json', 'csv', 'ics', 'vcf', 'eps', 'eps-cmyk', 'dxf'].includes(normFormat(fmt));
+  return TEXT_FORMATS.has(normFormat(fmt));
 }
 
 /** Target pixel width for the resvg raster path, honouring physical units. */
@@ -344,6 +389,8 @@ function exportOpts(o: RenderOpts): ExportOpts & { password?: string } {
   // enforce that). Dropping it here made the same URL render differently on MCP
   // than on the CLI - depth=float silently came back as 16-bit HALF.
   if (o.depth && o.depth !== 'auto') opts.depth = o.depth;
+  // `_spots=process` prints each spot ink in process; off writes nothing (engine 1.324).
+  if (o.spots === 'process') opts.spotsAsProcess = true;
   // `_madewith=0` leaves the design-system record out of the file (plans/319).
   if (o.madeWith === false) opts.madeWith = false;
   // The brand skills the agent declared (plan 323) ride the same switch.
@@ -604,15 +651,32 @@ async function renderTierA(
   productionContract?: import('@lolly/engine').ProductionSpec,
   tokenSelection?: Record<string, string>,
   size: TierASize = {},
-): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; drawn: DrawnHere; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string>; meta: ExportMeta | null; svgSized: boolean }> {
+): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; drawn: DrawnHere; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string>; meta: ExportMeta | null; svgSized: boolean; resvg?: { facts: ResvgRouteFacts; placement: SvgPlacement } }> {
   return withHost(profile, async (dom, host, run) => {
     const { runtime, canvas, warnings } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection, size.canvas);
+    // The PNG route's admission (resvg-admission.ts), read off this DOM before the export
+    // rewrites the root's size. A refusal known here spares the SVG export.
+    let resvg: { facts: ResvgRouteFacts; placement: SvgPlacement } | undefined;
+    if (size.admit) {
+      const root = drawnRootSvg(canvas);
+      const { width: aw, height: ah } = size.admit;
+      const tool = await loadToolCached(toolId);
+      const layout = root && aw && ah
+        ? readLayout(canvas, root, aw, ah, tool.styles, tool.manifest.render)
+        : { placement: { kind: 'fill' } as SvgPlacement, refusals: [] };
+      const placement = layout.placement;
+      const early = [...routeRefusals({ tool: toolAdmission(tool), paged: !!tool.manifest.render.paged, canvasPixels: pixelWorkCount(dom.window.document, host.raster) > 0 }), ...layout.refusals];
+      if (early.length) throw new RenderError(new ResvgRefusedError(early).message);
+      resvg = { facts: {}, placement };
+    }
     // The PNG fast path's SVG takes the requested size only when the drawn root <svg>
     // has a viewBox, as the CLI's and the TUI's do: without one the export would make
     // a viewBox of that size, where the PNG has always scaled the tool's own size.
     // The root only: a Design shape's inline <svg viewBox> is not the drawing's root.
     const svgSized = !!size.svg && !!drawnRootSvg(canvas)?.hasAttribute('viewBox');
     const sized: ExportOpts = svgSized ? { ...opts, width: size.svg!.width, height: size.svg!.height } : opts;
+    // The float formats rasterise in the bridge, which reads the drawing's layout with the tool's stylesheet.
+    if (isDeepFormat(fmt)) { const loaded = await loadToolCached(toolId); Object.assign(sized, { toolStyles: loaded.styles ?? null, resvgTool: toolAdmission(loaded), resvgPaged: !!loaded.manifest.render?.paged }); }
     let productionInputs: Record<string, string> | undefined;
     if (productionContract?.requirements.some(requirement => requirement.kind === 'input')) {
       const { productionInputFacts } = await import('@lolly/engine');
@@ -626,13 +690,20 @@ async function renderTierA(
     // The bridge hands back what it drew from the operations, for the stamp at the end of `render`.
     const drawn: DrawnHere = { pictures: [], route: null };
     try {
-      blob = await runtime.export(canvas as unknown as Element, fmt as ExportFormat, { ...sized, ingredientSink: drawn.pictures, onExportRoute: (record: DesignExportRouteRecord) => { drawn.route = record; } } as ExportOpts);
+      blob = await runtime.export(canvas as unknown as Element, fmt as ExportFormat, {
+        ...sized, ingredientSink: drawn.pictures, onExportRoute: (record: DesignExportRouteRecord) => { drawn.route = record; },
+        ...(resvg ? { onDraftMark: (on: boolean) => { resvg!.facts.draftMark = on; }, onFillNotice: () => { resvg!.facts.fallbackFaces = true; } } : {}),
+      } as ExportOpts);
+      if (resvg) resvg.facts.canvasPixels = pixelWorkCount(dom.window.document, host.raster) > 0;
     } catch (e) {
       // A deep-format refusal ("this render has no float pixels behind it") is a
       // CLIENT-side answer about the request, not a server fault. Without this it
       // reached the GET route as a 500 "Render failed" and the caller could not
       // tell a policy refusal from a crash.
       if (e instanceof DeepSourceError) throw new RenderError(e.message);
+      // The browser-free renderer refused this raster (resvg-admission.ts): an answer about
+      // the request too, which the caller reads as words, or the browser tier takes over.
+      if (isResvgRefusal(e)) throw new RenderError(e.message);
       throw e;
     }
     const bytes = new Uint8Array(await blob.arrayBuffer());
@@ -664,6 +735,7 @@ async function renderTierA(
       // the same design system and colourway (plans/319).
       meta: runtime.lastExportMeta,
       svgSized,
+      ...(resvg ? { resvg } : {}),
     };
   }, tokenSelection ? { tokenSelection } : {});
 }
@@ -673,6 +745,9 @@ async function renderTierA(
 interface TierASize {
   canvas?: CanvasSize | null;
   svg?: { width: string | number; height: string | number };
+  /** This SVG feeds the resvg PNG: read what the admission needs (resvg-admission.ts),
+   *  with the output size in pixels when the request gives both sides. */
+  admit?: { width?: number; height?: number };
 }
 
 /** Pixel area of the PNG preview `lolly_render` attaches to an SVG answer. The
@@ -707,9 +782,12 @@ export function maxRasterPixelsFor(env: NodeJS.ProcessEnv, hosted: boolean): num
  *  area cap, not the caller, chose the size. With a `height` as well, the root
  *  <svg> is drawn at exactly `width` x `height` px, its own viewBox and
  *  preserveAspectRatio placing the content, the way the CLI's PNG is. */
-async function svgToPng(svg: string, width: number | undefined, background: string | undefined, maxPixels?: number, height?: number): Promise<{ png: Uint8Array; width: number; height: number; reduced: boolean }> {
+async function svgToPng(svg: string, width: number | undefined, background: string | undefined, maxPixels?: number, height?: number, admit?: { facts: ResvgRouteFacts; placement: SvgPlacement }): Promise<{ png: Uint8Array; width: number; height: number; reduced: boolean }> {
   const { Resvg } = await import('@resvg/resvg-js');
-  if (width && width > 0 && height && height > 0) svg = sizeRootSvg(svg, width, height);
+  const both = !!(width && width > 0 && height && height > 0);
+  const size = (markup: string): string => both ? (admit ? placeSvg(markup, width!, height!, admit.placement) : sizeRootSvg(markup, width!, height!)) : markup;
+  const source = svg;
+  svg = size(svg);
   // Cheap parse-only probe for the intrinsic size (viewBox/width/height) - no raster.
   const probe = new Resvg(svg, { font: { loadSystemFonts: false } });
   const iw = probe.width, ih = probe.height;
@@ -719,6 +797,13 @@ async function svgToPng(svg: string, width: number | undefined, background: stri
   const capScale = Math.min(edgeScale, areaScale);
   const wantScale = width && width > 0 ? width / iw : 1;
   const scale = Math.min(wantScale, capScale);
+  // The browser-free route draws only an SVG it may (resvg-admission.ts), measured at the
+  // size it is drawn: after the server's caps, which can shrink a picture further.
+  if (admit) {
+    const admitted = await admitForResvg(source, Math.max(1, Math.round(iw * scale)), Math.max(1, Math.round(ih * scale)), admit.facts, admit.placement);
+    if (admitted.refusals.length) throw new RenderError(new ResvgRefusedError(admitted.refusals).message);
+    svg = size(admitted.svg);
+  }
   // Beyond MAX_RASTER_EDGE_PX:1 aspect the capped raster's short edge drops
   // below one pixel. resvg refuses a zero-size target, so refuse honestly here.
   if (iw * scale < 1 || ih * scale < 1) {
@@ -798,6 +883,9 @@ export function browserLaunchArgs(env: NodeJS.ProcessEnv = process.env): string[
     // The web shell requires a WebGPU adapter (plan 295). A hosted renderer has no
     // GPU to offer one, so the shared flags name SwiftShader (webgpu-launch.ts).
     ...webGpuLaunchArgs('software'),
+    // Every 2D canvas on the CPU, so the same render gives the same pixels and so the
+    // same bytes (packages/node-shell/src/canvas-launch.ts says why).
+    ...CPU_CANVAS_ARGS,
     '--force-color-profile=srgb',
     '--font-render-hinting=none',
   ];
@@ -885,8 +973,8 @@ async function getBrowser(): Promise<import('playwright-core').Browser> {
           throw new RenderError(
             hosted
               ? `This format needs the browser render tier, which isn't enabled on this hosted ` +
-                `endpoint. What renders here: vector formats (svg, eps, emf), the data formats ` +
-                `(html, md, json, csv, ics, vcf), and png for SVG-native tools. Try svg - it works ` +
+                `endpoint. What renders here: vector formats (svg, eps, emf), the data and text formats ` +
+                `(${['html', 'md', ...ENGINE_TEXT_FORMATS].join(', ')}), and png for SVG-native tools. Try svg - it works ` +
                 `for every tool - or png for a simple vector tool (e.g. qr-code).`
               : `Chromium is not installed for the Tier-B render path. Run ` +
                 `\`pnpm run install:browser\` (downloads Chromium into services/mcp/.browsers), ` +
@@ -937,34 +1025,23 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   // A sample set is stamped by the browser alone, so it takes the setting as given.
   if (Number(p.get('cuts')) > 1 || p.has('sampletimes')) p.set('c2pa', o.c2pa?.on ? String(o.c2pa.days ?? 1) : 'off');
   // With no setting and no intent the web shell keeps its own default and nothing here is written.
-  // `off` has to reach the browser, which otherwise stamps. A PDF holds one credential, so when
-  // this server is to stamp one, or an intent record is to go in it, the browser writes none.
-  else if (o.c2pa?.on === false || (o.c2pa?.on && /^pdf/.test(fmt))) p.set('c2pa', 'off');
-  if (o.intent) p.set('c2pa', 'off');
+  // `off` has to reach the browser, which otherwise stamps.
+  else if (o.c2pa?.on === false) p.set('c2pa', 'off');
+  // This server stamps the file, for a lifetime or for an intent record. The browser stamps
+  // first all the same: its credential is where the pictures placed in the file are recorded,
+  // AI-made ones included, and credentialAndRecord carries them into this server's credential,
+  // which then takes its place. Only on a format this server stamps: a TIFF keeps a replaced
+  // credential as a second one, so there, as for an intent on a format with no credential,
+  // the browser writes none, and the inlined artwork it holds is not its to strip.
+  else if ((o.c2pa?.on || o.intent) && C2PA_FORMATS.includes(fmt as ExportFormat) && !/tiff$/.test(fmt)) p.set('c2pa', '1');
+  else if (o.intent || (o.c2pa?.on && /tiff$/.test(fmt))) { p.set('c2pa', 'off'); p.set('_keepinlinedc2pa', '1'); }
   p.set('export', '1'); // presence flag → immediate download on load
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
   return tmpl.replace('{id}', encodeURIComponent(toolId)).replace('{query}', q);
 }
 
-type ExportSecretContext = Pick<import('playwright-core').BrowserContext, 'exposeBinding'>;
-
-/** Publish a PDF password as a one-shot browser-context RPC. It never enters
- * navigation, request headers, console output, or an init-script literal. */
-export async function exposeExportPassword(
-  context: ExportSecretContext,
-  password: string | undefined,
-): Promise<() => void> {
-  let held = password || undefined;
-  if (!held) return () => {};
-  await context.exposeBinding('__lollyTakeExportSecret', (_source, kind: unknown) => {
-    if (kind !== 'pdf-password') return null;
-    const value = held ?? null;
-    held = undefined;
-    return value;
-  });
-  return () => { held = undefined; };
-}
+export { exposeExportPassword };
 
 /**
  * Tier B render - the full browser export pipeline (M1). Serves/points at a real
@@ -998,7 +1075,7 @@ async function renderTierB(
     await ctx.addInitScript(() => {
       Object.defineProperty(globalThis, '__LOLLY_AI_DISABLED__', { value: true, writable: false, configurable: false });
     });
-    clearPassword = await exposeExportPassword(ctx, fmt === 'pdf' ? o.password : undefined);
+    clearPassword = await exposeExportPassword(ctx, o.password);
     const page = await ctx.newPage();
     const inputIds = o.production === undefined ? [] : parseProductionSpec(o.production).requirements.filter(r => r.kind === 'input').map(r => r.location);
     const observeInputs = await observeProductionInputs(page, toolId, inputIds);
@@ -1053,8 +1130,10 @@ export async function stampC2pa(
   ingredients: C2paSourceIngredient[] = [],
   /** The design-system record the file's own metadata carries (plans/319), for the credential. */
   meta: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills' | 'brandPage'> | null = null,
-  /** What a browser-free render drew from the operations: its credentialed pictures and its route (plan 326). */
+  /** What a browser-free render drew from the operations: the document's credentialed pictures and its route (plan 326). */
   drawn: DrawnHere | null = null,
+  /** What the browser's credential, which this one replaces, recorded about the pictures placed in the file. */
+  carried: PlacedPictures | null = null,
 ): Promise<Uint8Array> {
   // The shared node-shell payload (dimensions, inputs digest, date, author gate),
   // so an MCP-made asset inspects as richly as a CLI/TUI/browser-made one.
@@ -1070,9 +1149,13 @@ export async function stampC2pa(
     // One componentOf source ingredient per distinct glyph this render placed,
     // carrying the pack's own licence, creator and the exact bytes it came from.
     // Without it an MCP export that drew CC BY artwork records no licence for it.
-    ...(ingredients.length || drawn?.pictures.length ? { ingredients: [...ingredients, ...(drawn?.pictures ?? [])] } : {}),
+    // The browser's own record of the pictures placed in the file, credentialed ones with
+    // their manifests, goes in too: this credential takes the place of that one.
+    ...(ingredients.length || drawn?.pictures.length || carried?.ingredients.length
+      ? { ingredients: [...ingredients, ...(drawn?.pictures ?? []), ...(carried?.ingredients ?? [])] } : {}),
     route: drawn?.route ?? null,
     intent: o.intent ?? null,
+    carried,
   });
   return embedC2pa(bytes, fmt as ExportFormat, opts);
 }
@@ -1110,11 +1193,19 @@ export async function credentialAndRecord(
   const record: Recorded | null = skills.length ? { ...(inFile ?? {}), brandSkills: skills } : inFile;
   let stamped = false;
   if (!o.sampled && o.merged.c2pa?.on && C2PA_FORMATS.includes(o.exportFmt as ExportFormat) && !(o.exportFmt === 'pdf' && o.merged.password)) {
+    // The browser stamped first (exportUrl), and its credential is the record of the pictures
+    // placed in the file, so that record is read before this stamp replaces the credential.
+    // A PDF holds one credential, so the browser's update comes off first.
+    let carried: PlacedPictures | null = null;
+    if (out.tier.startsWith('B')) {
+      carried = await placedPicturesIn(bytes);
+      if (/^pdf/.test(o.exportFmt)) bytes = pdfWithoutCredential(bytes) ?? bytes;
+    }
     // Told not to stamp, the browser saves a PDF the embedder cannot extend until it has a classic table.
     try { bytes = await (await import('@lolly-tools/node-shell/pdf-classic')).classicPdfForStamp(bytes, o.exportFmt); } catch { /* the stamp below reports it */ }
-    // The new credential goes where a reader looks for it, not over an inlined picture's own.
-    const clean = withoutSvgCredentials(bytes, o.exportFmt);
-    try { bytes = await stampC2pa(clean, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null); stamped = true; }
+    // On an SVG the embedder puts this credential in the root's metadata, in place of the
+    // browser's, and an inlined picture keeps its own credential in its own markup.
+    try { bytes = await stampC2pa(bytes, o.exportFmt, o.manifest, o.values, o.merged, o.placed, record, out.tier.startsWith('B') ? null : o.drawn ?? null, carried); stamped = true; }
     catch (e) { o.warnings.push(`Content Credentials not attached - ${(e as Error).message}`); }
   } else if (!o.sampled && o.merged.c2pa?.on) {
     o.warnings.push(o.exportFmt === 'pdf' && o.merged.password
@@ -1156,18 +1247,6 @@ export async function credentialAndRecord(
 }
 
 /**
- * An SVG with every `<c2pa:manifest>` taken out, and only those: an SVG that inlines
- * credentialed artwork, such as a catalog logo, carries that piece's manifest as well, and a
- * verifier reads it as the file's own. Any other format, or an SVG with none, comes back as
- * it was. Latin-1 keeps every byte around the elements exactly as it found them.
- */
-function withoutSvgCredentials(bytes: Uint8Array, format: string): Uint8Array {
-  if (format !== 'svg' && format !== 'svg-anim') return bytes;
-  const text = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('latin1');
-  return text.includes('<c2pa:manifest') ? new Uint8Array(Buffer.from(stripSvgC2pa(text), 'latin1')) : bytes;
-}
-
-/**
  * Render a tool to bytes. `query` is a plain (or packed `z=`) URL query - the
  * shared param contract. Explicit opts override anything parsed from the query.
  */
@@ -1197,7 +1276,7 @@ export async function render(toolId: string, query: string, o: RenderOpts = {}):
   const last = run.attempts.at(-1)!;
   try { await requireProduction(last.report, last.bytes, contract); }
   catch (error) { if (error instanceof Error) Object.assign(error, { attempts: run.attempts.map(a => a.report) }); throw error; }
-  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), ...(last.audio ? { audio: last.audio } : {}), ...(last.audioFailures ? { audioFailures: last.audioFailures } : {}), ...(last.songs ? { songs: last.songs } : {}), ...(last.designRecord ? { designRecord: last.designRecord } : {}), ...(last.intentRecord ? { intentRecord: last.intentRecord } : {}), ...(last.credential ? { credential: last.credential } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
+  return { bytes: last.bytes, mime: last.mime, format: last.format, tier: last.tier, warnings: last.warnings, ...(last.rights ? { rights: last.rights } : {}), ...(last.audio ? { audio: last.audio } : {}), ...(last.audioFailures ? { audioFailures: last.audioFailures } : {}), ...(last.songs ? { songs: last.songs } : {}), ...(last.designRecord ? { designRecord: last.designRecord } : {}), ...(last.intentRecord ? { intentRecord: last.intentRecord } : {}), ...(last.credential ? { credential: last.credential } : {}), ...(last.lock ? { lock: last.lock } : {}), production: last.report, productionAttempts: run.attempts.map(a => a.report) };
 }
 
 /** One candidate render as one request scope: its songs share the caps and one time budget. */
@@ -1251,6 +1330,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     hdr: o.hdr ?? st.hdr ?? null,
     depth: o.depth ?? st.depth ?? undefined,
     madeWith: o.madeWith ?? st.madeWith ?? null,
+    spots: o.spots ?? st.spots ?? null,
   };
   const profile = o.profile ?? {};
   // The canvas size every browser-free render mounts with (engine 1.293): the request's
@@ -1260,11 +1340,12 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
   // file, the editable link and the browser tier's URL alike.
   const emoji: EmojiRequest = { emoji: st.emoji, emojifx: st.emojiFx, emojistyle: st.emojiStyle };
   const warnings: string[] = [];
-  // Open-password is only wired through for standard `pdf` (via the one-shot
-  // browser binding); the
-  // CMYK press path drops it, so the returned PDF would be UNprotected. Report it.
-  if (merged.password && exportFmt === 'pdf-cmyk') {
-    warnings.push('Password is not applied for pdf-cmyk - the returned PDF is not protected. Use format "pdf" for an open-password.');
+  // The password reaches the web shell over the one-time browser binding, and only for a
+  // file that can carry it. Anything else is refused before it renders: an unlocked file
+  // beside a warning is still an unlocked file.
+  if (merged.password) {
+    const refusal = exportPasswordRefusal(exportFmt, { password: merged.password, bleed: st.bleed, marks: st.marks });
+    if (refusal) throw new RenderError(refusal);
   }
   const productionContract = o.production === undefined ? undefined : parseProductionSpec(o.production);
   let out: { bytes: Uint8Array; mime: string; tier: string; productionInputs?: Record<string, string> };
@@ -1314,22 +1395,26 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     try {
       const requested = exportOpts(merged);
       const both = requested.width !== undefined && requested.height !== undefined;
+      const px = targetPx(merged.width, merged.unit, merged.dpi);
+      const pxBoth = both ? targetPx(merged.height, merged.unit, merged.dpi) : undefined;
       const svg = await renderTierA(toolId, values, 'svg', exportOpts({ ...merged, width: undefined, height: undefined, unit: 'px' }), profile, emoji, productionContract, st.tokenSelection, {
         canvas: canvasSize,
         ...(both ? { svg: { width: requested.width!, height: requested.height! } } : {}),
+        admit: { ...(px ? { width: px } : {}), ...(pxBoth ? { height: pxBoth } : {}) },
       });
       // The raster below is that SVG, so it placed the same artwork.
       placed = svg.ingredients;
       evaluation = svg.rights;
       recorded = svg.meta;
       warnings.push(...svg.warnings);
-      const px = targetPx(merged.width, merged.unit, merged.dpi);
       const pxH = svg.svgSized ? targetPx(merged.height, merged.unit, merged.dpi) : undefined;
-      const png = await svgToPng(new TextDecoder().decode(svg.bytes), px, merged.background, o.maxRasterPixels, pxH);
+      const png = await svgToPng(new TextDecoder().decode(svg.bytes), px, merged.background, o.maxRasterPixels, pxH, svg.resvg);
       if (png.reduced) {
         warnings.push(`PNG reduced to ${png.width} x ${png.height} px to stay within this server's ${o.maxRasterPixels!.toLocaleString('en')}-pixel raster limit. Ask for svg for a file that scales to any size.`);
       }
-      out = { bytes: png.png, mime: 'image/png', tier: 'A(resvg)', productionInputs: svg.productionInputs };
+      // The chunks the browser's PNG carries: DPI, provenance text, XMP and colour profile.
+      const finished = await finishTierAPng(png.png, { ...(merged.unit ? { unit: merged.unit } : {}), ...(merged.dpi ? { dpi: merged.dpi } : {}) }, { meta: svg.meta, colorProfile: merged.colorProfile ?? null });
+      out = { bytes: finished, mime: 'image/png', tier: 'A(resvg)', productionInputs: svg.productionInputs };
     } catch (e) {
       if (o.noBrowser) {
         // No silent Tier-B escalation on the browser-free contract. Surface the
@@ -1355,6 +1440,13 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     catch { /* a note, never a reason to fail a finished render */ }
   }
   let bytes = out.bytes;
+  // Read back before anything else trusts these bytes: a web shell that dropped the
+  // password, for whatever reason, must not get an unlocked file delivered.
+  let lock: ExportLockReading | null = null;
+  if (merged.password) {
+    try { lock = await assertExportLocked(out.bytes, deliveredFormat, merged.password); }
+    catch (error) { throw new RenderError((error as Error).message); }
+  }
   // The browser tier draws its emoji inside the web shell and hands back only
   // the bytes, so the census is established here instead: the same tool, the
   // same values, the same set, hydrated in Node. Without it the credential
@@ -1403,6 +1495,7 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     ...(finished.intentRecord ? { intentRecord: finished.intentRecord } : {}),
     ...(credentialFromIntent ? { credentialFromIntent } : {}),
     ...(finished.credential ? { credential: finished.credential } : {}),
+    ...(lock ? { lock } : {}),
   };
 }
 

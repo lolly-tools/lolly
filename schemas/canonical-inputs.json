@@ -23,6 +23,7 @@
     "image": { "accepts": ["asset"], "description": "The main picture." },
     "jobTitle": { "accepts": ["text"], "description": "A person’s role." },
     "lastname": { "accepts": ["text"], "description": "A person’s last name." },
+    "partnerMark": { "accepts": ["asset"], "description": "The partner’s mark in a co-branded piece: the guest’s logo, never the lead brand’s." },
     "phone": { "accepts": ["text"], "description": "A phone number." },
     "recipient": { "accepts": ["text"], "description": "Who the piece is addressed to." },
     "sender": { "accepts": ["text"], "description": "Who the piece comes from." },

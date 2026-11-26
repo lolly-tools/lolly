@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Shared hover, focus and touch-hold help outside scrolling chrome. */
 const mounted = new WeakMap<Document, { release(): void; users: number }>();
+/** A panel opened from inside an element with a tip, such as a colour field's popover. A tip inside the panel still works. */
+const PANEL = '[data-tip-boundary]';
 export function mountTooltips(doc: Document = document): () => void {
   const existing = mounted.get(doc);
   if (existing) { existing.users++; return () => release(); }
@@ -31,9 +33,14 @@ export function mountTooltips(doc: Document = document): () => void {
       bubble.remove(); bubble = undefined;
     }
   };
+  /** The panel this node sits in, when the tip's own element is outside that panel. A tip says nothing about what a panel holds. */
+  const panelInside = (node: EventTarget | null, element: Element): Element | null => {
+    const panel = node instanceof win.Element ? node.closest(PANEL) : null;
+    return panel && !panel.contains(element) ? panel : null;
+  };
   const trigger = (node: EventTarget | null): HTMLElement | undefined => {
     const element = node instanceof win.Element ? node.closest<HTMLElement>('[data-tip]') : null;
-    if (!element?.dataset.tip?.trim() || element.closest('[inert],[data-tooltip="off"]')) return;
+    if (!element?.dataset.tip?.trim() || element.closest('[inert],[data-tooltip="off"]') || panelInside(node, element)) return;
     return element;
   };
   const show = (element: HTMLElement): void => {
@@ -55,6 +62,7 @@ export function mountTooltips(doc: Document = document): () => void {
     const e = event as PointerEvent;
     if (e.pointerType === 'touch' || Date.now() < touchUntil) return;
     const element = trigger(e.target); if (element && element !== target) show(element);
+    else if (target && panelInside(e.target, target)) hide();
   });
   listen(doc, 'pointerout', event => {
     const e = event as PointerEvent;
@@ -91,7 +99,14 @@ export function mountTooltips(doc: Document = document): () => void {
   listen(doc, 'contextmenu', event => {
     if (held || pending) { event.preventDefault(); event.stopImmediatePropagation(); }
   }, true);
-  listen(doc, 'keydown', event => { if ((event as KeyboardEvent).key === 'Escape' && target) { dismiss(); held = undefined; event.preventDefault(); event.stopImmediatePropagation(); } }, true);
+  // Escape takes a tip down and goes no further, unless a panel is open inside the tip's
+  // element: that press belongs to the panel as well, or closing it would take two.
+  listen(doc, 'keydown', event => {
+    if ((event as KeyboardEvent).key !== 'Escape' || !target) return;
+    const panelOpen = !!target.querySelector(`${PANEL}:not([hidden])`);
+    dismiss(); held = undefined;
+    if (!panelOpen) { event.preventDefault(); event.stopImmediatePropagation(); }
+  }, true);
   listen(doc, 'lolly:tooltip-toast', dismiss);
   listen(doc, 'scroll', dismiss, true); listen(win, 'resize', dismiss);
   if (win.visualViewport) { listen(win.visualViewport, 'resize', dismiss); listen(win.visualViewport, 'scroll', dismiss); }

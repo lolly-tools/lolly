@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
+import { closeButtonHtml } from '../lib/close-button.ts';
 import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 import { mountModal } from '../components/modal.ts';
-import { escape as escapeHtml } from '../utils.ts';
 import { t } from '../i18n.ts';
 
 /**
@@ -26,7 +26,7 @@ export function openWebcamCapture(store: (file: File) => Promise<AssetRef>, log:
       <div class="webcam-capture-panel">
         <header class="webcam-capture-head">
           <span>${t('Take a photo')}</span>
-          <button type="button" class="webcam-capture-close" aria-label="${escapeHtml(t('Close'))}">&times;</button>
+          ${closeButtonHtml({ className: 'webcam-capture-close' })}
         </header>
         <div class="webcam-capture-stage">
           <video class="webcam-capture-video" autoplay playsinline muted></video>

@@ -4,7 +4,7 @@
 // apng.test.js / tiff.test.js: synthetic minimal containers, own mini-parsers.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { videoProvenanceTags, embedMp4Meta, embedWebmMeta } from '../engine/src/video-meta.ts';
+import { videoProvenanceTags, embedMp4Meta, embedMp4Xmp, embedWebmMeta, withoutMp4Udta, XMP_UUID } from '../engine/src/video-meta.ts';
 
 const utf8 = (s: string): Uint8Array => new TextEncoder().encode(s);
 const ascii = (b: Uint8Array, off: number, len: number): string => new TextDecoder().decode(b.subarray(off, off + len));
@@ -182,6 +182,54 @@ test('mp4: bails untouched on missing moov, existing udta, or 64-bit sizes', () 
 
   const junk = utf8('definitely not an mp4');
   assert.equal(embedMp4Meta(junk, TAGS), junk);
+});
+
+test('mp4: the cprt item carries a copyright or licence notice, and only when set', () => {
+  assert.equal(ilstValue(embedMp4Meta(syntheticMp4(), { ...TAGS, copyright: 'Licensed under CC BY 4.0.' }), 'cprt'), 'Licensed under CC BY 4.0.');
+  assert.equal(ilstValue(embedMp4Meta(syntheticMp4(), TAGS), 'cprt'), null, 'the video export sets none, so its bytes do not change');
+});
+
+test('withoutMp4Udta undoes embedMp4Meta byte for byte, offsets included', () => {
+  const mdatData = utf8('SAMPLEDATA');
+  const chunkOff = moovWithStco(0).length + 8;
+  const fastStart = concat(moovWithStco(chunkOff), mp4box('mdat', mdatData));
+  const tagged = embedMp4Meta(fastStart, STCO_TAGS);
+  assert.notEqual(findStcoOffset(tagged), chunkOff, 'fixture: tagging moved the chunk offset');
+  assert.deepEqual(withoutMp4Udta(tagged), fastStart, 'a fast-start file gets its offsets back');
+  const progressive = concat(mp4box('mdat', mdatData), moovWithStco(8));
+  assert.deepEqual(withoutMp4Udta(embedMp4Meta(progressive, STCO_TAGS)), progressive);
+  assert.equal(withoutMp4Udta(fastStart), fastStart, 'nothing to take out: the same array');
+  const junk = utf8('definitely not an mp4');
+  assert.equal(withoutMp4Udta(junk), junk);
+});
+
+test('mp4 XMP: a top-level uuid box with the XMP usertype, appended last; a trailing one is replaced', () => {
+  const src = syntheticMp4();
+  const out = embedMp4Xmp(src, '<x:xmpmeta>one</x:xmpmeta>');
+  assert.deepEqual(out.subarray(0, src.length), src, 'nothing before it moves');
+  const box = out.subarray(src.length);
+  assert.equal(readU32(box, 0), box.length);
+  assert.equal(ascii(box, 4, 4), 'uuid');
+  assert.deepEqual(box.subarray(8, 24), XMP_UUID);
+  assert.equal(ascii(box, 24, box.length - 24), '<x:xmpmeta>one</x:xmpmeta>');
+  const again = embedMp4Xmp(out, '<x:xmpmeta>two</x:xmpmeta>');
+  assert.equal(ascii(again, src.length + 24, again.length - src.length - 24), '<x:xmpmeta>two</x:xmpmeta>', 'replaced, not added');
+  // An XMP box that is not last, an empty packet, or a file with no movie: untouched.
+  const middle = concat(out, mp4box('free', new Uint8Array(4)));
+  assert.equal(embedMp4Xmp(middle, '<x/>'), middle);
+  assert.equal(embedMp4Xmp(src, '  '), src);
+  const noMoov = concat(mp4box('ftyp', utf8('isom')), mp4box('mdat', utf8('x')));
+  assert.equal(embedMp4Xmp(noMoov, '<x/>'), noMoov);
+});
+
+test('mp4 XMP: a last box sized to the end of the file is given its size first', () => {
+  const ftyp = mp4box('ftyp', utf8('isom'), be32(0x200), utf8('isommp42'));
+  const moov = mp4box('moov', mp4box('mvhd', new Uint8Array(100)));
+  const mdat = concat(be32(0), utf8('mdat'), utf8('to-the-end'));
+  const src = concat(ftyp, moov, mdat);
+  const out = embedMp4Xmp(src, '<x/>');
+  assert.equal(readU32(out, ftyp.length + moov.length), mdat.length, 'the mdat box now states its size');
+  assert.equal(ascii(out, src.length + 4, 4), 'uuid');
 });
 
 // ── WebM / Matroska ───────────────────────────────────────────────────────────

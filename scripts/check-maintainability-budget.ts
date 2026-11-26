@@ -262,34 +262,125 @@ export function measure(): MaintainabilityBaseline {
   };
 }
 
-function changedProductionModules(): Set<string> {
-  const changed = new Set<string>();
-  const collect = (cwd: string, prefix: string): void => {
-    for (const args of [
-      ['diff', '--name-only', '--diff-filter=ACMR', 'HEAD'],
-      ['ls-files', '--others', '--exclude-standard'],
-    ]) {
-      let output = '';
-      try {
-        output = execFileSync('git', args, { cwd, encoding: 'utf8' });
-      } catch {
-        continue;
-      }
-      for (const name of output.trim().split('\n').filter(Boolean)) {
-        const relative = `${prefix}${name}`.replaceAll(path.sep, '/');
-        if (isProductionModule(path.join(repoRoot, relative))) changed.add(relative);
-      }
+/**
+ * Which files count as changed. The function and type-escape ratchets judge only the files
+ * a change touches, so this list decides what they see.
+ *
+ * The working tree is compared with a base commit:
+ * - the commit named by `--base=<rev>` or MAINTAINABILITY_BASE, else origin/<GITHUB_BASE_REF>,
+ *   else origin/main. The base is the merge base of HEAD with that commit, so a branch is
+ *   judged on its own committed and uncommitted changes, and not on what main did after the
+ *   branch started. CI passes HEAD^1 for a pull request (GitHub checks out a merge commit
+ *   whose first parent is the target branch) and the replaced main commit for a main push.
+ * - During a merge from the target branch, the base is the commit being merged in. A file
+ *   that the merge brings in unchanged from main is then not this branch's change.
+ * - In a shallow checkout with no common history, the named commit itself is the base.
+ * - Locally with no origin/main, the base is HEAD: only uncommitted work counts, as before.
+ * In CI (GITHUB_ACTIONS or CI set to true) a base that cannot be found is an error, so the
+ * ratchet never quietly checks nothing.
+ */
+export interface ChangeBase {
+  /** The commit the working tree is compared with. */
+  commit: string;
+  /** How the commit was chosen, for the log line. */
+  source: string;
+}
+
+export interface ChangeSelectionOptions {
+  /** Repository to read. Defaults to this checkout. */
+  cwd?: string;
+  /** Environment to read the CI settings from. Defaults to process.env. */
+  env?: NodeJS.ProcessEnv;
+  /** A base revision from the command line (--base=<rev>). */
+  base?: string;
+}
+
+const WEB_PREFIX = 'shells/web/src/';
+
+function gitRunner(cwd: string, env: NodeJS.ProcessEnv): (...args: string[]) => string | null {
+  return (...args) => {
+    try {
+      return execFileSync('git', args, {
+        cwd,
+        env,
+        encoding: 'utf8',
+        maxBuffer: 64 * 1024 * 1024,
+        stdio: ['ignore', 'pipe', 'ignore'],
+      });
+    } catch {
+      return null;
     }
   };
-  collect(repoRoot, '');
-  collect(path.join(repoRoot, 'shells', 'web'), 'shells/web/');
-  return changed;
+}
+
+function inCi(env: NodeJS.ProcessEnv): boolean {
+  return env.GITHUB_ACTIONS === 'true' || env.CI === 'true';
+}
+
+export function resolveChangeBase(options: ChangeSelectionOptions = {}): ChangeBase {
+  const env = options.env ?? process.env;
+  const git = gitRunner(options.cwd ?? repoRoot, env);
+  const commitOf = (rev: string): string | null =>
+    git('rev-parse', '--verify', '--quiet', `${rev}^{commit}`)?.trim() || null;
+  const isAncestor = (older: string, newer: string): boolean => git('merge-base', '--is-ancestor', older, newer) !== null;
+
+  const explicit = options.base || env.MAINTAINABILITY_BASE || '';
+  const target = explicit || (env.GITHUB_BASE_REF ? `origin/${env.GITHUB_BASE_REF}` : 'origin/main');
+  const targetCommit = commitOf(target);
+  if (!targetCommit) {
+    if (explicit || inCi(env)) {
+      throw new Error(
+        `cannot list the files this change touches: ${target} is not a commit in this checkout. ` +
+          'Fetch it, or name another base with --base=<rev> or MAINTAINABILITY_BASE.',
+      );
+    }
+    return { commit: 'HEAD', source: `HEAD (${target} is not in this checkout, so only uncommitted work counts)` };
+  }
+
+  const mergeBase = git('merge-base', 'HEAD', targetCommit)?.trim() || null;
+  let commit = mergeBase ?? targetCommit;
+  let source = mergeBase ? `merge base of HEAD and ${target}` : `${target} (no common history in this checkout)`;
+  const mergeHead = commitOf('MERGE_HEAD');
+  if (mergeHead && mergeHead !== commit && isAncestor(mergeHead, targetCommit) && isAncestor(commit, mergeHead)) {
+    commit = mergeHead;
+    source = `MERGE_HEAD, a merge from ${target} in progress`;
+  }
+  return { commit, source: `${source}, ${commit.slice(0, 12)}` };
+}
+
+/** Production modules under shells/web/src that differ from the base, uncommitted and untracked files included. */
+export function changedProductionModules(options: ChangeSelectionOptions = {}): { base: ChangeBase; changed: Set<string> } {
+  const env = options.env ?? process.env;
+  const git = gitRunner(options.cwd ?? repoRoot, env);
+  const base = resolveChangeBase(options);
+  const changed = new Set<string>();
+  for (const args of [
+    ['diff', '--name-only', '-z', '--diff-filter=ACMRTU', base.commit, '--', WEB_PREFIX],
+    ['ls-files', '-z', '--others', '--exclude-standard', '--', WEB_PREFIX],
+  ]) {
+    const output = git(...args);
+    if (output === null) {
+      if (inCi(env)) throw new Error(`cannot list the files this change touches: git ${args.join(' ')} failed`);
+      continue;
+    }
+    for (const name of output.split('\0').filter(Boolean)) {
+      if (name.startsWith(WEB_PREFIX) && isProductionModule(path.join(repoRoot, name))) changed.add(name);
+    }
+  }
+  return { base, changed };
+}
+
+function baseArgument(argv: string[]): string | undefined {
+  const index = argv.findIndex((arg) => arg === '--base' || arg.startsWith('--base='));
+  if (index < 0) return undefined;
+  const arg = argv[index]!;
+  return arg === '--base' ? argv[index + 1] : arg.slice('--base='.length);
 }
 
 export function compare(
   baseline: MaintainabilityBaseline,
   current: MaintainabilityBaseline,
-  changed = changedProductionModules(),
+  changed = changedProductionModules().changed,
 ): { errors: string[]; warnings: string[] } {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -371,7 +462,9 @@ function main(): void {
     console.log(`Wrote ${path.relative(repoRoot, baselinePath)} (${Object.keys(current.modules).length} modules, ${current.cycles.length} cycles, ${(current.layerViolations ?? []).length} upward imports, ${Object.keys(current.typeEscapes ?? {}).length} modules with type escapes).`);
     return;
   }
-  const { errors, warnings } = compare(loadBaseline(), current);
+  const { base, changed } = changedProductionModules({ base: baseArgument(process.argv.slice(2)) });
+  console.log(`Changed web modules: ${changed.size}, compared with the ${base.source}.`);
+  const { errors, warnings } = compare(loadBaseline(), current, changed);
   for (const warning of warnings) console.warn(`maintainability warning: ${warning}`);
   if (errors.length) {
     throw new Error(`Maintainability budget failed:\n- ${errors.join('\n- ')}`);

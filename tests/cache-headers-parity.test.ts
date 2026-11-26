@@ -111,10 +111,22 @@ test('reserved YunoHost files cannot fall back to the SPA and every header scope
   assert.doesNotMatch(yuno, /\badd_header\b/);
 });
 test('generic Vercel static rules fail closed uniformly because they cannot inspect status', () => {
-  for (const path of ['/', '/sw.js', '/_app/missing.js', '/ort-hf/1.24.3/missing.js', '/fonts/plain.woff2',
+  for (const path of ['/', '/sw.js', '/ort-hf/1.24.3/missing.js',
     '/catalog/previews/demo.svg', '/catalog/tools/index.sig.json', '/models/depth@0123456789abcdef/model.onnx', '/tools/demo/lib.js']) {
     const headers = vercelHeaders(path);
     assert.equal(headers['cache-control'], cachePolicy('person-private').cacheControl, path);
+    assert.equal(headers['cdn-cache-control'], 'no-store', path);
+  }
+  // The build output and the app fonts may be STORED by the browser, but never reused without asking
+  // the origin (no-cache), so a 404 for a chunk a deploy removed can never be served from cache, whatever
+  // its status. That is what lets the service worker keep the first visit's boot files with a 304 instead
+  // of a second download (plan 371). The CDN still stores nothing, and no rule claims a lifetime.
+  // The icons are asked for by the icon link, the web manifest and the logo recolouring as three kinds of
+  // request, so a stored copy turns the second and third into revalidations instead of downloads.
+  for (const path of ['/_app/missing.js', '/_app/web-boot-a1b2c3.js', '/fonts/plain.woff2', '/icons/icon-192.png', '/favicon.ico']) {
+    const headers = vercelHeaders(path);
+    assert.equal(headers['cache-control'], cachePolicy('instance-private').cacheControl, path);
+    assert.doesNotMatch(headers['cache-control']!, /max-age=[1-9]|immutable|public/, path);
     assert.equal(headers['cdn-cache-control'], 'no-store', path);
   }
   for (const path of ['/api/mcp', '/tool/demo.svg', '/live/room']) assert.equal(vercelHeaders(path)['cache-control'], undefined, 'Dynamic origins own their response policy');

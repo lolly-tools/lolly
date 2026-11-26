@@ -5,9 +5,9 @@ description: "Operate the Lolly Flythrough tool (flythrough) using its declared 
 
 # Flythrough
 
-Tool ID: `flythrough`. Tool version: `0.2.5`. Engine range: `^1.0.0`.
+Tool ID: `flythrough`. Tool version: `0.2.7`. Engine range: `^1.0.0`.
 
-Fly a real 3D camera through a screenshot. The picture lifts into layers at real depth; big shapes extrude into solid objects; a timeline of poses animates the whole move - depth, opacity, perspective, extrusion, tilt, rotate, scale and the camera flight - then loops it home. Add, drag and reorder poses. Export as video.
+Fly a 3D camera through a screenshot. The picture lifts into layers at real depth; a timeline of poses animates the move. Export as video.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

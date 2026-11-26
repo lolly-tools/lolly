@@ -11,7 +11,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { normalizeInstanceBase, instancePath, getInstanceBase, _setBaseForTests, setInstallTag, clientHeaderValue, setInstanceSession, hasInstanceSession, instanceFetch } from './instance.ts';
+import { normalizeInstanceBase, instancePath, getInstanceBase, suspendInstanceBase, suspendedInstanceBase, _setBaseForTests, setInstallTag, clientHeaderValue, setInstanceSession, hasInstanceSession, instanceFetch } from './instance.ts';
 
 // ── normalizeInstanceBase ────────────────────────────────────────────────────
 
@@ -109,6 +109,66 @@ test('setInstallTag: anything outside the header grammar is refused, not escaped
     setInstallTag(bad);
     assert.equal(clientHeaderValue(), untagged, `refused: ${JSON.stringify(bad)}`);
   }
+});
+
+test('viewing headers follow same-origin instance requests and preserve a caller header', async (ctx) => {
+  const keys = ['sessionStorage', 'location', 'window'] as const;
+  const saved = keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)] as const);
+  ctx.after(() => {
+    for (const [key, descriptor] of saved) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else Reflect.deleteProperty(globalThis, key);
+    }
+  });
+  const state = { token: 'tab-view-token', expiresAt: new Date(Date.now() + 60_000).toISOString(), programme: { id: 'p1', name: 'Partners' } };
+  Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: { getItem: () => JSON.stringify(state) } });
+  Object.defineProperty(globalThis, 'location', { configurable: true, value: { origin: 'https://work.test' } });
+  const seen: Array<string | null> = [];
+  const fallbackFetch: typeof fetch = async (_input, init) => {
+    seen.push(new Headers(init?.headers).get('x-lw-view-as'));
+    return Response.json({});
+  };
+  await instanceFetch('/api/v1/org-config', {}, { fallbackFetch });
+  await instanceFetch('https://work.test/catalog/assets/index.json', {}, { fallbackFetch });
+  await instanceFetch('/api/v1/org-config', { headers: { 'x-lw-view-as': 'caller-token' } }, { fallbackFetch });
+  await instanceFetch('https://other.test/api/v1/org-config', {}, { fallbackFetch });
+  await instanceFetch('//other.test/catalog/assets/index.json', {}, { fallbackFetch });
+  await instanceFetch('\\\\other.test/catalog/assets/index.json', {}, { fallbackFetch });
+  assert.deepEqual(seen, ['tab-view-token', 'tab-view-token', 'caller-token', null, null, null]);
+
+  const nativeHeaders: Array<Array<[string, string]>> = [];
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: {
+    __TAURI_INTERNALS__: { invoke: async (_command: string, args: { request: { headers: Array<[string, string]> } }) => {
+      nativeHeaders.push(args.request.headers);
+      return { status: 200, statusText: 'OK', url: 'https://other.test/file', headers: [], body: [] };
+    } },
+  } });
+  await instanceFetch('https://other.test/file');
+  assert.equal(new Headers(nativeHeaders[0]).get('x-lw-view-as'), null);
+});
+
+test('an ended-view response updates the banner without consuming the response body', async (ctx) => {
+  const keys = ['sessionStorage', 'location', 'document'] as const;
+  const saved = keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)] as const);
+  ctx.after(() => {
+    for (const [key, descriptor] of saved) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else Reflect.deleteProperty(globalThis, key);
+    }
+  });
+  const title = { textContent: 'Viewing as Partners' };
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => title } });
+  Object.defineProperty(globalThis, 'location', { configurable: true, value: { origin: 'https://work.test' } });
+  Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: {
+    getItem: () => JSON.stringify({ token: 'tab-view-token', expiresAt: new Date(Date.now() + 60_000).toISOString(), programme: { id: 'p1', name: 'Partners' } }),
+  } });
+  const body = { error: { code: 'VIEWING_AS_ENDED' } };
+  const fallbackFetch: typeof fetch = async () => Response.json(body, { status: 403 });
+  await instanceFetch('https://other.test/api/v1/org-config', {}, { fallbackFetch });
+  assert.equal(title.textContent, 'Viewing as Partners');
+  const response = await instanceFetch('/api/v1/org-config', {}, { fallbackFetch });
+  assert.equal(title.textContent, 'This view has ended.');
+  assert.deepEqual(await response.json(), body);
 });
 
 test('native sessions remain bound to the instance that issued them', async (ctx) => {
@@ -279,4 +339,29 @@ test('the native hop loop reports the final address and drops credentials off or
     assert.match(source, /let final_url = response\.url\(\)\.to_string\(\);[\s\S]*?url: final_url,/,
       `${shell} reports the address the bytes came from`);
   }
+});
+
+test('an instance set aside for the page load stops being used and is still remembered', () => {
+  _setBaseForTests('https://lolly.example.org');
+  assert.equal(instancePath('/catalog/tools/index.json'), 'https://lolly.example.org/catalog/tools/index.json');
+  assert.equal(suspendInstanceBase(), 'https://lolly.example.org');
+  // Bundled, same-origin content from here on.
+  assert.equal(getInstanceBase(), '');
+  assert.equal(instancePath('/catalog/tools/index.json'), '/catalog/tools/index.json');
+  assert.equal(suspendedInstanceBase(), 'https://lolly.example.org');
+  // With no instance in use there is nothing to set aside, and the record stays.
+  assert.equal(suspendInstanceBase(), '');
+  assert.equal(suspendedInstanceBase(), 'https://lolly.example.org');
+});
+
+test('a renewed session cookie is read from an answer, a cleared one signs out, other cookies say nothing', async () => {
+  const { renewedSessionPair } = await import('./instance.ts');
+  assert.equal(renewedSessionPair([['content-type', 'application/json'], ['Set-Cookie', 'lw_session=abc.DEF-123; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=43200']]), 'lw_session=abc.DEF-123');
+  assert.equal(renewedSessionPair([['set-cookie', 'other=1; Path=/'], ['set-cookie', 'lw_session=next; Path=/']]), 'lw_session=next');
+  assert.equal(renewedSessionPair([['set-cookie', 'lw_session=; Path=/; Max-Age=0']]), null);
+  assert.equal(renewedSessionPair([['set-cookie', 'lw_session=gone; Expires=Thu, 01 Jan 1970 00:00:00 GMT']]), null);
+  assert.equal(renewedSessionPair([['set-cookie', 'theme=dark']]), undefined);
+  assert.equal(renewedSessionPair([]), undefined);
+  // A value that is not a plain token is not taken as a session.
+  assert.equal(renewedSessionPair([['set-cookie', 'lw_session=a b; Path=/']]), undefined);
 });

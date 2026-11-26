@@ -27,13 +27,22 @@ import {
   getNeurospicy, toggleNeurospicyPlay, cycleNeurospicyLoop, setNeurospicyLoop,
   setNeurospicyVolume, setNeurospicyRepeat, seekNeurospicy, getNeurospicyProgress,
   getNeurospicyAnalyser, isNeurospicyPlaying, listLoops, trackCategory,
+  setLofiDrums, setLofiShuffle, setLofiTexture, takeLofiLinkConsent, saveLofiTune,
   type NeurospicyHost, type NeuroTrack,
 } from './neurospicy.ts';
+import {
+  isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiLinkValue, currentLofiBar, playsOnStation, savedTuneOf, currentLofiRecipe,
+  lofiPosition, musicEditorHash, genreFamilyOf, flavourLabel, isSingsMood,
+} from './neurospicy-lofi.ts';
+import { positionWords } from './neuro-position.ts';
+import { PICKER_GROUPS, cardTitle, genreCard, genreIconSvg, type GenreCategory } from './genre-icons.ts';
+import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME } from './lofi-names.ts';
+import { applySoundMaster } from './sound-master.ts';
 import {
   ATMOSPHERE_LAYERS, ATMOSPHERE_GROUPS, atmosphereLevel, setAtmosphereLevel,
   type AmbienceKind,
 } from './atmosphere.ts';
-import { getSfxVolume, setSfxVolume } from './sfx.ts';
+import { getSfxVolume, setSfxVolume, isSfxMuted } from './sfx.ts';
 import { SOMAFM_HOME, radioAvailable } from './radio.ts';
 import { vizSupported } from './viz-support.ts';
 import { neuroDemoActive, DEMO_VIZ_PRESET_ID, demoVizWave, pumpVizDemoFrames } from './neuro-demo.ts';
@@ -50,11 +59,16 @@ import {
 } from './viz-stock.ts';
 import { vizSchemes, vizSchemeById, type VizScheme } from './viz-schemes.ts';
 import { CYCLE_CHOICES, loadCycleSeconds, saveCycleSeconds } from './viz-cycle.ts';
+import { linkTo, momentParts, shareRoute, shareableId, type SharedViz } from './neuro-share.ts';
+import { shareOrigin } from './share-url.ts';
+import { appPathname } from './any-site.ts';
+import type { NeuroShareOffer } from '../components/neuro-share-card.ts';
 import type { VizPalette, VizPaletteHost } from './viz-palette.ts';
+import type { LiveLead } from '../../../../engine/src/lofi-compose.ts';
 import type {
-  DockHost, DockNowPlaying, DockSource, DockSources, DockAtmosphere, DockViz,
+  DockHost, DockNowPlaying, DockSource, DockSources, DockAtmosphere, DockViz, DockControl,
   DockRepeat, DockVolume, DockAttribution, DockVizPreset, DockVizTheme, DockVizTransition, DockVizInfluence,
-  DockBrandMark,
+  DockBrandMark, DockSeekGrid, DockPositionText,
 } from '@lolly-tools/audio-dock';
 
 /** The web shell's full host satisfies both what the transport needs (NeurospicyHost)
@@ -67,10 +81,13 @@ type MusicHost = NeurospicyHost & VizPaletteHost & {
 /** Friendly section labels for the picker groups, in the engine's canonical order
  *  (NEURO_CATEGORY_ORDER). The dock renders groups in first-seen order, and listLoops
  *  hands tracks back pre-sorted into that order, so what shows is what next/prev walk. */
+/** The genre groups' headings over the stations' tiles, worded as in the music generator's picker. */
+const GENRE_GROUP_LABEL: Record<GenreCategory, string> = { chill: 'Chill', rock: 'Rock & Roots', soul: 'Soul & Groove', club: 'Club', bass: 'Bass & Synth', world: 'World' };
 const CATEGORY_LABEL: Record<string, string> = {
   catalog: 'Catalog',
   uploads: 'Uploads',
   lolly: 'Lolly Sings',
+  lofi: 'Lofi stations',
   ambient: 'Ambient',
   beats: 'Beats',
   radio: 'Internet Radio',
@@ -78,6 +95,16 @@ const CATEGORY_LABEL: Record<string, string> = {
 
 /** Persisted visualiser prefs (device-local, like the old panel's). */
 const ENABLED_KEY = 'lolly:vizEnabled';
+/** Whether the heavy stations show bars instead of the visualiser (see NeuroDockViz.light). */
+const LIGHT_KEY = 'lolly:vizLightHeavy';
+
+/** A modest device: few cores, little memory, or a phone. Heavy stations start light there. */
+function modestDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const nav = navigator as Navigator & { deviceMemory?: number };
+  const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+  return (nav.hardwareConcurrency ?? 8) <= 4 || (nav.deviceMemory ?? 8) <= 4 || coarse;
+}
 const SCHEME_KEY = 'lolly:vizScheme';
 
 /**
@@ -103,18 +130,43 @@ function trackMood(tags: string[]): string {
   return '';
 }
 
+/** A heavy station: a dance genre of the Lolly Sings family, live or a saved tune of one. */
+function heavyStation(id: string): boolean {
+  const mood = lofiMoodOf(id) ?? savedTuneOf(id)?.mood ?? null;
+  return !!mood && isSingsMood(mood) && mood !== 'sings';
+}
+
+
 export interface NeurospicyDockHandle {
   /** The DockHost to hand to createAudioDock. */
   host: DockHost;
   /** Drop the document-event subscriptions AND release the visualiser (WebGL). The
    *  neurospicy ENGINE keeps running (audio, persistence). */
   destroy(): void;
+  /** Show a shared moment's visualiser look, for this visit only (lib/neuro-share.ts). */
+  applySharedLook(v: SharedViz): Promise<void>;
+}
+
+/** The dock's visualiser over a page's own audio (createPageViz). */
+export type PageViz = Required<Pick<DockViz,
+  'mount' | 'unmount' | 'resize' | 'presets' | 'currentPreset' | 'selectPreset' | 'transitions' | 'currentTransition' | 'selectTransition'
+>> & { destroy(): void };
+
+/**
+ * The Neurospicy player's visualiser, for a page that plays its own audio (the music
+ * generator's stage, views/music-studio/viz-stage.ts): the same renderer, presets (Lolly's
+ * and the artist pack), brand colours and preset cycle, reacting to `analyser` instead of
+ * the player. The person chose it there, so it runs whatever the dock's own on/off says,
+ * and under reduced motion it opens on a calm preset.
+ */
+export function createPageViz(host: MusicHost, analyser: () => AnalyserNode | null): PageViz {
+  return new NeuroDockViz(host, { analyser, chosen: true });
 }
 
 /** Build a music `DockHost` over the neurospicy engine for the given app host. */
 export function createNeurospicyDockHost(nhost: MusicHost): NeurospicyDockHandle {
   const host = new NeurospicyDockHost(nhost);
-  return { host, destroy: () => host.destroy() };
+  return { host, destroy: () => host.destroy(), applySharedLook: (v) => host.viz.applyShared(v) };
 }
 
 /**
@@ -129,6 +181,14 @@ class NeuroDockViz implements DockViz {
   private canvas: HTMLCanvasElement | null = null;
   private mounting: Promise<void> | null = null;
   private vizEnabled: boolean;
+  /**
+   * Light: on a heavy station (the dance genres synthesise many more voices than Lofi),
+   * show the bars instead of the visualiser, so the music has the CPU it needs. On by
+   * default on a modest device, a choice in the station's controls, kept on this device.
+   */
+  private light: boolean;
+  /** Whether a heavy station is what is playing; the host sets this. */
+  heavy: () => boolean = () => false;
   private presetId = '';
   private stock: StockPresetInfo[] = [];
   private brandTint: BrandTint = 'strong';
@@ -138,6 +198,12 @@ class NeuroDockViz implements DockViz {
   /** The analyser the current handle is bound to, so we know to remount when the LIVE
    *  analyser appears (idle → reactive). */
   private mountedAnalyser: AnalyserNode | null = null;
+  /** When the renderer last stood down by itself, for the recovery budget (see recover). */
+  private failures: number[] = [];
+  /** The preset that was showing when the renderer last failed. */
+  private failedPreset = '';
+  /** Watches for the player swapping its analyser while the picture keeps running. */
+  private follow: ReturnType<typeof setInterval> | null = null;
   /** A silent, unconnected analyser (its own suspended AudioContext) so butterchurn
    *  IDLE-ANIMATES with nothing playing - many presets move from time alone, and the docs
    *  ?neuro=viz capture needs a live picture without audio. Created lazily. */
@@ -147,19 +213,30 @@ class NeuroDockViz implements DockViz {
   private cycleSeconds = 0;
   private cycleTimer: ReturnType<typeof setInterval> | undefined;
   private readonly unsubscribePerf: () => void;
+  /** The analyser the picture reacts to: the player's own, or a page's (createPageViz). */
+  private readonly liveAnalyser: () => AnalyserNode | null;
+  /** The person picked this visualiser on the page it plays on (createPageViz), so it runs
+   *  whatever the dock's own on/off says, and under reduced motion opens on a calm preset
+   *  rather than not at all. */
+  private readonly chosen: boolean;
 
-  constructor(host: MusicHost) {
+  constructor(host: MusicHost, opts: { analyser?: () => AnalyserNode | null; chosen?: boolean } = {}) {
     this.host = host;
+    this.liveAnalyser = opts.analyser ?? getNeurospicyAnalyser;
+    this.chosen = opts.chosen === true;
     let saved = '1';
     try { saved = localStorage.getItem(ENABLED_KEY) ?? '1'; } catch { /* private mode */ }
     this.vizEnabled = saved !== '0';
+    let light: string | null = null;
+    try { light = localStorage.getItem(LIGHT_KEY); } catch { /* private mode */ }
+    this.light = light === null ? modestDevice() : light === '1';
     this.cycleSeconds = loadCycleSeconds();
     this.unsubscribePerf = subscribePerfUi(on => { if (on) this.unmount(); });
   }
 
   // ── support probe + live analyser (also feeds the shell's 2D backdrop fallback) ──
   supported(): boolean { return vizSupported(); }
-  getAnalyser(): AnalyserNode | null { return getNeurospicyAnalyser(); }
+  getAnalyser(): AnalyserNode | null { return this.liveAnalyser(); }
 
   // The brand silhouette for the immersive/fullscreen viz (plans/147): the brand's
   // MONO-REVERSE logo (a one-colour, dark-background mark), resolved across BOTH logo
@@ -228,8 +305,16 @@ class NeuroDockViz implements DockViz {
   }
 
   // ── on/off ──────────────────────────────────────────────────────────────────
-  enabled(): boolean { return this.vizEnabled; }
+  enabled(): boolean { return this.chosen || (this.vizEnabled && !(this.light && this.heavy())); }
+  lightOn(): boolean { return this.light; }
+  setLight(on: boolean): void {
+    this.light = on;
+    try { localStorage.setItem(LIGHT_KEY, on ? '1' : '0'); } catch { /* best-effort */ }
+    if (on && this.heavy()) this.unmount();
+  }
   setEnabled(on: boolean): void {
+    // Asking for the visualiser on a heavy station that is showing bars means "show it here too".
+    if (on && this.light && this.heavy()) this.setLight(false);
     this.vizEnabled = on;
     try { localStorage.setItem(ENABLED_KEY, on ? '1' : '0'); } catch { /* best-effort */ }
     if (!on) this.unmount();
@@ -260,11 +345,11 @@ class NeuroDockViz implements DockViz {
   async mount(canvas: HTMLCanvasElement): Promise<void> {
     // The rich dock visualiser idle-animates off a silent analyser even with nothing
     // playing, so it's an ambient loop - don't start it under reduced motion or perf-ui.
-    if (this.destroyed || !this.vizEnabled || !vizSupported() || prefersReducedMotion() || perfUiOn()) return;
+    if (this.destroyed || !this.enabled() || !vizSupported() || (prefersReducedMotion() && !this.chosen) || perfUiOn()) return;
     // Render IMMEDIATELY, audio or not: use the live analyser when it exists (reactive),
     // else a silent one (idle animation). When the live analyser first appears we remount
     // so the picture starts reacting.
-    const desired = getNeurospicyAnalyser() ?? this.silentAnalyser();
+    const desired = this.liveAnalyser() ?? this.silentAnalyser();
     // Already rendering the right thing on this canvas → cheap no-op.
     if (this.handle && this.canvas === canvas && this.handle.running() && this.mountedAnalyser === desired) return;
     // A stood-down loop, a new canvas, or the analyser changed (idle → live) → remount.
@@ -294,7 +379,7 @@ class NeuroDockViz implements DockViz {
     let handle: VizHandle | null = null;
     try {
       handle = await mountViz(canvas, this.host, this.presetId,
-        (err) => console.error('[lolly:viz] the dock visualiser stopped', err), palette,
+        (err) => { console.error('[lolly:viz] the dock visualiser stopped', err); this.recover(); }, palette,
         // pixelRatioCap 2 → crisp when the window is enlarged/fullscreen (the backdrop
         // just resamples down). `analyser` forces the silent idle source when there's no
         // live audio yet.
@@ -320,6 +405,46 @@ class NeuroDockViz implements DockViz {
     // An ARTIST preset opened on the fallback - fetch + apply the real one now.
     if (this.isStock(this.presetId)) void this.applyStock(this.presetId);
     this.startCycle();   // resume auto-cycling once there is a renderer to drive
+    this.startFollow();
+  }
+
+  /**
+   * The renderer stood down by itself while the music played on: a frame threw (a preset
+   * it could not run, or a lost GL context) and the picture froze. Mount it again a moment
+   * later, on the safe default preset if the same one failed twice running. At most a few
+   * times a minute, so a renderer that cannot run here does not thrash.
+   */
+  private recover(): void {
+    const now = Date.now();
+    this.failures = this.failures.filter((t) => now - t < 60_000);
+    if (this.failures.length >= 4) return;
+    this.failures.push(now);
+    const failing = this.handle?.presetId() ?? this.presetId;
+    if (failing && failing === this.failedPreset) this.presetId = defaultVizPresetId(prefersReducedMotion());
+    this.failedPreset = failing;
+    setTimeout(() => {
+      if (this.destroyed || !this.canvas || (this.handle && this.handle.running())) return;
+      void this.mount(this.canvas);
+    }, 600);
+  }
+
+  /**
+   * Follow the player's analyser. The player replaces its analyser when one stalls
+   * (lib/neurospicy.ts's watchdog), and a picture still wired to the old one reacts to
+   * silence: it looks frozen while the music plays. Checked once a second; mount() only
+   * rebuilds when the analyser has actually changed or the renderer has stopped.
+   */
+  private startFollow(): void {
+    if (this.follow != null || typeof setInterval === 'undefined') return;
+    this.follow = setInterval(() => {
+      if (this.destroyed || !this.canvas || !this.handle) return;
+      const live = this.liveAnalyser();
+      if ((live && live !== this.mountedAnalyser) || !this.handle.running()) void this.mount(this.canvas);
+    }, 1000);
+  }
+  private stopFollow(): void {
+    if (this.follow != null) clearInterval(this.follow);
+    this.follow = null;
   }
 
   /** Re-measure the canvas and resize the renderer to its displayed size × dpr (crisp). */
@@ -327,6 +452,7 @@ class NeuroDockViz implements DockViz {
 
   unmount(): void {
     this.stopCycle();
+    this.stopFollow();
     if (this.handle) { this.handle.destroy(); this.handle = null; }
     this.canvas = null;
     this.mountedAnalyser = null;
@@ -375,6 +501,29 @@ class NeuroDockViz implements DockViz {
     writeBrandTint(tint);
     // An artist preset is blended when it loads, so the one on screen loads again.
     if (this.isStock(this.presetId)) void this.applyStock(this.presetId);
+  }
+
+  // ── a shared moment's look ──────────────────────────────────────────────────
+  /**
+   * Show a moment someone shared (lib/neuro-share.ts) as they were seeing it: their preset,
+   * colours, brand tint and preset cycle, for this visit only. Nothing is saved over the
+   * listener's own settings; a preset or colours this app does not have are left as they are.
+   */
+  async applyShared(v: SharedViz): Promise<void> {
+    await this.ensureData();
+    const tint = BRAND_TINTS.find((x) => x === v.tint);
+    if (tint) this.brandTint = tint;
+    if (v.scheme && this.schemes.some((x) => x.id === v.scheme)) {
+      this.schemeId = v.scheme;
+      this.handle?.setPalette(vizSchemeById(this.schemes, v.scheme).palette);
+    }
+    if (v.cycle !== undefined && (CYCLE_CHOICES as readonly number[]).includes(v.cycle)) { this.cycleSeconds = v.cycle; this.startCycle(); }
+    if (v.preset && (VIZ_PRESETS.some((d) => d.id === v.preset) || this.isStock(v.preset))) this.selectPreset(v.preset);
+    else if (tint && this.isStock(this.presetId)) void this.applyStock(this.presetId);
+  }
+  /** The look on screen now, for a shared moment. */
+  sharedLook(): SharedViz {
+    return { preset: this.presetId, scheme: this.schemeId, tint: this.brandTint, cycle: this.cycleSeconds };
   }
 
   // ── transitions (preset auto-cycle timing) ──────────────────────────────────
@@ -473,6 +622,8 @@ class NeurospicyDockHost implements DockHost {
   readonly repeat: DockRepeat;
   readonly volume: DockVolume;
   readonly volumes: DockVolume[];
+  /** One controls popover on the speaker button: the volumes, and a station's switches, flavours and sliders (Andy, 2026-11-21). */
+  readonly controlsPopover = true;
 
   private readonly nhost: MusicHost;
   private readonly changeListeners = new Set<() => void>();
@@ -520,6 +671,7 @@ class NeurospicyDockHost implements DockHost {
 
     // The rich in-dock visualiser (butterchurn) + its preset/theme library.
     this.viz = new NeuroDockViz(nhost);
+    this.viz.heavy = () => heavyStation(getNeurospicy().loopId);
 
     this.repeat = {
       get: () => getNeurospicy().repeat,
@@ -552,6 +704,7 @@ class NeurospicyDockHost implements DockHost {
         this.docListeners.push([name, fn]);
       };
       wire('lolly:neuro-playing', onChange);   // audio started (incl. boot autoplay-resume)
+      wire('lolly:neuro-tune', onChange);      // a Lofi station moved to another tune
       wire('lolly:neuro-enabled', onChange);   // mode toggled
       wire('lolly:atmosphere', onChange);      // an ambience level changed elsewhere
       wire('lolly:neuro-tracks', onTracks);    // an upload/deletion changed the library
@@ -609,20 +762,150 @@ class NeurospicyDockHost implements DockHost {
   isPlaying(): boolean { return isNeurospicyPlaying(); }
 
   async togglePlay(): Promise<void> {
+    // A tune someone shared, opened with interface sound off: pressing play IS the
+    // listener asking to hear it, so turn sound on (the master switch) rather than
+    // leave the button doing nothing. Only for that first play from a shared link.
+    if (!isNeurospicyPlaying() && isSfxMuted() && takeLofiLinkConsent()) {
+      await applySoundMaster(this.nhost, false);
+      this.emitChange();
+      return;
+    }
     await toggleNeurospicyPlay(this.nhost);
     this.emitChange();
   }
 
   // cycleNeurospicyLoop wraps infinitely, so stepping is always possible - canNext/
-  // canPrev are omitted (the dock then treats them as true).
+  // canPrev are omitted (the dock then treats them as true). On a Lofi station, next
+  // and previous step between its tunes rather than leaving the station.
   async next(): Promise<void> {
-    await cycleNeurospicyLoop(this.nhost, 1);
+    if (isLofiId(getNeurospicy().loopId) && isNeurospicyPlaying()) nextLofiTune();
+    else await cycleNeurospicyLoop(this.nhost, 1);
     this.emitChange();
   }
 
   async prev(): Promise<void> {
-    await cycleNeurospicyLoop(this.nhost, -1);
+    if (isLofiId(getNeurospicy().loopId) && isNeurospicyPlaying()) prevLofiTune();
+    else await cycleNeurospicyLoop(this.nhost, -1);
     this.emitChange();
+  }
+
+  /** A generated station's own controls: its mood (the three Lofi stations; Lolly Sings
+   *  is a genre of its own, so has none), drums, texture, a link to the tune now playing
+   *  and a button that saves it to the library. A saved tune keeps drums, texture and
+   *  the link. Nothing for any other source. */
+  controls(): DockControl[] {
+    const id = getNeurospicy().loopId;
+    const saved = savedTuneOf(id) !== null;
+    const mood = lofiMoodOf(id);
+    // One share card for every kind of track: this tune, or this moment.
+    const share: DockControl = {
+      kind: 'action', id: 'share', label: 'Share this tune or moment', icon: icon('share', { size: 17 }),
+      run: async () => {
+        const [offer, card] = await Promise.all([this.shareOffer(), import('../components/neuro-share-card.ts')]);
+        card.openNeuroShare(offer);
+        return undefined;
+      },
+    };
+    if (!mood && !saved) return id ? [share] : [];
+    // A genre's flavours are chosen here; every genre is a tile in the track list.
+    const family = mood ? genreFamilyOf(mood) : undefined;
+    const moodControl: DockControl[] = !mood || !family ? [] : [{
+      kind: 'choice', id: 'lofi-mood', label: `${family.title} flavour`,
+      options: family.moods.map((m) => ({ id: m, label: flavourLabel(m) })),
+      get: () => lofiMoodOf(getNeurospicy().loopId) ?? mood,
+      set: (m) => this.select(lofiId(m as NonNullable<typeof mood>)),
+    }];
+    const saveControl: DockControl[] = saved ? [] : [{
+      kind: 'action', id: 'lofi-save', label: 'Save to library', icon: icon('folderPlus', { size: 17 }),
+      run: async () => {
+        try { return (await saveLofiTune(this.nhost)) ? 'Saved to your library' : 'Play it first'; } catch { return 'Could not save'; }
+      },
+    }];
+    const lightControl: DockControl[] = heavyStation(id) ? [{
+      kind: 'toggle', id: 'lofi-light-viz', label: 'Light visualiser', icon: icon('zap', { size: 17 }),
+      get: () => this.viz.lightOn(),
+      set: (on) => { this.viz.setLight(on); this.emitChange(); },
+    }] : [];
+    return [
+      ...moodControl,
+      {
+        kind: 'toggle', id: 'lofi-drums', label: 'Drums',
+        get: () => getNeurospicy().lofi.drums,
+        set: (on) => setLofiDrums(this.nhost, on),
+      },
+      // Only a station moves on by genre; a saved tune is one tune.
+      ...(mood ? [{
+        kind: 'toggle' as const, id: 'lofi-shuffle', label: 'Shuffle genres',
+        get: () => getNeurospicy().lofi.shuffle === true,
+        set: (on: boolean) => setLofiShuffle(this.nhost, on),
+      }] : []),
+      {
+        kind: 'range', id: 'lofi-texture', label: 'Texture', min: 0, max: 1, step: 0.05,
+        get: () => getNeurospicy().lofi.texture,
+        set: (v) => setLofiTexture(this.nhost, v),
+      },
+      {
+        kind: 'action', id: 'lofi-edit', label: 'Open in the music generator', icon: icon('music', { size: 17 }),
+        run: async () => {
+          const recipe = savedTuneOf(getNeurospicy().loopId) ?? currentLofiRecipe();
+          if (!recipe || typeof location === 'undefined') return 'Play it first';
+          // A track saved from the generator opens with everything it was made with.
+          location.hash = musicEditorHash(recipe);
+          return 'Opening';
+        },
+      },
+      share,
+      ...saveControl,
+      ...lightControl,
+    ];
+  }
+
+  /**
+   * What the share card can offer for the track now playing: a link to the tune, and a link
+   * to this moment (where it has got to, and the visualiser's look). A generated tune travels
+   * as its style and seed, a generator track as its generator link, radio and catalog tracks
+   * by their ids; a device-only upload cannot travel at all.
+   */
+  private async shareOffer(): Promise<NeuroShareOffer> {
+    const id = getNeurospicy().loopId;
+    const track = this.tracks.find((x) => x.id === id);
+    const name = track?.name ?? 'This track';
+    const origin = shareOrigin();
+    const path = appPathname();
+    const route = shareRoute(typeof location === 'undefined' ? '#/' : location.hash);
+    const look = this.viz.sharedLook();
+    const [presets, themes] = await Promise.all([this.viz.presets(), this.viz.themes()]);
+    const lookName = [presets.find((p) => p.id === look.preset)?.name, themes.find((x) => x.id === look.scheme)?.name ? `${themes.find((x) => x.id === look.scheme)!.name} colours` : '']
+      .filter(Boolean).join(', ') || 'its preset and colours';
+    const recipe = savedTuneOf(id) ?? currentLofiRecipe();
+    if (playsOnStation(id) || savedTuneOf(id)) {
+      if (!recipe) return { track: name, tune: null, moment: null, where: '', look: lookName, reason: 'Play the tune first, then share it.' };
+      if ('generator' in recipe && recipe.generator) {
+        return { track: name, tune: `${origin}${path}#/music?${recipe.generator}`, moment: null, where: '', look: lookName, momentReason: 'A track from the music generator shares as a link to the generator, which plays it from the start.' };
+      }
+      const tuneParts = [`lofi=${lofiLinkValue(recipe)}`];
+      const bar = currentLofiBar();
+      return {
+        track: name, look: lookName,
+        tune: linkTo(origin, path, route, tuneParts),
+        moment: linkTo(origin, path, route, [...tuneParts, ...momentParts({ ...(bar !== null ? { bar } : {}), viz: look })]),
+        where: bar !== null && bar > 0 ? `bar ${bar + 1}` : 'the start',
+      };
+    }
+    if (!shareableId(id)) {
+      return { track: name, tune: null, moment: null, where: '', look: lookName, reason: 'This track is only on your device, so a link would not play for anyone else.' };
+    }
+    const listen = `listen=${encodeURIComponent(id)}`;
+    const progress = getNeurospicyProgress();
+    const radio = track ? trackCategory(track) === 'radio' : id.startsWith('radio/');
+    const at = progress && !radio ? progress.position : undefined;
+    const clock = (s: number): string => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+    return {
+      track: name, look: lookName,
+      tune: linkTo(origin, path, route, [listen]),
+      moment: linkTo(origin, path, route, [listen, ...momentParts({ ...(at !== undefined ? { seconds: at } : {}), viz: look })]),
+      where: radio ? 'the live broadcast' : at !== undefined && at >= 1 ? clock(at) : 'the start',
+    };
   }
 
   // getNeurospicyProgress() is null for radio / while nothing local sounds → duration 0
@@ -631,6 +914,15 @@ class NeurospicyDockHost implements DockHost {
   duration(): number { return getNeurospicyProgress()?.duration ?? 0; }
   seekable(): boolean { return getNeurospicyProgress() != null; }
   seek(seconds: number): void { seekNeurospicy(seconds); }
+  /** A generated tune seeks by bar: the scrub snaps to the start of each, and ticks where
+   *  each part of the tune begins. A recorded track seeks anywhere. */
+  seekGrid(): DockSeekGrid | null {
+    const line = lofiPosition()?.timeline;
+    return line ? { points: line.starts, marks: line.marks } : null;
+  }
+  describePosition(seconds: number): DockPositionText {
+    return positionWords(seconds, this.duration(), lofiPosition()?.timeline ?? null);
+  }
 
   onChange(listener: () => void): () => void {
     this.changeListeners.add(listener);
@@ -644,6 +936,19 @@ class NeurospicyDockHost implements DockHost {
     const t = this.tracks.find((x) => x.id === id);
     if (!t) return { title: 'Select a track', kind: 'music' };
     const radio = trackCategory(t) === 'radio';
+    if (playsOnStation(id)) {
+      // The tune itself: its key, tempo and instruments, since every one is different.
+      const tune = isNeurospicyPlaying() ? lofiTune() : null;
+      // A tune never plays a retired lead: the composer puts the lead that took its place in the style.
+      const lead = tune ? LOFI_LEAD_NAME[tune.style.lead as LiveLead] ?? '' : '';
+      return {
+        title: t.name,
+        subtitle: tune
+          ? `${tune.key} · ${tune.bpm} bpm · ${(isSingsMood(tune.mood) && !['sings', 'rock', 'spanish'].includes(tune.mood) && LOFI_BASS_NAME[tune.style.bass]) || LOFI_KEYS_NAME[tune.style.keys]}${lead ? `, ${lead}` : ''}`
+          : 'Generated, never the same tune twice',
+        kind: 'music',
+      };
+    }
     return {
       title: t.name,
       subtitle: radio ? 'Internet radio' : (trackMood(t.tags) || undefined),
@@ -656,21 +961,43 @@ class NeurospicyDockHost implements DockHost {
   private async buildSources(): Promise<DockSource[]> {
     const loops = await listLoops(this.nhost);
     this.tracks = loops;
-    return loops.map((t): DockSource => {
+    // The generated stations are a grid of genres, in the music generator's groups, where
+    // the first station stood in the list; Lofi's flavours are one tile, and the Flavour
+    // control in the controls popover moves between them.
+    const tiles: DockSource[] = PICKER_GROUPS.flatMap((g) => g.moods.map((mood): DockSource => ({
+      id: lofiId(mood),
+      title: cardTitle(mood),
+      kind: 'music',
+      group: GENRE_GROUP_LABEL[g.id],
+      icon: genreIconSvg(mood, 20),
+      ...(genreFamilyOf(mood) ? { also: genreFamilyOf(mood)!.moods.filter((m) => m !== mood).map(lofiId) } : {}),
+    })));
+    const out: DockSource[] = [];
+    let placed = false;
+    for (const t of loops) {
+      if (lofiMoodOf(t.id)) {
+        if (!placed) { out.push(...tiles); placed = true; }
+        continue;
+      }
       const cat = trackCategory(t);
       const radio = cat === 'radio';
       const mood = trackMood(t.tags);
-      return {
+      out.push({
         id: t.id,
         title: t.name,
         kind: radio ? 'radio' : 'music',
         group: CATEGORY_LABEL[cat] ?? cat,
         ...(mood ? { mood } : {}),
-      };
-    });
+      });
+    }
+    return out;
   }
 
   private async select(id: string): Promise<void> {
+    // A genre's one tile keeps the flavour that is playing; another flavour is chosen in the controls.
+    const playing = lofiMoodOf(getNeurospicy().loopId);
+    const asked = lofiMoodOf(id);
+    if (playing && asked && playing !== asked && genreFamilyOf(asked) && genreCard(playing) === asked) return;
     await setNeurospicyLoop(this.nhost, id);
     this.emitChange();
   }

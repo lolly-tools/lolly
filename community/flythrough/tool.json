@@ -1,12 +1,12 @@
 {
   "id": "flythrough",
   "name": "Flythrough",
-  "version": "0.2.5",
+  "version": "0.2.7",
   "engineVersion": "^1.0.0",
   "status": "official",
   "singleInstance": true,
   "category": "designer",
-  "description": "Fly a real 3D camera through a screenshot. The picture lifts into layers at real depth; big shapes extrude into solid objects; a timeline of poses animates the whole move - depth, opacity, perspective, extrusion, tilt, rotate, scale and the camera flight - then loops it home. Add, drag and reorder poses. Export as video.",
+  "description": "Fly a 3D camera through a screenshot. The picture lifts into layers at real depth; a timeline of poses animates the move. Export as video.",
   "a11yLabel": "3D camera flythrough of a screenshot",
   "tags": ["3d", "flythrough", "screenshot", "camera", "parallax", "video", "depth", "exploded", "extrude"],
   "render": {

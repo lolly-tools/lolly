@@ -1,7 +1,6 @@
 # Roles and grants
 
-This page is for the admin deciding who can do what in Lolly Work, and for anyone checking why
-a person can or cannot do something. Lolly Work has two layers: a small fixed set of roles that
+Lolly Work has two layers: a small fixed set of roles that
 follow your directory groups, and grants that adjust a role for one group, one person or one
 resource. When they disagree, deny wins.
 
@@ -11,6 +10,7 @@ Each role adds to the role below. Grants sit over the roles: any matching deny w
 
 ![Fine-grained grants: per-group allow and deny layered on the role defaults, deny wins](shots/permissions-grants.svg)
 
+<!--i:eti-users-->
 ## Roles
 
 | Role | Comes from | Adds |
@@ -19,15 +19,18 @@ Each role adds to the role below. Grants sit over the roles: any matching deny w
 | `member` | the default for anyone signed in, or a group mapped in `idp.roleGroups.member` | using tools, saving and sharing sessions, creating projects and groups, exporting, delivering to an organisation destination, making links |
 | `author` | `idp.roleGroups.author`, or by default the group `author` | submitting assets to the catalog |
 | `approver` | `idp.roleGroups.approver`, or by default the group `approver` | acting on approvals |
-| `admin` | `idp.roleGroups.admin`, or by default the group `admin` | everything an author and an approver can do, plus running the catalog, policy, grants, links, telemetry, fleet, audit export, projects, server renders and invitations |
+| `brand-manager` | `idp.roleGroups.brand-manager` only, with no default group | what a member can do, plus [editing this instance's colours](design-system-administration.md#edit-this-instance-from-the-studio), publishing its brand page and selecting its design system |
+| `admin` | `idp.roleGroups.admin`, or by default the group `admin` | everything an author, an approver and a brand manager can do, plus running the catalog, policy, grants, links, telemetry, fleet, audit export, projects, server renders, invitations and partner programmes |
 | `owner` | `idp.roleGroups.owner`, or by default the group `owner` | the [owner-only powers](#owner-only-powers) |
 | `guest` | a guest-edit link | nothing: access comes entirely from the link |
 | `automation` | a service token with [scopes](enterprise-identity.md#service-tokens), never a person | using tools, server renders, delivering to an organisation destination, reading the catalog and audit export, each reachable only through the matching scope |
 
 A person's role comes from their effective group set (provider groups plus local groups): the
-highest match in the order `owner`, `admin`, `approver`, `author`, `member`, `viewer`, using
-the groups mapped in `idp.roleGroups`, or for the top four a group of the same name when that
-role has no mapping, otherwise `member`. Mapping your own group names is on [Sign-in and
+highest match in the order `owner`, `admin`, `brand-manager`, `approver`, `author`, `member`,
+`viewer`, using the groups mapped in `idp.roleGroups`, otherwise `member`. For `owner`, `admin`,
+`approver` and `author`, a group of the same name counts when that role has no mapping. A person has
+one role, so someone mapped to both `brand-manager` and `approver` is a brand manager; add `approval.act`
+with a [grant](#grants) when one person needs both. Mapping your own group names is on [Sign-in and
 sessions](identity.md#groups-role).
 
 ::: details Every action by role
@@ -38,15 +41,18 @@ sessions](identity.md#groups-role).
   `export.download`, `export.request`, `delivery.create`, `link.create`.
 - **`author`**: member, plus `catalog.submit`.
 - **`approver`**: member, plus `approval.act`.
+- **`brand-manager`**: member, plus `brand.edit`, `brand.page.publish`, `brand.switch`.
 - **`admin`**: author and approver, plus `catalog.publish`, `catalog.expire`, `catalog.hold`,
   `catalog.scan`, `catalog.edit`, `catalog.collection.manage`, `catalog.provider.read`,
-  `catalog.provider.manage`, `brand.switch`, `brand.page.publish`, `catalog.injectable.manage`, `policy.edit`,
+  `catalog.provider.manage`, `brand.switch`, `brand.edit`, `brand.page.publish`, `catalog.injectable.manage`, `policy.edit`,
   `grant.edit`, `link.revoke`, `link.create-guest`, `message.send`, `telemetry.view`,
   `fleet.view`, `fleet.manage`, `audit.export`, `project.manage`, `project.archive`,
-  `approval.assign`, `export.server`, `user.invite`.
+  `approval.assign`, `export.server`, `user.invite`, `programme.manage`.
 - **`owner`**: admin, plus `instance.config`, `catalog.provider.credential`,
   `catalog.provider.publish`, `scim.manage`, `token.manage`.
 - **`guest`**: nothing.
+- **`automation`**: `catalog.read`, `tool.use`, `export.server`, `delivery.create`,
+  `audit.export`, each reachable only through the matching token scope.
 
 Every action's route is in the [API reference](api.md).
 :::
@@ -57,6 +63,7 @@ Projects add a second, narrower layer: each person has a role on each project th
 project roles, where they come from and who can see who has access are in [Team
 projects](team-projects.md#people-and-roles).
 
+<!--i:eti-sliders-->
 ## Grants
 
 A grant is a row of `(principal, action, resource, effect)` that overrides the role default in
@@ -69,25 +76,68 @@ lw grants add group:contractors export.download 'tool:price-card' --effect deny
 lw grants rm  group:brand policy.edit '*'
 ```
 
-The same API sits behind `GET/POST/DELETE /api/v1/grants` and the console's **Grants** view,
+The same API is behind `GET/POST/DELETE /api/v1/grants` and the console's **Grants** view,
 so the console and CLI always offer the same things.
 
 | Field | Form |
 |---|---|
 | `principal` | `group:<name>`, `user:<id>`, or `*` |
 | `action` | any action id from the role list above |
-| `resource` | a selector: `*`, `tool:<id>`, `tool:tag/<tag>`, `catalog:tag/<tag>`, `destination:<id>`, … |
+| `resource` | `*`, or one of the forms in [Which permissions narrow](#which-permissions-narrow), such as `tool:<id>` |
 | `effect` | `allow` or `deny` |
 
 Grants take effect on the **next request**: there is no cache to clear and no restart. Every
 change is audited.
 
-::: details How evaluation works
-`server/src/rbac/evaluate.ts` makes every decision, in a fixed order: any matching deny wins,
-then any matching allow, then the role default. It never looks anything up itself. A resource
-arrives as the set of selectors it satisfies, for example
-`['tool:qr-code', 'tool:tag/external-facing', '*']`.
+::: warning A deny wins for everyone it matches
+A deny overrides every allow and every role default it matches, admins' and owners' included. A
+`tool.use` deny hides the tool in the app as well as in Preview, and a deny for everyone (`*`)
+also reaches anonymous callers on an open deployment. Preview the groups it affects first
+([Checking your work](#checking-your-work)).
 :::
+
+A rule that could never apply is refused with `400 GRANT_NEVER_MATCHES`, which says what that
+permission is checked against: a permission no route checks, or a resource it is never checked
+against. The console marks such a rule if one was stored before this check, and deleting the
+rule changes nothing about access.
+
+People in a partner programme, and a programme's agent tokens, can only ever be allowed a fixed
+list of actions, whatever a role default or a grant says: reading the catalog, using tools, their
+own sessions and comments, joining live editing, creating projects, exporting, asking for an export
+review, making links and submitting files. Every admin action is refused for them. A grant that
+cannot apply to partners has a `partnerScope` note in `GET /api/v1/grants` and in the answer
+when it is made. [Partner programmes](partner-programmes.md#what-partners-can-never-do) lists the
+actions.
+
+::: details How evaluation works
+`server/src/rbac/evaluate.ts` makes every decision, in the fixed order the figure shows. It never
+looks anything up itself. A resource
+arrives as the set of selectors it satisfies, for example `['tool:qr-code', '*']`.
+:::
+
+### Which permissions narrow
+
+Every permission is checked against `*`. These are also checked against one resource, so a grant
+can point at one:
+
+| Permissions | Resource forms |
+|---|---|
+| `tool.use`, `export.download`, `export.request`, `export.server`, `link.create`, `link.create-guest` | `tool:<id>` |
+| `delivery.create` | `destination:<id>` |
+| `project.manage` | `project:<id>` |
+| `session.view`, `session.edit`, `comment.view`, `comment.create`, `comment.edit`, `comment.resolve`, `comment.moderate` | `session:<id>`, `project:<id>` |
+| `approval.act` | `chain:<id>`, `approval:<id>`, or the subject of the request |
+| `programme.manage` | `programme:<id>` |
+
+`programme.manage` is checked against `programme:<id>` in four places only: the programme's
+agent tokens, its usage report, [View as](partner-programmes.md#view-as-partner) and the review
+of a template published into the programme. The other programme routes check `*` only.
+
+Every other permission is decided for the whole deployment, so its resource is `*`. Tag
+selectors such as `tool:tag/<tag>` are not checked; list each tool. There is no per-asset or
+per-tag `catalog.read`: to keep assets from a group, narrow who sees them with
+[submission groups](catalog.md#submitting-an-asset) or [provider
+exposure](catalog.md#exposure-governance).
 
 ### Explicit allow and the role default
 
@@ -97,6 +147,12 @@ otherwise show every governed tool. Those checks use the explicit-grant decision
 (`grantDecision`), which returns `allow`, `deny` or `none`. It matters when you are working out
 why a tool is or is not visible.
 
+For tools the rule is: a matching `tool.use` deny hides the tool, and otherwise the tool shows
+when its overlay's `visibility` admits the person or an allow grant covers them. The catalog
+feed, the tool's files, org-config, Preview, server renders and the organisation MCP all ask
+that one question, so a tool Preview reports as hidden is absent from every one of them.
+
+<!--i:eti-clipboard-->
 ## Common recipes
 
 ### "Edit but not export"
@@ -109,15 +165,18 @@ lw grants add group:contractors export.download 'tool:campaign-banner' --effect 
 ```
 
 The contractor opens the campaign banner tool and works on the banner. Deny wins over their member
-default, so the file cannot leave as a download.
+default, so the file cannot leave as a download. org-config has the tool's own answer in
+`tools["campaign-banner"].can`, where it differs from the deployment-wide `can` bit, and Lolly
+offers **Request approval** or nothing in place of **Download** for that tool only. Preview shows
+the same answer beside the tool. Lolly versions from before this answer existed read only the
+deployment-wide bit, so the per-tool deny needs a current app.
 
-Tag selectors let the same pair cover a whole class of tools (`tool:tag/external-facing`)
-instead of listing ids.
+Add the same pair for each tool the rule covers.
 
 ### Let a team contribute assets
 
 `catalog.submit` is the action behind [catalog submit](catalog.md#submitting-an-asset), the one
-route by which a member's file enters the catalog. The `author` role carries it, and one row
+route by which a member's file enters the catalog. The `author` role has this action, and one row
 lets a team contribute while everyone else reads:
 
 ```bash
@@ -133,7 +192,7 @@ groups plus separation of duties ([approvals](approvals.md)). How the review que
 
 `catalog.edit` is the action behind [org-defined metadata](catalog.md#org-defined-metadata):
 filling in the fields your organisation defines, and correcting an instance-owned asset's
-name, description and tags. It sits with `admin` rather than `author`, because contributing an
+name, description and tags. It belongs to `admin` rather than `author`, because contributing an
 asset and editing what the whole catalog says about one are different authorities.
 
 ```bash
@@ -142,7 +201,7 @@ lw grants add group:brand catalog.edit '*' --effect allow
 
 Two things it does not give:
 
-- **Defining** the fields is `policy.edit`, because a taxonomy is governance and lives in the
+- **Defining** the fields is `policy.edit`, because a taxonomy is governance and is in the
   [governance document](governance.md#policy-as-code).
 - It reaches only assets the caller can already see. The editor asks the same exposure question
   that link minting asks, and a submission still under review is edited through the review
@@ -160,7 +219,7 @@ an asset in favour of another (`replacedBy`). `catalog.submit` contributes an as
 
 `catalog.collection.manage` is the action behind [collections](catalog.md#collections):
 creating a named, ordered set of catalog assets, choosing the groups that may see the set, and
-deleting a set. The action sits with `admin` for the same reason `catalog.edit` does.
+deleting a set. The action belongs to `admin` for the same reason `catalog.edit` does.
 
 ```bash
 lw grants add group:brand catalog.collection.manage '*' --effect allow
@@ -176,13 +235,13 @@ Two rules close the gap a shared set could open:
   is a member default while curating is an admin action, so this second check binds everyone
   who shares the set. A refusal reports how many members were unseen, never which ids.
 
-Reading collections needs nothing extra: the per-caller catalog feed carries the collections a
+Reading collections needs nothing extra: the per-caller catalog feed includes the collections a
 caller's groups admit, with members narrowed to the assets that caller is already served.
 
 ### Narrow an organisation destination
 
 `delivery.create` is the right to send to a fixed organisation destination, and every member
-carries that right. A deny takes one destination away from a group:
+has that right. A deny takes one destination away from a group:
 
 ```bash
 lw grants add group:contractors delivery.create 'destination:campaign-archive' --effect deny
@@ -191,6 +250,7 @@ lw grants add group:contractors delivery.create 'destination:campaign-archive' -
 How destination grants, approval chains and automation outputs interact is on [Organisation
 delivery destinations](delivery.md#who-may-send).
 
+<!--i:eti-lock-->
 ## Owner-only powers
 
 Five actions stay with owners, so an admin can run the instance without being able to widen
@@ -205,8 +265,7 @@ their own authority:
 | `token.manage` | mint a service token for automation |
 
 An admin can still shape a catalog provider and copy its files into the instance's own store.
-An owner can hand any of these actions out per resource through a grant, but an admin cannot
-grant one to themselves.
+An owner can grant any of these actions to a group or a person.
 
 ### The escalation guard
 
@@ -215,9 +274,10 @@ editing grants is otherwise an admin action. Attempting it returns `403 OWNER_ON
 same guard applies when a [governance document](governance.md#policy-as-code) is applied.
 
 Only an owner may create or remove an owner-mapped local group, assign owner membership, or
-change an owner account's local groups. The same applies to groups that hold owner-only
+change an owner account's local groups. The same applies to groups that have owner-only
 grants. Admins may manage groups within their own role.
 
+<!--i:eti-user-check-->
 ## Guest write authority
 
 Grants never evaluate a guest **as a principal**: `server/src/collab/guests.ts` imports nothing
@@ -249,11 +309,12 @@ removes their guests at once.
 | Taking `link.create-guest` off the **inviter** (a deny grant, a role change, leaving the group that carried it or disabling the account) | Removes every guest **that inviter** admitted, on the guest's next operation or keepalive, and leaves other people's guests alone. It covers links nobody can list. |
 
 The `inputAccess` lever works one way for guests: governing an input **at all** locks it for
-them. A guest carries only the synthetic `guests` group and never inherits the member-side
+them. A guest has only the synthetic `guests` group and never inherits the member-side
 `editable` fallback (`vetoOps` and `inputIsGoverned`, `INPUT_LOCKED`), so even
 `{"groups": ["guests"], "level": "editable"}` resolves to locked in a live room. An input with
-**no** rules stays editable for everyone, guests included.
+**no** rules is editable for everyone, guests included.
 
+<!--i:eti-eye-->
 ## Checking your work
 
 Never guess what a person will see. Ask the same assembler the live client polls:
@@ -265,7 +326,11 @@ lw preview --groups marketing,contractors
 The console's **Preview** view and `GET /api/v1/org-config/preview?groups=…` give the same
 answer. The preview reports the resolved role, permissions, tool visibility, per-input
 governance and profile policy for that set of groups. It runs through the production code path,
-so it cannot drift from what the member actually receives.
+so it cannot drift from what the member receives.
+
+For a partner programme or one of its companies, **See what they get** gives the same answer
+before anyone is invited, and **View as partner** opens the app itself as one of its partners
+([Partner programmes](partner-programmes.md#see-what-they-get)).
 
 That answer is the org-config document a connected shell polls, `GET /api/v1/org-config`: the
 person's identity, role and permissions, tool and input governance, managed profile fields and
@@ -273,6 +338,7 @@ feature flags, filtered for their groups and tagged with an `ETag` tied to the p
 Profile fields that come from the identity provider arrive as `mode: locked, source: idp`,
 which is what draws the padlocks in the shell's profile view.
 
+<!--i:eti-link-->
 ## Related
 
 - Locking individual tool inputs: [governance](governance.md)

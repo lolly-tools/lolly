@@ -2,8 +2,9 @@
 
 <a id="layout-in-design"></a>
 
-A card grid that reflows when you add a card, a page of slides you can reorder, a group you move as one: this page covers the layout features of [Lolly Design](/info/using.html). It explains dynamic layouts, groups and pages, and the number fields and view controls you use to place things precisely.
+Arrange layers in [Lolly Design](/info/design.html) with dynamic layouts, groups and pages. Place them precisely with number fields and the view controls.
 
+<!--i:eti-grid-->
 ## Dynamic layouts
 
 Select a container and open **Dynamic layout** in the inspector. Choose **flex** for rows, columns and wrapping, or **grid** for tracks and cells. Set gaps, padding and alignment there.
@@ -18,13 +19,14 @@ On the canvas:
 - hold Alt while dropping to detach the child;
 - drag the spacing handles to edit padding and gaps.
 
-A group takes part in its parent's layout as one item. **Fill** scales its contents with the space it is given; **Hug** fits the visible content in the group's own axes, and also works outside a dynamic layout. A resize that would skew a rotated child produces a finding and leaves the document unchanged, so review findings before you continue.
+A group takes part in its parent's layout as one item. **Fill** scales its contents with the space it is given; **Hug** fits the visible content in the group's own axes and also works outside a dynamic layout. A resize that would skew a rotated child produces a finding and leaves the document unchanged. Review findings before you continue.
 
-Native Penpot imports keep their supported flex and grid rules, including nested ones, and the solver follows the geometry of Penpot's current layout engine. Native Penpot exports carry editable rules and membership. [Import a design](/info/design-import.html#penpot-layouts-kept-or-fixed) explains which Penpot exports keep their layouts.
+Native Penpot imports keep their supported flex and grid rules, including nested rules. The solver follows the geometry of Penpot's current layout engine. Native Penpot exports carry editable rules and membership. [Import a design](/info/design-import.html#penpot-layouts-kept-or-fixed) explains which Penpot exports keep their layouts.
 
+<!--i:eti-layers-->
 ## Groups and pages
 
-A Lolly Design session can hold named pages, each with its own artboards and nested groups. Use **Pages** above the layer tree to add, rename, reorder, duplicate or remove a page. Switching pages restores your selection and view without changing the saved document or another collaborator's page. Projects and their folders still organise whole sessions.
+A Lolly Design session can hold named pages, each with its own artboards and nested groups. Use **Pages** above the layer tree to add, rename, reorder, duplicate or remove a page. Switching pages restores your selection and view without changing the saved document or another collaborator's page. Projects and their folders organise whole sessions.
 
 Groups appear as named containers in the layer tree:
 
@@ -35,6 +37,7 @@ Groups appear as named containers in the layer tree:
 
 Edit **Opacity** and **Blend mode** in a group's Appearance section; they apply to the group's combined artwork.
 
+<!--i:eti-sliders-->
 ## Precise numbers and the view
 
 Number fields in the inspector work the same way everywhere in Lolly Design:
@@ -55,5 +58,5 @@ SVG, PDF and raster exports use the settled geometry. An export waits for the la
 
 Document exports use every page and artboard, including empty pages; choosing one artboard exports only that artboard. SVG keeps the group scopes. A PDF page with group opacity or blend is rasterised to keep its look; turning off raster fallback refuses that page.
 
-The editor holds up to 20,000 layers and 256 pages, and the layer tree keeps a bounded number of rows mounted. Native Penpot export supports up to 6,000 layers, including generated artboards, and refuses a larger document with a clear error.
+The editor holds up to 20,000 layers and 256 pages, and the layer tree keeps a bounded number of rows mounted. Native Penpot export supports up to 6,000 layers, including generated artboards, and refuses a larger document with an error.
 :::

@@ -50,6 +50,10 @@ export interface InputPolicy {
    *  (lib/input-readonly.ts) instead of inert, and the lock is not a governed one:
    *  it never narrows a server-bound request or rewrites a model value. */
   readable?: boolean;
+  /** A value that depends on the document's mode, for a locked or hidden input that
+   *  carries a value: a partner company's logo for light or dark surfaces. Absent
+   *  means `value` holds in every mode. */
+  byMode?: { light?: unknown; dark?: unknown };
 }
 
 /** Non-select controls cannot express a restricted set of choices. */
@@ -142,6 +146,27 @@ export function documentReadOnlyNote(toolId: string | undefined): string | null 
   return (toolId && documentLayer.get(toolId)?.note) || null;
 }
 
+// ── Template layer ───────────────────────────────────────────────────────────
+// A document started from a template its publisher gave rules (lib/workspace-templates.ts):
+// only the inputs the template leaves open are offered, and every other one is hidden,
+// with no note. What a person cannot change is simply not there (Andy, 2026-10-19).
+// Keyed by tool, set by the mounted tool view and released when the mount ends, like the
+// document layer, and never cleared by a policy source re-reading its own rules.
+const templateLayer = new Map<string, ReadonlySet<string>>();
+const HIDDEN_BY_TEMPLATE: InputPolicy = Object.freeze({ mode: 'hidden' });
+
+/** Offer only `editable` among `toolId`'s inputs. `null` lifts the layer. */
+export function setTemplateInputs(toolId: string, editable: readonly string[] | null): void {
+  if (!toolId) return;
+  if (editable) templateLayer.set(toolId, new Set(editable));
+  else templateLayer.delete(toolId);
+}
+
+/** Lift the template layer for `toolId`. Idempotent. */
+export function clearTemplateInputs(toolId: string): void {
+  templateLayer.delete(toolId);
+}
+
 /** The governed policy alone: an explicit per-tool policy, else the fail-closed overlay. */
 function governedPolicy(toolId: string, inputId: string): InputPolicy | undefined {
   const explicit = registry.size ? registry.get(toolId)?.get(inputId) : undefined;
@@ -161,6 +186,9 @@ function governedPolicy(toolId: string, inputId: string): InputPolicy | undefine
  */
 export function getInputPolicy(toolId: string | undefined, inputId: string): InputPolicy | undefined {
   if (!toolId) return undefined;
+  // Hidden is the strictest answer, so a template's fixed input needs nothing else.
+  const offered = templateLayer.size ? templateLayer.get(toolId) : undefined;
+  if (offered && !offered.has(inputId)) return HIDDEN_BY_TEMPLATE;
   const governed = governedPolicy(toolId, inputId);
   if (!documentLayer.size || (governed && governed.mode !== 'choice')) return governed;
   return documentLayer.get(toolId) ?? governed;
@@ -260,14 +288,18 @@ function sameValue(a: unknown, b: unknown): boolean {
 export function policyValuesFor(
   toolId: string | undefined,
   inputs: ReadonlyArray<{ id: string; value?: unknown }>,
+  mode: 'light' | 'dark' = 'light',
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   if (!toolId) return out;
   for (const { id, value } of inputs) {
     const policy = governedPolicy(toolId, id);
     if (!policy) continue;
-    if (policy.mode === 'locked') {
-      if (policy.value !== undefined && !sameValue(value, policy.value)) out[id] = policy.value;
+    // A hidden input keeps its value, unless its policy carries one: an input filled
+    // from the person's company is hidden and still holds the company's value.
+    if (policy.mode === 'locked' || (policy.mode === 'hidden' && policy.value !== undefined)) {
+      const wanted = policy.byMode?.[mode] ?? policy.value;
+      if (wanted !== undefined && !sameValue(value, wanted)) out[id] = wanted;
     } else if (policy.mode === 'choice' && policy.allow?.length && !policy.allow.some((a) => sameValue(a, value))) {
       const preferred = policy.value !== undefined && policy.allow.some((a) => sameValue(a, policy.value)) ? policy.value : policy.allow[0];
       out[id] = preferred;
@@ -298,13 +330,38 @@ export function governedParamKeys(
   return out;
 }
 
+// ── Start values ─────────────────────────────────────────────────────────────
+// What new work in a tool starts from, by tool, when whoever governs the tools says
+// so: a workspace's group defaults and the person's company details. Below a
+// template's values and the person's own; a saved document never takes them. Empty
+// by default, so a plain build starts every tool from its own defaults as before.
+const startValues = new Map<string, Readonly<Record<string, unknown>>>();
+
+/** Replace one tool's start values; an empty or omitted map removes them. */
+export function setToolStartValues(toolId: string, values: Record<string, unknown> = {}): void {
+  if (Object.keys(values).length) startValues.set(toolId, { ...values });
+  else startValues.delete(toolId);
+}
+
+/** Clear every tool's start values. */
+export function clearToolStartValues(): void {
+  startValues.clear();
+}
+
+/** The values new work in `toolId` starts from; empty when nobody set any. */
+export function toolStartValues(toolId: string | undefined): Record<string, unknown> {
+  return (toolId && startValues.get(toolId)) ? { ...startValues.get(toolId)! } : {};
+}
+
 /** TEST-ONLY convenience: empty the registry (and lift any fail-closed overlay and
- *  document layer, drop every mount hook and forget the mounted tool) back to the
+ *  document and template layers, drop every mount hook and forget the mounted tool) back to the
  *  dormant default. */
 export function _clearInputPoliciesForTests(): void {
   registry.clear();
   documentLayer.clear();
+  templateLayer.clear();
   refusedHandlers.clear();
+  startValues.clear();
   failClosed = null;
   mountHooks.clear();
   mountedToolId = null;

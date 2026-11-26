@@ -14,14 +14,14 @@ import { CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, OUTPUT_LICENCE_C
 import { durableSupport, liveCaptureSupport } from '../../bridge/format-support.js';
 import { helpTip } from '../../components/help-tip.js';
 import { t, tRaw } from '../../i18n.ts';
-import { getAudioTake, onAudioTakeChange, saveTakeMp3, saveTakeNative, takeNativeExt } from '../../lib/audio-take.ts';
+import { getAudioTake, onAudioTakeChange, saveTakeMp3, saveTakeNative, takeNativeExt, takesAudioInput } from '../../lib/audio-take.ts';
 import { exportAffordance, getExportPolicy } from '../../lib/export-policy.ts';
 import { icon } from '../../lib/icons.ts';
 import { escape as escapeText } from '../../utils.js';
 import { costPanelHtml } from '../cost-panel.ts';
 import { formatOptionsHtml } from '../export-depth.ts';
 import { durableCardHtml, isDurableFmt } from '../export-durable-card.ts';
-import { formatPanelHtml, formatTriggerHtml, wireFormatPicker } from '../export-format-picker.ts';
+import { formatTriggerHtml, wireFormatPicker } from '../export-format-picker.ts';
 import { packageOptionsHtml, saveAsBridge, saveAsButtonHtml } from '../export-package-options.ts';
 import { preflightRowHtml } from '../export-preflight.ts';
 import { jellyActive } from '../../lib/jelly.ts';
@@ -29,7 +29,7 @@ import { DEFAULT_PRINT_MARKS, fmtLabel, formatExperience, isC2paFmt, isCmykFmt, 
 import { bindOp, type ActionsCtx } from './context.ts';
 
 export function buildFormatOptions(ta: ActionsCtx): void {
-  const { ICON_H, ICON_W, c2paInitDays, c2paInitOn, canPackage, experience, exportDefaults, formats, initialFmt, manifest } = ta;
+  const { ICON_H, ICON_W, c2paInitDays, c2paInitOn, canPackage, exportDefaults, formats, initialFmt, manifest } = ta;
   // Tier 1 - filename · format. The format selector is the highest-priority
   // control; the filename rides alongside it as the natural "name.format" pair.
   //
@@ -57,7 +57,6 @@ export function buildFormatOptions(ta: ActionsCtx): void {
             ${formatOptions}
           </select>
           ${formatTriggerHtml(initialFmt ?? formats[0] ?? '', fmtLabel)}
-          ${formatPanelHtml(formats, initialFmt ?? formats[0] ?? '', fmtLabel, experience.current?.().recommendedFormats)}
         `
             : ''
         }
@@ -137,13 +136,30 @@ export function buildFormatOptions(ta: ActionsCtx): void {
         "Names the CMYK press standard your printer targets: the Print PDF's output intent, the Print TIFF's metadata (the pixels stay untagged DeviceCMYK). An Embed row carries a profile from this device inside the PDF, which is what PDF/X-4 conformance needs; the file then claims it unless something else in the export can't (RGB artwork, the credit-text stamp, a strong password)."
       )
     : null; ta.cmykTip = cmykTip;
+  // Spot inks as process (engine 1.324, opt-in, off by default). Only the Print PDF
+  // writes named spot plates, so the row shows for pdf-cmyk alone, and only once
+  // the design system is known to declare a spot ink (refresh.ts refreshSpotsUi).
+  // A `_spots=process` link ticks the box. Finishes keep their plates either way.
+  const spotsTip = formats.includes('pdf-cmyk')
+    ? helpTip(
+        t('Prints each spot ink with the four process inks, using the CMYK build the design system gives that colour, so the Print PDF has only the cyan, magenta, yellow and black plates. Finishes such as foil, emboss and spot varnish keep their own plates.')
+      )
+    : null;
+  const spotsRow = spotsTip
+    ? `
+        <label class="field-toggle help-tip-host export-cmyk-spots" data-spots-only style="display:none">
+          <input type="checkbox" class="field-check" data-action="cmyk-spots-process"${exportDefaults.spots ? ' checked' : ''}>
+          <span>${escapeText(t('Print spot inks as process'))}</span>
+          ${spotsTip.button}${spotsTip.pop}
+        </label>`
+    : '';
   const cmykRow = hasCmyk
     ? `
       <div class="section-card export-cmyk" data-cmyk-only style="display:${isCmykFmt(initialFmt) ? 'flex' : 'none'}">
         <span class="cmyk-head help-tip-host">${ICON_DROP}<span>Profile</span>${cmykTip!.button}${cmykTip!.pop}</span>
         <select class="field-select" data-action="cmyk-profile" aria-label="CMYK press profile">
           ${cmykOptions}
-        </select>
+        </select>${spotsRow}
       </div>`
     : ''; ta.cmykRow = cmykRow;
 
@@ -152,11 +168,10 @@ export function buildFormatOptions(ta: ActionsCtx): void {
   // Revealed only when "PDF" is chosen - the print-PDF path (pdf-cmyk) re-saves
   // through pdf-lib, which can't write encrypted PDFs.
   //
-  // URL-expressible by design: a `?password=` link can pre-set it for quick,
-  // short-lived transactional use (event materials etc). That's clear-text in the
-  // URL - an accepted trade-off for a basic lock, not for confidential material.
-  // It is NOT persisted to the library at rest (see performSave); URL is the only
-  // way it round-trips. The initial value below comes from the URL only.
+  // A `?password=` link can still pre-set it, but only ever inbound: setup reads the value
+  // and takes it out of the address. Nothing here writes it to an address, a copied link or
+  // the library (see collectExportParams, performSave). The initial value below comes from
+  // that link only.
   // Collapsed by default - a click-to-expand disclosure (mirrors the Print marks
   // card) so the field + caveat only surface when wanted, keeping the panel tight.
   // Pre-opened when a value arrives (e.g. ?password=) so it's visible. Collapse is
@@ -182,7 +197,7 @@ export function buildFormatOptions(ta: ActionsCtx): void {
             <option value="standard">Weak: Simple Password</option>
             <option value="strong">Strong: Encrypted AES-256</option>
           </select>
-          <p class="pdfpass-hint" data-pdfpass-hint${exportDefaults.password ? '' : ' hidden'}>The password travels in share links, so treat this as a deterrent, not protection for confidential files.</p>
+          <p class="pdfpass-hint" data-pdfpass-hint${exportDefaults.password ? '' : ' hidden'}>A deterrent, not protection for confidential files. The password stays out of links.</p>
         </div>
       </div>`
       : ''; ta.pdfPassRow = pdfPassRow;
@@ -453,10 +468,9 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
           ${madeWithTip!.pop}
         </label>
         <p class="madewith-line" data-madewith-record></p>
-        <p class="madewith-line madewith-description" data-madewith-description></p>
       </div>`
     : ''; ta.madeWithRow = madeWithRow;
-  const hasProtection = hasPdf || hasZip || c2paFormats.length > 0 || imprintFmts.length > 0 || hasLicence; ta.hasProtection = hasProtection;
+  const hasProtection = hasPdf || hasZip || c2paFormats.length > 0 || imprintFmts.length > 0 || hasLicence || hasMadeWith; ta.hasProtection = hasProtection;
   // Collapsed by default. Pre-opened only when an inner card carries an EXPLICIT
   // deep-linked setting - a URL-sourced password, a URL-sourced C2PA choice, or a
   // linked imprint/durable flag - so a share link still surfaces its setting without
@@ -481,9 +495,9 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   const protectionRow = hasProtection
     ? `
       <div class="section-card export-protection${protectionOpen ? ' is-open' : ''}" data-protection-section style="display:${protectionVisibleInitial ? 'flex' : 'none'}">
-        <button type="button" class="protection-head" data-action="protection-toggle" aria-expanded="${protectionOpen}">${icon('shield', { className: 'protection-icon' })}<span>${t('Protection')}</span></button>
+        <button type="button" class="protection-head" data-action="protection-toggle" aria-expanded="${protectionOpen}">${icon('shield', { className: 'protection-icon' })}<span>${t('Content claims')}</span></button>
         <div class="protection-body" data-protection-body style="display:${protectionOpen ? 'flex' : 'none'}">
-          ${licenceRow}${ta.rights.rowHtml()}${pdfPassRow}${c2paRow}${imprintRow}${durableRow}
+          ${madeWithRow}${licenceRow}${ta.rights.rowHtml()}${pdfPassRow}${c2paRow}${imprintRow}${durableRow}
         </div>
       </div>`
     : ''; ta.protectionRow = protectionRow;
@@ -824,7 +838,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
     ? `
         <label class="export-option" data-emf-only style="display:${initialFmt === 'emf' ? 'flex' : 'none'}"
                title="${escapeText(t('Convert text to vector outlines so it looks identical everywhere. Off, text stays editable in Office and Google Slides but uses whatever fonts that device has.'))}">
-          <input type="checkbox" class="field-check" data-action="emf-outline">
+          <input type="checkbox" class="field-check" data-action="emf-outline"${exportDefaults.emfOutline ? ' checked' : ''}>
           ${t('Outline fonts')}
         </label>`
     : ''; ta.emfChip = emfChip;
@@ -875,7 +889,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   // action is unaffected. The view holds no control-plane knowledge: it asks the seam
   // what it may offer, and routes "Request approval" through the generic opener.
   const affordance = actions.includes('download')
-    ? exportAffordance(getExportPolicy())
+    ? exportAffordance(getExportPolicy(), manifest.id)
     : 'download'; ta.affordance = affordance;
   // Same primary-CTA slot as Download, so it takes the same prominent jelly
   // recipe under the flag (the .download-btn-jelly class is a size/weight hook,
@@ -943,7 +957,9 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   // a "Your recording" card fed by the latest take (lib/audio-take.ts, written by
   // views/record-control.ts). Before any take exists it says plainly what the
   // Download below saves, closing the "Export is not my recording" trap.
-  const isAudioCaptureTool = manifest.render.capture === 'audio'; ta.isAudioCaptureTool = isAudioCaptureTool;
+  // The card and the "not audio" line are for a tool whose take is the deliverable.
+  // Audiogram takes the recording as an Audio input and delivers the sound in the export.
+  const isAudioCaptureTool = manifest.render.capture === 'audio' && !takesAudioInput(manifest.inputs ?? []); ta.isAudioCaptureTool = isAudioCaptureTool;
   const recordingRow = isAudioCaptureTool
     ? `
       <div class="section-card export-recording" data-recording-row>
@@ -958,7 +974,7 @@ export function paintBar(ta: ActionsCtx): void {
   // Settings lead the export flow; the report and delivery actions follow them.
   const initialExperience = formatExperience(ta.initialExperience, ta.initialFmt ?? ta.formats[0] ?? '');
   el.innerHTML = `
-    ${actions.includes('download') ? `${recordingRow}<div class="export-file-group">${filenameRow}${dimsRow}${timingRow}${aspectWarnRow}${fidelityWarnRow}</div><div class="export-options-group">${notesHandoutRow}${cmykRow}${printRow}${pkgRow}${settingsRow}${videoQualityRow}<details class="section-card export-video-options" data-video-options open><summary hidden>${escapeText(t('Audio and colour settings'))}</summary>${audioRow}${loudnessRow}${hdrRow}</details></div>${ta.madeWithRow}${protectionRow}<div class="export-ingredient-note" data-ingredient-note hidden></div>${protectionRow ? '' : ta.rights.rowHtml()}${preflightRow}${costRow}${sendRow}` : ''}
+    ${actions.includes('download') ? `${recordingRow}<div class="export-file-group">${filenameRow}${dimsRow}${timingRow}${aspectWarnRow}${fidelityWarnRow}</div><div class="export-options-group">${notesHandoutRow}${cmykRow}${printRow}${pkgRow}${settingsRow}${videoQualityRow}<details class="section-card export-video-options" data-video-options open><summary hidden>${escapeText(t('Audio and colour settings'))}</summary>${audioRow}${loudnessRow}${hdrRow}</details></div>${protectionRow}<div class="export-ingredient-note" data-ingredient-note hidden></div>${protectionRow ? '' : ta.rights.rowHtml()}${preflightRow}${costRow}${sendRow}` : ''}
     <div class="export-actions-dock">
       <p class="export-outcome-summary" data-export-outcome${initialExperience.summary ? '' : ' hidden'}>${escapeText(initialExperience.summary ?? '')}</p>
       ${manifest.status === 'experimental' ? `<p class="export-experimental-note" role="note">${escapeText(t('This tool is experimental, so every export carries a watermark.'))}</p>` : ''}
@@ -1001,8 +1017,10 @@ export function paintBar(ta: ActionsCtx): void {
       const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-action]');
       const take = getAudioTake();
       if (!btn || !take) return;
+      const value = runtime.getModel().find(i => i.id === 'name')?.value;
+      const name = typeof value === 'string' ? value : undefined;
       if (btn.dataset.action === 'take-native') {
-        void saveTakeNative(host, take);
+        void saveTakeNative(host, take, name);
         return;
       }
       if (btn.dataset.action === 'take-mp3') {
@@ -1010,12 +1028,12 @@ export function paintBar(ta: ActionsCtx): void {
         btn.disabled = true;
         btn.textContent = t('Encoding…');
         try {
-          await saveTakeMp3(host, take);
+          await saveTakeMp3(host, take, name);
         } catch (err) {
           host.log('warn', 'export-sheet mp3 transcode failed - saving the native container', {
             error: String(err),
           });
-          void saveTakeNative(host, take);
+          void saveTakeNative(host, take, name);
         } finally {
           btn.disabled = false;
           btn.textContent = was;

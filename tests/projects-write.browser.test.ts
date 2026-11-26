@@ -176,3 +176,70 @@ test('Projects creates Write files and Text saves the latest editor contents int
     await context.close(); await closeBrowser(); await server.close();
   }
 });
+
+// "Tool loaded" is the moment a person, or a screen reader user, is told the editor is
+// ready. A saved document opened from Projects puts up the modal "Opening…" card when the
+// open takes longer than 400 ms (views/tool/open-document.ts), and the card stays until
+// the runtime settles. The shell announced "Tool loaded" while the card was still up, so
+// text typed at that moment went to the card's Cancel button and was lost (CI, PR #802).
+// The probe runs inside the announcement itself, so it does not depend on timing.
+test('Write takes the first keystrokes typed when the shell says the tool is loaded', {
+  skip: browserInstalled() ? false : 'No browser installed; set LOLLY_BROWSER_CHANNEL=chrome.', timeout: 180_000,
+}, async () => {
+  process.env.LOLLY_ROOT = root;
+  process.env.LOLLY_PROFILE = 'lolly-start';
+  const { createServer } = await import('vite');
+  const require = createRequire(import.meta.url);
+  const server = await createServer({ root: join(root, 'shells/web'), configFile: join(root, 'shells/web/vite.config.js'),
+    cacheDir: join(root, 'node_modules/.vite-projects-write-test'), server: { host: '127.0.0.1', port: 0, fs: { allow: [root, dirname(require.resolve('harfbuzzjs'))] } }, logLevel: 'error' });
+  await server.listen();
+  const origin = server.resolvedUrls!.local[0]!;
+  const browser = await getBrowser(), context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  const page = await context.newPage(), errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  // Hold back the Write workspace module, which the open loads after the card is
+  // armed, so the open always takes longer than the card's 400 ms delay.
+  await page.route('**/src/views/text.ts', async route => {
+    await new Promise(resolve => setTimeout(resolve, 900));
+    await route.continue();
+  });
+  try {
+    await page.goto(`${origin}#/p`, { waitUntil: 'networkidle' });
+    await shellSettled(page);
+    await page.locator('.projects').waitFor();
+    await page.evaluate(() => {
+      const w = window as unknown as { __earliest?: { modal: string | null; focused: boolean }; __openCard?: boolean };
+      new MutationObserver((records, observer) => {
+        if (records.some(record => [...record.addedNodes].some(node => node instanceof HTMLDialogElement && node.classList.contains('open-progress')))) w.__openCard = true;
+        if (![...document.querySelectorAll('[data-a11y-live]')].some(el => el.textContent === 'Tool loaded')) return;
+        observer.disconnect();
+        const editor = document.querySelector<HTMLTextAreaElement>('[data-editor] textarea');
+        editor?.focus();
+        w.__earliest = { modal: document.querySelector('dialog:modal')?.className ?? null, focused: !!editor && document.activeElement === editor };
+      }).observe(document, { childList: true, subtree: true });
+    });
+    await page.locator('.projects').evaluate(el => el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 500, clientY: 250, button: 2 })));
+    await page.locator('.projects-menu [data-act="new-file"]').click();
+    const dialog = page.getByRole('dialog', { name: 'New file', exact: true });
+    await dialog.locator('[data-file-name]').fill('Early');
+    await dialog.locator('[data-file-type]').selectOption('markdown');
+    await dialog.getByRole('button', { name: 'Create file', exact: true }).click();
+    await page.getByText('Tool loaded', { exact: true }).waitFor({ timeout: 60_000 });
+    const text = '# First words\n\nTyped the moment the editor was announced.';
+    await page.locator('[data-editor] textarea').fill(text);
+    const probe = await page.evaluate(() => {
+      const w = window as unknown as { __earliest?: { modal: string | null; focused: boolean }; __openCard?: boolean };
+      return { openCard: w.__openCard, earliest: w.__earliest };
+    });
+    assert.equal(probe.openCard, true, 'the open was slow enough to put the Opening card up');
+    assert.deepEqual(probe.earliest, { modal: null, focused: true }, 'when "Tool loaded" is announced no modal blocks the editor, and the editor takes focus');
+    await page.locator('[data-write-preview] h1').filter({ hasText: 'First words' }).waitFor();
+    assert.equal(await page.locator('[data-editor] textarea').inputValue(), text);
+    assert.deepEqual(errors, []);
+  } catch (error) {
+    console.error(JSON.stringify({ errors, text: (await page.locator('body').innerText()).slice(-2000) }));
+    throw error;
+  } finally {
+    await context.close(); await closeBrowser(); await server.close();
+  }
+});

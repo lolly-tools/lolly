@@ -1,48 +1,53 @@
-# Rondocode-Songs
+# Lolly Rondocode-Songs
 
-Ein Rondocode-Song ist Musik, als Code geschrieben: Synthesizer, Patterns und ein Mix, die beim Tippen abgespielt werden. Lolly kann einen Song unter einem Video abspielen, und das Utility **Rondocode** lässt Sie einen schreiben und als Audio exportieren. Beide halten den Song in den Content Credentials der Datei fest, sodass die Musik sagt, woher sie stammt.
+<a id="rondocode-songs"></a>
 
+Ein rondocode-Song ist als Code geschriebene Musik: Synthesizer, Patterns und ein Mix, die während der Eingabe gespielt werden. Lolly kann einen Song unter einem Video abspielen, und das Utility **Rondocode** schreibt Songs und exportiert sie als Audio; beide halten den Song in den Content Credentials der Datei fest.
+
+<!--i:eti-music-->
 ## Einen Song in Lolly abspielen
 
-Die Asset-Auswahl nimmt einen Song als Datei `.rondo` oder `.rondo.json` oder als eingefügten `rondocode.com`-Share-Link. Ein Song ist Code, der seinen eigenen Klang erzeugt, und läuft daher in der Länge, die sein Clip verlangt. Er kann das **Musikbett** unter einem Video-Export sein oder im Ambient-Player des Neurospicy Mode laufen.
+Die Asset-Auswahl nimmt einen Song als `.rondo`- oder `.rondo.json`-Datei oder als eingefügten `rondocode.com`-Freigabelink an. Ein Song spielt so lange, wie sein Clip es vorgibt. Er kann die **Hintergrundmusik** unter einem Videoexport sein oder im Ambient-Player des Neurospicy-Modus laufen.
 
 Der Code des Songs läuft in Lollys Sandbox, ohne Netzwerk und ohne Zugriff auf Ihre Dateien. Jeder Teil, den ein Rendering nicht abspielen kann, etwa ein Live-Mikrofon oder Gesang ohne die Stimmmodelle, wird in den Details des Assets aufgelistet.
 
-Vom Terminal aus nimmt `lolly mix` einen Song als gesamten Soundtrack; siehe [CLI-Rendering](/info/cli-rendering.html).
+Vom Terminal aus nimmt `lolly mix` einen Song als gesamten Soundtrack an; siehe [CLI-Rendering](/info/cli-rendering.html).
 
+<!--i:eti-code-->
 ## Einen Song schreiben und exportieren
 
-Öffnen Sie **Rondocode** aus **Utilities**, um in Rondocodes Live-Editor einen Song zu schreiben und ihn beim Tippen zu hören. Exportieren Sie ihn als **WAV**, **MP3**, **M4A**, **Opus** oder **FLAC**, als ZIP aus Stems, als **MIDI** oder als Aufnahme dessen, was gerade läuft. Im Terminal schreibt `lolly rondocode --export=mid` dieselbe MIDI-Datei. **Export length** legt fest, wie viele Sekunden ein Audioexport dauert. Die Song-Datei selbst (`.rondo.json`) ist Ihr Code, wie geschrieben, und trägt nichts Hinzugefügtes.
+Öffnen Sie das Tool **Rondocode** unter **Utilities**, um einen Song im Live-Editor von rondocode zu schreiben und ihn während der Eingabe zu hören. Exportieren Sie ihn als **WAV**, **MP3**, **M4A**, **Opus** oder **FLAC**, als ZIP mit Stems, als **MIDI** oder als Aufnahme dessen, was gerade spielt. Vom Terminal aus schreibt `lolly rondocode --export=mid` dieselbe MIDI-Datei. **Export length** legt fest, wie viele Sekunden ein Audioexport dauert. Die Songdatei (`.rondo.json`) enthält Ihren Code so, wie Sie ihn geschrieben haben, ohne Zusätze.
 
-Ein Song kann seine Texte mit `sing()` singen. Der Gesang wird auf Ihrem Gerät von heruntergeladenen Stimmmodellen erzeugt, und eine Datei mit synthetisiertem Gesang erklärt den Gesang immer als KI-erzeugt (siehe [KI-Funktionen](/info/ai-features.html)).
+Ein Song kann seinen Text mit `sing()` singen. Heruntergeladene Stimmmodelle erzeugen den Gesang auf Ihrem Gerät. Eine Datei mit synthetisiertem Gesang kennzeichnet diesen immer als KI-generiert (siehe [KI-Funktionen](/info/ai-features.html)).
 
+<!--i:eti-badge-check-->
 ## Songs im Credential
 
-Ein Video- oder Audioexport, der einen Rondocode-Song abspielt, hält jeden Song als Quelle in seinen Content Credentials fest:
+Ein Video- oder Audioexport, der einen rondocode-Song abspielt, hält jeden Song in seinen Content Credentials als Quelle fest:
 
 - den Namen des Songs;
-- das SHA-256 seiner Datei `.rondo.json`;
-- wie er gerendert wurde: in Lollys Sandbox, die Ausführungsklasse `vm`, mit Version und Seed des Renderers und jedem Teil, den das Rendering nicht abspielen konnte.
+- den SHA-256 seiner `.rondo.json`-Datei;
+- wie er gerendert wurde: in Lollys Sandbox, der Ausführungsklasse `vm`, mit Version und Seed des Renderers und jedem Teil, den das Rendering nicht abspielen konnte.
 
-Musik, die aus dem Code eines Songs berechnet wird, ist als algorithmische Medien gekennzeichnet, sodass Verify sie nicht als KI markiert. Vor dem Export listet eine Zeile unter **Download** die Songs auf, die das Credential festhalten wird; nach dem Export meldet dieselbe Zeile, was ein Lesen der gelieferten Datei ergeben hat. Entfernen Sie das Häkchen bei **C2PA Credentials**, um den Eintrag wegzulassen. Ein Standbild hält keinen Song fest, weil es keinen Ton trägt. `lolly mix` und der [MCP-Server](/info/mcp.html) schreiben denselben Eintrag.
+Musik, die aus dem Code eines Songs berechnet wird, wird als algorithmisches Medium gekennzeichnet, sodass Lolly Verify sie nicht als KI markiert. Vor dem Export listet eine Zeile unter **Download** die Songs auf, die der Credential festhalten wird. Nach dem Export meldet dieselbe Zeile, was beim Auslesen der ausgelieferten Datei gefunden wurde. Deaktivieren Sie **C2PA Credentials**, um die Angabe wegzulassen. Ein Standbild hält keinen Song fest, weil es keinen Ton hat. Ein Standbild hält keinen Song fest. `lolly mix` und der [MCP-Server](/info/mcp.html) schreiben dieselbe Angabe.
 
+<!--i:eti-file-->
 ## Dateien aus dem Utility Rondocode
 
-Die meisten Utilities auf dem Gerät schreiben kein Credential, weil sie eine Datei umwandeln, die Ihnen schon gehört. Rondocode erzeugt neues Audio, sodass jede Audiodatei, die es schreibt, Content Credentials trägt, die den Song als ihre Quelle festhalten: seinen Namen, das SHA-256 seiner Datei `.rondo.json` und wo sein Code lief. Das umfasst WAV, MP3, M4A, Opus, FLAC, jeden Stem in einem Stems-ZIP und eine Aufnahme dessen, was gerade läuft.
+Die meisten Utilities auf dem Gerät schreiben keinen Credential, weil sie eine Datei umwandeln, die Ihnen bereits gehört. Lolly Rondocode erzeugt neues Audio, deshalb enthält jede Audiodatei, die es schreibt, Content Credentials, die den Song als ihre Quelle festhalten: WAV, MP3, M4A, Opus, FLAC, jeder Stem in einem Stems-ZIP und eine Aufnahme dessen, was gerade spielt.
 
-- Die eigenen Renderings des Editors laufen in seinem privaten Frame (die Ausführungsklasse `frame`) und halten die Version des Editors fest.
-- Ein Rendering über die CLI oder einen Share-Link läuft in der Klasse `vm` und hält Version und Seed des Renderers fest.
-- Ein WAV gibt dasselbe außerdem in seinem RIFF-Kommentar an.
-- Musik, die aus dem Code des Songs berechnet wird, ist algorithmische Medien und nicht als KI gekennzeichnet.
+- Die eigenen Renderings des Editors laufen in seinem privaten Frame (der Ausführungsklasse `frame`) und halten die Version des Editors fest.
+- Ein über die CLI oder einen Freigabelink erstelltes Rendering läuft in der Klasse `vm` und hält Version und Seed des Renderers fest.
+- Ein WAV gibt dasselbe auch in seinem RIFF-Kommentar an.
 
-Wenn ein Song singt, erklärt die Datei diesen Gesang in maschinenlesbarer Form als KI-erzeugt. Der digitale Quelltyp des Credentials ist zusammengesetzte Medien, die mit trainierten Modellen erstellt wurden, der Eintrag listet die gesungenen Teile auf, und eine C2PA-KI-Offenlegung pro Modell nennt jedes Modell, durch das der Gesang lief: Supertonic-3 Text-to-Speech, den Phonem-Aligner wav2vec 2.0, den ContentVec-Encoder und die RVC-Stimme, mit dem Repository und Commit, von dem Lolly es hostet. Eine Datei mit synthetisiertem Gesang wird nie ohne diese Erklärung gespeichert.
+Wenn ein Song singt, ist die KI-Kennzeichnung maschinenlesbar. Der digitale Quelltyp des Credentials ist ein zusammengesetztes Medium, das mit trainierten Modellen erstellt wurde. Die Angabe listet die gesungenen Teile auf, und eine C2PA-KI-Offenlegung pro Modell identifiziert jedes Modell, das der Gesang durchlaufen hat: Supertonic-3 Text-to-Speech, den Phonem-Aligner wav2vec 2.0, den ContentVec-Encoder und die RVC-Stimme, mit dem Repository und Commit, aus denen Lolly es hostet.
 
 ### Was die MIDI-Datei enthält
 
-Die MIDI-Datei ist eine Standard MIDI File im Format 1. Die erste Spur enthält das Tempo und eine 4/4-Taktart, danach folgt für jeden Synth eine eigene Spur, benannt nach dem Synth. Jede Note behält ihren Beginn, ihre Länge und ihre Velocity. Ein Synth, dessen Name wie ein Instrument klingt, etwa Bass, Strings, Pad oder Piano, erhält das passende General-MIDI-Instrument, und ein schlagzeugartiger Name kommt auf Kanal 10. Eine Stimmung, die nicht zwölftönig ist, wird per Pitch Bend auf den nächsten Halbton gerundet.
+Die MIDI-Datei ist ein Standard MIDI File, Format 1. Die erste Spur enthält das Tempo und eine 4/4-Taktart, gefolgt von einer Spur pro Synthesizer, die nach ihm benannt ist. Jede Note behält ihren Beginn, ihre Länge und ihre Anschlagstärke. Ein Synthesizer, dessen Name ein Instrument bezeichnet, etwa Bass, Streicher, Pad oder Klavier, erhält das passende General-MIDI-Instrument, und ein Name, der nach Schlagzeug klingt, wird Kanal 10 zugeordnet. Eine nicht zwölftönige Stimmung wird mit einem Pitch Bend auf den nächsten Halbton gerundet.
 
-Eine MIDI-Datei kann nicht festhalten, wie ein Song klingt. Die Synth-Einstellungen, Filter, Effekte, Busse, Samples und der Gesang sind nicht darin, deshalb spielt eine DAW die Noten mit ihren eigenen Instrumenten. Das Tempo wird aus den Zyklen pro Sekunde des Songs gelesen, wobei ein Zyklus ein Takt mit vier Schlägen ist, denn die eigene Taktart des Songs gehört nicht zu dem, was der Renderer zurückgibt.
+Eine MIDI-Datei kann keine Synthesizer-Einstellungen, Filter, Effekte, Busse, Samples oder Gesang enthalten, daher spielt eine DAW die Noten mit ihren eigenen Instrumenten. Das Tempo wird aus den Zyklen pro Sekunde des Songs abgeleitet, wobei ein Zyklus als Takt mit vier Schlägen gilt, weil die eigene Taktart des Songs nicht zu dem gehört, was der Renderer zurückgibt.
 
-Eine MIDI-Datei hat keinen Platz für ein Credential, daher trägt ein Text-Ereignis in der Datei die Aussage stattdessen, und das Export-Panel sagt Ihnen das. Das Panel beschreibt all das vor dem Export, und nach jedem Export liest der Editor die gespeicherte Datei zurück und meldet nur, was dieses Lesen ergeben hat.
+Eine MIDI-Datei hat keinen Platz für einen Credential, daher trägt ein Textereignis in der Datei die Aussage, und das Export-Panel weist Sie darauf hin. Das Panel beschreibt all dies vor dem Export. Nach jedem Export liest der Editor die gespeicherte Datei zurück und meldet nur, was dabei gefunden wurde.
 
-Zu dem, was Content Credentials allgemein festhalten, siehe [Eine Datei exportieren](/info/exporting.html#content-credentials-c2pa).
+Was Content Credentials allgemein festhalten, erklärt [Eine Datei exportieren](/info/exporting.html#content-credentials-c2pa).

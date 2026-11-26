@@ -15,8 +15,9 @@ import { mountDownloadRecovery } from '../../lib/download-recovery.ts';
 import { markSyncDirty } from '../../lib/sync-service.ts';
 import { navigateTo } from '../../nav.js';
 import { snapshotSession } from '../tool-session-snapshot.ts';
+import { pieceKit } from '../../lib/partner-kit-state.ts';
 import { historyRedact } from '../tool-history-adapters.ts';
-import { THUMB_CAPTURE_TIMEOUT_MS, captureThumbnail } from '../tool-action-helpers.ts';
+import { THUMB_CAPTURE_TIMEOUT_MS, capturePreview } from '../tool-action-helpers.ts';
 import { jellyActive } from '../../lib/jelly.ts';
 import { documentScopeClaimed, saveInDocumentScope } from '../../lib/document-scope.ts';
 import { readBleed, readMarks } from './shared.ts';
@@ -41,7 +42,7 @@ export const saveBtnHtml = (ta: ActionsCtx) =>
 // (tool identity + export settings). Shared by performSave and the "Make
 // variants" action so a variant is byte-for-byte a normal saved session, except
 // that a save where history keeps the document goes through keptSnapshot below.
-export const sessionSnapshot = (ta: ActionsCtx) => { const { el, experience, manifest, runtime } = ta; return snapshotSession(el, manifest, runtime, experience, readBleed, readMarks); };
+export const sessionSnapshot = (ta: ActionsCtx) => { const { el, experience, manifest, runtime } = ta; return snapshotSession(el, manifest, runtime, experience, readBleed, readMarks, { partnerKit: pieceKit(runtime) }); };
 // The same payload as history keeps it: each file input recorded as not kept (plan 277
 // P4, class B). Automatic history writes this, and so does Save where history keeps the
 // document, because the record a save writes is the one recovery drafts replace.
@@ -80,7 +81,7 @@ async function saveInScope(ta: ActionsCtx, btn: HTMLButtonElement, pending: Prom
 // re-enables the button and surfaces failures: a save error used to leave the
 // button stuck on "Saving…" silently, which made "Save & leave" appear to do
 // nothing (and then click a now-disabled button - a no-op). The thumbnail is
-// best-effort (captureThumbnail swallows its own errors), so it never blocks a save.
+// best-effort (capturePreview swallows its own errors), so it never blocks a save.
 // A document whose scope saves it elsewhere goes there instead (Save, Cmd-S and the
 // leave prompt all arrive here); `device` saves on this device whatever the scope,
 // for the scope's own "Save a copy on this device" and "Make a copy", and settles the
@@ -121,7 +122,7 @@ export async function performSave(ta: ActionsCtx,
     const outcome = ta.automaticHistory ? await ta.automaticHistory.save(slot, data) : 'stored';
     if (!ta.automaticHistory) await host.state.save(slot, data, null);
     markSyncDirty(); // device sync (plans/138): a saved session is a change to push (no-op if sync is off)
-    // Background thumbnail patch. captureThumbnail swallows its own errors, and
+    // Background thumbnail patch. capturePreview swallows its own errors, and
     // the race caps a render that never quiesces. The generation check keeps a
     // slow capture from clobbering a NEWER re-save's data with this older data.
     // A save history recorded gets its picture through the controller, which sets
@@ -131,7 +132,7 @@ export async function performSave(ta: ActionsCtx,
     const gen = ++ta.saveGen;
     const history = ta.automaticHistory;
     const thumbnail = Promise.race([
-      captureThumbnail(manifest, canvasEl, runtime, exportUnscaled, data.__export_format),
+      capturePreview(manifest, canvasEl, runtime, exportUnscaled),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), THUMB_CAPTURE_TIMEOUT_MS)),
     ])
       .then((thumb) => {

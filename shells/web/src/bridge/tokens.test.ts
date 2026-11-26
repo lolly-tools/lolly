@@ -14,7 +14,7 @@
  */
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { createTokensAPI, installUserTokens, BrandLockedError, VersionExistsError, AUTOMATION_DESIGN_SYSTEM_GLOBAL } from './tokens.ts';
+import { createTokensAPI, installUserTokens, BrandLockedError, VersionExistsError, AUTOMATION_DESIGN_SYSTEM_GLOBAL, JOURNAL_WRITER_META, USER_TOKENS_ID } from './tokens.ts';
 import { createAssetsAPI } from './assets.ts';
 import { applyBrandVars } from '../brand-vars.ts';
 import { readFileSync } from 'node:fs';
@@ -271,6 +271,17 @@ test('discovery id flips lolly/tokens/brand → user/tokens/brand after install 
   await installUserTokens({ assets, tokens }, DOC2);
   // …and installing user tokens flips it, which is exactly what "branded" means.
   assert.equal((await assets._findMetaByType('tokens'))?.id, 'user/tokens/brand');
+});
+
+test("a head write carries Brand Studio's writer stamp only when given one, so a later write drops it", async () => {
+  stubFetch({});
+  const assets = createAssetsAPI(memDb(CATALOG_TOKENS()));
+  const tokens = createTokensAPI({ assets });
+  await installUserTokens({ assets, tokens }, DOC2, { journalWriter: { writer: 'page-1', seq: 4 } });
+  assert.deepEqual((await assets._getUserRecord(USER_TOKENS_ID))?.meta?.[JOURNAL_WRITER_META], { writer: 'page-1', seq: 4 });
+  // An import, a sync or another room writes the head without one: the stamp goes with the old bytes.
+  await installUserTokens({ assets, tokens }, DOC);
+  assert.equal((await assets._getUserRecord(USER_TOKENS_ID))?.meta?.[JOURNAL_WRITER_META], undefined);
 });
 
 // ── Design-system versions (plans/97 section 6a) ─────────────────────────────────────

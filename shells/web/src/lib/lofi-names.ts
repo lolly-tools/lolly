@@ -1,0 +1,59 @@
+// SPDX-License-Identifier: MPL-2.0
+/**
+ * The words people read for the generated stations' instruments: the player's
+ * now-playing line and the music generator's track pickers share them. Types only from
+ * the composer, so importing this never loads the composer.
+ */
+import type { LiveLead, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+
+export const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
+  rhodes: 'Rhodes', felt: 'felt piano', wurli: 'Wurlitzer', pluck: 'soft pluck', pad: 'pad', supersaw: 'saw chords',
+  nylon: 'nylon guitar', crunch: 'rhythm guitar', heavy: 'heavy guitars', buzzsaw: 'buzzsaw guitars', clean: 'clean chorus guitar', fuzz: 'fuzz guitars', wall: 'wall of guitars', wah: 'wah guitar', chiparp: 'chip arpeggio',
+  steel: 'acoustic guitar', banjo: 'banjo', honky: 'honky-tonk piano', organ: 'organ', brass: 'brass section', jazzbox: 'jazz guitar', electric: 'electric guitar', harp: 'harp', choir: 'choir', future: 'future-bass chords',
+  tar: 'tar', santur: 'santur', zheng: 'guzheng', koto: 'koto', shamisen: 'shamisen', kora: 'kora', balafon: 'balafon', strings: 'string section',
+  grand: 'grand piano',
+  surf: 'surf rhythm guitar', combo: 'combo organ',
+  houseOrgan: 'house organ',
+  horns: 'band horns', didgeridoo: 'didgeridoo', yidaki: 'yidaki',
+};
+
+/** The leads that still play (a retired lead plays its replacement, so it needs no name). */
+export const LOFI_LEAD_NAME: Record<LiveLead, string> = {
+  vibes: 'vibes', flute: 'flute', kalimba: 'kalimba', chip: 'chip lead', angel: 'angel lead', pulse: 'pulse lead',
+  guitar: 'guitar', overdrive: 'lead guitar', synthwave: 'synthwave lead', metal: 'metal guitar', panflute: 'pan flute',
+  nylon: 'nylon guitar', riff: 'riff guitar', twang: 'twang guitar', banjo: 'banjo', harmonica: 'harmonica', sax: 'sax',
+  trumpet: 'trumpet', clarinet: 'clarinet', pedal: 'pedal steel', fiddle: 'fiddle', bells: 'bells', chop: 'vocal chops', bit: '8-bit lead',
+  santur: 'santur', ney: 'ney', kamancheh: 'kamancheh', erhu: 'erhu', dizi: 'dizi', zheng: 'guzheng', pipa: 'pipa', shakuhachi: 'shakuhachi',
+  koto: 'koto', shamisen: 'shamisen', kora: 'kora', balafon: 'balafon', harp: 'harp', steel: 'acoustic guitar', tar: 'tar', viola: 'viola', cello: 'cello', doublebass: 'double bass', none: '',
+  surf: 'surf guitar', chorus: 'chorus guitar', yidaki: 'yidaki',
+  flugelhorn: 'flugelhorn', tenorhorn: 'tenor horn', turntable: 'turntable',
+  chopFemale: 'vocal chops (female)', chopMale: 'vocal chops (male)', chopBaritone: 'vocal chops (baritone)', chopChild: 'vocal chops (child)',
+  chopOctave: 'vocal chops (female and baritone)', chopChoir: 'vocal chops (children\'s choir)', chopGroup: 'vocal chops (mixed group)',
+};
+
+export const LOFI_SNARE_NAME: Record<LofiStyle['snare'], string> = { snare: 'snare', brush: 'brushes', rim: 'cross-stick', clap: 'claps', stack: 'big snare', snap: 'finger snaps' };
+export const LOFI_HATS_NAME: Record<LofiStyle['hats'], string> = { hat: 'hi-hat', shaker: 'shaker', ride: 'ride cymbal', none: 'no cymbals' };
+
+export const LOFI_BASS_NAME: Record<LofiStyle['bass'], string> = {
+  round: 'rolling bass', upright: 'upright bass', synth: 'synth bass', wobble: 'wobble bass', growl: 'growl bass',
+  reese: 'reese bass', slap: 'slap bass', screech: 'screech bass', pulse: 'chip bass', electro: 'electro bass',
+  picked: 'bass guitar', croak: 'croak bass', eight: '808', acid: 'acid bass', motown: 'soul bass', didgeridoo: 'didgeridoo', log: 'log drum', deep: 'deep-house bass', warp: 'warp bass', tuba: 'tuba', fog: 'foghorn bass', jump: 'jump-up bass',
+};
+
+/**
+ * A line about an instrument, for the instruments whose name alone says too little: the
+ * instrument browser shows the line under the name: plain words about the sound.
+ */
+export const LOFI_INSTRUMENT_LINE: Readonly<Partial<Record<string, string>>> = {
+  didgeridoo: 'A long, wide didgeridoo: a deep, warm drone pulsed by the circular breath, with soft, low toots and mellow vowel sweeps.',
+  turntable: 'A DJ scratching a record: the melody played as baby scratches, chirps, flares and stabs, on a sung vowel, a horn stab or a bass note of the tune\'s own.',
+  yidaki: 'Modelled on the yidaki of north-east Arnhem Land: a narrower bore pitched higher and brighter, with sharp toots and fast tongue and voice rhythms.',
+  chop: 'The genre picks the voice: a woman sped up in the club styles, a man now and then in R&B and hip hop, a group singing a chorus together.',
+  chopFemale: 'A woman\'s voice, soprano or alto: a light vibrato and a clear head voice up high, sped up a little in the club styles.',
+  chopMale: 'A tenor an octave under the melody: pressed and bright when loud, breaking into falsetto at the top.',
+  chopBaritone: 'A deep baritone an octave or two under the melody, darker, with a slower vibrato and slower slides.',
+  chopChild: 'A child\'s voice: higher and lighter, breathier, with almost no vibrato.',
+  chopOctave: 'A woman\'s chops with a baritone singing them an octave under her.',
+  chopChoir: 'Five children on the line, each with their own take, timing and place across the speakers.',
+  chopGroup: 'Women and men singing the line together, the men an octave under.',
+};

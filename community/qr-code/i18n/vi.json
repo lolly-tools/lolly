@@ -1,6 +1,6 @@
 {
   "name": "Mã QR",
-  "description": "Tạo mã QR cho một liên kết, danh thiếp liên hệ, mạng Wi-Fi, sự kiện lịch, vị trí hoặc văn bản thuần.",
+  "description": "Mã quét được đủ loại: QR, Micro QR, Data Matrix, Aztec và PDF417 - cùng mã vạch bán lẻ và hậu cần từ EAN-13 đến MaxiCode.",
   "featured.blurb": "Mã QR theo bất kỳ màu thương hiệu nào",
   "a11yLabel": "Mã QR liên kết đến {{default url \"(chưa đặt URL)\"}}",
   "inputs.url.label": "URL",

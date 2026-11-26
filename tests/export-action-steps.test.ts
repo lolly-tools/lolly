@@ -264,3 +264,14 @@ test('collector falls back to the ref id when meta carries no name, and rejects 
   ];
   assert.deepEqual(collectAiIngredientDeclarations(model), [{ name: 'user/upload/x.png', kind: 'full' }]);
 });
+
+test('a rendition opens with its action, never a created step, and keeps a declared AI composite', () => {
+  const steps = exportActionSteps('png', { rendition: { action: 'c2pa.color_adjustments' } });
+  assert.deepEqual(steps.map((s) => s.action), ['c2pa.color_adjustments', 'c2pa.converted']);
+  assert.equal(steps[0]!.digitalSourceType, undefined, 'an opened picture was not digitally created here');
+  assert.equal(steps[0]!.description, 'Adjusted the colours');
+  const ai = exportActionSteps('png', { rendition: { action: 'c2pa.filtered' }, aiIngredients: [{ name: 'Sky', kind: 'full' }] });
+  assert.equal(ai[0]!.action, 'c2pa.filtered');
+  assert.equal(ai[0]!.digitalSourceType, COMPOSITE_SOURCE_TYPE, 'an AI-declared component still makes the whole a composite');
+  assert.equal(exportActionSteps('png', {})[0]!.digitalSourceType, DIGITAL_SOURCE_TYPE, 'without a rendition nothing changes');
+});

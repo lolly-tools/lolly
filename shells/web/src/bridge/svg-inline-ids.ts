@@ -15,7 +15,23 @@
  * same page stay byte-identical (C2PA hashes depend on that), and the same
  * file inlined twice gets the same prefix - harmless, because identical
  * content makes every reference resolve to identical geometry.
+ *
+ * A `blob:` URL is the exception (inlineIdKey). The browser mints a new random
+ * one in every session, so hashing it gave the same file a new prefix on every
+ * page load: two exports of one page differed in every inlined id, and docs
+ * shots of the Tokens room changed on every capture. A blob is keyed by its
+ * text instead, which is the same in every session.
  */
+
+/**
+ * The string a source's id prefix is hashed from: the URL, except for a
+ * `blob:` URL, which points at nothing outside this session, where the file's
+ * own text stands in. Keeps a stable URL's prefix exactly as it was, so only the
+ * prefixes that changed from run to run change now.
+ */
+export function inlineIdKey(src: string, text: string): string {
+  return /^blob:/i.test(src) ? text : src;
+}
 
 /** djb2 of the source string, base36 - short, stable, good enough spread. */
 const srcHash = (src: string): string => {

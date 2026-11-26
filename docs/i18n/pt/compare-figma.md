@@ -2,26 +2,30 @@
 
 _Última verificação: 28 de setembro de 2026._
 
-Se os seus designers trabalham no Figma, esta página diz como o Lolly fica ao lado dele: o que o Figma faz e o Lolly não faz, e onde o Lolly assume o trabalho repetitivo.
+Se seus designers trabalham no Figma, esta página diz o que o Figma faz que o Lolly não faz e onde o Lolly assume o trabalho repetitivo.
 
+<!--i:eti-award-->
 ## O que o Figma faz melhor
 
-O [Figma Design](https://www.figma.com/design/) reúne design de interfaces, componentes, protótipos interativos e entrega para desenvolvedores. Sua prática consolidada de design de produto e seu ecossistema importam quando uma equipe precisa projetar e especificar um aplicativo inteiro, e sua edição ao vivo roda em uma escala que os collabs de trabalho do Lolly ainda não atingiram.
+[Figma Design](https://www.figma.com/design/) combina design de interfaces, componentes, protótipos interativos e entrega para desenvolvedores. Sua prática consolidada de design de produtos e seu ecossistema são relevantes quando uma equipe projeta e especifica um aplicativo inteiro. Sua edição ao vivo opera em uma escala que as colaborações de trabalho do Lolly ainda não alcançaram.
 
+<!--i:eti-blend-->
 ## Onde eles se sobrepõem
 
-Ambos permitem organizar tipografia, formas e imagens em um canvas e trabalhar com outras pessoas. O Figma também cobre a produção de marca baseada em templates: o [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) cria recursos a partir de templates e os preenche com arquivos CSV ou XLSX. O [Import a design](/info/design-import.html) do Lolly abre arquivos do Figma como layouts editáveis, então os dois podem compartilhar trabalho.
+Ambos permitem organizar tipografia, formas e imagens em um canvas e trabalhar com outras pessoas. O Figma também cobre a produção de materiais de marca a partir de templates: o [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) cria recursos a partir de templates e os preenche com arquivos CSV ou XLSX. [Importar um design](/info/design-import.html) do Lolly abre arquivos do Figma como layouts editáveis, então os dois podem compartilhar trabalhos.
 
-## Como o Lolly faz o trabalho em comum
+<!--i:eti-lolly-->
+## Como o Lolly faz as tarefas em comum
 
-O Lolly transforma um design em uma [ferramenta reutilizável com regras](/info/create-a-tool.html). A ferramenta roda no navegador ou na CLI e recebe suas entradas de um link, um script ou uma grade de lote, então um template serve tanto a uma pessoa que edita um arquivo quanto a uma equipe que faz muitos.
+O Lolly transforma um design em uma [ferramenta reutilizável com regras](/info/create-a-tool.html). A ferramenta roda no navegador ou na CLI. Ela recebe entradas de um link, de um script ou de uma grade de lote. Um template atende tanto a uma pessoa que edita um arquivo quanto a uma equipe que cria muitos.
 
-![O canvas aberto do Design, com Import a design no menu Lolly da barra de ferramentas](/info/shots/design.svg)
+![O canvas aberto do Lolly Design, com Import a design no menu Lolly da barra de ferramentas](/info/shots/design.svg)
 
-Um [collab privado](/info/collaborate.html) liga dois dispositivos diretamente, sem conta e sem precisar de internet em uma rede compartilhada. O Lolly autônomo renderiza offline. As Content Credentials vêm ativadas por padrão nas exportações compatíveis, e você pode desativá-las.
+Uma [colaboração privada](/info/collaborate.html) conecta dois dispositivos diretamente, sem conta e sem precisar de internet em uma rede compartilhada. O Lolly independente renderiza offline. Content Credentials vêm ativadas por padrão nas exportações compatíveis, e você pode desativá-las.
 
+<!--i:eti-building-->
 ## Com uma organização
 
-O Lolly Work acrescenta collabs de trabalho autenticados com edições compartilhadas, cursores ao vivo e sessões de equipe salvas, além de single sign-on, catálogos compartilhados, permissões de projeto, aprovações e renderização no servidor. [What runs where](/info/compare.html#what-runs-where) coloca as duas partes lado a lado.
+O Lolly Work adiciona colaborações de trabalho autenticadas com edições compartilhadas, cursores ao vivo e sessões de equipe salvas, além de login único, catálogos compartilhados, permissões de projeto, aprovações e renderização no servidor. [O que roda onde](/info/compare.html#what-runs-where) coloca as duas partes lado a lado.
 
-Figma é uma marca registrada do respectivo titular. Esta página descreve onde os dois produtos se sobrepõem e não é afiliada ao Figma.
+Figma é uma marca comercial de seu titular. Esta página descreve onde os dois produtos se sobrepõem e não tem afiliação com o Figma.

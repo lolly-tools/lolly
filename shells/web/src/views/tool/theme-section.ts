@@ -28,7 +28,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { ColorSwatchOption } from '../../components/color-field.ts';
 import type { DocumentThemeController, DocumentThemeGroup } from '../../lib/document-theme.ts';
 import type { ThemeChoices } from '../../components/theme-choices.ts';
-import { swatchFace } from '../../../../../engine/src/color-face.ts';
+import { colourFieldOptions } from '../../lib/colour-role-swatches.ts';
 import { sourceTokenUsage, toolTokenUsage, type ToolSources } from '../../lib/theme-relevance.ts';
 
 export interface ThemeSectionOpts {
@@ -39,9 +39,13 @@ export interface ThemeSectionOpts {
   load?: () => Promise<{ mountThemeChoices: typeof import('../../components/theme-choices.ts').mountThemeChoices }>;
   /** The input whose row the choices follow (manifest `render.themeChoicesAfter`). */
   after?: string;
+  /** Something else the section holds that shows it with no theme group offered: the partner kit's line (plans/82 M8). */
+  extraVisible?: () => boolean;
 }
 
 export interface ThemeSection {
+  /** Show or hide the section again, after what `extraVisible` reads has changed. */
+  refresh?(): void;
   destroy(): void;
 }
 
@@ -75,8 +79,9 @@ export function mountThemeSection(opts: ThemeSectionOpts): ThemeSection {
     wanted = next;
     if (!section) return;
     if (hostedNode) hostedNode.hidden = inSlot() && !next;
-    if (inSlot()) { section.hidden = true; return; }
-    section.hidden = !next;
+    const extra = opts.extraVisible?.() === true;
+    if (inSlot()) { section.hidden = !extra; return; }
+    section.hidden = !next && !extra;
     if (next && !shownOnce) {
       shownOnce = true;
       if (opensByDefault(controller.groups())) section.open = true;
@@ -116,6 +121,7 @@ export function mountThemeSection(opts: ThemeSectionOpts): ThemeSection {
   void controller.ready.then(sync);
 
   return {
+    refresh() { if (!destroyed) show(wanted); },
     destroy() {
       destroyed = true;
       off();
@@ -164,6 +170,6 @@ export async function refreshThemeSwatches(host: HostV1, scope: HTMLElement | nu
 }): Promise<void> {
   const swatches = await host.tokens?.colors?.();
   if (!swatches?.length) return;
-  colorField.setSwatches(swatches.map((s) => ({ value: s.value, wide: swatchFace(s, 'display-p3'), label: s.name, group: s.group, ref: s.ref })));
+  colorField.setSwatches(await colourFieldOptions(host, swatches, { wide: true }));
   if (scope) colorField.refreshSwatches(scope);
 }

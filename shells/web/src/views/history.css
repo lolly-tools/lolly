@@ -16,7 +16,8 @@
 .app-history.has-selection { padding-block-end: calc(var(--sp-8) * 3); }
 
 /* ── Header: name, where it lives, two quiet doors ───────────────────────── */
-.app-history-header { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); margin-block-end: var(--sp-7); }
+/* The page keeps its width; the two rows at its head stand inside a side the system holds. */
+.app-history-header { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); margin-block-end: var(--sp-7); padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .app-history-heading { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3); min-width: 0; }
 .app-history h1 { margin: 0; font-size: var(--ui-type-heading); line-height: 1.15; letter-spacing: var(--ui-type-tracking-tight); }
 .app-history-source { display: inline-flex; align-items: center; gap: var(--sp-1); padding: var(--sp-1) var(--sp-3); border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted); font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); }
@@ -29,7 +30,7 @@
 /* ── Toolbar: view, search, filters and layout on one line ───────────────── */
 .app-history-controls { margin-block-end: var(--sp-7); }
 .app-history-filters { display: flex; flex-direction: column; gap: var(--sp-3); }
-.app-history-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+.app-history-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .app-history-tabs { flex: none; }
 .app-history-tabs .view-seg-btn { flex: none; padding-inline: var(--sp-4); }
 .app-history-layout { flex: none; }
@@ -38,7 +39,7 @@
 .app-history-search > .app-history-icon { position: absolute; inset-inline-start: var(--sp-3); pointer-events: none; color: var(--ui-color-text-muted); }
 .app-history-search input { width: 100%; padding-inline-start: calc(var(--sp-3) * 2 + var(--ui-size-icon-md)); }
 .app-history-filter-toggle { flex: none; }
-.app-history-filter-count { min-width: 1.5em; padding: 0 var(--sp-1); border-radius: var(--ui-radius-pill); background: var(--ui-color-selection-surface); font-variant-numeric: tabular-nums; font-weight: 650; color: var(--ui-color-action-primary); }
+.app-history-filter-count { min-width: 1.5em; padding: 0 var(--sp-1); border-radius: var(--ui-radius-pill); background: var(--ui-color-selection-surface); font-variant-numeric: tabular-nums; font-weight: 650; color: var(--ui-color-text-accent); }
 .app-history-filter-options { display: flex; align-items: end; flex-wrap: wrap; gap: var(--sp-3); padding: var(--sp-6); border-radius: var(--ui-radius-card); background: var(--ui-color-surface-raised); box-shadow: var(--ui-edge-faint); }
 .app-history-filters:not(.is-expanded) .app-history-filter-options { display: none; }
 .app-history-filter-field { display: flex; flex-direction: column; gap: var(--sp-1); flex: 1 1 180px; min-width: 0; }
@@ -55,7 +56,7 @@
 .app-history-picker-list { overflow-y: auto; overscroll-behavior: contain; min-height: 0; padding: var(--sp-2) 0 0; }
 .app-history-picker-option { display: flex; align-items: center; gap: var(--sp-3); width: 100%; min-height: var(--ui-size-target); padding: var(--sp-2); text-align: start; font-weight: 400; background: transparent; box-shadow: none; }
 .app-history-picker-option:hover, .app-history-picker-option.is-active { background: var(--ui-color-selection-surface); }
-.app-history-picker-option[aria-selected=true] { color: var(--ui-color-action-primary); font-weight: 600; }
+.app-history-picker-option[aria-selected=true] { color: var(--ui-color-text-accent); font-weight: 600; }
 .app-history-picker-empty { padding: var(--sp-3) var(--sp-2); margin: 0; font-size: var(--ui-type-body); color: var(--ui-color-text-muted); }
 /* Nothing to filter yet: the search and filters wait until there is history. */
 .app-history-controls.is-quiet :is(.app-history-search, .app-history-filter-toggle, .app-history-layout) { visibility: hidden; }
@@ -76,7 +77,7 @@
 /* ── A day: a slim divider that folds; its tiles beneath ─────────────────── */
 .app-history-day { margin-block-end: var(--sp-8); }
 .app-history-day-summary { display: flex; align-items: center; gap: var(--sp-3); padding-block: var(--sp-2); cursor: pointer; list-style: none; border-block-end: 1px solid var(--ui-color-border-default); }
-.app-history-day-summary::-webkit-details-marker { display: none; }
+.app-history-day-summary::after { content: none; }
 .app-history-day-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--sp-2); flex: 1; min-width: 0; }
 .app-history-day-heading h2 { margin: 0; font-size: var(--ui-type-title); font-weight: 600; line-height: 1.3; }
 .app-history-day-date, .app-history-day-count { color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); }
@@ -84,7 +85,7 @@
 .app-history-day-chevron { display: inline-flex; flex: none; color: var(--ui-color-text-muted); rotate: -90deg; transition: rotate var(--ui-motion-feedback); }
 .app-history-day-chevron svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
 .app-history-day[open] > summary > .app-history-day-chevron { rotate: 0deg; }
-.app-history-day-summary:hover h2 { color: var(--ui-color-action-primary); }
+.app-history-day-summary:hover h2 { color: var(--ui-color-text-accent); }
 .app-history-day-entries {
   /* Larger type asks for wider tiles, so the column minimum rides the multiplier. */
   --app-history-tile-min: calc(200px * var(--a11y-fs));
@@ -115,7 +116,7 @@
 .app-history-open { all: unset; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; color: inherit; }
 .app-history-open::after { content: ''; position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
 .app-history-row:has(.app-history-open:focus-visible) { box-shadow: 0 0 0 2px var(--ui-color-focus-ring), var(--object-shadow-hover); }
-.app-history-row:hover .app-history-open { color: var(--ui-color-action-primary); }
+.app-history-row:hover .app-history-open { color: var(--ui-color-text-accent); }
 .app-history-open:disabled { cursor: default; }
 .app-history-row .tile-check, .app-history-row .tile-menu-btn { z-index: 2; }
 .app-history-versions { position: relative; z-index: 2; }
@@ -134,11 +135,11 @@
 /* In Recent every tile is a creation, so the kind says nothing the tab did not. */
 .app-history[data-view="recent"] .app-history-row[data-kind="creation"] .app-history-kind { display: none; }
 .app-history-row[data-kind="milestone"] .app-history-kind { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
-.app-history-row[data-kind="milestone"] .app-history-kind svg { color: var(--ui-color-action-primary); }
+.app-history-row[data-kind="milestone"] .app-history-kind svg { color: var(--ui-color-text-accent); }
 .app-history-original-title, .app-history-result { margin: 0; font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
 .app-history-result[data-state=failed], .app-history-result[data-state=interrupted] { color: hsl(var(--destructive-text)); }
 .app-history-versions.btn { flex: none; width: var(--ui-size-control); height: var(--ui-size-control); min-height: 0; padding: 0; box-shadow: none; background: transparent; color: var(--ui-color-text-muted); }
-.app-history-versions:hover { color: var(--ui-color-action-primary); }
+.app-history-versions:hover { color: var(--ui-color-text-accent); }
 html[data-a11y-previews="hidden"] .app-history-cover img { filter: saturate(.5) contrast(.5); }
 
 /* ── List: the same tiles as rows, for scanning many at once ─────────────── */
@@ -184,13 +185,11 @@ html[data-a11y-previews="hidden"] .app-history-cover img { filter: saturate(.5) 
 .app-history-bulkbar-actions .btn { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .app-history-bulk-danger.btn { color: hsl(var(--destructive-text)); }
 .app-history-bulk-danger.btn:hover { background: hsl(var(--destructive) / .1); }
-.app-history-bulkbar-clear { display: inline-flex; align-items: center; justify-content: center; flex: none; width: var(--ui-size-control); height: var(--ui-size-control); padding: 0; border: 0; border-radius: var(--ui-radius-choice-round); background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); cursor: pointer; }
-.app-history-bulkbar-clear:hover { background: var(--ui-color-border-default); }
 .app-history-bulkbar.is-compact .app-history-bulkbar-actions .btn > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 @media (max-width: 960px) {
   .app-history.has-detail .app-history-content { grid-template-columns: minmax(0, 1fr); }
-  .app-history.has-detail .app-history-detail { position: fixed; inset: 0 0 0 auto; top: 0; width: min(100%, 420px); height: 100dvh; box-sizing: border-box; z-index: var(--ui-layer-overlay); box-shadow: var(--ui-elevation-sheet); }
+  .app-history.has-detail .app-history-detail { position: fixed; inset: 0 0 0 auto; top: 0; width: min(100%, calc(420px + var(--safe-right))); height: 100dvh; box-sizing: border-box; padding-top: var(--safe-top, 0px); padding-right: var(--safe-right); z-index: var(--ui-layer-overlay); box-shadow: var(--ui-elevation-sheet); }
 }
 @media (max-width: 640px) {
   .app-history { padding-inline: var(--sp-7); padding-block-start: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-4)); }

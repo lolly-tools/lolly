@@ -20,7 +20,7 @@
  * lists correctly.
  */
 
-import { mkdir, readdir, readFile, rm, writeFile, rename } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm, writeFile, rename, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { RightsDecisionV1 } from '@lolly-tools/core/rights-v1';
@@ -29,7 +29,10 @@ import type { SessionEmojiStamp } from '../../../engine/src/session-record.ts';
 // Deep relative imports, not the `@lolly/engine` barrel: the CLI bridge reaches this
 // module and the MCP function bundle follows every import from there.
 import { decodeFsToken, encodeFsToken } from '../../../engine/src/fs-token.ts';
-import { migrateSessionRecord, sessionVersionStamp, sessionRightsDecisions, sessionEmojiStamp } from '../../../engine/src/session-record.ts';
+import { migrateSessionRecord, sessionVersionStamp, sessionRightsDecisions, sessionEmojiStamp, sessionPreviewRef } from '../../../engine/src/session-record.ts';
+import {
+  mayHaveLostPicture, previewFileExt, previewLinkName, readPreviewLink, sessionWorkKey, withPreviewLink, type SessionPreviewRef,
+} from '../../../engine/src/session-preview.ts';
 
 /** The directory the shells share, under the resolved state directory. */
 export const SESSION_SUBDIR = 'saved-state';
@@ -55,11 +58,22 @@ export interface SessionRecord {
   toolVersion?: string;
   label?: string;
   data: SessionData;
+  /** A legacy data URL: records written before session format 5. */
   thumb?: string | null;
+  /** The picture by reference (session format 5); its bytes sit under
+   *  `saved-state/previews/` beside the records (see `sessionPicturePath`). */
+  preview?: SessionPreviewRef;
   updatedAt: string;
   createdAt?: string;
   formatVersion?: number;
   engineVersion?: string;
+}
+
+/** Where a session's picture file sits, the layout the Tauri shells write
+ *  (shells/tauri-shared/bridge-overrides/state-fs.ts). Every session in one state
+ *  directory shares the files, so a copied session points at the same file. */
+export function sessionPicturePath(stateDir: string, ref: Pick<SessionPreviewRef, 'key' | 'type'>): string {
+  return join(sessionsDir(stateDir), 'previews', `${ref.key}.${previewFileExt(ref.type)}`);
 }
 
 /** A record as parsed back off disk - untrusted, so read every field defensively. */
@@ -77,10 +91,46 @@ export function sessionFilePath(stateDir: string, slot: string): string {
 export async function readSessionRecord(stateDir: string, slot: string): Promise<SessionRecord | null> {
   try {
     const raw = JSON.parse(await readFile(sessionFilePath(stateDir, slot), 'utf8')) as ParsedRecord;
-    return normalise(raw);
+    const record = normalise(raw);
+    return record ? withFoundPicture(stateDir, record) : null;
   } catch {
     return null;
   }
+}
+
+const linkFile = (stateDir: string, workKey: string): string => join(sessionsDir(stateDir), 'previews', previewLinkName(workKey));
+
+/**
+ * A record an older writer saved without its picture reference (the 1.2.1 CLI and
+ * TUI write a record again from the fields they know, so a rename or a copy there
+ * drops `preview`) gets its picture back through the link the writer of the picture
+ * left beside it, when the picture file is still here. A rename leaves the work alone,
+ * so the link still matches; a changed document does not, and stays without one.
+ */
+async function withFoundPicture(stateDir: string, record: SessionRecord): Promise<SessionRecord> {
+  if (!mayHaveLostPicture(record)) return record;
+  try {
+    const ref = readPreviewLink(await readFile(linkFile(stateDir, await sessionWorkKey(record.data)), 'utf8'), record.slot);
+    if (ref && (await stat(sessionPicturePath(stateDir, ref))).isFile()) return { ...record, thumb: null, preview: ref };
+  } catch { /* no link, or no picture: the record as it is */ }
+  return record;
+}
+
+/** Remember which picture this session's work was saved with, as the desktop app
+ *  does. Best effort. */
+async function writeLink(stateDir: string, slot: string, data: SessionData, ref: SessionPreviewRef): Promise<void> {
+  try {
+    const path = linkFile(stateDir, await sessionWorkKey(data));
+    const prior = await readFile(path, 'utf8').catch(() => null);
+    const text = withPreviewLink(prior, slot, ref);
+    if (prior === text) return;
+    await mkdir(join(sessionsDir(stateDir), 'previews'), { recursive: true });
+    const temp = `${path}.${randomUUID()}.tmp`;
+    try {
+      await writeFile(temp, text, { mode: 0o600, flag: 'wx' });
+      await rename(temp, path);
+    } finally { await rm(temp, { force: true }); }
+  } catch { /* the record keeps its own reference either way */ }
 }
 
 /**
@@ -113,7 +163,7 @@ export async function listSessionRecords(stateDir: string): Promise<SessionRecor
     try {
       const raw = JSON.parse(await readFile(join(sessionsDir(stateDir), name), 'utf8')) as ParsedRecord;
       const record = normalise(raw);
-      if (record) out.push(record);
+      if (record) out.push(await withFoundPicture(stateDir, record));
     } catch {
       /* skip corrupt entries */
     }
@@ -156,7 +206,12 @@ export interface SessionWrite {
   expectedUpdatedAt?: string | null;
   slot: string;
   data: SessionData;
+  /** The picture: a legacy data URL. Left out (with `preview`), the prior record's
+   *  picture is kept. */
   thumb?: string | null;
+  /** The picture by reference. Left out (with `thumb`), the prior record's picture is
+   *  kept; given, it replaces whatever the record had. */
+  preview?: SessionPreviewRef | null;
   /** Defaults to `data.__toolId`. */
   toolId?: string;
   /** Defaults to `data.__toolVersion`. */
@@ -182,7 +237,11 @@ export async function writeSessionRecord(stateDir: string, write: SessionWrite):
     toolVersion: write.toolVersion ?? write.data.__toolVersion,
     label: write.label ?? write.data.__label,
     data: write.data,
-    thumb: write.thumb ?? prior?.thumb ?? null,
+    // The picture given replaces the record's; none given keeps the prior one, in
+    // whichever form it had (a session saved by the desktop app keeps its file).
+    ...(write.thumb !== undefined || write.preview !== undefined
+      ? { thumb: write.preview ? null : write.thumb ?? null, ...(write.preview ? { preview: write.preview } : {}) }
+      : { thumb: prior?.preview ? null : prior?.thumb ?? null, ...(prior?.preview ? { preview: prior.preview } : {}) }),
     updatedAt: write.updatedAt ?? now,
     createdAt: prior?.createdAt ?? now,
     emoji: write.emoji === undefined ? prior?.emoji : write.emoji ?? undefined,
@@ -199,6 +258,7 @@ export async function writeSessionRecord(stateDir: string, write: SessionWrite):
     }
     await rename(temp, path);
   } finally { await rm(temp, { force: true }); }
+  if (record.preview) await writeLink(stateDir, record.slot, record.data, record.preview);
   return record;
 }
 
@@ -229,6 +289,7 @@ function normalise(raw: ParsedRecord | null): SessionRecord | null {
     label: typeof raw.label === 'string' && raw.label ? raw.label : (typeof data.__label === 'string' ? data.__label : undefined),
     data,
     thumb: typeof raw.thumb === 'string' ? raw.thumb : null,
+    ...(sessionPreviewRef(raw) ? { preview: sessionPreviewRef(raw)! } : {}),
     updatedAt: typeof raw.updatedAt === 'string' ? raw.updatedAt : '',
     ...(typeof raw.createdAt === 'string' ? { createdAt: raw.createdAt } : {}),
     ...(typeof raw.formatVersion === 'number' ? { formatVersion: raw.formatVersion } : {}),

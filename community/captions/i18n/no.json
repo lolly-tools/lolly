@@ -1,6 +1,6 @@
 {
   "name": "Undertekster",
-  "description": "Undertekster for et klipp - transkriber det på enheten, eller last inn en SRT- eller VTT-fil, tilpass utseendet på tekstlinjene og eksporter rammer med innbrente undertekster i tillegg til rene .srt- og .vtt-følgefiler.",
+  "description": "Undertekster for et klipp - transkriber det på enheten eller last inn en SRT- eller VTT-fil, og eksporter rammer med innbrente undertekster pluss .srt og .vtt.",
   "inputs.style.section": "Teksting",
   "inputs.position.section": "Teksting",
   "inputs.fontSize.section": "Teksting",

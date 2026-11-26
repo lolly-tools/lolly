@@ -324,15 +324,18 @@ test('closing a floating or phone inspector cancels pending Restore across selec
         const beforeA = await row(page);
         const beforeB = await row(page, 'b');
         const inspector = page.locator('.fc-insp');
-        assert.equal(await inspector.evaluate(el => el.classList.contains('is-compact-sheet')), width === 390);
+        // A phone keeps the inspector in its drop-down panel (views/design-phone-panel.ts).
+        assert.equal(await inspector.evaluate(el => !!el.closest('.design-phone-panel')), width === 390);
         if (width === 1440) assert.equal(await inspector.evaluate(el => el.classList.contains('is-floating')), true);
         const captured = await inspector.elementHandle();
         assert.ok(captured);
         await holdFinalTokenRead(page);
         await slot.locator('[data-token-restore]').click();
         await page.waitForFunction(() => (window as unknown as { __transitionRead: { started: boolean } }).__transitionRead.started);
-        await page.getByRole('button', { name: 'Hide inspector', exact: true }).click();
-        assert.equal(await captured.evaluate(el => !el.isConnected || (el as HTMLElement).hidden), true);
+        // Closed: off the page on a desk; folded to the panel's peek on a phone.
+        if (width === 390) await page.getByRole('button', { name: 'Inspect', exact: true }).click();
+        else await page.getByRole('button', { name: 'Hide inspector', exact: true }).click();
+        assert.equal(await captured.evaluate(el => !el.isConnected || (el as HTMLElement).hidden || !!el.closest('.design-phone-panel[data-snap="peek"]')), true);
         await select(page, ['b']);
         await releaseTokenRead(page);
         assert.deepEqual(await row(page), beforeA, `${width}: original layer and cached link metadata stay unchanged`);

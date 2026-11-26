@@ -77,3 +77,15 @@ test('an emoji set files under Emoji sets, the section the Assets view shows it 
     assert.ok(groupsFor(asset).every((g) => g.key !== 'emoji-sets'), 'Emoji sets is never offered as a place to move an asset');
   }
 });
+
+test("Lolly's etiquette icons carry their own name, and nothing else moves", () => {
+  const etiquette = ref('vector', 'svg', ['icon', 'themable', 'two-color', 'etiquette', 'medal'], 'lolly/icons/award');
+  assert.equal(libCategory(etiquette), 'etiquette-icons');
+  assert.equal(categoryLabel('etiquette-icons'), 'Lolly etiquette icons');
+  assert.equal(libCategory(ref('vector', 'svg', ['icon', 'themable', 'two-color'], 'suse/icons/x')), 'icons', "another brand's two-colour icons stay Icons");
+  assert.ok(!groupsFor(ref('vector', 'svg', ['icon'])).some((g) => g.key === 'etiquette-icons'), 'not offered as a place to move a picture');
+  assert.equal(libCategory(ref('raster', 'png', ['photo']), { 'x/y': 'etiquette-icons' }), 'photos', 'nor can an override file one there');
+  assert.equal(libCategory(etiquette, { 'lolly/icons/award': 'logos' }), 'logos', 'a person can still move one out');
+  const at = LIB_GROUPS.findIndex((g) => g.key === 'etiquette-icons');
+  assert.equal(LIB_GROUPS[at - 1]?.key, 'icons', 'it sits straight after Icons');
+});

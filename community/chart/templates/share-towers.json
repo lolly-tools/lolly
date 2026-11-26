@@ -1,0 +1,20 @@
+{
+  "id": "share-towers",
+  "name": "Share towers",
+  "category": "3-D",
+  "description": "A donut whose slices also rise by their value, standing on a plinth in the design system's colours.",
+  "values": {
+    "renderMode": "scene",
+    "chartType": "donut",
+    "sceneType": "donut3d",
+    "sceneLayout": "towers",
+    "data": "Channel,Share\nSearch,42\nSocial,28\nEmail,18\nDirect,12",
+    "heading": "Where visits come from",
+    "subheading": "Share of sessions this quarter",
+    "sceneStage": "plinth",
+    "sceneMaterial": "satin",
+    "scenePose": "hero",
+    "motionPreset": "stagger"
+  },
+  "presets": []
+}

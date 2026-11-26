@@ -1,26 +1,31 @@
-# Gestisci
+# Gestire
 
-Lolly gira sul dispositivo di ciascuno. Quando un team ha bisogno di accesso, progetti condivisi, risorse governate, revisioni e lavori sul server, un'organizzazione aggiunge **Lolly Work**, il server open source per organizzazioni dello stesso progetto. Queste pagine sono per chi configura e cura quel server.
+Lolly funziona sul dispositivo di ogni persona. Queste pagine sono per chi gestisce **Lolly Work**, il server open source del progetto per le organizzazioni, dedicato ad accesso, progetti condivisi, risorse governate, revisioni e processi server.
 
-Parti da [Use Lolly at your organisation](/info/organisation.html) per vedere cosa ottengono i membri, oppure da [Lolly Work architecture](/info/work-overview.html) per le responsabilità del server.
+Inizia da [Usare Lolly nella tua organizzazione](/info/organisation.html) per vedere cosa ottengono i membri oppure da [Architettura di Lolly Work](/info/work-overview.html) per sapere cosa fa il server.
 
-## Imposta accesso e policy
+<!--i:eti-lock-->
+## Impostare accessi e policy
 
-- [Adoption & Governance](/info/adoption-governance.html) tratta l'introduzione e il ruolo delle regole del brand.
-- [Identity and sessions](/info/work-identity.html) tratta l'accesso e la mappatura dei gruppi. [Roles and grants](/info/work-permissions.html) spiega ruoli, concessioni e la protezione del proprietario.
-- [Policy and governance](/info/work-governance.html) tratta gli overlay degli strumenti, gli input bloccati e le policy. [Manage organisation AI policy](/info/work-ai-policy.html) tratta approvazioni e limiti di esecuzione.
-- [Account data controls](/info/work-account-lifecycle.html) e [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) trattano esportazioni, offboarding, conservazione e i loro limiti.
-- [Profiles, brands and tool configuration](/info/configuration.html) tratta quali strumenti e design system porta una build di Lolly.
+- [Adozione & governance](/info/adoption-governance.html) descrive l'introduzione e il ruolo delle regole del marchio.
+- [Identità e sessioni](/info/work-identity.html) descrive l'accesso e la mappatura dei gruppi. [Ruoli e autorizzazioni](/info/work-permissions.html) spiega ruoli, autorizzazioni e protezione del proprietario.
+- [Policy e governance](/info/work-governance.html) descrive le sovrapposizioni degli strumenti, gli input bloccati e le policy. [Gestire le policy dell'organizzazione sull'IA](/info/work-ai-policy.html) descrive approvazioni e limiti di esecuzione.
+- [Controlli sui dati degli account](/info/work-account-lifecycle.html) e [Archiviazione e ciclo di vita dei dati in Lolly Work](/info/work-data-lifecycle.html) descrivono esportazioni, disattivazione degli account, conservazione e relativi limiti.
+- [Profili, marchi e configurazione degli strumenti](/info/configuration.html) descrive quali strumenti e design system contiene una build di Lolly.
 
-## Collega le risorse e rivedi il lavoro
+<!--i:eti-link-->
+## Collegare risorse e revisionare il lavoro
 
-- [Design-system administration](/info/work-design-system-administration.html) tratta l'inventario delle fonti, le modifiche riviste e il ripristino.
-- [Catalog and content](/info/work-catalog.html) tratta le risorse condivise e le regole di esposizione. [Provider guides](/info/work-provider-guides.html) fornisce i requisiti di configurazione e verifica di ogni piattaforma sorgente.
-- [Approvals](/info/work-approvals.html) tratta le catene di revisione e la separazione dei compiti. [Rendering and sharing](/info/work-sharing.html) tratta i link e l'output sul server.
-- [Invite an agent to a document](/info/work-document-agents.html) tratta l'accesso circoscritto al documento, la scadenza e la revoca. Un invito non concede accesso al deployment né all'infrastruttura.
+- [Usare Lolly con il DAM che usi già](/info/use-with-dam.html) spiega l'autorità della fonte e la produzione connessa. [Il resoconto di SUSE su Brandfolder](/info/suse-brandfolder.html) documenta un'adozione. [Pianificare una transizione del DAM](/info/dam-transition.html) descrive un eventuale passaggio successivo.
 
-## Trova il prossimo compito
+- [Amministrazione del design system](/info/work-design-system-administration.html) descrive l'inventario delle fonti, le modifiche revisionate e il ripristino.
+- [Catalogo e contenuti](/info/work-catalog.html) descrive risorse condivise e regole di esposizione. [Guide ai fornitori](/info/work-provider-guides.html) indica i requisiti di configurazione e verifica di ogni piattaforma di origine.
+- [Approvazioni](/info/work-approvals.html) descrive le catene di revisione e la separazione dei compiti. [Rendering e condivisione](/info/work-sharing.html) descrive i link e l'output del server.
+- [Invitare un agente in un documento](/info/work-document-agents.html) descrive l'accesso al documento con ambito limitato, la scadenza e la revoca. Un invito non concede accesso al deployment o all'infrastruttura.
 
-- [Crea](/info/creators.html) ha i compiti creativi e i playbook per team.
-- [Distribuisci](/info/operate.html) tratta l'installazione e la manutenzione di Lolly e di un server Lolly Work. La configurazione di un'istanza è separata dal profilo di contenuto di una persona.
-- [Fiducia](/info/trust.html) spiega i flussi di dati, le firme e i confini di sicurezza.
+<!--i:eti-search-->
+## Trovare la prossima attività
+
+- [Creare](/info/creators.html) contiene le attività creative e le guide operative per i team.
+- [Distribuire](/info/operate.html) descrive l'installazione e la manutenzione di Lolly e di un server Lolly Work. La configurazione di un'istanza è separata dal profilo dei contenuti di una persona.
+- [Fiducia](/info/trust.html) spiega flussi di dati, firme e confini di sicurezza.

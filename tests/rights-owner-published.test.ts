@@ -7,12 +7,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { OWNER_PUBLISHED, ownerPublished, redistribution } from '../engine/src/asset-rights.ts';
+import { OWNER_PUBLISHED, ownerPublished, packCreditsText, redistribution } from '../engine/src/asset-rights.ts';
 import { buildBrandPage, type BrandPageInputV1 } from '../engine/src/brand-page.ts';
 import { deriveBrandTokens } from '../engine/src/brand-derive.ts';
 import { RIGHTS_RULES_VERSION } from '../engine/src/rights-profiles.ts';
 import { licenceLabel } from '../shells/web/src/lib/asset-rights.ts';
-import { packCreditsText } from '../shells/web/src/lib/lolly-pack.ts';
 import { packRights } from '../shells/web/src/lib/redistribution.ts';
 
 const TERMS = 'These marks belong to Acme. Show them unaltered to refer to Acme.';

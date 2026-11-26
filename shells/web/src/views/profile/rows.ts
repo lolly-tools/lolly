@@ -11,7 +11,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { helpTip } from '../../components/help-tip.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
-import { CATEGORY_FLAGS, CONNECTOR_FLAGS, SHARE_LINK_FLAGS, JELLY_FLAG, LEARNING_FLAG, NEUROSPICY_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, applyPerfUi, flagHidden, isFlagOn, setFlagMirror, subscribePerfUi } from '../../feature-flags.ts';
+import { CATEGORY_FLAGS, CONNECTOR_FLAGS, SHARE_LINK_FLAGS, JELLY_FLAG, LEARNING_FLAG, NEUROSPICY_FLAG, PERFORMANCE_UI_FLAG, PERF_HUD_FLAG, PREFLIGHT_FLAG, PRIVATE_COLLAB_FLAG, STRIP_UPLOAD_META_FLAG, COLOURWAY_ASSET_TREATMENTS_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, applyPerfUi, flagHidden, isFlagOn, setFlagMirror, subscribePerfUi } from '../../feature-flags.ts';
 import { allowPerfUiAutoAgain, perfUiConstraintSignalsHere, readPerfUiAuto, type PerfUiAutoRecord } from '../../lib/perf-ui-auto-state.ts';
 import type { FeatureFlag } from '../../feature-flags.ts';
 import { mountPerfHud, unmountPerfHud } from '../../lib/perf-hud.ts';
@@ -211,6 +211,7 @@ export const flagListHtml = (pv: ProfileViewCtx): string => { const { jellyHidde
             ${flagRow(pv, PERFORMANCE_UI_FLAG)}
             ${flagRow(pv, PERF_HUD_FLAG)}
             ${flagRow(pv, STRIP_UPLOAD_META_FLAG)}
+            ${flagRow(pv, COLOURWAY_ASSET_TREATMENTS_FLAG)}
             ${flagRow(pv, PREFLIGHT_FLAG)}
             ${flagRow(pv, LEARNING_FLAG)}
             ${flagRow(pv, PRIVATE_COLLAB_FLAG)}

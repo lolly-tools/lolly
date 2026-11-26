@@ -1,6 +1,6 @@
 {
   "name": "Slide da Markdown",
-  "description": "Trasforma Markdown o una specifica JSON in un deck PowerPoint nativo e modificabile - testo reale, elenchi puntati, tabelle e il tema del sistema di design - in pochi secondi. Il percorso veloce basato sul testo verso un deck; usa il canvas Design quando vuoi disporre le slide a mano o animarle. I grafici e i diagrammi arrivano dagli altri strumenti Lolly. Esporta in .pptx (modificabile), oltre a PDF e PNG.",
+  "description": "Trasforma Markdown o una specifica JSON in un deck PowerPoint nativo e modificabile. Esporta in .pptx (modificabile), oltre a PDF e PNG.",
   "a11yLabel": "Presentazione con {{_slideCount}} slide",
   "inputs.size.label": "Dimensione del deck",
   "inputs.size.help": "Una dimensione per l'intero deck - PowerPoint dà a ogni slide la stessa dimensione.",

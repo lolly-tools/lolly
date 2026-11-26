@@ -21,25 +21,32 @@
   ],
   "modules": {
     "shells/web/src/bridge/export-svg-walker.ts": {
-      "lines": 1870,
-      "largestFunctionLines": 1631,
-      "importFanIn": 4,
-      "importFanOut": 19,
+      "lines": 1876,
+      "largestFunctionLines": 1619,
+      "importFanIn": 7,
+      "importFanOut": 24,
       "typeEscapes": 17
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 3779,
-      "largestFunctionLines": 628,
+      "lines": 3641,
+      "largestFunctionLines": 626,
       "importFanIn": 26,
-      "importFanOut": 73,
-      "typeEscapes": 39
+      "importFanOut": 80,
+      "typeEscapes": 37
     },
     "shells/web/src/bridge/sequence-render.ts": {
-      "lines": 1622,
-      "largestFunctionLines": 1003,
+      "lines": 1701,
+      "largestFunctionLines": 1001,
       "importFanIn": 6,
-      "importFanOut": 33,
+      "importFanOut": 36,
       "typeEscapes": 13
+    },
+    "shells/web/src/lib/lofi-voices.ts": {
+      "lines": 1673,
+      "largestFunctionLines": 92,
+      "importFanIn": 20,
+      "importFanOut": 7,
+      "typeEscapes": 0
     },
     "shells/web/src/lib/rebrand/controller.ts": {
       "lines": 2292,
@@ -56,66 +63,80 @@
       "typeEscapes": 0
     },
     "shells/web/src/views/deck-editor.ts": {
-      "lines": 1969,
-      "largestFunctionLines": 1743,
+      "lines": 1973,
+      "largestFunctionLines": 1665,
       "importFanIn": 2,
-      "importFanOut": 10,
+      "importFanOut": 11,
       "typeEscapes": 0
     },
     "shells/web/src/views/design-import.ts": {
-      "lines": 1831,
+      "lines": 1911,
       "largestFunctionLines": 145,
       "importFanIn": 5,
-      "importFanOut": 13,
+      "importFanOut": 17,
       "typeEscapes": 68
     },
     "shells/web/src/views/design-inspector.ts": {
-      "lines": 1557,
-      "largestFunctionLines": 2017,
+      "lines": 1551,
+      "largestFunctionLines": 2006,
       "importFanIn": 1,
-      "importFanOut": 31,
+      "importFanOut": 34,
       "typeEscapes": 0
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1789,
-      "largestFunctionLines": 1740,
+      "lines": 1833,
+      "largestFunctionLines": 1704,
       "importFanIn": 1,
-      "importFanOut": 66,
+      "importFanOut": 75,
       "typeEscapes": 8
     },
+    "shells/web/src/views/music-studio.ts": {
+      "lines": 1500,
+      "largestFunctionLines": 1654,
+      "importFanIn": 1,
+      "importFanOut": 45,
+      "typeEscapes": 0
+    },
     "shells/web/src/views/picker.ts": {
-      "lines": 2396,
-      "largestFunctionLines": 2046,
-      "importFanIn": 33,
-      "importFanOut": 69,
+      "lines": 2389,
+      "largestFunctionLines": 2040,
+      "importFanIn": 34,
+      "importFanOut": 73,
       "typeEscapes": 3
     },
+    "shells/web/src/views/present-mode.ts": {
+      "lines": 1532,
+      "largestFunctionLines": 1651,
+      "importFanIn": 2,
+      "importFanOut": 20,
+      "typeEscapes": 0
+    },
     "shells/web/src/views/projects.ts": {
-      "lines": 2025,
-      "largestFunctionLines": 2677,
+      "lines": 2004,
+      "largestFunctionLines": 2652,
       "importFanIn": 1,
-      "importFanOut": 62,
+      "importFanOut": 64,
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
-      "lines": 2784,
-      "largestFunctionLines": 2037,
+      "lines": 2776,
+      "largestFunctionLines": 2036,
       "importFanIn": 8,
-      "importFanOut": 43,
+      "importFanOut": 47,
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1611,
-      "largestFunctionLines": 1571,
+      "lines": 1675,
+      "largestFunctionLines": 1520,
       "importFanIn": 1,
-      "importFanOut": 67,
+      "importFanOut": 71,
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
-      "lines": 2657,
+      "lines": 2601,
       "largestFunctionLines": 1915,
       "importFanIn": 3,
-      "importFanOut": 56,
+      "importFanOut": 58,
       "typeEscapes": 1
     }
   },
@@ -223,7 +244,7 @@
     "shells/web/src/bridge/export-pdf-vector.ts": 11,
     "shells/web/src/bridge/export-shared.ts": 1,
     "shells/web/src/bridge/export-svg-walker.ts": 17,
-    "shells/web/src/bridge/export.ts": 39,
+    "shells/web/src/bridge/export.ts": 37,
     "shells/web/src/bridge/hook-worker.ts": 2,
     "shells/web/src/bridge/hook-worker.worker.ts": 1,
     "shells/web/src/bridge/identity.ts": 1,
@@ -255,7 +276,6 @@
     "shells/web/src/components/instance-sheet.ts": 2,
     "shells/web/src/components/profile-menu.ts": 2,
     "shells/web/src/components/profiles-manager.ts": 2,
-    "shells/web/src/components/share-dialog.ts": 1,
     "shells/web/src/components/sound-toggle.ts": 1,
     "shells/web/src/ext/host.ts": 3,
     "shells/web/src/folder-overlay.ts": 1,
@@ -328,7 +348,7 @@
     "shells/web/src/lib/upscaler.ts": 4,
     "shells/web/src/lib/video-jobs.ts": 3,
     "shells/web/src/lib/viz-stock.ts": 3,
-    "shells/web/src/main.ts": 44,
+    "shells/web/src/main.ts": 40,
     "shells/web/src/org/ai-policy.ts": 1,
     "shells/web/src/org/collab-handle.ts": 1,
     "shells/web/src/pro/batch.ts": 1,
@@ -391,7 +411,7 @@
     "shells/web/src/views/record-control.ts": 1,
     "shells/web/src/views/screen-capture-control.ts": 1,
     "shells/web/src/views/sequence-clock.ts": 4,
-    "shells/web/src/views/start.ts": 5,
+    "shells/web/src/views/start.ts": 3,
     "shells/web/src/views/start/brand.ts": 3,
     "shells/web/src/views/start/candidates.ts": 1,
     "shells/web/src/views/start/exporting.ts": 2,

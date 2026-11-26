@@ -5,15 +5,14 @@
  *
  * `pnpm run previews` rasterises the previews it can't keep as vector - a canvas tool
  * (snippet), a dense-synthetic-vector tool the SVG walker would make expensive to
- * paint (filter-halftone, street-map), or a photo-heavy look - to PNG at up to render
+ * paint (filter-halftone, street-map), or a photo-heavy card - to PNG at up to render
  * resolution (snippet.png alone is 1.46 MB). Shown as gallery tiles at ~300–600 CSS px
  * they're both oversized AND in a format 3–5× heavier than it needs to be.
  *
- * This resizes every raster preview (default <id>.png AND look <id>.look<i>.png) to a
- * retina-safe cap and re-encodes as WebP - typically a 5–10× byte cut - then removes the
- * .png so a tool never carries both. build-catalog-index.ts prefers .webp over .png, and
- * build-preview-bundle.ts references look rasters as .webp first, so the switch is picked
- * up with no other change. Runs as the final step of `pnpm run previews`.
+ * This resizes every raster preview (<id>.png) to a retina-safe cap and re-encodes as
+ * WebP - typically a 5–10× byte cut - then removes the .png so a tool never carries both.
+ * build-catalog-index.ts prefers .webp over .png, so the switch is picked up with no
+ * other change. Runs as the final step of `pnpm run previews`.
  *
  * Idempotent: a tool already on .webp (no .png) is left untouched; re-encoding only ever
  * runs on a remaining .png. BUILD-TIME ONLY (sharp / native libvips).

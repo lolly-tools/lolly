@@ -33,7 +33,7 @@ import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { FONT_LICENSE, WEIGHT_RAMP } from '../../lib/typefaces.ts';
 import { prepareAssetForVerify, setPendingVerify } from '../../lib/verify-handoff.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { ASSET_PAGE_SIZE, CAT_ICONS, DOWNLOAD_ICON, emojiPackMeta, emojiPackSource, showMoreHtml } from './shared.ts';
+import { ASSET_PAGE_SIZE, CAT_ICONS, DOWNLOAD_ICON, emojiPackMeta, emojiPackSource, groundFlipped, showMoreHtml } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 import { appPathname } from '../../lib/any-site.ts';
 import { layoutAttr, densityAttr } from '../../components/browse-layout.ts';
@@ -242,7 +242,7 @@ export function render(cat: CatCtx): void {
   cat.projects?.sync(); cat.remote?.sync(); cat.remote?.reconcile(); cat.projects?.reconcile();
   cat.bulk.pruneSelection();
   viewEl.innerHTML = `
-      <div class="catalog"${cardSizeAttr(cat.cardSize)}${layoutAttr(cat.catLayout)}${densityAttr(cat.catDensity)}>
+      <div class="catalog"${cardSizeAttr(cat.cardSize)}${layoutAttr(cat.catLayout)}${densityAttr(cat.catDensity)}${groundFlipped() ? ' data-ground-flipped' : ''}>
         ${cat.tiles.catalogTopbarHtml()}
         <h1 class="visually-hidden">${t('Assets')}</h1>
         <button type="button" class="btn btn--labelled btn--ghost" data-browse-sources>${actionButtonContent(t('Sources'), 'folder')}</button>

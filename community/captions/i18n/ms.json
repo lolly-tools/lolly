@@ -1,6 +1,6 @@
 {
   "name": "Sari Kata",
-  "description": "Sari kata untuk klip - transkripkannya di peranti atau masukkan fail SRT/VTT, gayakan sari kata, dan eksport bingkai video dengan sari kata terbakar-masuk berserta fail sampingan .srt dan .vtt yang bersih.",
+  "description": "Sari kata untuk klip - tukarkan ucapannya kepada teks di peranti atau masukkan fail SRT/VTT, dan eksport bingkai dengan sari kata terbakar-masuk berserta fail .srt dan .vtt.",
   "inputs.style.section": "Sari kata",
   "inputs.position.section": "Sari kata",
   "inputs.fontSize.section": "Sari kata",

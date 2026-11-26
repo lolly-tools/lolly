@@ -1,33 +1,35 @@
 # Lolly-Architektur
 
-![Lolly-Icon - großer grün-weißer Lolli](/info/icon.svg)
+![Lolly-Symbol - großer grün-weißer Lutscher](/info/icon.svg)
 
-Diese Seite richtet sich an Menschen, die den Code von Lolly ändern: wie Engine, Shells und Tool-Pakete zusammenpassen, wo jedes im Repository liegt und welche Verpflichtungen jede Änderung einschränken. Wenn Sie wissen wollen, was Lolly tut und wer es nutzt, lesen Sie zuerst [Wie Lolly funktioniert](/info/how-lolly-works.html).
+Diese Seite richtet sich an Menschen, die Lollys Code ändern: wie die Engine, die Shells und die Tool-Pakete zusammenpassen, wo sie im Repository liegen und welche verbindlichen Vorgaben jede Änderung begrenzen. Um zu erfahren, was Lolly macht und wer Lolly nutzt, lesen Sie zuerst [Wie Lolly funktioniert](/info/how-lolly-works.html).
 
-Zwei Begleiter gehen tiefer. [`engine/README.md`](../engine/README.md) ist die Modul-für-Modul-Karte der Engine, aus dem Code erzeugt. [Bedrohungsmodell und Vertrauensgrenzen](/info/threat-model.html) liest dieselbe Architektur als Vertrauensgrenzen und ist die Seite für jede Frage dazu, was die Engine als nicht vertrauenswürdig behandelt.
+[`engine/README.md`](https://github.com/lolly-tools/lolly/blob/main/engine/README.md) beschreibt die Engine Modul für Modul und wird aus dem Code erzeugt. [Bedrohungsmodell & Vertrauensgrenzen](/info/threat-model.html) betrachtet dieselbe Architektur anhand ihrer Vertrauensgrenzen und beschreibt, was die Engine als nicht vertrauenswürdig behandelt.
 
-## Das große Bild
+<!--i:eti-layers-->
+## Der Überblick
 
-Tools sind Daten ganz oben. Die Engine in der Mitte weiß nichts von irgendeiner Plattform. Die Shells unten setzen einen Vertrag um, und die Kataloge liefern den Inhalt.
+Oben stehen Tools als Daten. Die Engine in der Mitte kennt keine Plattform. Die Shells darunter implementieren einen gemeinsamen Vertrag, und die Kataloge liefern die Inhalte.
 
-![Tools liefern ein Manifest, eine Vorlage und Hooks an die gemeinsame Engine. Web-, Tauri- und Terminal-Shells setzen die HostV1-Capability-Bridge um und lesen Tools und Assets aus Katalogen.](/info/diagrams/concepts/platform-layers.svg)
+![Tools liefern ein Manifest, eine Vorlage und Hooks an die gemeinsame Engine. Web-, Tauri- und Terminal-Shells implementieren die HostV1-Capability-Bridge und lesen Tools und Assets aus Katalogen.](/info/diagrams/concepts/platform-layers.svg)
 
-Wenn Sie es in reinen Daten und Handlebars beschreiben können, gehört es in die **Engine**. Wenn es das DOM, das Dateisystem, das Netzwerk oder irgendeine Browser- oder Betriebssystem-API berührt, gehört es in den **Host**, die Seite der Shell an der Bridge. Die Engine ist Open Source, und nichts, was eine bestimmte Marke oder Plattform kennt, kommt in die Engine.
+Alles, was Sie mit reinen Daten und Handlebars beschreiben können, gehört in die **Engine**. Alles, was auf das DOM, das Dateisystem, das Netzwerk oder eine Browser- oder Betriebssystem-API zugreift, gehört in den **Host**, die Shell-Seite der Bridge. Die Engine ist Open Source. Nichts, was eine bestimmte Marke kennt, gehört in die Engine.
 
-## Repository-Aufbau
+<!--i:eti-folder-shared-->
+## Aufbau des Repositorys
 
-Lolly ist ein Repository. Jedes Verzeichnis unten ist darin ein einfaches Verzeichnis, außer `brands/suse`, einem **privaten** Git-Submodul mit dem SUSE-Tool-Paket und -Katalog, das ein öffentlicher Clone nicht holt. Welche Pakete ein Build liest, bestimmt ein Content-Profil (`profiles.json`), pro Prozess aufgelöst statt global umgeschaltet. Der [Build-Leitfaden](/info/build-guide.html) hat den Clone-Befehl und erklärt, wie eine Änderung im privaten Paket committet wird.
+Lolly besteht aus einem Repository. Jedes der folgenden Verzeichnisse ist ein gewöhnliches Verzeichnis, außer `brands/suse`: ein **privates** git-Submodul mit dem SUSE-Tool-Paket und -Katalog, das ein öffentlicher Klon nicht mitlädt. Ein Inhaltsprofil (`profiles.json`) legt fest, welche Pakete ein Build liest. Jeder Prozess ermittelt sein eigenes Profil, und es gibt keinen globalen Schalter. Die [Build-Anleitung](/info/build-guide.html) enthält den Befehl zum Klonen und erklärt, wie Sie eine Änderung im privaten Paket committen.
 
-| Verzeichnis | Was es enthält |
+| Verzeichnis | Inhalt |
 |---|---|
-| `engine/` | Der plattformunabhängige Kern: Loader, Laufzeit, Eingaben, Vorlagen, URL-Modus, Einheiten und die Formatmodule |
-| `shells/` | Die Web-App, die Tauri-Desktop- und Mobil-Apps, die CLI, die TUI und die Browser-Erweiterung |
-| `packages/` | Das SDK für Tool-Autoren (`@lolly-tools/core`), die gemeinsamen Node-Shell-Teile und der Docs-Renderer, unter anderem |
-| `community/` | Die markenunabhängigen Tools, plus die gemeinsamen Emoji-Pakete |
-| `brands/` | Marken-Pakete: `lolly-demo` (Lolly Demo, das Designsystem, das lolly.tools betreibt), `lolly-start` (der leere Start) und das private `suse` |
-| `services/` | Die optionalen MCP-, Zertifikats- und Penpot-Dienste und der Servercode, den sie teilen |
-| `schemas/` | JSON-Schema für Tool-Manifeste, Asset-Einträge und Asset-Referenzen |
-| `scripts/`, `tests/`, `docs/`, `api/` | Build- und Katalog-Skripte, die Engine-Testsuite, diese Dokumente und die erzeugten Serverless-Bundles |
+| `engine/` | Der plattformunabhängige Kern: Loader, Laufzeit, Eingaben, Vorlagen, URL-Modus, Einheiten und Formatmodule |
+| `shells/` | Die Web-App, die Tauri-Apps für Desktop und Mobilgeräte, die CLI, die TUI und die Browser-Erweiterung |
+| `packages/` | Unter anderem das SDK für Tool-Autoren (`@lolly-tools/core`), die gemeinsamen Bestandteile der Node-Shell und der Dokumentationsrenderer |
+| `community/` | Die markenunabhängigen Tools und die gemeinsamen Emoji-Pakete |
+| `brands/` | Markenpakete: `lolly-demo` (Lolly Demo, das Designsystem von lolly.tools), `lolly-start` (die leere Ausgangsbasis) und das private `suse` |
+| `services/` | Die optionalen MCP-, Zertifikats- und Penpot-Dienste und ihr gemeinsamer Servercode |
+| `schemas/` | JSON Schema für Tool-Manifeste, Asset-Einträge und Asset-Referenzen |
+| `scripts/`, `tests/`, `docs/`, `api/` | Build- und Katalogskripte, die Testsuite der Engine, diese Dokumentation und die erzeugten Serverless-Bundles |
 
 ::: details Die Engine- und Shell-Dateien, denen Sie zuerst begegnen
 ```
@@ -55,127 +57,134 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 ```
 :::
 
-Es gibt kein `tools/`- oder `catalog/`-Verzeichnis auf Repository-Ebene. `packages/node-shell/src/content-roots.ts` beantwortet "wo liegt Tool `<id>`" und "wo liegt der Katalog" auf Anfrage aus `profiles.json`. Ein echtes Paar `tools/` und `catalog/` wird nur in eine Build-Ausgabe geschrieben, etwa `dist/`, eine RPM-Nutzlast oder ein Container-Image, weil ein Browser diese beiden Pfade über HTTP abruft.
+::: note Im Stammverzeichnis des Repositorys gibt es weder `tools/` noch `catalog/`
+`packages/node-shell/src/content-roots.ts` beantwortet anhand von `profiles.json`, „wo liegt das Tool `<id>`“ und „wo ist der Katalog“. Ein tatsächliches Paar aus `tools/` und `catalog/` wird nur in eine Build-Ausgabe geschrieben, etwa `dist/`, den Inhalt eines RPM-Pakets oder ein Container-Image, weil ein Browser diese beiden Pfade über HTTP abruft.
+:::
 
+<!--i:eti-monitor-->
 ## Wo Lolly läuft
 
 Jede Oberfläche nutzt dieselbe Engine und dieselben Tool-Dateien.
 
-- **Die Web-App.** Eine Progressive Web App, die offline funktioniert, sobald ihr Service Worker die Tools und Assets zwischengespeichert hat. Sie braucht kein Konto; der Zustand liegt in IndexedDB auf jedem Gerät. Ein responsives Layout bedient Desktop und Smartphone: Auf einem Smartphone werden die Steuerelemente zu einem Blatt, und die Export-Steuerung öffnet sich aus einer schwebenden Pille.
-- **Die Desktop- und Mobil-Apps.** Tauri-Pakete derselben Web-App, mit nativen Dateidialogen, Dateisystem-Zustand und voller Offline-Nutzung.
-- **Die CLI.** `lolly <tool-id> --input=value --output=file.png` lädt dieselbe Engine in einem Headless-DOM und schreibt die Datei. Das ist der URL-Modus über einen anderen Transport, keine getrennte Implementierung. Siehe [CLI](/info/cli.html).
-- **Die TUI.** Eine Vollbild-Terminal-App, Tastatur zuerst, die die Bridge der CLI wiederverwendet, gespeicherte Sitzungen auf der Festplatte hält (im eigenen Ordner der Desktop-App, wenn die App installiert ist, sonst unter `~/.lolly`) und nur dann einen begrenzten Headless-Browser startet, wenn ein Format einen braucht. Siehe [TUI](/info/tui.html).
+- **Die Web-App.** Eine Progressive Web App. Sie funktioniert offline, sobald ihr Service Worker die Tools und Assets zwischengespeichert hat. Sie braucht kein Konto, und der Zustand liegt auf jedem Gerät in IndexedDB. Ein responsives Layout bedient Desktop und Smartphone. Auf einem Smartphone werden die Steuerelemente zu einem Panel, und die Export-Steuerelemente öffnen sich über eine schwebende Pille.
+- **Die Apps für Desktop und Mobilgeräte.** Tauri-Pakete derselben Web-App mit nativen Dateidialogen, Zustand im Dateisystem und vollständiger Offline-Nutzung.
+- **Die CLI.** `lolly <tool-id> --input=value --output=file.png` lädt dieselbe Engine in einem Headless-DOM und schreibt die Datei. Es ist der URL-Modus über einen anderen Transportweg. Siehe [CLI](/info/cli.html).
+- **Die TUI.** Eine Terminal-App im Vollbild, die vor allem für die Tastatur gedacht ist. Sie verwendet die Bridge der CLI und speichert Sitzungen auf dem Datenträger: im Ordner der Desktop-App, wenn diese installiert ist, sonst unter `~/.lolly`. Sie startet nur dann einen auf die Aufgabe begrenzten Headless-Browser, wenn ein Format ihn benötigt. Siehe [TUI](/info/tui.html).
 
-![Die geteilte Desktop-Ansicht: links die aus dem Manifest erzeugten Steuerelemente, rechts die Live-Arbeitsfläche](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
+![Die geteilte Ansicht auf dem Desktop: links die aus dem Manifest erzeugten Steuerelemente, rechts die Live-Arbeitsfläche](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
-Dasselbe Tool in Smartphone-Breite braucht kein zweites Layout: Die Steuerelemente werden zu einem Blatt oben, und die Vorschau hält den Bildschirm.
+Bei Smartphone-Breite liegt das Panel mit den Steuerelementen oben, und die Vorschau füllt den Bildschirm.
 
-![Ein Audiogramm auf einem 430 px breiten Bildschirm: oben das Blatt mit den Steuerelementen, darunter die fertige quadratische Grafik und die schwebende Export-Pille](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![Ein Audiogramm auf einem 430px breiten Bildschirm: oben das Panel mit den Steuerelementen, darunter die fertige quadratische Grafik und die schwebende Export-Pille](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-Die Web-App liefert auch **Batch** (`#/batch`, `shells/web/src/pro/`), ein tabellenartiges Raster, das viele Zeilen auf einmal über ein oder viele Tools rendert; [Batch und Multi-edit](/info/batch.html#make-many-versions-of-one-design) behandelt Batch. **Settings → Capabilities** bildet alles ab, was die Plattform zu können erklärt.
+Die Web-App enthält außerdem **Batch** (`#/batch`, `shells/web/src/pro/`), ein Raster wie in einer Tabellenkalkulation, das viele Zeilen gleichzeitig mit einem oder mehreren Tools rendert. Siehe [Batch und Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design). **Settings → Capabilities** listet alles auf, was die Plattform nach eigener Angabe kann.
 
-![Batch bei einer frischen Installation: eine leere Zeile, die auf ein Tool wartet, mit der Tabellenoberfläche und ihrer Schaltfläche Render an Ort und Stelle, bevor Daten eintreffen](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
+![Batch nach einer Neuinstallation: eine leere Zeile wartet auf ein Tool, während die Tabellenoberfläche und ihre Schaltfläche Render schon vor den ersten Daten bereitstehen](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-## Architektonische Festlegungen
+<!--i:eti-lock-->
+## Verbindliche Architekturentscheidungen
 
-Diese Entscheidungen stehen fest. Jede davon zu ändern ist ein großes Unterfangen, weil sie jede andere Entscheidung in der Codebasis prägen.
+Diese Entscheidungen stehen fest. Alle anderen Entscheidungen im Code bauen darauf auf, daher ist die Änderung einer solchen Entscheidung ein großes Vorhaben.
 
-### 1. Deklarative Tools mit imperativer Notlösung
+### 1. Deklarative Tools mit einer imperativen Ausweichmöglichkeit
 
-Ein Tool ist ein Manifest (`tool.json`), eine Vorlage (`template.html`) und optional `hooks.js`. **Das Manifest deklariert die Eingaben**, nie die Vorlage: Eingaben werden nicht aus Handlebars-Tokens abgeleitet. Die meisten Tools bestehen nur aus Manifest und Vorlage, und genau das lässt Nicht-Entwickler sie verfassen.
+Ein Tool besteht aus einem Manifest (`tool.json`), einer Vorlage (`template.html`) und optional `hooks.js`. **Das Manifest deklariert die Eingaben**. Eingaben werden nie aus den Handlebars-Tokens der Vorlage abgeleitet. Die meisten Tools bestehen nur aus einem Manifest und einer Vorlage, sodass auch Menschen ohne Programmierkenntnisse sie erstellen können.
 
-![Der Steuerelement-Stapel von Street Map: ein Städte-Dropdown, eine Design-Auswahl, Gewichts-Schieberegler und Farbauslöser, jedes aus einer Manifestzeile gezeichnet](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&dark=1&filename=ov2-street-map-controls)
+![Die Steuerelemente von Street Map: ein Dropdown für die Stadt, eine Designauswahl, Schieberegler für Strichstärken und Farbschaltflächen, jedes aus einer Zeile des Manifests erzeugt](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&dark=1&filename=ov2-street-map-controls)
 
-Tools, die Werte berechnen, etwa QR-Kodierung oder Diagrammaufbereitung, ergänzen Hooks: benannte Lebenszyklusfunktionen, die die Laufzeit mit eingespeister Capability-Bridge aufruft. Hooks sind ein Portabilitätsvertrag, keine Sicherheits-Sandbox, und sie laufen innerhalb eines Zeitbudgets. Tools, deren Hooks nachweislich frei von Seiten-Globals sind, tragen `isolate: true` und laufen in einem Worker. [Tool-Hooks](/info/tool-hooks.html) hat den Lebenszyklus und die Budgets, und das [Bedrohungsmodell](/info/threat-model.html) sagt, was der Executor in der Seite eindämmt und was nicht.
+Tools, die Werte berechnen, etwa zur QR-Codierung oder zur Gestaltung von Diagrammen, ergänzen Hooks: benannte Lebenszyklusfunktionen, denen die Laufzeit beim Aufruf die Capability-Bridge übergibt. Hooks sind ein Vertrag für Portabilität, keine Sicherheits-Sandbox. Sie laufen innerhalb eines Zeitbudgets. Tools, deren Hooks nachweislich keine globalen Objekte der Seite verwenden, tragen `isolate: true` und laufen in einem Worker. [Tool-Hooks](/info/tool-hooks.html) beschreibt den Lebenszyklus und die Budgets. Das [Bedrohungsmodell](/info/threat-model.html) erläutert, was der Executor innerhalb der Seite eingrenzt und was nicht.
 
 ### 2. Tools und Assets sind Daten, kein gebündelter Code
 
-Die Web- und Tauri-Apps holen die Tool- und Asset-Kataloge beim Start, speichern sie zwischen und arbeiten mit dem, was da ist, sodass ein neues Tool oder Asset kein App-Release braucht. Asset-Bytes haben SHA-256-Prüfsummen, und `id` und `version` eines Assets steuern die Cache-Invalidierung.
+Die Web- und Tauri-Apps rufen beim Start die Tool- und Asset-Kataloge ab, speichern sie zwischen und arbeiten mit den zwischengespeicherten Daten. Ein neues Tool oder Asset braucht keine neue App-Version. Asset-Bytes werden mit SHA-256-Prüfsummen geprüft. `id` und `version` eines Assets bestimmen, wann der Cache ungültig wird.
 
 ### 3. Die Capability-Bridge ist die einzige API, die Tools sehen
 
-Tools berühren das DOM außerhalb ihrer Vorlage nie, rufen `fetch` nie direkt auf und lesen nie das Dateisystem. Sie rufen versionierte `host.*`-Methoden auf. Die kanonische Definition des Vertrags ist `packages/core/src/host-v1.ts`, das SDK für Tool-Autoren `@lolly-tools/core`, sodass Dritte dagegen bauen können, ohne von der Engine abzuhängen; `engine/src/bridge/host-v1.ts` exportiert seine Typen erneut.
+Tools greifen nie auf das DOM außerhalb ihrer Vorlage zu, rufen nie direkt `fetch` auf und lesen nie das Dateisystem. Sie rufen versionierte `host.*`-Methoden auf. Der Vertrag ist in `packages/core/src/host-v1.ts` definiert, im SDK für Tool-Autoren `@lolly-tools/core`. Dritte können auf Basis des SDK entwickeln, ohne von der Engine abhängig zu sein. `engine/src/bridge/host-v1.ts` exportiert dessen Typen erneut.
 
-| Erforderliche API | Was sie tut |
+| Erforderliche API | Funktion |
 |---|---|
-| `host.profile` | Die Angaben der Nutzerin oder des Nutzers; füllt Eingaben über `bindToProfile` vor |
-| `host.assets` | Katalogabfragen, Asset-Auflösung und die Auswahl des Hosts |
+| `host.profile` | Die Angaben der nutzenden Person; füllt Eingaben über `bindToProfile` vorab aus |
+| `host.assets` | Katalogabfragen, Auflösung von Assets und die Auswahl des Hosts |
 | `host.state` | Eingabe-Slots speichern und laden: IndexedDB im Web, das Dateisystem in Tauri, Arbeitsspeicher in der CLI |
-| `host.clipboard` | Text oder ein Bild in die Zwischenablage schreiben, mit Plattform-Fallbacks |
-| `host.export` | Das Renderziel rastern oder serialisieren, und der Pfad für die Dateiumwandlung auf dem Gerät |
-| `host.log` | Protokollierung nach Stufen an den Host |
+| `host.clipboard` | Text oder ein Bild in die Zwischenablage schreiben, mit Ausweichmöglichkeiten je nach Plattform |
+| `host.export` | Das Render-Ziel rastern oder serialisieren sowie der Pfad zur Dateiumwandlung auf dem Gerät |
+| `host.log` | Protokollierung mit Schweregraden an den Host |
 
-Jede andere API ist optional und additiv: `tokens`, `text`, `color`, `geom`, `pdf`, `compose`, `media`, `recorder` und viele mehr. Das Manifest eines Tools listet unter `requires` die optionalen APIs auf, die seine Hooks ohne vorherige Prüfung aufrufen, und ein Host, dem eine fehlt, weigert sich, das Tool zu laden; die übrigen erkennen Hooks per Feature-Detection. Einige, etwa `recorder`, brauchen zusätzlich eine Gerätefähigkeit, die das Tool deklariert. `packages/core/src/host-v1/apis.ts` listet alle auf, und [Host-API](/info/host-api.html) dokumentiert jede einzelne. Das Hinzufügen einer Methode ist eine Minor-Version; das Entfernen oder Ändern einer ist eine Major-Version, und v1 funktioniert weiter, wenn v2 erscheint.
+Alle weiteren APIs sind optional und ergänzend: `tokens`, `text`, `color`, `geom`, `pdf`, `compose`, `media`, `recorder` und viele mehr. `requires` im Manifest listet die optionalen APIs auf, die seine Hooks ohne vorherige Prüfung aufrufen. Ein Host, dem eine davon fehlt, lehnt das Einbinden des Tools ab. Bei den übrigen prüfen die Hooks die Verfügbarkeit. Einige, etwa `recorder`, benötigen außerdem eine Gerätefunktion, die das Tool deklariert. `packages/core/src/host-v1/apis.ts` listet alle auf, und [Host-API](/info/host-api.html) dokumentiert jede einzelne. Das Hinzufügen einer Methode ergibt eine Minor-Version. Das Entfernen oder Ändern einer Methode ergibt eine Major-Version, und v1 funktioniert weiter, wenn v2 erscheint.
 
 ### 4. Asset-IDs gelten für immer
 
-`lolly/logo/primary` ist ein Vertrag. Einmal veröffentlicht, ändert sich eine ID nie und wird nie wiederverwendet. Eine Byte-Änderung erhöht `version` im Asset-Eintrag, und ein Ersatz setzt `deprecated: true` und optional `replacedBy`, sodass bestehende Verweise immer aufgelöst werden. Das hält gespeicherte Sitzungen und geteilte Links über Jahre funktionsfähig.
+`lolly/logo/primary` ist ein Vertrag. Nach der Veröffentlichung wird eine ID nie geändert oder erneut vergeben. Eine Änderung der Bytes erhöht `version` im Asset-Eintrag. Bei einer Ersetzung werden `deprecated: true` und optional `replacedBy` gesetzt. Bestehende Referenzen lassen sich immer auflösen, sodass gespeicherte Sitzungen und geteilte Links über Jahre funktionieren.
 
-### 5. Der URL-Modus ist erstrangig
+### 5. Der URL-Modus ist ein vollwertiger Zugangsweg
 
-Jede Eingabe lässt sich als URL-Parameter ausdrücken, sodass ein Link eine fertige Datei ist:
+Jede Eingabe lässt sich als URL-Parameter ausdrücken, daher ist ein Link eine fertige Datei:
 
 ```
 https://lolly.tools/t/qr-code?url=https://example.com&ecl=H
 ```
 
-![Dieser Link für sich allein, ohne etwas anderes darin, ist die fertige Datei](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Fexample.com%26ecl%3DH%26full&width=760&height=760&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-url-mode-qr)
+![Dieser Link allein, ohne weitere Inhalte, ist die fertige Datei](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Fexample.com%26ecl%3DH%26full&width=760&height=760&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-url-mode-qr)
 
-Ändern Sie einen Parameter, und Sie haben eine andere Datei. Diese ganze Palette ist eine Grundfarbe, eine Harmonie und eine Schrittzahl:
+Ändern Sie einen Parameter, und Sie erhalten eine andere Datei. Diese Palette besteht aus einer Ausgangsfarbe, einer Farbharmonie und einer Anzahl von Stufen:
 
-![Neun Stufen über vier Farbtöne, alle aus der einzelnen Startfarbe im Link erzeugt](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3De0521a%26harmony%3Dtetrad-4%26steps%3D9%26full&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-url-palette)
+![Neun Stufen über vier Farbtöne, alle aus der einen Ausgangsfarbe erzeugt, die im Link enthalten ist](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3De0521a%26harmony%3Dtetrad-4%26steps%3D9%26full&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-url-palette)
 
-Die CLI baut aus ihren Argumenten denselben URL-Zustand und führt dieselbe Pipeline aus, sodass die CLI nicht von der App abdriften kann. `engine/src/url-mode.ts` parst und serialisiert; eine Reihe reservierter Namen (`format`, `width`, `dpi`, `c2pa`, `z` und andere) wird nie an ein Tool übergeben, und [Reservierte URL-Parameter](/info/url-parameters.html) listet sie alle auf. Asset-Eingaben reisen über `id` und werden über `host.assets.get()` aufgelöst, bevor die Vorlage gefüllt wird.
+Die CLI erstellt aus ihren Argumenten denselben URL-Zustand und durchläuft dieselbe Pipeline, sodass sie nicht von der App abweichen kann. `engine/src/url-mode.ts` parst und serialisiert den URL-Zustand. Reservierte Namen (`format`, `width`, `dpi`, `c2pa`, `z` und weitere) werden nie an ein Tool weitergegeben. [Reservierte URL-Parameter](/info/url-parameters.html) listet sie alle auf. Asset-Eingaben werden als `id` übermittelt und über `host.assets.get()` aufgelöst, bevor die Vorlage gefüllt wird.
 
-### 6. Speicherung läuft über die Bridge
+### 6. Die Speicherung erfolgt über die Bridge
 
-Die Web-App nutzt IndexedDB, Tauri das Dateisystem und die CLI den Arbeitsspeicher. Tools sehen nur `host.state.save(slot, data)` und `host.state.load(slot)`, nie `localStorage`. Menschen können pro Tool mehrere benannte Sitzungen ohne Konto behalten. Weil die Bridge die einzige Nahtstelle ist, ist dieser Zustand auch portabel: `shells/web/src/data-transfer.ts` liest ihn wieder in eine `lolly-backup`-Datei aus, die sich auf jeder anderen Installation importieren lässt ([Datenübertragung](/info/data-transfer.html)), und [Sync](/info/sync.html) sendet dasselbe Bundle in einen Speicher, den die Person wählt.
+Die Web-App nutzt IndexedDB, Tauri das Dateisystem und die CLI den Arbeitsspeicher. Tools sehen nur `host.state.save(slot, data)` und `host.state.load(slot)`, nie `localStorage`. Sie können ohne Konto mehrere benannte Sitzungen pro Tool behalten. Weil die Bridge die einzige Schnittstelle ist, ist auch dieser Zustand portabel. `shells/web/src/data-transfer.ts` exportiert den Zustand als eine `lolly-backup`-Datei, die sich in jede andere Installation importieren lässt ([Datenübertragung](/info/data-transfer.html)). [Sync](/info/sync.html) sendet dasselbe Paket an einen Speicher, den die Person selbst wählt.
 
-### 7. Reifegrad-Tags sagen, was ein Tool ist
+### 7. Reifegrad-Tags kennzeichnen den Status eines Tools
 
-Jedes Tool deklariert `status: official | community | experimental`. Die Galerie sortiert nach Status, und experimentelle Tools versehen ihre Exporte standardmäßig mit einem Wasserzeichen: Die Laufzeit schaltet das Wasserzeichen ein, sofern der Aufrufer nicht `watermark: false` übergibt, und Tools auf dem Gerät sind ausgenommen. Welchen Prozess ein Team auch um den Katalog legt, er sitzt auf diesem auf.
+Jedes Tool deklariert `status: official | community | experimental`. Die Galerie sortiert nach Status. Experimentelle Tools versehen ihre Exporte standardmäßig mit einem Wasserzeichen: Die Laufzeit aktiviert das Wasserzeichen, sofern der Aufrufer nicht `watermark: false` übergibt. Tools, die auf dem Gerät Dateien verarbeiten, sind davon ausgenommen. Der eigene Katalogprozess eines Teams baut auf diesen Tags auf.
 
 ### 8. Eingaben sind im Manifest typisiert
 
-Eine Eingabe deklariert einen `type`: `text`, `longtext`, `number`, `boolean`, `color`, `select`, `asset`, `date`, `time`, `datetime-local`, `url`, `blocks`, `vector`, `table` oder `file`. Der Host rendert je Typ ein Steuerelement, sodass Tools keinen Steuerelement-Code schreiben, und jede Eingabe kann `bindToProfile` tragen. Drei haben das meiste Gewicht:
+Eine Eingabe deklariert einen `type`: `text`, `longtext`, `number`, `boolean`, `color`, `select`, `asset`, `date`, `time`, `datetime-local`, `url`, `blocks`, `vector`, `table` oder `file`. Der Host rendert für jeden Typ ein Steuerelement, sodass Tools keinen Code für Steuerelemente schreiben müssen. Jede Eingabe kann `bindToProfile` tragen. Drei Typen sind besonders wichtig:
 
-- **`asset`**, mit `filter` und `allowUpload`, ist die Brücke zum Asset-System. `allowUpload: false` beschränkt einen Slot auf Bibliotheks-Assets, und Uploads von Nutzern teilen die `AssetRef`-Form der Bibliothek.
-- **`blocks`** ist eine wiederholte Feldgruppe, in einem Seitenpanel bearbeitet, genutzt von Meeting Planner, Wayfinding, Diagrams und anderen. Ein Klick auf einen gerenderten Block fokussiert seine Zeile.
-- **`file`** hält die eigene Datei der Nutzerin oder des Nutzers im Arbeitsspeicher für Utilities auf dem Gerät wie Strip Hidden Data und Compress, und **`vector`** fasst eine feste Menge von Zahlen zu einem Steuerelement zusammen.
+- **`asset`** ist mit `filter` und `allowUpload` die Verbindung zum Asset-System. `allowUpload: false` beschränkt einen Slot auf Assets aus der Bibliothek. Hochgeladene Dateien haben dieselbe `AssetRef`-Struktur wie die Bibliothek.
+- **`blocks`** ist eine wiederholte Feldgruppe, die in einem Seitenpanel bearbeitet wird und unter anderem von Meeting Planner, Wayfinding und Diagrams verwendet wird. Ein Klick auf einen gerenderten Block setzt den Fokus auf seine Zeile.
+- **`file`** hält die eigene Datei der nutzenden Person im Arbeitsspeicher für Utilities auf dem Gerät wie Lolly Strip Hidden Data und Compress, und **`vector`** fasst eine feste Menge von Zahlen in einem Steuerelement zusammen.
 
-### 9. Vorlagen sind logikfrei
+### 9. Vorlagen enthalten keine Logik
 
-Vorlagen sind Handlebars, gewählt, damit Nicht-Entwickler sie schreiben können: `{{x}}` maskiert, und `{{{x}}}` ist ein ausdrückliches Opt-in. Logik lebt in `hooks.js`, wo sie explizit und prüfbar ist. Viele Vorlagen nutzen `{{{` für Markup, das ein Hook berechnet hat, sodass jeder Hook maskieren muss, was er übergibt. Die Helfer sind `default`, `upper`, `lower`, `eq`, `markdown`, `asset`, `framing` und `media`, dazu `icsStamp`, `rfcText`, `csvCell` und `arrow` für verwandte `.ics`-, `.vcf`- und `.csv`-Vorlagen. [Vorlagen und Rendering](/info/tool-rendering.html) behandelt sie.
+Vorlagen sind in Handlebars geschrieben, sodass auch Menschen ohne Programmierkenntnisse sie verfassen können. `{{x}}` maskiert Sonderzeichen, und `{{{x}}}` muss ausdrücklich gewählt werden. Die Logik liegt in `hooks.js`, wo sie geprüft werden kann. Viele Vorlagen verwenden `{{{` für Markup, das ein Hook berechnet hat, daher muss jeder Hook die übergebenen Inhalte selbst maskieren. Die Helper sind `default`, `upper`, `lower`, `eq`, `markdown`, `asset`, `framing` und `media`, dazu `icsStamp`, `rfcText`, `csvCell` und `arrow` für zugehörige `.ics`-, `.vcf`- und `.csv`-Vorlagen. [Vorlagen und Rendering](/info/tool-rendering.html) beschreibt sie.
 
-### 10. Tools setzen sich aus Tools zusammen
+### 10. Tools setzen andere Tools zusammen
 
-Ein Tool kann das Rendering eines anderen Tools einbetten, ohne Importe von Tool zu Tool; die Engine löst die Komposition auf. Ein Manifest kann `composes: [{ id, tool, inputs }]` deklarieren und das Kind mit `{{asset <id>}}` platzieren, und eine portable Einbett-URL (`https://lolly.tools/tool/<id>.svg?…`) rendert das Kind lokal, womit Design einen Live-QR-Code oder ein Diagramm platziert. Ein SVG-Kind bleibt in einem SVG- oder PDF-Elternteil ein Vektor. Kinder sind Zwischenergebnisse, nie mit Wasserzeichen oder Stempel versehen, und eine Shell, die keines rendern kann, lässt den Slot leer, während der Elternteil weiter rendert. [Komposition und Marken-Overlays](/info/tool-composition.html) hat die Einzelheiten.
+Ein Tool kann das Rendering eines anderen Tools einbetten, ohne Importe zwischen den Tools. Die Engine löst die Komposition auf. Ein Manifest kann `composes: [{ id, tool, inputs }]` deklarieren und das untergeordnete Tool mit `{{asset <id>}}` platzieren. Eine portable Einbettungs-URL (`https://lolly.tools/tool/<id>.svg?…`) rendert das untergeordnete Tool lokal; so platziert Lolly Design einen Live-QR-Code oder ein Diagramm. Ein untergeordnetes SVG bleibt in einem übergeordneten SVG oder PDF Vektor. Untergeordnete Renderings sind Zwischenergebnisse und erhalten nie Wasserzeichen oder Herkunftsangaben. Kann eine Shell ein untergeordnetes Tool nicht rendern, lässt sie den Slot leer, und das übergeordnete Tool wird trotzdem gerendert. [Komposition und Marken-Overlays](/info/tool-composition.html) enthält die Details.
 
-## Was wir bewusst nicht tun
+<!--i:eti-scissors-->
+## Worauf wir bewusst verzichten
 
-- **Kein beliebiges JavaScript in Vorlagen.** Logik lebt in `hooks.js`.
-- **Kein verpflichtender Asset-Server.** Menschen fügen in der App ihre eigenen Dateien zu Assets hinzu und geben Arbeit als Sitzung weiter: ein Share-Link für Eingaben und Einstellungen, eine `.lolly`-Datei, wenn auch Uploads mitreisen. Eine geteilte Sitzung kann zu einer Vorlage in der Auswahl eines Tools werden. Eine Organisation, die einen gesteuerten Katalog will, kann den Katalog, die Freigaben und die Richtlinien von Lolly Work nutzen oder das Marken-Paket in Git verwalten und Änderungen dort prüfen.
-- **Keine erzwungene Zugriffskontrolle.** Die offene App ist standardmäßig öffentlich, und Reife-Kennzeichnungen und Wasserzeichen tragen das Markenrisiko. Anmeldung bei der Organisation, Rollen und Richtlinien kommen von Lolly Work, wenn ein Team sie will.
-- **Keine zentrale Datenbank.** Der Nutzerzustand lebt auf jedem Gerät, und optionales Sync kopiert ihn in einen Speicher, den die Person wählt, nie in eine Lolly-Datenbank.
-- **Kein gemeinsamer Codepfad zwischen Tools und Engine.** Die Engine und die Community-Tools sind Open Source, und ein Marken-Paket wie das private `brands/suse/` bringt seine eigenen Tools und seinen Katalog unter eigenen Bedingungen mit. Kein Tool importiert aus `engine/`, sodass die Trennung sauber bleibt.
+- **Kein beliebiges JavaScript in Vorlagen.** Die Logik liegt in `hooks.js`.
+- **Kein verpflichtender Asset-Server.** Sie fügen eigene Dateien zu Assets in der App hinzu und geben Arbeit als Sitzung weiter: einen Freigabelink für Eingaben und Einstellungen, eine `.lolly`-Datei, wenn auch hochgeladene Dateien mitreisen. Eine geteilte Sitzung kann zu einer Vorlage in der Auswahl eines Tools werden. Eine Organisation, die einen geregelten Katalog möchte, kann den Katalog, die Freigaben und die Richtlinien von Lolly Work nutzen oder das Markenpaket in git verwalten und Änderungen dort prüfen.
+- **Keine erzwungene Zugriffskontrolle.** Die offene App ist standardmäßig öffentlich zugänglich. Reifegrad-Tags und Wasserzeichen kennzeichnen das Markenrisiko. Anmeldung bei der Organisation, Rollen und Richtlinien kommen von Lolly Work, wenn ein Team sie wünscht.
+- **Keine zentrale Datenbank.** Der Zustand der nutzenden Person liegt auf jedem Gerät, und optionales Sync kopiert ihn in einen Speicher ihrer Wahl, nie in eine Lolly-Datenbank.
+- **Kein gemeinsamer Codepfad zwischen Tools und Engine.** Die Engine und die Community-Tools sind Open Source. Ein Markenpaket wie das private `brands/suse/` enthält eigene Tools und einen eigenen Katalog unter eigenen Bedingungen. Kein Tool importiert aus `engine/`, sodass die Trennung sauber bleibt.
 
-## Der Lebenszyklus eines Renders
+<!--i:eti-refresh-->
+## Der Lebenszyklus eines Renderings
 
 Jemand öffnet `https://lolly.tools/t/qr-code?url=https://example.com&ecl=H`:
 
-1. **Start.** Die Web-App öffnet IndexedDB, baut die Capability-Bridge und synchronisiert die Tool- und Asset-Kataloge oder lädt sie offline aus dem Cache.
-2. **Route.** Der Pfad wählt die Tool-Ansicht für `qr-code`, mit der Query als Anfangswerten.
-3. **Laden.** `loadTool` holt `tool.json`, validiert es gegen das Schema und holt die Vorlage, die Stile und die Hooks.
-4. **Den Link parsen.** `parseUrlState` macht aus den Parametern Eingabewerte. Ein Asset-Verweis wie `?logo=lolly/logo/primary` wird zu einem unaufgelösten `{ id }`.
-5. **Die Laufzeit starten.** `createRuntime(tool, host, initialValues)` baut das Eingabemodell aus Profildaten, Standardwerten und dem Link, löst Asset-Verweise auf, lädt die Hooks und ruft `onInit` auf.
-6. **Rendern.** Die Shell abonniert die Laufzeit, zeichnet die Steuerelemente aus dem Modell und schreibt die gefüllte Vorlage in `#tool-canvas`.
-7. **Interagieren.** Tippen ruft `runtime.setInput` auf, das Einschränkungen anwendet, `onInput` aufruft, die Vorlage erneut füllt und neu zeichnet.
-8. **Exportieren.** **Download** ruft `runtime.export(node, format)` auf, und das `host.export` der Shell erzeugt die Datei: ein Raster, einen Vektor aus dem DOM-Walker, ein PDF, ein Dokument oder eines der anderen Formate in `schemas/tool.schema.json`. Physische Einheiten werden pro Format umgerechnet, und Metadaten und Content Credentials werden eingebettet, wo das Format sie halten kann. Experimentelle Tools erhalten ihr Wasserzeichen vom Host, nicht vom Tool. [Vorlagen und Rendering](/info/tool-rendering.html) und [Eine Datei exportieren](/info/exporting.html) behandeln den Exportschritt.
+1. **Starten.** Die Web-App öffnet IndexedDB, baut die Capability-Bridge auf und synchronisiert die Tool- und Asset-Kataloge oder lädt sie offline aus dem Cache.
+2. **Weiterleiten.** Der Pfad wählt die Tool-Ansicht für `qr-code`, mit der Abfrage als Anfangswerten.
+3. **Laden.** `loadTool` ruft `tool.json` ab, validiert es anhand des Schemas und ruft die Vorlage, Stile und Hooks ab.
+4. **Den Link parsen.** `parseUrlState` wandelt die Parameter in Eingabewerte um. Eine Asset-Referenz wie `?logo=lolly/logo/primary` wird zu einem noch nicht aufgelösten `{ id }`.
+5. **Die Laufzeit starten.** `createRuntime(tool, host, initialValues)` erstellt das Eingabemodell aus Profildaten, Standardwerten und dem Link, löst Asset-Referenzen auf, lädt die Hooks und ruft `onInit` auf.
+6. **Rendern.** Die Shell abonniert die Laufzeit, zeichnet die Steuerelemente anhand des Modells und schreibt die gefüllte Vorlage in `#tool-canvas`.
+7. **Interagieren.** Beim Tippen wird `runtime.setInput` aufgerufen, das Einschränkungen anwendet, `onInput` aufruft, die Vorlage erneut füllt und neu zeichnet.
+8. **Exportieren.** **Download** ruft `runtime.export(node, format)` auf, und `host.export` der Shell erzeugt die Datei: ein Rasterbild, eine Vektorgrafik aus dem DOM-Walker, ein PDF, ein Dokument oder eines der anderen Formate in `schemas/tool.schema.json`. Physische Einheiten werden je nach Format umgerechnet. Metadaten und Content Credentials werden eingebettet, wo das Format sie aufnehmen kann. Experimentelle Tools erhalten ihr Wasserzeichen vom Host, nicht vom Tool. [Vorlagen und Rendering](/info/tool-rendering.html) und [Eine Datei exportieren](/info/exporting.html) behandeln den Exportschritt.
 
 ![Das Export-Panel, das ?options öffnet: das Paar aus Dateiname und Format, die Ausgabegröße und die Steuerelemente, die die Datei schreiben](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
-Derselbe Lebenszyklus läuft in Tauri und in der CLI mit einem Headless-DOM, wo die Ausgabe in eine Datei oder nach stdout geht.
+Derselbe Lebenszyklus läuft in Tauri und in der CLI mit einem Headless-DOM, wobei die Ausgabe in eine Datei oder an stdout geht.
 
+<!--i:eti-stamp-->
 ## Lizenzen
 
-Code, einschließlich `engine/`, `shells/`, `services/`, `schemas/` und des Dokumentationsgenerators, steht unter MPL-2.0, in einem öffentlichen Repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly). Die Dokumentationstexte stehen unter CC BY-SA 4.0. Marken-Pakete tragen ihre eigenen Bedingungen in der `NOTICE.md` jedes Pakets: Die Community-Tools stehen unter MPL-2.0, und das private SUSE-Paket ist proprietär für SUSE. [Über Lolly](/info/about.html) enthält den vollständigen Lizenzhinweis.
+Der Code, einschließlich `engine/`, `shells/`, `services/`, `schemas/` und des Dokumentationsgenerators, steht unter MPL-2.0 in einem öffentlichen Repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly). Die Texte der Dokumentation stehen unter CC BY-SA 4.0. Markenpakete haben eigene Bedingungen in ihrer jeweiligen `NOTICE.md`: Die Community-Tools stehen unter MPL-2.0, und das private SUSE-Paket ist proprietär und gehört SUSE. [Über Lolly](/info/about.html) enthält den vollständigen Lizenzhinweis.

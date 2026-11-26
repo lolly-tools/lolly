@@ -163,3 +163,7 @@ test('a viewer\'s document: the ordinary dialog, so Leave anyway discards as its
   off();
   scope._resetDocumentScopeForTests();
 });
+
+test('the entry being left never gets the export password back', () => {
+  assert.equal(leftEntryHref('/t/qr-code', 'url=a&password=secret&format=pdf', null), '/t/qr-code?url=a&format=pdf');
+});

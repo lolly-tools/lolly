@@ -1,0 +1,20 @@
+{
+  "id": "pull-back-reveal",
+  "name": "Pull-back reveal",
+  "category": "Cinematic",
+  "description": "Open tight on one value, then pull back to show it among all the rest. Highlight chooses the value; without it the largest leads.",
+  "values": {
+    "renderMode": "cinematic",
+    "chartType": "bar",
+    "cinematicType": "reveal3d",
+    "data": "Region,Revenue\nNorth,42\nSouth,58\nEast,33\nWest,71\nCentral,49\nIslands,18\nCapital,88",
+    "heading": "The capital carries the year",
+    "subheading": "Revenue by region, in millions",
+    "sceneHighlight": "Capital",
+    "sceneStage": "studio",
+    "sceneMaterial": "gloss",
+    "animSpeed": 1.5,
+    "showLegend": false
+  },
+  "presets": []
+}

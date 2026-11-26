@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 // footer-nav.ts - the bottom nav bar's MARKUP: [Pro?] [Settings]  <search>  [Verify]
-// [What?]. Since plans/99 M1 the live bar is a shell-level singleton rendered and
+// [Docs]. Since plans/99 M1 the live bar is a shell-level singleton rendered and
 // wired ONCE by components/search-bar.ts (views claim its field instead of building
 // their own footer); the only other consumer is the component library's in-flow
 // specimen. This module stays markup-only so that split holds.
 import { escape } from '../utils.ts';
 import { t, docsAppHref } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { jellyActive } from '../lib/jelly.ts';
 import { privacyNoticeAcknowledged } from '../views/privacy-notice.ts';
 
@@ -62,7 +63,7 @@ export function gallerySearchBox(opts: { placeholder: string; ariaLabel: string;
     <div class="gallery-search-box">
       <span class="gallery-search-icon" aria-hidden="true">${NAV_ICONS.search}</span>
       ${field}
-      <button type="button" class="gallery-search-clear" data-search-clear aria-label="${escape(opts.clearLabel ?? t('Clear search'))}"${value ? '' : ' hidden'}>✕</button>
+      ${closeButtonHtml({ size: 'sm', className: 'gallery-search-clear', label: opts.clearLabel ?? t('Clear search'), attrs: { 'data-search-clear': true, hidden: !value } })}
       ${kbd}
     </div>
   </div>`;
@@ -106,7 +107,7 @@ function navItem(o: { href: string; nativeClass: string; variant?: string; style
   return `<a href="${escape(o.href)}" class="${o.nativeClass}"${sfxAttr} aria-label="${escape(o.aria)}">${o.inner}</a>`;
 }
 
-/** The shared bottom bar: [Open] [Settings]  <search>  [Verify] [What?].
+/** The shared bottom bar: [Open] [Settings]  <search>  [Verify] [Docs].
  *  Batch moved OUT of here (Andy, 2026-08-26) - it now lives in the Projects top bar
  *  only (views/projects.ts topRightSlot), since a batch is a Projects-scoped action. */
 export function footerNav({ searchHtml }: FooterNavOpts): string {
@@ -124,20 +125,22 @@ export function footerNav({ searchHtml }: FooterNavOpts): string {
     href: '#/settings', nativeClass: 'gallery-nav-link btn', variant: 'platinum', sfx: 'click',
     aria: t('Settings - preferences, design system and this device'), inner: `${NAV_ICONS.settings}${label(t('Settings'))}`,
   });
-  // Verify keeps its solid SUSE Pine Green pill (explicit green in every theme,
-  // matching the native rule) via an inline --jelly-fill / --jelly-label.
+  // Verify is one of the bar's four quiet buttons. It was a filled pill, which made
+  // three filled buttons on the first screen (the welcome's "Start making", the strip's
+  // "Open" and this one), so nothing led. The filled one is now the action that starts work.
   const verify = navItem({
-    href: '#/verify', nativeClass: 'gallery-nav-link gallery-nav-link--verify btn', sfx: 'verify',
-    style: ' style="--jelly-fill:hsl(151 57% 42%);--jelly-label:#fff"',
+    href: '#/verify', nativeClass: 'gallery-nav-link btn', variant: 'platinum', sfx: 'verify',
     aria: t('Verify Content Credentials - check any file on-device'), inner: `${NAV_ICONS.shield}${label(t('Verify'))}`,
   });
   // In-app route, not the static /info page (Andy, 2026-08-16): the reader who
-  // taps "What?" keeps the app experience - the music keeps playing and the a11y
+  // taps Docs keeps the app experience - the music keeps playing and the a11y
   // prefs stay applied - because #/docs rehosts the same built pages inside the
   // shell. The static /info URLs remain the share/SEO surface (docsHref).
   const whatIs = navItem({
     href: docsAppHref('index'), nativeClass: 'gallery-info-link btn', variant: 'platinum',
-    aria: t('What is Lolly? - about & help'), inner: `${NAV_ICONS.help}${label(t('What?'))}`,
+    // "Docs", one name for the docs front door everywhere (plan 354 D1 and D2): it was
+    // "What?", while the docs themselves said Welcome and Home.
+    aria: t('Docs - guides and help'), inner: `${NAV_ICONS.help}${label(t('Docs'))}`,
   });
   // First run only (plans/163 F11): on a phone the four buttons collapse to bare
   // glyphs, which a newcomer has to guess at. While the privacy notice is still

@@ -1,6 +1,6 @@
 {
   "name": "Legendas",
-  "description": "Legendas para um vídeo - transcreva no dispositivo ou solte um arquivo SRT/VTT, estilize as legendas e exporte quadros com a legenda gravada na imagem, além de arquivos .srt e .vtt limpos.",
+  "description": "Legendas para um vídeo - transcreva no dispositivo ou solte um arquivo SRT/VTT e exporte quadros com a legenda gravada na imagem, além de arquivos .srt e .vtt.",
   "inputs.style.section": "Legendas",
   "inputs.position.section": "Legendas",
   "inputs.fontSize.section": "Legendas",

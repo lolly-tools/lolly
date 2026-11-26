@@ -1,6 +1,6 @@
 {
   "name": "証明書",
-  "description": "有効なデザインシステムとそのカラーウェイで、修了証や表彰状を作成します。4つのスタイル、印刷用と SNS 用のサイズ、共有向けのモーションを備え、1人ずつでも、行から一括作成で CSV の名簿全体でも作れます。",
+  "description": "修了証や表彰状を作成します。4つのスタイル、印刷用とSNS用のサイズ、モーションを備え、1人ずつでも、CSVの名簿からでも作れます。",
   "a11yLabel": "{{default recipientName \"a recipient\"}} さんへの {{default titleText \"Certificate\"}}",
   "inputs.certKind.label": "種類",
   "inputs.certKind.help": "文面を決めます。タイトル、証書の目的の前に入る一文、シールのマークが変わります。",

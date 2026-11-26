@@ -4,6 +4,7 @@
 import { announce } from '../a11y.ts';
 import { loadNamespace, t, tRaw } from '../i18n.ts';
 import { registerToolReady } from '../lib/tool-ready.ts';
+import { viewingAs } from './view-as.ts';
 import type { openWorkCollab, WorkCollabDeps } from './collab-work-opener.ts';
 import {
   activeTeamSessionOrigin,
@@ -17,6 +18,7 @@ export interface AutomaticWorkCollabDeps extends WorkCollabDeps {
 }
 /** The member initializer supplies current policy and the already-loaded opener. */
 export function registerAutomaticWorkCollab(deps: AutomaticWorkCollabDeps): () => void {
+  if (viewingAs()) return () => {};
   return registerToolReady((tool, current) => {
     const origin = activeTeamSessionOrigin(tool.toolId);
     if (

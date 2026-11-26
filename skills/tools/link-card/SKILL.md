@@ -5,13 +5,13 @@ description: "Operate the Lolly Link Card tool (link-card) using its declared in
 
 # Link Card
 
-Tool ID: `link-card`. Tool version: `1.0.4`. Engine range: `^1.0.0`.
+Tool ID: `link-card`. Tool version: `1.1.0`. Engine range: `^1.343.0`.
 
 Paste a link, get a social card in your design system - title, description, site chip and a thumbnail, at Open Graph, square or summary size.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 
-Declared output formats: png, jpg, webp, svg, penpot, pdf, avif, tiff, svgz, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
+Declared output formats: png, jpg, webp, svg, penpot, pdf, avif, tiff, mp4, webm, gif, html, svgz, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
 
 Required host APIs: none. Device capabilities: none.
 
@@ -30,6 +30,10 @@ Required host APIs: none. Device capabilities: none.
 | color | color |  |
 | background | color |  |
 | accent | color |  |
+| ground | select |  |
+| density | select |  |
+| contentLayout | select |  |
+| motion | select |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

@@ -15,6 +15,7 @@
  */
 import { USER_ASSET_MILESTONES } from '../bridge/assets.ts';
 import { noticeDialog } from '../components/confirm-dialog.ts';
+import { viewingAs } from '../org/view-as.ts';
 
 // Which milestones we've already shown, so a nudge fires once per threshold and a
 // bulk import that jumps past several never nags for each one on the way up.
@@ -44,6 +45,7 @@ export async function maybeNudgeAssetMilestone(host: CountHost): Promise<void> {
   // _userAssetsCount() includes the reserved profile headshot; the ±1 is immaterial
   // at these milestones, so we don't special-case it.
 
+  if (viewingAs()) return; // a view's uploads stay in the view, and no milestone is recorded
   const seen = readSeen();
   const crossed = USER_ASSET_MILESTONES.filter(m => count >= m && !seen.includes(m));
   if (!crossed.length) return;

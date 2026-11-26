@@ -20,11 +20,13 @@
  * **woff2 is not sfnt.** HarfBuzz cannot read it - feeding it a wOF2 blob yields
  * .notdef for every glyph (a silently blank export). Google Fonts serves woff2
  * to every browser and a browser cannot ask for anything else (`User-Agent` is a
- * forbidden fetch header), so we decompress on-device: `woff2-encoder/decompress`
- * is a lazily-imported ~127 KB-gz wasm module with the binary inlined as a data:
- * URI - no network, works offline, loads only when a vector export actually needs
- * it. The resulting sfnt is kept as an object URL for the session, never
- * persisted (it's ~2.5× the woff2 we already store).
+ * forbidden fetch header), so we decompress on-device through node-shell's
+ * `woff2.ts`, which checks the file's declared sizes before the lazily-imported
+ * `woff2-encoder/decompress` wasm module (~127 KB gz, binary inlined as a data:
+ * URI) runs and checks the sfnt it returns - no network, works offline, loads only
+ * when a vector export actually needs a face. The resulting sfnt is kept as an
+ * object URL for the session, never persisted (it's ~2.5× the woff2 we already
+ * store).
  *
  * **Google's faces are variable and subsetted.** A family arrives as one file per
  * unicode subset, each carrying the whole `wght` axis - and the subsets are
@@ -79,8 +81,9 @@ export interface VectorFont {
   /** HarfBuzz variation strings for a variable face, e.g. `['wght=700']`. */
   variations?: string[];
   /** Sibling subsets of the same family, for characters `url` doesn't cover
-   *  (Google's `latin` file has no `Ł`; its `latin-ext` file has no ASCII). */
-  fallbacks?: Array<{ fontUrl: string; variations?: string[]; face?: VectorFontFace }>;
+   *  (Google's `latin` file has no `Ł`; its `latin-ext` file has no ASCII). A `fill`
+   *  entry draws only what the faces before it cannot (font-fill.ts). */
+  fallbacks?: Array<{ fontUrl: string; variations?: string[]; face?: VectorFontFace; fill?: boolean }>;
   /** The SOURCE face behind `url` - see VectorFontFace. Identity only; nothing in the
    *  outlining path reads it. */
   face?: VectorFontFace;
@@ -362,7 +365,7 @@ async function faceUrl(face: RegistryFace): Promise<string> {
       || (bytes[0] === 0 && bytes[1] === 1 && bytes[2] === 0 && bytes[3] === 0);
     if (!isWoff2 && !isSfnt) throw new Error(`font-registry: ${cacheKey} is not an sfnt/woff2 (magic "${magic}")`);
     const sfnt = isWoff2
-      ? await (await import('woff2-encoder/decompress')).default(bytes)
+      ? await (await import('@lolly-tools/node-shell/woff2')).decodeWoff2(bytes)
       : bytes;
     const url = URL.createObjectURL(new Blob([sfnt as BlobPart], { type: 'font/otf' }));
     sfntUrls.set(cacheKey, url);
@@ -384,51 +387,9 @@ async function faceUrl(face: RegistryFace): Promise<string> {
  */
 export async function resolveVectorFont(style: FontStyleSlice, text: string): Promise<VectorFont | null> {
   const families = parseFontFamilies(style.fontFamily);
-  const registry = (registryPromise ??= buildRegistry());
-  let faces: Map<string, RegistryFace[]>;
-  try { faces = await registry; }
-  catch { registryPromise = null; faces = new Map(); }
-
-  const tryFamily = async (family: string): Promise<VectorFont | null> => {
-    const key = family.toLowerCase();
-    if (key === 'suse' || key === 'suse mono') {
-      // The catalog statics only exist under a brand that ships them; elsewhere
-      // the path SPA-falls-back to an HTML page, so probe before trusting it and
-      // otherwise fall THROUGH to the registry (the shell-served SUSEMono woff2
-      // discovered from fonts.css outlines fine once decompressed).
-      const url = resolveSuseFontUrl({ ...style, fontFamily: family });
-      if (url && await fontUrlUsable(url)) {
-        // The face states the weight of the static file picked, which may be a nearer cut than the request.
-        const weight = String(suseStaticWeight(parseInt(style.fontWeight ?? '', 10) || 400, key === 'suse mono'));
-        return { url, face: { family, weight, style: style.fontStyle ?? 'normal', source: 'catalog', file: url } };
-      }
-    }
-    const list = releaseFaces.get(key) ?? faces.get(key);
-    if (!list?.length) return null;
-    const chain = pickFaces(list, style, text);
-    if (!chain.length) {
-      if (releaseFaces.has(key)) throw new Error('The pinned release has no face for this text and slant.');
-      return null;
-    }
-    try {
-      // Decode every face in the chain up front; a failure anywhere means this
-      // family can't be trusted to draw the run, so try the next one.
-      const urls = await Promise.all(chain.map(c => faceUrl(c.face)));
-      const [primary, ...rest] = chain.map((c, i) => ({ fontUrl: urls[i]!, variations: c.variations, face: describeFace(family, c.face) }));
-      return {
-        url: primary!.fontUrl,
-        ...(primary!.variations ? { variations: primary!.variations } : {}),
-        ...(rest.length ? { fallbacks: rest } : {}),
-        face: describeFace(family, chain[0]!.face),
-      };
-    } catch (error) {
-      if (releaseFaces.has(key)) throw error;
-      return null; // this family's bytes are unreadable - try the next family
-    }
-  };
-
+  const faces = await registryFaces();
   for (const family of families) {
-    const resolved = await tryFamily(family);
+    const resolved = await tryFamily(family, style, text, faces);
     if (resolved) return resolved;
   }
   // Owner rule (Andy, 2026-08-24): tool text renders in the ACTIVE BRAND's
@@ -443,11 +404,95 @@ export async function resolveVectorFont(style: FontStyleSlice, text: string): Pr
     if (!role) continue;
     for (const fam of brandRoleStack(role)) {
       if (genericFontRole(fam)) continue; // the brand stack ends in generics too
-      const resolved = await tryFamily(fam);
+      const resolved = await tryFamily(fam, style, text, faces);
       if (resolved) return resolved;
     }
   }
   return null;
+}
+
+/**
+ * The document's faces as a short key: each FontFace in `document.fonts` (which holds every
+ * `@font-face` rule's face as well as the faces a script added) by identity, with its
+ * family, weight and style. A rule whose source changes makes a new FontFace, so the key
+ * changes even when the family, weight and style stay the same. '' with no document (Node,
+ * a worker).
+ */
+const faceIds = new WeakMap<object, number>();
+let nextFaceId = 0;
+export function documentFontsKey(fonts: Iterable<{ family: string; weight: string; style: string }> | null | undefined): string {
+  if (!fonts) return '';
+  let key = '';
+  for (const face of fonts) {
+    let id = faceIds.get(face);
+    if (id === undefined) { id = ++nextFaceId; faceIds.set(face, id); }
+    key += `${id}\u0000${face.family}\u0000${face.weight}\u0000${face.style}\u0001`;
+  }
+  return key;
+}
+let registryFontsKey = '';
+
+/**
+ * The registry, built once per generation; an unreadable store answers with no faces.
+ * A face added to the page after the registry was built (a tool's own `@font-face`, the
+ * fonts a Sandbox pen declares in its export mirror) starts a new generation, the way
+ * refreshFontRegistry does, so the face outlines instead of falling back to live text in
+ * a family the reader may not have.
+ */
+async function registryFaces(): Promise<Map<string, RegistryFace[]>> {
+  let key = '';
+  try { key = documentFontsKey((globalThis as { document?: { fonts?: Iterable<FontFace> } }).document?.fonts); } catch { key = ''; }
+  if (key !== registryFontsKey) {
+    registryFontsKey = key;
+    refreshFontRegistry();
+  }
+  const registry = (registryPromise ??= buildRegistry());
+  try { return await registry; }
+  catch { registryPromise = null; return new Map(); }
+}
+
+/** One family's chain for `text` on its own, or null when no face of it resolves here. */
+export async function resolveFamilyChain(family: string, style: FontStyleSlice, text: string): Promise<VectorFont | null> {
+  return tryFamily(family, style, text, await registryFaces());
+}
+
+/** One family's chain for `text`, or null when this registry holds no face that can draw the text. */
+async function tryFamily(family: string, style: FontStyleSlice, text: string, faces: Map<string, RegistryFace[]>): Promise<VectorFont | null> {
+  const key = family.toLowerCase();
+  if (key === 'suse' || key === 'suse mono') {
+    // The catalog statics only exist under a brand that ships them; elsewhere
+    // the path SPA-falls-back to an HTML page, so probe before trusting it and
+    // otherwise fall THROUGH to the registry (the shell-served SUSEMono woff2
+    // discovered from fonts.css outlines fine once decompressed).
+    const url = resolveSuseFontUrl({ ...style, fontFamily: family });
+    if (url && await fontUrlUsable(url)) {
+      // The face states the weight of the static file picked, which may be a nearer cut than the request.
+      const weight = String(suseStaticWeight(parseInt(style.fontWeight ?? '', 10) || 400, key === 'suse mono'));
+      return { url, face: { family, weight, style: style.fontStyle ?? 'normal', source: 'catalog', file: url } };
+    }
+  }
+  const list = releaseFaces.get(key) ?? faces.get(key);
+  if (!list?.length) return null;
+  const chain = pickFaces(list, style, text);
+  if (!chain.length) {
+    if (releaseFaces.has(key)) throw new Error('The pinned release has no face for this text and slant.');
+    return null;
+  }
+  try {
+    // Decode every face in the chain up front; a failure anywhere means this
+    // family can't be trusted to draw the run, so try the next one.
+    const urls = await Promise.all(chain.map(c => faceUrl(c.face)));
+    const [primary, ...rest] = chain.map((c, i) => ({ fontUrl: urls[i]!, variations: c.variations, face: describeFace(family, c.face) }));
+    return {
+      url: primary!.fontUrl,
+      ...(primary!.variations ? { variations: primary!.variations } : {}),
+      ...(rest.length ? { fallbacks: rest } : {}),
+      face: describeFace(family, chain[0]!.face),
+    };
+  } catch (error) {
+    if (releaseFaces.has(key)) throw error;
+    return null; // this family's bytes are unreadable - try the next family
+  }
 }
 
 /**
@@ -472,7 +517,7 @@ export function genericFontRole(family: string): 'sans' | 'mono' | null {
 
 /** The active brand's family stack for a type role, read from the chrome vars
  *  (tokens.css defaults; brand-vars.ts overrides them per brand). */
-function brandRoleStack(role: 'sans' | 'mono'): string[] {
+export function brandRoleStack(role: 'sans' | 'mono'): string[] {
   let raw = '';
   try {
     if (typeof document !== 'undefined' && document.documentElement) {

@@ -16,6 +16,7 @@
 
 import type {
   AudioDockOptions,
+  DockControl,
   DockBrandMark,
   DockCapabilities,
   DockCollapse,
@@ -24,14 +25,18 @@ import type {
   DockNarrationPlayer,
   DockNowPlaying,
   DockPlacement,
+  DockPositionText,
+  DockSeekGrid,
   DockSectionId,
   DockSource,
+  DockSources,
   DockVizPreset,
   DockVizTheme,
   DockVizTransition,
   DockVizInfluence,
 } from './types.ts';
 import { DOCK_CSS, DOCK_STYLE_ID } from './styles.ts';
+import { seekKeyTarget, snapToGrid } from './seek-grid.ts';
 
 // Inline glyphs (currentColor, no external asset). The shell ships no icon
 // registry so it stays host-agnostic.
@@ -52,6 +57,7 @@ const ICON = {
   compress: SVG('<path d="M8 3v3a2 2 0 0 1-2 2H3M16 3v3a2 2 0 0 0 2 2h3M8 21v-3a2 2 0 0 0-2-2H3M16 21v-3a2 2 0 0 1 2-2h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
   // repeat = loop the current track; forward = play through the list.
   repeat: SVG('<path d="m17 2 4 4-4 4M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v1a4 4 0 0 1-4 4H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
+  controls: SVG('<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="15" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="2"/>'),
   volume: SVG('<path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8 8 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
   volumeMuted: SVG('<path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor"/><path d="m16 9 5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
   forward: SVG('<path d="M12 12H3M16 6H3M12 18H3M16 6l5 6-5 6V6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
@@ -97,6 +103,7 @@ function fmtTime(s: number): string {
   return `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 }
 
+
 const esc = (s: string): string => s.replace(/[&<>"]/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] ?? c));
 
@@ -125,7 +132,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   };
 
   let destroyed = false;
-  let seeking = false;        // main (music) scrub
+  let dragging = false;       // main (music) scrub, mid-drag
   let narrSeeking = false;    // narration scrub
   let vizRaf = 0;
   let tickRaf = 0;
@@ -138,6 +145,11 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   // The narration block subscribes independently (it is a second, coexisting player).
   let narrRef: DockNarrationPlayer | null = null;
   let narrUnsub: (() => void) | null = null;
+  // The source list's change subscription, held against the sources object it came from.
+  // A host can gain its sources after the dock is built (the web shell builds one dock
+  // before any music source registers), so this follows host.sources like narration.
+  let listRef: DockSources | null = null;
+  let listUnsub: (() => void) | null = null;
 
   // ── placement (drag position + per-state window size) ───────────────────────
   const MIN_W = 260;
@@ -192,6 +204,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
           <span class="audio-dock-sub" data-mini-sub></span>
         </button>
         <button type="button" class="audio-dock-btn audio-dock-play" data-play-mini aria-label="Play">${ICON.play}</button>
+        <span class="audio-dock-mini-progress" data-mini-progress aria-hidden="true"></span>
       </div>
       <div class="audio-dock-main">
         <div class="audio-dock-head" data-drag-head>
@@ -240,9 +253,13 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
             <button type="button" class="audio-dock-btn audio-dock-repeat" data-repeat aria-label="Repeat this track" aria-pressed="false" hidden>${ICON.repeat}</button>
           </div>
           <div class="audio-dock-scrub">
-            <input type="range" data-scrub min="0" max="1000" step="1" value="0" aria-label="Seek within track">
-            <div class="audio-dock-time"><span data-time-cur>0:00</span><span data-time-dur>0:00</span></div>
+            <div class="audio-dock-seek" data-scrub role="slider" tabindex="0" aria-label="Seek within track" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+              <span class="audio-dock-seek-track"><span class="audio-dock-seek-fill" data-scrub-fill></span><span data-scrub-marks></span></span>
+              <span class="audio-dock-seek-thumb" data-scrub-thumb></span>
+            </div>
+            <div class="audio-dock-time"><span data-time-cur>0:00</span><span class="audio-dock-time-pos" data-time-pos></span><span data-time-dur>0:00</span></div>
           </div>
+          <div class="audio-dock-controls" data-controls></div>
           <div class="audio-dock-volumes" data-volumes></div>
           <div class="audio-dock-sections">
             <section class="audio-dock-section" data-section="narration">
@@ -281,8 +298,12 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
       </div>
     </div>
     <div class="audio-dock-volpop" data-volpop hidden role="group" aria-label="Volume">
-      <input type="range" class="audio-dock-volrange" data-vol-range min="0" max="1" step="0.01" value="1" aria-label="Volume" aria-orientation="vertical">
-      <span class="audio-dock-volpct" data-vol-pct>100%</span>
+      <div class="audio-dock-volmain">
+        <span class="audio-dock-volname" data-vol-name></span>
+        <input type="range" class="audio-dock-volrange" data-vol-range min="0" max="1" step="0.01" value="1" aria-label="Volume" aria-orientation="vertical">
+        <span class="audio-dock-volpct" data-vol-pct>100%</span>
+      </div>
+      <div class="audio-dock-popctl" data-pop-controls></div>
     </div>
     <div class="audio-dock-vizmenu" data-vizmenu hidden role="menu" aria-label="Visualiser settings">
       <div class="audio-dock-vizmenu-top">
@@ -312,14 +333,54 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
 
   const q = <T extends Element = HTMLElement>(sel: string): T | null => root.querySelector<T>(sel);
   const setText = (sel: string, text: string): void => { const el = q<HTMLElement>(sel); if (el) el.textContent = text; };
-  const vizCanvas = q<HTMLCanvasElement>('[data-viz-canvas]')!;
-  const scrub = q<HTMLInputElement>('[data-scrub]')!;
+  let vizCanvas = q<HTMLCanvasElement>('[data-viz-canvas]')!;
+  const scrub = q<HTMLElement>('[data-scrub]')!;
+  const scrubFill = q<HTMLElement>('[data-scrub-fill]')!;
+  const scrubThumb = q<HTMLElement>('[data-scrub-thumb]')!;
+  const scrubMarks = q<HTMLElement>('[data-scrub-marks]')!;
+  const miniProgress = q<HTMLElement>('[data-mini-progress]')!;
   const speedSel = q<HTMLSelectElement>('[data-speed]')!;
   const srcList = q<HTMLUListElement>('[data-src-list]')!;
   const srcSearch = q<HTMLInputElement>('[data-src-search]')!;
   const srcAttr = q<HTMLElement>('[data-src-attr]')!;
   const atmoRows = q<HTMLElement>('[data-atmo-rows]')!;
   const volumesEl = q<HTMLElement>('[data-volumes]')!;
+  const controlsEl = q<HTMLElement>('[data-controls]')!;
+  /**
+   * One controls popover (DockHost.controlsPopover): the speaker button opens a panel
+   * holding the master volume as a row, the other volumes and the source's switches,
+   * choices and sliders, so the window's body is the transport, the actions and the
+   * lists. Without it the popover is the upright volume slider alone, as it was.
+   */
+  const popControlsEl = q<HTMLElement>('[data-pop-controls]')!;
+  let popMode = false;
+  let controlsSig = '';
+  /** Whether the host asks for the one popover now. A host can gain or lose its music source after the dock is built, so this is read each time. */
+  function onePopover(): boolean {
+    const on = !!host.controlsPopover;
+    if (on === popMode) return on;
+    popMode = on;
+    const pop = q<HTMLElement>('[data-volpop]');
+    const range = q<HTMLInputElement>('[data-vol-range]');
+    if (on) {
+      root.setAttribute('data-ctlpop', 'true');
+      pop?.setAttribute('aria-label', 'Controls');
+      range?.removeAttribute('aria-orientation');
+      popControlsEl.before(volumesEl);
+      q<HTMLElement>('.audio-dock-volmain')?.classList.add('audio-dock-vol');
+    } else {
+      root.removeAttribute('data-ctlpop');
+      pop?.setAttribute('aria-label', 'Volume');
+      range?.setAttribute('aria-orientation', 'vertical');
+      range?.style.removeProperty('--fill');
+      controlsEl.after(volumesEl);
+      popControlsEl.innerHTML = '';
+      q<HTMLElement>('.audio-dock-volmain')?.classList.remove('audio-dock-vol');
+      root.removeAttribute('data-ctlpop-open');
+    }
+    controlsSig = '';
+    return on;
+  }
   const volBtn = q<HTMLButtonElement>('[data-vol-btn]');
   const volPop = q<HTMLElement>('[data-volpop]');
   const volRange = q<HTMLInputElement>('[data-vol-range]');
@@ -629,6 +690,14 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
         if (isRadio && !caps.radio) continue;
         if (!isRadio && !caps.music) continue;
         html += `<li class="audio-dock-group" data-group-head="${esc(g)}">${esc(g)}</li>`;
+        // A group whose sources all carry an icon is a grid of tiles (a genre each), not rows.
+        if (byGroup.get(g)!.every((r) => r.icon)) {
+          html += `<li class="audio-dock-tiles" data-tiles="${esc(g)}">` + byGroup.get(g)!.map((r) =>
+            `<button type="button" class="audio-dock-src audio-dock-tile" data-src-id="${esc(r.id)}" data-group="${esc(g)}" data-search="${esc(`${r.title} ${r.mood ?? ''} ${g}`.toLowerCase())}"`
+            + `${r.also?.length ? ` data-src-also="${esc(r.also.join(' '))}"` : ''}${r.unavailable ? ' disabled' : ''} title="${esc(r.title)}">`
+            + `<span class="audio-dock-tile-icon" aria-hidden="true">${r.icon}</span><span class="audio-dock-src-name">${esc(r.title)}</span></button>`).join('') + `</li>`;
+          continue;
+        }
         for (const r of byGroup.get(g)!) {
           const searchKey = `${r.title} ${r.mood ?? ''}`.toLowerCase();
           html += `<li data-group="${esc(g)}" data-search="${esc(searchKey)}">`
@@ -662,13 +731,13 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   function paintCurrentSource(): void {
     const cur = host.sources?.currentId?.() ?? '';
     for (const b of srcList.querySelectorAll<HTMLElement>('[data-src-id]')) {
-      b.setAttribute('aria-current', String(b.dataset.srcId === cur));
+      b.setAttribute('aria-current', String(b.dataset.srcId === cur || (b.dataset.srcAlso ?? '').split(' ').includes(cur)));
     }
   }
   function applySearch(): void {
     const query = (srcSearch.hidden ? '' : srcSearch.value.trim().toLowerCase());
     const shown = new Map<string, number>();
-    for (const li of srcList.querySelectorAll<HTMLElement>('li[data-group]')) {
+    for (const li of srcList.querySelectorAll<HTMLElement>('[data-group][data-search]')) {
       const g = li.dataset.group ?? '';
       const hit = !query || (li.dataset.search ?? '').includes(query);
       li.hidden = !hit;
@@ -676,6 +745,9 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     }
     for (const head of srcList.querySelectorAll<HTMLElement>('li[data-group-head]')) {
       head.hidden = (shown.get(head.dataset.groupHead ?? '') ?? 0) === 0;
+    }
+    for (const grid of srcList.querySelectorAll<HTMLElement>('li[data-tiles]')) {
+      grid.hidden = (shown.get(grid.dataset.tiles ?? '') ?? 0) === 0;
     }
   }
 
@@ -691,6 +763,60 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   // Remembered level per atmosphere layer, so tapping its icon mutes to 0 and un-mutes back
   // to where it was (plans/147).
   const atmoLastLevel = new Map<string, number>();
+
+  // ── the current source's own controls ─────────────────────────────────────────
+  // Rebuilt only when the SET of controls changes (another source, other options);
+  // otherwise just repainted in place, so a slider being dragged or a button being
+  // pressed is never replaced mid-gesture.
+  function controlList(): DockControl[] {
+    try { return host.controls?.() ?? []; } catch { return []; }
+  }
+  function controlHtml(c: DockControl): string {
+    const id = esc(c.id);
+    switch (c.kind) {
+      case 'choice':
+        return `<div class="audio-dock-choice" role="group" aria-label="${esc(c.label)}">`
+          + c.options.map((o) => `<button type="button" aria-pressed="false" data-ctl="${id}" data-ctl-opt="${esc(o.id)}">${esc(o.label)}</button>`).join('')
+          + `</div>`;
+      case 'toggle':
+        if (c.icon) return `<button type="button" class="audio-dock-btn audio-dock-icon-ctl" aria-pressed="false" data-ctl="${id}" aria-label="${esc(c.label)}" title="${esc(c.label)}" data-tip="${esc(c.label)}">${c.icon}</button>`;
+        return `<button type="button" class="audio-dock-toggle" aria-pressed="false" data-ctl="${id}">${esc(c.label)}</button>`;
+      case 'range':
+        return `<label class="audio-dock-vol"><span>${esc(c.label)}</span><input type="range" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.get()}" data-ctl="${id}" aria-label="${esc(c.label)}"></label>`;
+      case 'action':
+        if (c.icon) return `<button type="button" class="audio-dock-btn audio-dock-icon-ctl" data-ctl="${id}" aria-label="${esc(c.label)}" title="${esc(c.label)}" data-tip="${esc(c.label)}">${c.icon}</button>`;
+        return `<button type="button" class="audio-dock-toggle audio-dock-action" data-ctl="${id}">${esc(c.label)}</button>`;
+      default:
+        return '';
+    }
+  }
+  function renderControls(): void {
+    const list = controlList();
+    const inPop = onePopover();
+    const iconOf = (c: DockControl): string | undefined => (c.kind === 'toggle' || c.kind === 'action' ? c.icon : undefined);
+    const sig = list.map((c) => `${c.kind}:${c.id}:${c.label}${iconOf(c) ? ':icon' : ''}${c.kind === 'choice' ? `:${c.options.map((o) => `${o.id}=${o.label}`).join(',')}` : ''}`).join('|');
+    if (sig !== controlsSig) {
+      controlsSig = sig;
+      // The icon buttons together in one row at the end, with a line for what an action says.
+      const icons = list.filter((c) => iconOf(c));
+      const plain = list.filter((c) => !iconOf(c)).map(controlHtml).join('');
+      if (inPop) popControlsEl.innerHTML = plain;
+      controlsEl.innerHTML = (inPop ? '' : plain)
+        + (icons.length ? `<div class="audio-dock-icons" role="group" aria-label="Actions"><span class="audio-dock-said" role="status" aria-live="polite" data-said></span>${icons.map(controlHtml).join('')}</div>` : '');
+    }
+    const active = doc.activeElement;
+    for (const el of [...controlsEl.querySelectorAll<HTMLElement>('[data-ctl]'), ...popControlsEl.querySelectorAll<HTMLElement>('[data-ctl]')]) {
+      const c = list.find((x) => x.id === el.dataset.ctl);
+      if (!c) continue;
+      if (c.kind === 'choice') el.setAttribute('aria-pressed', String(el.dataset.ctlOpt === c.get()));
+      else if (c.kind === 'toggle') el.setAttribute('aria-pressed', String(c.get()));
+      // A slider is left alone while it has focus, so a drag is never pulled back mid-gesture.
+      else if (c.kind === 'range' && el !== active && el instanceof doc.defaultView!.HTMLInputElement) { el.value = String(c.get()); setFill(el); }
+    }
+  }
+  function controlFor(el: HTMLElement): DockControl | undefined {
+    return controlList().find((c) => c.id === el.dataset.ctl);
+  }
 
   // ── volume sliders ───────────────────────────────────────────────────────────
   function rebuildVolumes(): void {
@@ -734,11 +860,16 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     if (!show || !host.volume) { closeVolPop(); return; }
     const v = host.volume.get();
     const muted = v <= 0.001;
-    volBtn.innerHTML = muted ? ICON.volumeMuted : ICON.volume;
+    volBtn.innerHTML = onePopover() ? ICON.controls : muted ? ICON.volumeMuted : ICON.volume;
     volBtn.classList.toggle('is-muted', muted);
     const pct = Math.round(v * 100);
-    volBtn.setAttribute('aria-label', `Volume ${pct}%`);
-    volBtn.setAttribute('title', `Volume ${pct}%`);
+    const inPop = onePopover();
+    const what = inPop ? `Controls. Volume ${pct}%` : `Volume ${pct}%`;
+    volBtn.setAttribute('aria-label', what);
+    volBtn.setAttribute('title', what);
+    const nameEl = q<HTMLElement>('[data-vol-name]');
+    if (nameEl) nameEl.textContent = host.volume.label;
+    if (inPop) setFill(volRange);
     // Don't fight the slider while the user is dragging it.
     if (volRange && doc.activeElement !== volRange) volRange.value = String(v);
     const pctEl = q<HTMLElement>('[data-vol-pct]');
@@ -747,6 +878,8 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   function openVolPop(): void {
     if (!host.volume || !volPop || !volBtn) return;
     paintVolume();
+    // The panel needs room: a short window grows while the panel is open.
+    if (onePopover()) { renderControls(); paintVolumes(); root.setAttribute('data-ctlpop-open', ''); }
     volPop.hidden = false;
     volBtn.setAttribute('aria-expanded', 'true');
     // Sit centred over the button, clamped inside the dock (root is overflow:hidden).
@@ -755,13 +888,16 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     const pw = volPop.offsetWidth || 46;
     const ph = volPop.offsetHeight || 150;
     const x = Math.max(6, Math.min(b.left - r.left + b.width / 2 - pw / 2, r.width - pw - 6));
-    const y = Math.max(6, b.top - r.top - ph - 8);
+    // The controls panel is taller than the room over the button in a small window: it opens under the button then.
+    const over = b.top - r.top - ph - 8;
+    const y = over >= 6 || !onePopover() ? Math.max(6, over) : Math.min(b.bottom - r.top + 8, Math.max(6, r.height - ph - 6));
     volPop.style.left = `${x}px`;
     volPop.style.top = `${y}px`;
     volRange?.focus();
   }
   function closeVolPop(): void {
     if (volPop && !volPop.hidden) volPop.hidden = true;
+    root.removeAttribute('data-ctlpop-open');
     volBtn?.setAttribute('aria-expanded', 'false');
   }
 
@@ -776,6 +912,8 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
       const items = layers.filter((l) => (l.group ?? '') === g);
       if (!items.length) continue;
       if (g) html += `<div class="audio-dock-group">${esc(g)}</div>`;
+      // Each group's rows sit in columns, as many as the dock's width allows.
+      html += '<div class="audio-dock-atmo-grid">';
       for (const l of items) {
         const v = host.atmosphere.getLevel(l.id);
         html += `<div class="audio-dock-atmo-row${v > 0 ? ' is-on' : ''}" data-atmo-row="${esc(l.id)}">`
@@ -784,6 +922,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
           + `<input type="range" min="0" max="1" step="0.01" value="${v}" data-atmo-range="${esc(l.id)}" aria-label="${esc(l.label)} level">`
           + `</div>`;
       }
+      html += '</div>';
     }
     atmoRows.innerHTML = html;
     for (const r of atmoRows.querySelectorAll<HTMLInputElement>('input[type="range"]')) setFill(r);
@@ -975,6 +1114,15 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     setText('[data-narr-disclosure]', nar.disclosure?.() ?? '');
   }
   // (Re)subscribe to the narration block's own change stream when it appears/changes.
+  function syncListSub(): void {
+    const s = host.sources ?? null;
+    if (s === listRef) return;
+    listUnsub?.();
+    listUnsub = null;
+    listRef = s;
+    if (s?.onListChange) listUnsub = s.onListChange(rebuildSources);
+  }
+
   function syncNarrationSub(): void {
     const nb = host.narrationBlock ?? null;
     if (nb === narrRef) return;
@@ -1035,6 +1183,31 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     }
     cx.globalAlpha = 1;
   }
+  // A canvas whose WebGL context the browser took back (it drops the oldest when a page
+  // has too many) can't be given a new one: the element keeps returning the lost
+  // context. So swap in a fresh canvas and let the renderer mount on that. A few swaps a
+  // minute at most, so a GPU that keeps failing can't make the dock thrash.
+  const canvasSwaps: number[] = [];
+  function onVizContextLost(e: Event): void {
+    e.preventDefault();
+    if (destroyed) return;
+    const now = Date.now();
+    while (canvasSwaps.length && now - canvasSwaps[0]! > 60_000) canvasSwaps.shift();
+    if (canvasSwaps.length >= 4) return;
+    canvasSwaps.push(now);
+    const lost = vizCanvas;
+    const fresh = lost.cloneNode(false) as HTMLCanvasElement;
+    lost.removeEventListener('webglcontextlost', onVizContextLost);
+    if (hostVizActive) { try { host.viz?.unmount?.(); } catch { /* already gone */ } hostVizActive = false; }
+    vizRo?.unobserve(lost);
+    lost.replaceWith(fresh);
+    vizCanvas = fresh;
+    fresh.addEventListener('webglcontextlost', onVizContextLost);
+    vizRo?.observe(fresh);
+    setTimeout(syncViz, 250);
+  }
+  vizCanvas.addEventListener('webglcontextlost', onVizContextLost);
+
   function syncViz(): void {
     if (destroyed) return;
     applyVizMode();
@@ -1075,23 +1248,81 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     if (hostVizActive) { try { host.viz?.unmount?.(); } catch { /* ignore */ } hostVizActive = false; }
   }
 
+  // ── the scrub: a slider over the host's position, snapping to its seek grid ─────────
+  // A slider of the dock's own rather than a native range: a tap on a native range's track
+  // does nothing on iOS, and a generated tune seeks by bar, so a drag, a tap and the keys
+  // all land on the host's grid. The fill, the thumb and the mini line follow the position;
+  // the labels say where it is; the ARIA value says it to a screen reader.
+  function hostDuration(): number {
+    const d = host.duration ? host.duration() : 0;
+    return Number.isFinite(d) && d > 0 ? d : 0;
+  }
+  function seekGrid(): DockSeekGrid | null {
+    try { const g = host.seekGrid?.(); return g?.points.length ? g : null; } catch { return null; }
+  }
+  /** `seconds` on the host's grid (its nearest point), or within the track on a continuous one. */
+  function snap(seconds: number, grid: DockSeekGrid | null, dur: number): number {
+    return snapToGrid(seconds, grid, dur);
+  }
+  function describe(seconds: number): DockPositionText {
+    try { return host.describePosition?.(seconds) ?? {}; } catch { return {}; }
+  }
+  /** Write `text` only when it changed: this runs every frame while the music plays. */
+  function putText(sel: string, text: string): void {
+    const el = q<HTMLElement>(sel);
+    if (el && el.textContent !== text) el.textContent = text;
+  }
+  function putAttr(el: Element, name: string, value: string): void {
+    if (el.getAttribute(name) !== value) el.setAttribute(name, value);
+  }
+  /** Show the scrub at `seconds` of `dur`; `aria` also updates what a screen reader hears. */
+  function paintScrub(seconds: number, dur: number, aria: boolean): void {
+    const frac = dur > 0 ? Math.min(1, Math.max(0, seconds / dur)) : 0;
+    const pct = `${(frac * 100).toFixed(2)}%`;
+    scrubFill.style.width = pct;
+    scrubThumb.style.left = pct;
+    miniProgress.style.setProperty('--dock-progress', frac.toFixed(4));
+    const words = describe(seconds);
+    putText('[data-time-pos]', words.label ?? '');
+    if (host.showScrubTime !== false) {
+      putText('[data-time-dur]', fmtTime(dur));
+      putText('[data-time-cur]', fmtTime(seconds));
+    }
+    if (!aria) return;
+    putAttr(scrub, 'aria-valuemax', String(Math.round(dur)));
+    putAttr(scrub, 'aria-valuenow', String(Math.min(Math.round(dur), Math.round(seconds))));
+    putAttr(scrub, 'aria-valuetext', words.spoken ?? `${fmtTime(seconds)} of ${fmtTime(dur)}`);
+  }
+  /** The part ticks on the scrub, redrawn only when the host hands over other marks. */
+  let marksDrawn: { marks: readonly number[] | undefined; dur: number } = { marks: undefined, dur: 0 };
+  function paintMarks(grid: DockSeekGrid | null, dur: number): void {
+    const marks = grid?.marks;
+    if (marksDrawn.marks === marks && marksDrawn.dur === dur) return;
+    marksDrawn = { marks, dur };
+    scrubMarks.replaceChildren(...(marks ?? []).filter((m) => m > 0 && m < dur).map((m) => {
+      const tick = doc.createElement('span');
+      tick.className = 'audio-dock-seek-mark';
+      tick.style.left = `${((m / dur) * 100).toFixed(3)}%`;
+      return tick;
+    }));
+  }
+
   // ── progress tick (advance both scrubs while EITHER player is sounding) ─────────
   function updateScrub(): void {
     const seekable = host.seekable ? host.seekable() : typeof host.seek === 'function';
-    const dur = host.duration ? host.duration() : 0;
-    const finite = Number.isFinite(dur) && dur > 0;
-    root.setAttribute('data-seekable', String(seekable && finite));
-    if (!finite) return;
-    const cur = host.currentTime ? host.currentTime() : 0;
-    if (!seeking) { scrub.value = String(Math.round((cur / dur) * 1000)); setFill(scrub); }
+    const dur = hostDuration();
+    putAttr(root, 'data-seekable', String(seekable && dur > 0));
+    if (!dur) return;
+    paintMarks(seekGrid(), dur);
     // A block-based narration keeps the position BAR but hides the M:SS labels: it has
     // no clock, so a time readout would be dishonest.
-    const showTime = host.showScrubTime !== false;
     const timeEl = q<HTMLElement>('.audio-dock-musicblock .audio-dock-time');
-    if (timeEl) timeEl.hidden = !showTime;
-    if (!showTime) return;
-    setText('[data-time-dur]', fmtTime(dur));
-    if (!seeking) setText('[data-time-cur]', fmtTime(cur));
+    if (timeEl) timeEl.hidden = host.showScrubTime === false;
+    if (dragging) return;   // a drag shows where it will land until it lets go
+    const cur = host.currentTime ? host.currentTime() : 0;
+    // While the scrub has focus its value holds still between key presses: a focused
+    // slider announces every change, and the playing music would change it all the time.
+    paintScrub(cur, dur, doc.activeElement !== scrub);
   }
   function anyPlaying(): boolean {
     return host.isPlaying() || (host.narrationBlock?.isPlaying() ?? false);
@@ -1111,6 +1342,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   function refresh(): void {
     if (destroyed) return;
     syncNarrationSub();
+    syncListSub();
     applyCaps();   // block visibility can change as sources register/unregister
     // main (music/flat) transport + mini
     const playing = host.isPlaying();
@@ -1148,6 +1380,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     paintRepeat();
     paintVolume();
     paintVolumes();
+    renderControls();
     updateScrub();
 
     if (hasNarration() && host.narration) {
@@ -1333,6 +1566,39 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   });
   volRange?.addEventListener('change', () => host.volume?.commit?.(Number(volRange.value)));
   srcSearch.addEventListener('input', () => applySearch());
+  for (const box of [controlsEl, popControlsEl]) {
+  box.addEventListener('click', (e) => {
+      const el = (e.target as HTMLElement).closest?.<HTMLElement>('button[data-ctl]');
+      if (!el) return;
+      const c = controlFor(el);
+      if (!c) return;
+      if (c.kind === 'choice') void Promise.resolve(c.set(el.dataset.ctlOpt ?? '')).then(refresh);
+      else if (c.kind === 'toggle') void Promise.resolve(c.set(!c.get())).then(refresh);
+      else if (c.kind === 'action') {
+        void Promise.resolve(c.run()).then((said) => {
+          if (!said || !el.isConnected) return;
+          // An icon button keeps its icon; what it said shows beside the row instead.
+          const line = c.icon ? controlsEl.querySelector<HTMLElement>('[data-said]') : null;
+          const target = line ?? el;
+          target.textContent = said;
+          setTimeout(() => { if (target.isConnected) target.textContent = line ? '' : c.label; }, 1600);
+        });
+      }
+      refresh();
+    });
+    box.addEventListener('input', (e) => {
+      const range = (e.target as HTMLElement).closest?.<HTMLInputElement>('input[data-ctl]');
+      if (!range) return;
+      const c = controlFor(range);
+      if (c?.kind === 'range') { c.set(Number(range.value)); setFill(range); }
+    });
+    box.addEventListener('change', (e) => {
+      const range = (e.target as HTMLElement).closest?.<HTMLInputElement>('input[data-ctl]');
+      if (!range) return;
+      const c = controlFor(range);
+      if (c?.kind === 'range') c.commit?.(Number(range.value));
+    });
+  }
   volumesEl.addEventListener('input', (e) => {
     const range = (e.target as HTMLElement).closest?.<HTMLInputElement>('[data-vol-id]');
     if (!range) return;
@@ -1344,16 +1610,54 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     host.volumes?.find((v) => v.id === range.dataset.volId)?.commit?.(Number(range.value));
   });
 
-  // main (music) scrub
-  scrub.addEventListener('pointerdown', () => { seeking = true; });
-  scrub.addEventListener('change', () => {
-    const dur = host.duration ? host.duration() : 0;
-    if (Number.isFinite(dur) && dur > 0 && typeof host.seek === 'function') host.seek((Number(scrub.value) / 1000) * dur);
-    seeking = false;
+  // main (music) scrub: a press or a drag snaps to the grid and seeks when it lets go;
+  // the keys seek at once.
+  function seekTo(seconds: number): void {
+    const dur = hostDuration();
+    if (!dur || typeof host.seek !== 'function') return;
+    const at = snap(seconds, seekGrid(), dur);
+    host.seek(at);
+    paintScrub(at, dur, true);
+  }
+  function scrubSecondsAt(clientX: number, dur: number): number {
+    const r = scrub.getBoundingClientRect();
+    return r.width > 0 ? Math.min(1, Math.max(0, (clientX - r.left) / r.width)) * dur : 0;
+  }
+  let dragAt = 0;
+  function dragTo(clientX: number): void {
+    const dur = hostDuration();
+    if (!dur) return;
+    dragAt = snap(scrubSecondsAt(clientX, dur), seekGrid(), dur);
+    paintScrub(dragAt, dur, true);
+  }
+  scrub.addEventListener('pointerdown', (e) => {
+    if ((e.pointerType === 'mouse' && e.button !== 0) || !hostDuration()) return;
+    try { scrub.setPointerCapture(e.pointerId); } catch { /* not a live pointer */ }
+    dragging = true;
+    scrub.classList.add('is-dragging');
+    dragTo(e.clientX);
   });
-  scrub.addEventListener('input', () => {
-    const dur = host.duration ? host.duration() : 0;
-    if (Number.isFinite(dur)) setText('[data-time-cur]', fmtTime((Number(scrub.value) / 1000) * dur));
+  scrub.addEventListener('pointermove', (e) => { if (dragging) dragTo(e.clientX); });
+  const endDrag = (commit: boolean) => (): void => {
+    if (!dragging) return;
+    dragging = false;
+    scrub.classList.remove('is-dragging');
+    if (commit) seekTo(dragAt);
+    else updateScrub();
+  };
+  scrub.addEventListener('pointerup', endDrag(true));
+  scrub.addEventListener('pointercancel', endDrag(false));
+  scrub.addEventListener('lostpointercapture', endDrag(false));
+  scrub.addEventListener('keydown', (e) => {
+    const dur = hostDuration();
+    if (!dur) return;
+    const grid = seekGrid();
+    const cur = dragging ? dragAt : (host.currentTime ? host.currentTime() : 0);
+    const to = seekKeyTarget(e.key, cur, grid, dur);
+    if (to === null) return;
+    e.preventDefault();
+    e.stopPropagation();
+    seekTo(to);
   });
 
   // narration block: collapse from its header, play / scrub / follow / speed
@@ -1523,6 +1827,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     caps = { ...next };
     applyCaps();
     sourcesBuilt = false;
+    syncListSub();
     rebuildNarration();
     rebuildSources();
     rebuildAtmosphere();
@@ -1530,6 +1835,8 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     // after the dock is built (the web shell builds one dock before any music source
     // registers) would otherwise keep the empty block it was born with.
     rebuildVolumes();
+    controlsSig = '';
+    renderControls();
     void rebuildVisualiser();
     updateExpandVisibility();
     syncViz();
@@ -1575,7 +1882,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   rebuildVolumes();
   void rebuildVisualiser();
   const unsub = host.onChange(refresh);
-  const listUnsub = host.sources?.onListChange?.(rebuildSources) ?? null;
+  syncListSub();
   syncNarrationSub();
   refresh();
   syncViz();

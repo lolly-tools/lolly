@@ -35,9 +35,16 @@ import { openDB as idbOpen, deleteDB as idbDelete, unwrap } from 'idb';
 import type { IDBPDatabase } from 'idb';
 import { indexSavedWork, indexExport } from './history-index.ts';
 import { clearSignal } from '../lib/clear-signal.ts';
+import { viewingAs, VIEW_AS_DB } from '../org/view-as.ts';
 
-const DB_NAME = 'lolly';
-const DB_VERSION = 26;
+const DB_NAME = viewingAs() ? VIEW_AS_DB : 'lolly';
+/** The schema version this build opens. Exported for the upgrade journeys' tests. */
+export const DB_VERSION = 27;
+/** The last version without the preview store (plan 373). When the step to 27
+ *  cannot run (it failed, or another tab blocks it past every retry), the app opens
+ *  at this version and works on the data as it was, with pictures kept on the
+ *  records the old way, and writes a warning to the log. */
+const PRE_PREVIEW_VERSION = 26;
 let databaseUpdateRequired = false;
 
 function databaseUpdateError(): Error & { code: string } {
@@ -76,7 +83,7 @@ const OPEN_TIMEOUT_MS = 8000;
 // means enrolling again (see bridge/identity.js) - never worth wiping sessions.
 const REQUIRED_STORES = ['profile', 'state', 'asset-meta', 'asset-blob', 'user-assets'];
 
-function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
+function openOnce(timeoutMs = OPEN_TIMEOUT_MS, version = DB_VERSION): Promise<IDBPDatabase> {
   if (databaseUpdateRequired) return Promise.reject(databaseUpdateError());
   // Set when the browser tells us our open is queued behind an older connection
   // (a version upgrade blocked by another tab / a bfcache-frozen page). Lets the
@@ -84,8 +91,9 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
   // instead of a dead end - the open succeeds the moment that connection closes.
   let wasBlocked = false;
   let migrationProgress = 0;
-  const opening = idbOpen(DB_NAME, DB_VERSION, {
-    upgrade(db, oldVersion, _newVersion, tx) {
+  const opening = idbOpen(DB_NAME, version, {
+    upgrade(db, oldVersion, newVersionOrNull, tx) {
+      const newVersion = newVersionOrNull ?? version;
       if (oldVersion < 1) {
         db.createObjectStore('profile');
         const stateStore = db.createObjectStore('state', { keyPath: 'slot' });
@@ -323,6 +331,22 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
         // Missing optional history must never invoke destructive database repair.
         db.createObjectStore('asset-observations', { keyPath: 'key' }).createIndex('id', 'id');
       }
+      if (oldVersion < 27 && newVersion >= 27) {
+        // One preview store (plan 373): picture bytes once by their hash, an index
+        // from each owner (a session, a revision, an export, a cache recipe) to
+        // them, and the lean list of sessions. Three EMPTY stores and nothing else:
+        // no record is read or moved here, so the step cannot be slow or fail on a
+        // large library. Pictures move later, on idle time, in small transactions
+        // (bridge/state-list.ts). Never in REQUIRED_STORES: without them the app
+        // keeps pictures on the records as before.
+        db.createObjectStore('preview-blobs', { keyPath: 'key' });
+        db.createObjectStore('preview-index', { keyPath: 'id' }).createIndex('content', 'content');
+        db.createObjectStore('state-list', { keyPath: 'slot' });
+        // The old live-render cache: regenerable, keyed in a way no recipe can be
+        // rebuilt from, and replaced by preview-index cache rows. Deleting a store is
+        // one step however many rows it held.
+        if (db.objectStoreNames.contains('generated-previews')) db.deleteObjectStore('generated-previews');
+      }
     },
     blocking(_currentVersion, _blockedVersion, event) {
       // A newer version of the app wants to open the DB; close this connection
@@ -476,9 +500,53 @@ async function openResilient(): Promise<IDBPDatabase> {
         await new Promise((r) => setTimeout(r, 300));
         continue;
       }
+      const fallback = await openWithoutPreviewStore(e);
+      if (fallback) return fallback;
       throw e;
     }
   }
+}
+
+/**
+ * The step to version 27 failed (its transaction aborted or the disk was full).
+ * A library already at version 26
+ * is opened as it is, so the person keeps working on their data; pictures stay on
+ * the records the way they always were (bridge/state.ts reads that case), and the
+ * next load tries the step again. Only upgrade failures qualify: a database from
+ * a NEWER app (VersionError), a sealed or updating tab and a brand-new database
+ * (nothing to keep working on) still surface as before.
+ *
+ * A BLOCKED or hung step is not bypassed: IndexedDB queues every open of one
+ * database behind the pending upgrade, so an open at version 26 would wait on the
+ * same request. That case keeps the retry and the "close other tabs" message every earlier
+ * version step had; nothing is written while it waits.
+ */
+async function openWithoutPreviewStore(error: unknown): Promise<IDBPDatabase | null> {
+  // Our own wait errors carry a string code; a DOMException's numeric legacy code
+  // is not one of them.
+  const code = (error as { code?: unknown }).code;
+  const name = (error as { name?: string }).name;
+  const upgradeFailed = typeof code !== 'string' && (name === 'AbortError' || name === 'UnknownError' || name === 'QuotaExceededError' || name === 'InvalidStateError');
+  if (!upgradeFailed || databaseUpdateRequired || clearSignal.databaseSealed()) return null;
+  try {
+    const existing = await currentVersion();
+    if (existing !== PRE_PREVIEW_VERSION) return null;
+    const db = await openOnce(4000, PRE_PREVIEW_VERSION);
+    if (REQUIRED_STORES.some(store => !db.objectStoreNames.contains(store))) { db.close(); return null; }
+    console.warn('[db] The storage update to version 27 did not run; Lolly is using your data as it was. Pictures stay on each saved session until the next load completes the update.', { reason: name ?? code });
+    return db;
+  } catch {
+    return null;
+  }
+}
+
+/** The version the database is at now, or null when that cannot be read. */
+async function currentVersion(): Promise<number | null> {
+  try {
+    const list = await indexedDB.databases?.();
+    const hit = list?.find(entry => entry.name === DB_NAME);
+    return typeof hit?.version === 'number' ? hit.version : null;
+  } catch { return null; }
 }
 
 async function openHealed(timeoutMs?: number): Promise<IDBPDatabase> {

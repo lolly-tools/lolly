@@ -273,10 +273,9 @@ export function paintEmojiSpecimen(el: HTMLElement, artwork: readonly Node[]): v
  * The lifecycle and the shape are lib/pdf-thumbs.ts's, for the same reasons: a
  * re-render replaces the elements the previous observer was holding, so the caller
  * destroys and re-mounts. The on-screen gate stays even though a baked specimen
- * needs no download: nothing is drawn for a tile nobody has scrolled to. Where an
- * entry has no bake and the bundle really is fetched, the chain keeps it to one set
- * at a time - three tiles arriving together would otherwise pull 50 MB at once for
- * artwork nobody has asked to use yet.
+ * needs no download: nothing is drawn for a tile nobody has scrolled to. An entry
+ * with no bake keeps its stub. A tile never loads a whole set: the picker and the
+ * Emoji section do that when a person chooses to use one.
  */
 export function mountEmojiSpecimens(
   rootEl: HTMLElement,
@@ -294,6 +293,11 @@ export function mountEmojiSpecimens(
       if (!source) continue;
       chain = chain.then(async () => {
         if (!isCurrent() || !el.isConnected) return;
+        // A tile draws only what its entry already carries. A set with no baked glyphs,
+        // such as a copy held on the device for offline use, keeps its plain stub:
+        // reading and checking a whole set (8 to 38 MB each) for five glyphs froze the
+        // page, once for every such tile in view.
+        if (!bakedSpecimenNodes(source.specimen).length) return;
         const artwork = await emojiSpecimenArtwork(host, source);
         if (!isCurrent() || !el.isConnected) return;
         paintEmojiSpecimen(el, artwork);

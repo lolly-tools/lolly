@@ -1,146 +1,154 @@
-# 问答
+# 問題與解答
 
-常见问题，渲染为 `/info/start/faq.html` 上的折叠面板。
+常見問題，會在 `/info/start/faq.html` 渲染為手風琴式摺疊清單。
 
-**维护方式：** 下面每个 `##` 标题都是一个问题；
-它下方（直到下一个 `##`）的内容就是答案。答案使用与
-本站其余部分相同的轻量 markdown，段落之间用空行分隔。
-在此处增删或重排问题，然后重新运行 `pnpm run build:info`（或 `pnpm run dev:web`）。
-第一个 `##` 之前的所有内容（本标题与这些说明）会被构建忽略。
+**維護方式：** 下方每個 `##` 標題都是一個問題。標題下的所有內容，
+直到下一個 `##` 為止，就是答案。答案使用網站的輕量 Markdown：
+以空白行分隔段落。在這裡新增、移除或重新排列問題，然後
+重新執行 `pnpm run build:info`（或 `pnpm run dev:web`）。
+建置會忽略第一個 `##` 之前的所有內容（此標題與這些備註）。
 
-顺序是初次使用者的顺序：先说关键所在，然后是你的文件，再是获取和运行 Lolly，
-接着是组织，最后是它是如何做出来的。每个问题的锚点都由同一位置上的英文问题生成，
-所以翻译保持英文的
-顺序。
+順序依初次使用者的需要安排：先談有沒有附帶條件，再談你的檔案，接著是取得
+與執行 Lolly，再來是組織，最後是如何製作。每個問題的錨點
+都由相同位置的英文問題建立，因此翻譯必須保留
+英文的順序。
 
-## 为什么是免费的？有什么附加条件？
+## 為什麼免費？有什麼附帶條件？
 
-**我们为自己构建了 Lolly。** SUSE 需要成千上万个符合品牌的文件，并且不把任何东西交给外部服务。所以我们构建了一个在设备上完成这一切的工具，并像我们做的其他一切那样，以开源形式发布。我们之所以继续维护，是因为我们每天都在使用它。**没有任何义务：**这里的一切无论有没有我们都能运作。
+**我們為自己打造了 Lolly。** SUSE 需要數千個符合品牌的檔案，而且不能把任何內容交給外部服務。因此我們打造了在裝置上完成所有工作的工具，並像我們製作的其他一切一樣，以開放原始碼發布。我們持續維護，因為每天都在使用它。**沒有任何義務：** 有沒有我們，這裡的一切都能運作。
 
-这条界线划在许可协议里，而不是承诺里：凡是在本地运行的，永远免费。已发布的版本所采用的许可协议使其无法被收回，也没有任何可能重新授权任何人作品的贡献者协议。
+這條界線寫在授權條款中，而非只是一句承諾：任何在本機執行的內容，都永遠免費。已發布版本的授權讓它無法被收回。任何貢獻者協議都不能改變任何人作品的授權。
 
-## SUSE 保留了多少不公开的东西？（也就是：什么时候会过河拆桥）
+## SUSE 有多少內容不公開？（也就是，什麼時候會突然收回承諾）
 
-引擎、外壳、模式定义和与品牌无关的工具都是开源的。SUSE 的商标和品牌工具是保持私有的部分，并且已经分离出来。[lolly.tools](https://lolly.tools) 上的公共实例运行的是 [Lolly Demo](/info/lolly-demo.html)，即 Lolly 自己的设计系统。
+引擎、外殼程式、結構描述與不綁定品牌的工具都是開放原始碼。SUSE 的商標與品牌專屬工具維持不公開，並已分開存放。[lolly.tools](https://lolly.tools) 上的公開實例使用 [Lolly Demo](/info/lolly-demo.html)，也就是 Lolly 自己的設計系統。
 
-这里没有什么是建立在承诺之上的：每个已发布的版本都保持开源，唯一保留的是商标。2023 年另一家公司关闭其企业级 Linux 源代码时，SUSE 共同创立了 [OpenELA](https://openela.org) 来保持这些代码开放，本项目继承的正是同样的立场。
+這裡沒有任何事只靠承諾：每個已發布版本都維持開放原始碼。2023 年，另一家公司關閉其企業版 Linux 原始碼時，SUSE 共同創立了 [OpenELA](https://openela.org)，讓那些程式碼維持開放。本專案承襲這個立場。
 
-完整披露：SUSE *确实*在构建内部工具，把 Lolly 连接到自己的 IT 系统。那是 SUSE 的内部配置，而不是公开开发与私有开发的分裂。Lolly 还计划通过 [Open Build Service](https://openbuildservice.org/) 构建，并由 [SUSE Application Collection](https://apps.rancher.io/applications) 交付安全的供应链制品。
+SUSE *確實*正在打造內部工具，將 Lolly 連接到自己的 IT 系統。那是 SUSE 的內部配置，不是將開發分成公開與不公開兩部分。Lolly 也計畫透過 [Open Build Service](https://openbuildservice.org/) 建置，並由 [SUSE Application Collection](https://apps.rancher.io/applications) 提供安全的供應鏈產物。
 
-## 为什么叫 “Lolly Tools”？
+## 為什麼取名「Lolly Tools」？
 
-**Lolly** 是因为自由是甜的，也因为在澳大利亚、新西兰和英国，lolly 就是糖果。
+**Lolly** 是因為自由很甜美，而且在澳洲、紐西蘭與英國，lolly 就是糖果。
 
-**Tools** 是因为工具在你拿起它之前一直静静待着。你不用它时它不运行，你用它时它也不盯着你。
+**Tools** 是因為工具會安靜等待，直到你拿起它。不使用時，它不會執行；使用時，它也不會監視你。
 
-## 为什么一切都是绿色的？
+## 為什麼到處都是綠色？
 
-lolly.tools 默认打开 [Lolly Demo](/info/lolly-demo.html)，即 Lolly 自己的示例设计系统，其主色是绿色。它是示例，而不是规则。你可以在 [Settings → Design systems](/#/settings?focus=design-systems-section) 中切换到空白的设计系统 **Lolly Starter**，或切换到你自己的设计系统。
+lolly.tools 開啟時使用 [Lolly Demo](/info/lolly-demo.html)，這是 Lolly 自己的範例設計系統，主色為綠色。可在 [Settings → Design systems](/#/settings?focus=design-systems-section) 切換為空白設計系統 **Lolly Starter**，或你自己的設計系統。
 
-## 我可以使用自己的品牌吗？
+## 可以使用自己的品牌嗎？
 
-可以。**Design System Setup**（`#/start`）可以从一种颜色、一个设计令牌文件或一份成品设计构建设计系统，之后每个工具都使用你的设计系统来绘制。[开始](/info/quickstart.html#put-your-brand-in)介绍了这三条路径。
+可以。**Lolly Design System Setup**（`#/start`）可從一個色彩、設計 token 檔案或完成的設計建立設計系統。之後，每個工具都會使用你的設計系統繪製。[開始使用](/info/quickstart.html#put-your-brand-in)會帶你走過這三種方式。
 
-由你的组织或你的构建版本提供的设计系统是受管理的：它显示一把锁并保持只读，你可以创建一个可编辑的副本来修改。
+由組織或建置版本提供的設計系統是受管理的。它會顯示鎖頭，並維持唯讀。若要變更，請建立可編輯的副本。
 
-## 我昨天做的东西在哪里？
+## 昨天做的東西在哪裡？
 
-如果你按了 **Save as** 或 **Save**，它就在主屏幕的 **Projects** 中，位于你保存时所用的浏览器或应用里。如果你只按了 **Download**，文件就在浏览器或系统保存下载内容的位置，通常在 **Assets** 中也有一份副本。[边做边保存](/info/find-your-work.html#which-tools-save-as-you-work)的工具也会把未保存的作品保留在 **Projects** 中。[查找和恢复你的作品](/info/find-your-work.html)涵盖了所有情况。
+如果你按了 **Save as** 或 **Save**，作品就在首頁的 **Projects** 中，位於你儲存時使用的瀏覽器或應用程式。如果只按了 **Download**，檔案會在瀏覽器或系統的下載資料夾中，通常也會在 **Assets** 中保留一份副本。[隨工作自動儲存](/info/find-your-work.html#which-tools-save-as-you-work)的工具也會將未儲存的作品保留在 **Projects** 中。[尋找並復原你的作品](/info/find-your-work.html)涵蓋每一種情況。
 
-## 我关掉了标签页。我的作品还在吗？
+## 關閉分頁後，作品會不見嗎？
 
-已保存的作品仍在**项目**中。未保存的作品会丢失，除了那些会随手保存的工具，它们同样会把作品保留在**项目**中。下次离开前，先按**另存为**。见[如果你关闭了标签页或离开了工具](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool)。
+已儲存的作品仍在 **Projects** 中。未儲存的作品會遺失，但隨工作自動儲存的工具例外，它們也會將作品保留在 **Projects** 中。下次離開前，請按下 **Save as**。請見[如果關閉了分頁或離開了工具](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool)。
 
-## 我可以用文件而不是链接来分享作品吗？
+## 可以用檔案分享作品，而不是連結嗎？
 
-可以。当链接无法携带全部内容时，例如你自己的照片或长文本，Share 对话框会说明会缺少什么，并提供 **.lolly** 文件作为替代：一个文件包含设计、它使用的图片，以及（如果你选择）工具本身。
+可以。當連結無法攜帶所有內容，例如自己的照片或長文字時，Share 對話框會說明哪些內容會遺漏，並提供 **.lolly** 檔案。這一個檔案就包含設計、使用的圖片，以及你選擇納入的工具。
 
-带走多少由你决定。只有当你的个人资料选择加入时，你的姓名和详细信息才会写入；除非你选择包含素材，否则有许可协议限制的素材会被扣留。任何打开携带工具的文件的人，在工具能够运行之前，都会被询问是否信任该工具。参见[分享你的作品](/info/using.html#sharing-your-work)。
+攜帶多少內容由你決定。只有在個人資料中選擇同意，才會加入你的姓名與詳細資料。除非你選擇納入，否則不會攜帶授權圖稿。任何人開啟帶有工具的檔案時，都會先被詢問是否信任該工具，之後工具才能執行。請見[分享你的作品](/info/using.html#sharing-your-work)。
 
-## 我的个人资料详细信息有什么用？
+## 個人資料有什麼用途？
 
-你在 **Settings** 中的详细信息会预填到需要它们的工具中，例如证件上的姓名。它们留在这台设备上。如果你同时开启了选择加入，你选定的详细信息会被封入你制作的内容，注明你是来源。除非你选择包含你的详细信息，否则不会包含任何内容。
+你在 **Settings** 中的個人資料會預先填入需要它們的工具，例如徽章上的姓名。這些資料留在這部裝置上。除非你開啟選用設定，否則不會有任何資料加入你製作的內容。開啟後，你選擇的資料會封存其中，並註明你是來源。
 
-分享和同步只发送你选择的内容。在组织的 Lolly Work 实例上，共享会话和受管控的工作也会发送到那台服务器。参见[隐私](/info/privacy.html)。
+分享與同步只會傳送你選擇的內容。在組織的 Lolly Work 實例上，共用工作階段與受管理的作品也會傳送到該伺服器。請見[隱私](/info/privacy.html)。
 
-## 我如何获取移动版或桌面版应用？
+## 如何取得行動版或桌面版應用程式？
 
-从[安装 Lolly](/info/install.html) 下载。该页面列出了 macOS、Windows、Linux 和 Android 的每个版本，并说明如何检查你下载的文件。iPhone 和 iPad 从 App Store 获取 **Lolly Tools**；[iPhone 和 iPad 部分](/info/install.html#iphone-and-ipad)有链接。
+從[安裝 Lolly](/info/install.html)下載。該頁列出 macOS、Windows、Linux 與 Android 的所有建置版本，並說明如何檢查下載的檔案。iPhone 與 iPad 可從 App Store 取得 **Lolly Tools**。[iPhone 與 iPad 區段](/info/install.html#iphone-and-ipad)提供了連結。
 
-任何人也可以构建并分发自己的应用副本，带上他们的受众所需的工具和设置。[构建指南](/info/build-guide.html)说明了方法。
+任何人也都可以自行建置並分發應用程式副本，加入使用對象所需的工具與設定。[建置指南](/info/build-guide.html)說明了做法。
 
-## Lolly 提示需要 WebGPU。我该怎么办？
+## Lolly 說需要 WebGPU，該怎麼辦？
 
-网页应用使用 WebGPU 绘制，这是当前浏览器的一项图形功能，它会在打开工具之前检查。请按顺序尝试：
+網頁應用程式以 WebGPU 繪製，這是目前瀏覽器提供的圖形功能，並會在開啟工具之前檢查 WebGPU。請依序嘗試：
 
-1. 把浏览器更新到当前版本。
-2. 在浏览器设置中开启图形或硬件加速，然后重启浏览器。
-3. 试试经过测试的浏览器：[支持的环境](/info/supported-environments.html)列出了它们。
-4. 在 Mac、iPhone 或 iPad 上，请改为[安装应用](/info/install.html)。
+1. 將瀏覽器更新至目前版本。
+2. 在瀏覽器設定中開啟圖形或硬體加速，然後重新啟動瀏覽器。
+3. 試用已測試的瀏覽器：[支援的環境](/info/supported-environments.html)列出了這些瀏覽器。
+4. 在 Mac、iPhone 或 iPad 上，改為[安裝應用程式](/info/install.html)。
 
-## Lolly 能编辑和渲染我的 Figma、Penpot、Illustrator 或 InDesign 文件吗？
+## Lolly 可以編輯並渲染我的 Figma、Penpot、Illustrator 或 InDesign 檔案嗎？
 
-可以。打开 **Design** 并点击 **Import a design**：它接受原生的 Figma **.fig**（Save local copy）、Penpot **.penpot** 导出、Illustrator **.ai** 或 **.pdf**、InDesign **.idml**（File → Export → InDesign Markup）或**任何 SVG**。你不需要账号、插件或设计应用许可证。
+可以。開啟 **Design** 工具並點擊 **Import a design**：它接受原生 Figma **.fig**（Save local copy）、Penpot **.penpot** 匯出、Illustrator **.ai** 或 **.pdf**、InDesign **.idml** 或 **.indd**、Affinity 文件、Photoshop **.psd**、PowerPoint **.pptx**、CAD **.dxf** 或**任何 SVG**（[它能讀取的每種格式](/info/design-import.html#what-comes-in-from-each-app)）。不需要帳號、外掛或設計應用程式授權。
 
-![Design 的开放画布 - Import a design（导入设计）位于工具栏的 Lolly 菜单中](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Lolly Design 的開放畫布 - Import a design 位於工具列的 Lolly 選單中](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
-图层会作为可编辑的方框到达：文字仍可重新输入，形状仍是形状，图片并入你自己的库。保存后，**Share with rules** 可以把这个版面变成任何拥有 Lolly 的人都能重新填写的工具。参见[导入设计](/info/design-import.html)。
+圖層會以可編輯的方塊匯入。文字仍可重新輸入，圖形仍是圖形，圖片則加入你的資料庫。儲存版面後，**Share with rules** 可將它轉為任何有 Lolly 的人都能重新填入內容的工具。請見[匯入設計](/info/design-import.html)。
 
-## 两个人可以在没有互联网的情况下协作同一份设计吗？
+## 兩個人可以在沒有網際網路的情況下編輯同一份設計嗎？
 
-可以。一个人通过链接、二维码或短码分享邀请，另一个人接受。然后两台设备实时持有同一个会话，包括在线状态和焦点环。它在任何共享网络上都能工作，包括地下室里的手机热点，因为中间没有服务器。参见[一起工作](/info/collaborate.html)。对于处于不同网络的同事，组织的 Lolly Work 实例提供经过认证的工作协作。
+可以。一人分享邀請（連結、QR code 或短代碼），另一人接受。之後兩部裝置會即時共用同一個工作階段，並顯示在線狀態與焦點環。這可在任何共用網路上運作，包含手機熱點，因為中間沒有伺服器。請見[一起協作](/info/collaborate.html)。對於不同網路上的同事，組織的 Lolly Work 實例可提供經過驗證的工作協作。
 
-## 什么是功能开关？
+## 什麼是功能旗標？
 
-功能开关会开启或关闭 Lolly 的部分功能。在独立使用时，你自己选择个人设置。使用 Lolly Work 的组织可以在其政策下设置默认值或隐藏部分开关，受管理的控制项会有标注。参见[在你的组织中使用 Lolly](/info/organisation.html)。
+功能旗標會開啟或關閉 Lolly 的部分功能。獨立使用時，你可選擇自己的設定。使用 Lolly Work 的組織可依政策設定預設值或隱藏特定開關，受管理的控制項也會標示出來。請見[在組織中使用 Lolly](/info/organisation.html)。
 
-![独立应用中的个人功能开关；组织政策可以管控部分开关](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
+![獨立應用程式中的個人功能旗標；組織政策可管理特定開關](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
 
-## 实用工具（Utilities）与工具（Tools）有什么不同？
+## Utility 與工具有什麼不同？
 
-实用工具对你已有的文件做一件快速的事，例如压缩 PDF、转换照片或清除隐藏数据，其中许多在你的设备上运行，不上传任何内容。它们的存在，是为了让人们通常交给随便某个网站的工作留在 Lolly 内部。压缩合同、转换仍带有位置信息的假期照片，或把令牌粘贴到在线格式化工具里，都不该意味着把文件交给一个保留期限、司法辖区和商业模式都不明的网站。[实用工具](/info/utilities.html)列出了它们，[我们从未同意的交易](/info/status-quo.html)讲述了它们背后的故事。
+Utility 會對你已有的檔案完成一項快速工作，例如壓縮 PDF、轉換照片或移除隱藏資料。許多 Utility 在你的裝置上執行，不會上傳任何內容。Utilities 將人們通常交給任意網站處理的工作留在 Lolly 內。壓縮合約、轉換仍含有位置資訊的度假照片，或將 token 貼入線上格式化工具，都不該代表要將檔案交給資料保留方式、司法管轄區與商業模式不明的網站。[Lolly Utilities](/info/utilities.html)列出這些 Utility，而[我們從未同意的交易](/info/status-quo.html)說明它們背後的故事。
 
-![Utilities 视图：Strip Hidden Data、Compress PDF、Convert Image 以及其他设备端工作，全部集中在一处](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Utilities 檢視：Lolly Strip Hidden Data、Compress PDF、Convert Image 與其他裝置上的工作，全部集中在同一處](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
-## 我们的组织可以使用 SSO、共享项目和审批吗？
+## 我們的組織可以使用 SSO、共用專案與核准功能嗎？
 
-可以，使用 **Lolly Work**，即同一开源项目的组织服务器。它单独运行，并增加通过你的身份提供方的单点登录、SCIM 开通、组权限、共享项目和素材、实时工作协作、审批和审计记录。日常使用的应用仍可独立工作。
+可以，透過 **Lolly Work**，也就是同一開放原始碼專案的組織伺服器。它獨立執行，提供經由身分識別提供者的單一登入、SCIM 佈建、群組權限、共用專案與素材、即時工作協作、核准與稽核記錄。日常使用的應用程式仍可獨立運作。
 
-[在你的组织中使用 Lolly](/info/organisation.html)介绍了登录和查找共享作品，[部署](/info/deployment.html#organisation-services-with-lolly-work)介绍了如何设置。共享内容和组织记录遵循该实例的隐私和保留政策。
+[在組織中使用 Lolly](/info/organisation.html)涵蓋登入與尋找共用作品。[部署](/info/deployment.html#organisation-services-with-lolly-work)涵蓋 Lolly Work 的設定。共用內容與組織記錄遵循該實例的隱私與保留政策。
 
-## 采用 Lolly 可能会遇到哪些障碍？
+## 導入 Lolly 可能遇到什麼阻礙？
 
-需要改变的多半是生产方面，而不是技术。想要一套受管控工具的团队，需要有人来创作其设计系统和最初的模板，不过任何人从第一天起就可以在 Design 中开始制作自己的工具，不需要 git。而且现有流程即使产出不符合品牌也会继续运转，所以把一个可见的产出做好，并把前后效果并排放在一起，比一份计划更快地说明问题。
+主要是團隊製作作品的方式需要改變，而非技術問題。想要一組受管理工具的團隊，需要有人編寫設計系統與最初的範本。任何人仍可在第一天就在 Lolly Design 製作自己的工具，不需要 git。即使產出不符合品牌，既有流程仍會繼續運作。把一項看得見的產出轉換好，並排展示前後成果，比計畫更快展現價值。
 
-[采用与治理](/info/adoption-governance.html)介绍了按角色上手、如何衡量试点，以及治理流程可以是什么样子。
+[導入與治理](/info/adoption-governance.html)涵蓋各角色的入門方式、如何衡量試行成果，以及治理流程的樣貌。
 
-## Lolly是用“氛围编程”做出来的吗?
+## Lolly 是用「vibe coding」寫出來的嗎？
 
-Lolly 的开发使用了 AI 辅助编程、AI 辅助发现，以及在许多地方的 AI 辅助内容，使用了多种模型和供应商，包括来自公有云前沿公司的模型。架构由人创建，代码由人有意识地整理，体验由人进行艺术指导。
+Lolly 的開發使用了 AI 輔助程式設計、AI 輔助探索，以及許多部分的 AI 輔助內容製作，採用多種模型與供應商，其中包括公有雲前沿 AI 公司的模型。由人類建立架構、有意識地審選程式碼，並為使用體驗提供美術指導。
 
-Lolly 依赖项中的高危或严重公告会阻止 CI。暂时无法修复的公告，只有作为附有书面理由的已批准例外才会被保留。[SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) 列出了目前保留的每个例外，[发布说明](https://github.com/lolly-tools/lolly/releases)列出了每个版本携带的例外。SECURITY.md 还说明了如何报告漏洞。
+Lolly 的相依套件出現高或嚴重等級的安全公告時，CI 會被阻擋。尚無法修正的公告，只有在附上書面理由並獲准列為例外時，才能暫緩處理。[SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) 列出目前保留的每項例外，而[版本資訊](https://github.com/lolly-tools/lolly/releases)列出各版本包含的例外。SECURITY.md 也說明如何通報漏洞。
 
-构建中的检查还会拒绝代码注释、应用和这些文档中读起来像机器写出的措辞，让文字对每位读者都保持平实。一个副作用是检测器可能更难判断哪些文字是模型写的。我们并非有意造成这一点。
+建置中的檢查也會拒絕程式碼註解、應用程式與這些文件中讀起來像機器撰寫的措辭，讓每位讀者都能讀到清楚易懂的文字。副作用是，偵測器可能更難分辨哪些文字出自模型。我們並非刻意造成這個結果。
 
-最重要的是，Lolly 站在世界各地专家几十年开源工作的肩膀上。
+最重要的是，Lolly 建立在世界各地專家數十年開放原始碼工作的基礎上。
 
-**生成式AI披露:**
+**生成式 AI 揭露：**
 
-- **LLM 编写的代码：**Opus 4.8、Gemini 3.1、Qwen3-Coder-Next、Codex Sol（此列表可能扩充）
-- **LLM 探索：**Gemini 3.1、Fable、Codex Astra
-- **文档：**Sonnet 5
-- **开源库：**其各自的作者，体现在 SBOM、注释和文件头中
+- **LLM 撰寫的程式碼：** Opus 4.8、Gemini 3.1、Qwen3-Coder-Next、Codex Sol（此清單可能擴充）
+- **LLM 探索：** Gemini 3.1、Fable、Codex Astra
+- **文件：** Sonnet 5
+- **開放原始碼函式庫：** 各自的作者，記載於 SBOM、註解與檔案標頭中
 
-此列表不包括内嵌于Lolly中的模型。
+此清單不包含隨 Lolly 一同納入的模型。
 
-**人类的贡献：**
-- **构思、审阅与反馈：**Ravan Naidoo、Matthias Eckermann、Kelly Andrews、Ryan Kleeman、Peter Chamalian、Penpot 社区、Tim Hildred（名单并不完整）
-- **架构、艺术指导与清理粗制滥造内容的人：**Andy Fitzsimon
+**人類貢獻：**
+- **構思、審閱與回饋：** Ravan Naidoo、Matthias Eckermann、Kelly Andrews、Ryan Kleeman、Peter Chamalian、Penpot 社群、Tim Hildred（清單未盡列）
+- **架構、美術指導 & 劣質產出清理：** Andy Fitzsimon
 
-## SUSE 品牌的工具去哪了？
+## SUSE 品牌的工具去哪裡了？
 
-它们位于一个单独的私有仓库中。公开克隆完全不会获取 SUSE 品牌包，所以由此构建的版本使用中性的 `lolly-start` 配置文件，除非你选择别的：与品牌无关的社区工具，加上一个由你自己填写的空白品牌。[lolly.tools](https://lolly.tools) 使用 `lolly-demo` 配置文件构建，默认打开 [Lolly Demo](/info/lolly-demo.html)，即 Lolly 自己的设计系统。SUSE 运营自己的实例以保护其商标。
+它們存放在獨立的私人儲存庫中。複製公開儲存庫不會取得 SUSE 品牌套件，因此從中建置時，除非你另作選擇，否則會使用中性的 `lolly-start` 設定檔。該設定檔包含與品牌無關的社群工具，以及可填入你自己品牌內容的空白品牌。[lolly.tools](https://lolly.tools) 使用 `lolly-demo` 設定檔建置，開啟時採用 [Lolly Demo](/info/lolly-demo.html)，也就是 Lolly 自己的設計系統。SUSE 運行自己的實例以保護其商標。
 
-## Lolly 那个标志是什么口味的？
+## Lolly 標誌是什麼口味？
 
-有人说是青柠，有人说是薄荷，有时又说是苹果；Lolly 负责带来甜味，口味由你来实现！
+有人說是萊姆，有人說是薄荷，有時也有人說是蘋果。Lolly 帶來甜味，口味由你決定。
+
+## Lolly 所說的內容主權是什麼意思？
+
+掌控你的內容如何建立、管理、儲存，以及如何在你選擇的系統之間移動。Lolly 支援在本機製作、可編輯的作品與可攜式工具。Lolly Work 加入由組織掌控的共用服務。來源授權、可用的相依項目與工作流程中的資料流向仍然重要。[什麼是內容主權？](/info/content-sovereignty.html)說明每項控制及其限制。
+
+## 我們能保留現有的 DAM 嗎？
+
+可以。受支援的 DAM 可以繼續作為權威資料來源，由 Lolly Work 將選定的素材連接到 Lolly 工具。來源存取、允許的編輯、使用權與成品核准是分開的決策。[搭配現有的 DAM 使用 Lolly](/info/use-with-dam.html)說明這項安排，而 [SUSE 的 Brandfolder 經驗](/info/suse-brandfolder.html)記錄了導入期間的成功使用情況。

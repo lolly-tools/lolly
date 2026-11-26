@@ -10,6 +10,15 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.345: audio metadata removal for Strip Hidden Data (M4A/MP4, WAV, MP3, FLAC, Ogg Opus).
+  'AUDIO_STRIP_FORMATS', 'AudioInspection', 'AudioMetadataItem', 'AudioStripFormat', 'audioMetadataResidual',
+  'inspectAudioMetadata', 'sniffAudioFormat', 'stripAudioMetadata',
+  // Additive partner kits (plans/82 M8): the kit reader and its two colour proposers.
+  'PartnerKitReadResult', 'checkPartnerKit', 'partnerKitColoursFromInks', 'partnerKitColoursFromTokens', 'partnerKitLogoIds', 'readPartnerKit',
+  // Additive guest-mark checks (plans/82 M8): partner marks against their kit's rules.
+  'GuestMarkMeasure', 'GuestMarkReport', 'GuestMarkUnmeasured', 'GuestMarkUnmeasuredCode', 'checkGuestMarks', 'guestRecolourFrom', 'guestUnmeasuredText', 'BrandCheckGuestOpts',
+  // Additive `_kit` (plans/82 M8): a piece's partner kit attachment in a link and a saved session.
+  'formatPartnerKitParam', 'parsePartnerKitParam', 'readPartnerKitAttachment',
   // Additive colour roles (plans/352): a design system's colours in its own words.
   'AddColourRoleOptions', 'BINDABLE_COLOUR_SLOTS', 'BriefColourRoles', 'COLOUR_ROLE_BY_NAME', 'COLOUR_ROLE_GROUP', 'COLOUR_ROLE_ID',
   'COLOUR_SLOTS', 'COLOUR_SLOT_READS', 'ColourPairContrast', 'ColourRoleCarry', 'ColourRoleCell', 'ColourRoleEdit', 'ColourRoleEntry',
@@ -20,9 +29,21 @@ const EXPECTED: readonly string[] = [
   'danglingColourAliases', 'deriveOnColour', 'describeColourRole', 'isDerivedOnColourValue', 'isUsableColourRoleId', 'newlyDangling',
   'onColourFloor', 'readColourRoles', 'refreshDerivedOnColours', 'removeColourRole', 'renameColourRole', 'reorderColourRoles',
   'setColourRoles', 'setRoleSameAsLight', 'setRoleValue', 'unbindRole',
+  'AdoptColourRolesOptions', 'AdoptedColourRole', 'adoptColourRoles', 'colourRoleThemeAccents', 'withColourwayKindRestored',
+  // Additive 1.344: the icon colours and photo washes a design system offers, one per colourway.
+  'COLOURWAY_LOOK_PREFIX', 'ColourwayInks', 'ON_DARK_SUFFIX', 'colourwayIconThemes', 'colourwayInks', 'colourwayPhotoTreatments', 'colourwaySurfaceIconThemes', 'isColourwayLookId', 'withColourwayLooks',
+  // Additive 1.330: the asset rights reader, the `.lolly` credits text and the package credits
+  // readback, for a Lolly Work server that gates what partners receive.
+  'AssetRightsMeta', 'OWNER_PUBLISHED', 'OwnerPublishedV1', 'PackCreditEntry', 'PackHoldEntry', 'Redistribution',
+  'assetLicenceDeclaration', 'assetRightsNotices', 'checkCompanionReadback', 'ownerPublished', 'packCreditsText',
+  'readAssetRightsRecord', 'redistribution',
+  // Additive 1.325: a server credential keeps the pictures the browser's credential recorded.
+  'PlacedPictures', 'pdfWithoutCredential', 'placedPicturesOf',
   // Additive 1.304 approval record in Content Credentials.
   'APPROVAL_RECORD_FORMATS', 'ApprovalNotRecordedReason', 'ApprovalRecordOutcome', 'C2paApprovalRecord',
   'RecordApprovalOptions', 'artworkUnchanged', 'recordApprovalInCredential',
+  // Additive 1.331: DESIGN.md written by the engine for a server with no published brand page.
+  'DesignMdWriteInputV1', 'writeDesignMd',
   // Additive 1.305 visual intent: what a piece has to do, resolved to a tool for each surface.
   'INTENT_RULES_VERSION', 'IntentInvalidError', 'IntentToolSource', 'ParseToolIntentsResult', 'ParseVisualIntentResult', 'ParsedVisualIntent', 'ToolIntentIssue',
   'checkToolIntents', 'loadIntentTools', 'parseToolIntents', 'parseVisualIntent', 'resolveIntent',
@@ -36,6 +57,11 @@ const EXPECTED: readonly string[] = [
   'DXF_LIMITS', 'DXF_MAX_BOXES', 'DxfDesignResult', 'DxfImport', 'DxfImportOptions', 'DxfRaw', 'DxfReader',
   'DxfReport', 'DxfStroke', 'DxfText', 'DxfUnits',
   'aciToHex', 'dxfReportLines', 'dxfToDesign', 'dxfUnits', 'flattenDxf', 'importDxf', 'looksLikeDxf',
+  // Additive 1.324 spots as process: the CMYK palette's opt-in to print every spot ink in process,
+  // and the `_spots` URL param that asks for the choice.
+  'CmykPaletteOptions', 'SpotsSetting', 'parseSpots',
+  // Additive `_text` URL param: an EMF export draws its text as outlines, as the CLI's browser tier asks.
+  'TextSetting', 'parseTextSetting',
   // Additive 1.297 press separation: RGB to CMYK through a press profile, and its raster lattice.
   'CmykSeparation', 'DEVICE_SEPARATION', 'NEUTRAL_EPSILON', 'SeparateRgb', 'iccSeparation', 'separationLattice',
   // Additive 1.293 canvas size: the one conversion every shell hands a tool's hooks and template.
@@ -367,6 +393,8 @@ const EXPECTED: readonly string[] = [
   'themesSelection', 'toolCredit',
   // Additive 1.282 (plan 323): the brand skills that guided an agent-made export, as words.
   'guidedByWords',
+  // Additive 1.334 (Lolly Work plans/82 M3): the partner an export was made for.
+  'partnerFactWords', 'partnerRecord', 'partnerWords',
   // 1.265 (plans/319): theme-group meaning and colourways.
   'readTokenAxes',
   'axisOfKind',
@@ -599,6 +627,8 @@ const EXPECTED: readonly string[] = [
   'DocxBlock',
   'DocxDoc',
   'DocxMedia',
+  'DocxPage',
+  'DocxStyles',
   'DocxParts',
   'DropShadow',
   'EMU_PER_INCH',
@@ -1170,6 +1200,8 @@ const EXPECTED: readonly string[] = [
   'sniffVideoContainer',
   'softwareName',
   'softwareOrigins',
+  'VERIFY_FINDING_IDS', 'verifyFindings', 'verifyHashFailed', 'verifyRights', 'verifySoftware', 'fillFindingText',
+  'VerifyEvidence', 'VerifyFinding', 'VerifyFindingId', 'VerifyFindingsInput', 'VerifyFindingsReport', 'VerifyRights', 'VerifySoftware', 'VerifyStrength', 'VerifyTone',
   'solidPointOklch',
   'sortedLangs',
   'sourceIngredientsFor',
@@ -1263,6 +1295,7 @@ const EXPECTED: readonly string[] = [
   'wcagLevel',
   'woffToSfnt',
   'writeDocx',
+  'snapDocxPage',
   'writeEpub',
   'writeFace',
   'writeOdt',
@@ -1388,6 +1421,7 @@ const EXPECTED: readonly string[] = [
   'resolveRebrandDesignSystem',
   'swatchesFromColors',
   'themeSlotsFromColors',
+  'themeSlotTokensFor',
   'neutralSlideMaster',
   'colorTokenHash',
   'THEME_SLOTS',

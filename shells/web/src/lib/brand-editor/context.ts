@@ -34,6 +34,8 @@ import type { gridOps } from './grid.ts';
 import type { addColorOps } from './add-color.ts';
 import type { rolesOps } from './roles.ts';
 import type { colourwaysOps } from './colourways.ts';
+import type { colourRolesOps } from './colour-roles.ts';
+import type { ColourRolesRoomHandle } from '../design-system/rooms/colour-roles.ts';
 import type { typeOps } from './type.ts';
 import type { compareStageOps } from './compare-stage.ts';
 import type { logosOps } from './logos.ts';
@@ -209,6 +211,8 @@ export interface BrandEditorCtx {
   rolesMount: HTMLElement;
   /** The Colourways row at the head of the Colour roles wing (colourways.ts). */
   leadsMount: HTMLElement | null;
+  /** The Colour roles table at the head of the room (colour-roles.ts). */
+  rolesRoom: ColourRolesRoomHandle | null;
   rolesStrip: { render: () => void; } | null;
   roleChips: RoleChipsHandle | null;
   useasRow: HTMLElement | null;
@@ -285,6 +289,7 @@ export interface BrandEditorCtx {
   addColor: ReturnType<typeof addColorOps>;
   roles: ReturnType<typeof rolesOps>;
   colourways: ReturnType<typeof colourwaysOps>;
+  colourRoles: ReturnType<typeof colourRolesOps>;
   type: ReturnType<typeof typeOps>;
   compareStage: ReturnType<typeof compareStageOps>;
   logos: ReturnType<typeof logosOps>;

@@ -28,7 +28,7 @@
 // so the import has to be the lazy one. Both public functions below are already
 // async, so the await is invisible to callers.
 import type { ToolIntegrityOpts } from '../../../../engine/src/loader.ts';
-import { getInstanceBase, instanceFetch, instancePath } from '../lib/instance.ts';
+import { getInstanceBase, instanceCatalogKeyId, instanceFetch, instancePath } from '../lib/instance.ts';
 import type { CatalogSnapshot } from './snapshot.ts';
 import { CatalogRefusedError, isAccessRefused, noteCatalogRefused } from '../lib/catalog-access.ts';
 
@@ -118,6 +118,22 @@ function sameOriginInstanceKey(
 ): (() => Promise<import('./instance-key.ts').InstanceCatalogKey | null>) | null {
   const pageOrigin = globalThis.location?.origin ?? null;
   const tauri = (globalThis as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ !== undefined;
+  // An app connected to an instance: the one key the person accepted at connect, asked
+  // of that instance over the app's own instance transport.
+  const acceptedKeyId = keys.connectedInstanceKeyId({ pageOrigin, instanceBase: getInstanceBase(), tauri, acceptedKeyId: instanceCatalogKeyId() });
+  if (acceptedKeyId) {
+    // The instance's address, which may hold a path: the key document sits under that
+    // address, and the saved copy is kept under the same string.
+    const instance = getInstanceBase();
+    return () => keys.resolveInstanceCatalogKey({
+      origin: instance,
+      fetch: (url, init) => instanceFetch(url, init),
+      load: store.readInstanceKey,
+      save: store.saveInstanceKey,
+      forget: store.forgetInstanceKey,
+      expectedKeyId: acceptedKeyId,
+    });
+  }
   if (!pageOrigin || !keys.instanceKeyAllowed({ pageOrigin, instanceBase: getInstanceBase(), tauri })) return null;
   return () => keys.resolveInstanceCatalogKey({
     origin: pageOrigin,
@@ -211,6 +227,39 @@ export async function assertToolIndexIntegrity(indexText: string): Promise<void>
   if (!result.ok) {
     throw new Error(`catalog integrity: tool index rejected - ${result.reason}`);
   }
+}
+
+/** Whether a sync failed because a catalog did not verify, as opposed to a network fault. */
+export function isCatalogTrustFailure(error: unknown): boolean {
+  return error instanceof Error && /^(Catalog refused: |catalog integrity: )/.test(error.message);
+}
+
+/** How long the set-aside note stays up when nobody taps it away. */
+const SET_ASIDE_NOTE_MS = 9000;
+let setAsideNoted = false;
+
+/**
+ * An instance whose catalog this build cannot verify was set aside for this page load,
+ * and the tools built into the app are shown. Said once: the note leaves after a few
+ * seconds or on a tap, because a note that stays covers the controls below. The state
+ * stays readable on the root element for any surface that shows the state later.
+ */
+export function noteInstanceCatalogSetAside(instanceBase: string): void {
+  if (typeof document === 'undefined' || !document.body) return;
+  document.documentElement.dataset.catalogInstance = 'set-aside';
+  if (setAsideNoted) return;
+  setAsideNoted = true;
+  let host = instanceBase;
+  try { host = new URL(instanceBase).host; } catch { /* keep the raw value */ }
+  const id = 'lolly-instance-set-aside';
+  trustBadge(id, `${host} is signed with a key this app has not accepted. Showing the tools built into this app. Connect to it again in Settings to accept its key.`);
+  const note = document.getElementById(id);
+  if (!note) return;
+  note.style.pointerEvents = 'auto';
+  note.style.cursor = 'pointer';
+  const dismiss = (): void => { note.remove(); };
+  note.addEventListener('click', dismiss, { once: true });
+  setTimeout(dismiss, SET_ASIDE_NOTE_MS);
 }
 
 /** A trust failure remains visible even when a previously accepted catalog is saved. */

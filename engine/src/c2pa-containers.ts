@@ -28,6 +28,7 @@ import type { Signer, Exclusion, EmbedOptions, PlaceResult } from './c2pa.ts';
 // (GainMapMeta is type-only), so this pulls no pixel machinery into the C2PA path.
 import { repairMpfOffsets } from './gainmap-jpeg.ts';
 import { gunzip, gzip } from './gzip.ts';
+import { locateSvgCredential } from './c2pa-svg.ts';
 
 const te = new TextEncoder();
 
@@ -302,7 +303,7 @@ const xrefEntryLine = (offset: number, gen: number): string => `${String(offset)
  * table (the classic form); cross-reference streams throw a clear Error the
  * shell treats as "cannot attach".
  */
-export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, approval, intent, specVersion, dates = {}, signer }: EmbedOptions = {}): Promise<Uint8Array> {
+export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerator, generatorInfo, environment, author, authorship, rights, licence, actions, ingredients, aiDisclosure, approval, intent, specVersion, dates = {}, signer }: EmbedOptions = {}): Promise<Uint8Array> {
   if (!(pdfBytes instanceof Uint8Array)) throw new Error('C2PA embed: pdfBytes must be a Uint8Array');
   const bin = bytesToBin(pdfBytes);
   const info = parsePdf(bin);
@@ -350,7 +351,7 @@ export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerat
   const pad = new Uint8Array(8);
   const dummyHash = new Uint8Array(32);
   const build = (hash: Uint8Array, exclusions: Exclusion[], padBytes: Uint8Array): Promise<Uint8Array> => buildC2paManifest({
-    title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, approval, intent, specVersion, dates, format: 'application/pdf',
+    title, claimGenerator, generatorInfo, environment, author, authorship, rights, licence, actions, ingredients, aiDisclosure, approval, intent, specVersion, dates, format: 'application/pdf',
     assetHash: { exclusions, hash, pad: padBytes },
     ...internals,
   });
@@ -394,6 +395,44 @@ export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerat
     if (out[i] !== pdfBytes[i]) throw new Error('C2PA embed: original PDF bytes were modified');
   }
   return out;
+}
+
+/**
+ * A PDF with its Content Credential update taken off: the bytes before the
+ * incremental update {@link embedC2paInPdf} appends, when that update is the last
+ * thing in the file and is exactly such an update (a new Catalog, a /Filespec with
+ * /AFRelationship /C2PA_Manifest and the manifest stream, over a table whose /Prev
+ * points at the earlier one). A shell that writes its own credential in place of one
+ * another renderer wrote starts from these bytes, so the file holds one credential and
+ * no dead copy of the other. Embedding into the result lays the update out at the same
+ * offset the cut one had.
+ *
+ * Null when the last update is anything else, or the file has no earlier revision:
+ * those bytes are not this function's to cut. Never throws.
+ */
+export function pdfWithoutCredential(pdf: Uint8Array): Uint8Array | null {
+  try {
+    const bin = bytesToBin(pdf);
+    const sxAt = bin.lastIndexOf('startxref');
+    const sx = sxAt < 0 ? null : /^startxref\s+(\d+)\s+%%EOF\s*$/.exec(bin.slice(sxAt));
+    if (!sx) return null;
+    const xrefAt = +sx[1]!;
+    const sec = parseXrefSection(bin, xrefAt);
+    const used = sec.entries.filter((e) => e.type === 'n');
+    if (sec.prev === null || used.length !== 3) return null;
+    const start = Math.min(...used.map((e) => e.offset));
+    if (!(start > 0 && start < xrefAt)) return null;
+    const update = bin.slice(start, xrefAt);
+    if (!/\/Type\s*\/Catalog\b/.test(update) || !/\/AFRelationship\s*\/C2PA_Manifest\b/.test(update)
+      || !/\/Subtype\s*\/application#2Fc2pa\b/.test(update)) return null;
+    const before = bin.slice(0, start);
+    const priorAt = before.lastIndexOf('startxref');
+    const prior = priorAt < 0 ? null : /^startxref\s+(\d+)\s+%%EOF\s*$/.exec(before.slice(priorAt));
+    if (!prior || +prior[1]! !== sec.prev) return null;
+    return pdf.slice(0, start);
+  } catch {
+    return null;
+  }
 }
 
 // ─── container embedders (png/jpeg/gif/svg/tiff/webp) ────────────────────────
@@ -599,55 +638,43 @@ function placeGif(gif: Uint8Array, manifest: Uint8Array): PlaceResult {
 // with xmlns:c2pa declared on the root. Only the base64 TEXT is excluded from
 // the hard binding - the tags around it are hashed, and the hash is over raw
 // bytes (no XML canonicalisation), so placement is byte-splicing, not DOM work.
-// Scanning is byte-wise over ASCII structural characters (UTF-8 safe).
+// The root's own site is found by locateSvgCredential (c2pa-svg.ts), which reads
+// past nested artwork: an inlined logo that carries its own manifest keeps that
+// manifest as part of its markup, hashed like any other bytes, and the export's
+// goes where c2pa-rs reads one.
 const C2PA_XMLNS = ' xmlns:c2pa="http://c2pa.org/manifest"';
 function placeSvg(svg: Uint8Array, manifest: Uint8Array): PlaceResult {
   const bin = bytesToBin(svg);
-  // Root <svg …> open tag (quote-aware scan for its closing '>').
-  const open = /<svg(?=[\s>])/.exec(bin);
-  if (!open) throw new Error('C2PA embed: not an SVG (no <svg> root)');
-  let i = open.index + 4;
-  let q: string | null = null;
-  for (; i < bin.length; i++) {
-    const ch = bin[i];
-    if (q) { if (ch === q) q = null; }
-    else if (ch === '"' || ch === "'") q = ch;
-    else if (ch === '>') break;
+  const site = locateSvgCredential(bin);
+  if (!site) {
+    if (!/<svg(?=[\s>])/.test(bin)) throw new Error('C2PA embed: not an SVG (no <svg> root)');
+    throw new Error('C2PA embed: unterminated <svg> tag');
   }
-  if (i >= bin.length) throw new Error('C2PA embed: unterminated <svg> tag');
+  const i = site.rootTagEnd;
   if (bin[i - 1] === '/') throw new Error('C2PA embed: self-closing <svg/> cannot hold a manifest');
-  const tagSrc = bin.slice(open.index, i);
-  let doc = bin;
-  let rootEnd = i + 1; // just past '>'
-  if (!tagSrc.includes('xmlns:c2pa')) {
-    doc = bin.slice(0, i) + C2PA_XMLNS + bin.slice(i);
-    rootEnd += C2PA_XMLNS.length;
-  }
-  // Replace an existing manifest element's text, else reuse the first direct
-  // <metadata>, else create one right after the root open tag.
+  // The namespace goes on the root's open tag, so every index past that tag moves by its length.
+  const ns = bin.slice(site.rootStart, i).includes('xmlns:c2pa') ? '' : C2PA_XMLNS;
+  const doc = ns ? bin.slice(0, i) + ns + bin.slice(i) : bin;
+  const at = (index: number): number => (index > i ? index + ns.length : index);
+  // Replace the root's manifest text, else open one in the root's first direct
+  // <metadata>, else create that <metadata> right after the root open tag.
   // base64 with standard alphabet + padding, single line
   const b64 = btoa(bytesToBin(manifest));
-  const existing = /<c2pa:manifest[^>]*>/.exec(doc);
-  let head: string, tail: string, b64Start: number;
-  if (existing) {
-    const close = doc.indexOf('</c2pa:manifest>', existing.index);
-    if (close < 0) throw new Error('C2PA embed: unterminated c2pa:manifest element');
-    head = doc.slice(0, existing.index + existing[0]!.length);
-    tail = doc.slice(close);
-    b64Start = head.length;
+  let head: string, tail: string;
+  if (site.manifest) {
+    if (site.manifest.end < 0) throw new Error('C2PA embed: unterminated c2pa:manifest element');
+    head = doc.slice(0, at(site.manifest.start));
+    tail = doc.slice(at(site.manifest.end));
+  } else if (site.metadataOpenEnd !== null) {
+    head = doc.slice(0, at(site.metadataOpenEnd)) + '<c2pa:manifest>';
+    tail = '</c2pa:manifest>' + doc.slice(at(site.metadataOpenEnd));
   } else {
-    const meta = /<metadata(?=[\s>])[^>]*>/.exec(doc);
-    if (meta && doc[meta.index + meta[0]!.length - 2] !== '/') {
-      head = doc.slice(0, meta.index + meta[0]!.length) + '<c2pa:manifest>';
-      tail = '</c2pa:manifest>' + doc.slice(meta.index + meta[0]!.length);
-    } else {
-      head = doc.slice(0, rootEnd) + '<metadata><c2pa:manifest>';
-      tail = '</c2pa:manifest></metadata>' + doc.slice(rootEnd);
-    }
-    b64Start = head.length;
+    const rootEnd = i + 1 + ns.length;
+    head = doc.slice(0, rootEnd) + '<metadata><c2pa:manifest>';
+    tail = '</c2pa:manifest></metadata>' + doc.slice(rootEnd);
   }
   const out = binToBytes(head + b64 + tail);
-  return { out, exclusions: [{ start: b64Start, length: b64.length }] };
+  return { out, exclusions: [{ start: head.length, length: b64.length }] };
 }
 
 // TIFF: manifest bytes verbatim as tag 0xCD41 (type UNDEFINED) in a dedicated
@@ -1883,7 +1910,7 @@ export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOp
   if (!container) throw new Error(`C2PA embed: no embedding for format '${format}'`);
   const isBmff = container.hash === 'bmff';
 
-  const { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, approval, intent, specVersion, dates = {}, signer } = opts;
+  const { title, claimGenerator, generatorInfo, environment, author, authorship, rights, licence, actions, ingredients, aiDisclosure, approval, intent, specVersion, dates = {}, signer } = opts;
   // As in embedC2paInPdf: signer + chain bytes frozen once per embed so every
   // pass across the two-pass layout signs identical protected-header bytes.
   const sig: Signer = signer ?? (await generateSigner(dates));
@@ -1895,7 +1922,7 @@ export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOp
   const pad = new Uint8Array(8);
   const dummyHash = new Uint8Array(32);
   const build = (hash: Uint8Array, exclusions: Exclusion[], padBytes: Uint8Array): Promise<Uint8Array> => buildC2paManifest({
-    title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, aiDisclosure, approval, intent, specVersion, dates, format: container.mime,
+    title, claimGenerator, generatorInfo, environment, author, authorship, rights, licence, actions, ingredients, aiDisclosure, approval, intent, specVersion, dates, format: container.mime,
     assetHash: isBmff ? { bmff: true, hash, pad: padBytes } : { exclusions, hash, pad: padBytes },
     ...internals,
   });

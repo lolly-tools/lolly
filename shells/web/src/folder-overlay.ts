@@ -12,6 +12,9 @@
  * gated dynamic import of ./pro/folder-export.js inside the export handler, so the
  * static graph stays /pro-free and the overlay loads from the (pro-free) gallery.
  */
+import { rowPicture } from './lib/session-picture.ts';
+import type { PictureInput } from './bridge/preview-store.ts';
+import { closeButtonHtml } from './lib/close-button.ts';
 import { escape } from './utils.ts';
 import { t, tRaw } from './i18n.ts';
 import { mountModal } from './components/modal.ts';
@@ -43,9 +46,9 @@ interface OverlayHost {
   };
   state: {
     load(slot: string): Promise<Record<string, unknown> | null>;
-    save(slot: string, data: unknown, thumb?: string | null): Promise<unknown>;
+    save(slot: string, data: unknown, picture?: PictureInput): Promise<unknown>;
     /** Write keeping the record's own update and save times (web and Tauri bridges). */
-    restore?(slot: string, data: never, thumb: string | null, updatedAt: string, savedAt?: string): Promise<unknown>;
+    restore?(slot: string, data: never, picture: PictureInput, updatedAt: string, savedAt?: string): Promise<unknown>;
     delete(slot: string): Promise<unknown>;
     list(): Promise<ReadonlyArray<{ slot: string }>>;
   };
@@ -157,7 +160,7 @@ export function openFolderOverlay(host: OverlayHost, opts: FolderOverlayOpts = {
     if (item.type === 'session') {
       const entry = sessionByRef.get(item.ref);
       if (!entry) return null;
-      return isBatchSlot(entry.slot) ? { batch: true } : { thumb: entry.thumb };
+      return isBatchSlot(entry.slot) ? { batch: true } : { thumb: entry.thumb, preview: entry.preview, slot: entry.slot };
     }
     const ref = imageByRef.get(item.ref);
     return ref ? { url: ref.url } : null;
@@ -187,7 +190,7 @@ export function openFolderOverlay(host: OverlayHost, opts: FolderOverlayOpts = {
         <h2 id="folder-overlay-title">${context === 'picker' ? 'Your images &amp; creations' : 'Saved sessions'}</h2>
         <div class="folder-overlay-head-actions">
           ${showCreateFolder ? `<button type="button" class="btn folder-newbtn" data-new-folder>+ New folder</button>` : ''}
-          <button type="button" class="gtile-iconbtn meta-dialog-close" aria-label="Close">&#x2715;</button>
+          ${closeButtonHtml({ className: 'meta-dialog-close' })}
         </div>
       </header>
       ${folders.length ? `<div class="folder-grid folder-grid--folders">${folderTiles}</div>` : ''}
@@ -213,7 +216,7 @@ export function openFolderOverlay(host: OverlayHost, opts: FolderOverlayOpts = {
           ${allowBatchExport ? `<button type="button" class="btn folder-exportbtn" data-export-folder aria-label="Export folder as batch">Export as batch</button>` : ''}
           <button type="button" class="btn" data-rename-folder>Rename</button>
           <button type="button" class="btn folder-deletebtn" data-delete-folder>Delete folder</button>
-          <button type="button" class="gtile-iconbtn meta-dialog-close" aria-label="Close">&#x2715;</button>
+          ${closeButtonHtml({ className: 'meta-dialog-close' })}
         </div>
       </header>
       ${tiles ? `<div class="folder-grid">${tiles}</div>` : `<p class="folder-overlay-empty">This folder is empty - move items in from the “⋯” menu.</p>`}
@@ -414,8 +417,8 @@ export function openFolderOverlay(host: OverlayHost, opts: FolderOverlayOpts = {
         // Re-keyed with its own times kept (plan 277 timing fix): a new slot for
         // a new name is not a new save.
         const times = entry as { updatedAt?: string | null; savedAt?: string };
-        if (host.state.restore && times.updatedAt) await host.state.restore(newSlot, data as never, entry.thumb ?? null, times.updatedAt, times.savedAt);
-        else await host.state.save(newSlot, data, entry.thumb ?? null);
+        if (host.state.restore && times.updatedAt) await host.state.restore(newSlot, data as never, rowPicture(entry), times.updatedAt, times.savedAt);
+        else await host.state.save(newSlot, data, rowPicture(entry));
         await host.state.delete(ref);
         await store.swapSessionSlot(ref, newSlot);
         sessionByRef.delete(ref);
@@ -425,8 +428,8 @@ export function openFolderOverlay(host: OverlayHost, opts: FolderOverlayOpts = {
         sessionByRef.set(ref, { ...entry, label: name });
       }
     } else {
-      // A tool slot is stable; just update its label (thumb preserved).
-      await host.state.save(ref, data, entry.thumb ?? null);
+      // A tool slot is stable; just update its label (picture preserved by reference).
+      await host.state.save(ref, data, rowPicture(entry));
       sessionByRef.set(ref, { ...entry, label: name });
     }
     render();

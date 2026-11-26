@@ -13,10 +13,15 @@ export function installVerifiedToolElements(read: (url: string) => Promise<strin
   const revisions = new WeakMap<Element, number>();
   const apply = (element: Element, value: string, original: (value: string) => void): void => {
     const revision = (revisions.get(element) ?? 0) + 1; revisions.set(element, revision);
-    let address: URL;
-    try { address = new URL(value, location.href); } catch { original(value); return; }
     const instance = new URL(root(), location.href);
     const prefix = instance.pathname.replace(/\/tools\/?$/, '');
+    // A root-relative tool address means the catalog's own file. In the apps the page is
+    // served from the app bundle and the catalog from the organisation's instance, so the
+    // page's address is the wrong base: the bundle answers a file it does not hold with
+    // the app's start page. The guarded fetch in tool-bytes.ts reads the same way.
+    const rooted = value.startsWith('/') && !value.startsWith('//') && protectedPath(value);
+    let address: URL;
+    try { address = rooted ? new URL(prefix + value, instance.origin) : new URL(value, location.href); } catch { original(value); return; }
     const path = prefix && address.pathname.startsWith(prefix + '/') ? address.pathname.slice(prefix.length) : address.pathname;
     if (address.origin !== instance.origin || !protectedPath(path)) { original(value); return; }
     void read(address.href).then(url => {

@@ -48,7 +48,7 @@
  */
 
 import { brandPageAddress } from './brand-page-address.ts';
-import { checkedIntentRecord, encodeCbor, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, LOLLY_EXPORT_ASSERTION, LOLLY_INTENT_ASSERTION } from './c2pa.ts';
+import { checkedIntentRecord, encodeCbor, renditionFromSteps, INTENT_PROMPT_NOTE, LOLLY_APPROVAL_ASSERTION, LOLLY_EXPORT_ASSERTION, LOLLY_INTENT_ASSERTION, APPROVAL_TEMPLATE_ID, isTemplateApproval } from './c2pa.ts';
 import type { C2paApprovalRecord, C2paIntentRecord } from './c2pa.ts';
 // The check-code vocabulary lives in c2pa-verdict.ts (the shared verdict
 // module); every pass/fail below emits through this map so the strings can
@@ -280,6 +280,50 @@ export interface C2paAiDisclosure {
 /** Which C2PA 2.4 text binding carried (or merely referenced) the credential. */
 export type C2paTextBindingKind = 'html' | 'structuredText' | 'text';
 
+/** The licence terms a credential's metadata records (see C2paReport.licence). */
+export interface C2paLicenceTerms {
+  /** The licence's terms page: `cc:license`, else `xmpRights:WebStatement`. */
+  url?: string;
+  usageTerms?: string;
+  attributionName?: string;
+  attributionUrl?: string;
+  /** The credit line: `photoshop:Credit`. */
+  credit?: string;
+}
+
+/**
+ * The licence terms in a JSON-LD metadata record, or null when it holds none. The
+ * record is the signer's own text, so each value is bounded, and an address is kept
+ * only as a plain http(s) URL, whether written as text or as an `@id`.
+ */
+export function readLicenceTerms(meta: unknown): C2paLicenceTerms | null {
+  if (!meta || typeof meta !== 'object') return null;
+  const rec = meta as Record<string, unknown>;
+  const text = (key: string, max = 4096): string | undefined => {
+    const v = rec[key];
+    const s = typeof v === 'string' ? v : Array.isArray(v) && typeof v[0] === 'string' ? v[0] : '';
+    return s.trim() ? s.trim().slice(0, max) : undefined;
+  };
+  const address = (key: string): string | undefined => {
+    const v = rec[key];
+    const s = typeof v === 'string' ? v : v && typeof v === 'object' && typeof (v as { '@id'?: unknown })['@id'] === 'string' ? (v as { '@id': string })['@id'] : '';
+    const t = s.trim();
+    return t.length <= 2048 && /^https?:\/\/[^\s<>"]+$/i.test(t) ? t : undefined;
+  };
+  const out: C2paLicenceTerms = {};
+  const url = address('cc:license') ?? address('xmpRights:WebStatement');
+  if (url) out.url = url;
+  const usageTerms = text('xmpRights:UsageTerms');
+  if (usageTerms) out.usageTerms = usageTerms;
+  const attributionName = text('cc:attributionName', 1024);
+  if (attributionName) out.attributionName = attributionName;
+  const attributionUrl = address('cc:attributionURL');
+  if (attributionUrl) out.attributionUrl = attributionUrl;
+  const credit = text('photoshop:Credit', 1024);
+  if (credit) out.credit = credit;
+  return Object.keys(out).length ? out : null;
+}
+
 /**
  * The text-binding posture, present ONLY for the three 2.4 text formats.
  *
@@ -376,6 +420,11 @@ export interface C2paReport {
   // User-asserted copyright + licence, read back from the credential's own
   // metadata (v2 cawg.metadata dc:rights; v1 CreativeWork copyrightNotice/license).
   rights?: string;
+  // The licence's machine-readable terms and credit, read from the same metadata
+  // assertion (xmpRights:UsageTerms and WebStatement, cc:license,
+  // cc:attributionName and attributionURL, photoshop:Credit). A statement the
+  // signer made, not a verdict on rights. Absent when none of them is recorded.
+  licence?: C2paLicenceTerms;
   signer?: C2paSigner;
   aiGenerated?: C2paAiOrigin;
   // section 18.28 c2pa.ai-disclosure, read for every format. Self-asserted claim
@@ -409,9 +458,10 @@ export interface C2paReport {
   // recorded prompt words, because those are text someone wrote and travel with the file.
   intent?: C2paIntentRecord & { promptNote?: string };
   // An approval a signer recorded in this file (`tools.lolly.approval`): which request
-  // was decided, when and the digest of the file reviewed. A statement the signer made,
-  // to be read with `state` and `trusted`. It is not a verdict on the work, and it
-  // says nothing about what the review covered.
+  // was decided, when, and either the digest of the file reviewed or, for a template's
+  // variants, the template, its version and the digest of the example reviewed. A
+  // statement the signer made, to be read with `state` and `trusted`. It is not a
+  // verdict on the work.
   approval?: C2paApprovalRecord;
   // The brand page address the signer recorded with the design-system record (plan 351
   // B5): read only from a credential that verifies, and only as a plain https address.
@@ -922,12 +972,13 @@ export async function verifyC2pa(
   // stay in the parent, which was signed when the file was made. Read them from there,
   // so an approved file still says what it was made from and still declares any AI use.
   // The active claim signed the parent's hash, so a parent that fails it is a failure
-  // of this credential, and its facts are not read.
+  // of this credential, and its facts are not read. A template's approval is not an
+  // update: it sits in a variant render's own first credential, beside that render's facts.
   let factAssertions = parts.assertions;
   const approvalAssertion = parts.assertions.find((a) => a.label === LOLLY_APPROVAL_ASSERTION);
-  if (approvalAssertion) {
-    const record = readApprovalRecord(approvalAssertion.content);
-    if (record) report.approval = record;
+  const approvalRecord = approvalAssertion ? readApprovalRecord(approvalAssertion.content) : null;
+  if (approvalRecord) report.approval = approvalRecord;
+  if (approvalAssertion && !(approvalRecord && isTemplateApproval(approvalRecord))) {
     const parent = readParentManifest(extracted.manifest, parts);
     if (parent && hexOf(await sha256(parent.payload)) === hexOf(parent.recordedHash)) {
       factAssertions = parent.parts.assertions;
@@ -1011,6 +1062,8 @@ export async function verifyC2pa(
       if (name) report.author = parseCreatorEntry(String(name));
       const rights = meta?.['dc:rights'];
       if (typeof rights === 'string' && rights.trim()) report.rights = rights.trim();
+      const licence = readLicenceTerms(meta);
+      if (licence) report.licence = licence;
     } catch { /* display nicety only */ }
   }
   const creativeWork = factAssertions.find((a) => a.label === 'stds.schema-org.CreativeWork');
@@ -1423,8 +1476,10 @@ export async function verifyC2pa(
   // not merely a delivery), AND it names Lolly as the generator. Requiring the
   // created action keeps the claim honest: a delivered/distributed asset can
   // name Lolly without ever reading as authored by it.
+  // A rendition Lolly made (an opened parent, then the step that says what Lolly did to
+  // it) is a Lolly creation too: its history starts with the parent, not with created.
   const acts = report.claim!.actions || [];
-  const created = acts.some((a) => a.action === 'c2pa.created');
+  const created = acts.some((a) => a.action === 'c2pa.created') || renditionFromSteps(acts) !== undefined;
   const names = [report.claim!.claimGenerator, report.claim!.generatorInfo?.name].filter(Boolean).join(' ');
   const claimsLolly = created && /\blolly\b/i.test(names);
   report.madeWithLolly = report.state === 'valid' && claimsLolly;
@@ -1468,20 +1523,32 @@ export function readIntentRecord(content: Uint8Array): (C2paIntentRecord & { pro
   }
 }
 
-/** The approval record's three fields, or null for any other shape. A record that
- *  claims more than it may is not read as a smaller one. */
-function readApprovalRecord(content: Uint8Array): C2paApprovalRecord | null {
+/** The approval record in one of its two closed shapes, or null for any other. A record
+ *  that claims more than it may is not read as a smaller one, and a template's record
+ *  is never read as a reviewed file's. Exported for the tests that pin both shapes. */
+export function readApprovalRecord(content: Uint8Array): C2paApprovalRecord | null {
   let map: unknown;
   try { map = decodeCbor(content); } catch { return null; }
   if (!(map instanceof Map)) return null;
   const keys = [...map.keys()];
-  if (map.get('version') !== 1 || keys.length !== 4) return null;
+  if (map.get('version') !== 1) return null;
   const approvalId = map.get('approvalId');
   const decidedAt = map.get('decidedAt');
-  const reviewedSha256 = map.get('reviewedSha256');
-  if (typeof approvalId !== 'string' || typeof decidedAt !== 'string' || typeof reviewedSha256 !== 'string') return null;
-  if (!/^sha256:[0-9a-f]{64}$/.test(reviewedSha256)) return null;
-  return { approvalId, decidedAt, reviewedSha256 };
+  if (typeof approvalId !== 'string' || typeof decidedAt !== 'string') return null;
+  const sha = (value: unknown): value is string => typeof value === 'string' && /^sha256:[0-9a-f]{64}$/.test(value);
+  if (keys.length === 4) {
+    const reviewedSha256 = map.get('reviewedSha256');
+    return sha(reviewedSha256) ? { approvalId, decidedAt, reviewedSha256 } : null;
+  }
+  if (keys.length === 7 && map.get('covers') === 'template') {
+    const templateId = map.get('templateId');
+    const templateVersion = map.get('templateVersion');
+    const exampleSha256 = map.get('exampleSha256');
+    if (typeof templateId !== 'string' || !APPROVAL_TEMPLATE_ID.test(templateId)) return null;
+    if (typeof templateVersion !== 'number' || !Number.isSafeInteger(templateVersion) || templateVersion < 1 || !sha(exampleSha256)) return null;
+    return { approvalId, decidedAt, covers: 'template', templateId, templateVersion, exampleSha256 };
+  }
+  return null;
 }
 
 /** @deprecated alias - verifyC2pa sniffs PDFs (and every other container). */

@@ -8,7 +8,7 @@
  * returned as data by describe_tool. See plans/77-mcp-server.md section 3.
  */
 
-import { compileMotionCues, buildInputModel, serializeUrlState, parseUrlState, expandQuery, buildEmbedUrl, ENGINE_VERSION, verifyC2pa, resolveVerdict, defaultTrustAnchors, extractFileMetadata, HDR_DEFAULTS, compileDocument, inspectDocument, diffDocuments, measureDocument, validateDocument } from '@lolly/engine';
+import { compileMotionCues, buildInputModel, serializeUrlState, parseUrlState, parseSpots, expandQuery, buildEmbedUrl, ENGINE_VERSION, verifyC2pa, resolveVerdict, defaultTrustAnchors, extractFileMetadata, HDR_DEFAULTS, compileDocument, inspectDocument, diffDocuments, measureDocument, validateDocument } from '@lolly/engine';
 import type { C2paVerdict } from '@lolly/engine';
 import { applyAuthoredLayerOperations, applyAuthoredLayerPatches, designBrief, expandDesignAuthoringDocument, hasDesignAuthoring, type DesignAuthoringNote, type DesignAuthoringOptions } from '@lolly/engine';
 import { readProfileBriefCatalog, readProfileTokenDocument } from '@lolly-tools/node-shell/design-brief';
@@ -25,7 +25,7 @@ import type { ExportBrandSkill } from '@lolly-tools/core/host-v1';
 import type { ContentBlock, ToolCallResult } from './protocol.ts';
 import { listTools, loadToolCached, loadIndex, listToolTemplates, loadTemplateSeed } from './catalog.ts';
 import { toolInputSchema, fileInputId } from './schema.ts';
-import { render, transform, isTextFormat, normFormat, emojiSets, emojiSetName, resolveEmojiSetName, maxRasterPixelsFor, previewPng, designRecordText, credentialText } from './render.ts';
+import { lockText, render, transform, isTextFormat, normFormat, emojiSets, emojiSetName, resolveEmojiSetName, maxRasterPixelsFor, previewPng, designRecordText, credentialText } from './render.ts';
 import { withHost } from './host.ts';
 import { audioRunText, rondoCapsFor, songCredentialText } from './audio-runs.ts';
 import type { RenderOpts } from './render.ts';
@@ -213,6 +213,13 @@ const EXPORT_ARGS = {
     description: "The design-system record: the design system, its published version and its colourway, plus its brand page address when its publisher opted in, written into the file's metadata and Content Credential, "
       + 'with the colourway beside the tool in the description. ON by default - pass false to leave it out (the `_madewith=0` link param).',
   },
+  spots: {
+    type: 'string',
+    enum: ['process'],
+    description: "How the CMYK formats print the design system's spot inks. Leave it out to keep each spot ink on its own named plate (the default). "
+      + "'process' prints each spot ink with the four process inks, using the CMYK build the design system gives it, so a pdf-cmyk has only the C, M, Y and K plates. "
+      + 'Finishes (foil, emboss, spot varnish, die lines) keep their own plates. The `_spots=process` link param. Nothing about the choice is written into the file.',
+  },
 };
 
 /**
@@ -308,6 +315,8 @@ function exportSettings(args: Record<string, unknown>): MotionExportSettings & {
   durable?: boolean;
   /** RenderOpts' own shape, so a render's options build its link unchanged. */
   madeWith?: boolean | null;
+  /** Spot inks as process for the CMYK formats (the `_spots` param). */
+  spots?: 'process' | null;
 } {
   const rawDepth = args.depth == null ? null : String(args.depth);
   const depth = rawDepth === '8' ? 8 : rawDepth === '16' ? 16
@@ -340,6 +349,8 @@ function exportSettings(args: Record<string, unknown>): MotionExportSettings & {
     ...(args.durable === true ? { durable: true } : {}),
     // The design-system record is default-on too, so only the opt-out travels.
     ...(args.madeWith === false ? { madeWith: false } : {}),
+    // Opt-in: only `process` asks; anything else keeps the spot plates.
+    ...(parseSpots(typeof args.spots === 'string' ? args.spots : null) ? { spots: 'process' as const } : {}),
   };
 }
 
@@ -438,7 +449,11 @@ export const TOOL_DEFS: McpToolDef[] = [
             + 'Left out, a browser-free render has none and a browser-tier render (PDF, or a tool laid out in HTML) keeps the one the web shell stamps. '
             + 'When you pass it, the result says what the file holds, read back from the file.',
         },
-        password: { type: 'string', description: 'Open-password for standard PDF export (never logged).' },
+        password: {
+          type: 'string',
+          description: 'Open password for a "pdf" or "zip" (40-bit RC4 on a PDF, ZipCrypto on a ZIP: a deterrent, not protection for confidential files). '
+            + 'Never logged and never put in a URL. The file is read back and the result says so. Any other format, a PDF with bleed or marks, or a non-ASCII PDF password fails the call with no file.',
+        },
         link: { type: 'boolean', description: 'Also return the editable lolly.tools link (default true).' },
         ...RENDER_INTENT_ARGS,
       },
@@ -777,6 +792,9 @@ function buildLinks(manifest: ToolManifest, inputs: Record<string, unknown>, o: 
     imprint: o.imprint,
     durable: o.durable,
     ...(o.madeWith === false ? { madeWith: false } : {}),
+    // Spot inks as process rides the link like the press setup above, and the browser
+    // tier reads it from this same query.
+    spots: o.spots ?? null,
     // The set and its treatment travel too: a link whose emoji did not would
     // draw placeholders for whoever opens it, and the browser tier reads its
     // artwork from this same query.
@@ -905,6 +923,19 @@ function verifyText(name: string, report: VerifyReport, headline: string): strin
     for (const limit of sources.limits) lines.push(`  ${limit}`);
   }
   return lines.join('\n');
+}
+
+/** The `password` argument. Anything but a string fails the call: it must not become a file with no lock. */
+function renderPassword(args: Record<string, unknown>): string | undefined {
+  // `lolly_render` takes no query, and an unknown argument is otherwise ignored. A password
+  // in one is a request that must not come back as a file with no lock.
+  if (typeof args.query === 'string' && new URLSearchParams(args.query.replace(/^[^?]*\?/, '')).has('password')) {
+    throw new Error('Pass the password in the password argument, not in a query. Nothing was written.');
+  }
+  const value = args.password;
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== 'string') throw new Error('password must be a string.');
+  return value;
 }
 
 function c2paSetting(v: unknown): RenderOpts['c2pa'] {
@@ -1109,7 +1140,7 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
           colorProfile: args.colorProfile as string | undefined,
           transparentBg: args.transparentBg as boolean | undefined,
           convertPaths: args.convertPaths as boolean | undefined,
-          password: args.password as string | undefined,
+          password: renderPassword(args),
           c2pa: c2paSetting(args.c2pa),
           ...(args.c2pa !== undefined && args.c2pa !== null ? { c2paAsked: true } : {}),
           maxRasterPixels: maxRasterPixelsFor(process.env, isHostedServer()),
@@ -1163,6 +1194,8 @@ export async function callTool(name: string, args: Record<string, unknown>, hold
           intentRecordText(!intended ? null : intended.optedOut ? { state: 'not-recorded', reason: 'opted-out' } : result.intentRecord ?? { state: 'not-recorded', reason: 'not-confirmed' }, result.credentialFromIntent === true),
           // What an explicit `c2pa` asked for and what the delivered file holds.
           credentialText(result.credential),
+          // The password lock, read back from the delivered file.
+          lockText(result.lock),
         ].filter(Boolean).join('\n');
 
         const content: ContentBlock[] = [{ type: 'text', text: header }];

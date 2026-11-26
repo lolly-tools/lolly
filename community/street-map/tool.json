@@ -3,7 +3,7 @@
   "name": "Street Map",
   "description": "Clean vector street-block maps of any city. Works offline.",
   "a11yLabel": "Street map centered on {{city}}",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "designer",
@@ -37,7 +37,6 @@
       "label": "City",
       "type": "select",
       "default": "nuremberg",
-      "help": "Add more cities offline with scripts/build-street-clips.ts - no API at render time.",
       "options": [
         { "value": "amsterdam", "label": "Amsterdam" },
         { "value": "athens", "label": "Athens" },

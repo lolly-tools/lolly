@@ -21,12 +21,13 @@ import { existsSync, writeFileSync } from 'node:fs';
 import { join, resolve, extname, normalize } from 'node:path';
 import { getBrowser, BrowserError } from './browsers.ts';
 import {
-  desktopInstalled, launchRenderServer, readRenderServer, renderThroughRungs,
+  DesktopRendererError, desktopInstalled, launchRenderServer, readRenderServer, renderThroughRungs,
   rendererPreference, renderViaRenderServer, type RendererDrivers,
 } from './desktop-renderer.ts';
 import { repoRoot } from './repo-root.ts';
 import { catalogFile, readAssetIndex, toolFile } from './content-roots.ts';
 import { waitForExport, type ExportWait } from './export-wait.ts';
+import { exposeExportPassword } from './export-lock.ts';
 import { waitForShellStartup } from './shell-startup.ts';
 import type { ConsoleMessage, Page } from 'playwright-core';
 import { OpenSessionError, checksInOpenedPage, openRouteRefusal, openSessionInPage, packageDesignSession, sessionExportQuery, shortenUrls } from './open-session.ts';
@@ -137,7 +138,7 @@ function serveDist(): Promise<Served> {
 
 // Reserved params we set ourselves on the export URL. Cleared from the inbound query
 // first so the export dims/format/password win over anything the saved session encoded.
-const EXPORT_URL_RESERVED = ['format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options', 'fps', 'seconds', 'wait', 'codec', 'vq', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange'];
+const EXPORT_URL_RESERVED = ['_keepinlinedc2pa', 'format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options', 'fps', 'seconds', 'wait', 'codec', 'vq', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', '_spots', '_text'];
 
 export function exportUrl(base: string, toolId: string, query: string, fmt: string, dims: RenderDims): string {
   const p = new URLSearchParams(query);
@@ -151,7 +152,8 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   if (dims.width && dims.width > 0) p.set('width', String(dims.width));
   if (dims.height && dims.height > 0) p.set('height', String(dims.height));
   if (unit !== 'px') { p.set('unit', unit); p.set('dpi', String(dims.dpi || 300)); }
-  if (dims.password) p.set('password', dims.password);   // standard PDF open-password
+  // The export password is never written here: an address reaches logs, command lines and
+  // error messages. renderViaChromiumShell hands it over on a one-time browser binding.
   // Print prep + provenance controls the web auto-export already honours (tool.ts reads
   // ?bleed/?marks/?imprint/?profile/?c2pa via parseUrlState). Threading them here is the
   // whole of the P3 fix: the geometry/watermark/press-intent lives in the web shell; the
@@ -168,6 +170,11 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   // travels (plans/319): --no-madewith reaches the browser tier as `_madewith=0`.
   if (dims.madeWith === false) p.set('_madewith', '0');
   if (dims.pressProfile) p.set('profile', dims.pressProfile);    // URL 'profile' = CMYK press condition
+  // Spot inks as process for the CMYK formats: opt-in, so only the request travels.
+  if (dims.spotsAsProcess) p.set('_spots', 'process');
+  // EMF text as outlines (`--text=outline`): the web default keeps live text records, so
+  // only the request travels.
+  if (dims.textOutline) p.set('_text', 'outline');
   // Content Credentials: forward the setting so the web shell is the single c2pa authority
   // for the browser tier (the Node post-stamp is skipped when this path ran; see run.ts /
   // engine-render.ts, which avoids the pre-existing double-stamp).
@@ -190,7 +197,12 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
     if (v.codec) p.set('codec', v.codec);
     if (v.quality) p.set('vq', v.quality);
   }
-  if (dims.c2pa === false) p.set('c2pa', 'off');
+  if (dims.c2pa === false) {
+    p.set('c2pa', 'off');
+    // This shell stamps afterwards, or resolved a tool's default: nobody asked for an inlined
+    // picture's own credential to go, so the web shell leaves those bytes alone.
+    if (dims.keepInlinedC2pa) p.set('_keepinlinedc2pa', '1');
+  }
   else if (dims.c2pa) p.set('c2pa', [7, 30, 90, 365].includes(Number(dims.c2paDays)) ? String(dims.c2paDays) : '1');
   p.set('export', '1'); // presence flag → the web shell auto-exports on load
   return `${base}/#/tool/${encodeURIComponent(toolId)}?${p.toString()}`;
@@ -341,7 +353,7 @@ export interface RenderDims extends ProductionBrowserOptions {
   /** Effective UI/content language forwarded to the browser runtime. */
   lang?: string;
   width?: number; height?: number; unit?: string; dpi?: number;
-  /** Standard PDF open-password (basic RC4 lock). */
+  /** Standard open-password for a `pdf` or `zip` (export-lock.ts). Never travels in the export URL. */
   password?: string;
   /** Bleed amount as a dimension string (e.g. "3mm") for the print formats. */
   bleed?: string;
@@ -366,6 +378,12 @@ export interface RenderDims extends ProductionBrowserOptions {
   /** CMYK press condition (e.g. "fogra39") for pdf-cmyk / cmyk-tiff. Named distinctly
    *  from the CLI's --profile (the user-profile FILE) to avoid the url-mode collision. */
   pressProfile?: string;
+  /** Print every declared spot ink as its process build in the CMYK formats, forwarded
+   *  as `_spots=process`. Absent or false writes nothing, so the spot plates stay. */
+  spotsAsProcess?: boolean;
+  /** Draw EMF text as vector outlines, forwarded as `_text=outline` (the export panel's
+   *  Outline fonts box). Absent or false writes nothing, so the text stays live. */
+  textOutline?: boolean;
   /** Content Credentials: true/off/undefined. undefined ⇒ the web shell's tool default. */
   c2pa?: boolean | null;
   /** The design-system record (plans/319). `false` = the explicit opt-out, forwarded as
@@ -373,6 +391,8 @@ export interface RenderDims extends ProductionBrowserOptions {
   madeWith?: boolean | null;
   /** Ephemeral-certificate lifetime in days (7/30/90/365) when c2pa is on. */
   c2paDays?: number | null;
+  /** `c2pa: false` here is not the caller's opt-out, so a manifest inlined artwork brought stays. */
+  keepInlinedC2pa?: boolean;
   /** The deck state address (url-mode's `s`, plan 112): a 1-based slide position, a frame
    *  id, or either with an `.N` build suffix. Forwarded so the web shell's per-slide export
    *  fan-out renders just that slide - the browser tier is the CLI's still-export path for
@@ -596,13 +616,19 @@ async function renderViaChromiumShell(
   const browser = await getBrowser();
   const ctx = await browser.newContext({ serviceWorkers: 'block', acceptDownloads: true });
   let waiting: ExportWait | undefined;
+  let clearPassword = (): void => {};
   try {
+    clearPassword = await exposeExportPassword(ctx, dims.password);
     const page = await ctx.newPage();
     // The internal export route override travels to the page, which routes Design stills itself (plan 326).
     const route = forwardedExportRoute();
     if (route) await page.addInitScript(([key, value]: string[]) => { try { localStorage.setItem(key!, value!); } catch { /* storage blocked */ } }, ['lolly.exportRoute', route]);
     const observeInputs = await observeProductionInputs(page, toolId, dims.productionInputIds ?? []);
     debug.attach(page);
+    page.on('console', (message: ConsoleMessage) => {
+      const line = sessionExportNote(message.type(), message.text());
+      if (line && (PICTURE_NOTES.some((note) => message.text().startsWith(note)) || message.text().startsWith(FILL_NOTE))) process.stderr.write(`Note: ${line}\n`);
+    });
     waiting = await waitForExport(page, format);
     const downloadP = waiting.result;
     debug.step('open the tool page');
@@ -625,6 +651,7 @@ async function renderViaChromiumShell(
     throw withDebugLog(err, `${toolId}.${format}`, debug);
   } finally {
     waiting?.dispose();
+    clearPassword();
     await ctx.close();
   }
 }
@@ -650,6 +677,15 @@ export async function renderViaWebShell(
   toolId: string, query: string, format: string, dims: RenderDims = {},
 ): Promise<{ bytes: Uint8Array; mime: string }> {
   const preference = rendererPreference();
+  // A desktop rung takes the whole job as one address and starts its renderer with that
+  // address on a command line, which any user on the machine can read. The rung has no
+  // private way to take a secret, so a locked file goes to Chromium only.
+  if (dims.password) {
+    if (preference === 'desktop') {
+      throw new DesktopRendererError('LOLLY_RENDERER=desktop cannot lock a file: the desktop renderer has no private way to take a password. Nothing was written. Use LOLLY_RENDERER=chromium or auto.');
+    }
+    return renderViaChromiumShell(toolId, query, format, dims);
+  }
   // The URL is a transport envelope for the desktop rungs. The app extracts its tool
   // id and query, then loads its OWN embedded origin in the off-screen WebView, so
   // the host part is never fetched.
@@ -1035,9 +1071,16 @@ async function exportOpenedSession(
  * `host.log('warn', 'pptx: …')` prints `[warn] pptx: …`; the note is the `pptx: …` part.
  */
 export function sessionExportNote(type: string, text: string): string | null {
-  if (type !== 'warning' || !text.startsWith('[warn] pptx: ')) return null;
+  if (type === 'info' && text.startsWith(FILL_NOTE)) return text.slice('[info] '.length, '[info] '.length + 2000).trimEnd();
+  if (type !== 'warning' || !(text.startsWith('[warn] pptx: ') || PICTURE_NOTES.some((note) => text.startsWith(note)))) return null;
   return text.slice('[warn] '.length, '[warn] '.length + 2000).trimEnd();
 }
+
+/** What a PDF, EMF, EPS or WMF tells the person when it drew text as pictures (export-pdf-text-picture.ts). */
+const PICTURE_NOTES = ['pdf', 'emf', 'eps', 'wmf'].map((f) => `[warn] ${f}: This ${f.toUpperCase()} draws some text as pictures`);
+
+/** What an export tells the person when fallback fonts drew some of its text (font-fill.ts). */
+const FILL_NOTE = '[info] fonts: ';
 
 /** The RenderDims of a session export: the frame and provenance options laid over `dims`. */
 function sessionDims(opts: ExportDesignSessionOptions): RenderDims {

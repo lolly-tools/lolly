@@ -1,6 +1,6 @@
 {
   "name": "Slide Markdown",
-  "description": "Biến Markdown hoặc một đặc tả JSON thành bộ slide PowerPoint gốc, có thể chỉnh sửa - văn bản thật, dấu đầu dòng, bảng biểu và giao diện hệ thống thiết kế - chỉ trong vài giây. Đây là con đường nhanh, ưu tiên văn bản để tạo bộ slide; hãy dùng canvas Design khi bạn muốn dàn trang từng slide bằng tay hoặc tạo hiệu ứng động cho chúng. Biểu đồ và sơ đồ lấy từ các công cụ Lolly khác của bạn. Xuất file .pptx (chỉnh sửa được), cùng với PDF và PNG.",
+  "description": "Biến Markdown hoặc một đặc tả JSON thành bộ slide PowerPoint gốc, có thể chỉnh sửa. Xuất file .pptx (chỉnh sửa được), cùng với PDF và PNG.",
   "a11yLabel": "Bản trình chiếu có {{_slideCount}} trang chiếu",
   "inputs.size.label": "Kích thước bộ slide",
   "inputs.size.help": "Một kích thước cho toàn bộ bộ trình chiếu - PowerPoint áp dụng cùng kích thước cho mọi trang chiếu.",

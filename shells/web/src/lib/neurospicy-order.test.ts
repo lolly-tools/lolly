@@ -53,11 +53,19 @@ test('listLoops returns tracks grouped in NEURO_CATEGORY_ORDER, alphabetical wit
   assert.deepEqual(runs, [...new Set(runs)], 'a category was split into more than one run');
   const declared = NEURO_CATEGORY_ORDER.filter((k) => runs.includes(k));
   assert.deepEqual(runs, declared);
-  // The exact list a user reads in the picker (catalog → uploads → lolly → ambient → beats → radio…).
-  assert.deepEqual(names(loops).slice(0, 8), [
+  // The exact list a user reads in the picker (catalog → uploads → lolly → Lofi stations → ambient → beats → radio…).
+  assert.deepEqual(names(loops).slice(0, 81), [
     'Bed A',                        // catalog
     'A First Upload', 'My Take Two',// uploads, A→Z
-    'Amber Glow', 'Drift',          // Lolly Sings (zzfxm), A→Z
+    'Lolly Sings', 'Lolly Sings · Sugar', 'Lolly Sings · Sherbert', 'Lolly Sings · K-pop', 'Lolly Sings · Straya', 'Lolly Sings · Arnhem Land', 'Lolly Sings · Persian', 'Lolly Sings · Guzheng', 'Lolly Sings · Koto', 'Lolly Sings · Kora', 'Lolly Sings · Afrobeat', 'Lolly Sings · Amapiano', 'Lolly Sings · Chiptune', 'Lolly Sings · City pop',
+    'Lolly Sings · Funk', 'Lolly Sings · Soul', 'Lolly Sings · R&B', 'Lolly Sings · Nu-disco', 'Lolly Sings · Lofi house', 'Lolly Sings · Hip hop',
+    'Lolly Sings · Trip hop', 'Lolly Sings · Reggae', 'Lolly Sings · Ska', 'Lolly Sings · Spanish guitar', 'Lolly Sings · Rock', 'Lolly Sings · Punk', 'Lolly Sings · Grunge', 'Lolly Sings · Stoner rock', 'Lolly Sings · Metal',
+    'Lolly Sings · Country', 'Lolly Sings · Blues', 'Lolly Sings · Jazz', 'Lolly Sings · Swing', 'Lolly Sings · Fantasy', 'Lolly Sings · Dreamscape', 'Lolly Sings · Shoegaze',
+    'Lolly Sings · Synthwave', 'Lolly Sings · Acid', 'Lolly Sings · Electro', 'Lolly Sings · Dubstep',
+    'Lolly Sings · Brostep', 'Lolly Sings · D&B', 'Lolly Sings · Bouncy D&B', 'Lolly Sings · Dark D&B', 'Lolly Sings · Soaring D&B', 'Lolly Sings · Deep D&B', 'Lolly Sings · Rave D&B', 'Lolly Sings · Salsa', 'Lolly Sings · Surf rock', 'Lolly Sings · Yacht rock', 'Lolly Sings · Botanica', 'Lolly Sings · Oompa', 'Lolly Sings · Mandopop', 'Lolly Sings · C-Pop', 'Lolly Sings · Breakbeat', 'Lolly Sings · Funky house', 'Lolly Sings · UK garage', 'Lolly Sings · Private school piano', 'Lolly Sings · Noosacore', 'Lolly Sings · Jungle', 'Lolly Sings · Trailer', 'Lolly Sings · Italo disco', 'Lolly Sings · Balearic', 'Lofi · Warm', 'Lofi · Late night',
+    'Lofi · Rainy', 'Lofi · Focus', 'Lofi · Drift', 'Lofi · Slow jam', 'Lofi · Retro bounce', 'Lofi · Bookstore', 'Lofi · Zen', 'Lofi · Cinematic',
+                                    // the generated stations lead the Lolly Sings group, Lofi last…
+    'Amber Glow', 'Drift',          // …then any Lolly Sings songs (zzfxm), A→Z
     'Calm Tide',                    // ambient (lofi)
     'Aero Beat', 'Zulu Beat',       // beats, A→Z
   ]);
@@ -97,4 +105,34 @@ test('the play-through advance skips radio, a pressed Next does not', async () =
   await setNeurospicyLoop(host, lastLocal.id);
   await cycleNeurospicyLoop(host, 1, { skipStreams: true });
   assert.equal(getNeurospicy().loopId, loops[0]!.id);
+});
+
+test('Shuffle genres moves to another genre, and counts Lofi\'s flavours as one genre', async () => {
+  const { shuffledStation } = await import('./neurospicy.ts');
+  const { LOFI_ONLY_MOODS, LOFI_STATION_MOODS, lofiMoodOf } = await import('./neurospicy-lofi.ts');
+  let n = 1;
+  const rand = (): number => { n = (n * 1664525 + 1013904223) >>> 0; return n / 2 ** 32; };
+  const seen = new Map<string, number>();
+  for (let i = 0; i < 20000; i++) {
+    const to = lofiMoodOf(shuffledStation('lofi:jazz', rand))!;
+    assert.notEqual(to, 'jazz', 'never the genre playing');
+    const genre = LOFI_ONLY_MOODS.includes(to) ? 'lofi' : to;
+    seen.set(genre, (seen.get(genre) ?? 0) + 1);
+  }
+  const genres = LOFI_STATION_MOODS.length - LOFI_ONLY_MOODS.length + 1 - 1;   // Lofi once, jazz left out
+  assert.equal(seen.size, genres, 'every other genre comes up');
+  const share = (seen.get('lofi') ?? 0) / 20000;
+  assert.ok(Math.abs(share - 1 / genres) < 0.01, `Lofi is one share of a shuffle, not ten (${(share * 100).toFixed(1)}%)`);
+  // A hidden genre never comes up, a hidden flavour neither, and a starred genre comes up about three times as often.
+  const prefs = { hidden: new Set(['rock', 'lofiZen']), favourites: new Set(['ska']) };
+  let ska = 0, soul = 0;
+  for (let i = 0; i < 30000; i++) {
+    const to = lofiMoodOf(shuffledStation('lofi:jazz', rand, prefs))!;
+    assert.ok(to !== 'rock' && to !== 'lofiZen', `${to} is hidden`);
+    if (to === 'ska') ska++;
+    if (to === 'soul') soul++;
+  }
+  assert.ok(ska / soul > 2.3 && ska / soul < 3.8, `a starred genre came up ${(ska / soul).toFixed(2)} times as often`);
+  // From a flavour of Lofi, the next genre is not Lofi again.
+  for (let i = 0; i < 500; i++) assert.ok(!LOFI_ONLY_MOODS.includes(lofiMoodOf(shuffledStation('lofi:rainy', rand))!));
 });

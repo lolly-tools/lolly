@@ -1,6 +1,6 @@
 {
   "name": "Sahiplenme",
-  "description": "Zaten oluşturduğunuz herhangi bir medyada - görsel, PDF, video veya ses - adınızı hak edin. Yazarınızı, telif hakkınızı ve lisansınızı İçerik Kimlik Bilgileri olarak damgalayın (kalıcı bir raster Damga da dahil), dosyanın içindeki mevcut kimlik bilgilerini koruyarak - hepsi cihazınızda, herhangi bir yere yüklemeden önce.",
+  "description": "Adınızı herhangi bir medyada hak edin - görsel, PDF, video veya ses. Yazarınızı, telif hakkınızı ve lisansınızı İçerik Kimlik Bilgileri olarak cihazınızda damgalayın.",
   "a11yLabel": "Kimlik bilgilerini görseline göm",
   "inputs.creator.label": "Sanatçı / yazar",
   "inputs.creator.help": "Adın - görselin yazarı/oluşturucusu olarak gömülür (EXIF Artist, XMP dc:creator ve Content Credential).",

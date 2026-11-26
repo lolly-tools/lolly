@@ -1,6 +1,6 @@
 {
   "name": "QR kód",
-  "description": "QR kódy pro odkaz, kontaktní kartu, síť Wi-Fi, událost v kalendáři, polohu nebo prostý text.",
+  "description": "Skenovatelné kódy všeho druhu: QR, Micro QR, Data Matrix, Aztec a PDF417 - plus maloobchodní a logistické čárové kódy od EAN-13 po MaxiCode.",
   "a11yLabel": "QR kód odkazující na {{default url \"(žádná adresa URL)\"}}",
   "featured.blurb": "QR kódy v libovolné barvě značky",
   "inputs.url.label": "URL",

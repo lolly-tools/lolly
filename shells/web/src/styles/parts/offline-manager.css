@@ -40,7 +40,7 @@
 .odl-tagscope summary {
   cursor: pointer;
   font-size: var(--fs-sm);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   width: fit-content;
 }
 .odl-tagchips {
@@ -205,7 +205,7 @@
 .odl-row-icon {
   flex: none;
   display: inline-flex;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 .odl-row-icon svg {
   width: calc(20px * var(--a11y-fs));
@@ -247,7 +247,7 @@
   transition: color var(--dur-1), background var(--dur-1);
 }
 .odl-pin:hover {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   background: hsl(var(--primary) / 0.08);
 }
 .odl-pin svg {
@@ -277,7 +277,7 @@
 .odl-pin.is-pinned:not(.is-busy) .pin-dl { opacity: 0; transform: scale(0.6); }
 .odl-pin.is-busy .pin-done { opacity: 0; }
 .odl-pin.is-pinned:not(.is-busy) .pin-done { opacity: 1; transform: none; }
-.odl-pin.is-pinned { color: hsl(var(--primary)); }
+.odl-pin.is-pinned { color: hsl(var(--primary-text)); }
 .odl-pin .pin-done svg circle { fill: hsl(var(--primary)); stroke: hsl(var(--primary)); }
 .odl-pin .pin-done svg path { stroke: hsl(var(--primary-foreground)); fill: none; }
 .odl-pin.is-celebrating .pin-done svg circle { animation: odl-pop 0.45s var(--ease-spring); transform-origin: 50% 50%; }

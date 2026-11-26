@@ -1,50 +1,53 @@
-# Lolly 逐工具对比
+# Lolly 與各項工具的比較
 
-如果你已经在使用另一款产品，这些页面会说明 Lolly 是取代那款产品、与它并用，还是不适合你的工作。每一页都从另一款产品做得更好的地方开始。
+這些頁面說明 Lolly 能否取代另一項產品、能否與它搭配使用，或是否不適合你的工作。每頁都先說明另一項產品做得更好的地方。
 
-_最后核查：2026 年 9 月 28 日。_
+_最後查核：2026 年 9 月 28 日。_
 
-## 按产品对比
+<!--i:eti-grid-->
+## 依產品比較
 
-- [Lolly 与 Canva](/info/compare-canva.html) - 模板、日常设计和共享的品牌制作。
-- [Lolly 与 Adobe](/info/compare-adobe.html) - 编辑、转换、专业输出和 Content Credentials。
-- [Lolly 与 Figma](/info/compare-figma.html) - 设计、实时协作和可复用素材的制作。
-- [Lolly 与 Penpot](/info/compare-penpot.html) - 开源设计、共享令牌和组织工作。
-- [Lolly 与品牌门户](/info/compare-brand-portals.html) - 已批准的素材库、锁定的模板、身份、审阅和报告。
-- [Lolly 与渲染 API](/info/compare-render-apis.html) - 在你的设备上、CI 中或 Lolly Work 服务器上自动生成。
-- [Lolly 与在线文件转换器](/info/compare-converters.html) - 在你自己的设备上进行格式转换。
+- [Lolly 與 Canva](/info/compare-canva.html) - 範本、日常設計與共用品牌製作流程。
+- [Lolly 與 Adobe](/info/compare-adobe.html) - 編輯、轉換、專業輸出與 Content Credentials。
+- [Lolly 與 Figma](/info/compare-figma.html) - 設計、即時協作與可重複使用的素材製作。
+- [Lolly 與 Penpot](/info/compare-penpot.html) - 開源設計、共用 token 與組織工作。
+- [Lolly 與品牌入口網站](/info/compare-brand-portals.html) - 已核准的資料庫、鎖定的範本、身分、審閱與報表。
+- [Lolly 與渲染 API](/info/compare-render-apis.html) - 在你的裝置、CI 或自己的伺服器上自動生成，以及[如何從 Bannerbear 或 Placid 遷移](/info/work-move-from-render-api.html)。
+- [Lolly 與線上檔案轉換器](/info/compare-converters.html) - 在你自己的裝置上轉換格式。
 
-如需逐项能力对比，请参阅[Lolly 如何对比](/info/positioning.html)。每项对比均标注日期；若某项说法已不再符合任一产品的现状，则需要更正。
+[Lolly 功能比較](/info/positioning.html)提供逐項功能的比較。每份比較都標有日期。若某項陳述不再符合任一產品的現況，就需要更正。
 
-## 什么在哪里运行
+<!--i:eti-map-pin-->
+## 各部分在哪裡執行
 
-每一项对比都涉及同一个开源项目的两个部分。**Lolly** 是引擎、应用和工具。**Lolly Work** 是组织服务器，在 [lolly-work 仓库](https://github.com/lolly-tools/lolly-work)中维护。两者都采用 MPL-2.0，组织自己决定开启哪些 Lolly Work 服务。
+每份比較都涵蓋同一個開源專案的兩個部分。**Lolly** 是引擎、應用程式與工具。**Lolly Work** 是組織伺服器，在 [lolly-work 儲存庫](https://github.com/lolly-tools/lolly-work)中維護。兩者皆採用 MPL-2.0，組織可決定開啟哪些 Lolly Work 服務。
 
 ::: cols
-## 在你的设备上：Lolly
+## 在你的裝置上：Lolly
 
-- 独立使用无需账号
-- 制作、编辑、转换和导出
-- 所需的工具和素材保存后可离线使用
-- 在设备上签名的 Content Credentials
-- 两台设备之间的私密协作，无需服务器
+- 獨立使用不需要帳號
+- 製作、編輯、轉換與匯出
+- 所需工具與素材儲存後即可離線運作
+- 在裝置上簽署 Content Credentials
+- 兩部裝置之間的私人協作，不需要伺服器
 
-## 在你所在组织的服务器上：Lolly Work
+## 在你組織的伺服器上：Lolly Work
 
-- 单点登录、SCIM 开通、角色和政策
-- 共享目录、团队项目和工作协作
-- 审批、使用情况报告和审计记录
-- 服务器渲染、可恢复的作业和经批准的交付
-- 使用组织身份的服务器签名
+- 單一登入、SCIM 佈建、角色與政策
+- 共用目錄、團隊專案與工作協作
+- 核准、使用情況報表與稽核記錄
+- 伺服器渲染、可復原的工作與經核准的交付
+- 以組織身分在伺服器上簽署
 :::
 
-独立使用让文件留在设备上。选择共享项目、工作协作、服务器渲染或交付，会把该功能所需的数据发送到你所在组织的服务器。
+獨立使用時，檔案保留在裝置上。選擇共用專案、工作協作、伺服器渲染或交付時，該功能所需的資料會傳送到你組織的伺服器。
 
-## 每项对比的前提
+<!--i:eti-info-->
+## 每份比較的前提
 
-这些限制适用于这一组中的每个页面，所以在这里一次性说明：
+以下限制適用於這一系列的每個頁面：
 
-- **Lolly Work 协作目前运行在单个服务器节点上。** 它们的规模和运营历史与长期存在的托管产品不同。[Lolly Work 状态与路线图](/info/work-status.html)记录了当前的限制。
-- **[lolly.work](https://lolly.work) 上的站点是演示沙盒。** 持久的组织部署需要持久存储和一位运营者；[安装 Lolly Work](/info/work-install.html) 涵盖两者。
-- **Lolly 或自托管的 Lolly Work 没有按席位收取的软件许可费用。** 托管、存储和运营仍然需要花钱。
-- **签名不等于受信任的签名者。** 验证者必须先信任为文件签名的证书，才会把签名者显示为受信任；[Content Credentials 身份](/info/content-credentials-identity.html)解释了方法。
+- **Lolly Work 協作目前在單一伺服器節點上執行。** 其規模與運作歷史和經營多年的託管產品不同。[Lolly Work 現況與路線圖](/info/work-status.html)記錄了目前的限制。
+- **[lolly.work](https://lolly.work) 網站是示範沙箱。** 可長期運作的組織部署需要持久儲存與營運人員。[安裝 Lolly Work](/info/work-install.html)涵蓋這兩項。
+- **Lolly 與自行託管的 Lolly Work 都不收取按人數計費的軟體授權費。** 託管、儲存與營運仍有成本。
+- **有簽章不代表簽署者受信任。** 只有在驗證器信任簽署檔案的憑證時，才會將簽署者顯示為受信任。[Content Credentials 身分](/info/content-credentials-identity.html)說明了運作方式。

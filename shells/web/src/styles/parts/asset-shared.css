@@ -27,6 +27,8 @@
    cluster (both position:fixed), matching .projects' own clearance. */
 /* (Footer clearance comes from #view's shared .has-search-footer padding - gallery.css.) */
 .catalog { padding: 52px 20px 0; min-height: 100vh; box-sizing: border-box; }
+/* The Sources button opens the page in its top-left corner, where the system may hold a side. */
+.catalog > [data-browse-sources] { margin-left: var(--safe-left); }
 
 /* ── Toolbar - a floating pill that sticks to the top as you scroll past the header, so
    the filetype filter + Expand/Collapse-all + Hide-hidden stay reachable everywhere. It's
@@ -34,9 +36,10 @@
    toggle top-left, profile/history cluster top-right) instead of underlapping it. */
 .cat-toolbar {
   position: sticky;
-  /* Pin BELOW the fixed top chrome - the centred view toggle (Tools|Projects|Catalog) and
-     the profile cluster both live in the top ~48px band; sitting there would overlap them. */
-  top: calc(var(--sp-8) *2.06);
+  /* Pin BELOW the fixed top chrome: the centred view toggle and the profile cluster. Their
+     band is var(--chrome-top) down and var(--chrome-h) tall, and both grow with a system
+     inset or larger touch targets, so a fixed offset ends up under them. */
+  top: calc(var(--chrome-top) + var(--chrome-h) + 0.75rem);
 
   z-index: 50;
   display: flex; align-items: center; gap: var(--sp-5);
@@ -94,7 +97,7 @@
 
 .catalog .cat-group-chevron { display: inline-flex; transition: transform var(--dur-2) ease; color: hsl(var(--muted-foreground)); }
 /* Per-category glyph (lib/category-icons.ts) - sits between the chevron and title. */
-.catalog .cat-group-icon { display: inline-flex; flex-shrink: 0; color: var(--ui-color-action-primary); opacity:.5;}
+.catalog .cat-group-icon { display: inline-flex; flex-shrink: 0; color: var(--ui-color-text-accent); opacity:.5;}
 .catalog .cat-group:not(.is-collapsed) .cat-group-chevron { transform: rotate(90deg); }
 .catalog .cat-group-title {
   font-size: calc(1.05rem * var(--a11y-fs)); font-weight: 700;
@@ -140,18 +143,24 @@
   overflow: hidden;
 }
 
-/* Artwork drawn for one surface gets that surface when the chrome is the other way
-   round (views/assets/shared.ts tileGround). A two-colour icon's default pairing is a
-   dark base under a bright accent, and a logo tagged on-light is dark ink: both read
-   on light. A logo tagged on-dark is light ink. light-dark() follows the colour scheme
-   the chrome actually uses, so a dark Brand theme counts as dark too. The ground goes
-   on the thumbnail, which fills the figure, so the checker and the selected tint
-   underneath are untouched where no ground is needed. The foreground token is the
-   light ink of a dark scheme and the dark ink of a light one. A chosen icon pairing
-   that needs a ground of its own sets it inline (wiring.ts retheemeGroup, previewBg). */
-.cat-tile-fig--duo .cat-thumb,
-.cat-tile-fig--on-light .cat-thumb { background-color: light-dark(transparent, hsl(var(--foreground))); }
-.cat-tile-fig--on-dark .cat-thumb { background-color: light-dark(hsl(var(--foreground)), transparent); }
+/* Every asset sits on one soft checkerboard in the app's own scheme (object-tiles.css).
+   The Assets toolbar's Dark ground switch (views/assets/shared.ts readAssetGround) can
+   turn it the other way round, so a reverse logo or a light icon pairing is checked on
+   the kind of surface it is drawn for. The other ground is mixed from the theme's own
+   ink and canvas, so it follows every theme: near-ink tones under a light theme, near
+   paper tones under a dark one. Both the grid and the details sheet carry the mark.
+   A selected tile keeps its accent tint on either ground. */
+:is(.catalog, .cat-details)[data-ground-flipped] {
+  --asset-ground-a: color-mix(in srgb, var(--ui-color-text-default) 91%, var(--ui-color-surface-canvas));
+  --asset-ground-b: color-mix(in srgb, var(--ui-color-text-default) 86%, var(--ui-color-surface-canvas));
+}
+.catalog[data-ground-flipped] .cat-tile-fig:not(:has(.cat-thumb-emoji)),
+.cat-details[data-ground-flipped] .cat-details-preview:not(:has(.cat-thumb-emoji, .cat-thumb-audio, .cat-thumb-text, .cat-swatch-lab)) {
+  background: repeating-conic-gradient(var(--asset-ground-a) 0% 25%, var(--asset-ground-b) 0% 50%) 50% / 16px 16px;
+}
+.catalog[data-ground-flipped] .cat-tile.is-selected .cat-tile-fig:not(:has(.cat-thumb-emoji)) {
+  background: repeating-conic-gradient(color-mix(in srgb, var(--asset-ground-a) 70%, var(--ui-color-action-primary)) 0% 25%, color-mix(in srgb, var(--asset-ground-b) 80%, var(--ui-color-action-primary)) 0% 50%) 50% / 16px 16px;
+}
 .cat-thumb { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
 /* Fill the fixed 4/3 box absolutely. A percentage/max height can't resolve against the
    aspect-ratio-derived (indefinite) height of a grid item, so a portrait image overflows
@@ -180,7 +189,7 @@
   font-size: calc(.6rem * var(--a11y-fs)); font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
   padding: 1px 5px; border-radius: var(--radius);
 }
-.cat-src--user { background: hsl(var(--primary) / .15); color: hsl(var(--primary)); }
+.cat-src--user { background: hsl(var(--primary) / .15); color: hsl(var(--primary-text)); }
 
 /* Generative-AI provenance pill. Box (inline-flex/gap/radius) composes .chip
    (chips.css, lib/genai-pill.ts's markup carries both classes); everything
@@ -245,13 +254,6 @@
 .cat-swatchbar-actions .btn svg, .cat-bulkbar-actions .btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
 .cat-bulk-danger.btn { color: hsl(var(--destructive-text)); border-color: hsl(var(--destructive) / .4); }
 .cat-bulk-danger.btn:hover { background: hsl(var(--destructive) / .1); border-color: hsl(var(--destructive)); }
-.cat-swatchbar-clear, .cat-bulkbar-clear {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border-radius: var(--radius-pill); cursor: pointer;
-  font-size: var(--fs-xl); line-height: 1; color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted) / .6); border: none;
-}
-.cat-swatchbar-clear:hover, .cat-bulkbar-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 /* Icon-only when the labels would wrap or overflow (lib/bulk-bar.ts fitBulkBar sets
    .is-compact by measuring). Labels are clipped, not removed, so each button keeps its
    accessible name; the label is also its tooltip. */
@@ -283,7 +285,7 @@
    These are collapsible .cat-group sections now (see groupSection in views/assets/tiles.ts); their
    bodies keep the panel-* styling below. A divider on the first sets the reference zone
    apart from the asset categories above. */
-.cat-panel-foot a, .cat-download { color: hsl(var(--primary)); }
+.cat-panel-foot a, .cat-download { color: hsl(var(--primary-text)); }
 
 /* Font download links under each specimen. */
 .cat-font-downloads { display: flex; flex-wrap: wrap; gap: var(--sp-4); margin-top: 12px; }
@@ -315,12 +317,7 @@ button.cat-download { font: inherit; cursor: pointer; }
 .cat-details::backdrop { background: #0008; -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
 .cat-details-close {
   position: absolute; top: 10px; right: 12px; z-index: 4;
-  /* Box on the chrome icon scale (tokens.css) - its × is TYPE and already
-     scales, so a fixed box would clip it. */
-  width: calc(32px * var(--a11y-fs)); height: calc(32px * var(--a11y-fs)); border: none; border-radius: var(--radius-pill); cursor: pointer;
-  font-size: calc(20px * var(--a11y-fs)); line-height: 1; color: hsl(var(--foreground)); background: hsl(var(--muted) / .7);
 }
-.cat-details-close:hover { background: hsl(var(--muted)); }
 /* ONE CANVAS, EVERY ASSET TYPE - the expanded Neurospicy player's model applied here.
    Before this, each type invented its own layout inside this pane: an image centred a
    contained <img>, audio grew a flex column of meter + bar + swatches + player, lottie
@@ -446,6 +443,16 @@ button.cat-download { font: inherit; cursor: pointer; }
    seek surface there is. Same trick as .neuro-progress. */
 .cat-tp-seek::before { content: ''; position: absolute; inset: -10px 0; }
 .cat-tp-seek-fill { position: absolute; inset: 0 auto 0 0; width: 0%; background: hsl(var(--primary)); border-radius: inherit; }
+/* A generated tune's parts: a notch cut in the bar where each one starts, so the bar is
+   also the tune's map (lib/tune-preview.ts). */
+.cat-tp-mark { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: hsl(var(--background)); pointer-events: none; }
+/* Where a tune is ("Bar 5 of 43 · Verse"), just above the stage bar, on its left. The
+   bar itself has no room for it beside the clock and the scrubber. */
+.cat-tp-pos {
+  position: absolute; left: .6rem; bottom: 100%; max-width: calc(100% - 1.2rem);
+  font-size: var(--fs-xs); font-variant-numeric: tabular-nums; color: hsl(var(--muted-foreground));
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+}
 .cat-tp-seek:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 4px; }
 /* An unknown duration (a zzfxm song still rendering, a stream) cannot be scrubbed -
    say so rather than offering a control that does nothing. */
@@ -465,6 +472,8 @@ button.cat-download { font: inherit; cursor: pointer; }
   position: fixed; inset: 0; z-index: 60;
   display: flex; flex-direction: column; gap: .5rem;
   margin: 0; padding: clamp(.75rem, 3vw, 2rem);
+  /* The whole screen, so the top padding takes in the status bar (0 where there is none). */
+  padding-top: calc(clamp(.75rem, 3vw, 2rem) + var(--safe-top));
   background: hsl(var(--background));
 }
 
@@ -624,7 +633,9 @@ button.cat-download { font: inherit; cursor: pointer; }
 .cat-dl-themes { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
 .cat-dl-theme { padding: 3px; border: 2px solid transparent; border-radius: var(--radius-pill); background: none; cursor: pointer; }
 .cat-dl-theme.is-active { border-color: hsl(var(--primary)); }
-.cat-dl-duo { display: inline-flex; width: 30px; height: 18px; border-radius: var(--radius-pill); overflow: hidden; border: 0; }
+/* The hairline is an outline so it draws over the two halves: a pairing for a dark ground
+   can hold white or a pale tint, which has no edge of its own on a light page. */
+.cat-dl-duo { display: inline-flex; width: 30px; height: 18px; border-radius: var(--radius-pill); overflow: hidden; border: 0; outline: 1px solid hsl(var(--foreground) / .16); outline-offset: -1px; }
 .cat-dl-duo i { flex: 1; }
 /* The radio rows are `.field-toggle` + `.field-radio` (fields.css) - box, dot, hover,
    focus ring and hit-area all come from the primitive. The only delta left here is the

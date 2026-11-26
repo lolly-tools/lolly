@@ -42,7 +42,7 @@
 .cat-swatch-copy svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
 .cat-swatch-copy:hover { color: var(--ui-color-text-default); background: var(--ui-color-surface-muted); }
 .cat-swatch-copy:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 1px; }
-.cat-swatch-copy.is-copied { color: var(--ui-color-action-primary); border-color: var(--ui-color-action-primary); }
+.cat-swatch-copy.is-copied { color: var(--ui-color-text-accent); border-color: var(--ui-color-action-primary); }
 
 /* ── Every notation ── */
 .cat-swatch-notations { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-1); }

@@ -39,6 +39,7 @@ import { invalidateVizSchemes } from '../viz-schemes.ts';
 import { bustChipPairs } from '../particles.ts';
 import { setSwatches, setSwatchSource, LEADS_SWATCH_SOURCE } from '../../components/color-field.ts';
 import { withoutLeadColours } from './leads.ts';
+import { colourFieldOptions } from '../colour-role-swatches.ts';
 
 /** Fired on `window` after a switch, before any remount. `detail` is the new record. */
 export const DESIGN_SYSTEM_CHANGED_EVENT = 'lolly:design-system-changed';
@@ -79,8 +80,10 @@ export interface SwitchOptions {
 /** The instance a record wants as the base: hosted, or carried by an instance
  *  pack loaded from a file. Ordinary local/file systems want none. */
 export function instanceOf(record: DesignSystemRecord): string {
+  // An editing copy keeps its instance: leaving a hosted system for one must not
+  // disconnect the instance it is going to be sent to.
   return record.source.kind === 'hosted' ? record.source.instance
-    : record.source.kind === 'file' ? record.source.instance ?? '' : '';
+    : record.source.kind === 'file' ? record.source.instance ?? '' : record.instanceEdit?.instance ?? '';
 }
 
 export async function switchDesignSystem(host: SwitchHost, id: string, opts: SwitchOptions = {}): Promise<SwitchResult> {
@@ -140,8 +143,9 @@ export async function switchDesignSystem(host: SwitchHost, id: string, opts: Swi
   setSwatchSource(LEADS_SWATCH_SOURCE, null);
   try {
     // A colourway's own colours (plans/319) are a lead's roles, never picker swatches.
-    const swatches = withoutLeadColours((await host.tokens?.colors?.()) ?? []);
-    if (swatches.length) setSwatches(swatches.map(s => ({ value: s.value, label: s.name, group: s.group, ref: s.ref })));
+    const swatches = (await host.tokens?.colors?.()) ?? [];
+    const options = await colourFieldOptions(host, swatches, { plain: withoutLeadColours });
+    if (options.length) setSwatches(options);
   } catch { /* the built-in palette stands */ }
 
   // 6. Tell the page, then remount what may be remounted.

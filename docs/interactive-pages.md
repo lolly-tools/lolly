@@ -1,25 +1,33 @@
 # Live pages that take the clicker
 
-You want to show a live product demo halfway through your talk, scroll it to the pricing table with your clicker, then carry on with the deck. **Make interactive** gives a **Web page** box on a Lolly Design slide a focus step. At that step Lolly highlights the page and keeps the keyboard in the deck: Up and Down move the page, and Next continues the presentation.
+**Make interactive** gives a **Web page** box on a Lolly Design slide a focus step. At that step Lolly highlights the page and keeps the keyboard in the deck: Up and Down move the page, and Next continues the presentation.
 
 ::: figure interactive-pages-focus-step
 Click steps on one slide: the page appears, then takes focus; Up and Down go to the page, and Next moves on.
 :::
 
+<!--i:eti-globe-->
 ## Prepare a page
 
 ::: timeline
 - <!--i:globe--> Select a **Web page** box and enter its link in the inspector. Choose its viewport width, poster and load rule.
-- <!--i:check--> Turn on **Make interactive**. **Focus on click** defaults to the click after the page appears; choose **0** to start focused when the slide opens. Each interactive page on a slide needs its own focus step.
+- <!--i:check--> Turn on **Make interactive**. **Focus on click** defaults to the click after the page appears. Choose **0** to start focused when the slide opens. Each interactive page on a slide needs its own focus step.
 - <!--i:sparkle--> Choose a **Highlight**: Ring, Spotlight, Zoom or None. The colour picker offers your palette, and **Use document accent** restores the default. Reduced motion turns Zoom into a still ring.
 - <!--i:sliders--> Choose what **Up and Down** do: Scroll the page, Act like the keyboard or Nothing. The inspector reports what the loaded page can receive.
 - <!--i:sliders--> Open **Scroll and depth** to set a start position and stops (see [Long pages](#start-positions-and-stops)).
 :::
 
-The inspector refuses duplicate focus steps, invalid depths and a focus step that comes before the click that reveals its page. Switching interaction off keeps the other settings for later.
+The inspector refuses duplicate focus steps, invalid depths and a focus step that comes before the click that reveals its page. Switching interaction off keeps the other settings.
 
-A Web page box shows a page only once its site is approved under Settings → Preferences → Trusted sites, or after **Allow pages from any site** in the web app. Approval is each person's or organisation's own choice. An unapproved or unavailable page stays a poster, and no permission question interrupts the presentation. The interaction settings themselves belong to the document: they travel in its shared link and stay the same for collaborators.
+::: note A page shows only from an approved site
+A Web page box shows a page only once its site is approved under Settings → Preferences → Trusted sites, or after **Allow pages from any site** in the web app. Approval is each person's or organisation's own choice. An unapproved or unavailable page stays a poster. No permission question interrupts the presentation.
+:::
 
+The interaction settings belong to the document. They travel in its shared link and stay the same for collaborators.
+
+To show a [Lolly Sandbox](/t/sandbox) demo, choose **Copy for a slide** in Sandbox and paste the link onto the Design slide. The demo runs live in a Web page box.
+
+<!--i:eti-monitor-->
 ## Drive it with the clicker
 
 | Control | While a page is highlighted |
@@ -28,20 +36,21 @@ A Web page box shows a page only once its site is approved under Settings → Pr
 | Left, Page Up or Previous | Step backwards through builds and focus steps. |
 | Up and Down | Scroll or send arrow keys, as the author set. |
 | Escape | Release this page for the current visit without changing the slide step. The speaker view offers the same as **Release**. |
-| Enter | Hand over the keyboard, when the author turned keyboard handover on. |
+| Enter | Hand over the keyboard, if the author turned keyboard handover on. |
 | B or period | Show a black screen and pause automatic scrolling. |
 | K, or the Pause button | Pause and resume automatic progression and scrolling. |
 | F5 or Shift+F5 | Stay in the presentation rather than reloading the app. |
 
-On a stacked slide, Up and Down go to the highlighted page; they keep their stack meaning when no page is focused or **Up and Down** is set to Nothing. The speaker view shows the focused page and its depth or stop where it can.
+On a stacked slide, Up and Down go to the highlighted page. They keep their stack meaning when no page is focused or **Up and Down** is set to Nothing. The speaker view shows the focused page and, where it can, its depth or stop.
 
 Most clickers have only Next and Previous. Turn on **Clicker walks the scroll stops** to visit the page's stops with those buttons before the deck moves on. Leave it off when Next should always move the presentation.
 
 The pre-flight **Test your clicker** panel shows the keys your hardware sends. Choose **Start test**, press a button and choose its action. Learned keys belong to this device, not the shared document, so reset them when you change clickers.
 
+<!--i:eti-pin-->
 ## Start positions and stops
 
-Enter a depth in pixels, a percentage of the page's scroll range or a page ID, such as `640`, `50%` or `#pricing`. A percentage needs a readable scroll range, which a same-origin page, a page with the receiver or the known Pan viewport supplies.
+Enter a depth in pixels, a percentage of the page's scroll range or a page ID, such as `640`, `50%` or `#pricing`. A percentage needs a readable scroll range. A same-origin page, a page with the receiver or the known Pan viewport supplies one.
 
 **Use current depth** records the position of a page Lolly can read, and **Add current depth** appends it to the stops. You can edit or remove each of up to 32 stops, in the order you choose. **Scroll speed** sets the transition between numeric depths.
 
@@ -51,8 +60,9 @@ The page returns to **Start at** each time the slide arrives. **Keep the last po
 
 Choose **When the slide opens** or **When focused**, then set From, To, Over, Easing and Repeat (once, loop or back and forth). **Pause at each stop** adds time at each prepared stop.
 
-Up or Down stops the automation for that visit so the presenter can take over. Blackout, overview and Pause suspend movement. Reduced motion uses timed stop changes; without stops, the page stays at its start. A kiosk has no clicker focus steps but can run **When the slide opens** scrolling.
+Up or Down stops the automation for that visit. Blackout, overview and Pause suspend movement. Reduced motion uses timed stop changes. Without stops, the page stays at its start. A kiosk has no clicker focus steps but can run **When the slide opens** scrolling.
 
+<!--i:eti-link-->
 ## Pages Lolly can and cannot reach
 
 | Page | What Lolly can do |
@@ -72,9 +82,10 @@ For another site, neither method is chosen automatically:
 
 A site that refuses framing still cannot be embedded after approval.
 
+<!--i:eti-layers-->
 ## Embedded reveal.js and Slides.com decks
 
-A deck inside a slide can follow the clicker. Paste a Slides.com link, such as `https://slides.com/name/talk`, into a **Web page** box; Lolly loads the deck's embed form and asks reveal.js to report its position. A private deck's `token` stays in the link. The web app shows a Slides.com deck after **Allow pages from any site**; the desktop app shows it directly.
+A deck inside a slide can follow the clicker. Paste a Slides.com link, such as `https://slides.com/name/talk`, into a **Web page** box. Lolly loads the deck's embed form and asks reveal.js to report its position. A private deck's `token` stays in the link. The web app shows a Slides.com deck after **Allow pages from any site**. The desktop app shows it directly.
 
 A self-hosted reveal.js deck opts in through its own link: add `postMessageEvents=true`, for example `https://talks.example.com/keynote/?postMessageEvents=true`. Its `postMessage` option must stay on, which is the reveal.js default.
 
@@ -86,9 +97,14 @@ A self-hosted reveal.js deck opts in through its own link: add `postMessageEvent
 
 The inspector shows "This slide deck follows the clicker" once the deck reports, and the speaker view shows its slide number. Next and Previous always move the Lolly presentation. Stops, start positions and automatic scrolling do not apply to a deck.
 
+<!--i:eti-keyboard-->
 ## Type into a demo
 
-Turn on **Hand the keyboard to the page** only when the talk needs typing or the page's own controls. Press Enter while the page is highlighted, and **Back to slides** returns the keyboard to the deck. A cooperating page can forward deck navigation during handover; an ordinary page on another origin receives the whole keyboard, including the clicker, until you choose Back to slides.
+Turn on **Hand the keyboard to the page** only when the talk needs typing or the page's own controls. Press Enter while the page is highlighted to hand over. **Back to slides** returns the keyboard to the deck. A cooperating page can forward deck navigation during handover.
+
+::: warning Another site takes the whole keyboard
+An ordinary page on another origin receives the whole keyboard, including the clicker, until you choose **Back to slides**.
+:::
 
 ::: details What a page can and cannot learn
 To a reveal.js deck, Lolly sends only navigation commands and a request for its position, addressed to the deck's own origin. It accepts reports only from that frame and origin, and reads only the slide numbers.
@@ -96,34 +112,36 @@ To a reveal.js deck, Lolly sends only navigation commands and a request for its 
 A page with the receiver checks the parent window, origin, protocol version and field sizes of every message. It reports only its capabilities and two depth numbers. Neither kind of message grants document access or changes a site approval.
 :::
 
+<!--i:eti-url-->
 ## Shared links and exports
 
 Focus steps are ordinary presentation steps, so a link such as `?present&s=4.2` opens slide 4 at focus step 2. Releasing a page for one visit does not change the document.
 
-PNG, SVG, PDF, PowerPoint and video exports show the page's poster, because interaction belongs to the live presentation. Keep the poster useful.
+PNG, SVG, PDF, PowerPoint and video exports show the page's poster, so keep the poster useful.
 
 ::: check Rehearse on the real network
 Approve the site, then rehearse in **Present** on the devices and network you will use for the talk, and check each live page before you share the deck.
 :::
 
+<!--i:eti-code-->
 ## Add the receiver to a page you own
 
-If you build the page being shown, the receiver lets it report its depth and react to slide events, so Lolly can drive it like a same-origin page.
+If you build the page being shown, the receiver lets it report its depth and react to slide events. Lolly can then drive the page like a same-origin page.
 
 ::: details Set up the receiver
-The receiver is exported by the Lolly tool-author SDK as `@lolly-tools/core/present-receiver`. Use an instance revision that includes the receiver protocol, and build the SDK from that same revision. From a clean Lolly checkout with its locked dependencies installed, run:
+The Lolly tool-author SDK exports the receiver as `@lolly-tools/core/present-receiver`. Use an instance revision that includes the receiver protocol, and build the SDK from that same revision. From a clean Lolly checkout with its locked dependencies installed, run:
 
 ```sh
 pnpm run pack:core
 ```
 
-For SDK 1.5.0, this produces `dist/core-pack/lolly-tools-core-1.5.0.tgz` with compiled JavaScript and TypeScript declarations. The number in the file name is the `version` in `packages/core/package.json`, so another revision can produce a different name. Check that `dist/core-pack/manifest.json` records the selected revision in `generatedFrom` and the file name in `core.tarball`. Install the tarball in your page's project, using your checkout's absolute path:
+For SDK 1.8.0, this produces `dist/core-pack/lolly-tools-core-1.8.0.tgz` with compiled JavaScript and TypeScript declarations. The number in the file name is the `version` in `packages/core/package.json`, so another revision can produce a different name. Check that `dist/core-pack/manifest.json` records the selected revision in `generatedFrom` and the file name in `core.tarball`. Install the tarball in your page's project, using your checkout's absolute path:
 
 ```sh
-npm install /path/to/lolly/dist/core-pack/lolly-tools-core-1.5.0.tgz
+npm install /path/to/lolly/dist/core-pack/lolly-tools-core-1.8.0.tgz
 ```
 
-This route does not depend on SDK 1.5.0 being published to npm. Your page's bundler can import the compiled receiver. Set an exact list of origins allowed to frame your page, and call the returned cleanup function when the page unmounts:
+This route does not depend on SDK 1.8.0 being published to npm. Your page's bundler can import the compiled receiver. Set an exact list of origins allowed to frame your page, and call the returned cleanup function when the page unmounts:
 
 ```js
 import { attachPresentReceiver } from '@lolly-tools/core/present-receiver';
@@ -141,5 +159,5 @@ const stopReceiving = attachPresentReceiver(window, {
 // stopReceiving();
 ```
 
-Replace the example origin with your instance's origin. Do not use a wildcard, and do not trust a sender based on its message alone. Your page and the instance must still allow framing through their normal security headers; the receiver does not override a frame policy. For local development, use a permitted origin and check the live page before rehearsing.
+Replace the example origin with your instance's origin. Do not use a wildcard, and do not trust a sender based on its message alone. Your page and the instance must still allow framing through their normal security headers. The receiver does not override a frame policy. For local development, use a permitted origin and check the live page before rehearsing.
 :::

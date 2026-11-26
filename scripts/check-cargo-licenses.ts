@@ -55,6 +55,7 @@ const LOCKFILES = [
   'packages/node-shell/wasm/indd/Cargo.lock',
   'packages/node-shell/wasm/camera-raw/Cargo.lock',
   'packages/node-shell/wasm/affinity/Cargo.lock',
+  'crates/lolly-render-node/Cargo.lock',
 ];
 
 // Parse a Cargo.lock for its [[package]] name/version pairs. Cargo.lock is TOML,

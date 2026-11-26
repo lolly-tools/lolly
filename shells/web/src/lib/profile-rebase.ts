@@ -92,7 +92,7 @@ export const RECORD_LIST_FIELDS: readonly string[] = ['userTemplates', 'projectT
 
 /** Maps whose entries are separate settings (a flag, a per-asset override), combined entry by entry. */
 export const MAP_FIELDS: readonly string[] = [
-  'featureFlags', 'custom', 'assetCategories', 'audioCovers', 'templateStart', 'a11y', 'appearance', 'nearby',
+  'featureFlags', 'custom', 'assetCategories', 'audioCovers', 'templateStart', 'a11y', 'appearance', 'nearby', 'music',
 ];
 
 type KeyOf = (v: unknown) => string | null;

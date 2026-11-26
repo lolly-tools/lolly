@@ -40,6 +40,12 @@ export interface QuiescenceOptions {
   silenceMs?: number;
   /** Hard cap after which quiescence resolves regardless. */
   timeoutMs?: number;
+  /**
+   * The same cap for a tool that promised a ready signal. Loading a model and compiling
+   * its shaders on a busy page can pass `timeoutMs`, and resolving then photographs a
+   * canvas that has not drawn yet.
+   */
+  readyTimeoutMs?: number;
 }
 
 /**
@@ -62,7 +68,7 @@ export interface QuiescenceOptions {
  */
 export async function waitForQuiescence(
   node: Node,
-  { silenceMs = 400, timeoutMs = 8000 }: QuiescenceOptions = {},
+  { silenceMs = 400, timeoutMs = 8000, readyTimeoutMs = 25_000 }: QuiescenceOptions = {},
 ): Promise<void> {
   await document.fonts.ready;
 
@@ -114,7 +120,7 @@ export async function waitForQuiescence(
     document.addEventListener('tool:ready', onReady, { once: true });
     document.addEventListener('tool:failed', onFailed, { once: true });
 
-    const capTimer = setTimeout(finish, timeoutMs);
+    const capTimer = setTimeout(finish, needsReadySignal ? Math.max(timeoutMs, readyTimeoutMs) : timeoutMs);
     resetSilence();
   });
 }

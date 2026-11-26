@@ -26,7 +26,7 @@
     flex-wrap: wrap;
   }
   .learning-ui a {
-    color: var(--ui-color-action-primary);
+    color: var(--ui-color-text-accent);
   }
   .learning-ui a:hover {
     text-decoration-thickness: 2px;
@@ -865,9 +865,7 @@
   .learning-outline-disclosure[open] > summary::before {
     content: "▾";
   }
-  .learning-outline-disclosure > summary::-webkit-details-marker {
-    display: none;
-  }
+  .learning-outline-disclosure > summary::after { content: none; }
   .learning-outline-disclosure > summary strong {
     font-size: var(--ui-type-lead);
   }

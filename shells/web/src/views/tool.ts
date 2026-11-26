@@ -30,6 +30,7 @@ import '../styles/parts/design-guides.css';
 import '../styles/parts/document.css';
 import '../styles/parts/deck-editor.css';
 import '../styles/parts/tool-chrome.css';
+import '../styles/parts/stage-kit.css';
 import '../styles/vendor-flatpickr.css';
 import { presentApis } from '@lolly-tools/core/host-v1';
 import { loadTool } from '@lolly/engine';
@@ -64,6 +65,8 @@ import { popoversOps } from './tool/popovers.ts';
 import { renderOps } from './tool/render.ts';
 import { setupOps } from './tool/setup.ts';
 import { openDocumentOps } from './tool/open-document.ts';
+import { stageKitOps } from './tool/stage-kit.ts';
+import { releasePageWatch } from '../lib/page-fallback-watch.ts';
 export type { IdentityStatus, EmbedDescribe, WebToolHost, ToolRuntime, PanelEl, PrintMarks, ExportDefaults, ActionsApi, ExportExperience, RunExportOpts } from './tool/shared.ts';
 
 
@@ -194,6 +197,8 @@ async function mountToolInto(
   tview.render = renderOps(tview);
   tview.setup = setupOps(tview);
   tview.openDocument = openDocumentOps(tview);
+  tview.stageKit = stageKitOps(tview);
+  tview.stageKitHandle = null;
   tview.viewEl = viewEl;
   tview.host = host;
   tview.toolId = toolId;
@@ -446,6 +451,8 @@ async function mountToolInto(
   // holder object (not a bare `let`) so the module-level shrinkUrl can share it.
   const barSeq: BarSeq = { v: 0 }; tview.barSeq = barSeq;
   tview.mountLifecycle.add('URL packing', () => { barSeq.v++; });
+  // The canvas's fallback font families (tool/render.ts notePagePainted) go when it does.
+  { const pageRoot = tview.contentEl; tview.mountLifecycle.add('page fallback fonts', () => releasePageWatch(pageRoot)); }
 
   tview.setup.mountActions();
 

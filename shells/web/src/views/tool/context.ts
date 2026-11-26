@@ -53,6 +53,8 @@ import type { renderOps } from './render.ts';
 import type { openDocumentOps } from './open-document.ts';
 import type { OpenProgress } from '../../components/open-progress.ts';
 import type { setupOps } from './setup.ts';
+import type { stageKitOps } from './stage-kit.ts';
+import type { StageKit } from '../../lib/stage-kit.ts';
 
 export interface ToolViewCtx {
   // ---- state (was: closure variables of mountTool) ----
@@ -138,6 +140,18 @@ export interface ToolViewCtx {
   poseTemplate: () => void;
   templatePickTornDown: boolean;
   templatePickClose: (() => void) | null;
+  /** The workspace template this document started from (lib/workspace-templates.ts),
+   *  kept in the saved record as `__template`. Null for any other document. */
+  templateOrigin: import('../../lib/workspace-templates.ts').TemplateOrigin | null;
+  /** That template as the workspace serves it now: null when it has left the catalog. */
+  templateNow: import('../../lib/workspace-templates.ts').WorkspaceTemplate | null;
+  /** The template keeps its colourway and mode, so the Design system section is not offered. */
+  templateFixedTheme: boolean;
+  /** The workspace set this tool to templates only for this person (the index entry's
+   *  `templatesOnly`): a fresh open offers only its published templates. */
+  templatesOnly: boolean;
+  /** A workspace template picked in the Start chooser: it opens as a fresh document. */
+  pickedWorkspaceRef: string | null;
   fileIntoFolder: string | null;
   returnTo: string;
   fromFolder: boolean;
@@ -259,6 +273,8 @@ export interface ToolViewCtx {
   /** Drops the `\\` show/hide-sidebar shortcut (wireStageZoom). */
   panelKeyTeardown: (() => void) | null;
   framingTeardown: (() => void) | null;
+  /** Ends the watch that keeps the canvas role true to what the canvas holds. */
+  canvasRoleStop?: (() => void) | null;
   renderSaveBtn: HTMLButtonElement | null;
   renderPill: HTMLElement | null;
   /** The share-link meter's reassurance toast; absent where the tool shares no links. */
@@ -308,6 +324,8 @@ export interface ToolViewCtx {
   studioPending: Promise<unknown>;
   studioModule: typeof import('../../lib/studio3d/mount.ts') | null;
   studioError: Error | null;
+  /** The stage kit, once something asked for it (./stage-kit.ts); null until then. */
+  stageKitHandle: StageKit | null;
   paginateSource: string | undefined;
   tableEditOpts: TableEditOpts | null;
   rafId: number;
@@ -330,6 +348,7 @@ export interface ToolViewCtx {
   render: ReturnType<typeof renderOps>;
   setup: ReturnType<typeof setupOps>;
   openDocument: ReturnType<typeof openDocumentOps>;
+  stageKit: ReturnType<typeof stageKitOps>;
 }
 
 /** A module function minus its leading context parameter. */

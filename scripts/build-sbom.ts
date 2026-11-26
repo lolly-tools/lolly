@@ -7,7 +7,8 @@
  *
  * Emits a CycloneDX 1.5 SBOM at `sbom.cdx.json` describing every third-party npm
  * package in the workspace dependency graph, plus the vendored browser libraries
- * (d3, Observable Plot, topojson-client), the SUSE OFL fonts, and - when present - the Tauri shells'
+ * (d3, Observable Plot, topojson-client, three.js and the entries in
+ * security/vendor-artifacts.json), the SUSE OFL fonts, and - when present - the Tauri shells'
  * own pnpm installs and their Rust crate graph (Cargo.lock). This is the
  * supply-chain-transparency
  * half of the sovereignty story (see SOVEREIGNTY.md): it lets anyone audit exactly
@@ -179,11 +180,14 @@ for (const [path, entry] of Object.entries(lock.packages ?? {}) as [string, any]
 }
 
 // ─── Vendored libraries (checked into the tree, not via pnpm install) ─────────
-// d3 / Observable Plot / topojson-client ship as pre-minified bundles under the community pack's
-// */lib and never appear in the lockfile. We pin the version read from each
-// file's banner-comment provenance, the license from the project's license audit
-// (both ISC), and hash the bytes on disk ourselves so the component is still
-// independently verifiable.
+// d3 / Observable Plot / topojson-client / three.js ship as pre-minified bundles
+// under the community pack's */lib and never appear in the lockfile at the
+// version that ships (the lockfile may hold a newer devDependency that has not
+// been rebuilt into the bundle yet). We pin the version read from each file's
+// banner-comment provenance, the license from the project's license audit, and
+// hash the bytes on disk ourselves so the component is still independently
+// verifiable. The hash is of the first file present; every file present is
+// recorded as a `lolly:vendored` property.
 //
 // Paths name the PACK (community/…), never the tools/ profile VIEW: the view's
 // contents depend on the active profile (street-map is lolly-start-only, and CI
@@ -228,10 +232,42 @@ const VENDORED_LIBS = [
     license: 'ISC',
     files: ['community/meeting-planner/lib/topojson.min.js'],
   },
+  // three.js: versions from each bundle's banner (written by its build script
+  // from the installed package). The Timezone renderer has no three.js banner;
+  // it rebuilds byte for byte from three 0.186.1, the version the lockfile held
+  // when scripts/build-timezone.ts last wrote it (0.186.0 gives the same bytes).
+  {
+    name: 'three',
+    version: '0.186.0',
+    license: 'MIT',
+    files: ['community/3d/lib/three.min.js', 'community/flythrough/lib/three.min.js'],
+  },
+  {
+    name: 'three',
+    version: '0.186.1',
+    license: 'MIT',
+    files: ['community/chart/lib/three-chart.min.js', 'community/timezone/lib/renderer.min.js'],
+  },
+  // The D3 modules scripts/build-timezone.ts bundles into the Timezone hooks and
+  // renderer, at the versions that reproduce both files byte for byte.
+  {
+    name: 'd3-geo',
+    version: '3.1.1',
+    license: 'ISC',
+    files: ['community/timezone/lib/renderer.min.js', 'community/timezone/hooks.js'],
+  },
+  {
+    name: 'd3-array',
+    version: '3.2.4',
+    license: 'ISC',
+    files: ['community/timezone/lib/renderer.min.js', 'community/timezone/hooks.js'],
+  },
 ];
 for (const lib of VENDORED_LIBS) {
-  const file = lib.files.find((f) => existsSync(join(ROOT, f)));
+  const present = lib.files.filter((f) => existsSync(join(ROOT, f)));
+  const file = present[0];
   if (!file) continue; // none of the candidate copies are present - skip
+  const vendoredProperties = present.map((f) => ({ name: 'lolly:vendored', value: f }));
   const purl = purlFor(lib.name, lib.version);
   const existing = byPurl.get(purl);
   if (existing) {
@@ -243,7 +279,7 @@ for (const lib of VENDORED_LIBS) {
     existing.properties = (existing.properties ?? []).filter(
       (property) => property.name !== 'cdx:npm:package:development'
     );
-    existing.properties.push({ name: 'lolly:vendored', value: file });
+    existing.properties.push(...vendoredProperties);
     const vendoredHashes = fileHashes(join(ROOT, file));
     if (vendoredHashes) existing.hashes = vendoredHashes;
     continue;
@@ -260,7 +296,7 @@ for (const lib of VENDORED_LIBS) {
   if (licenses) component.licenses = licenses;
   const hashes = fileHashes(join(ROOT, file));
   if (hashes) component.hashes = hashes;
-  component.properties = [{ name: 'lolly:vendored', value: file }];
+  component.properties = vendoredProperties;
   byPurl.set(purl, component);
 }
 
@@ -318,9 +354,14 @@ addCargoCrates('packages/node-shell/wasm/audio-dsp/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/indd/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/camera-raw/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/affinity/Cargo.lock');
+// The lolly-render Node binding and the core crate it links (plan 371 M3b).
+addCargoCrates('crates/lolly-render-node/Cargo.lock');
 
+// An artifact copied unchanged from an npm tarball is an npm package, scoped or
+// not, so it takes an npm purl that advisory scanners can match.
 for (const artifact of vendorInventory.artifacts) {
-  const purl = artifact.name.startsWith('@') ? purlFor(artifact.name, artifact.version) : `pkg:generic/${artifact.name}@${artifact.version}`;
+  const fromNpm = artifact.name.startsWith('@') || artifact.source.startsWith('https://registry.npmjs.org/');
+  const purl = fromNpm ? purlFor(artifact.name, artifact.version) : `pkg:generic/${artifact.name}@${artifact.version}`;
   const component: Component = byPurl.get(purl) ?? { type: 'library', 'bom-ref': purl, name: artifact.name, version: artifact.version, purl };
   component.scope = 'required';
   component.licenses = licensesFromString(artifact.license);

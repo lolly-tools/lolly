@@ -1,50 +1,53 @@
-# Lolly im Vergleich, Werkzeug für Werkzeug
+# Lolly im Vergleich, Tool für Tool
 
-Wenn Sie schon ein anderes Produkt nutzen, sagen diese Seiten, ob Lolly dieses Produkt ersetzt, neben ihm arbeitet oder nicht zu Ihrer Arbeit passt. Jede beginnt damit, was das andere Produkt besser kann.
+Diese Seiten sagen, ob Lolly ein anderes Produkt ersetzt, es ergänzt oder nicht zu Ihrer Arbeit passt. Jede Seite beginnt damit, was das andere Produkt besser macht.
 
 _Zuletzt geprüft: 28. September 2026._
 
-## Vergleich nach Produkt
+<!--i:eti-grid-->
+## Nach Produkt vergleichen
 
-- [Lolly und Canva](/info/compare-canva.html) - Vorlagen, alltägliches Design und gemeinsame Markenproduktion.
+- [Lolly und Canva](/info/compare-canva.html) - Vorlagen, alltägliches Design und gemeinsame Produktion von Markeninhalten.
 - [Lolly und Adobe](/info/compare-adobe.html) - Bearbeitung, Umwandlung, professionelle Ausgabe und Content Credentials.
 - [Lolly und Figma](/info/compare-figma.html) - Design, Live-Zusammenarbeit und wiederverwendbare Asset-Produktion.
-- [Lolly und Penpot](/info/compare-penpot.html) - Open-Source-Design, gemeinsame Tokens und Organisationsarbeit.
-- [Lolly und Marken-Portale](/info/compare-brand-portals.html) - freigegebene Bibliotheken, gesperrte Vorlagen, Identität, Prüfung und Berichte.
-- [Lolly und Rendering-APIs](/info/compare-render-apis.html) - automatisierte Erzeugung auf Ihrem Gerät, in der CI oder auf einem Lolly-Lolly Work-Server.
+- [Lolly und Penpot](/info/compare-penpot.html) - Open-Source-Design, gemeinsame Tokens und Arbeit in Organisationen.
+- [Lolly und Markenportale](/info/compare-brand-portals.html) - freigegebene Bibliotheken, gesperrte Vorlagen, Identität, Prüfung und Berichte.
+- [Lolly und Rendering-APIs](/info/compare-render-apis.html) - automatisierte Erzeugung auf Ihrem Gerät, in CI oder auf Ihrem eigenen Server und [der Umstieg](/info/work-move-from-render-api.html) von Bannerbear oder Placid.
 - [Lolly und Online-Dateikonverter](/info/compare-converters.html) - Formatumwandlung auf Ihrem eigenen Gerät.
 
-Eine Übersicht nach Funktionen finden Sie unter [So schneidet Lolly im Vergleich ab](/info/positioning.html). Jeder Vergleich ist datiert; eine Aussage, die für eines der beiden Produkte nicht mehr zutrifft, muss korrigiert werden.
+[Lolly im Vergleich](/info/positioning.html) bietet den Vergleich einzelner Funktionen. Jeder Vergleich ist datiert. Eine Aussage, die auf eines der Produkte nicht mehr zutrifft, muss korrigiert werden.
 
+<!--i:eti-map-pin-->
 ## Was wo läuft
 
-Jeder Vergleich betrifft zwei Teile eines Open-Source-Projekts. **Lolly** ist die Engine, sind die Apps und Tools. **Lolly Work** ist der Organisationsserver, gepflegt im [lolly-work-Repository](https://github.com/lolly-tools/lolly-work). Beide stehen unter MPL-2.0, und eine Organisation entscheidet, welche Lolly-Lolly Work-Dienste sie einschaltet.
+Jeder Vergleich behandelt zwei Teile eines Open-Source-Projekts. **Lolly** umfasst die Engine, Apps und Tools. **Lolly Work** ist der Server für Organisationen, gepflegt im [lolly-work-Repository](https://github.com/lolly-tools/lolly-work). Beide stehen unter MPL-2.0, und eine Organisation entscheidet, welche Dienste von Lolly Work sie einschaltet.
 
 ::: cols
 ## Auf Ihrem Gerät: Lolly
 
 - Kein Konto für die eigenständige Nutzung
 - Erstellen, Bearbeiten, Umwandeln und Exportieren
-- Funktioniert offline, sobald die nötigen Tools und Assets gespeichert sind
+- Funktioniert offline, sobald die benötigten Tools und Assets gespeichert sind
 - Auf dem Gerät signierte Content Credentials
-- Private Collabs zwischen zwei Geräten, ohne Server
+- Private Zusammenarbeit zwischen zwei Geräten, ohne Server
 
 ## Auf dem Server Ihrer Organisation: Lolly Work
 
 - Single Sign-on, SCIM-Bereitstellung, Rollen und Richtlinien
-- Gemeinsame Kataloge, Team-Projekte und Lolly Work-Collabs
+- Gemeinsame Kataloge, Teamprojekte und Zusammenarbeit in der Organisation
 - Freigaben, Nutzungsberichte und Audit-Aufzeichnungen
 - Server-Rendering, wiederaufnehmbare Aufträge und freigegebene Lieferung
-- Server-Signatur mit der Identität der Organisation
+- Server-Signierung mit der Identität der Organisation
 :::
 
-Die eigenständige Nutzung hält Dateien auf dem Gerät. Wer gemeinsame Projekte, eine Lolly Work-Collab, ein Server-Rendering oder eine Lieferung wählt, sendet die Daten, die diese Funktion braucht, an den Server Ihrer Organisation.
+Bei eigenständiger Nutzung bleiben Dateien auf dem Gerät. Wenn Sie gemeinsame Projekte, eine Zusammenarbeit in der Organisation, ein Server-Rendering oder eine Lieferung wählen, werden die für diese Funktion benötigten Daten an den Server Ihrer Organisation gesendet.
 
+<!--i:eti-info-->
 ## Was jeder Vergleich voraussetzt
 
-Diese Grenzen gelten für jede Seite dieser Reihe und werden daher einmal hier genannt:
+Diese Grenzen gelten für jede Seite dieser Reihe:
 
-- **Lolly Work-Collabs laufen heute auf einem einzelnen Serverknoten.** Ihr Maßstab und ihre Betriebshistorie unterscheiden sich von den lange etablierten gehosteten Produkten. [Lolly Work-Status und Roadmap](/info/work-status.html) hält die aktuellen Grenzen fest.
-- **Die Website [lolly.work](https://lolly.work) ist eine Demo-Sandbox.** Eine dauerhafte Organisationsbereitstellung braucht persistenten Speicher und einen Betreiber; [Lolly Work installieren](/info/work-install.html) behandelt beides.
-- **Es gibt keine Softwarelizenzgebühr pro Platz** für Lolly oder ein selbst gehostetes Lolly Work. Hosting, Speicher und Betrieb kosten weiterhin Geld.
-- **Eine Signatur ist kein vertrauenswürdiger Unterzeichner.** Ein Verifizierer muss dem Zertifikat vertrauen, das eine Datei signiert hat, bevor er den Unterzeichner als vertrauenswürdig zeigt; [Content-Credentials-Identität](/info/content-credentials-identity.html) erklärt, wie.
+- **Die Zusammenarbeit in Lolly Work läuft derzeit auf einem einzelnen Serverknoten.** Ihr Umfang und ihre Betriebserfahrung unterscheiden sich von denen der seit Langem etablierten gehosteten Produkte. [Lolly Work: Status und Roadmap](/info/work-status.html) hält die aktuellen Grenzen fest.
+- **Die Website unter [lolly.work](https://lolly.work) ist eine Demo-Sandbox.** Eine dauerhafte Bereitstellung für eine Organisation braucht persistenten Speicher und einen Betreiber. [Lolly Work installieren](/info/work-install.html) behandelt beides.
+- **Es gibt keine Softwarelizenzgebühr pro Nutzer** für Lolly oder ein selbst gehostetes Lolly Work. Hosting, Speicher und Betrieb kosten weiterhin Geld.
+- **Eine Signatur macht den Unterzeichner nicht vertrauenswürdig.** Ein Prüfprogramm zeigt den Unterzeichner nur dann als vertrauenswürdig an, wenn es dem Zertifikat vertraut, mit dem die Datei signiert wurde. [Identität bei Content Credentials](/info/content-credentials-identity.html) erklärt, wie das funktioniert.

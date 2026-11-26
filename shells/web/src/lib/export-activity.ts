@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MPL-2.0
 import { hashBlob, recordExport, type ExportEntry } from './export-history.ts';
+import type { PictureInput } from '../bridge/preview-store.ts';
 
 /** Capture policy is fixed by the editor mount. Shared/temporary sessions do
  * not capture, hash, or persist private activity, even if the download succeeds. */
 export async function recordExportActivity(opts: {
   allowed: boolean;
-  entry: Omit<ExportEntry, 'id' | 'at' | 'thumb'>;
-  capture(): Promise<string | null>;
+  entry: Omit<ExportEntry, 'id' | 'at' | 'thumb' | 'preview'>;
+  /** The picture: prepared bytes from the preview writer, or a data URL. */
+  capture(): Promise<PictureInput>;
   bytes?: Blob | null;
 }, write: typeof recordExport = recordExport): Promise<void> {
   if (!opts.allowed) return;

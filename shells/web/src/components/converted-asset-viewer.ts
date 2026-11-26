@@ -2,7 +2,7 @@
 /** Converted previews retain the selected original and require an available instance. */
 import type { AssetViewerSource } from '../lib/asset-viewer-source.ts';
 import { readAssetViewerBytes, readAssetViewerResponse } from '../lib/asset-viewer-source.ts';
-import { instanceFetch } from '../lib/instance.ts';
+import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { viewerButton } from './asset-viewer-controls.ts';
 import { t } from '../i18n.ts';
 export async function mountConvertedAssetViewer(root: HTMLElement, source: AssetViewerSource, signal: AbortSignal): Promise<() => void> {
@@ -17,7 +17,7 @@ export async function mountConvertedAssetViewer(root: HTMLElement, source: Asset
         const url = new URL(source.originalUrl, location.href); url.searchParams.set('view', '1'); result = await readAssetViewerBytes(url.href, signal);
       } else {
         const bytes = await readAssetViewerBytes(source.originalUrl, signal, 16 * 1024 * 1024);
-        const response = await instanceFetch('/api/v1/catalog/file-preview', { method: 'POST', body: new Blob([bytes as Uint8Array<ArrayBuffer>]), signal,
+        const response = await instanceFetch(instancePath('/api/v1/catalog/file-preview'), { method: 'POST', body: new Blob([bytes as Uint8Array<ArrayBuffer>]), signal,
           headers: { 'content-type': 'application/octet-stream', 'x-lolly-preview-format': source.format } });
         if (!response.ok) throw new Error('This instance cannot create a preview for this format.');
         result = await readAssetViewerResponse(response, signal, 32 * 1024 * 1024);

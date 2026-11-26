@@ -1,6 +1,6 @@
 {
   "name": "Chứng chỉ",
-  "description": "Chứng nhận hoàn thành và giải thưởng theo hệ thống thiết kế đang dùng và bảng phối màu của nó: bốn kiểu, kích thước in và mạng xã hội, cùng chuyển động để chia sẻ - từng tên một, hoặc cả danh sách từ CSV trong Hàng loạt từ các dòng.",
+  "description": "Chứng nhận hoàn thành và giải thưởng: bốn kiểu, kích thước in và mạng xã hội, cùng chuyển động - từng tên một, hoặc cả danh sách từ CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} dành cho {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Loại",
   "inputs.certKind.help": "Quyết định nội dung chữ: tiêu đề, dòng phía trên nêu chứng nhận dành cho việc gì, và biểu tượng trên con dấu.",

@@ -1,6 +1,6 @@
 {
   "name": "Certyfikat",
-  "description": "Certyfikaty ukończenia i nagrody w aktywnym systemie projektowym i jego wariancie kolorystycznym: cztery style, rozmiary do druku i do social mediów oraz animacja do udostępniania - po jednym nazwisku albo cała lista z CSV w Zbiorczo z wierszy.",
+  "description": "Certyfikaty ukończenia i nagrody: cztery style, rozmiary do druku i do social mediów oraz animacja - po jednym nazwisku albo cała lista z CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} dla {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Rodzaj",
   "inputs.certKind.help": "Ustawia treść: tytuł, wiersz nad powodem wystawienia certyfikatu i znak na pieczęci.",

@@ -7,16 +7,22 @@
  * file never imports export.ts.
  */
 import { bakeNestedSvgPaint } from './export-svg-bake.ts';
-import { canCarryWatermark, parseDropShadowFilter, splitCssArgs, parseConicGradient, toCssPx, toCssLength, parseClipShape, parseCssMatrix, isAxisAlignedMat, matToSvg, matAboutPivot, isNonAffineTransform, CSS_DPI, parseBoxShadow, roundedRectPath, insetCorners, gaussianShadowRings, uniformRadius, extractC2paStore, prepareC2paIngredientFromStore } from '@lolly/engine';
+import { inlinePicture, isPaintSkipped } from './export-picture-credentials.ts';
+// export.ts reads the shared picture rule through the walker it already imports.
+export { inlinePicture, isPaintSkipped, recordDrawnPictures, recordFramePictures } from './export-picture-credentials.ts';
+import { canCarryWatermark, parseDropShadowFilter, splitCssArgs, parseConicGradient, toCssPx, toCssLength, parseClipShape, parseCssMatrix, isAxisAlignedMat, matToSvg, matAboutPivot, isNonAffineTransform, CSS_DPI, parseBoxShadow, roundedRectPath, insetCorners, gaussianShadowRings, uniformRadius } from '@lolly/engine';
 import type { Mat2D } from '@lolly/engine';
 import { textStrokeAttrs, canVectoriseText, textBaselineY, applyTextTransform } from './text-svg.ts';
+import { hasRtlText } from '@lolly-tools/node-shell/text-bidi';
 import { createInlineTextContext, emitInlineTextSvg, isReplaced } from './export-text.ts';
+import { keepRootFrame, liveOrigin, originNow, type Origin } from './export-origin.ts';
 import type { InlineTextContext } from './export-text.ts';
 export { decoFlags, mergeDeco, isReplaced, visualLines, pdfInlineNonText } from './export-text.ts';
 export { withEntrancesHeld } from './export-svg-motion.ts';
 export type { Deco } from './export-text.ts';
-import { resolveVectorFont } from './font-registry.ts';
-import { namespaceInlinedSvgIds } from './svg-inline-ids.ts';
+import { resolveExportFont } from './font-fill.ts';
+import { exportFontFamily } from './fallback-font-source.ts';
+import { inlineIdKey, namespaceInlinedSvgIds } from './svg-inline-ids.ts';
 import { newNeutraliseGuard, neutraliseTransform } from './transform-neutralise.ts';
 import { placeBackground } from './bg-layout.ts';
 import { parseCssFilter, isDropShadowOnly } from './css-filter.ts';
@@ -39,6 +45,7 @@ import { imprintCanvas, blobToDataUrl, _host, exportDims, makeRoundedFill, MAX_R
 import type { ImprintState, ExportOpts, Rgba } from './export-shared.ts';
 import { buildLinearGradientEl, buildRadialGradientEl, conicFanEl } from './export-gradients.ts';
 import { portableSvgPaint, compactSvgPaths } from './svg-portable.ts';
+import { shapesDisagree } from './export-page-fit.ts';
 
 // Imprint a LOLLY-RENDERED raster that's about to be baked into a container (a
 // PDF page, a PPTX slide, an SVG <image>). Two extra gates over the standalone
@@ -283,7 +290,7 @@ export async function cssUrlToHref(url: string): Promise<string | null> {
  * one the ending side and its corners. Solid borders only; a background image or
  * a dashed border is left out rather than drawn wrongly.
  */
-function paintInlineBox(NS: string, g: Element, el: Element, rootRect: { left: number; top: number }): void {
+function paintInlineBox(NS: string, g: Element, el: Element, rootRect: Origin): void {
   const style = window.getComputedStyle(el);
   if (style.visibility === 'hidden' || !(parseFloat(style.opacity || '1') > 0)) return;
   const bg = parseCssColorFull(style.backgroundColor);
@@ -294,10 +301,11 @@ function paintInlineBox(NS: string, g: Element, el: Element, rootRect: { left: n
   const t = side('top'), r = side('right'), b = side('bottom'), l = side('left');
   if (!(bg && bg[3] > 0) && !t.rgb && !r.rgb && !b.rgb && !l.rgb) return;
   const frags = Array.from(el.getClientRects()).filter((f) => f.width > 0 && f.height > 0);
+  const at = originNow(rootRect);
   const rtl = style.direction === 'rtl';
   const rgbStr = (c: Rgba): string => `rgb(${c[0]},${c[1]},${c[2]})`;
   frags.forEach((f, i) => {
-    const x = f.left - rootRect.left, y = f.top - rootRect.top;
+    const x = f.left - at.left, y = f.top - at.top;
     const opensLeft = rtl ? i === frags.length - 1 : i === 0;
     const closesRight = rtl ? i === 0 : i === frags.length - 1;
     if (bg && bg[3] > 0) {
@@ -330,7 +338,7 @@ function paintInlineBox(NS: string, g: Element, el: Element, rootRect: { left: n
  * track are ordinary CSS the walker already paints, and drawing a second widget on
  * top would be the wrong answer twice.
  */
-function emitWidgetControl(NS: string, rootRect: { left: number; top: number }, _el: Element, d: ControlDesc, style: CSSStyleDeclaration, contentG: Element, r: DOMRect): void {
+function emitWidgetControl(NS: string, rootRect: Origin, _el: Element, d: ControlDesc, style: CSSStyleDeclaration, contentG: Element, r: DOMRect): void {
   const appearance = style.getPropertyValue('appearance') || style.getPropertyValue('-webkit-appearance') || 'auto';
   if (appearance === 'none') return;
   const type = (d.type || '').toLowerCase();
@@ -413,7 +421,7 @@ function regionImageEl(NS: string, href: string, x: number, y: number, w: number
 
 /** A top-layer box's ::backdrop: one viewport-sized rect of its colour. A
  *  backdrop-filter on it is not reconstructed, and the log says so. */
-function emitBackdrop(NS: string, rootG: Element, rootRect: { left: number; top: number }, el: Element): void {
+function emitBackdrop(NS: string, rootG: Element, rootRect: Origin, el: Element): void {
   let bs: CSSStyleDeclaration;
   try { bs = window.getComputedStyle(el, '::backdrop'); } catch { return; }
   if (bs.backdropFilter && bs.backdropFilter !== 'none') {
@@ -780,7 +788,7 @@ export async function renderSvgFromHtml(node: Element, opts: ExportOpts): Promis
   const host = _host;
   const textContext = createInlineTextContext({
     text: opts.convertPaths !== false ? host?.text ?? null : null,
-    log: host?.log?.bind(host), resolveFont: resolveVectorFont, fontMetrics: fontMetricsPx,
+    log: host?.log?.bind(host), resolveFont: resolveExportFont, fontMetrics: fontMetricsPx,
     flatTree: opts.shadowSlots === true,
   });
   return renderHtmlSvg(node, opts, textContext);
@@ -799,14 +807,14 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   const vbW = toCssPx(d.w);
   const vbH = toCssPx(d.h);
   const scaleX  = vbW / nodeW;
-  const scaleY  = vbH / nodeH;
+  const scaleY  = shapesDisagree(nodeW, nodeH, vbW, vbH) ? scaleX : vbH / nodeH; // a root not the page's shape fits as the PNG (export-page-fit.ts)
 
   const svgEl = createSvgRoot(NS, d, vbW, vbH);
 
   const defs     = document.createElementNS(NS, 'defs');
   svgEl.appendChild(defs);
 
-  const rootRect = node.getBoundingClientRect();
+  const rootRect = liveOrigin(node);   // read on each use, so a root moved mid-walk keeps its boxes (export-origin.ts)
   let uid = 0;
   // Per-walk state for the transform neutralise branches below (see
   // bridge/transform-neutralise.ts): which elements are mid-neutralise, and the one
@@ -990,7 +998,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
   async function emitControlPaint(el: Element, _tag: string, style: CSSStyleDeclaration, contentG: Element): Promise<void> {
     const d = describeControl(el);
     if (!d) return;
-    const r = el.getBoundingClientRect();
+    const r = el.getBoundingClientRect(), at = originNow(rootRect);   // the mirror below stays where r was read
     if (r.width <= 0 || r.height <= 0) return;
 
     const num = (k: string) => Number.parseFloat((style as unknown as Record<string, string>)[k] || '') || 0;
@@ -1003,7 +1011,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     if (cw <= 0 || ch <= 0) return;
     const cx = r.left + insetL, cy = r.top + insetT;
 
-    if (isWidgetControl(d)) { emitWidgetControl(NS, rootRect, el, d, style, contentG, r); return; }
+    if (isWidgetControl(d)) { emitWidgetControl(NS, at, el, d, style, contentG, r); return; }
 
     const ct = controlText(d);
     if (!ct) return;
@@ -1016,7 +1024,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     clip.setAttribute('id', clipId);
     clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
     const cr = document.createElementNS(NS, 'rect');
-    cr.setAttribute('x', String(n2(cx - rootRect.left))); cr.setAttribute('y', String(n2(cy - rootRect.top)));
+    cr.setAttribute('x', String(n2(cx - at.left))); cr.setAttribute('y', String(n2(cy - at.top)));
     cr.setAttribute('width', String(n2(cw))); cr.setAttribute('height', String(n2(ch)));
     clip.appendChild(cr);
     defs.appendChild(clip);
@@ -1063,7 +1071,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     mirror.appendChild(inner);
     document.body.appendChild(mirror);
     try {
-      await emitInlineTextSvg(textContext, NS, inner, window.getComputedStyle(inner), rootRect, cg);
+      await emitInlineTextSvg(textContext, NS, inner, window.getComputedStyle(inner), at, cg);
     } finally { mirror.remove(); }
     if (!cg.childNodes.length) cg.remove();
   }
@@ -1161,7 +1169,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       // groups (plans/104 section 9 P3.1 - see bridge/transform-neutralise.ts). `null` means
       // the transform survived and nothing was touched, so this element falls through
       // to the AABB path below, whose rect already carries the rotation.
-      const restore = neutraliseTransform(el, neutralise, warnTransform);
+      const restore = keepRootFrame(rootRect, el, () => neutraliseTransform(el, neutralise, warnTransform));
       if (restore) {
         try {
           const unrot = el.getBoundingClientRect();   // reading forces the reflow
@@ -1209,7 +1217,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
       && (Math.abs(mtx.a - 1) > 1e-4 || Math.abs(mtx.d - 1) > 1e-4));
     if (mtx && (!isAxisAlignedMat(mtx) || scaled)) {
       // Same guarded neutralise as the rotation branch - read its comment.
-      const restore = neutraliseTransform(el, neutralise, warnTransform);
+      const restore = keepRootFrame(rootRect, el, () => neutraliseTransform(el, neutralise, warnTransform));
       if (restore) {
         try {
           const unrot = el.getBoundingClientRect();
@@ -1249,7 +1257,7 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
     if (opts.rasterFallback !== false && isNonAffineTransform(style.transform)) {
       const pxScale = scaleX * Math.max(1, d.dpi / CSS_DPI);
       const posedShot = await rasterizePosedNodeToDataUrl(
-        el as HTMLElement, pxScale, opts._imprintSink, effectSpillCss(style),
+        el as HTMLElement, pxScale, opts._imprintSink, effectSpillCss(style), rootRect,
       );
       if (posedShot) {
         tiltedRasters++;
@@ -1257,8 +1265,8 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
         place(gT, role, ctx, parentG);
         const img = document.createElementNS(NS, 'image');
         img.setAttribute('href', posedShot.dataUrl);
-        img.setAttribute('x', String(n2(posedShot.x - rootRect.left)));
-        img.setAttribute('y', String(n2(posedShot.y - rootRect.top)));
+        img.setAttribute('x', String(n2(posedShot.x)));
+        img.setAttribute('y', String(n2(posedShot.y)));
         img.setAttribute('width', String(n2(posedShot.w)));
         img.setAttribute('height', String(n2(posedShot.h)));
         img.setAttribute('preserveAspectRatio', 'none');
@@ -1984,25 +1992,13 @@ async function renderHtmlSvg(node: Element, opts: ExportOpts, textContext: Inlin
           // being inconsistent with it rather than a deliberate exemption.
           // Falls back to the raw src on failure (cross-origin without CORS, 404),
           // which is exactly the old behaviour - never worse than before.
-          const dataUrl0 = src.startsWith('data:') ? src
-            : await blobToDataUrl(src).catch(() => src);
           // Preserve an embedded bitmap's provenance BEFORE downscaleRasterForBox's
           // canvas re-encode strips it (canvas.toDataURL emits a metadata-free PNG):
-          // read the source's Content Credentials and carry them forward as a
-          // componentOf ingredient on the EXPORT's own manifest, so a genAI origin (or
-          // any credential) stays on the record even though the embedded pixels can no
-          // longer hold it. Verify walks ingredient manifests, so the flag surfaces.
-          // Only credentialed bitmaps add one; gated on _ingredientSink (c2pa only).
-          if (opts._ingredientSink && dataUrl0.startsWith('data:')) {
-            try {
-              const b = Uint8Array.from(atob(dataUrl0.slice(dataUrl0.indexOf(',') + 1)), (c) => c.charCodeAt(0));
-              const store = extractC2paStore(b);
-              const ing = store && prepareC2paIngredientFromStore(store.store, store.format);
-              if (ing && !opts._ingredientSink.some((p) => p.activeLabel === ing.activeLabel)) {
-                opts._ingredientSink.push({ ...ing, relationship: 'componentOf' });
-              }
-            } catch { /* not a decodable/credentialed bitmap */ }
-          }
+          // its Content Credentials ride the EXPORT's own manifest as a componentOf
+          // ingredient, so a genAI origin (or any credential) stays on the record even
+          // though the embedded pixels can no longer hold it. The PDF walker and the
+          // raster routes record the same way (export-picture-credentials.ts).
+          const dataUrl0 = await inlinePicture(src, opts._ingredientSink);
           // CSS filter() (e.g. grayscale/contrast presets) is baked into the bitmap
           // via the browser so the vector image matches screen/PNG instead of
           // exporting full-colour. No-op + graceful fallback when filter is none.
@@ -2502,30 +2498,6 @@ function establishesAbsContainingBlock(cs: CSSStyleDeclaration): boolean {
   return false;
 }
 
-/**
- * Does the browser skip painting this element even though its computed style says it
- * is visible? Two cases, both of which lay out normally and both of which the walker
- * would otherwise draw:
- *
- *   - a subtree inside a CLOSED <details> (excluding its own <summary>, which paints)
- *   - `content-visibility: hidden`, whose subtree is laid out but never painted
- *
- * checkVisibility() knows about both, but its `checkOpacity`/`checkVisibilityCSS`
- * options overlap gates the walk already applies more precisely (an opacity-0 element
- * is dropped a line above, and the walker's own opacity handling is richer), so the
- * DOM answer is used only as a cross-check on the two cases above.
- */
-export function isPaintSkipped(el: Element, style: CSSStyleDeclaration): boolean {
-  if (style.contentVisibility === 'hidden') return true;
-  const details = el.closest('details:not([open])');
-  // closest() matches the element itself: the <details> box is painted (it is the
-  // card), only its non-summary CONTENTS are skipped.
-  if (!details || details === el) return false;
-  // The summary is the part a closed <details> DOES paint - as is anything inside it.
-  const summary = details.querySelector(':scope > summary');
-  return !(summary?.contains(el));
-}
-
 // Resolve a CSS generated-content pseudo-element (::before/::after) into a drawable
 // descriptor, or null if it has nothing visible. The DOM walkers only see real
 // nodes, so list markers / arrows authored as ::before content (e.g. dynamic-layout's
@@ -2790,7 +2762,7 @@ async function emitBackgroundLayers(
 // behind on screen instead of over it (jump's cinema scenes shipped with every
 // label buried under its scene wash this way).
 async function svgPseudoContent(
-  NS: string, parentG: Element, rootRect: { left: number; top: number }, el: Element, vectorText: boolean,
+  NS: string, parentG: Element, rootRect: Origin, el: Element, vectorText: boolean,
   defs: Element, nextId: () => number,
   defer?: (z: number) => Element, negInsert?: (pg: Element) => void,
 ): Promise<void> {
@@ -2837,23 +2809,25 @@ async function svgPseudoContent(
     }
     if (!ds.text.trim()) continue;
     const fontSizePx = parseFloat(ds.ps.fontSize) || 16;
-    const vf = vectorText && _host?.text ? await resolveVectorFont(ds.ps, ds.text) : null;
+    const vf = vectorText && _host?.text ? await resolveExportFont(ds.ps, ds.text, el) : null;
     const fontUrl = vf?.url ?? null;
     const col = parseCssColorFull(ds.ps.color);
     const fillAttr  = col ? `rgb(${col[0]},${col[1]},${col[2]})` : null;
     const alphaAttr = col && col[3] < 1 ? String(col[3]) : null;
     const lineH = parseFloat(ds.ps.lineHeight) || fontSizePx * 1.2;
     const strokeAttrs = textStrokeAttrs(ds.ps, parseCssColorFull);
+    const rtl = ds.ps.direction === 'rtl';
+    const ordered = rtl || hasRtlText(ds.text);
     let placed = false;
     if (vectorText && canVectoriseText(ds.ps, fontUrl, Boolean(_host?.text))) {
       try {
-        const { d, notdef } = await _host!.text!.toPath({ text: ds.text, fontUrl: fontUrl!, fontSize: fontSizePx, variations: vf!.variations, fallbackFonts: vf!.fallbacks });
+        const { d, notdef, advanceWidth } = await _host!.text!.toPath({ text: ds.text, fontUrl: fontUrl!, fontSize: fontSizePx, variations: vf!.variations, fallbackFonts: vf!.fallbacks, ...(ordered ? { direction: rtl ? 'rtl' as const : 'ltr' as const } : {}) });
         if (d && !notdef) {
           const { ascent, descent } = fontMetricsPx(ds.ps, fontSizePx);
           const by = textBaselineY(y, lineH, ascent, descent);
           const p = document.createElementNS(NS, 'path');
           p.setAttribute('d', d);
-          p.setAttribute('transform', `translate(${n2(x)},${n2(by)})`);
+          p.setAttribute('transform', `translate(${n2(rtl ? x + ds.w - advanceWidth : x)},${n2(by)})`);
           if (fillAttr)  p.setAttribute('fill', fillAttr);
           if (alphaAttr) p.setAttribute('fill-opacity', alphaAttr);
           for (const [k, v] of strokeAttrs) p.setAttribute(k, v);
@@ -2864,13 +2838,14 @@ async function svgPseudoContent(
     }
     if (!placed) {
       const t = document.createElementNS(NS, 'text');
-      t.setAttribute('x',                 String(n2(x)));
+      t.setAttribute('x',                 String(n2(rtl ? x + ds.w : x)));
+      if (rtl) t.setAttribute('direction', 'rtl');
       t.setAttribute('y',                 String(n2(y)));
       t.setAttribute('dominant-baseline', 'text-before-edge');
       t.setAttribute('font-size',         ds.ps.fontSize);
       t.setAttribute('font-weight',       ds.ps.fontWeight);
       t.setAttribute('font-style',        ds.ps.fontStyle);
-      t.setAttribute('font-family',       ds.ps.fontFamily);
+      t.setAttribute('font-family',       exportFontFamily(ds.ps.fontFamily));
       if (fillAttr)  t.setAttribute('fill',         fillAttr);
       if (alphaAttr) t.setAttribute('fill-opacity', alphaAttr);
       for (const [k, v] of strokeAttrs) t.setAttribute(k, v);
@@ -3022,16 +2997,19 @@ export async function rasterizeNodeToDataUrl(el: HTMLElement, pxW: number, pxH: 
  * `tx·(1/w−1)`.
  *
  * The returned `rect` is where the caller must place the image - the posed AABB grown
- * by the effect spill, in the element's own client coordinates. `getBoundingClientRect`
+ * by the effect spill, measured from `origin` (the export root's top-left, read with the
+ * box, so a root that moves during the capture's awaits does not move the picture;
+ * export-origin.ts). `getBoundingClientRect`
  * is exact against an analytic projection in both engines (S2 section 3a), so the placement
  * needs no second implementation of the projection.
  *
  * Null on any failure, so the caller can fall through to what it did before.
  */
 export async function rasterizePosedNodeToDataUrl(
-  el: HTMLElement, scale: number, imprint?: ImprintState, padCss = 0,
+  el: HTMLElement, scale: number, imprint?: ImprintState, padCss = 0, origin: Origin = { left: 0, top: 0 },
 ): Promise<{ dataUrl: string; x: number; y: number; w: number; h: number } | null> {
   const aabb = el.getBoundingClientRect();
+  const at = originNow(origin);
   // The element's own LAYOUT box, which a transform never changes - so the clone can
   // keep it and skip the re-layout that is the whole defect in the escape hatch.
   const cssW = el.offsetWidth || aabb.width;
@@ -3067,7 +3045,7 @@ export async function rasterizePosedNodeToDataUrl(
       // the same padding the capture carries, so the image is placed where the browser
       // painted the pose. `aabb` and `posed` are the same rectangle in two coordinate
       // systems (client vs the box's own), which is why only the pad is added here.
-      x: aabb.left - padCss, y: aabb.top - padCss,
+      x: aabb.left - at.left - padCss, y: aabb.top - at.top - padCss,
       w: aabb.width + 2 * padCss, h: aabb.height + 2 * padCss,
     };
   } catch (e) {
@@ -3270,7 +3248,8 @@ export async function inlineSvgFromImg(src: string): Promise<Element | null> {
   // Inlined files carry their own generated ids - namespace them or same-named
   // ids across several inlined files bind every reference to the FIRST one
   // (four covers all clipped by cover 1's `fcovclip-1`; see svg-inline-ids.ts).
-  namespaceInlinedSvgIds(svg, src);
+  // A blob: URL is new in every session, so the prefix is hashed from its text instead.
+  namespaceInlinedSvgIds(svg, inlineIdKey(src, text));
   return svg;
 }
 

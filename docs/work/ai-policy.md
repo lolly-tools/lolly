@@ -1,10 +1,9 @@
 # Manage organisation AI policy
 
-This page is for the admin deciding whether members may use Lolly's model-backed features on a
-Lolly Work deployment, and how to stop them at once. Managed AI is off by default. It is a
-service switch for the whole deployment, not a personal preference, and it covers the features
-below.
+Managed AI is off by default. It is a service switch for the whole deployment, not a personal
+preference, and it covers the features below.
 
+<!--i:eti-sparkles-->
 ## What managed AI covers
 
 | Capability | Supported shell paths |
@@ -23,6 +22,7 @@ downloads and drops late results. The offline profile reports that AI downloads 
 still allows removing cached model files. Pure image operations and cryptographic Content
 Credentials are separate from neural watermarking and are not governed here.
 
+<!--i:eti-badge-check-->
 ## Turn it on: two keys
 
 AI runs only when both of these say yes:
@@ -53,6 +53,7 @@ Approve the models in the exact release as part of the same change. The configur
 capabilities, not individual model IDs, so withdrawing one model means turning off its whole
 capability or shipping a reviewed replacement.
 
+<!--i:eti-clock-->
 ## How the shell holds permission
 
 `org-config.ai` and the authenticated `GET /api/v1/policy/ai` return:
@@ -74,7 +75,7 @@ capability or shipping a reviewed replacement.
 Lolly Rondocode runs its singing models inside its own editor frame. The shell checks `sing` when a song
 asks for the model files, and again before it downloads any that are missing. Withdrawing the
 capability refuses later requests; a request that already passed those checks can still finish,
-and files the frame already holds are not recalled. Approve `sing` only for a Lolly 1.1.1 or later
+and files the frame already has are not recalled. Approve `sing` only for a Lolly 1.1.1 or later
 shell. An older shell refuses a lease that asks for a capability it does not know, so every AI
 capability stays off there until the shell is updated.
 
@@ -87,17 +88,21 @@ deployment's capability list can include `agents` only once both the Lolly Work 
 desktop apps know the capability; an older desktop app refuses a lease that asks for it, which
 leaves every AI capability off there.
 
+<!--i:eti-eye-off-->
 ## Turn it off
 
 Set the `ai` flag to **Off** (or **Inherit**), or deploy `policy.ai.enabled=false`. Connected
 shells lose permission within one lease, at most 60 seconds, and offline devices lose it when
 their lease expires, because they cannot receive an instant remote command.
 
+<!--i:eti-warning-->
 ## What it does not control
 
-This is enforcement inside the supported application, not a sandbox for arbitrary JavaScript, a
-modified client, an independent CLI or a copied model. Endpoint controls, trusted releases and
+::: note Enforcement inside the supported app, not a sandbox
+It does not sandbox arbitrary JavaScript, a modified client, an independent CLI or a copied
+model. Endpoint controls, trusted releases and
 suitable network restrictions are still needed.
+:::
 
 - An in-flight main-thread ONNX or native call may finish computing; its guarded result is
   discarded after revocation.
@@ -114,9 +119,11 @@ suitable network restrictions are still needed.
 
 Policy changes are audited without prompts or media, and this control adds no logging of
 inference content. Model-specific policy, broader AI execution receipts and approval of an
-AI-enabled service are not built, and a first release can keep AI off. Before turning AI on in
-production, confirm that these audit events reach your central log, and complete whatever review,
-model inventory and assessments your organisation requires.
+AI-enabled service are not built.
+
+::: note Before you turn AI on in production
+Confirm that these audit events reach your central log, and complete whatever review, model inventory and assessments your organisation requires.
+:::
 
 ::: details Build and release notes for operators
 Build the matching Lolly web shell with `VITE_REQUIRE_AI_POLICY=true`. For the repository's

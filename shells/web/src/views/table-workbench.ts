@@ -41,8 +41,7 @@ export function openTableWorkbench(opts: Options): void {
   let active = 0,
     activeColumn = 0,
     expanded = false,
-    grid: DataGridHandle | undefined,
-    busy = false;
+    grid: DataGridHandle | undefined;
   const undo: TableValue[] = [],
     redo: TableValue[] = [];
   const modal = mountModal(
@@ -68,19 +67,28 @@ export function openTableWorkbench(opts: Options): void {
     status.textContent =
       message + (opts.diagnostics?.() ? ' · ' + opts.diagnostics()!.slice(0, 700) : '');
   };
-  const button = (parent: Element, label: string, action: () => void): HTMLButtonElement => {
+  // Edits run one at a time, in the order they were made. Each reads the table as the
+  // edit before it left it, so none is lost. A save takes a while on a long programme,
+  // and an edit made meanwhile (Undo just after typing, a second cell) used to be
+  // dropped while the grid still showed the typed value.
+  let edits: Promise<void> = Promise.resolve();
+  const queue = (edit: () => void | Promise<void>): void => {
+    edits = edits.then(edit).catch((error: unknown) => {
+      say(String((error as Error).message));
+    });
+  };
+  const button = (parent: Element, label: string, action: () => void | Promise<void>): HTMLButtonElement => {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'btn';
     b.textContent = t(label);
-    b.addEventListener('click', action);
+    b.addEventListener('click', () => queue(action));
     parent.append(b);
     return b;
   };
   button(header, 'Done', () => modal.close());
+  /** Store one edit. Called only from a queued edit, so saves never overlap. */
   const save = async (next: TableValue, remember = true, focusGrid = false): Promise<void> => {
-    if (busy) return;
-    busy = true;
     const gridFocused = focusGrid || gridRoot.contains(document.activeElement);
     try {
       if (remember) {
@@ -97,8 +105,6 @@ export function openTableWorkbench(opts: Options): void {
       say(`${value.rows.length} ${t('rows')} · ${value.columns.length} ${t('columns')}`);
     } catch (error) {
       say(String((error as Error).message));
-    } finally {
-      busy = false;
     }
   };
   const indices = () => {
@@ -137,17 +143,18 @@ export function openTableWorkbench(opts: Options): void {
         activeColumn = column;
         renderForm();
       },
-      onChange: (next, change) => {
-        const full = structuredClone(value);
-        if (change?.deletedRow !== undefined) full.rows.splice(change.deletedRow, 1);
-        next.rows.forEach((row, r) => {
-          full.rows[r] ??= full.columns.map(() => '');
-          cols.forEach((c, i) => {
-            full.rows[r]![c] = row[i] ?? '';
+      onChange: (next, change) =>
+        queue(() => {
+          const full = structuredClone(value);
+          if (change?.deletedRow !== undefined) full.rows.splice(change.deletedRow, 1);
+          next.rows.forEach((row, r) => {
+            full.rows[r] ??= full.columns.map(() => '');
+            cols.forEach((c, i) => {
+              full.rows[r]![c] = row[i] ?? '';
+            });
           });
-        });
-        void save(full, true, true);
-      },
+          return save(full, true, true);
+        }),
     });
   }
   function renderForm(): void {
@@ -232,14 +239,16 @@ export function openTableWorkbench(opts: Options): void {
       problem.className = 'tw-error';
       problem.textContent = validate();
       control.setAttribute('aria-invalid', String(!!problem.textContent));
-      control.addEventListener('change', () => {
-        const next = structuredClone(value);
-        next.rows[active]![c] = control.value;
-        void save(next).then(() => {
+      control.addEventListener('change', () =>
+        queue(async () => {
+          const next = structuredClone(value);
+          if (!next.rows[active]) return;
+          next.rows[active]![c] = control.value;
+          await save(next);
           const focus = form.querySelector<HTMLElement>(`[data-column="${c}"]`);
           focus?.focus();
-        });
-      });
+        })
+      );
       label.append(control, problem);
       form.append(label);
       if (
@@ -270,7 +279,7 @@ export function openTableWorkbench(opts: Options): void {
         if (tableField(column, spec)?.identity) row[c] = '';
       });
       next.rows.splice(++active, 0, row);
-      void save(next);
+      return save(next);
     });
     button(actions, 'Insert above', () => {
       const next = structuredClone(value);
@@ -279,7 +288,7 @@ export function openTableWorkbench(opts: Options): void {
         0,
         next.columns.map(() => '')
       );
-      void save(next);
+      return save(next);
     });
     button(actions, 'Insert below', () => {
       const next = structuredClone(value);
@@ -288,7 +297,7 @@ export function openTableWorkbench(opts: Options): void {
         0,
         next.columns.map(() => '')
       );
-      void save(next);
+      return save(next);
     });
     for (const direction of [-1, 1])
       button(actions, direction < 0 ? 'Move up' : 'Move down', () => {
@@ -297,12 +306,12 @@ export function openTableWorkbench(opts: Options): void {
         if (to < 0 || to >= next.rows.length) return;
         [next.rows[active], next.rows[to]] = [next.rows[to]!, next.rows[active]!];
         active = to;
-        void save(next);
+        return save(next);
       });
     button(actions, 'Delete row', () => {
       const next = structuredClone(value);
       next.rows.splice(active, 1);
-      void save(next);
+      return save(next);
     });
     if (spec.preview)
       button(actions, 'Preview this time', () => {
@@ -324,7 +333,7 @@ export function openTableWorkbench(opts: Options): void {
     const next = structuredClone(value);
     next.rows.push(next.columns.map(() => ''));
     active = next.rows.length - 1;
-    void save(next);
+    return save(next);
   });
   button(toolbar, 'All columns', () => {
     expanded = !expanded;
@@ -334,14 +343,14 @@ export function openTableWorkbench(opts: Options): void {
     const previous = undo.pop();
     if (previous) {
       redo.push(structuredClone(value));
-      void save(previous, false);
+      return save(previous, false);
     }
   });
   button(toolbar, 'Redo table edit', () => {
     const next = redo.pop();
     if (next) {
       undo.push(structuredClone(value));
-      void save(next, false);
+      return save(next, false);
     }
   });
   button(toolbar, 'Sort by date and time', () => {
@@ -362,7 +371,7 @@ export function openTableWorkbench(opts: Options): void {
       }
       return 0;
     });
-    void save(next);
+    return save(next);
   });
   button(toolbar, 'Shift times', () => {
     importer.hidden = false;
@@ -389,16 +398,15 @@ export function openTableWorkbench(opts: Options): void {
     importer.append(label);
     button(importer, 'Apply shift', () => {
       try {
-        void save(
-          shiftTable(
-            value,
-            spec,
-            Number(minutes.value),
-            Number(days.value),
-            all.checked ? undefined : active
-          )
+        const next = shiftTable(
+          value,
+          spec,
+          Number(minutes.value),
+          Number(days.value),
+          all.checked ? undefined : active
         );
         importer.hidden = true;
+        return save(next);
       } catch (error) {
         say((error as Error).message);
       }
@@ -479,8 +487,8 @@ export function openTableWorkbench(opts: Options): void {
           return;
         }
         incoming.columns = mapped.columns;
-        void save(append ? appendTable(value, incoming) : incoming);
         importer.hidden = true;
+        return save(append ? appendTable(value, incoming) : incoming);
       };
       button(preview, 'Add sessions', () => apply(true));
       button(preview, 'Replace programme', () => apply(false));

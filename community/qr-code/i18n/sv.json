@@ -1,6 +1,6 @@
 {
   "name": "QR Code",
-  "description": "QR-koder för en länk, ett kontaktkort, Wi-Fi-nätverk, kalenderhändelse, plats eller vanlig text.",
+  "description": "Skanningsbara koder av alla slag: QR, Micro QR, Data Matrix, Aztec och PDF417 - plus streckkoder för detaljhandel och logistik, från EAN-13 till MaxiCode.",
   "a11yLabel": "QR-kod som länkar till {{default url \"(no URL set)\"}}",
   "featured.blurb": "QR-koder i valfri varumärkesfärg",
   "inputs.url.label": "URL",

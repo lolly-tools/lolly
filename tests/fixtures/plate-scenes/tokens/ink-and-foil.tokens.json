@@ -1,0 +1,38 @@
+{
+  "$description": "Plate scene fixture for 14-finish-keeps-plate: one spot ink with a declared CMYK build and one foil finish. No design system in the tree declares a finish, so the scene brings this one with --file. Synthetic: the names are made up and stand for no real ink.",
+  "$themes": [
+    {
+      "name": "light",
+      "selectedTokenSets": {
+        "base": "enabled"
+      }
+    }
+  ],
+  "base": {
+    "color": {
+      "brand": {
+        "tide": {
+          "$type": "color",
+          "$value": "#1a85c4",
+          "$description": "Tide",
+          "$extensions": {
+            "com.suse.lolly": {
+              "cmyk": [82, 37, 1, 2],
+              "spot": { "name": "Fixture Tide" }
+            }
+          }
+        },
+        "foil": {
+          "$type": "color",
+          "$value": "#c9a227",
+          "$description": "Foil",
+          "$extensions": {
+            "com.suse.lolly": {
+              "spot": { "name": "Fixture Foil", "finish": "foil" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

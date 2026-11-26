@@ -28,7 +28,7 @@ import { forensicPanelHtml, mountForensicVerify } from './valid-forensics.ts';
 import '../styles/parts/valid.css';   // async CSS chunk (lazy view - not on the landing)
 import '../styles/parts/valid-report.css';
 import { verifyC2pa, verifySeal, extractFileMetadata, appendedIsExpected, stripMetadata, detectWatermark, detectWatermarkSearch, analyzeLsb, isPptx, pptxMediaImages, evaluateReuse, licenceDisplayName, normaliseLicence, rightsReportFromC2pa } from '@lolly/engine';
-import { guidedByFact, madeWithFact, recreateHrefFor } from '../lib/made-with.ts';
+import { guidedByFact, madeWithFact, partnerFact, recreateHrefFor } from '../lib/made-with.ts';
 import type { FileMetadata, StripFormat, SealVerifyResult } from '@lolly/engine';
 import type { CreativeOperationV1, CreativeUseRoleV1, DeliveryRouteV1 } from '@lolly-tools/core/rights-v1';
 import { looksLikePptxFile, inflatePptx, PPTX_MIME } from '../bridge/pptx.ts';
@@ -68,7 +68,7 @@ import { mountProfileFab } from '../components/profile-menu.ts';
 // tested) standalone. See valid-verdict.ts's header for why this lives apart from the
 // rendering below.
 import {isExpectedRow, pipStatusWord, scorecardModel, resolveState, sourceTypeLabel,
-  stateTone, STATE_COPY, hashFailed, rightsReportOf, rightsSourceReport,
+  stateTone, rightsReportOf, rightsSourceReport,
 } from './valid-verdict.ts';
 import type { Check, SignerIdentity, Signer, Claim, VerifyReport, Watermark, ScorecardItem } from './valid-verdict.ts';
 import { provenanceOverviewHtml, provenanceSummaryHtml } from './valid-provenance.ts';
@@ -85,7 +85,7 @@ import { intakeAltsHtml, wireIntakeAlts } from './valid-intake-alts.ts';
 // without a browser (valid-text.test.ts).
 import {
   TEXT_FORMAT_LABEL, formatLabel, pastedFileName, textSnippet, classifyUrl, classifyPastedUrl,
-  verifyTextNotices, suppressModifiedBadge, aiDisclosureRows, analyzeVerifyText, buildHighlightSegments, heatBucket,
+  verifyTextNotices, aiDisclosureRows, analyzeVerifyText, buildHighlightSegments, heatBucket,
 } from './valid-text.ts';
 import type { VerifyNotice, NoticeContext, TextSignalPanel, TextSignalMark } from './valid-text.ts';
 // The shared "Reworded with Lolly" note (lib/wm-note.ts): a hidden slot in the
@@ -102,8 +102,8 @@ import { tsigFactsHtml } from './tsig-facts.ts';
 import { docReadNotesHtml } from './valid-notes.ts';
 // The illumination strip + the completeness receipt (pure models; the strip
 // renders through this view's existing reviewed sinks).
-import { verifyLampCues } from './valid-text.ts';
-import { lampStripHtml, wireLampScroll, type TrustLamp } from './trust-lamps.ts';
+import { wireLampScroll } from './trust-lamps.ts';
+import { findingsFor, findingsHtml } from './valid-findings.ts';
 import { verifyReceiptModel, receiptCounts, type ReceiptInput } from './valid-receipt.ts';
 import { aiDetectAvailable } from '../lib/ai-detect.ts';
 import { rewordAvailable } from '../lib/reworder.ts';
@@ -166,17 +166,6 @@ function scorecardPipHtml(it: ScorecardItem, i: number): string {
 // pip matches the rest of the mini row exactly.
 function miniScorePipHtml(it: ScorecardItem): string {
   return `<li class="valid-score-pip is-${it.status}${it.ash ? ' is-ash' : ''}" title="${escape(it.label)}${it.hideStatus ? '' : `: ${escape(pipStatusWord(it))}`}"><span class="valid-score-ic">${svgIcon(it.icon)}</span></li>`;
-}
-
-function scorecardHtml(report: VerifyReport, watermark?: Watermark, extra?: ScorecardItem[]): string {
-  const items = scorecardModel(report, watermark, extra);
-  const priority: IconName[] = ['hash', 'pen', 'userCheck', 'cpu', 'clock'];
-  const rank = (item: ScorecardItem): number => item.status === 'fail' ? -1 : priority.includes(item.icon) ? priority.indexOf(item.icon) : 10;
-  items.sort((a, b) => rank(a) - rank(b));
-  const more = items.length > 4
-    ? `<button type="button" class="valid-score-more" data-score-toggle data-score-count="${items.length}" aria-expanded="false">${t('Show all {n} checks', { n: items.length })}</button>`
-    : '';
-  return `<div class="valid-score-wrap"><ul class="valid-score" aria-label="${escape(t('Verification checks at a glance'))}">${items.map(scorecardPipHtml).join('')}</ul>${more}</div>`;
 }
 
 // Key findings lead the report; technical evidence starts collapsed at every size.
@@ -1585,11 +1574,6 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
   // AI declaration (credential or bare metadata) + the extra scorecard pips it
   // and the steganalysis reads imply - see deriveAi/aiMarkPip/stegoPips.
   const { origin: aiOrigin, makerHint } = deriveAi(report, meta);
-  const pips = extraPips(aiOrigin, makerHint, preview?.kind === 'video', meta);
-  // SEAL is a byte-level signal computed alongside C2PA (see sealPip): its pip
-  // rides with the other watermark/provenance pips in the hero scorecard.
-  const sp = sealPip(seal);
-  if (sp) pips.push(sp);
   // Who signed: the device credential's OIDC email when present, else the
   // organisation / common name from a CA signer's certificate (Google, Adobe,
   // Microsoft… carry no SAN email). Only shown when the chain reached a pinned
@@ -1630,7 +1614,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
         <dl class="valid-facts">
           ${fact(t('Title'), claim.title, 'tag')}
           ${fact(t('Tool'), env.tool && env.toolVersion ? `${env.tool} ${env.toolVersion}` : env.tool, 'tool')}
-          ${fact(t('Design system'), madeWithFact(env), 'palette')}${fact(t('Guided by'), guidedByFact(env), 'document')}
+          ${fact(t('Design system'), madeWithFact(env), 'palette')}${fact(t('Partner'), partnerFact(env), 'building')}${fact(t('Guided by'), guidedByFact(env), 'document')}
           ${fact(t('Produced by'), report.author ? `${report.author.name}${report.author.email ? ` <${report.author.email}>` : ''}` : null, 'user')}
           ${fact(t('Contact'), report.author?.url ?? null, 'link')}
           ${fact(t('Rights / licence'), report.rights ?? null, 'badgeCheck')}
@@ -1661,81 +1645,10 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
         </div>
       </details>` : '';
   const panelsBlock = `<div class="valid-panels">${recordPanelsHtml(report)}${madeFromBlock}${scriptBlock}${sourcesBlock}${summaryBlock}${checksBlock}${renderMetadata(meta, fileIndex)}</div>`;
-  // The two "key validations" + the signed-by caption shown under the "Made with
-  // Lolly" pill - only for the flagship lolly hero; every other good state keeps
-  // the single prose sub + identityLine above.
-  const signedByCa = identity?.issuer || signer.organization || signer.commonName;
-  const lollyValidationsHtml = state === STATE_COPY.lolly ? `
-          <div class="valid-hero-vbadges">
-            <div class="valid-vbadge"><span class="valid-vbadge-ic" aria-hidden="true">${svgIcon('seal')}</span><span>${t('The credential is intact and records a Lolly export')}</span></div>
-            <div class="valid-vbadge"><span class="valid-vbadge-ic" aria-hidden="true">${svgIcon('hash')}</span><span>${t('This file has not changed since it was made')}</span></div>
-          </div>
-          <p class="valid-hero-signedby">${identity
-    ? t('Signed with <strong>{ca}</strong> Certificate Authority.', { ca: signedByCa ?? t('a Certificate Authority') })
-    : t('Signed with an on-device key, not a CA identity.')}</p>` : '';
-  // Mirrors lollyValidationsHtml's badge treatment for the broken-credential
-  // verdict - three plain facts instead of one sentence to parse.
-  // The third badge is an INFERENCE, not a fact - and when a note below already
-  // names the known innocent cause of this mismatch (a carrier re-serialized on
-  // its way through the clipboard), stamping "Modified after signing" over the
-  // top of it would be the page contradicting itself in favour of the accusation.
-  // The two factual badges stay: a credential is here, and these bytes are not
-  // the ones it hashed. Same rule as the expired-cert lesson.
-  // ...and the OTHER two badges are inferences too, from the one row that can
-  // support them: a failed hard binding. `resolveState` now routes the states
-  // where no hash mismatch was established (a carrier problem, an exclusion
-  // carve-out, an external credential) to their own heroes, but the gate is
-  // re-asserted here on the evidence itself rather than on the state identity - 
-  // "Bytes no longer match" must never be printed over a report whose own check
-  // list says the data hash is valid.
-  const knownCauseMismatch = suppressModifiedBadge(notes);
-  const invalidBadgesHtml = state === STATE_COPY.invalid && hashFailed(report) ? `
-          <div class="valid-hero-vbadges">
-            <div class="valid-vbadge is-fail"><span class="valid-vbadge-ic" aria-hidden="true">${svgIcon('seal')}</span><span>${t('Content Credentials detected')}</span></div>
-            <div class="valid-vbadge is-fail"><span class="valid-vbadge-ic" aria-hidden="true">${svgIcon('hash')}</span><span>${t('Bytes no longer match')}</span></div>
-            ${knownCauseMismatch ? '' : `<div class="valid-vbadge is-fail"><span class="valid-vbadge-ic" aria-hidden="true">${svgIcon('pen')}</span><span>${t('Modified after signing')}</span></div>`}
-          </div>` : '';
-  // The middle-ground verdict: mixed tones in one badge group, unlike the pure
-  // pass (lolly) or pure fail (invalid) groups above - two green facts about
-  // the MANIFEST's own content (still trustworthy) and one amber fact about
-  // the FILE's current bytes (can't be vouched for).
-  const likelyLollyBadgesHtml = state === STATE_COPY.likelyLolly ? `
-          <div class="valid-hero-vbadges">
-            <div class="valid-vbadge"><span class="valid-vbadge-ic" aria-hidden="true">${svgIcon('seal')}</span><span>${t("The credential's own content checks out")}</span></div>
-            <div class="valid-vbadge"><span class="valid-vbadge-ic" aria-hidden="true">${svgIcon('lollipop')}</span><span>${t('It records a Lolly creation')}</span></div>
-            <div class="valid-vbadge is-warn"><span class="valid-vbadge-ic" aria-hidden="true">${svgIcon('hash')}</span><span>${t("This file's bytes no longer match")}</span></div>
-          </div>` : '';
   // When there's no C2PA credential, lead the hero with the strongest positive
   // signal (made on this device / Lolly Imprint) as a green pill, rather than a
   // bare grey "No Content Credentials" - the actual C2PA absence stays in the sub.
   const noCredSignal = noCredentialSignal(report, watermark, mine);
-  const verdictHtml = report.madeWithLolly
-    ? `<span class="valid-hero-pill valid-hero-pill--lolly"><span class="valid-lolly-badge" aria-hidden="true">🍭</span>${escape(t(state.title))}</span>`
-    : report.likelyMadeWithLolly
-      ? `<span class="valid-hero-pill valid-hero-pill--likely-lolly"><span class="valid-lolly-badge" aria-hidden="true">🍭</span>${escape(t(state.title))}</span>`
-      : report.trusted
-        ? `<span class="valid-hero-pill valid-hero-pill--trusted"><span class="valid-trusted-badge" aria-hidden="true">✓</span>${escape(t(state.title))}</span>`
-        : noCredSignal
-          ? `<span class="valid-hero-pill valid-hero-pill--lolly"><span class="valid-lolly-badge" aria-hidden="true">🍭</span>${escape(noCredSignal)}</span>`
-          : `<span class="valid-hero-verdict">${escape(t(state.title))}</span>`;
-  // A file whose intact chain records Lolly steps without being a Lolly creation
-  // gets the amber lolly pill BESIDE the main verdict - credit for the Lolly leg
-  // without claiming the whole file (see engine partsMadeWithLolly).
-  const partsPill = report.partsMadeWithLolly
-    ? ` <span class="valid-hero-pill valid-hero-pill--likely-lolly" title="${escape(t('The provenance chain records steps made with Lolly, but the file as it stands was produced by another tool.'))}"><span class="valid-lolly-badge" aria-hidden="true">🍭</span>${t('Parts made with Lolly')}</span>`
-    : '';
-  // The illumination strip: four lamps, one glance, C2PA leading. Cues come
-  // from the pure model (valid-text.ts); labels/words localise here.
-  const lamps: TrustLamp[] = verifyLampCues({
-    report,
-    watermarkPresent: !!watermark?.present,
-    sealFound: !!seal?.found,
-    sealValid: !!seal?.valid,
-    aiLikely: !!makerHint,
-    ...(textSignals ? { panel: textSignals } : {}),
-  }).map((c) => ({ id: c.id, label: t(c.id === 'provenance' ? 'Credentials & marks' : c.id === 'origin' ? 'AI origin' : c.label), state: c.state, word: t(c.word), ...(c.detail ? { detail: t(c.detail) } : {}) }));
-  const lampStrip = lamps.some((lamp) => lamp.state !== 'unlit') ? lampStripHtml(lamps) : '';
-
   // The completeness receipt: what ran, what could not, and why - the
   // negative space made visible, with the report-card and keep actions.
   const receiptInput: ReceiptInput = {
@@ -1773,46 +1686,47 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
       <button type="button" class="btn" data-ask-cred data-file-name="${escape(fileName)}">${svgIcon('seal')}<span>${t('Copy a note asking for credentials')}</span></button>
     </div>` : '';
 
-  return `
-    <div class="valid-result ${state.cls}" data-actions-index="${fileIndex}">
-      ${/* A file made on this device leads with that: it is the most certain thing the report can say, and the way back to the document. */ ''}${mine ? mineNote(mine) : ''}
-      <div class="valid-top">
-        <div class="valid-hero">
-          <div class="valid-hero-title">
-            <span class="valid-hero-icon">${report.madeWithLolly || noCredSignal
-    ? '<span class="valid-hero-logo" aria-hidden="true"></span>'
-    : ICON_SHIELD}</span>
-            <h2><span class="valid-hero-filename">${escape(fileName)}</span> ${verdictHtml}${partsPill}</h2>
-          </div>
-          ${state === STATE_COPY.lolly ? lollyValidationsHtml
-    : state === STATE_COPY.likelyLolly ? likelyLollyBadgesHtml
-    // Keyed on the badge markup existing, not on the state: an invalid report
-    // with no hash failure produces none, and falls back to the prose sub that
-    // resolveState reworded for exactly that case.
-    : invalidBadgesHtml ? invalidBadgesHtml
-      : `${report.found ? `<p>${sub}</p>` : ''}${identityLine}`}
-        </div>
-        ${report.found || watermark?.present || pips.length ? scorecardHtml(report, watermark, pips) : ''}
-      </div>
-      <div class="valid-origin-layout">${provenanceOverviewHtml(report, meta)}${mediaPreviewHtml(preview, fileIndex)}</div>
-      ${lampStrip}
-      ${stepsBlock ? `<div class="valid-journey-feature" data-lamp-section="provenance">${stepsBlock}</div>` : ''}
-      ${contextCardsHtml(report, meta)}
-      <div data-lamp-section="provenance"><span data-lamp-section="integrity"></span>${panelsBlock}</div>
-      ${askCred}
-      ${deepScanBlock(fileIndex, report.format, fileName)}
-      <div data-lamp-section="origin">
+  // The answer (plan 374): the verdict in words, then the six findings in one
+  // fixed order. It replaces the hero pill, the badge groups, the scorecard
+  // pips and the lamp strip, which each said the same thing in its own way.
+  const findings = findingsFor(report, meta, { watermark, seal, madeHere: !!mine, textSignals });
+  const verdictWord = report.found || !noCredSignal ? t(state.title) : noCredSignal;
+  const aiBlock = `<div data-lamp-section="origin" data-finding-section="ai">
       ${aiFlagHtml(aiOrigin, makerHint, preview?.kind === 'audio')}
       ${aiDisclosureHtml(report, identity)}
-      </div>
       <div data-lamp-section="signals">
       ${forensicPanelHtml(fileIndex, aiOrigin ? [{ kind: aiOrigin.via === 'fingerprint' ? 'container-hint' : aiOrigin.kind, source: aiOrigin.via === 'fingerprint' ? 'container-signature' : aiOrigin.via, integrity: aiOrigin.via === 'credential' ? report.state === 'valid' ? 'verified' : 'unverified' : 'unsigned', scope: 'document' }] : [])}
-      ${textSignals ? `<details class="valid-text-preflight"><summary>${t('Text preflight details')}</summary>${textSignalsHtml(textSignals)}</details>` : ''}
+      ${textSignals ? `<details class="valid-text-preflight" open><summary>${t('Text preflight details')}</summary>${textSignalsHtml(textSignals)}</details>` : ''}
       ${(preview?.kind === 'image' && (ocrReady || report.format === 'svg')) || report.format === 'pdf' ? `<div class="valid-tsig-ocr">
         <button type="button" class="btn valid-ocr-read" data-ocr-read data-read-kind="${report.format === 'pdf' ? 'pdf' : report.format === 'svg' ? 'svg' : 'image'}" data-file-index="${fileIndex}">${svgIcon('aiSpark')}<span>${report.format === 'pdf' ? t('Read the text in this document') : report.format === 'svg' ? t('Read the text in this vector') : t('Read the text in this image')}</span></button>
         <div class="valid-ocr-result" data-ocr-result hidden></div>
       </div>` : ''}
       </div>
+    </div>`;
+
+  return `
+    <div class="valid-result ${state.cls}" data-actions-index="${fileIndex}">
+      ${/* A file made on this device leads with that: it is the most certain thing the report can say, and the way back to the document. */ ''}${mine ? mineNote(mine) : ''}
+      <section class="vf-answer" aria-label="${escape(t('The answer'))}">
+        <div class="vf-answer-head">
+          <span class="valid-hero-icon">${report.madeWithLolly || noCredSignal
+    ? '<span class="valid-hero-logo" aria-hidden="true"></span>'
+    : ICON_SHIELD}</span>
+          <div class="vf-answer-copy">
+            <p class="vf-answer-file"><span class="valid-hero-filename">${escape(fileName)}</span>${formatChip(report.format)}</p>
+            <h2 class="vf-answer-verdict">${escape(verdictWord)}</h2>
+            ${report.found ? `<p class="vf-answer-sub">${sub}</p>` : ''}${identityLine}
+          </div>
+        </div>
+        ${findingsHtml(findings, fileIndex)}
+      </section>
+      <div class="valid-origin-layout">${provenanceOverviewHtml(report, meta)}${mediaPreviewHtml(preview, fileIndex)}</div>
+      ${aiBlock}
+      ${stepsBlock ? `<div class="valid-journey-feature" data-lamp-section="provenance">${stepsBlock}</div>` : ''}
+      <div data-finding-section="personal">${contextCardsHtml(report, meta)}</div>
+      <div data-lamp-section="provenance" data-finding-section="credential"><span data-lamp-section="integrity"></span>${panelsBlock}</div>
+      ${askCred}
+      ${deepScanBlock(fileIndex, report.format, fileName)}
       ${notesHtml(notes, fileIndex)}
       ${claimPanelHtml(fileIndex, report.format, fileName, report.found)}
       ${watermarkNote(watermark)}
@@ -3031,7 +2945,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
     const dot = name.lastIndexOf('.');
     return dot > 0 ? `${name.slice(0, dot)}-clean${name.slice(dot)}` : `${name}-clean`;
   };
-  const CLEAN_MIME: Record<string, string> = { jpeg: 'image/jpeg', png: 'image/png', svg: 'image/svg+xml' };
+  const CLEAN_MIME: Record<string, string> = { jpeg: 'image/jpeg', png: 'image/png', svg: 'image/svg+xml', mp4: 'audio/mp4', wav: 'audio/wav', mp3: 'audio/mpeg', flac: 'audio/flac', ogg: 'audio/ogg' };
 
   /**
    * What a strip is about to remove from a third party, read BEFORE the bytes

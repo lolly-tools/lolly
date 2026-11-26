@@ -28,6 +28,9 @@ const TEXT = [
   ['font-family', ''], ['font-size', ''], ['font-weight', '400'],
   ['font-style', 'normal'], ['letter-spacing', 'normal'],
   ['text-anchor', 'start'], ['dominant-baseline', 'auto'],
+  // Inherited from the page around the svg, which the standalone file does not have:
+  // without it a run anchored at its right edge would start there and run off the canvas.
+  ['direction', 'ltr'],
 ] as const;
 const STOP = [['stop-color', 'rgb(0, 0, 0)'], ['stop-opacity', '1']] as const;
 const TEXT_TAGS = new Set(['text', 'tspan', 'textPath']);

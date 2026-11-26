@@ -9,7 +9,7 @@
  */
 import { tokenCompatibilityHtml } from '../../lib/design-system/token-compatibility-view.ts';
 import { adoptionOf, prepareTokenAdoption } from '../../lib/design-system/adoption-material.ts';
-import { deriveBrandTokens, extractPenpotProject, extractSvgColors, scanPenpotAppliedTokens, scanPenpotUsage, summarizeTokensDoc } from '@lolly/engine';
+import { adoptColourRoles, deriveBrandTokens, extractPenpotProject, extractSvgColors, scanPenpotAppliedTokens, scanPenpotUsage, summarizeTokensDoc } from '@lolly/engine';
 import { announce } from '../../a11y.ts';
 import { applyChromeBrandVars } from '../../brand-vars.ts';
 import { bustFontRegistry } from '../../bridge/font-registry.ts';
@@ -17,10 +17,13 @@ import { installUserTokens } from '../../bridge/tokens.ts';
 import { markWelcomeDismissed } from '../../components/welcome-dialog.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { addSwatch } from '../../lib/brand-doc.ts';
-import { buildBrandDocFromUsage, proposeBrandRoles, proposeFonts, proposeFontsFromTokens, proposeRolesFromTokens, withRoleAliases } from '../../lib/brand-propose.ts';
+import { buildBrandDocFromUsage, colourRoleSpecs, proposeBrandRoles, proposeColourRoles, proposeFonts, proposeFontsFromTokens, proposeRolesFromTokens, withRoleAliases } from '../../lib/brand-propose.ts';
+import { colourRoleReviewHtml, declaredRolesHtml, initialChoices, reviewHasLead, wireColourRoleReview } from '../../lib/design-system/colour-role-review.ts';
+import { canonicalLiftOptions } from '../../lib/design-system/leads.ts';
 import { censusFromSvgColors } from '../../lib/design-system/census.ts';
 import { applyMappingChoice, censusFromTokensDoc, chooserRows, colorTokenRows, designFileLimit, docNeedsMappingReview, followRoles, routeDesignFile } from '../../lib/design-system/sources/file.ts';
 import type { DesignFileRoute, RoleFollow } from '../../lib/design-system/sources/file.ts';
+import type { TokenRoleProposal } from '../../lib/brand-propose.ts';
 import { PAGE_FOLDER_MAX_BYTES, PAGE_FOLDER_MAX_FILES, readBrandPageFolder, readDesignMdSource } from '../../lib/design-system/sources/declared.ts';
 import { openLollyFile } from '../../lib/drop-router.ts';
 import { playSfx } from '../../lib/sfx.ts';
@@ -202,6 +205,7 @@ export async function handleImportFile(start: StartCtx, file: File): Promise<voi
   start.importedDoc = null;
   start.pendingUsage = null;
   start.pendingRoles = null;
+  start.pendingColourRoles = null;
   start.roleChoice = null;
   start.pendingTokens = [];
   start.pendingSvgColors = [];
@@ -472,6 +476,8 @@ export async function handleImportFile(start: StartCtx, file: File): Promise<voi
     const appliedTokens = scanPenpotAppliedTokens(files);
     const roles = proposeRolesFromTokens(doc, appliedTokens, scanPenpotUsage(files));
     start.importedDoc = roles ? withRoleAliases(doc, roles.refs) : doc;
+    start.pendingRoles = null;
+    const words = startColourRoleReview(start, doc, roles);
     const statLine = statLineFor(start, doc);
     const tokenFonts = roles ? proposeFontsFromTokens(doc, appliedTokens) : null;
     const roleChips: Array<[string, string, string | undefined]> = roles
@@ -496,8 +502,9 @@ export async function handleImportFile(start: StartCtx, file: File): Promise<voi
         ${statLine ? `<p class="start-import-stats">${escapeText(statLine)}</p>` : ''}
         ${warnings.length ? `<p class="start-import-warn">${escapeText(warnings.join(' · '))}</p>` : ''}
         ${tokenCompatibilityHtml(doc)}
+        ${words}
         ${
-          roles
+          roles && !words
             ? `
           <p class="start-import-stats">${t('These are the tokens the file declares. Roles below follow how the designer applied them.')}</p>
           <ul class="start-color-grid start-look-roles" role="list">
@@ -515,9 +522,13 @@ export async function handleImportFile(start: StartCtx, file: File): Promise<voi
             : ''
         }
         ${tokenFonts?.missing.length ? `<p class="start-import-stats">${escapeText(tRaw('Type: {list}', { list: tokenFonts.missing.slice(0, 4).join(', ') }))}</p>` : ''}
-        <button type="button" class="be-cta start-cta--import" data-install-import>${t('Install these tokens')}</button>`,
+        <div class="start-color-actions">
+          <button type="button" class="be-cta start-cta--import" data-install-import>${start.pendingColourRoles ? t('Install with these roles') : t('Install these tokens')}</button>
+          ${start.pendingColourRoles ? `<button type="button" class="be-btn be-btn--sm" data-install-plain>${t('Install without roles')}</button>` : ''}
+        </div>`,
       { say: cardSay(start, file.name, statLine) }
     );
+    mountColourRoleReview(start);
     return;
   }
 
@@ -553,23 +564,64 @@ export async function handleImportFile(start: StartCtx, file: File): Promise<voi
   // whether there is a question on this card (it sets `pendingRoles`), and the
   // announcement has to carry that question - it is the one thing the card
   // asks for and the only reason the install button says something different.
+  // A file with its own colour words gets those words reviewed. The chooser below is for a
+  // file with no words to go on, which keeps exactly the card it had.
+  const words = startColourRoleReview(start, doc, docNeedsMappingReview(doc) ? proposeRolesFromTokens(doc, [], null) : null);
   const html = `
       <p class="start-import-name">${escapeText(file.name)}<span class="start-import-source">${escapeText(SOURCE_LABEL[source]())}</span></p>
       ${statLine ? `<p class="start-import-stats">${escapeText(statLine)}</p>` : ''}
       ${warnings.length ? `<p class="start-import-warn">${escapeText(warnings.join(' · '))}</p>` : ''}
         ${tokenCompatibilityHtml(doc)}
       ${declaredFonts.length ? `<p class="start-import-stats">${escapeText(tRaw('Type: {list}', { list: declaredFonts.slice(0, 4).join(', ') }))}</p>` : ''}
-      ${mappingReviewHtml(start, doc)}
+      ${words || mappingReviewHtml(start, doc)}
       <div class="start-color-actions">
         <button type="button" class="be-cta start-cta--import" data-install-import>${
-          start.pendingRoles ? t('Install with these roles') : t('Install these tokens')
+          start.pendingRoles || start.pendingColourRoles ? t('Install with these roles') : t('Install these tokens')
         }</button>
-        ${start.pendingRoles ? `<button type="button" class="be-btn be-btn--sm" data-install-plain>${t('Install without roles')}</button>` : ''}
+        ${start.pendingRoles || start.pendingColourRoles ? `<button type="button" class="be-btn be-btn--sm" data-install-plain>${t('Install without roles')}</button>` : ''}
         <button type="button" class="be-btn be-btn--sm" data-tokens-tray>${t('Review first')}</button>
       </div>`;
   start.feedback.showImportResult(html, {
-    say: cardSay(start, file.name, statLine, start.pendingRoles ? t('Which one is the primary?') : ''),
+    say: cardSay(start, file.name, statLine, start.pendingRoles ? t('Which one is the primary?') : start.pendingColourRoles ? t('This file has its own words for its colours') : ''),
   });
+  mountColourRoleReview(start);
+}
+
+/**
+ * What a file says about its colour words, as card markup. A file that declares its roles
+ * shows them as written, and installs as written. A file whose words suggest roles holds
+ * a review until the install button, with `fallback` for the slots no word fills. Anything
+ * else gets an empty string and keeps the card it had.
+ */
+function startColourRoleReview(start: StartCtx, doc: Record<string, unknown>, fallback: TokenRoleProposal | null): string {
+  const declared = declaredRolesHtml(doc);
+  if (declared) return declared;
+  const proposal = proposeColourRoles(doc);
+  if (!proposal.rows.length) return '';
+  start.pendingColourRoles = { proposal, raw: doc, review: null, slots: fallback?.refs ?? {} };
+  return colourRoleReviewHtml(proposal, initialChoices(proposal));
+}
+
+/** Wire the review once its markup is in the card, and hold the install button until a lead colour is read. */
+function mountColourRoleReview(start: StartCtx): void {
+  const pending = start.pendingColourRoles;
+  const { importResult } = start;
+  const root = importResult.querySelector<HTMLElement>('[data-colour-role-review]');
+  if (!pending || !root) return;
+  const button = importResult.querySelector<HTMLButtonElement>('[data-install-import]');
+  const sync = (): void => { if (button) button.disabled = !reviewHasLead(pending.proposal, pending.review?.choices() ?? initialChoices(pending.proposal)); };
+  pending.review = wireColourRoleReview(root, pending.proposal, sync);
+  sync();
+}
+
+/** The document the review's choices make, or the reason it could not be made. Null with nothing to apply. */
+function reviewedDocument(start: StartCtx): { doc: Record<string, unknown> } | { refusal: string } | null {
+  const pending = start.pendingColourRoles;
+  if (!pending?.review) return null;
+  const specs = colourRoleSpecs(pending.proposal, pending.review.choices());
+  if (!specs.length) return null;
+  const edit = adoptColourRoles(pending.raw, specs, { slots: pending.slots, lift: canonicalLiftOptions(pending.raw), systemLabel: start.importedLabel });
+  return edit.ok ? { doc: edit.doc } : { refusal: edit.reasons[0] ?? t('That edit could not be made.') };
 }
 /** What a result card says out loud: the file, what was found in it, and the
  *  one question it asks, if it asks one. The card itself carries the detail -
@@ -779,6 +831,20 @@ export function wireTokenReview(start: StartCtx): void {
 
     const importBtnEl = target.closest<HTMLButtonElement>('[data-install-import]');
     if (importBtnEl && start.importedDoc) {
+      // The words someone reviewed, in the roles they chose. If those cannot be written the
+      // card says why and keeps its other button: nothing is installed half way.
+      const reviewed = reviewedDocument(start);
+      if (reviewed && 'refusal' in reviewed) {
+        importResult.querySelector('[data-colour-role-review] [data-role-refusal]')?.remove();
+        const line = document.createElement('p');
+        line.className = 'start-import-warn';
+        line.dataset.roleRefusal = '';
+        line.setAttribute('role', 'alert');
+        line.textContent = tRaw('Lolly could not write these roles: {reason} You can install the file without them.', { reason: reviewed.refusal });
+        importResult.querySelector('[data-colour-role-review]')?.append(line);
+        return;
+      }
+      if (reviewed) { void start.tokens.install(reviewed.doc, start.importedLabel, importBtnEl); return; }
       // With a proposal on the card, the chosen roles are folded into the doc
       // that installs - ONE install, aliases not literals, so editing the token
       // later still moves the role with it. Surface and text come from the SAME

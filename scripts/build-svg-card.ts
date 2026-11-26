@@ -14,13 +14,8 @@
  * This renders the tool's template at its REAL DEFAULTS (the engine's real Handlebars
  * `hydrate`, so the output is byte-faithful to what the tool shows), lifts the resolved
  * <svg> + <style>, and re-wraps them as a standalone animated SVG (the <style> moves
- * INSIDE the root svg so its keyframes ship with it). It writes:
- *   • tools/<id>/card.svg - the DEFAULT inputs, the gallery card
- *   • tools/<id>/look<i>.svg - one per manifest example (`looks: true`), the example
- *                                carousel slides; each is picked up as a committed look
- *                                override by build-preview-bundle.ts (which inlines it) and
- *                                skipped by build-previews.ts (so `pnpm run previews` can't
- *                                clobber it). Run `pnpm run build:catalog` afterwards.
+ * INSIDE the root svg so its keyframes ship with it). It writes tools/<id>/card.svg from
+ * the DEFAULT inputs, the gallery card. Run `pnpm run build:catalog` afterwards.
  *
  * AUTHENTICITY RULE (2026-07-31). A card is the tool's own render or it does not exist.
  * This script therefore stages NOTHING: no input overrides that make the default "a better
@@ -33,7 +28,7 @@
  *
  *   node scripts/build-svg-card.ts <toolId> [<toolId> ...]
  */
-import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { hydrate, buildInputModel } from '../engine/src/index.ts';
 import { toolDirs } from '@lolly-tools/node-shell/content-roots';
@@ -41,19 +36,18 @@ import { toolDirs } from '@lolly-tools/node-shell/content-roots';
 const ROOT = new URL('..', import.meta.url).pathname;
 const TOOL_DIRS = toolDirs();
 
-// Per-tool config - deliberately only ONE knob: whether to ALSO emit a standalone SVG per
-// manifest example (`looks`). There is no backdrop and no input-override slot; see the
-// authenticity rule above. Anything a card needs beyond "render the tool at its defaults"
-// belongs in the tool.
+// The tools that get a card, with no per-tool knobs: there is no backdrop and no
+// input-override slot; see the authenticity rule above. Anything a card needs beyond
+// "render the tool at its defaults" belongs in the tool.
 //
 // ONLY for tools whose canvas is a self-contained animated inline <svg> with no JS/hooks/
 // assets. pose-geeko qualifies. digi-ad does NOT - it's HTML/CSS <div> scenes + hooks.js,
 // so it has no <svg> to lift; it ships its real `html` export instead (build-html-card.ts).
-const CARDS: Record<string, { looks?: boolean }> = {
+const CARDS = new Set([
   // Pose Geeko: the default pose composites on the tile and gently breathes (its `idle`
-  // default is on). Card only - its example carousel keeps its manual-pose looks.
-  'pose-geeko': {},
-};
+  // default is on). Its example carousel renders its manual-pose looks live.
+  'pose-geeko',
+]);
 
 /**
  * Hydrate the template with `values` and lift its <svg> + <style> into ONE standalone
@@ -116,14 +110,8 @@ function liftStandaloneSvg(
   return `<?xml version="1.0" encoding="UTF-8"?>\n${svg}\n`;
 }
 
-/** Same shape as featured-row.ts resolveExamples / build-preview-bundle.ts resolveLooks. */
-function resolveExamples(manifest: Record<string, any>): Array<{ values?: Record<string, unknown> }> {
-  return manifest.examples ?? manifest.featured?.variants ?? [];
-}
-
 function buildCard(toolId: string): void {
-  const cfg = CARDS[toolId];
-  if (!cfg) throw new Error(`no card config for ${toolId}`);
+  if (!CARDS.has(toolId)) throw new Error(`no card config for ${toolId}`);
   const dir = TOOL_DIRS.get(toolId)?.dir;
   if (!dir) throw new Error(`no such tool: ${toolId}`);
   const manifest = JSON.parse(readFileSync(join(dir, 'tool.json'), 'utf8'));
@@ -137,23 +125,6 @@ function buildCard(toolId: string): void {
   const file = join(dir, 'card.svg');
   writeFileSync(file, out);
   console.log(`✓ ${toolId}: wrote ${file.replace(ROOT, '')} (${(out.length / 1024).toFixed(1)} KB)`);
-
-  if (!cfg.looks) return;
-  // One transparent animated SVG per manifest example → the example-carousel slides.
-  const examples = resolveExamples(manifest);
-  examples.forEach((ex, i) => {
-    if (!ex.values || typeof ex.values !== 'object') return;
-    const lookOut = liftStandaloneSvg(manifest, template, { ...defaults, ...ex.values }, toolId);
-    const lookFile = join(dir, `look${i}.svg`);
-    writeFileSync(lookFile, lookOut);
-    // build-preview-bundle prefers a look<i>.svg over a look<i>.png/.webp, but drop a stale
-    // raster sibling (e.g. a superseded APNG) so the tool dir carries exactly one look form.
-    for (const ext of ['png', 'webp']) {
-      const stale = join(dir, `look${i}.${ext}`);
-      if (existsSync(stale)) unlinkSync(stale);
-    }
-    console.log(`  ↳ look${i} (${JSON.stringify(ex.values)}) - ${(lookOut.length / 1024).toFixed(1)} KB`);
-  });
 }
 
 const ids = process.argv.slice(2);

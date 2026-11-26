@@ -7,6 +7,7 @@ your organisation can operate, with control over the hosting location, access, k
 recovery. Lolly Work can manage the replacement library, or connect to files you have moved
 to another supported source. Start early enough to verify the result before retiring the DAM.
 
+<!--i:eti-map-pin-->
 ## Choose your offboarding path
 
 ::: figure work-offboarding-paths
@@ -35,8 +36,9 @@ For a supported exit into Lolly Work, the sequence is:
 - <!--i:lock--> **Cut over.** `lw providers cutover` moves identities from `ext/*` to `inst/*`, writes aliases for every old address and turns the provider off.
 :::
 
-Connecting each kind is in [the provider guides](providers/README.md), one per kind.
+Connecting each kind is in [the provider guides](providers/README.md).
 
+<!--i:eti-home-->
 ## Self-host Lolly Work with S3 storage
 
 A practical destination is Lolly for creating content, a self-hosted Lolly Work instance for
@@ -44,7 +46,12 @@ sign-in, catalog metadata, shared projects and governance, and a private S3-comp
 the instance's files. Choose a [Lolly Work installation path](self-host.md) with durable PostgreSQL,
 your own address and sign-in. The public demo's memory storage is not a migration destination.
 
-Choose where the bytes will live before the first materialize. PostgreSQL is the default blob
+::: warning Choose the blob store before the first copy
+Choose where the bytes will live before the first materialize. Changing `blobs.driver` later does
+not transfer existing blobs; plan an explicit storage migration if the instance already has files.
+:::
+
+PostgreSQL (`pg`) is the default blob
 store and needs no separate object-storage service. For larger libraries, Ceph RGW or MinIO
 lets the organisation run the object store too. A hosted S3-compatible service, including
 AWS S3, is another option. Set this block in the destination instance's configuration:
@@ -81,20 +88,18 @@ Keep the DAM connected while you rehearse a small, permitted copy into that stor
 original checksums, every required attachment, mapped approval and availability, and member
 access. Inventory unmapped metadata, taxonomy, rights evidence, history and publishing links;
 obtain separate exports or replacement processes for the records the connector does not carry.
-The [per-DAM readiness table](#exit-readiness-by-kind) determines whether cutover is supported.
+The [per-DAM readiness table](#exit-readiness-by-kind) says whether cutover is supported.
 
 Back up PostgreSQL, the object store, configuration and the secrets needed for recovery together,
 then rehearse a restore with the [backup and restore guide](operations.md#backup-and-restore).
-A bucket alone cannot reconstruct the catalog, grants or old-address aliases. Changing
-`blobs.driver` later does not transfer existing blobs; plan an explicit storage migration if the
-instance already holds files.
+A bucket alone cannot reconstruct the catalog, grants or old-address aliases.
 
 Agree a final source freeze, re-run materialize and inspect drift alongside direct file checks.
 Drift is limited by the source timestamps it receives, so a quiet report alone is insufficient.
 Run the supported cutover only after acceptance, then test old references and everyday review
-and delivery work. Keep the source and recovery evidence until the organisation accepts the
-result. [Plan a DAM transition](/info/dam-transition.html) covers ownership and team adoption.
+and delivery work. [Plan a DAM transition](/info/dam-transition.html) covers ownership and team adoption.
 
+<!--i:eti-folder-shared-->
 ## Move to Nextcloud or another WebDAV server
 
 Choose this path when people should manage ordinary folders in a file service your organisation
@@ -115,6 +120,7 @@ Keep metadata exports beside the files where appropriate, but verify which field
 maps. A folder copy does not reconstruct approval history or rights evidence. Back up the file
 service and test recovery before retiring the DAM.
 
+<!--i:eti-code-->
 ## Keep a catalog in Git
 
 A self-hosted forge such as Gitea can suit a small, curated set of logos, fonts and other files
@@ -125,6 +131,7 @@ This is a separate export and repository workflow; Lolly Work does not push into
 limits, repository access, metadata mappings and replacement references. Lolly Work reads the selected
 branch, so Git history alone does not pin an existing design to a historical revision.
 
+<!--i:eti-globe-->
 ## Move to a hosted drive
 
 Google Drive, OneDrive / SharePoint and Dropbox are optional destinations when the organisation
@@ -138,7 +145,7 @@ read-only: there is no direct DAM-to-drive materialize, publishing or cutover wr
 
 | Destination | Lolly Work connection and listing limits | Upload guidance |
 |---|---|---|
-| [Google Drive](providers/gdrive.md#use-as-an-offboarding-destination) | One flat folder; native Docs, Sheets and Slides are skipped; no imported approval or availability dates | [Upload files and folders](https://support.google.com/drive/answer/2424368) |
+| [Google Drive](providers/gdrive.md#use-as-an-offboarding-destination) | One folder, and its subfolders when `recursive` is on; native Docs, Sheets and Slides are skipped; no imported approval or availability dates | [Upload files and folders](https://support.google.com/drive/answer/2424368) |
 | [OneDrive / SharePoint](providers/o365.md#use-as-an-offboarding-destination) | One folder level; subfolders are not walked; search covers the whole drive, so test exposure carefully | [Upload to a drive or library](https://support.microsoft.com/en-us/sharepoint/documents-and-library/upload-files-and-folders-to-a-library) |
 | [Dropbox](providers/dropbox.md#use-as-an-offboarding-destination) | Recursive listing includes subfolders; file ids survive renames and moves | Use the service's upload or sync tools, then follow the provider guide |
 
@@ -148,9 +155,8 @@ access and required approval or expiry controls, keep unmapped metadata and hist
 separately, and update saved designs and published links for the new source identities. The
 Lolly Work cutover's old-address aliases do not apply to this separate transfer.
 
+<!--i:eti-clock-->
 ## When to start
-
-Copy the files as soon as federation works:
 
 - **Pin as soon as `lw providers sync` returns what you expect.** Bytes in your own store survive
   vendor migrations, tenant renames, plan downgrades and API sunsets.
@@ -170,12 +176,10 @@ Copy the files as soon as federation works:
 - **If `lw providers health` starts failing for the whole tenant, copy everything at once.**
   That is the deadline arriving, not the moment to start planning.
 
-Set `blobs.driver` before the first copy, not after: `pg` by default, or `s3` for MinIO, Ceph or
-any S3-compatible store ([where instance bytes live](catalog.md#where-instance-bytes-live)).
-
+<!--i:eti-help-->
 ## Canto and Image Relay: which driver do you exit through?
 
-Image Relay tenants may be moved to Canto, so one set of customers can sit across two APIs.
+Image Relay tenants may be moved to Canto, so one set of customers can span two APIs.
 Check which API serves your tenant before you plan: the exit driver follows the tenant, not the
 logo.
 
@@ -189,6 +193,7 @@ logo.
 Exposure slices, approval gating and the availability-field mapping are Lolly-side settings, so
 pointing them at a new provider entry is an edit, not a rebuild.
 
+<!--i:eti-checklist-->
 ## Exit readiness by kind
 
 One row per DAM kind Lolly Work ships. "What imports" is the governance a driver reads off the source:
@@ -201,6 +206,13 @@ Every driver here is built from public documentation and tested against recorded
 which happens on your own tenant under your own contract. [Check a source on your own
 tenant](providers/tenant-check.md) says how to run that check; do it before you commit to an
 exit schedule.
+
+**The verdicts in short:** `brandfolder`, `imagerelay`, `canto`, `acquia-dam` and
+`intelligencebank` are exit targets, and `cloudinary` is a conditional one.
+
+::: warning Optimizely CMP and Orange Logic are not exits
+The CMS owns `optimizely-cmp` assets, so do not run `cutover` against that provider. `orange-logic` refuses cutover, because copied renditions do not preserve originals.
+:::
 
 | Kind | Driver | What imports | Original bytes out | Exit verdict |
 |---|---|---|---|---|
@@ -219,6 +231,7 @@ them out. `webdav` is worth one more line: a Nextcloud or an Apache `mod_dav` se
 organisation runs itself, so there is no vendor to leave, and it is far more often **where an
 exit goes** than where one starts. The copy works against it like any other source.
 
+<!--i:eti-folder-move-->
 ## Run the exit
 
 These commands copy into Lolly Work's own blob store. For Nextcloud, Git or hosted drives, use the
@@ -239,12 +252,18 @@ lw providers drift acme-ir                           # which copies the upstream
 lw providers cutover acme-ir       # when the upstream has gone quiet
 ```
 
+::: warning Cut over only after acceptance
+Cutover moves identities and turns the provider off. Run it only after the acceptance checks in
+[Plan a DAM transition](/info/dam-transition.html), and keep the source and its recovery evidence
+until the organisation accepts the result.
+:::
+
 **Materialize** needs `catalog.provider.manage` (admin). It streams every format's bytes into
 the instance's BlobStore, checksums them, checks each one for an embedded [Content
 Credential](c2pa.md), and creates an **instance asset** (`inst/<id>`) with a permanent `origin`:
 provider, provider kind, remote id, filename, `sourceUpdatedAt` and `materializedAt`. Provenance
 stays accurate after the DAM is gone. The command reports how many assets were copied, how many
-the exposure slice skipped, how many carry an embedded credential and any per-asset failures.
+the exposure slice skipped, how many have an embedded credential and any per-asset failures.
 A copied asset keeps its `ext/*` identity and its federated entry; only the bytes change hands,
 served from the local copy. To copy a single asset, use
 `POST /api/v1/catalog/providers/:id/import`, or the provider's asset list in the console.
@@ -257,10 +276,11 @@ sessions) keeps resolving. It then disables a provider stored in the database; a
 one is turned off by removing it from `instance.json`. Deleting the provider afterwards deletes
 nothing, because the copies are instance-owned.
 
-After cutover, every format of a copied `inst/*` entry carries a **checksum and size**, so
+After cutover, every format of a copied `inst/*` entry has a **checksum and size**, so
 migrated assets gain the integrity checks and offline pinning that a federated `ext/*` entry
 cannot have while its bytes live upstream.
 
+<!--i:eti-link-->
 ## Related
 
 - Per-platform setup, one guide per kind: [the provider guides](providers/README.md)

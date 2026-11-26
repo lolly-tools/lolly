@@ -1,213 +1,236 @@
 # 使用 Lolly
 
-你打开了 Lolly，想做点东西，把它保存下来再发出去。本页带你走完这个循环：打开工具，更改它允许你更改的内容，保存结果，并以链接或文件的形式分享。
+開啟工具、調整它開放的部分、儲存結果，再以連結或檔案分享。
 
-这里的一切都在你的设备上运行，无需账号，并且在你需要的工具和素材下载完成后可以继续离线使用。应用需要支持 WebGPU 的浏览器或应用才能启动；[支持的环境](/info/supported-environments.html)列出了经过测试的环境。
+所有功能都在你的裝置上執行，不需要帳號。下載所需工具與素材後，離線也能運作。啟動應用程式需要支援 WebGPU 的瀏覽器或應用程式。[支援的環境](/info/supported-environments.html)列出已通過測試的環境。
 
-## 熟悉环境
+**操作循環**分為四個步驟：
+
+::: steps
+- <!--i:eti-home--> **[開啟工具](#find-your-way-around)** 點擊首頁上的卡片。控制項位於即時預覽旁。
+- <!--i:eti-sliders--> **[更改輸入](#change-what-the-tool-lets-you-change)** 只更改作者開放的輸入。點擊設計即可找到對應控制項。
+- <!--i:eti-folder-plus--> **[儲存作品](#saving-continuing)** **Save** 將作品保存在 My library，再從 Projects 重新開啟。
+- <!--i:eti-link--> **[分享設計](#sharing-your-work)** 使用帶有每個輸入的連結，或單一 `.lolly` 檔案。
+:::
+
+<!--i:eti-home-->
+## 熟悉環境
 
 ::: figure using-app-map
-主屏幕：顶部有四个标签页，底部有一条栏。工具一旦打开，其控制项会显示在实时预览旁边。
+首頁頂端排列四個分頁，底部有一條列。開啟工具後，控制項會與即時預覽並排顯示。
 :::
 
-主屏幕顶部有四个标签页：**Tools**、**Utilities**、**Assets** 和 **Projects**。Tools 是用来制作的工具，Utilities 是处理转换、检查或清理文件等事务的工作台，Assets 是你的素材库，Projects 保存你存下来的内容。
+首頁頂端排列四個分頁：**Tools**、**Utilities**、**Assets** 與 **Projects**。Tools 是用來製作的工具。Utilities 用來轉換、檢查或清理檔案。Assets 是你的資料庫。Projects 保存已儲存的內容。
 
-底部栏包含 **Open**、**Settings**、一个搜索框、**Verify** 和 **What?**。它显示在 Tools、Utilities、Assets、Projects、Settings 以及你在应用中阅读的指南上，工具打开后则会让位。[搜索](/info/search.html)可以通过该输入框找到你的工具、已保存的作品、素材和设置。[Ask Lolly](/info/ask.html) 会用这些指南中匹配的章节回答你输入的问题。
+底部列提供 **Open**、**Settings**、搜尋欄位、前往 Lolly Verify 的 **Verify** 捷徑，以及開啟這些指南的 **Docs**。這條列會顯示在 Tools、Utilities、Assets、Projects、Settings 與應用程式內的指南中，開啟工具後便會隱藏。[Lolly Search](/info/search.html) 可從該欄位搜尋工具、已儲存的作品、素材與設定。[Ask Lolly](/info/ask.html) 則以指南中相符的章節回答你輸入的問題。
 
-点击卡片，即可在该工具中开始新的内容。已保存的作品则从 **Projects** 重新打开。
+點擊卡片即可用該工具開始新作品。已儲存的作品可從 **Projects** 重新開啟。初次造訪時，工具庫頂端的歡迎橫幅會提供一個起始動作：在 Lolly Demo 下按 **Start making**，或按 **Make it yours** 設定自己的設計系統。
 
-![一张工具库卡片，展示了导航示例和“新建”操作](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
+![提供範例導覽與 New 動作的工具庫卡片](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
-每个工具都是分栏视图：一侧是**控制项**，另一侧是实时**预览**。更改一个控制项，预览立即跟着变化，所见即所导出。
+每個工具都採用分割檢視：一側放置**控制項**，另一側顯示即時**預覽**。調整控制項時，預覽會隨即更新，看到的內容就是匯出的結果。
 
-![某工具的分栏视图——左侧是控制面板堆栈,右侧是它实时绘制的分组柱状图](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
+![工具的分割檢視：左側排列控制項，右側即時繪製分組長條圖](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-**Design** 是个例外。它打开为一块自由画布，上面是可以拖动、缩放和输入文字的方框，并有自己的顶部栏、时间线和演示控制项。[Design：自由画布](/info/design.html)是它的指南。
+**Lolly Design** 則是例外：它提供自由畫布，上面的方塊可以拖曳、調整大小與輸入文字，另有專屬的頂端列、時間軸與簡報控制項。操作方式請見 [Lolly Design：自由畫布](/info/design.html)。
 
-## 更改工具允许你更改的内容
+<!--i:eti-sliders-->
+## 更改工具開放的部分
 
-工具只显示打算让你改变的输入项。作者已经固定了颜色、版面、字体和逻辑，所以你做的一切都遵守他们的规则。输入项包括文字、滑块、取色器、下拉菜单、日期、图片选择器和重复的行组，有些位于可折叠的分区中。
+工具只顯示預定可變動的輸入。作者已固定色彩、版面、字型與邏輯，讓作品遵守其規則。輸入包含文字、滑桿、色彩選擇器、下拉選單、日期、圖片選擇器與重複的列群組。其中一些位於可摺疊的區段內。
 
-![工具的控件栏——一个文本框、几个颜色触发器和一个滑块，作者选择锁定的其余内容都不在这里](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
+![工具的控制項堆疊：文字欄位、色彩觸發器與滑桿，作者鎖定的其他項目都不會顯示](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
 
-**点击设计即可找到它的控制项。** 点击预览中的任意元素，对应的控制项就会获得焦点并滚动到视野内。在重复的行组中，你点击的那一行会展开。
+**點擊設計，找到對應控制項。** 點擊預覽中的元素，對應控制項就會捲動到可見範圍並取得焦點。若是重複的列群組，點擊的那一列會展開。
 
-控制项上方的 **Clear changes** 会把每个输入项恢复为默认值。
+**Clear changes** 位於控制項上方，會將所有輸入還原為預設值。
 
-**设计系统选项。** 当你的设计系统提供多种配色方案、浅色和深色外观或其他主题选择时，控制项下方的 **Design system** 分区会容纳它们。只有当某个选项会改变这个工具时才会出现，所以文件实用工具根本不显示这个分区。每种配色方案是一个用其自身颜色绘制的圆点，浅色和深色是两个按钮，其他选项则是一个列表。
+**設計系統選項。** 如果設計系統提供多種配色方案、淺色與深色外觀，或其他主題選項，這些選項會放在控制項下方的 **Design system** 區段。只有會影響此工具的選項才會出現，因此檔案工具不會顯示這個區段。各種配色方案以自身色彩的圓點呈現，淺色與深色是兩個按鈕，其他選項則列成清單。
 
-这个选择属于当前这件作品。它随链接和已保存的会话一起传递，所有关联到设计系统的颜色都会跟随它，而应用自己的颜色保持不变。Design 在检查器的 **Canvas** 标签页中显示同样的选项。颜色本身就是内容的工具可以保持在标准配色方案上，这时它不提供配色方案圆点。[实际使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)展示了真实作品上的配色方案。
+選擇的設定屬於這件作品，會隨連結與已儲存的工作階段傳遞。連結到設計系統的所有色彩都會依選擇變化，應用程式本身的色彩則維持原樣。在 Lolly Design 中，同樣的選項位於 Inspector 的 **Canvas** 分頁。如果色彩本身就是工具的內容，工具可以維持標準配色方案，此時不會顯示配色方案圓點。[實際使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)展示配色方案在實際作品中的效果。若要讓應用程式與每件新作品都使用同一種配色方案，請在 **Settings → Appearance** 中選擇（[使用你選擇的配色方案](/info/colourways.html#make-a-colourway-your-own)）。
 
-### 缩放和平移预览
+### 預覽的縮放與平移
 
-预览始终精确显示导出后的结果。
+- **縮放：** 按住 Cmd/Ctrl 捲動，或在觸控板上雙指縮放，中心位於指標處。使用鍵盤時，`0` 或 `Shift+1` 會符合全部內容大小，`1` 或 `Shift+0` 設為 100%，`Shift+2` 則符合選取範圍大小。指標在編輯區域上方時，`+` / `−` 以指標為中心縮放，否則以檢視中央為中心。
+- **平移：** 按住 **Space** 拖曳，或按滑鼠中鍵拖曳。一般點擊仍可用來選取設計中的部分。
+- **觸控：** 雙指縮放、拖曳平移，點兩下即可符合大小。
+- **縮放 HUD：** 長按角落的 Lolly 漩渦圖示，即可展開 `−`、**Fit** 與 `+`。短按漩渦圖示仍會開啟個人資料選單。
 
-- **缩放：** Cmd/Ctrl 加滚动，或在触控板上双指捏合，以指针为中心。在键盘上，`0` 或 `Shift+1` 适应全部内容，`1` 或 `Shift+0` 设为 100%，`Shift+2` 适应选区。指针在编辑区域上方时，`+` / `−` 以指针为中心缩放，否则以视图中心缩放。
-- **平移：** 按住 **Space** 并拖动，或用鼠标中键拖动。普通点击仍可用于点击设计的各个部分。
-- **触摸：** 双指捏合缩放，拖动平移，双击适应窗口。
-- **缩放 HUD：** 按住角落里的 Lolly 旋涡标志，展开 `−`、**Fit** 和 `+`。短按旋涡标志仍会打开你的个人资料菜单。
+在 Lolly Design 中，**Fit all** 會涵蓋畫板與獨立圖層。手動縮放可低於 20%，直到頁面佔據檢視的一半。縮放下限取一般 Fit 比例的 5% 與絕對縮放比例 2% 之中較小的值。
 
-在 Design 中，**Fit all** 包括画板和独立图层。手动缩小可以低于 20%，直到整个页面占据视图的一半。最低限度取普通 Fit 比例的 5% 与绝对缩放比例 2% 中较小的值。
+只要更改輸出尺寸，檢視就會立即回到符合大小的狀態。
 
-更改输出尺寸总会让视图恢复到整洁的适应状态。
+![從畫布角落的漩渦圖示展開縮放 HUD：減號、Fit、加號，後方是主題與音效切換，以及移動用的把手](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
 
-![从画布角落的旋涡标志展开的缩放 HUD：减号、Fit、加号，然后是主题和声音开关，以及用来移动它的拖柄](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
+### 復原與取消復原
 
-### 撤销与重做
+**Cmd/Ctrl-Z** 退回一步，**Cmd/Ctrl-Shift-Z**（或 **Cmd/Ctrl-Y**）則往前一步。**Undo** 與 **Redo** 按鈕位於控制項上方，在 Lolly Design 中則位於頂端列。沒有可執行的步驟時，對應按鈕會變灰。訊息會指出每次復原還原的輸入，並提供 **Redo** 按鈕。
 
-**Cmd/Ctrl-Z** 后退一步，**Cmd/Ctrl-Shift-Z**（或 **Cmd/Ctrl-Y**）前进一步。同一对操作也以 **Undo** 和 **Redo** 按钮的形式位于控制项上方（在 Design 中位于顶部栏），没有可撤回的内容时各自变灰。一条消息会说明每次撤销恢复了哪个输入项，消息中带有 **Redo** 按钮。
+- **一次拖曳算一步。** 半秒內重複更改同一控制項，會合併為一步。
+- **保留最近 100 步。** 復原後進行新的編輯，會清除往前的堆疊。
+- **在文字方塊中**，Cmd/Ctrl-Z 由欄位逐字元處理。滑桿、下拉選單、色彩與開關則由 Lolly 處理。
+- **選擇檔案**（使用檔案輸入）不算一步，因為這些位元組僅保留於本次工作階段。
 
-- **一次拖动算一步。** 半秒内对同一控制项的重复更改会合并，所以把滑块拉过整个范围只算一次撤销。
-- **保留最近 100 步。** 撤销后做出新的编辑会清除前进栈。
-- **在文本框中**，Cmd/Ctrl-Z 属于该输入框，逐字符撤销。滑块、下拉菜单、颜色和开关则由 Lolly 接管。
-- **选择文件**（文件输入项）不算一步，因为这些字节只在本次会话中保留。
+即時[協作](/info/collaborate.html)時，另一部裝置的變更絕不會加入你的復原堆疊。復原功能會保留到你離開工具或重新載入為止。若要找更早的變更，會隨編輯自動儲存的工具會在 **History** 中保留較早的版本（[回到較早的版本](/info/find-your-work.html#go-back-to-an-earlier-version)）。
 
-在实时[协作](/info/collaborate.html)中，你的历史只属于你：来自另一台设备的更改绝不会进入你的栈。撤销会持续到你离开工具或重新加载为止。对于更早的内容，边做边保存的工具会在 **History** 下保留更早的版本；参见[回到更早的版本](/info/find-your-work.html#go-back-to-an-earlier-version)。
+### 即時攝影機
 
-### 实时摄像头
+有攝影機可用時，**Filter** 工具的效果（Halftone、Scanline、Posterize、Voronoi、Duotone、Stretch、Misprint、Dither、ASCII art 與 Glitch）會顯示 **Go live** 按鈕。開啟後，效果會隨網路攝影機的每個影格變化。動態匯出可將結果錄製為 GIF、WebM 或 MP4。影格都在你的裝置上處理。一旦停止或離開工具，就會釋放攝影機。每個圖片選擇器也都有 **Take a photo**，可擷取單一影格。
 
-**Filter** 工具的效果（Halftone、Scanline、Posterize、Voronoi、Duotone、Stretch、Misprint、Dither、ASCII art 和 Glitch）在有摄像头的地方会显示 **Go live** 按钮。开启后，效果会逐帧跟随你的网络摄像头，动态导出会把结果录制为 GIF、WebM 或 MP4。帧在你的设备上处理，你一停止或离开工具，摄像头就会立即释放。任何图片选择器也都有 **Take a photo**，用于单帧。
+<!--i:eti-folder-plus-->
+## 儲存 & 接續
 
-## 保存与继续
+要保留作品，請按渲染膠囊上 **Export** 旁的勾號 **Save**。新作品會存入 **My library**，已儲存的作品會在原處更新，不會下載任何檔案。匯出面板也提供相同的 **Save** 按鈕。
 
-要保留你的作品，请按 **Save**，即渲染按钮上 **Export** 旁边的对勾。新作品进入 **My library**，之前保存的作品就地更新，不会下载任何内容。导出面板中有同样的 **Save** 按钮。
+要指定儲存位置，請按匯出面板中 **Download** 旁的 **Save as**。在 **Save to a project** 下，保留 **My library** 的選取狀態，或選取一個專案（用 **＋ New project…** 建立），再按 **Save**。**Save as a template** 會將設計存成[範本](/info/templates.html)，用來開始新文件。在 Lolly Design 中，**Save as** 位於 Lolly 選單內。手機上則依序按 **•••**、**File menu** 和 **Save as**。
 
-要选择存放位置，请按导出面板中 **Download** 旁边的 **Save as**。在 **Save to a project** 下，保持选中 **My library** 或选择一个项目（**＋ New project…** 可新建），然后按 **Save**；**Save as a template** 会把设计保存为[模板](/info/templates.html)，作为新文档的起点。在 Design 中，**Save as** 位于 Lolly 菜单；在手机上，依次按 **•••**、**File menu**、**Save as**。
-
-![分成两半的渲染按钮：Export，带向上箭头，打开导出面板；Save，带对勾，就地保存](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+![渲染膠囊的兩個部分：Export 的向上箭頭可開啟匯出面板，Save 的勾號可在原處儲存](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
 ::: timeline
-- <!--i:check--> 按渲染按钮上的 **Save**，或按 **Save as** 选择一个项目。
-- <!--i:folder--> 该项目进入 **My library**，或你选择的项目。
-- <!--i:home--> 之后，按左上角的 **Home**，打开 **Projects** 标签页。
-- <!--i:document--> 打开该项目。所有设置都回来了，可以更改并再次导出。
+- <!--i:check--> 按渲染膠囊上的 **Save**，或用 **Save as** 選取專案。
+- <!--i:folder--> 項目會存入 **My library** 或你選取的專案。
+- <!--i:home--> 之後按左上角的 **Home**，再開啟 **Projects** 分頁。
+- <!--i:document--> 開啟項目。所有設定都會還原，讓你繼續更改並再次匯出。
 :::
 
-项目以你在导出面板中输入的文件名命名，否则以其工具命名，例如 **QR Code**。通过 **Download** 得到的文件是成品副本；以后要更改，请在 Projects 中打开已保存的项目。
+項目會使用你在匯出面板輸入的檔名；若未輸入，則使用工具名稱，例如 **QR Code**。透過 **Download** 取得的檔案是成品副本。日後若要修改，請從 Projects 開啟已儲存的項目。
 
-个人保存的内容留在这台设备上，也就是你保存时所用的浏览器或应用中，除非你开启[同步](/info/sync.html)。如果某样东西不在你预期的位置，[查找和恢复你的作品](/info/find-your-work.html)涵盖了所有情况，从关闭的标签页到被清除的浏览器数据。
-
-::: details 使用 Lolly Work 的团队项目（可选）
-如果你的[组织使用 Lolly Work](/info/organisation.html)，请登录其实例，打开 **Projects → Team projects** 查看与你共享的会话。访问和保留由组织设定，其 Lolly Work 服务存储这些会话。当你的组织允许实时编辑时，共享会话在打开时就会加入其实时协作；[一起工作](/info/collaborate.html#work-collabs-with-lolly-work-optional)说明了具体步骤。
-
-你的个人库保持独立。在另一台设备上登录能让你得到团队的作品，而个人保存的内容仍需要同步或备份才能跨设备移动。
+::: note 儲存的內容留在這部裝置
+除非開啟[同步](/info/sync.html)，否則個人儲存的內容會留在這部裝置上，存於當時使用的瀏覽器或應用程式中。
 :::
 
+若找不到預期的內容，[尋找並復原你的作品](/info/find-your-work.html)說明了各種情況的處理方式，包括關閉分頁和清除瀏覽器資料。
+
+::: details Lolly Work 的團隊專案（選用）
+若你的[組織使用 Lolly Work](/info/organisation.html)，請登入組織的實例，從 **Projects → Team projects** 查看與你共用的工作階段。組織負責設定存取與保留規則，其 Lolly Work 服務則儲存這些工作階段。組織允許即時編輯時，開啟共用工作階段就會加入該階段的即時協作。[一起協作](/info/collaborate.html#collabs-through-lolly-work-optional)說明操作步驟。
+
+你的個人資料庫仍然獨立。在另一部裝置登入後，即可存取團隊作品。個人儲存的內容仍須透過同步或備份才能移過去。
+:::
+
+<!--i:eti-link-->
 ## 分享你的作品
 
-设计可以链接或文件的形式发出。导出控制项中的 **Share** 会打开一个同时提供两者的对话框，Projects 中已保存会话上的 **Share link** 则会为该会话打开同一个对话框。
+設計可以分享為連結或檔案。匯出控制項的 **Share** 會開啟提供這兩種方式的對話框。在 Projects 中，已儲存工作階段的 **Share link** 會為該階段開啟同一個對話框。將檔案傳送至 Google Drive、Nextcloud、S3 儲存桶、Dropbox 或 OneDrive 後，對話框也能透過該服務建立連結（[匯出檔案](/info/exporting.html#how-export-works)）。
 
 ::: cols
-## 链接
+## 連結
 
-- 地址中携带每个输入项，所以链接可以复现设计。
-- 不包含你从这台设备添加的图片和文件、特别长的文字和特别大的列表。
-- 在任何浏览器中都能打开，因此你可以收藏、粘贴或提交这个链接。
+- 將所有輸入包含在位址中，讓連結重現設計。
+- 不包含你從這部裝置加入的圖片與檔案、過長的文字和過大的清單。
+- 任何瀏覽器都能開啟，因此連結可以加入書籤、貼上或提交。
 
-## .lolly 文件
+## .lolly 檔案
 
-- 携带已保存的会话以及这台设备上的图片和文件，还可以携带工具和设计系统。
-- 除非你选择包含这些文件，否则会扣留有许可协议限制的目录素材。
-- 在 Lolly 中打开：双击它，使用 **Open**，或把它拖到应用上。
+- 包含已儲存的工作階段及這部裝置上的圖片與檔案，也可包含工具和設計系統。
+- 除非你選擇納入檔案，否則不會包含授權的目錄圖稿。
+- 可在 Lolly 中開啟：按兩下檔案、使用 **Open**，或拖放至應用程式。
 :::
 
-### 链接
+### 連結
 
-可直接复制的链接位于对话框顶部，旁边有 **Copy** 和一个用链接打开 QR Code 工具的 **QR** 按钮。链接下方的 **Link options** 包含：
+連結位於對話框上方，旁邊有 **Copy** 和 **QR** 按鈕；後者會以該連結開啟 QR Code 工具。連結下方的 **Link options** 提供：
 
-- **Open in the installed app** 会把链接切换为 `lolly://` 地址，供快捷指令、启动器和自动化使用，所有参数保持不变。
-- **Shortest link** 会把较长的设计压缩成紧凑的令牌，并显示节省的字符数。可读形式也始终存在。
-- **Password-protect this link** 在你的设备上用 AES-256 加密链接。密码绝不会成为链接的一部分。
-- **Pin this tool version** 添加 `_v` 标记，这样以后工具更新就不会改变链接渲染的结果。
-- **When the recipient opens the link…** 可选择全屏、已展开的导出面板、打开时下载（`&export`）或复制到剪贴板（`&copy`）。
-- **Copy credit** 复制一条带链接的 “Made with Lolly” 说明，用于帖子或幻灯片。
+- **Open in the installed app** 會將連結改為供 Shortcuts、啟動器與自動化使用的 `lolly://` 位址，保留所有參數。
+- **Shortest link** 會將較長的設計壓縮為精簡的 token，並顯示減少的字元數。可讀的版本仍可使用。
+- **Password-protect this link** 會在你的裝置上用 AES-256 加密連結。密碼絕不會包含在連結中。
+- **Pin this tool version** 會加入 `_v` 旗標，使日後的工具更新無法改變連結的渲染結果。
+- **When the recipient opens the link…** 可選擇全螢幕、預先展開匯出面板、開啟時下載（`&export`）或複製到剪貼簿（`&copy`）。
+- **Copy credit** 會複製附有連結的「Made with Lolly」說明文字，供貼文或投影片使用。
 
-当工具包含个人字段（例如你的姓名）时，**Review personal fields** 会让每个字段都不进入链接，直到你勾选该字段。[URL 模式](/info/url-mode.html)涵盖了链接可以携带的一切。
+當工具含有姓名等個人欄位時，**Review personal fields** 會排除這些欄位，直到你逐一勾選才納入連結。[URL 模式](/info/url-mode.html)說明連結可包含的所有內容。
 
-**对话框会说明链接无法携带什么。** 你从这台设备添加的图片或文件、特别长的文字值和特别大的列表，都放不进地址里。构建链接时会逐一计数。如果有任何内容不得不被舍弃，对话框会列出它们，并引导你使用文件选项，而不是给你一个打开后缺少图片的链接。只是比较长的链接，则会得到一条较轻的提示，并附上字符数。
+**對話框會列明連結無法包含的內容。** Lolly 建立連結時，會統計所有放不進位址的內容。若省略了任何內容，對話框會逐項列出，並引導你使用檔案選項。若連結只是較長，則會顯示較輕微的提示及字元數。
 
-**有些工具让链接成为整个产品。** Jump Page 把你的链接汇集成一个页面来分发：个人简介链接、一场演讲、一个店铺门面。不托管任何内容，页面背后也没有账号，因为页面本身就是链接。访客看到的是全宽页面，滚动时每个场景一个链接。
+**有些工具以連結作為完整的產品。** Jump Page 將你的連結彙整為可分發的單一頁面，例如個人簡介連結、演講或店面。頁面本身就是連結，因此不需託管，也沒有背後的帳號。訪客會看到全寬頁面，捲動時每個場景呈現一個連結。
 
-![编辑器中的 Jump Page：页面顶部是标题场景，下方是链接场景](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![編輯器裡的 Jump Page：頂端為標題場景，下方為各個連結場景](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
-::: details Lolly Work 的组织受管理链接
-对于需要有效期、撤销或密码的分享，Lolly Work 为共享会话、工具和目录素材提供受管理的链接。它们通过组织的服务解析，并遵循其访问规则。它们与上面自包含的链接是分开的，撤销一个链接无法召回别人已经下载的文件。[渲染与分享](/info/manage/sharing.html)列出了链接类型和权限。
+::: details 透過 Lolly Work 由組織管理的連結
+若分享需要到期日、撤銷功能或密碼，Lolly Work 可為共用工作階段、工具與目錄素材提供受管理的連結。連結會透過組織的服務解析，並遵守組織的存取規則。這些連結與前述自成一體的連結各自獨立。撤銷連結無法收回他人已下載的檔案。[渲染與分享](/info/manage/sharing.html)列出了連結類型和權限。
 :::
 
-### .lolly 文件
+### .lolly 檔案
 
-分享对话框 **Editable file** 部分中的 **Download .lolly** 会把当前设计写成一个文件。它携带已保存的会话以及这台设备上的图片和文件，普通目录素材也会随附。过时或不可用的文件仍作为外部引用保留，而不是消失。保存前，对话框会显示文件大小、嵌入多少个文件、引用多少个文件以及是否包含工具。在你的设备有分享面板的地方，**Send to…** 会把文件直接交给它（AirDrop、Android 分享）。
+**Download .lolly** 位於 Share 對話框的 **Editable file** 區段，會將目前的設計寫入單一檔案。一般的目錄圖稿會連同這部裝置的圖片與檔案一起納入。已過時或無法取得的檔案則保留為外部參照。儲存前，對話框會顯示檔案大小、內嵌與參照的檔案數，以及是否納入工具。若裝置提供分享表單，**Send to…** 會將檔案交給分享表單（AirDrop、Android 分享）。
 
-**Projects** 中文件夹菜单里的 **Download project (.lolly)** 会写入整个文件夹，让别人可以接着处理文件夹中的每个会话。批量会话不包含在内，提示会说明有多少个。同一菜单里的 **Download originals** 会写出一个普通的 zip，其中每个项目作为独立文件。
+**Projects** 的資料夾選單中，**Download project (.lolly)** 會將整個資料夾寫入檔案，讓別人接手其中的每個工作階段。Batch 工作階段會被排除，通知會列明排除數量。同一選單的 **Download originals** 會將每個項目各自寫成檔案，包成一般的 zip。
 
-文件发出之前，有三件事由你决定：
+送出檔案前，你要決定三件事：
 
-- **是否写入你的姓名。** 只有在[你的个人资料](/info/profile.html)中开启 **Use my details to create** 时，才会写入你的姓名、电子邮件和组织。关闭后，文件只记录它是用 Lolly 制作的，以及制作时间。
-- **是否包含被扣留的素材。** 有许可协议限制的素材、被品牌锁定的素材，以及从未记录过许可协议的目录作品，默认不包含。如果设计用到其中任何一项，对话框会说明数量，并提供 *Download without them* 或 *Include and download*，因为包含它们就等于把这些文件交给打开 `.lolly` 的人。文件的 `CREDITS.txt` 会列出哪些随文件传出、哪些没有，并说明原因；[创作版权与署名](/info/creative-rights.html)解释了规则。
-- **是否包含工具。** **Include the tool** 会打包工具自己的文件，这样设计可以在没有该工具的设备上打开。对于自定义工具（例如分支版本），它默认勾选；对于已签名目录中列出的工具，它默认不勾选。在没有已签名目录的构建版本中，每个工具都算自定义工具。
+- **是否納入你的姓名。** 只有[你的個人資料](/info/profile.html)中開啟了 **Use my details to create**，才會寫入姓名、電子郵件與組織。關閉時，檔案只會記錄製作工具為 Lolly 及製作時間。
+- **是否納入被保留的圖稿。** 授權圖稿和品牌鎖定的圖稿預設不會納入；已記錄授權但 Lolly 尚無法讀取的目錄作品也一樣。若設計使用了這些圖稿，對話框會顯示數量，並提供 *Download without them* 或 *Include and download*。選擇納入，就會將這些檔案交給開啟 `.lolly` 的人。未記錄任何權利資訊的目錄作品則會一併帶上，對話框會逐一列出，供你在送出前檢查。檔案的 `CREDITS.txt` 列出帶上與未帶上的內容及原因。[創作權利與署名](/info/creative-rights.html)說明相關規則。
+- **是否納入工具。** **Include the tool** 會將工具本身的檔案打包，讓設計可在未安裝該工具的裝置開啟。fork 等自訂工具預設勾選，已簽署目錄中列出的工具則預設不勾選。若建置版本沒有已簽署目錄，所有工具都視為自訂工具。
 
-**打开一个文件。** 在桌面和移动应用中，双击或点按 `.lolly`，选择 **Open with Lolly**，或通过分享面板把它发送到 Lolly。在网页应用中，按 **Open** 或把文件拖到 Lolly 上。每条途径都会先读取文件的清单，在写入任何内容之前显示其大小、内容和将要发生的事。
+**開啟檔案。** 在桌面與行動應用程式中，按兩下或點按 `.lolly`，選擇 **Open with Lolly**，或透過分享表單傳送給 Lolly。在網頁應用程式中，按 **Open** 或將檔案拖放至 Lolly。無論哪種方式，都會先讀取檔案的 manifest，在寫入任何內容前顯示大小、內容及接下來的動作。
 
-如果文件携带了你没有的工具，**Trust this tool?** 会显示该工具及其作者，并说明打开它会在你的设备上运行该工具自己的代码。**Trust & install** 会继续。拒绝的话，作品仍会保存到 Projects，等你日后添加该工具。代码以模块形式提供的工具暂时无法用这种方式安装，也会以同样的方式被拒绝。
-
-::: details .lolly 包含什么，以及打开一个 .lolly 的方式
-`.lolly` 是 Lolly 的打包扩展名，其 `manifest.json` 中的 `format` 说明里面是什么：
-
-- **共享设计**（`lolly-share`）包含一个已保存的会话、其嵌入的文件，以及对仍按引用解析的任何内容的回执。它还可以携带工具和设计系统。打开它会新增一个 Project，绝不会覆盖会话。
-- **共享项目**（`lolly-share`，类型为 `project`）包含 Projects 中的一个文件夹：其子文件夹、其中每个会话及其方块，以及归档在那里的图片。打开它会添加整个文件夹的副本。每个会话以 `sessions/<key>.json` 传递，其方块位于 `thumbs/` 下。在项目文件出现之前的 Lolly 版本会要求你更新。
-- **设计系统包**（`lolly-brand`）包含令牌，还可以包含字体、徽标、已发布的版本和保留的资源。打开该包会添加一个独立命名的设计系统，并使其成为当前使用的设计系统。
-- **工作区或实例包**是一个带有声明的工具、目录素材，也可以带实例地址的 `lolly-brand`。加载一个会替换此前加载的唯一的工作区覆盖层，预览会列出这些设备范围内的影响。
-
-完整的设备备份不是 `.lolly`。它仍是 `LollyTools-….zip`（格式为 `lolly-backup`），通过 **Settings → Storage → Import data…** 还原。压缩的工具文件夹也仍是 `.zip`。[数据迁移](/info/data-transfer.html)是格式参考。
-
-`.lolly` 就是普通的 zip。把它重命名为 `.zip` 就能查看里面：你自己的图片在 `assets/uploads/` 下，目录素材在 `assets/catalog/` 下，`manifest.json` 列出每个文件，还有一个 README 说明这个文件是什么。
-
-macOS、Windows、Linux、iOS 和 Android 都会注册该格式，桌面文件管理器会把它显示为 Lolly 文档，GNOME Files 可以显示已保存会话自己的缩略图。当共享设计带有设计系统操作时，从 Design System Setup 打开会推荐该设计系统操作，但绝不会隐藏 **Open shared design**。
-
-在 iOS 或 Android 上从另一个应用交给 Lolly 的文档上限为 48 MB，因为交接会把其字节复制到应用边界另一侧，应用也会这样告知。Lolly 内部的 **Open** 没有这样的上限，所以较大的包请用它。
-
-你确认后，Lolly 会展开并验证一次该包。素材进入你的库，按校验和匹配，所以设备上已有的文件会被复用。会话以新 ID 进入 Projects，所以同一个文件可以打开两次；工具缺失的会话会在那里等待。超过 100 MB 的文件会被标注为大文件，当浏览器存储报告的剩余空间少于文件所需时，预览会发出警告。在提交任何内容之前，每个受完整性覆盖的部分都会被检查，损坏的副本会被拒绝，不会留下任何东西。
+::: warning 安裝工具會執行其程式碼
+若檔案內含尚未安裝的工具，**Trust this tool?** 會列出工具及作者，並說明開啟工具會在你的裝置上執行其程式碼。按 **Trust & install** 即可繼續。
 :::
 
-链接和文件交出的都是快照。若要实时编辑，[一起工作](/info/collaborate.html)介绍了两台设备之间的私密协作，以及通过 Lolly Work 的可选工作协作。
+若你拒絕，作品仍會存入 Projects，等你加入工具後再使用。目前尚無法用這種方式安裝以模組形式提供程式碼的工具，因此也會以相同方式拒絕安裝。
 
-## 素材 - 你的素材库
+::: details .lolly 的內容與開啟方式
+`.lolly` 是 Lolly 套件的副檔名，其 `format` 欄位位於 `manifest.json`，用來標明內容：
 
-**Assets**（`#/a`）汇集了你的工具可以使用的一切：品牌徽标、图片、音频和动态，按类型分组，另有你自己的文件。你的上传存放在你的设备上。使用 Lolly Work 的组织还可以在自己的访问规则下提供共享目录；参见[在你的组织中使用 Lolly](/info/organisation.html)。
+- **共用設計**（`lolly-share`）包含一個已儲存的工作階段、其內嵌檔案，以及仍須透過參照解析之內容的回條。也可能包含工具與設計系統。開啟時會新增專案，絕不覆寫工作階段。
+- **共用專案**（`lolly-share`，kind 為 `project`）包含 Projects 中的一個資料夾：其子資料夾、其中每個工作階段及其圖塊，以及歸檔於其中的圖片。開啟時會新增該資料夾的副本。每個工作階段以 `sessions/<key>.json` 傳遞，其圖塊位於 `thumbs/`。早於專案檔案功能的 Lolly 版本會要求你更新。
+- **設計系統套件**（`lolly-brand`）包含 token，也可能包含字型、標誌、已發佈版本與保留的資源。開啟套件會新增一個獨立且具名的設計系統，並將其設為使用中。
+- **工作區或實例套件**是宣告了工具、目錄素材及選用實例位址的 `lolly-brand`。載入時會取代先前載入的單一工作區覆蓋層，預覽會列出這些影響整部裝置的變更。
 
-![素材 - 品牌的色板与字体，以及你自己上传的内容](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+完整的裝置備份不使用 `.lolly`，仍是 `LollyTools-….zip`（格式為 `lolly-backup`），並透過 **Settings → Storage → Import data…** 還原。壓縮的工具資料夾也仍使用 `.zip`。[資料傳輸](/info/data-transfer.html)提供格式參考。
 
-- <!--i:upload--> **导入你的文件。** 把图片、SVG、音频片段、视频、Lottie、PDF 或 PowerPoint 演示稿拖到上传区，或点击选择。它会立即出现在 Assets 以及每个工具的素材选择器中。多页 PDF 或 `.pptx` 会询问保留哪些页面或幻灯片，每一页都会成为一个 SVG 素材。你在工具内添加的图片会按原样保存在 **My images** 中，所以其上的 Content Credential 仍可验证，只有特别大的文件才会询问是否缩小尺寸。**Settings → Storage** 会显示 **My images** 占用了多少。除设备存储外没有其他上限。若要在图片导入时清除 EXIF 和 GPS 数据，请在 **Settings → Feature flags** 下开启 **Strip metadata from uploads**；无论开启与否，Content Credentials 都会保留。
-- <!--i:star--> **收藏你常用的。** 给素材或品牌色板加星，它就会固定在每个选择器的顶部。
-- <!--i:folder--> **整理。** 把素材移到另一组，隐藏你不用的共享品牌素材（**Show hidden** 可以让它回来），或删除你自己的上传。与 Projects 相同的选择栏可以作用于整个选区。
-- <!--i:layers--> **把视频从背景中抠出来。** 打开视频的详情，或在素材选择器中右键点击它的卡片，选择 **Remove background…**。**On-device model** 可以从杂乱的场景中抠出主体；**Colour key** 可以去除光线均匀的背景，例如绿幕，并提供 **Tolerance**、**Softness** 和 **Spill removal** 来处理边缘，无需下载。**Resolution**（360、480、720 或 1080p，绝不超过源）在细节与速度之间取舍。抠出的结果是带真实透明度的动画 WebP 或 PNG，保存在原文件旁边，源文件的 Content Credential 作为素材来源随之保留。[一次生成，渲染一致](/info/ai-features.html)解释了为什么这仍然只是一次普通的编辑。
+`.lolly` 就是一般的 zip。將副檔名改成 `.zip` 即可查看內容。你自己的圖片位於 `assets/uploads/`，目錄圖稿則位於 `assets/catalog/`。`manifest.json` 列出所有檔案，README 則說明這是什麼檔案。
 
-### 把你的调色板和字体带到任何地方
+macOS、Windows、Linux、iOS 與 Android 都會註冊這種格式。桌面檔案管理員將其顯示為 Lolly 文件，GNOME Files 也能顯示已儲存工作階段本身的縮圖。從 Lolly Design System Setup 開啟時，若共用設計包含設計系統，會建議使用設計系統動作，但絕不隱藏 **Open shared design**。
 
-Assets 中的 **Swatches** 面板显示构成你品牌的颜色：品牌色、你添加的颜色、它的渐变色阶和色谱。Lolly 为界面保留的角色颜色（文字、表面、边缘、配色方案主色，以及以另一个名称保存的品牌色副本）收在面板底部灰色的 **Show colour roles** 卡片之后。
+在 iOS 或 Android 上，從其他應用程式傳入的文件上限為 48 MB，應用程式會提示這項限制。傳遞時會將位元組跨應用程式邊界複製。Lolly 內的 **Open** 沒有這個上限，較大的套件請使用此方式開啟。
 
-每种颜色都是一张和其他素材一样的卡片。点击一个可打开其详情，选择几个可只下载这些，或者以你其他工具能读取的格式下载整个调色板：
+確認後，Lolly 會一次解壓縮並驗證套件。素材存入你的資料庫，依檢查碼比對，讓裝置上已有的檔案直接重複使用。工作階段會以新 id 存入 Projects，因此同一個檔案可以開啟兩次。缺少工具的工作階段會留在那裡等待。超過 100 MB 的檔案會標示為大型檔案；若瀏覽器回報的可用儲存空間不足，預覽也會提出警告。在寫入任何內容前，會先檢查所有納入完整性驗證的部分。損壞的副本會被拒絕，不留下任何內容。
+:::
 
-- <!--i:code--> **Design tokens (JSON)**、**CSS variables** 或 **CSS classes**，用于样式表或构建。比 sRGB 更宽的颜色会保留其宽色域值：CSS 在十六进制值之后设置它，JSON 则在保留十六进制值的同时附上宽色域颜色、CMYK 配方和专色油墨。
-- <!--i:palette--> **Adobe Swatch Exchange (.ase)**，用于 Illustrator 或 Photoshop。锁定为 CMYK 配方的颜色会作为该 CMYK 色板到达，专色油墨作为命名的专色色板，比 sRGB 更宽的颜色则作为 Lab。
-- <!--i:pentool--> **GIMP palette (.gpl)**，用于 GIMP 或 Inkscape，以及 **SCSS variables**，两者都是 sRGB。
+連結和檔案交付的都是快照。若要即時編輯，[一起協作](/info/collaborate.html)介紹了兩部裝置間的私人協作，以及透過 Lolly Work 提供的選用工作協作。
 
-![Swatches 面板：顶部是五个调色板下载按钮，下面每种品牌色都是一个可打开其详情的色块](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+<!--i:eti-images-->
+## Assets - 你的資料庫
 
-用每张卡片上的圆点选择颜色：按住 Shift 点击第二个圆点可选中两者之间的所有颜色，拖出选框可框住中间的空隙，或在卡片获得焦点时按 Cmd/Ctrl+A。栏中提供 **Download as…**（同样是这六种格式）、**Copy hex** 和 **Favourite**。在你选择格式之前，菜单会列出任何没有格式能容纳的颜色（Transparent 根本没有颜色）、哪些格式会把宽色域颜色保存为其 sRGB 回退值（SCSS 和 GIMP），以及哪些格式带有 CMYK 和专色值（JSON 和 .ase）。右键点击卡片，可对单个颜色执行同样的操作。
+**Lolly Assets**（`#/a`）提供工具可使用的內容：依種類分組的品牌標誌、圖片、音訊與動態素材，以及你自己的檔案。上傳的內容會儲存在你的裝置。使用 Lolly Work 的組織也能提供遵循其存取規則的共用目錄（[在你的組織使用 Lolly](/info/organisation.html)）。
 
-颜色的详情会用该颜色填满预览，并展开 **Linked values**（其 CMYK 配方或专色油墨、为特定色彩空间或印刷机设定的任何值，以及它的设计令牌）、**Every notation**（十六进制、OKLCH、Display-P3 等，每个都带复制按钮）、**Plotted on a colour space**、**Tones** 和 **Readability**。方向键可以在调色板中逐个切换，**Copy link** 分享颜色本身，**Open in Colour Lab** 带你进一步深入。
+![Assets 中的品牌色票、字型及你上傳的檔案](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
-**Fonts** 面板列出你的品牌字体，每个都带有 **download**，可以安装到本地或交给印刷厂。
+- <!--i:upload--> **匯入你的檔案。** 將圖片、SVG、音訊片段、影片、Lottie、PDF 或 PowerPoint 簡報拖放到上傳區，或點擊選取。檔案會立即出現在 Assets 和每個工具的素材選擇器。多頁 PDF 或 `.pptx` 會詢問要保留哪些頁面或投影片，並將每一頁轉成 SVG 素材。在工具內加入的圖片會原封不動地存入 **My images**，因此其 Content Credential 仍可通過驗證。只有非常大的檔案才會詢問是否調整大小。**Settings → Storage** 顯示 **My images** 佔用的空間。除了裝置的儲存容量外，沒有其他上限。要在上傳時移除 EXIF 與 GPS 資料，請在 **Settings → Feature flags** 開啟 **Strip metadata from uploads**。無論開關與否，都會保留 Content Credentials。
+- <!--i:star--> **將常用素材加入最愛。** 為素材或品牌色票加上星號，就能將它固定在每個選擇器頂端。
+- <!--i:folder--> **整理素材。** 將素材移到其他群組、隱藏不用的共用品牌素材（用 **Show hidden** 再次顯示），或刪除自己上傳的檔案。與 Projects 相同的選取列可對整個選取範圍操作。
+- <!--i:layers--> **移除影片背景。** 開啟影片詳細資料，或在素材選擇器的卡片上按右鍵，選擇 **Remove background…**。**On-device model** 可從複雜場景中擷取主體。**Colour key** 可移除綠幕等光照均勻的背景，無須下載。用 **Tolerance**、**Softness** 與 **Spill removal** 調整邊緣。**Resolution**（360、480、720 或 1080p，絕不超過來源解析度）讓你在細節與速度之間取捨。去背結果為含透明度的動態 WebP 或 PNG，存於原檔旁。來源的 Content Credential 會以素材成分的形式隨去背結果保留。[生成一次，渲染一致](/info/ai-features.html)說明為何這仍屬一般編輯。
 
-## 让网格按你的方式呈现
+### 隨處使用你的色盤與字型
 
-- <!--i:star--> **收藏你常用的。** 右键点击卡片并选择 **Add to favourites**，它就会在网格上方的一条带中得到一个大方块。[你的收藏](/info/favourites.html)介绍了这条带。
-- <!--i:eyeoff--> **隐藏你从不使用的工具。** 右键点击卡片，或选择多个，然后选择 **Hide tool**。它会从网格中消失，也不会出现在网格中输入时的搜索结果里。末尾灰色的 **Show hidden tools (N)** 方块可以把它们重新显示出来，呈暗淡状态，每个的菜单中都有 **Unhide tool**。隐藏只会改变你的网格：该工具仍可从链接或书签打开。
-- <!--i:clock--> **你的工具优先。** 当你在三个不同的工具中保存过作品后，网格上方会出现一行 **Yours** 色块，以你的收藏和最近使用的工具打头。
-- <!--i:sliders--> **按你的方式布局。** **View options** 设置布局（**Grid**、**Card** 或 **List**）、卡片大小和密度、排序方式和分类筛选。
+Assets 的 **Swatches** 面板顯示品牌的色彩：品牌色、你新增的色彩、色階與光譜。Lolly 為介面保留的角色色彩（文字、表面、邊緣、配色方案主色，以及品牌色的別名副本）收在面板底部的灰色 **Show colour roles** 卡片後。
 
-![Tools 网格的末尾，已显示隐藏的工具：变暗的 Wordmark 卡片，以及旁边那个把它切换回视野的灰色方块，现在显示为 Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
+每種色彩都像其他素材一樣，以卡片呈現。點擊可開啟詳細資料，選取幾種即可下載，或以其他工具可讀取的格式下載整個色盤：
+
+- <!--i:code--> **Design tokens (JSON)**、**CSS variables** 或 **CSS classes**，供樣式表或建置使用。超出 sRGB 色域的色彩會保留廣色域值：CSS 將其設在十六進位值之後，JSON 則同時保留十六進位值、廣色域色彩、CMYK 組成與特別色油墨。
+- <!--i:palette--> **Adobe Swatch Exchange (.ase)**，供 Illustrator 或 Photoshop 使用。鎖定 CMYK 組成的色彩會以該 CMYK 色票傳入，特別色油墨會成為具名特別色色票，超出 sRGB 色域的色彩則以 Lab 傳入。
+- <!--i:pentool--> **GIMP palette (.gpl)** 供 GIMP 或 Inkscape 使用，以及 **SCSS variables**，兩者都使用 sRGB。
+
+![Swatches 面板：上方橫列五個色盤下載按鈕，下方每個品牌色都是可開啟詳細資料的色塊](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+
+::: details 選取多種色彩，或查看單一色彩的詳細資料
+用各張卡片上的圓點選取色彩：按住 Shift 點擊第二個圓點可選取兩者之間的全部色彩，也可在空隙拖出方框，或在卡片取得焦點時按 Cmd/Ctrl+A。選取列提供相同六種格式的 **Download as…**，以及 **Copy hex** 和 **Favourite**。選擇格式前，選單會列出任何格式都無法容納的色彩（Transparent 沒有色彩）、哪些格式會將廣色域色彩存為 sRGB 備用值（SCSS 與 GIMP），以及哪些格式保留 CMYK 與特別色值（JSON 與 .ase）。在卡片上按右鍵，即可對單一色彩執行相同操作。
+
+色彩詳細資料會用該色填滿預覽，並展開 **Linked values**（CMYK 組成或特別色油墨、為特定色彩空間或印刷機設定的值，以及設計 token）、**Every notation**（十六進位、OKLCH、Display-P3 等表示法，各附複製按鈕）、**Plotted on a colour space**、**Tones** 與 **Readability**。方向鍵可逐一瀏覽色盤，**Copy link** 可分享色彩，**Open in Colour Lab** 則開啟色彩以繼續處理。
+:::
+
+**Fonts** 面板列出品牌字型，每款都有 **download**，可在本機安裝或交給印刷廠。
+
+<!--i:eti-grid-->
+## 自訂你的格線
+
+- <!--i:star--> **將常用工具加入最愛。** 在卡片上按右鍵並選擇 **Add to favourites**。工具就會以大圖塊顯示在格線上方的橫列中。[你的最愛](/info/favourites.html)介紹這個橫列。
+- <!--i:eyeoff--> **隱藏從不使用的工具。** 在卡片上按右鍵，或選取多張卡片，再選擇 **Hide tool**。工具會從格線和格線內的輸入搜尋結果中消失。工具離開格線後，在格線中輸入文字也不再會找到它。末端的灰色 **Show hidden tools (N)** 圖塊可再次顯示隱藏的工具，卡片呈暗淡狀態，各自的選單中都有 **Unhide tool**。隱藏只會改變你的格線，工具仍可透過連結或書籤開啟。
+- <!--i:clock--> **優先顯示你的工具。** 當你在三個不同工具中儲存作品後，格線上方會出現 **Yours** 選項晶片列，優先列出你的最愛與最近使用的工具。
+- <!--i:sliders--> **依喜好安排版面。** **View options** 可設定版面（**Grid**、**Card** 或 **List**）、卡片大小與密度、排序方式，以及類別篩選器。
+
+![Tools 格線末端顯示出隱藏的工具：暗淡的 Wordmark 卡片旁，是讓它重新顯示的灰色圖塊，目前標示為 Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
 <!--
 SHOT NOTE (misc-hidden-tools): the trailing `press:End` is required. The
 hidden box and the revealed cards live at the very END of the grid, and
@@ -232,13 +255,13 @@ tool. The closing `hover:` puts the pointer back on the reveal tile, which
 keeps every revealed card dimmed.
 -->
 
-**一次对多张卡片操作。** 勾选每张卡片的复选框，在空白处拖出选框，或按 Shift/Cmd 点击，就会出现一条栏，提供该视图允许的操作：
+**同時操作多張卡片。** 勾選各張卡片的核取方塊、在空白處拖出選取方框，或按住 Shift/Cmd 點擊，就會出現列出該檢視可用操作的列：
 
-- **Tools 和 Utilities：** Favourite、Hide、Available offline、**View sessions**（Projects，只显示用这些工具创建的会话），以及单张卡片的 Copy link。
-- **Assets：** 任何选区都可 Favourite 和 Hide。只有当所选的每一项都是你自己的上传时，才会出现 Duplicate、Download 和 Delete，因为共享的设计系统素材是永久性约定。
-- **Projects：** 参见[查找和恢复你的作品](/info/find-your-work.html#find-something-you-saved)。
+- **Tools 與 Utilities：** Favourite、Hide、Available offline、**View sessions**（開啟 Projects，只顯示使用這些工具建立的工作階段），以及選取單張卡片時的 Copy link。
+- **Assets：** 任何選取範圍都提供 Favourite 與 Hide。只有所有選取項目都是你上傳的檔案時，才會顯示 Duplicate、Download 與 Delete，因為共用設計系統素材有永久不變的約定。
+- **Projects：** 請見[尋找並復原你的作品](/info/find-your-work.html#find-something-you-saved)。
 
-![两个工具被选中时的工具库选择栏，提供可离线使用、查看会话、收藏和隐藏](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
+![選取兩個工具時的工具庫選取列，提供 Available offline、View sessions、Favourite 與 Hide](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
 <!--
 SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
 `[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
@@ -256,37 +279,55 @@ already exist, and build-docs-shots.ts gives every shot a fresh
 storage-seeding hook.
 -->
 
-**View sessions** 只有在选中某项之后才会出现。如果右键点击单张未选中的卡片，它会提供 **N saved sessions**，即该工具已保存会话的列表，其中的删除会把会话移入回收站。
+只有選取項目時才會顯示 **View sessions**。在單張未選取的卡片上按右鍵，可開啟 **N saved sessions**：列出該工具已儲存的工作階段，從中刪除工作階段會將其移到垃圾桶。
 
-## 在手机上
+<!--i:eti-layers-->
+## 在手機上
 
-在窄屏上，布局会变成单列：
+螢幕較窄時，版面會改為單欄：
 
-- **控制项变成顶部的一张面板**，其下边缘有一个拖动把手。拖动把手可以吸附到 **peek**、**half** 或 **full**，或点按它来折叠和展开。预览填满下方的空间，并在你编辑时保持可见。
-- 浮动的 **Export** 按钮会打开导出面板：格式、尺寸、复制、保存和下载都在一处。点按背景可关闭面板。
+- **控制項會變成面板**，位於頂端，下緣有拖曳把手。拖動把手可停在**窄條**、**半螢幕**或**全螢幕**，也可點按把手收合與展開。預覽填滿下方空間，編輯時持續可見。
+- 浮動的 **Export** 按鈕會開啟匯出面板，內含格式、大小、複製、儲存與下載。點按背景即可關閉面板。
 
-![手机宽度屏幕上的一个工具——顶部是面板形式的控件，下方预览中是生成的调色板，渲染胶囊按钮浮在底部中央](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
+![手機寬度螢幕上的工具：頂端面板放置控制項，產生的色盤填滿下方預覽，渲染膠囊浮在底部中央](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
-## 设置、声音和舒适度
+<!--i:eti-copy-->
+## 摺疊裝置與 iPhone Duo
 
-主屏幕底部的 **Settings** 包含你的详细信息、设计系统、无障碍、存储和离线下载。[设置](/info/dashboard.html)梳理了每个标签页。
+在摺疊裝置、iPhone Duo 或接近正方形的觸控螢幕上，Lolly 會將工具分成兩個窗格：
 
-- **你的详细信息和头像**会填入任何设计为使用它们的工具，例如电子邮件签名或证件。[个人资料](/info/profile.html)介绍了它们。
-- **无障碍**有四个舒适度开关：**Reduce motion**、**Hide colourful previews**、**High contrast** 和 **Large text**。它们改变的是你作品周围的应用，绝不会改变工具画布或导出内容。
-- **声音**会为你的操作播放柔和的辅助音效，**Neurospicy Mode** 会播放平静的专注曲目。两者在你开启之前都是关闭的，可在 **Settings → Accessibility** 或个人资料菜单中开启。
-- **Available offline** 会在你失去连接之前下载应用的其余部分、你的工具、目录和指南。Lolly 是可以安装的网页应用：使用浏览器的安装按钮，或在手机上使用 *Add to Home Screen*，就能得到一个全屏应用，在你重新联网时自动更新。
-- **Storage** 显示 Lolly 在这台设备上保存的内容。[如果你清除了浏览器数据](/info/find-your-work.html#if-you-clear-your-browser-data)解释了清除会移除什么，[隐私政策](/info/privacy.html)则列出了应用获取或发送的一切。
+- **控制項在一側，畫布在另一側。** 控制項會放在繪圖手的另一側。在 **Settings → Accessibility** 選擇 **Dominant hand**，或按控制項頂端的 **Swap sides**。由右至左的語言會將兩側對調。
+- **分隔線就是摺疊軸。** 裝置回報摺疊位置時，窗格會在摺疊處相接，避免控制項或圖稿落在摺痕上。在連續螢幕上，可將分隔線拖到寬度的三分之一、二分之一或三分之二。Lolly 會記住這部裝置上各個檢視的選擇。
+- **放在桌上使用。** 裝置半開且摺痕橫向穿過螢幕時，畫布佔據上半部，控制項位於摺痕下方。進行簡報時，上方顯示投影片，下方則有你的備註、下一張投影片，以及 **Back** 和 **Next**。在 Sequence 中，預覽在上方，時間軸在下方。
+- **Lolly Design、Design System Setup 與 Assets。** 在 Lolly Design 中，Inspector、圖層與匯出面板會以分頁形式排列在畫布旁。工具沿畫布外緣排列，位於繪圖手下方。若工具放不下，該欄可捲動，漸隱效果與箭頭會標示其餘工具所在的方向。放在桌上時，工具沿畫布底部排列。Lolly Design System Setup 將 Board 放在一側，你開啟的房間則在另一側。在 Assets 中，素材詳細資料會在資料庫旁開啟，所以下次點按時，下一個素材會顯示在同一位置。
+- **摺痕上不放內容。** 裝置回報摺疊位置時，對話框會在控制項所在的那一頁開啟。首頁底部的搜尋欄與搜尋結果也一樣。平面螢幕則維持置中。
+- **摺疊不會遺失內容。** 摺疊、展開或轉動裝置時，文件、選取範圍、縮放比例，以及正在輸入的欄位都會保留，游標位置也不變。
 
-::: note 如果更新后某个视图无法加载
-更新后立刻出现空白面板或 “failed to fetch” 消息，通常重新加载一次就会消失。你已保存的作品、会话和设计系统不受影响，因为它们存储在你的设备上。只有你添加过但从未保存的图片可能需要重新添加。
+摺疊裝置的外側螢幕仍使用上述手機版面；位於分割螢幕其中一半的 Lolly 視窗也一樣。
+
+<!--i:eti-smile-->
+## 設定、音效與舒適度
+
+首頁底部的 **Settings** 包含你的詳細資料、設計系統、無障礙功能、儲存空間與離線下載。[Lolly 設定](/info/dashboard.html)介紹各個分頁。
+
+- **你的詳細資料與大頭照**會填入支援這些資訊的工具，例如電子郵件簽名檔或識別證。[個人資料](/info/profile.html)提供相關說明。
+- **Accessibility** 有四個舒適度開關：**Reduce motion**、**Hide colourful previews**、**High contrast** 與 **Large text**。它們只改變作品周圍的應用程式介面，絕不影響工具畫布或匯出結果。旁邊的 **Dominant hand** 可選擇雙窗格中控制項所在的一側。
+- **Sound** 會配合操作播放輕柔的輔助音效，**Neurospicy Mode** 則播放平靜的專注音樂。兩者預設關閉，需在 **Settings → Accessibility** 或個人資料選單開啟。Sound 開關下方的 **Sound shape** 滑桿，讓音效從柔和圓潤的水滴聲（Bouba）變為乾脆的滴答與刮擦聲（Kiki），中間則是 Lolly 的鈴聲。Neurospicy 的曲目包含 Lolly 的生成電台：**Lolly Sings** 及其曲風，以及三個 **Lofi stations**。電台會邊播放邊不斷產生音樂。每個電台都可調整鼓聲與質感（Lofi 另有情緒），並提供分享目前樂曲的連結，以及將樂曲存入素材的按鈕。[生成音樂](/info/generated-music.html)說明樂曲如何製作。Utilities 下的 **Music generator**（`#/music`）讓你自行調整樂曲。
+- **Available offline** 可在斷線前下載應用程式的其餘部分、工具、目錄與指南。要將 Lolly 安裝為網頁應用程式，請使用瀏覽器的安裝按鈕，或手機上的 *Add to Home Screen*。安裝後的應用程式會以全螢幕執行，並在重新連線時自行更新。
+- **Settings → Feature flags** 下的 **Performance UI** 會讓應用程式使用較簡單、繪製負擔較低的外觀。工具畫布與匯出結果維持原樣。裝置較慢時，Lolly 會自行啟用此外觀並說明原因，同時提供 **Undo** 與 **Keep**（[Performance UI](/info/configuration.html#curating-what-people-see)）。
+- **Storage** 顯示 Lolly 在這部裝置儲存的內容。[清除瀏覽器資料時](/info/find-your-work.html#if-you-clear-your-browser-data)說明會移除哪些內容，[隱私權政策](/info/privacy.html)則列出應用程式會擷取或傳送的所有資料。
+
+::: note 更新後若無法載入檢視
+更新後立即出現的空白面板或「failed to fetch」訊息，通常重新載入一次就會消失。已儲存的作品、工作階段與設計系統都存在你的裝置上，因此不受影響。只有加入後從未儲存的圖片可能需要重新加入。
 :::
 
-## 接下来去哪里
+<!--i:eti-map-pin-->
+## 接下來看什麼
 
-- **[Design：自由画布](/info/design.html)**：画布、形状、时间线和演示稿的演示。
-- **[批量生成与多重编辑](/info/batch.html)**：同一个设计的多个版本，或同时编辑多个已保存的设计。
-- **[导出文件](/info/exporting.html)**：选择格式、尺寸、印刷单位、透明度和视频。
-- **[导入设计](/info/design-import.html)**：把 Figma、Penpot、Illustrator 或 InDesign 文件带入 Design 并继续编辑。
-- **[模板](/info/templates.html)**：工具的已保存起点。
-- **[广色域与 HDR](/info/hdr-editing.html)**：在 Design 和 Darkroom 中保持图像的原始精度。
-- **[查找和恢复你的作品](/info/find-your-work.html)**：一切在哪里，以及如何把它迁移到另一台设备。
+- **[Lolly Design：自由畫布](/info/design.html)**：畫布、圖形、時間軸與簡報播放。
+- **[Batch 與 Lolly Multi-edit](/info/batch.html)**：製作同一設計的多個版本，或同時編輯數份已儲存的設計。
+- **[匯出檔案](/info/exporting.html)**：選擇格式、大小、印刷單位、透明度與影片。
+- **[匯入設計](/info/design-import.html)**：將 Figma、Penpot、Illustrator、InDesign、Affinity 或 DXF 檔案匯入 Lolly Design 並繼續編輯。
+- **[範本](/info/templates.html)**：為工具儲存的起始設計。
+- **[廣色域與 HDR](/info/hdr-editing.html)**：在 Lolly Design 與 Lolly Darkroom 中保留原始圖片精度。
+- **[尋找並復原你的作品](/info/find-your-work.html)**：各項內容的位置，以及移至另一部裝置的方法。

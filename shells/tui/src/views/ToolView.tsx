@@ -135,7 +135,7 @@ const C2PA_DAYS = [0, 7, 30, 90, 365];
 // web shell's isDurableFmt (views/tool-actions.ts). The embed itself runs in the web
 // shell's export path, so a durable export always routes via the Tier-B browser.
 const DURABLE_FMTS = ['png', 'jpg', 'jpeg', 'webp', 'avif', 'tiff'];
-type ExportKey = 'format' | 'width' | 'height' | 'unit' | 'dpi' | 'filename' | 'folder' | 'madewith' | 'c2pa' | 'imprint' | 'durable' | 'password' | 'bleed' | 'marks' | 'pressProfile';
+type ExportKey = 'format' | 'width' | 'height' | 'unit' | 'dpi' | 'filename' | 'folder' | 'madewith' | 'c2pa' | 'imprint' | 'durable' | 'password' | 'bleed' | 'marks' | 'pressProfile' | 'spots';
 // Export-settings rows. `cycle` fields step with ←/→; `text` fields open an editor.
 const EXPORT_FIELDS: Array<{ key: ExportKey; label: string; kind: 'cycle' | 'text' }> = [
   { key: 'format', label: 'Format', kind: 'cycle' },
@@ -155,7 +155,12 @@ const EXPORT_FIELDS: Array<{ key: ExportKey; label: string; kind: 'cycle' | 'tex
   { key: 'bleed', label: 'Bleed', kind: 'text' },
   { key: 'marks', label: 'Print marks', kind: 'text' },
   { key: 'pressProfile', label: 'Press profile', kind: 'text' },
+  // Spot inks as process (engine 1.324): off keeps each spot ink on its own plate in a
+  // Print PDF. On prints them in process; finishes keep their plates either way.
+  { key: 'spots', label: 'Spot inks', kind: 'cycle' },
 ];
+// The formats whose output the Spot inks row can change: the CMYK ones.
+const CMYK_FMTS = ['pdf-cmyk', 'cmyk-tiff', 'eps-cmyk'];
 
 const TOOL_SHORTCUTS: Shortcut[] = [{ key: 'tab', label: 'panel' }, { key: 'j/k', label: 'move' }, { key: '⏎/e', label: 'edit' },
        { key: '←→', label: 'cycle' }, { key: 'x', label: 'export' }, { key: 's', label: 'save' },
@@ -245,10 +250,12 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
   const [unitIdx, setUnitIdx] = useState(0);
   const [dpi, setDpi] = useState('300');
   const [c2paIdx, setC2paIdx] = useState(0);
+  const linkC2paOff = useRef(false);
   const [imprintOn, setImprintOn] = useState(true);    // Lolly Imprint (pixel watermark) - on by default, opt-out per export
   const [madeWithOn, setMadeWithOn] = useState(true);  // design-system record (plans/319) - on by default, opt-out per export
   const [madeWithLine, setMadeWithLine] = useState(''); // the words that record writes, '' when there is nothing to record
   const [durableOn, setDurableOn] = useState(false);   // opt-in durable (TrustMark) credential - raster only, Tier-B
+  const [spotsProcess, setSpotsProcess] = useState(false); // spot inks as process (`_spots=process`) - opt-in, CMYK only
   const [filename, setFilename] = useState('');
   const [password, setPassword] = useState('');   // standard PDF open-password (from ?password= or typed)
   const [linkKnobs, setLinkKnobs] = useState<string[]>([]);   // export knobs a share link pre-set (shown in the panel)
@@ -441,6 +448,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
         setUnitIdx(Math.max(0, UNITS.indexOf(rv.unit ?? r.unit ?? 'px')));
         setDpi(rv.dpi != null ? String(rv.dpi) : '300');
         setC2paIdx(c2paIndexFromSetting(rv.c2pa, m.manifest as unknown as ProvenanceManifest));
+        linkC2paOff.current = rv.c2pa?.on === false;
         // Imprint is the same "absent means the policy" rule as C2PA: a link's explicit
         // imprint=0/1 wins, otherwise the engine's default-on policy decides (off only
         // for render.c2pa:false and on-device privacy tools). Read from the manifest so
@@ -449,6 +457,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
         // `_madewith=0` in a link leaves the design-system record out; absent records the system.
         setMadeWithOn(rv.madeWith !== false);
         setDurableOn(Boolean(rv.durable));
+        setSpotsProcess(rv.spots === 'process');
         setFilename(rv.filename ? rv.filename : slug(m.manifest.name ?? toolId));
         setPassword(rv.password ?? '');
         // Print-prep from the link (pdf/pdf-cmyk/cmyk-tiff via the Tier-B web shell).
@@ -466,6 +475,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
           rv.unit && 'unit', rv.dpi != null && 'dpi', rv.c2pa?.on && 'credential',
           rv.password && 'password', rv.filename && 'filename', rv.lang && `lang ${rv.lang}`,
           rv.bleed && 'bleed', rv.marks && 'marks', rv.durable && 'durable', rv.profile && 'press',
+          rv.spots === 'process' && 'spot inks as process',
         ].filter(Boolean) as string[];
         setLinkKnobs(knobs);
         const hookErr = m.runtime.hookErrors[0];
@@ -803,10 +813,13 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
         // overstate an unconditional in-pixel mark. Raster formats mark every pixel.
         ? (imprintOn ? (isImprintContainerFormat(fmt) ? 'on · embedded images only' : 'on · in-pixel mark') : 'off')
         : (imprintOn ? 'on (formats with pixels only)' : 'no pixels to mark');
+      case 'spots': return CMYK_FMTS.includes(fmt)
+        ? (spotsProcess ? 'as process · finishes keep their plates' : 'own plates')
+        : (spotsProcess ? 'as process (CMYK formats only)' : 'CMYK formats only');
       case 'durable': return DURABLE_FMTS.includes(fmt)
         ? (durableOn ? 'on · in-pixel mark' : 'off')
         : (durableOn ? 'on (raster formats only)' : 'raster only');
-      case 'password': return password ? '•'.repeat(Math.min(8, password.length)) + ' · pdf lock' : (fmt === 'pdf' ? 'none' : 'pdf only');
+      case 'password': return password ? '•'.repeat(Math.min(8, password.length)) + ((fmt === 'pdf' || fmt === 'zip') ? ' · locks this file' : ' · this format cannot lock') : ((fmt === 'pdf' || fmt === 'zip') ? 'none' : 'pdf or zip only');
       default: return '';
     }
   }
@@ -948,7 +961,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
     const positive = (raw: string) => { const n = Number(raw); return Number.isFinite(n) && n > 0 ? n : undefined; };
     return { format: fmt, width: positive(width), height: positive(height), unit, dpi: positive(dpi),
       filename, c2pa: !!C2PA_DAYS[c2paIdx], c2paDays: C2PA_DAYS[c2paIdx], imprint: imprintOn, madeWith: madeWithOn,
-      durable: durableOn, ...linkPrint, profile: linkPrint.pressProfile };
+      durable: durableOn, ...linkPrint, profile: linkPrint.pressProfile, ...(spotsProcess ? { spots: 'process' as const } : {}) };
   }
   const snapshotQuery = runtime ? currentQuery(runtime, documentOptions()) : '';
   useEffect(() => { if (runtime && !loading && cleanQuery.current === null) cleanQuery.current = snapshotQuery; }, [runtime, loading, snapshotQuery]);
@@ -1001,6 +1014,9 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
       height: Number.isFinite(h) && h > 0 ? h : undefined,
       unit, dpi: Number.isFinite(dpiN) && dpiN > 0 ? dpiN : 300,
       c2paDays: C2PA_DAYS[c2paIdx] || undefined,
+      // Off on a tool that stamps by default, or a link's own c2pa=off, is the person's choice.
+      // Off on a tool that never stamps is nobody's, and that export keeps its bytes.
+      c2paOff: !C2PA_DAYS[c2paIdx] && (linkC2paOff.current || (manifest ? c2paDefaultOn(manifest as unknown as ProvenanceManifest) : false)) ? true : undefined,
       // The Imprint (pixel watermark). Resolved to an EXPLICIT boolean so every tier
       // agrees: the Tier-A PNG path reads it to embed the mark browser-free, and the
       // Tier-B path forwards imprint=0/1 (an undefined would let the web shell re-default
@@ -1012,17 +1028,23 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
       // Durable credential: only meaningful for raster formats the mark can ride in;
       // routes the export via the Tier-B web shell, whose durableEmbedCanvas embeds it.
       durable: durableOn && DURABLE_FMTS.includes(fmt) ? true : undefined,
-      // Standard PDF open-password (basic lock) - pdf only; threads to the web-shell tier.
-      password: fmt === 'pdf' && password ? password : undefined,
+      // Standard open-password (PDF or ZIP). It always travels, so a format that cannot
+      // carry it is refused by exportToFile rather than written unlocked.
+      password: password || undefined,
       // Print-prep carried from a share link (no TUI rows yet) - honoured on the Tier-B tier.
       ...linkPrint,
+      // Spot inks as process: only a request travels (`_spots=process`), CMYK formats only.
+      ...(spotsProcess && CMYK_FMTS.includes(fmt) ? { spotsAsProcess: true } : {}),
     };
+    // A note the export asks a person to read (a Design page drawn without a browser) joins the status line.
+    const notes: string[] = [];
+    const exportDims = { ...dims, onNote: (message: string) => { notes.push(message); } };
     const inBytes = fileRef?.size;   // transform utilities: for the before→after headline
     (async () => {
       try {
-        const n = await exportToFile(runtime, bridge.dom, manifest, fmt, outPath, dims);
+        const n = await exportToFile(runtime, bridge.dom, manifest, fmt, outPath, exportDims);
         if (transform) setLastExport({ in: inBytes, out: n });
-        setStatus(`✓ Wrote ${n.toLocaleString()} bytes → ${outPath}`);
+        setStatus(`✓ Wrote ${n.toLocaleString()} bytes → ${outPath}${notes.length ? ` ${notes.join(' ')}` : ''}`);
       } catch (e) {
         const msg = (e as Error).message;
         setStatus('Export failed: ' + msg);
@@ -1326,6 +1348,7 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
         else if (f.key === 'imprint') setImprintOn(v => !v);
         else if (f.key === 'madewith') setMadeWithOn(v => !v);
         else if (f.key === 'durable') setDurableOn(v => !v);
+        else if (f.key === 'spots') setSpotsProcess(v => !v);
         return;
       }
       if ((key.return || input === 'e') && f.kind === 'text') { setDraft(exportFieldValue(f.key)); setMode('editing'); }

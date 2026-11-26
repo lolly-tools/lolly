@@ -1,26 +1,31 @@
 # Administrer
 
-Lolly kjører på hver persons enhet. Når et team trenger pålogging, delte prosjekter, styrte ressurser, gjennomganger og serverjobber, legger en organisasjon til **Lolly Work**, organisasjonsserveren med åpen kildekode fra det samme prosjektet. Disse sidene er for den som setter opp og tar hånd om den serveren.
+Lolly kjører på hver brukers enhet. Disse sidene er for dem som drifter **Lolly Work**, prosjektets organisasjonsserver med åpen kildekode for pålogging, delte prosjekter, styrte ressurser, gjennomganger og serverjobber.
 
-Start med [Use Lolly at your organisation](/info/organisation.html) for å se hva medlemmer får, eller [Lolly Work architecture](/info/work-overview.html) for hva serveren har ansvar for.
+Begynn med [Bruk Lolly i organisasjonen din](/info/organisation.html) for å se hva medlemmene får, eller [Lolly Works arkitektur](/info/work-overview.html) for å se hva serveren gjør.
 
-## Sett tilgang og policy
+<!--i:eti-lock-->
+## Angi tilgang og policy
 
-- [Adoption & Governance](/info/adoption-governance.html) dekker utrullingen og merkevarereglenes rolle.
-- [Identity and sessions](/info/work-identity.html) dekker pålogging og gruppetilordning. [Roles and grants](/info/work-permissions.html) forklarer roller, tildelinger og eiervernet.
-- [Policy and governance](/info/work-governance.html) dekker verktøyoverlegg, låste inndata og policy. [Manage organisation AI policy](/info/work-ai-policy.html) dekker godkjenninger og kjøringsgrenser.
-- [Account data controls](/info/work-account-lifecycle.html) og [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) dekker eksport, avvikling av ansatte, oppbevaring og grensene for dem.
-- [Profiles, brands and tool configuration](/info/configuration.html) dekker hvilke verktøy og designsystemer et bygg av Lolly bærer.
+- [Innføring & styring](/info/adoption-governance.html) dekker utrullingen og merkevarereglenes rolle.
+- [Identitet og økter](/info/work-identity.html) dekker pålogging og gruppetilknytning. [Roller og tillatelser](/info/work-permissions.html) forklarer roller, tillatelser og eiervernet.
+- [Policy og styring](/info/work-governance.html) dekker verktøyoverlegg, låste inndata og policy. [Administrer organisasjonens KI-policy](/info/work-ai-policy.html) dekker godkjenninger og kjøregrenser.
+- [Kontroll over kontodata](/info/work-account-lifecycle.html) og [Lolly Work-lagring og dataenes livssyklus](/info/work-data-lifecycle.html) dekker eksport, avslutning av tilganger, oppbevaring og grensene for disse.
+- [Profiler, merkevarer og verktøykonfigurasjon](/info/configuration.html) dekker hvilke verktøy og designsystemer en byggversjon av Lolly inneholder.
 
+<!--i:eti-link-->
 ## Koble til ressurser og gjennomgå arbeid
 
-- [Design-system administration](/info/work-design-system-administration.html) dekker kildeoversikt, gjennomgåtte endringer og tilbakerulling.
-- [Catalog and content](/info/work-catalog.html) dekker delte ressurser og eksponeringsregler. [Provider guides](/info/work-provider-guides.html) gir oppsett og verifiseringskrav for hver kildeplattform.
-- [Approvals](/info/work-approvals.html) dekker gjennomgangskjeder og funksjonsdeling. [Rendering and sharing](/info/work-sharing.html) dekker lenker og serverutdata.
-- [Invite an agent to a document](/info/work-document-agents.html) dekker avgrenset dokumenttilgang, utløp og tilbakekalling. En invitasjon gir ikke tilgang til drift eller infrastruktur.
+- [Bruk Lolly med ditt eksisterende DAM](/info/use-with-dam.html) forklarer kildens autoritet og tilkoblet produksjon. [Beretningen om SUSE og Brandfolder](/info/suse-brandfolder.html) dokumenterer én innføring. [Planlegg en DAM-overgang](/info/dam-transition.html) dekker en valgfri senere flytting.
 
-## Finn neste oppgave
+- [Administrasjon av designsystemet](/info/work-design-system-administration.html) dekker kildeoversikt, gjennomgåtte endringer og tilbakerulling.
+- [Katalog og innhold](/info/work-catalog.html) dekker delte ressurser og regler for tilgjengeliggjøring. [Leverandørveiledninger](/info/work-provider-guides.html) gir kravene til oppsett og verifisering for hver kildeplattform.
+- [Godkjenninger](/info/work-approvals.html) dekker gjennomgangskjeder og atskillelse av oppgaver. [Gjengivelse og deling](/info/work-sharing.html) dekker lenker og resultater fra serveren.
+- [Inviter en agent til et dokument](/info/work-document-agents.html) dekker avgrenset dokumenttilgang, utløp og tilbakekalling. En invitasjon gir ikke tilgang til utrulling eller infrastruktur.
 
-- [Create](/info/creators.html) har de kreative oppgavene og teamhåndbøkene.
-- [Deploy](/info/operate.html) dekker å installere og vedlikeholde Lolly og en Lolly Work-server. En instans' konfigurasjon er adskilt fra en persons innholdsprofil.
-- [Trust](/info/trust.html) forklarer dataflyt, signaturer og sikkerhetsgrenser.
+<!--i:eti-search-->
+## Finn den neste oppgaven
+
+- [Skap](/info/creators.html) har de kreative oppgavene og teamveiledningene.
+- [Drift](/info/operate.html) dekker installasjon og vedlikehold av Lolly og en Lolly Work-server. En instans sin konfigurasjon er atskilt fra en persons innholdsprofil.
+- [Tillit](/info/trust.html) forklarer dataflyt, signaturer og sikkerhetsgrenser.

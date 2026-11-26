@@ -598,8 +598,16 @@ html[data-webgpu-pending] .featured:not(.featured--static) .ftile-img.is-active 
 .featured--coverflow .ftile.is-centred .ftile-link {
   filter: none;
   box-shadow:inset 0 0 1.5px  var(--ui-color-surface-raised), 0 .2rem 1rem -0.3rem color-mix(in srgb, var(--ui-color-selection-border) 50%, transparent);
-
-  background-color: hsl(var(--card) / .3);
+  /* Opaque. The picked cover is the nearest card, so it hides the covers behind it. As a
+     30% veil its neighbours showed through both sides as blurred shapes beside its own
+     picture. The colour is what that veil gave over the bare page, so the card keeps its
+     tone in both themes. */
+  background-color: color-mix(in srgb, var(--ui-color-surface-raised) 30%, var(--ui-color-surface-canvas));
+}
+/* Nothing shows through an opaque card, so the frost has nothing left to do here. */
+.featured--coverflow .ftile.is-centred {
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
 }
 /* Only the centred (selected) cover carries its label and dots (the Open button is one
    per strip now - see .featured-go). Its floor shadow is dropped (it reads odd on an
@@ -650,23 +658,36 @@ html[data-webgpu-pending] .featured:not(.featured--static) .ftile-img.is-active 
   gap: 5px;
   min-width: 44px;
   min-height: var(--cf-go-h);
+  max-width: min(80vw, 280px);
   font: inherit;
   font-size: var(--fs-sm);
   font-weight: 600;
-  color: #fff;
-  background: #000a;
+  /* The control wears the chrome's own raised surface and ink, the same pair as
+     the buttons in the bar below, so the cover art stays the one loud thing in
+     the band. It was white on black, a third filled pill on the first screen. */
+  color: var(--ui-color-text-default);
+  background: color-mix(in srgb, var(--ui-color-surface-raised) 82%, transparent);
   border: 0;
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   padding: 0 14px;
   border-radius: calc(var(--radius) * 1.5);
-  box-shadow: 0 2px 8px #0005;
+  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
   cursor: pointer;
-  transform: translateX(-50%);
-  transition: background var(--dur-1) ease;
+  /* Out of the way while the fan moves; lib/coverflow-open-rest.ts sets .is-on
+     once a cover has rested in the centre. */
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 6px);
+  transition: opacity var(--dur-2) ease, transform var(--dur-2) ease, background var(--dur-1) ease;
 }
-.featured--coverflow .featured-go:hover { background: #000d; }
-.featured--coverflow .featured-go svg { display: block; }
+.featured--coverflow .featured-go.is-on,
+.featured--coverflow .featured-go:focus-visible { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
+.featured--coverflow .featured-go:hover { background: var(--ui-color-surface-raised); }
+.featured--coverflow .featured-go svg { display: block; flex: none; }
+.featured-go-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .featured--coverflow .featured-go { transition: none; } }
+html[data-a11y-motion="reduce"] .featured--coverflow .featured-go { transition: none; }
 /* The dots row sits on the cover's bottom edge, which the button now owns - lift it
    clear so the two never overlap. */
 .featured--coverflow .ftile-dots { padding-bottom: calc(var(--cf-go-h) + 10px); }
@@ -727,8 +748,31 @@ html[data-webgpu-pending] .featured:not(.featured--static) .ftile-img.is-active 
     font-size: var(--fs-xs);
     -webkit-backdrop-filter: none;
             backdrop-filter: none;
-    background: #000c;
+    background: var(--ui-color-surface-raised);
   }
+}
+
+/* Desktop, while the fan moves (.is-moving, set by featured-row.ts from the first
+   frame of a drag, glide or trackpad follow until it rests): the same per-frame paint
+   the phone block above removes for good, removed here only for the motion. Every
+   cover is re-posed each frame, so the frost (backdrop-filter), the soft shadows, the
+   art's drop-shadow and the Ken Burns scale under it would be re-rasterised every
+   frame; the Open button's blur re-samples the covers sliding beneath it. The
+   brightness dimming stays, as it does on phones: it carries the depth. Everything
+   returns as the fan rests, and the Ken Burns carries on from the frame it held. */
+.featured--coverflow.is-moving .ftile {
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+}
+.featured--coverflow.is-moving .ftile-link,
+.featured--coverflow.is-moving .ftile.is-centred .ftile-link { box-shadow: none; }
+/* .ftile-link .ftile-img ties the hover lift's specificity and comes later, so it wins. */
+.featured--coverflow.is-moving .ftile-link .ftile-img { filter: none; }
+.featured--coverflow.is-moving .ftile-img.is-active { animation-play-state: paused; }
+.featured--coverflow.is-moving .featured-go {
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+  background: var(--ui-color-surface-raised);
 }
 
 /* Utilities have an icon and title instead of preview artwork. Keep their

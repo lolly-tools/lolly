@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "print-sheet",
-  "toolVersion": "2.0.3",
-  "toolVersionRange": "2.0.3",
+  "toolVersion": "2.1.0",
+  "toolVersionRange": "2.1.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "7eeba37b3b701d58f2f75b66a1b97733cb45820b91216b4e1cbfd349e194bd21",
+      "sha256": "c71ec9cecc5f2dab7322d06b530818f774892257b40eec0357a81541e9582d05",
       "bytes": 1867
     },
     "reference/inputs.json": {

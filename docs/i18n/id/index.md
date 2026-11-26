@@ -1,4 +1,3 @@
-# Lolly - Naskah halaman landing
+# Lolly - Teks halaman arahan
 
-Buat file jadi. Tetap pegang kendali atas konten Anda.
-Grafik, dokumen, video dan cetak dengan warna dan font Anda sendiri: tanpa akun, tanpa kartu, privat dan open source.
+Buat grafis, dokumen, video dan materi cetak siap pakai dengan warna dan tipografi Anda sendiri. Privat, open source, tanpa perlu akun.

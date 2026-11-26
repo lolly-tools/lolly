@@ -5,10 +5,18 @@ a new release, proving that a backup restores, rotating secrets and keeping an e
 health and storage. This page takes them in that order, then covers the settings you tune
 less often.
 
+::: cards
+- <!--i:eti-refresh--> **[Upgrades](#upgrades)** Pick the release operation, then check, back up, migrate, roll out and check again.
+- <!--i:eti-history--> **[Backup and restore](#backup-and-restore)** What a complete restore needs, and a restore into a separate target.
+- <!--i:eti-lock--> **[Secret rotation](#secret-rotation)** What rotating each secret costs, and the clean break when the old value is gone.
+- <!--i:eti-gauge--> **[Monitoring](#monitoring)** The health routes and the gauges worth an alert.
+:::
+
 The short version: check pending migrations and take a backup before every upgrade.
 Keep the session and link secrets the same across restarts. Restore into a separate
 database before you trust a backup. Alert on the audit chain and on source errors.
 
+<!--i:eti-refresh-->
 ## Upgrades
 
 Choose the release operation before you change anything:
@@ -35,13 +43,15 @@ Then, for every release:
 - <!--i:hash--> **Check the audit chain.** Run `lw audit head` and look at the chain gauge.
 :::
 
+::: warning Do not replay an old plan
 A failed or unclear update needs a look at the current resources, then a fresh,
-reviewed forward fix or application rollback. Do not replay an old plan, and do not
-restore an older database over new writes.
+reviewed forward fix or application rollback. Do not restore an older database over
+new writes either.
+:::
 
 ### Who applies migrations
 
-Two store drivers sit behind one interface and pass the same conformance tests:
+Two store drivers share one interface and pass the same conformance tests:
 
 | Driver | When | Notes |
 |---|---|---|
@@ -54,17 +64,19 @@ Migrations are the files in `migrations/*.sql`, applied in file-name order, trac
 ```bash
 pnpm run migrate            # apply pending migrations
 pnpm run migrate:status     # exit 1 if anything is pending
-lw migrate [--check]       # same, run where the database is reachable (not via LW_BASE)
-GET /api/v1/system/migrations      # pending list - owner-gated (instance.config)
+lw migrate [--check]        # same, run where the database is reachable (not via LW_BASE)
 ```
 
-- **One node** (local or Compose): leave `LW_AUTO_MIGRATE` unset. The server applies
-  pending migrations at startup, with no separate step.
+The owner-gated route `GET /api/v1/system/migrations` (`instance.config`) returns the
+pending list.
+
 - **Helm with its migration Job**: `migrate.enabled=true` sets `LW_AUTO_MIGRATE=false`.
   The application runs no schema changes and **refuses to start on a pending
   schema**. The chart runs one migrate Job as a pre-install and pre-upgrade hook that
   must succeed before new pods start, so a skipped migration fails loudly instead of
   serving a half-migrated database.
+- **One node** (local or Compose): leave `LW_AUTO_MIGRATE` unset. The server applies
+  pending migrations at startup, with no separate step.
 
 ::: details Notes on migrations 0075 and 0076
 **0075** adds the `uploads` table for scoped uploads and raises the project file size
@@ -118,9 +130,9 @@ catalogue signed with that key. Nothing in the web app is patched or rebuilt.
 - **Same address only.** The web app takes the instance key only from the address that
   served its own code. Whoever runs that address already decides which code the web app
   runs, so believing that address about its catalogue key trusts nobody new. A web app on
-  lolly.tools, on any other static host, or inside the desktop and mobile apps never asks
-  for the key and keeps the key built into its release.
-- **Only for that key.** The instance key verifies only a catalogue that carries its key
+  lolly.tools or on any other static host never asks for the key and keeps the key built
+  into its release.
+- **Only for that key.** The instance key verifies only a catalogue that has its key
   ID. A catalogue signed by any other key, or not signed at all, is refused as before.
 - **One operator per address.** A proxy that sends this address's `/api/` paths to a
   service run by someone else would let that party offer a key. Serve Lolly Work and its web
@@ -131,8 +143,7 @@ catalogue signed with that key. Nothing in the web app is patched or rebuilt.
 
 **Rotating the key.** Set a new `LW_CATALOG_SIGNING_KEY` and restart. A web app reads the
 public key again each time the catalogue syncs, so it takes the new key at its next sync,
-and from then on a catalogue signed with the old key is refused. A browser that has not
-synced since the restart keeps the old key until its next sync.
+and from then on a catalogue signed with the old key is refused.
 
 **Offline.** Each browser saves the last key it read for this address beside the
 catalogue it accepted. Offline, or while the route gives no answer, the browser checks
@@ -144,13 +155,15 @@ the instance key into the web app it installs.
 
 **The desktop and mobile apps** keep the key built into each app when connected to an
 instance, so this instance's own catalogue reaches only an app built with this instance's
-key. Pairing an app with a server, which is planned, can carry the key ID beside the
+key. Pairing an app with a server, which is planned, can include the key ID beside the
 server's certificate fingerprint, so the app can check the key it reads against one it
-was given in person.
+was given in person. The same limit applies to an
+[edit from the studio](design-system-administration.md#what-apps-get): a store app does not receive one.
 
+<!--i:eti-history-->
 ## Backup and restore
 
-The database holds durable records and, with `blobs.driver: "pg"`, stored asset
+The database has durable records and, with `blobs.driver: "pg"`, stored asset
 bytes. It is one part of a complete restore:
 
 | Recovery input | Keep and check |
@@ -195,6 +208,7 @@ snapshot beside the backup too ([audit](audit.md)).
 A drill on a new host, and high-availability testing, are separate from recovering a
 dump on an existing cluster.
 
+<!--i:eti-lock-->
 ## Secret rotation
 
 | Secret | Cost of rotating |
@@ -231,9 +245,12 @@ so a rotation there is a clean break:
 - **`LW_LINK_SECRET`**: every issued share and embed link stops verifying; issue again
   the ones still needed.
 
+::: warning Change every host before any takes traffic
 Set the same new values on every host that serves this database, including each
 replica and any rollback deployment kept elsewhere, before any of them takes traffic.
+:::
 
+<!--i:eti-gauge-->
 ## Monitoring
 
 ```
@@ -275,13 +292,13 @@ by default.
 `null`, or to a mirror you run, where outbound traffic is restricted; see
 [configuration](configuration.md).
 
+<!--i:eti-upload-->
 ## OpenTelemetry export
 
 A platform team that runs its own observability stack can have Lolly Work push traces,
 metrics and logs to an OpenTelemetry Collector or any backend that accepts OTLP.
-Export is off until you set an endpoint. With no endpoint, Lolly Work starts no timer,
-opens no connection and sends nothing; an instance nobody configured behaves exactly
-as it did before.
+Export is off until you set an endpoint. Without one, Lolly Work starts no timer, opens
+no connection and sends nothing.
 
 Lolly Work speaks OTLP over HTTP. Point it at the collector's HTTP port, usually 4318:
 
@@ -348,7 +365,7 @@ port 4318, and refusing at boot is clearer than sending HTTP to a gRPC port.
 | Metrics | the series `GET /metrics` serves, with the same names, labels and help text: counters as monotonic sums, gauges as gauges. Alerts written against `/metrics`, such as the [monitoring](#monitoring) list, can use the same names |
 | Logs | the server's structured log records: the message, its level, the method, route, status and duration of an access line, and an error's type. A record made during a traced request carries that request's trace and span ids |
 
-Each export also carries a resource: `service.name`, `service.version`,
+Each export also includes a resource: `service.name`, `service.version`,
 `service.instance.id` (random per process), the `telemetry.sdk.*` and
 `process.runtime.*` attributes, and your `OTEL_RESOURCE_ATTRIBUTES`. Lolly Work adds no host
 name; a home server's host name is often a person's name. Add `host.name` yourself if
@@ -364,7 +381,7 @@ identity leaves the instance. Each exported attribute comes from a fixed list in
 server. A value read from a request is kept only when it belongs to a known set (the
 HTTP method) or follows a naming rule (a tool id, a format).
 
-- No URL path and no query string. A span carries the route pattern, so
+- No URL path and no query string. A span has the route pattern, so
   `/api/v1/users/:id` and never the id.
 - No header, cookie, session, bearer token, client address or user agent.
 - No request or response body, and no database statement text or parameter.
@@ -374,7 +391,7 @@ HTTP method) or follows a naming rule (a tool id, a format).
 - No user id, email address or display name anywhere.
 
 Lolly Work's test suite runs the export against a capturing receiver, sends requests that
-carry emails, cookies, bearer tokens, forwarded addresses, query values, bodies and
+include emails, cookies, bearer tokens, forwarded addresses, query values, bodies and
 user ids, and fails if any of them appears in the bytes of any export, in either
 encoding.
 
@@ -408,6 +425,7 @@ Three consequences to plan for:
 - **Health checks are requests.** Probes of `/healthz` and `/readyz` produce spans;
   drop them in the collector if you do not want them.
 
+<!--i:eti-layers-->
 ## Blob growth and version retention
 
 Every version of an instance asset keeps its own bytes, and the default
@@ -418,12 +436,12 @@ grows with contributions, not with the number of assets.
 
 Do the sums before they surprise you. A brand team replacing 200 hero images four
 times a year at 8 MiB each adds roughly 6 GiB a year, on top of the originals. Where
-the bytes live decides the cost. With `blobs.driver: "pg"` the history sits in your
+the bytes live decides the cost. With `blobs.driver: "pg"` the history is in your
 database and in every database backup, which is usually the number that matters
 first. With `"s3"` it goes to object storage, which is cheap but still yours to manage
 over time. See [configuration](configuration.md#blobs).
 
-Two ways to bound it, and they combine:
+Two ways to bound the growth, and they combine:
 
 - **Retention.** Set `policy.catalog.versionKeep` to the number of versions to keep per
   asset, the current one included. Trimming happens when a new version arrives, oldest
@@ -435,15 +453,16 @@ Two ways to bound it, and they combine:
 - **Deleting a version by hand.** `lw catalog version-rm <assetId> <n>`, refused for the
   served version and for an asset on hold.
 
-Neither replaces watching the store. `GET /metrics` carries the stored and read
+Neither replaces watching the store. `GET /metrics` shows the stored and read
 totals, and with `blobs.driver: "pg"` the server raises its own alert at the
 thresholds in the next section.
 
+<!--i:eti-folder-move-->
 ## Blob offload trigger
 
 With `blobs.driver: "pg"`, project files and instance assets are `bytea` rows in
 PostgreSQL. That keeps an instance to one database to run and back up. Moving the
-bytes to object storage pays off only once the database holds enough of them, so the
+bytes to object storage pays off only once the database has enough of them, so the
 server measures two figures and raises an alert when either reaches its threshold:
 
 | Figure | Threshold | Metric |
@@ -463,7 +482,7 @@ is built. The alert needs no monitoring stack:
 - Each email is recorded in the `instance_blob_months` table, so a restart or a second
   replica does not send it again.
 
-The monthly read figure lives in the same table. Each server writes the bytes it has
+The monthly read figure is in the same table. Each server writes the bytes it has
 read there about once a minute while reads continue, whenever the figures are read
 and when it shuts down, so the month's total survives restarts and adds up across
 replicas. A crash loses only the reads not yet written. `lw_blob_read_bytes_total`
@@ -475,24 +494,31 @@ listing every object, and the store's own metrics already show its size. Neither
 `s3` driver nor the memory store raises the alert.
 
 An alert changes nothing by itself: it says the move to object storage is due for
-planning. Do not switch `blobs.driver` on a live instance to clear the banner.
-Changing the driver does not copy the existing bytes, and the step that copies and
-checks them is not available yet.
+planning.
 
+::: warning Do not switch `blobs.driver` to clear the banner
+Changing the driver on a live instance does not copy the existing bytes, and the step that
+copies and checks them is not available yet.
+:::
+
+<!--i:eti-sliders-->
 ## Rate limiting
 
-Per-address token buckets cover three surfaces: sign-in, telemetry and links. Behind
-a reverse proxy, set `rateLimit.trustedProxyHops` to the number of proxies you actually
-run. `0` means never trust `X-Forwarded-For`. A wrong value either limits the whole
-world as one client or lets a header fool the limiter. Signed-in console and API paths
+Per-address token buckets cover five surfaces: sign-in, telemetry, links, the automation
+API and published brand pages; [configuration](configuration.md#ratelimit) lists each
+bucket. Behind a reverse proxy, set `rateLimit.trustedProxyHops` to the number of proxies
+you actually run. `0` means never trust `X-Forwarded-For`. A wrong value either limits the
+whole world as one client or lets a header fool the limiter. Other console and API paths
 are not throttled.
 
+<!--i:eti-shield-check-->
 ## Pre-store scan hook for submissions
 
-**No scanner ships, and none runs by default.** An unconfigured instance stores
-whatever a member with `catalog.submit` sends, exactly as it stores whatever a
-federated source hands back. The project ships the hook, never a scanner: wiring one
-up, and keeping it current, is yours.
+::: note No scanner ships, and none runs by default
+An unconfigured instance stores whatever a member with `catalog.submit` sends, exactly as it
+stores whatever a federated source hands back. The project ships only the hook: wiring a
+scanner up, and keeping it current, is yours.
+:::
 
 Wire one in `instance.json` under `submit.scanHook`. It is **instance configuration,
 not organisation policy**: it never appears in the policy-as-code document, in
@@ -521,7 +547,7 @@ written to the asset store and no record was created.
   `clamdscan -` pattern). It suits a single-node install: one configuration block, no
   new service.
 - **`http`** posts the bytes and reads any 2xx as clean and any other status as a
-  refusal, with the response body as the reason. The request carries
+  refusal, with the response body as the reason. The request includes
   `x-lolly-submit-sha256` so a gateway can cache its own verdicts. It suits
   serverless shapes and ICAP gateways.
 
@@ -530,7 +556,7 @@ at all, through a timeout, a refused connection or a missing program. The defaul
 `reject`, refuses submissions rather than quietly turning the gate off. Set `allow`
 only if you would rather take the bytes than block contributions during an outage.
 
-The verdict is audited under `catalog.submit` either way. A refusal carries the code and
+The verdict is audited under `catalog.submit` either way. A refusal has the code and
 the scanner's reason. An accepted submission records what the hook did as `scan`:
 
 - `clean`: the hook answered and passed the bytes.
@@ -540,6 +566,7 @@ the scanner's reason. An accepted submission records what the hook did as `scan`
 An outage you chose to ride out never reads as a clean scan, so "which files went in unscanned last
 Tuesday" stays a question you can answer.
 
+<!--i:eti-mail-->
 ## Notifications
 
 Without a `notify` block the instance sends nothing, ever; approvals and reviews live in
@@ -555,8 +582,7 @@ people where they work:
 | Broadcast message sent | *(nobody: mail would duplicate the inbox)* | `message.sent` |
 | Blob offload threshold reached | administrators (admin and owner roles), once a month per threshold | `blob.offload.threshold` |
 
-Broadcast messages, which admins write in the console, reach people through the inbox
-and the `message.sent` webhook only:
+Admins write broadcast messages in the console:
 
 ![Broadcast messages: announcements and notices targeted by group, shell and engine version](shots/broadcast-messages.svg)
 
@@ -565,11 +591,12 @@ Mail is plain text through your own relay (`notify.smtp`, see
 skipped. Webhook events are posted to `notify.webhook.url` as JSON, with an
 `x-lolly-timestamp` header and `x-lolly-signature: sha256=<hmac(timestamp.body)>` keyed
 by `LW_WEBHOOK_SECRET`. Check both and refuse old timestamps, and forgeries and replays
-fail on arrival. Delivery tries once more, then counts the failure
-(`lw_notify_total{outcome="failed"}`) and logs it; it never blocks or fails the request
-that triggered the delivery. Neither channel reports home: both targets are your own, named in
+fail on arrival. Delivery tries once more, then counts and logs the failure
+(`lw_notify_total{outcome="failed"}`); it never blocks or fails the request
+that triggered the delivery. Neither channel reports home: both targets are your own, set in
 your configuration and reached only when your members act.
 
+<!--i:eti-external-link-->
 ## SIEM forwarding
 
 `siem.url` streams the audit log to your Splunk, Sentinel or collector as signed JSON
@@ -582,6 +609,7 @@ zero, and a dead receiver makes it grow without losing anything. On a serverless
 deployment, where the forwarding loop cannot run, a service token polling
 `GET /api/v1/audit` is the supported path.
 
+<!--i:eti-trash-->
 ## Retention and erasure
 
 `policy.retention` bounds the two tables that grow with use and says how long deleted
@@ -590,7 +618,10 @@ documents stay before they are purged;
 trims, delivery before deletion, `0` keeps everything).
 [Data lifecycle](data-lifecycle.md#deleted-documents) lists what a purge removes. The long-running server applies
 the policy at startup and daily. On serverless, schedule `lw retention run` (a service
-token works); the route and the timer run the same code.
+token works); the route and the timer run the same code. The same block can also expire
+finished render outputs after a set number of days (`retention.renderOutputDays`): a daily
+sweep on the long-lived server removes their bytes and keeps each render's record and receipt
+([output retention](renders.md#hosting-and-recovery)).
 
 **Account erasure is narrow by design.** Run `lw users erase-preview <id>` first: it
 reports retained references and affected telemetry without changing data.
@@ -603,6 +634,7 @@ changed, and you run it again. What blocks an erasure, and what it leaves behind
 [data lifecycle](data-lifecycle.md). A successful account operation does not prove the
 whole request is fulfilled.
 
+<!--i:eti-code-->
 ## Console headers
 
 The console loads its assets and API calls from its own address. Its HTML sends a
@@ -611,6 +643,7 @@ and blocks other inline scripts, script evaluation and framing. Console response
 send `nosniff`, `no-referrer` and `X-Frame-Options: DENY`. The policy allows inline
 styles for the console's existing controls and theme.
 
+<!--i:eti-palette-->
 ## Changing the deployment design system
 
 Use the console or `lw brand` to preview selection, retirement and download changes.
@@ -624,6 +657,7 @@ local Lolly Remove action. [Design-system administration](design-system-administ
 covers restart behaviour, missing-source recovery, reference impact and reversible
 rollback.
 
+<!--i:eti-monitor-->
 ## Connecting apps to this instance
 
 A Lolly app arrives as a neutral download (the store app, a desktop build or the public
@@ -642,7 +676,7 @@ administrator's side. Three routes, easiest first:
    - Upload refuses any pack whose instance address is not this deployment, so nobody can
      quietly host a pack that enrols devices somewhere else.
    - An app built with a pinned key refuses an unsigned or wrongly signed pack.
-   - A deployment can also carry the pack in its own mount and host it from startup
+   - A deployment can also keep the pack in its own mount and host it from startup
      (`instance.connectPack`). The same inspection applies, and an owner's upload wins.
 2. **The first-run instance sheet** in the desktop and mobile apps: the person types this
    instance's address, and the app checks `GET /api/v1/instance` and
@@ -656,9 +690,8 @@ cookie also works for the private catalog and the collaboration sockets.
 
 - **Desktop and mobile apps need no CORS from this server.** They send instance traffic
   through their own HTTP client, so an instance on another address works straight away.
-  The open-source web app refuses to switch instance in a browser, so browser users are
-  served from the same address (the web app at `/`, the API on the same address), and no CORS
-  opening is needed or offered.
+  The open-source web app refuses to switch instance in a browser, so browser users get the
+  web app at `/` and the API from the same address, and no CORS opening is needed or offered.
 - **Live sessions in the apps use a ticket.** The apps ask for
   `POST /api/v1/collab/sessions/:id/socket-ticket`. Each ticket lasts 30 seconds, works
   for one room and can be used once. The ticket request and the WebSocket upgrade must
@@ -666,7 +699,7 @@ cookie also works for the private catalog and the collaboration sockets.
 - **`X-Lolly-Client` is the only signal a connected app sends**: the app kind and version,
   the engine version and the platform, on requests the person's own use already makes.
   There is no heartbeat and no reporting home, and a device that stops using the
-  instance simply stops appearing. While its person is signed in, and only then, the app
+  instance stops appearing. While its person is signed in, and only then, the app
   adds an `install/<id>` token, so the install appears by name in the Fleet view. Rename
   and forget there only change the row; the device is never touched.
 
@@ -674,7 +707,7 @@ cookie also works for the private catalog and the collaboration sockets.
 
 People enrol from their app; the instance never reaches out to a device. While signed
 in, your policy applies, and work saved here (projects, sessions, submissions and audit)
-lives on the server. Either side can end it alone:
+is stored on the server. Either side can end it alone:
 
 - The person leaves from the app: **Leave** on the **Lolly instance** card in **Settings**
   removes the organisation's brand, tools, cached catalog and install ID. Personal work
@@ -713,6 +746,7 @@ Tests, type checks and the SBOM are contributor tasks, covered in the Lolly Work
 The PostgreSQL store tests run only when `LW_TEST_DATABASE_URL` is set, so a pipeline that
 never sets it leaves that driver untested.
 
+<!--i:eti-link-->
 ## Related
 
 - How the parts fit: [deployment](deployment.md)

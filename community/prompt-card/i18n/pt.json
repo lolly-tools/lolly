@@ -1,6 +1,6 @@
 {
   "name": "Prompt Card",
-  "description": "Diagrame um prompt longo numa imagem compacta e legível para um modelo multimodal - entrada de imagem costuma ser mais barata do que as mesmas palavras como tokens de texto.",
+  "description": "Diagrame um prompt longo numa imagem para um modelo multimodal - entrada de imagem costuma ser mais barata do que as mesmas palavras como tokens de texto.",
   "a11yLabel": "Prompt para Imagem - cole ou solte texto na tela e ele é organizado para caber dentro de uma imagem pequena",
   "inputs.text.label": "Texto",
   "inputs.text.help": "Cole ou solte em qualquer lugar da tela para preencher isto.",

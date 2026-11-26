@@ -4,27 +4,28 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { chromium } from 'playwright';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { pollPage } from './helpers/page-poll.ts';
 
 const origin = process.env.LOLLY_GALLERY_TEST_URL;
-test('welcome opens the native import picker before loading import handlers', {
+test('the greeting\'s Bring a file opens the native import picker before loading import handlers', {
   skip: origin ? false : 'set LOLLY_GALLERY_TEST_URL to a local Vite shell', timeout: 60_000,
 }, async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ serviceWorkers: 'block' });
   try {
     await page.goto(`${origin}/#/`, { waitUntil: 'domcontentloaded' });
-    await page.locator('.welcome-dialog').waitFor();
+    await page.locator('.welcome-hero').waitFor();
     const chooserReady = page.waitForEvent('filechooser');
-    await page.locator('.welcome-dialog [data-choice="import"]').click();
+    await page.locator('.welcome-hero [data-choice="import"]').click();
     const chooser = await chooserReady;
     assert.equal(chooser.isMultiple(), true);
     assert.match(await chooser.element().getAttribute('accept') ?? '', /\.lolly/);
     await chooser.setFiles([]);
-    assert.equal(await page.locator('.welcome-dialog').count(), 0);
+    assert.equal(await page.locator('.welcome-hero').count(), 0);
   } finally { await browser.close(); }
 });
 
-test('welcome defers tool preview rendering until the user enters the gallery', {
+test('the classic welcome dialog (#/?welcome=classic) defers tool previews until the gallery is entered', {
   skip: origin ? false : 'set LOLLY_GALLERY_TEST_URL to a local Vite shell', timeout: 120_000,
 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
@@ -39,8 +40,11 @@ test('welcome defers tool preview rendering until the user enters the gallery', 
   try {
     await page.route('**/catalog/tools/index.json', async route => { await toolsReady; await route.continue(); });
     await page.route('**/src/lib/offline-manager.ts', async route => { await toolsReady; await route.continue(); });
-    await page.goto(`${origin}/#/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${origin}/#/?welcome=classic`, { waitUntil: 'domcontentloaded' });
     await page.locator('.welcome-dialog').waitFor();
+    // ?welcome forces the welcome open on every gallery mount (for screenshots), so the
+    // re-mount after the held tool index would reopen it: leave the address as a visit's.
+    await page.evaluate(() => history.replaceState(history.state, '', '#/'));
     await page.waitForTimeout(3000);
     assert.equal(renders.length, 0, 'covered cards must not start tool renderers');
     await page.locator('.welcome-dialog [data-choice="explore"]').click();
@@ -50,7 +54,20 @@ test('welcome defers tool preview rendering until the user enters the gallery', 
   } finally { releaseTools(); await browser.close(); }
 });
 
-test('the welcome leaves a complete gallery behind it and holds housekeeping until it closes', {
+test('the greeting in place lets the gallery\'s previews load under it', {
+  skip: origin ? false : 'set LOLLY_GALLERY_TEST_URL to a local Vite shell', timeout: 120_000,
+}, async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1200, height: 900 }, serviceWorkers: 'block' });
+  try {
+    await page.goto(`${origin}/#/`, { waitUntil: 'domcontentloaded' });
+    await page.locator('.welcome-hero').waitFor();
+    await page.locator('.gtile[data-tool-id="design"] .gcar-slide.is-loaded').first().waitFor({ timeout: 90_000 });
+    assert.equal(await page.locator('.welcome-hero').count(), 1, 'the greeting is still up: nothing waited for it');
+  } finally { await browser.close(); }
+});
+
+test('the welcome leaves a complete gallery behind it and holds housekeeping only while the mark draws', {
   skip: origin ? false : 'set LOLLY_GALLERY_TEST_URL to a local Vite shell', timeout: 180_000,
 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
@@ -65,7 +82,7 @@ test('the welcome leaves a complete gallery behind it and holds housekeeping unt
     // next visit is a cold first run whose welcome has not been settled.
     const seed = await context.newPage();
     await seed.goto(`${origin}/#/`, { waitUntil: 'domcontentloaded' });
-    await seed.locator('.welcome-dialog').waitFor();
+    await seed.locator('.welcome-hero').waitFor();
     await seed.waitForFunction(() => !!window.localStorage.getItem('sbt-tool-index'), undefined, { timeout: 60_000 });
     await seed.evaluate(async ({ probeId, staleId }) => {
       const enc = (text: string) => new TextEncoder().encode(text);
@@ -88,7 +105,6 @@ test('the welcome leaves a complete gallery behind it and holds housekeeping unt
     const page = await context.newPage();
     const errors: string[] = [];
     page.on('pageerror', e => errors.push(e.message));
-    let closedAt = Infinity;
     const housekeeping: Array<{ url: string; at: number }> = [];
     const prefetchOnly = /\/catalog\/assets\/lolly\/(?:logo\/(?:reverse|mono|mono-reverse)|demo\/(?:lolly-spin|app-screenshot))\.svg$/;
     page.on('request', request => {
@@ -96,10 +112,10 @@ test('the welcome leaves a complete gallery behind it and holds housekeeping unt
       if (prefetchOnly.test(url) || url.endsWith('/src/lib/offline-manager.ts')) housekeeping.push({ url, at: Date.now() });
     });
     await page.goto(`${origin}/#/`, { waitUntil: 'domcontentloaded' });
-    const dialog = page.locator('.welcome-dialog');
-    await dialog.waitFor();
+    const greeting = page.locator('.welcome-hero');
+    await greeting.waitFor();
 
-    // Behind the open dialog: the full tool index with the installed tool merged in,
+    // Under the greeting: the full tool index with the installed tool merged in,
     // painted into the gallery.
     await page.waitForFunction((id) => {
       const tools = window.__toolIndex?.tools ?? [];
@@ -114,25 +130,21 @@ test('the welcome leaves a complete gallery behind it and holds housekeeping unt
     assert.equal(painted.slimOnly, false);
     assert.ok(painted.tiles > 20, `the gallery lists the catalog behind the welcome (${painted.tiles} tiles of ${painted.listed})`);
 
-    // Give maintenance every chance to start while the dialog stays open.
-    await page.waitForTimeout(4000);
-    assert.equal(await dialog.count(), 1, 'the welcome is still open');
-    assert.equal(housekeeping.length, 0, `no offline cache work or core prefetch behind the welcome: ${JSON.stringify(housekeeping)}`);
-    assert.equal(await page.evaluate(staleMeta, staleId), true, 'the stale-asset prune has not run behind the welcome');
-
-    closedAt = Date.now();
-    await page.locator('.welcome-dialog [data-choice="explore"]').click();
-    await dialog.waitFor({ state: 'detached' });
-    await page.waitForFunction(async (id) => {
+    // A greeting in place can stay up for the whole visit, so maintenance waits only
+    // for the mark's drawing (at most four seconds), then runs with the greeting still up.
+    assert.equal(await greeting.count(), 1, 'the greeting is up');
+    await pollPage(page, async (id) => {
       const { openDB } = await import('/src/bridge/db.ts' as string);
       return !await (await openDB()).get('asset-meta', id);
-    }, staleId, { timeout: 60_000, polling: 250 });
+    }, staleId, { timeout: 60_000, interval: 250, message: 'the stale-asset prune' });
     // The request log, not Resource Timing: a dev shell's module requests fill that buffer.
-    for (const deadline = Date.now() + 90_000; !housekeeping.some(entry => prefetchOnly.test(entry.url));) {
-      assert.ok(Date.now() < deadline, `the core prefetch never started after the welcome closed (${JSON.stringify(housekeeping)})`);
+    // The first visit may already have fetched the core files (nothing held maintenance
+    // there for long either), so any housekeeping request shows maintenance has run.
+    for (const deadline = Date.now() + 90_000; housekeeping.length === 0;) {
+      assert.ok(Date.now() < deadline, 'housekeeping never started while the greeting was up');
       await page.waitForTimeout(250);
     }
-    assert.ok(housekeeping.every(entry => entry.at >= closedAt), 'housekeeping starts after the welcome closes');
+    assert.equal(await greeting.count(), 1, 'housekeeping ran without the greeting being closed');
     assert.equal(await page.locator(`.gtile[data-tool-id="${probeId}"]`).count(), 1, 'the installed tool is still listed');
     assert.deepEqual(errors, []);
   } finally { await browser.close(); }
@@ -211,7 +223,7 @@ test('gallery renders branded templates, preserves their framing, and invalidate
   } finally { await browser.close(); }
 });
 
-test('every gallery tool gets a cover before extra templates, including tools below the fold', {
+test('every tool near the screen gets a cover before an extra template is drawn; a tool below the fold gets one when the page comes near', {
   skip: origin ? false : 'set LOLLY_GALLERY_TEST_URL to a local Vite shell', timeout: 120_000,
 }, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
@@ -239,8 +251,10 @@ test('every gallery tool gets a cover before extra templates, including tools be
         const index = img.matches('.ftile-img')
           ? [...img.parentElement!.querySelectorAll('.ftile-img')].indexOf(img)
           : Number(img.closest<HTMLElement>('[data-ex-index]')?.dataset.exIndex ?? 0);
-        const win = window as Window & { firstExtra?: { covers: string[]; belowFold: boolean; source: string } };
-        if (index === 0 || win.firstExtra) return;
+        const win = window as Window & { firstExtra?: { covers: string[]; near: string[]; belowFold: boolean; source: string } };
+        // A finished picture (a baked file) is read at once, ahead of any draw (plan 371);
+        // the order under test is covers against the first extra that had to be drawn.
+        if (index === 0 || win.firstExtra || img.currentSrc.includes('/catalog/previews/covers/')) return;
         const tiles = [...document.querySelectorAll<HTMLElement>('.gtile[data-tool-id]:not(.is-filtered)')];
         win.firstExtra = {
           source: img.matches('.ftile-img') ? 'featured' : 'grid',
@@ -248,17 +262,27 @@ test('every gallery tool gets a cover before extra templates, including tools be
             const cover = tile.querySelector<HTMLImageElement>('.gcar-img');
             return cover?.complete && cover.naturalWidth > 0;
           }).map(tile => tile.dataset.toolId!),
+          near: tiles.filter(tile => tile.getBoundingClientRect().top <= innerHeight + 250).map(tile => tile.dataset.toolId!),
           belowFold: tiles.some(tile => tile.getBoundingClientRect().top > innerHeight + 250),
         };
       }, true);
     });
     await page.goto(`${origin}/#/`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => !!(window as Window & { firstExtra?: unknown }).firstExtra, undefined, { timeout: 90_000 });
-    const facts = await page.evaluate(() => (window as Window & { firstExtra?: { covers: string[]; belowFold: boolean; source: string } }).firstExtra);
+    const facts = await page.evaluate(() => (window as Window & { firstExtra?: { covers: string[]; near: string[]; belowFold: boolean; source: string } }).firstExtra);
     assert.ok(facts);
-    assert.equal(facts.source, 'featured', 'exercise the shared strip/grid queue with Cover Flow extras');
+    // Either consumer of the shared queue may draw the first extra: a browser with no hover
+    // (headless Chromium) counts a grid card on the screen as wanted, so its extras come first.
+    assert.ok(['featured', 'grid'].includes(facts.source), `the first extra came from the shared strip/grid queue (${facts.source})`);
     assert.equal(facts.belowFold, true, 'the fixture must include tools outside the lazy-loading margin');
-    assert.deepEqual(facts.covers.sort(), ids.sort(), 'all first covers must be decoded before any extra template');
+    for (const id of facts.near) assert.ok(facts.covers.includes(id), `${id}, near the screen, has its cover before any extra template is drawn`);
+    // A cover far below the fold is drawn when the page comes near it (plan 371), not on arrival.
+    const far = ids.filter(id => !facts.near.includes(id));
+    assert.ok(far.length > 0, 'the fixture keeps a tool beyond the margin');
+    for (const id of far) {
+      await page.locator(`.gtile[data-tool-id="${id}"]`).scrollIntoViewIfNeeded();
+      await page.locator(`.gtile[data-tool-id="${id}"] .gcar-slide.is-loaded`).first().waitFor({ timeout: 60_000 });
+    }
   } finally { await browser.close(); }
 });
 

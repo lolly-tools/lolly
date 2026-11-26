@@ -1,4 +1,4 @@
-<div class="rwc" data-rwc>
+<div class="rwc" data-rwc data-rwc-faces="{{rwcFaces}}">
   <header class="rwc-bar" data-export-hide>
     <!-- Controls hug the right: the top-left is left clear for the shell's fixed
          back pill (position:fixed, z-index 99999) whose label width is unbounded. -->
@@ -452,7 +452,7 @@
    own html/body background (re-scoped onto .rwc-shot-body); a text snippet keeps the
    reset's white body. So the export honours whatever the pen actually renders. */
 .rwc-shot { position: absolute; left: -100000px; top: 0; width: 1px; height: 1px; overflow: hidden; pointer-events: none; }
-.rwc-shot-body { all: initial; display: block; width: 100%; height: 100%; }
+.rwc-shot-body { all: initial; display: block; width: 100%; height: 100%; font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif); }
 /* Saved sessions */
 .rwc-sess { position: relative; display: inline-flex; align-items: center; gap: 8px; }
 .rwc-sess-name { display: inline-flex; align-items: center; gap: 6px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 700; color: hsl(var(--rwc-muted)); }
@@ -643,6 +643,10 @@
   var consoleBody = $('[data-rwc-console-body]');
   var countEl = $('[data-rwc-count]');
   var shotEl = $('[data-rwc-shot]');
+  // The mirror's own id, so the pen's html and body rules can out-rank the tool's
+  // reset of .rwc-shot-body (which the shell scopes under an id of its own). One per
+  // mount: a page can hold this tool more than once.
+  if (shotEl && !shotEl.id) shotEl.id = 'rwc-shot-' + Math.random().toString(36).slice(2, 10);
   var codeEls = {};
   Array.prototype.forEach.call(root.querySelectorAll('.rwc-code'), function (el) { codeEls[el.dataset.pane] = el; });
   var tabEls = Array.prototype.slice.call(root.querySelectorAll('.rwc-tab'));
@@ -721,6 +725,9 @@
     // (a tainted/cross-origin canvas throws on toDataURL) falls back to the plain HTML.
     'function snap(){try{var d=document,de=d.documentElement,b=d.body;var w=Math.max(de.scrollWidth,b?b.scrollWidth:0)||de.clientWidth||1280;var h=Math.max(de.scrollHeight,b?b.scrollHeight:0)||de.clientHeight||800;var html;try{var src=d.getElementsByTagName("canvas");if(src&&src.length){var clone=de.cloneNode(true);var cc=clone.getElementsByTagName("canvas");for(var i=0;i<src.length&&i<cc.length;i++){try{var u=src[i].toDataURL("image/png");if(u&&u.slice(0,10)==="data:image"){var im=d.createElement("img");im.src=u;var st=src[i].getAttribute("style");if(st)im.setAttribute("style",st);var cw=src[i].width,ch=src[i].height;if(cw)im.setAttribute("width",cw);if(ch)im.setAttribute("height",ch);if(cc[i].parentNode)cc[i].parentNode.replaceChild(im,cc[i]);}}catch(_){}}html=clone.outerHTML;}else{html=de.outerHTML;}}catch(_){html=de.outerHTML;}parent.postMessage({__rwc:1,level:"__snapshot__",html:"<!doctype html>"+html,w:w,h:h},"*");}catch(e){}}',
     'window.addEventListener("message",function(e){try{if(e.source===parent&&e.data&&e.data.__rwcCmd==="snap")snap();}catch(_){}});',
+    // The design system's faces arrive from the app as bytes: an opaque frame cannot
+    // fetch the app's font files, and the reset below names their families.
+    'window.addEventListener("message",function(e){try{var f=e.source===parent&&e.data&&e.data.__rwcFonts;if(!f||!f.length)return;f.forEach(function(x){var ff=new FontFace(x.family,x.buffer,{weight:x.weight,style:x.style});document.fonts.add(ff);ff.load().catch(function(){});});}catch(_){}});',
     'if(document.readyState==="complete")requestAnimationFrame(snap);else window.addEventListener("load",function(){requestAnimationFrame(snap);});',
     '})();'
   ].join('\n');
@@ -748,6 +755,76 @@
     return injectBeforeBodyClose(doc, frag);
   }
 
+  // ── The design system's text face ─────────────────────────────────────────
+  // A pen's text with no font of its own is set in the design system's text face,
+  // the face the export mirror draws it in. The family list is read off the canvas
+  // (--font-brand) for the reset, and the faces themselves are posted into the
+  // frame (shareFonts), because the opaque frame cannot reach the app's fonts. A
+  // face the app registered without a stylesheet rule, such as an uploaded font,
+  // comes from the hook's list of face files (data-rwc-faces).
+  function brandStack() {
+    var v = '';
+    try { v = getComputedStyle(root).getPropertyValue('--font-brand').trim(); } catch (e) { v = ''; }
+    return /^[A-Za-z0-9 _'",-]+$/.test(v) ? v : "'SUSE', ui-sans-serif, system-ui, sans-serif";
+  }
+  function stackFamilies(stack) {
+    return String(stack).split(',').map(function (f) { return f.trim().replace(/^['"]+|['"]+$/g, '').toLowerCase(); }).filter(Boolean);
+  }
+  var brandFacesFor = '', brandFaces = null;
+  function brandFaceList() {
+    var stack = brandStack();
+    if (brandFaces && brandFacesFor === stack) return brandFaces;
+    brandFacesFor = stack;
+    var want = stackFamilies(stack), jobs = [];
+    var slant = function (st) { return /italic|oblique/i.test(String(st || '')) ? 'italic' : 'normal'; };
+    var fetchFace = function (url, face) {
+      return fetch(url).then(function (res) { return res.ok ? res.arrayBuffer() : null; }).then(function (buffer) {
+        return buffer ? { family: face.family, buffer: buffer, weight: face.weight, style: face.style } : null;
+      }).catch(function () { return null; });
+    };
+    // First the files the hook resolved through the app's own font lookup (rwcFaces),
+    // the lookup the export draws with: a font uploaded to the brand, which no
+    // stylesheet declares, and the faces of a family the export takes from an upload
+    // rather than from the app's own stylesheet. Each is a same-origin or blob: file.
+    var given = [];
+    try { given = JSON.parse(root.getAttribute('data-rwc-faces') || '[]'); } catch (e) { given = []; }
+    var covered = {};
+    (Array.isArray(given) ? given : []).forEach(function (x) {
+      if (!x || typeof x.url !== 'string' || typeof x.family !== 'string' || want.indexOf(x.family.toLowerCase()) < 0) return;
+      try { if (new URL(x.url, location.href).origin !== location.origin) return; } catch (e) { return; }
+      covered[x.family.toLowerCase() + '|' + slant(x.style)] = true;
+      jobs.push(fetchFace(x.url, { family: x.family, weight: String(x.weight || 'normal'), style: slant(x.style) }));
+    });
+    // Then the stylesheets, for a family and slant the hook gave no file for (a host
+    // with no font lookup gives none at all).
+    Array.prototype.forEach.call(document.styleSheets, function (sheet) {
+      var rules;
+      try { rules = sheet.cssRules; } catch (e) { return; }
+      Array.prototype.forEach.call(rules || [], function (r) {
+        if (typeof CSSFontFaceRule === 'undefined' || !(r instanceof CSSFontFaceRule)) return;
+        var fam = String(r.style.getPropertyValue('font-family')).trim().replace(/^['"]+|['"]+$/g, '');
+        if (want.indexOf(fam.toLowerCase()) < 0) return;
+        var style = r.style.getPropertyValue('font-style') || 'normal';
+        if (covered[fam.toLowerCase() + '|' + slant(style)]) return;
+        var m = /url\((['"]?)([^'")]+)\1\)/.exec(r.style.getPropertyValue('src'));
+        if (!m) return;
+        var url;
+        try { url = new URL(m[2], sheet.href || location.href).href; } catch (e) { return; }
+        if (new URL(url).origin !== location.origin) return;
+        jobs.push(fetchFace(url, { family: fam, weight: r.style.getPropertyValue('font-weight') || 'normal', style: style }));
+      });
+    });
+    brandFaces = Promise.all(jobs).then(function (list) { return list.filter(Boolean); });
+    return brandFaces;
+  }
+  function shareFonts() {
+    var win = frame && frame.contentWindow;
+    if (!win) return;
+    brandFaceList().then(function (faces) {
+      if (faces.length && frame && frame.contentWindow === win) win.postMessage({ __rwcFonts: faces }, '*');
+    });
+  }
+
   function buildDoc(files) {
     var shimTag = '<script>' + SHIM + '\n<\/script>';
     var css = files.css || '', js = files.js || '', html = files.html || '';
@@ -769,7 +846,7 @@
     // gives dark-text-on-dark-canvas (unreadable), which Safari hits by rendering the
     // sandboxed iframe's canvas dark in the app's LIGHT mode. A pen can still opt into
     // dark by setting its own background / color-scheme (its CSS comes after this reset).
-    var reset = 'html{color-scheme:light;background:#fff}*{box-sizing:border-box}body{margin:16px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5;color:#111;background:#fff}';
+    var reset = 'html{color-scheme:light;background:#fff}*{box-sizing:border-box}body{margin:16px;font-family:' + brandStack() + ';line-height:1.5;color:#111;background:#fff}';
     return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
       + shimTag + '<style>' + reset + '</style>' + headExtra + styleTag
       + '</head><body>' + html + jsTag + '</body></html>';
@@ -1874,7 +1951,7 @@
     if (!frame || e.source !== frame.contentWindow) return;
     var d = e.data;
     if (!d || d.__rwc !== 1) return;
-    if (d.level === '__ready__') { setStatus(''); liveEl.classList.add('is-live'); return; }
+    if (d.level === '__ready__') { setStatus(''); liveEl.classList.add('is-live'); shareFonts(); return; }
     if (d.level === '__snapshot__') { mountShot(d.html, d.w, d.h); return; }
     // Only when this Sandbox is itself framed on a slide (the shell's ?iframe mode): the
     // deck listens for these from its own frames (views/present-mode.ts).
@@ -1974,7 +2051,15 @@
       var doc = cleanShot(new DOMParser().parseFromString(String(html), 'text/html'));
       shotEl.textContent = '';
       Array.prototype.forEach.call(doc.head ? doc.head.querySelectorAll('style') : [], function (st) {
-        var css = (st.textContent || '').replace(/(^|\})\s*(html|body)\b/gi, '$1 .rwc-shot-body');
+        // The pen's html and body rules become rules for the mirror's body. A rule for
+        // the body itself (a bare `body` or `html, body` selector) needs more weight than the tool's own
+        // `.rwc-shot-body` reset, which the shell scopes under an id (so one id and two
+        // classes): without it the pen's font, size and colours never reached the export.
+        // A rule for what is inside the body (`body p`) keeps its old weight, so it still
+        // ranks against the pen's other rules the way it does in the preview.
+        var css = (st.textContent || '')
+          .replace(/(^|\x7d)\s*(html|body)(?=\s*[\x7b,])/gi, '$1 #' + shotEl.id + ' .rwc-shot-body.rwc-shot-body')
+          .replace(/(^|\x7d)\s*(html|body)\b/gi, '$1 .rwc-shot-body');
         var s2 = document.createElement('style'); s2.textContent = css; shotEl.appendChild(s2);
       });
       var wrap = document.createElement('div');

@@ -29,6 +29,7 @@ export { KNOWN_FINISH_KINDS } from './host-v1.ts';
 export { TOKEN_AXIS_KINDS } from './host-v1.ts';
 
 export { validateTool, validateCanvasOp } from './validate.ts';
+export { RENDITION_ACTIONS, renditionOfErrors } from './rendition-v1.ts';
 export type { ValidationIssue, ValidationResult } from './validate.ts';
 
 export { createMockHost } from './mock-host.ts';

@@ -50,7 +50,7 @@ export function renderEnrollForm(pv: ProfileViewCtx, health: CaHealth | null) {
   const maxDays = managed ? (health.maxLifetimeSeconds ?? 604800) / 86400 : 365;
   const days = [...new Set([defaultDays, ...(managed ? [1, 7] : [7, 30, 90, 365])])].filter(day => day <= maxDays);
   return `
-      <p class="identity-blurb">${t('Sign exports with a verified identity - a short-lived certificate ties your email to files you export; the key never leaves this device.')} <a href="${docsAppHref('trust/content-credentials-identity')}" target="_blank" rel="noopener">${t('How it works')}</a></p>
+      <p class="identity-blurb">${t('Sign exports with a verified identity - a short-lived certificate ties your email to files you export; the key never leaves this device.')} <a href="${docsAppHref('trust/content-credentials-identity')}">${t('How it works')}</a></p>
       <p class="identity-blurb identity-permanence">${t('Know before you enrol: your email address is written into every file you export while enrolled. It stays in every copy you share and cannot be removed later, even after the certificate expires.')}</p>
       <label class="identity-days-row">${t('Verified for')}
         <select class="identity-days-select field-select" aria-label="${escapeText(t('Certificate lifetime'))}">

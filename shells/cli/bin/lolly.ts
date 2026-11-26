@@ -20,13 +20,21 @@
 
 import { argv } from 'node:process';
 import { readFile } from 'node:fs/promises';
-import { parseToolUrl, normalizeLang } from '@lolly/engine';
-import { runToolCli, listToolsCli, showToolInputsCli, listAssetsCli, readStdin } from '../src/run.ts';
 import { INTENT_BOOL_FLAGS, INTENT_VALUE_FLAGS, parseArgs, globalFlags, isOn, textMode, resolvePassword, RESERVED_SUBCOMMANDS, isMlSubcommand, REBRAND_VALUE_FLAGS, READ_VALUE_FLAGS, CHECK_VALUE_FLAGS, READ_BOOL_FLAGS, CHECK_BOOL_FLAGS, MEASURE_VALUE_FLAGS, MEASURE_BOOL_FLAGS, COMPOSE_VALUE_FLAGS, COMPOSE_BOOL_FLAGS, refuseUnknownFlags } from '../src/args.ts';
 import { EXIT, exitCodeFor, usageError } from '../src/exit-codes.ts';
 import { configureOutput, strictExitCode, note, writeOut, keepConsoleOffStdout } from '../src/output.ts';
 import { beginCommand, emitError, jsonRequested, envelopeEmitted } from '../src/envelope.ts';
 import { assertContentRoot, needsContentRoot } from '../src/content-root.ts';
+import { enableStartupCache } from '../src/startup-cache.ts';
+
+// The compile cache goes on before the engine loads (plans/371, M1.1). The two imports
+// below bring in every engine module, so they are loaded on first use: `--version` and
+// `--help` need neither, and every other command compiles them through the cache.
+enableStartupCache();
+const loadEngine = () => import('@lolly/engine');
+const loadRun = () => import('../src/run.ts');
+/** stdin, read once, for the commands that take a function to call when they want the bytes. */
+const readStdin = async (): Promise<Buffer> => (await loadRun()).readStdin();
 
 const USAGE = `lolly - constraint-first asset generation from the terminal.
 
@@ -344,9 +352,18 @@ Export options:
                            HTML under a .html name instead of failing. Off by default - 
                            without it a format that cannot be produced is an error, never
                            a different file under the name you asked for.
+  --allow-browser-free     OPT IN: draw a PNG, BMP, JPEG XL, EXR or HDR without a browser
+                           where the browser-free route refused it only because it may
+                           differ from the app's. Warns, and records the acceptance in the
+                           credential. Never for a picture that would be wrong (a WebP left
+                           blank, a missing DRAFT mark, a paged document, canvas pixels).
+                           \`lolly tui --allow-browser-free\` is the same choice in the TUI
   --bleed=3mm --marks=crop,reg,bars        print prep (routes through the full render tier)
   --press-profile=fogra39  CMYK press condition for pdf-cmyk / cmyk-tiff. \`--profile=\`
                            is its alias, matching URL mode's reserved \`profile\` param.
+  --spots=process          print every spot ink with the four process inks in a CMYK
+                           export (finishes keep their plates). Off by default; the
+                           same choice as \`_spots=process\` in a link.
   --jobs=<1..8>           isolated production batch workers
   --journal=<file>        production batch receipts; --resume reuses verified outputs
   --dry-run               plan a batch without writing files
@@ -380,7 +397,8 @@ Export options:
                            See /info/build/cli-signing.html
   --durable=1              embed the durable Content Credential (neural TrustMark).
                            Off by default (a neural encode, and a model download)
-  --password=<pw>          PDF open-password (visible in \`ps\`; see --password-stdin)
+  --password=<pw>          open password for a pdf or zip, read back before the file is
+                           written; any other format exits 4 (visible in \`ps\`; see --password-stdin)
   --password-stdin         read the password from stdin instead of argv
   --depth=8|16|float       requested bits per channel; --hdr=1 for the float view transform
   --fps=<n> --seconds=<s>  video clip controls (mp4/webm/gif/apng): frame rate and length;
@@ -469,6 +487,13 @@ beginCommand(
 // The stderr writer the error printer uses, captured BEFORE --quiet can replace it: a
 // quiet run still prints errors, and it must not print them into a sink.
 const writeErr = process.stderr.write.bind(process.stderr);
+// A Node older than the Brotli fix for CVE-2026-111497 on its line: one line to stderr,
+// never stdout, unless --quiet. Not a recorded warning: --strict does not turn this line
+// into a failure.
+if (!args.some(a => /^--quiet(?:=(?!0$|false$|off$|no$).*)?$/i.test(a))) {
+  const { warnIfUnpatchedNode } = await import('@lolly-tools/node-shell/node-patch-level');
+  warnIfUnpatchedNode(line => writeErr(`${line}\n`));
+}
 
 try {
   // --help / -h / --version / -v are recognised ANYWHERE in argv, before anything treats
@@ -486,7 +511,8 @@ try {
       await writeOut(verbHelp(args) ?? USAGE);
     }
   } else if (args.some(a => a === '--version' || a === '-v')) {
-    const { ENGINE_VERSION } = await import('@lolly/engine');
+    // The version module alone: the whole engine is not needed to print one string.
+    const { ENGINE_VERSION } = await import('../../../engine/src/version.ts');
     const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')) as { version: string };
     await writeOut(`lolly ${pkg.version} (engine ${ENGINE_VERSION})\n`);
   } else {
@@ -522,7 +548,7 @@ async function main(): Promise<void> {
     } else {
       beginCommand('list', false);
       assertContentRoot();
-      await listToolsCli();
+      await (await loadRun()).listToolsCli();
     }
     return;
   }
@@ -684,14 +710,14 @@ async function main(): Promise<void> {
   }
 
   if (cmd === 'list') {
-    await listToolsCli({ json: g.json, query: flags.q, limit: flags.limit === undefined ? undefined : Number(flags.limit) });
+    await (await loadRun()).listToolsCli({ json: g.json, query: flags.q, limit: flags.limit === undefined ? undefined : Number(flags.limit) });
     return;
   }
 
   if (cmd === 'describe') {
     const toolId = positionals[1];
     if (!toolId) throw usageError('usage: lolly describe <tool-id>', 'MISSING_ARGUMENT');
-    await showToolInputsCli(toolId, { lang: normalizeLang(flags.lang) ?? undefined, json: g.json, full: isOn(flags.all) });
+    await (await loadRun()).showToolInputsCli(toolId, { lang: (await loadEngine()).normalizeLang(flags.lang) ?? undefined, json: g.json, full: isOn(flags.all) });
     return;
   }
 
@@ -895,7 +921,7 @@ async function main(): Promise<void> {
   // `assets`: list catalog asset ids so they can be passed to any `asset`-type input
   // (the engine already resolves an id → the embedded asset).
   if (cmd === 'assets') {
-    await listAssetsCli(positionals[1], { type: flags.type, json: g.json });
+    await (await loadRun()).listAssetsCli(positionals[1], { type: flags.type, json: g.json });
     return;
   }
 
@@ -975,7 +1001,7 @@ async function main(): Promise<void> {
   // query were --flags (the URL-mode-as-CLI principle). Any --flag=val after the URL
   // overrides the URL's params - "the URL as settings, then edit".
   if (/^https?:\/\//i.test(cmd ?? '')) {
-    const ref = parseToolUrl(cmd!);
+    const ref = (await loadEngine()).parseToolUrl(cmd!);
     if (!ref) throw usageError(`Not a recognised Lolly tool URL: ${cmd}`, 'BAD_URL');
     const urlParams = Object.fromEntries(new URLSearchParams(ref.query));
     // No `profile` remap any more: url-mode's `profile` IS the press condition and so is
@@ -1009,7 +1035,7 @@ async function main(): Promise<void> {
   const files = positionals.slice(1);
   if (flagKeys.length === 0 && files.length === 0) {
     beginCommand('describe', g.json);
-    await showToolInputsCli(toolId, { lang: normalizeLang(flags.lang) ?? undefined, json: g.json });
+    await (await loadRun()).showToolInputsCli(toolId, { lang: (await loadEngine()).normalizeLang(flags.lang) ?? undefined, json: g.json });
     return;
   }
   await render(toolId, flags, undefined, repeated, undefined, files);
@@ -1049,7 +1075,7 @@ async function render(
   delete params['password-stdin'];
 
   if (/\.lolly$/i.test(toolId)) { const {runDesignToolPackage} = await import('../src/design-tool.ts'); await runDesignToolPackage(toolId, flags); return; }
-  await runToolCli({
+  await (await loadRun()).runToolCli({
     toolId,
     params,
     repeated,

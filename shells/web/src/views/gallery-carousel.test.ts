@@ -23,8 +23,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { JSDOM } from 'jsdom';
 import {
-  CAR_FAILED_ATTR, CAR_INERT_ATTR, CAR_PENDING_ATTR, advanceCarousel, carouselDotsMarkup, carouselNavMarkup,
-  markLookFailed, markLookReady, readyCarIndices, setCarDot, stripCarouselNav, syncCarState, wireCarousel,
+  CAR_FAILED_ATTR, CAR_INERT_ATTR, CAR_PENDING_ATTR, CAR_WANTED_ATTR, advanceCarousel, carouselDotsMarkup, carouselNavMarkup,
+  markLookFailed, markLookReady, readyCarIndices, setCarDot, stripCarouselNav, syncCarState, wantLooks, wireCarousel, wireLookInterest,
 } from './gallery-carousel.ts';
 import { LOOK_PENDING_ATTR } from '../lib/capture-neutral.ts';
 import { galleryPreviewPriority } from '../lib/gallery-preview.ts';
@@ -157,14 +157,34 @@ test('with only the cover ready the arrows are inert: marked, and no hop', (t) =
   markLookReady(s.gcar, s.slides()[0]!);
   assert.deepEqual(s.nav().map((b) => b.hasAttribute(CAR_INERT_ATTR)), [true, true]);
   s.click('.gcar-next');
-  assert.equal(s.at(), 0, 'a click on a disabled arrow moves nothing');
-  s.click('.gcar-prev');
-  assert.equal(s.at(), 0);
-  // A second look decodes and the same arrows become live controls.
+  assert.equal(s.at(), 0, 'a click on a disabled arrow moves nothing yet');
+  // A second look decodes: the same arrows become live controls, and the press that
+  // came too early takes its step (extra looks are drawn on interest, so that press
+  // is how many people will first ask for one).
   markLookReady(s.gcar, s.slides()[2]!);
   assert.deepEqual(s.nav().map((b) => b.hasAttribute(CAR_INERT_ATTR)), [false, false]);
+  assert.equal(s.at(), 2, 'the owed step lands on the look that arrived');
   s.click('.gcar-next');
-  assert.equal(s.at(), 2);
+  assert.equal(s.at(), 0, 'and the arrows step as usual from there');
+});
+
+test('an early press is owed one step only, and not for long', (t) => {
+  const s = strip(t, 3);
+  markLookReady(s.gcar, s.slides()[0]!);
+  s.click('.gcar-next');
+  markLookReady(s.gcar, s.slides()[1]!);
+  assert.equal(s.at(), 1);
+  markLookReady(s.gcar, s.slides()[2]!);
+  assert.equal(s.at(), 1, 'a later look does not move the strip again');
+
+  const late = strip(t, 3);
+  markLookReady(late.gcar, late.slides()[0]!);
+  const now = performance.now.bind(performance);
+  t.after(() => { performance.now = now; });
+  late.click('.gcar-prev');
+  performance.now = () => now() + 60_000;
+  markLookReady(late.gcar, late.slides()[1]!);
+  assert.equal(late.at(), 0, 'a look that took a minute arrives without moving the strip');
 });
 
 test('a dot for a look with no art is inert - a jump there would park on an empty pane', (t) => {
@@ -220,12 +240,61 @@ test('the view builds its nav and dots from the count, and clears pending where 
   // by a search, or the whole grid in hide-previews mode) parks its render. A capture
   // waits for every look, so under the pin it renders last instead of never. The rule
   // lives in lib/gallery-preview.ts; the view passes the capture pin through.
-  assert.match(VIEW, /return perfUiOn\(\) \? null : galleryPreviewPriority\(gcar, cover, captureNeutralPinned\(\)\);/);
+  assert.match(VIEW, /return perfUiOn\(\) \? null : galleryPreviewPriority\(gcar, cover, captureNeutralPinned\(\), gcar\.hasAttribute\(CAR_WANTED_ATTR\)\);/);
   const boxless = { closest: () => null, getBoundingClientRect: () => ({ width: 0, height: 0, top: 0, bottom: 0 }) } as unknown as HTMLElement;
   assert.equal(galleryPreviewPriority(boxless, true, false), null, 'a hidden tile parks its render');
   assert.equal(galleryPreviewPriority(boxless, false, false), null);
   assert.equal(galleryPreviewPriority(boxless, true, true), 3, 'under a capture it renders last instead of never');
   assert.equal(galleryPreviewPriority(boxless, false, true), 3);
+});
+
+test('an extra look is drawn only for a card the person has shown interest in', (t) => {
+  const s = strip(t, 3);
+  Object.assign(s.win, { innerHeight: 900 });
+  // Without the observer the rule draws every look, as an old browser must.
+  const had = 'IntersectionObserver' in globalThis;
+  if (!had) Object.assign(globalThis, { IntersectionObserver: class {} });
+  t.after(() => { if (!had) delete (globalThis as { IntersectionObserver?: unknown }).IntersectionObserver; });
+  const onScreen = { closest: () => null, getBoundingClientRect: () => ({ width: 300, height: 300, top: 100, bottom: 400 }) } as unknown as HTMLElement;
+  const farDown = { closest: () => null, getBoundingClientRect: () => ({ width: 300, height: 300, top: 4000, bottom: 4300 }) } as unknown as HTMLElement;
+  assert.equal(galleryPreviewPriority(onScreen, true, false, false), 0, 'a cover on the screen is first, wanted or not');
+  assert.equal(galleryPreviewPriority(farDown, true, false, false), 1);
+  assert.equal(galleryPreviewPriority(onScreen, false, false, false), null, 'no interest: the look is not drawn');
+  assert.equal(galleryPreviewPriority(onScreen, false, false, true), 0.5, 'asked for: ahead of covers far down the page and of ambient looks');
+  assert.equal(galleryPreviewPriority(farDown, false, false, true), null, 'a wanted card that has left the screen waits');
+  assert.equal(galleryPreviewPriority(onScreen, false, true, false), 2, 'a capture still draws every look');
+  // The view marks interest from the pointer, the focus and a press, on the grid itself,
+  // and wakes the queue each time a strip is newly wanted.
+  assert.match(VIEW, /if \(masonry\) cleanups\.push\(wireLookInterest\(masonry, \(\) => previewQueue\.wake\(\)\)\);/);
+  const grid = s.win.document.querySelector<HTMLElement>('.tool-masonry')!;
+  let woken = 0;
+  const unwire = wireLookInterest(grid, () => { woken += 1; });
+  assert.equal(s.gcar.hasAttribute(CAR_WANTED_ATTR), false, 'nothing is wanted before the person shows interest');
+  s.gcar.closest('.gtile')!.dispatchEvent(new s.win.Event('pointerover', { bubbles: true }));
+  assert.equal(s.gcar.hasAttribute(CAR_WANTED_ATTR), true, 'the pointer over a card asks for its looks');
+  s.gcar.dispatchEvent(new s.win.Event('focusin', { bubbles: true }));
+  s.gcar.dispatchEvent(new s.win.Event('pointerdown', { bubbles: true }));
+  assert.equal(woken, 1, 'the queue is woken once for a strip, not on every move over the card');
+  assert.equal(wantLooks(s.gcar), false);
+  assert.equal(wantLooks(null), false);
+  unwire();
+  s.gcar.removeAttribute(CAR_WANTED_ATTR);
+  s.gcar.dispatchEvent(new s.win.Event('pointerdown', { bubbles: true }));
+  assert.equal(s.gcar.hasAttribute(CAR_WANTED_ATTR), false, 'the undo takes the listeners off');
+  // A dot rests until then: nothing is on its way, so nothing breathes.
+  assert.equal(CAR_WANTED_ATTR, 'data-looks-wanted');
+  assert.match(CSS, /\.gcar\[data-looks-wanted\] \.gcar-dot\[data-look-pending\] \{ animation: gcar-dot-wait [^}]*\}/);
+  assert.equal(/(^|\})\s*\.gcar-dot\[data-look-pending\] \{ animation/.test(CSS), false, 'no rule animates a dot before its card is wanted');
+});
+
+test('the waiting outline is a solid line, never dashes', () => {
+  // A dashed outline means a drop area in this app; a card that is loading is not one.
+  const trace = CSS.slice(CSS.indexOf('.gtile-iconfill-trace {'), CSS.indexOf('/* Cross-fade frames for a tile with several saved sessions.'));
+  assert.ok(trace.length > 0);
+  assert.equal(/stroke-dasharray|stroke-dashoffset/.test(trace.replace(/\/\*[\s\S]*?\*\//g, '')), false);
+  assert.match(trace, /animation: gtile-icon-wait /);
+  assert.match(trace, /@media \(prefers-reduced-motion: reduce\) \{ \.gtile-iconfill-trace \{ animation: none; \} \}/);
+  assert.match(trace, /html\[data-a11y-motion="reduce"\] \.gtile-iconfill-trace \{ animation: none; \}/);
 });
 
 test('the dots live INSIDE .gcar, which is what hide-previews mode already hides', (t) => {

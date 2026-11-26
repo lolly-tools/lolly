@@ -464,7 +464,7 @@ button.fc-nav-chip:focus-visible { outline: 2px solid var(--ui-color-focus-ring)
 .fc-nav-layer.is-active { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); }
 .fc-nav-layer:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .fc-nav-layer-glyph { flex: none; display: inline-flex; color: var(--ui-color-text-muted); }
-.fc-nav-layer.is-active .fc-nav-layer-glyph { color: var(--ui-color-action-primary); }
+.fc-nav-layer.is-active .fc-nav-layer-glyph { color: var(--ui-color-text-accent); }
 .fc-nav-layer-name {
   flex: 1 1 auto;
   min-width: 0;
@@ -642,7 +642,7 @@ html[data-a11y-motion="reduce"] .fc-nav-dot-btn { transition: none; }
   .fc-nav-modes .btn:last-child {   border-radius: 0 var(--ui-radius-panel) var(--ui-radius-panel) 0 ;  }
   .fc-nav-modes [aria-pressed="true"] { background:  color-mix(in srgb, var(--ui-color-selection-surface) 20%, var(--ui-color-surface-muted)); ; color: var(--ui-color-text-default); }
   .fc-nav-group > summary { display: flex; align-items: center; gap: var(--sp-1); cursor: pointer; list-style: none; border-radius: var(--ui-radius-control); }
-  .fc-nav-group > summary::-webkit-details-marker { display: none; }
+  .fc-nav-group > summary::after { content: none; }
   .fc-nav-group > summary::before { content: '›'; color: var(--ui-color-text-muted); font-size: var(--fs-lg); width: var(--sp-4); text-align: center; }
   .fc-nav-group[open] > summary::before { rotate: 90deg; }
   .fc-nav-group.is-active-board > summary { background: color-mix(in srgb, var(--ui-color-selection-surface) 50%, var(--ui-color-surface-muted));  }

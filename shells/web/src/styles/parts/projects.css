@@ -10,6 +10,8 @@
    the spacer holds Batch out on the right, and the row wraps on a narrow screen. */
 .projects-roothead {
   display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); margin: 0 0 var(--sp-3);
+  /* The row sits just under the top bar, beside a status column the system may hold on a side. */
+  padding-left: var(--safe-left); padding-right: var(--safe-right);
 }
 .projects-batch-btn {
   font-weight: 500;
@@ -74,7 +76,7 @@
    Inactive tabs mute their glyph so the active one reads at a glance (the
    a11y ask, same date) - opacity, not colour, so it works over any brand. */
 .view-toggle-ic { display: inline-flex; align-items: center; margin-inline-end: 4px; opacity: 1;    color: hsl(var(--accent-foreground) / .45);  }
-.view-toggle-opt:hover .view-toggle-ic { opacity: 1; color:var(--ui-color-action-primary);}
+.view-toggle-opt:hover .view-toggle-ic { opacity: 1; color:var(--ui-color-text-accent);}
 .view-toggle-opt.is-active .view-toggle-ic{color:var(--ui-color-text-default); }
 
 /* Second cue riding the same states: a lighter stroke on inactive glyphs, the
@@ -98,7 +100,7 @@
    app on a phone. */
 .view-toggle-ic svg { display: block; width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
 .view-toggle-opt:hover { color: var(--ui-color-text-default); }
-.view-toggle-opt:hover{color:var(--ui-color-action-primary) }
+.view-toggle-opt:hover{color:var(--ui-color-text-accent) }
 
 .view-toggle-opt.is-active {
   background: var(--ui-color-surface-canvas); color: var(--ui-color-text-default); box-shadow: var(--ui-elevation-control);
@@ -306,7 +308,7 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
 
 /* Inline "clear the search" link inside the no-results message. */
 .projects-linkbtn {
-  border: 0; background: none; padding: 0; font: inherit; color: hsl(var(--primary));
+  border: 0; background: none; padding: 0; font: inherit; color: hsl(var(--primary-text));
   text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
 }
 
@@ -343,7 +345,7 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
   color: var(--ui-color-text-muted); background: transparent;
   border-bottom: 0;   /* override the base .tile-cover divider - create tiles are seamless */
 }
-.folder-tile--create:hover .tile-cover--create { color: var(--ui-color-action-primary); }
+.folder-tile--create:hover .tile-cover--create { color: var(--ui-color-text-accent); }
 .tile-cover--create svg { width: calc(30px * var(--a11y-fs)); height: calc(30px * var(--a11y-fs)); }
 
 /* Breadcrumb trail above a folder's header - links each ancestor back up the tree. */
@@ -492,12 +494,6 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
    .projects-render.btn / .modal-danger. */
 .projects-bulk-danger.btn { color: hsl(var(--destructive-text, 0 70% 50%)); }
 .projects-bulk-danger.btn:hover { background: hsl(var(--destructive, 0 70% 50%) / 0.1); }
-.projects-bulkbar-clear {
-  display: inline-flex; align-items: center; justify-content: center; width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); flex: none;
-  border: 0; border-radius: var(--radius-round); background: hsl(var(--muted)); color: hsl(var(--foreground));
-  cursor: pointer; font-size: var(--fs-md); line-height: 1;
-}
-.projects-bulkbar-clear:hover { background: hsl(var(--border)); }
 /* Icon-only when the labels would wrap or overflow (lib/bulk-bar.ts fitBulkBar sets
    .is-compact by measuring). Labels are clipped, not removed, so each button keeps its
    accessible name; the label is also its tooltip. */
@@ -567,7 +563,6 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
   .projects-chip { padding-top: 9px; padding-bottom: 9px; }
   .folder-menu-item { min-height: calc(44px * var(--a11y-fs)); }
   .movepicker-row { min-height: calc(44px * var(--a11y-fs)); }
-  .movepicker-close { width: calc(40px * var(--a11y-fs)); height: calc(40px * var(--a11y-fs)); font-size: calc(18px * var(--a11y-fs)); }
   .movepicker-crumb { min-height: calc(32px * var(--a11y-fs)); display: inline-flex; align-items: center; }
 }
 
@@ -581,9 +576,6 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
 .projects-movepicker::backdrop { background: hsl(0 0% 0% / 0.42); }
 .movepicker-head { display: flex; align-items: center; gap: 10px; padding: 16px 16px 8px; }
 .movepicker-title { margin: 0; font-size: calc(15px * var(--a11y-fs)); font-weight: 700; flex: 1; }
-.movepicker-close {
-  border: 0; background: none; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: var(--fs-xl); padding: 4px;
-}
 .movepicker-crumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 0 16px 10px; font-size: var(--fs-sm); }
 .movepicker-crumb { border: 0; background: none; color: hsl(var(--muted-foreground)); cursor: pointer; padding: 2px 4px; border-radius: 4px; font-size: var(--fs-sm); }
 .movepicker-crumb:hover { color: hsl(var(--foreground)); }
@@ -633,6 +625,10 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
 /* A sort with no column of its own (Date added) is still named in the header,
    so the list never reads as unsorted. */
 .listhead-sortnote { font-size: var(--fs-xs); color: var(--ui-color-text-muted); font-weight: 500; white-space: nowrap; }
+/* Sort direction: the disclosure arrow's two hairlines, pointing up or down. */
+.listhead-dir { display: inline-block; width: calc(6px * var(--a11y-fs)); height: calc(6px * var(--a11y-fs)); margin-inline-start: var(--sp-3); border-right: 1.25px solid currentColor; border-bottom: 1.25px solid currentColor; }
+.listhead-dir[data-dir="desc"] { transform: translateY(-2px) rotate(45deg); }
+.listhead-dir[data-dir="asc"] { transform: translateY(2px) rotate(-135deg); }
 
 /* "My library" label over the loose-session block at the root (plans/170
    keeping-model naming): a full-width grid row between the folder tiles and

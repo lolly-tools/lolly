@@ -241,3 +241,14 @@ test('emitEps without geometry never emits the geometry-only CTM (byte-identical
   assert.doesNotMatch(eps, /^1 -1 scale$/m, 'the geo page-flip is absent on the plain path');
   assert.doesNotMatch(eps, /arc\b/, 'no marks on the plain path');
 });
+
+test('a stencil paints the words through their shape in their ink with imagemask', () => {
+  const ir = {
+    width: 100, height: 50,
+    prims: [{ type: 'stencil' as const, x: 10, y: 20, w: 40, h: 8, pxW: 10, pxH: 2, bits: new Uint8Array([0xf8, 0x00, 0x01, 0x80]), fill: { r: 255, g: 0, b: 0 } }],
+  };
+  const rgb = emitEps(ir);
+  assert.match(rgb, /gsave\n1 0 0 setrgbcolor\n10 20 translate\n40 8 scale\n<< \/ImageType 1 \/Width 10 \/Height 2 \/BitsPerComponent 1 \/Decode \[1 0\] \/ImageMatrix \[10 0 0 2 0 0\] \/DataSource currentfile \/ASCIIHexDecode filter >> imagemask\nf8000180\n>\ngrestore/);
+  assert.match(emitEps(ir, { cmyk: true }), /0 1 1 0 setcmykcolor\n10 20 translate/, 'the ink follows the CMYK mapping');
+  assert.doesNotMatch(emitEps(IR), /imagemask/, 'a file with no stencil has none');
+});

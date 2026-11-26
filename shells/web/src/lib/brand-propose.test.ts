@@ -13,11 +13,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import type { PenpotUsage, PenpotUsageColor, PenpotUsageGradient, PenpotAppliedToken } from '@lolly/engine';
-import { createTokenSet } from '@lolly/engine';
+import { adoptColourRoles, createTokenSet, danglingColourAliases, deriveBrandTokens, readColourRoles } from '@lolly/engine';
+import { readFileSync } from 'node:fs';
 import {
-  proposeBrandRoles, proposeFonts, buildBrandDocFromUsage,
+  colourRoleSpecs, proposeBrandRoles, proposeColourRoles, proposeFonts, buildBrandDocFromUsage,
   proposeRolesFromTokens, proposeFontsFromTokens, withRoleAliases, ROLE_SET_NAME,
 } from './brand-propose.ts';
+import type { ColourRoleChoice, ColourRoleProposal } from './brand-propose.ts';
 import { listStudioTokens } from './token-studio.ts';
 
 type FontRow = PenpotUsage['fonts'][number];
@@ -378,4 +380,141 @@ test('withRoleAliases: a role the file already declares keeps its own definition
   const set = installed[ROLE_SET_NAME] as { color: { semantic: Record<string, unknown> } };
   assert.equal(set.color.semantic.primary, undefined, 'no alias from the role to itself');
   assert.equal(inProduct(installed, 't-pulse').resolve('color.semantic.primary'), '#F0563A');
+});
+
+// ── Colour roles from a file's own words (plans/352 R4) ──────────────────────
+
+const TEXTILE = {
+  color: {
+    $type: 'color',
+    main: { $value: '#1b2a6b' }, accent: { $value: '#b23a48' }, supporting: { $value: '#6c7a89', $description: 'The selvedge' },
+    tertiary: { $value: '#d9c7a0' }, beacon: { $value: '#c9a227' }, paper: { $value: '#faf7f2' }, ink: { $value: '#1c1a17' },
+  },
+};
+const row = (id: string, proposal: ColourRoleProposal) => proposal.rows.find(r => r.id === id)!;
+
+test('proposeColourRoles: a word on the list suggests a slot, and a word off it arrives by name only', () => {
+  const proposal = proposeColourRoles(TEXTILE);
+  assert.deepEqual(proposal.rows.map(r => [r.id, r.label, r.reads, r.path]), [
+    ['main', 'Main', 'primary', 'color.main'],
+    ['accent', 'Accent', 'secondary', 'color.accent'],
+    ['supporting', 'Supporting', null, 'color.supporting'],
+    ['tertiary', 'Tertiary', null, 'color.tertiary'],
+    ['beacon', 'Beacon', null, 'color.beacon'],
+    ['paper', 'Paper', 'surface', 'color.paper'],
+    ['ink', 'Ink', null, 'color.ink'],
+  ]);
+  assert.equal(row('supporting', proposal).description, 'The selvedge');
+  assert.equal(proposal.hasLead, false);
+});
+
+test('proposeColourRoles: an earlier word on the list wins a slot, and the file\'s own slot is respected', () => {
+  const both = proposeColourRoles({ brand: { $type: 'color', primary: { $value: '#111111' }, main: { $value: '#222222' } } });
+  assert.equal(row('primary', both).reads, 'primary');
+  assert.equal(row('primary', both).fixed, true, 'a role named after a slot is that slot');
+  assert.equal(row('main', both).reads, null);
+  // The file's primary is another colour, so `main` leaves that slot alone.
+  const other = proposeColourRoles({ color: { $type: 'color', semantic: { primary: { $value: '#111111' }, surface: { $value: '#ffffff' }, text: { $value: '#000000' } }, brand: { main: { $value: '#222222' }, tertiary: { $value: '#333333' } } } });
+  assert.deepEqual(other.rows.map(r => [r.id, r.reads]), [['main', null], ['tertiary', null]]);
+  assert.equal(other.hasLead, true);
+  // The same colour in every look is the same thing said twice.
+  const same = proposeColourRoles({ color: { $type: 'color', semantic: { primary: { $value: '#222222' } }, brand: { main: { $value: '#222222' } } } });
+  assert.equal(row('main', same).reads, 'primary');
+});
+
+test('proposeColourRoles: only a group holding a known word counts, and a step on a ramp is not a word', () => {
+  assert.deepEqual(proposeColourRoles({ color: { $type: 'color', flax: { $value: '#faf7f2' }, loom: { $value: '#1c1a17' } } }).rows, []);
+  assert.deepEqual(proposeColourRoles({ color: { $type: 'color', 'blue-100': { $value: '#eeeeff' }, 'blue-900': { $value: '#000033' }, neutral100: { $value: '#eeeeee' } } }).rows, []);
+  const mixed = proposeColourRoles({ a: { $type: 'color', accent: { $value: '#b23a48' }, 'accent-2': { $value: '#000000' } }, b: { $type: 'color', flax: { $value: '#faf7f2' } } });
+  assert.deepEqual(mixed.rows.map(r => r.id), ['accent']);
+  // A palette that happens to hold one word offers that word, not the palette.
+  const palette = Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`shade${'abcdefghijklmnopqrstuvwxyz'[i]}`, { $value: '#123456' }]));
+  const wide = proposeColourRoles({ color: { $type: 'color', ...palette, accent: { $value: '#b23a48' } } });
+  assert.deepEqual(wide.rows.map(r => r.id), ['accent']);
+});
+
+test('proposeColourRoles: a custom semantic token is offered, and per-look values are shown per look', () => {
+  const doc = {
+    $themes: [{ id: 'light', name: 'light', selectedTokenSets: { l: 'enabled' } }, { id: 'dark', name: 'dark', selectedTokenSets: { d: 'enabled' } }],
+    $metadata: { tokenSetOrder: ['l', 'd'] },
+    l: { color: { $type: 'color', semantic: { primary: { $value: '#111111' }, highlight: { $value: '#c9a227' } } } },
+    d: { color: { $type: 'color', semantic: { primary: { $value: '#eeeeee' }, highlight: { $value: '#ffe08a' } } } },
+  };
+  const proposal = proposeColourRoles(doc);
+  assert.deepEqual(proposal.rows.map(r => [r.id, r.path, r.colours.map(c => c.hex)]), [['highlight', 'color.semantic.highlight', ['#c9a227', '#ffe08a']]]);
+});
+
+test('proposeColourRoles: nothing to suggest for a file that declares its roles, for the shipped systems, or for garbage', () => {
+  const load = (path: string): unknown => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
+  for (const doc of [
+    load('../../../../tests/fixtures/colour-roles/wefthouse.tokens.json'),
+    load('../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json'),
+    load('../../../../brands/lolly-start/catalog/assets/lolly/tokens/brand.json'),
+    deriveBrandTokens({ primary: '#2453ff', name: 'Fixture' }),
+    null, 7, 'text', [], { color: 'nope' },
+  ]) assert.deepEqual(proposeColourRoles(doc).rows, []);
+});
+
+test('proposeColourRoles reads a hostile file without trouble: odd names stay data, and the list is bounded', () => {
+  const hostile = JSON.parse('{"color":{"$type":"color","accent":{"$value":"#b23a48"},"__proto__":{"$value":"#000000"},"constructor":{"$value":"#000001"},"toString":{"$value":"#000002"},"<script>alert(1)</script>":{"$value":"#000003"}}}');
+  const proposal = proposeColourRoles(hostile);
+  assert.ok(proposal.rows.every(r => /^[a-z][a-z-]*$/.test(r.id)), 'every id is a usable one');
+  assert.ok(!({} as Record<string, unknown>).accent, 'no prototype was touched');
+  const many = { color: { $type: 'color', accent: { $value: '#b23a48' }, ...Object.fromEntries(Array.from({ length: 14 }, (_, i) => [`word${'abcdefghijklmnop'[i]}`, { $value: '#123456' }])) } };
+  assert.equal(proposeColourRoles(many).rows.length, 15);
+});
+
+test('colourRoleSpecs and adoption: what a person left is what gets written, and turning everything off writes nothing', () => {
+  const proposal = proposeColourRoles(TEXTILE);
+  const edited: ColourRoleChoice[] = proposal.rows.map(r => ({ id: r.id, label: r.label, description: r.description, reads: r.reads, keep: true }));
+  const by = (id: string): ColourRoleChoice => edited.find(c => c.id === id)!;
+  by('main').label = 'Ground';
+  by('main').description = 'The cloth';
+  by('ink').reads = 'text';
+  by('beacon').keep = false;
+  const specs = colourRoleSpecs(proposal, edited);
+  assert.deepEqual(specs.map(s => [s.id, s.label, s.fills ?? null]), [['main', 'Ground', 'primary'], ['accent', 'Accent', 'secondary'], ['supporting', 'Supporting', null], ['tertiary', 'Tertiary', null], ['paper', 'Paper', 'surface'], ['ink', 'Ink', 'text']]);
+  const edit = adoptColourRoles(TEXTILE, specs, { lift: { id: 'house', name: 'House' } });
+  assert.ok(edit.ok, JSON.stringify(edit));
+  const reading = readColourRoles(edit.doc);
+  assert.deepEqual(reading.roles.filter(r => r.declared).map(r => [r.id, r.label, r.slots]), [['main', 'Ground', ['primary']], ['accent', 'Accent', ['secondary']], ['supporting', 'Supporting', []], ['tertiary', 'Tertiary', []], ['paper', 'Paper', ['surface']], ['ink', 'Ink', ['text']]]);
+  assert.deepEqual(reading.issues, []);
+  assert.deepEqual(danglingColourAliases(edit.doc), []);
+  const light = createTokenSet(edit.doc, { selection: { '': 'light' } });
+  assert.equal(light.resolve('color.semantic.primary'), '#1b2a6b');
+  assert.equal(light.resolve('color.semantic.surface'), '#faf7f2');
+  assert.equal(light.resolve('color.main'), '#1b2a6b', 'the file\'s own token is still there');
+  assert.equal(createTokenSet(edit.doc).resolve('color.beacon'), '#c9a227', 'a word turned off stays a named colour');
+  assert.equal(readColourRoles(edit.doc).roles.some(r => r.id === 'beacon'), false);
+  const off = colourRoleSpecs(proposal, edited.map(c => ({ ...c, keep: false })));
+  assert.deepEqual(off, []);
+  const untouched = adoptColourRoles(TEXTILE, off);
+  assert.ok(untouched.ok);
+  assert.equal(untouched.changed, false);
+  assert.deepEqual(untouched.doc, TEXTILE, 'the file as it came');
+});
+
+test('adoption: a layered file keeps its values per look, and themes that are not light and dark refuse', () => {
+  const layered = {
+    $themes: [{ id: 'light', name: 'light', selectedTokenSets: { core: 'enabled', l: 'enabled' } }, { id: 'dark', name: 'dark', selectedTokenSets: { core: 'enabled', d: 'enabled' } }],
+    $metadata: { tokenSetOrder: ['core', 'l', 'd'] },
+    core: { color: { $type: 'color', pine: { $value: '#135135' } } },
+    l: { brand: { $type: 'color', main: { $value: '#1b2a6b' }, surface: { $value: '#ffffff' } } },
+    d: { brand: { $type: 'color', main: { $value: '#8fa2ff' }, surface: { $value: '#111111' } } },
+  };
+  const proposal = proposeColourRoles(layered);
+  const edit = adoptColourRoles(layered, colourRoleSpecs(proposal, proposal.rows.map(r => ({ id: r.id, label: r.label, description: '', reads: r.reads, keep: true }))), { lift: { id: 'house', name: 'House' } });
+  assert.ok(edit.ok, JSON.stringify(edit));
+  assert.equal(createTokenSet(edit.doc, { selection: { '': 'dark' } }).resolve('color.semantic.main'), '#8fa2ff');
+  assert.equal(createTokenSet(edit.doc, { selection: { '': 'light' } }).resolve('color.semantic.surface'), '#ffffff');
+  assert.equal(createTokenSet(edit.doc, { selection: { '': 'dark' } }).resolve('color.semantic.surface'), '#111111');
+  const product = { $themes: [{ id: 'a', name: 'A', group: 'product', selectedTokenSets: { a: 'enabled' } }], $metadata: { tokenSetOrder: ['a'] }, a: { brand: { $type: 'color', main: { $value: '#1b2a6b' } } } };
+  const refused = adoptColourRoles(product, [{ id: 'main', label: 'Main', from: 'brand.main', fills: 'primary' }]);
+  assert.equal(refused.ok, false);
+});
+
+test('no render path can reach the word list: it lives in the shell, and the engine holds none of it', () => {
+  const engine = readFileSync(new URL('../../../../engine/src/colour-role-portable.ts', import.meta.url), 'utf8');
+  assert.ok(!/'supporting'|READING_WORDS/.test(engine));
+  assert.ok(!/brand-propose/.test(readFileSync(new URL('./design-system/colour-roles-model.ts', import.meta.url), 'utf8')));
 });

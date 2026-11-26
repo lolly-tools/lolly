@@ -10,8 +10,8 @@
  * behaviour rather than a fixture.
  *
  * What is pinned:
- *  - view=list is BYTE-IDENTICAL to the card the tool shipped before the grid
- *    existed (the whole feature is additive or it is a regression);
+ *  - view=list keeps the original event content and card structure, with
+ *    colours supplied by the selected design system and treatment;
  *  - the grid maths: first-column offset for both week starts, the leap-year
  *    February, a month whose 1st is a Sunday, ISO-8601 week numbers, and
  *    adjacent-month days marked as filler;
@@ -146,19 +146,27 @@ const LIST_SEED = {
   reminder: '15',
 };
 
-test('view=list renders byte-identically to the pre-grid card', async () => {
+test('view=list keeps the event card content and structure across treatments', async () => {
   const { html } = await mount(LIST_SEED);
-  assert.equal(html, LIST_1_1_0);
+  const card = (value: string): string => value
+    .replace(/^<div data-content-surface[^>]*>\n/, '')
+    .replace(/\n<\/div>\n$/, '\n')
+    .replace(/stroke="#[0-9a-f]{6}"/g, 'stroke="accent"');
+  const original = LIST_1_1_0.replace(/stroke="#[0-9a-f]{6}"/g, 'stroke="accent"');
+  assert.equal(card(html), original);
   // The default view is the card, so an untouched link keeps rendering it.
   const { html: dflt } = await mount({ ...LIST_SEED, view: undefined });
-  assert.equal(dflt, LIST_1_1_0);
+  assert.equal(card(dflt), original);
   assert.ok(!html.includes('cm-'), 'no month markup may reach the card branch');
 });
 
 test('an empty "More dates" list leaves the .ics untouched', async () => {
   const { rt: plain } = await mount(LIST_SEED);
   const { rt: withEmpty } = await mount({ ...LIST_SEED, events: [{ date: '', time: '', title: '' }] });
-  assert.equal(ics(withEmpty), ics(plain));
+  // DTSTAMP is the time of the render, so two renders a second apart differ there and
+  // nowhere else. Compare the rest.
+  const unstamped = (text: string): string => text.replace(/^DTSTAMP:.*$/gm, 'DTSTAMP:');
+  assert.equal(unstamped(ics(withEmpty)), unstamped(ics(plain)));
   assert.equal((ics(plain).match(/BEGIN:VEVENT/g) ?? []).length, 1);
 });
 

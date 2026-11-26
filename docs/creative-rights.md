@@ -2,24 +2,29 @@
 
 You should be able to use good work made by other people without becoming an expert in licensing, and without quietly dropping the people who made the work. So Lolly keeps the source of every work it draws, reads the licence recorded for it, works out what that licence asks of the use you are actually making, does the part a program can do and tells you the part only you can do.
 
-None of this is legal advice, and none of it is a ruling about your project. Lolly records facts, applies a small set of rules read from the licences' own legal texts and shows its working. A licence with conditions is a normal, permitted choice. It is never presented as a broken asset.
+::: note None of this is legal advice
+None of it is a ruling about your project either. Lolly records facts, applies a small set of rules read from the licences' own legal texts and shows its working. A licence with conditions is a normal, permitted choice. It is never presented as a broken asset.
+:::
 
+<!--i:eti-smile-->
 ## Where you meet this
 
-The emoji sets are the everyday case. Twemoji is CC BY 4.0, so a heading with an emoji in it exports with the artwork credited and nothing left for you to do. Both OpenMoji sets are CC BY-SA 4.0, so recolouring one of their glyphs with a brand treatment is an adaptation, and sharing that adaptation asks you to pick a compatible licence once. Fluent (MIT), Noto and Blobmoji (both Apache 2.0) are registered too, and each resolves under its own reviewed licence.
+The emoji sets are the everyday case. Twemoji is CC BY 4.0, so a heading with an emoji in it exports with a source credit for the artwork. Both OpenMoji sets are CC BY-SA 4.0, so recolouring one of their glyphs with a brand treatment is an adaptation, and sharing that adaptation asks you to pick a compatible licence once. Fluent (MIT), Noto and Blobmoji (both Apache 2.0) are registered too, and each resolves under its own reviewed licence.
 
 Choosing a set is never blocked, and the set control shows the licence where you choose. The same rules answer for a catalog illustration, a LUT, a font and any other recorded work.
 
+<!--i:eti-layers-->
 ## Three facts, kept apart
 
 "CC BY 4.0", "this use needs a credit" and "the credit is in the file you just downloaded" are three different statements, and Lolly keeps them apart:
 
 - **Evidence** is what a source declared, recorded as it was found, with who said it and where it was read. A later import never overwrites an earlier record.
-- **Obligation** is what the reviewed rules make of that evidence for one use, one delivery route and one audience. Conditions that apply on sharing stay conditional while you work privately.
+- **Obligation** is what the reviewed rules make of that evidence for one use, one delivery route and one audience.
 - **Delivery** is what the finished bytes actually carry, measured by reading them back. Lolly says credits are included only after a reader has found them in the delivered file.
 
 ![Recorded source evidence and the chosen use feed reviewed rules. Export prepares the credits, then a delivery check reads the finished bytes to report which credits were found or are still needed.](/info/diagrams/concepts/rights-evidence-to-delivery.svg)
 
+<!--i:eti-eye-->
 ## What you see, and what to do
 
 The same words appear in the export panel, Lolly Verify, the command line and the machine result, roughly in order of how often you will meet them.
@@ -37,8 +42,9 @@ The same words appear in the export panel, Lolly Verify, the command line and th
 | Two licence declarations disagree. | Two records name different licences and nothing has selected which grant applies. |
 | The credits are not in the file that was delivered. | A credit was promised, the readback did not find it and the file is still yours. Export again, or use the credit text by hand. |
 
-Lolly never says "copyright verified", "legally safe", "fully cleared" or "rights cleared", and there is no single green licence badge anywhere in the product. Those words would claim something no program can check.
+Lolly never tells you that a work is free of claims or safe to use in law, and there is no single green licence badge anywhere in the product. No program can check either of those things.
 
+<!--i:eti-user-check-->
 ## What stays yours
 
 - **Your licence choice is yours.** Claiming a file separates three states that used to be one: no public licence declared, an explicit all-rights-reserved notice and an actual public licence grant. Lolly writes a rights line only for the last two, and never from your profile.
@@ -47,6 +53,7 @@ Lolly never says "copyright verified", "legally safe", "fully cleared" or "right
 - **A decision is remembered against its own facts.** Every choice you record is stamped with a fingerprint of the works, uses, route and audience it was made about. Change the set, the treatment, the format or the audience and the question is asked again. There is no blanket "ignore licences" switch, because clicking a warning away cannot deliver a credit or grant a permission.
 - **Your details stay separate from a third party's credit.** Removing your own personal metadata does not remove a credited artist, and a required credit is never an excuse to export your contact details.
 
+<!--i:eti-map-pin-->
 ## What Lolly does in each place
 
 - **In the catalog.** A work's sheet shows its source and creator, the canonical licence name with the original label kept underneath, a copyable credit where one is recorded and one line saying what using it asks for. A tile states the requirement; it never claims an export was completed.
@@ -54,7 +61,7 @@ Lolly never says "copyright verified", "legally safe", "fully cleared" or "right
 - **In the file.** An export that placed recorded work writes one Content Credentials source ingredient per distinct work, bound to the original bytes at their public address, and carrying the creator, the licence and its link, the source, the revision and the changes. Lolly signs what it observed. It never signs a claim on the upstream artist's behalf, and Lolly Verify says which of the two happened.
 - **In a package.** A download that cannot hold a credential, such as a `.lottie` animation, carries the credits as `CREDITS.txt` and `credits.json` inside the package. Those are read back after writing, and no signed credential is claimed for them.
 - **After writing.** The delivered bytes are read back before anything says credits are included. A credential that did not verify does not count as a credit delivered.
-- **In an editable `.lolly` file.** Bytes travel only when a reviewed licence records permission to pass the source on, or the row carries its owner's own terms. The pack's `CREDITS.txt` lists what travelled, under which licence and what was held back with the reason. An unrecorded licence is held back. You can still include held-back content deliberately, and the credits file records that it was your choice.
+- **In an editable `.lolly` file.** Bytes travel when a reviewed licence records permission to pass the source on, when the row carries its owner's own terms, or when nothing about the work's rights is recorded at all: no licence, no rights record and no attribution. In that last case the sender sees which works are travelling without a recorded licence, and `CREDITS.txt` asks whoever opens the file to check their terms before reusing them. A recorded licence that is not yet interpreted is held back, and so is a work whose rights holder is recorded without a licence, or whose catalog record could not be read. You can still include held-back content deliberately, and the credits file records that it was your choice. The pack's `CREDITS.txt` lists what travelled, under which licence, and what was held back with the reason.
 - **In Lolly Verify.** A Sources panel lists every source a file records, with a computed summary, the credit, a Copy credit button, an Open source link that opens only when you ask and the stated limits of what was inspected. A Check for this use question appears only when you pick a use, and nothing is fetched to answer the question.
 - **When you remove metadata.** Stripping tells you how many source credits the file no longer carries, offers the credit text and offers a clean file with the credits in a separate file. Stripped bytes are never restamped.
 
@@ -94,7 +101,7 @@ Rights: actions-required
   "water wave (OpenMoji Color 17.0.0)" by Vanessa Boutzikoudi (OpenMoji), CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/, source https://raw.githubusercontent.com/hfg-gmuend/openmoji/f9fc506a3f913be9897ab0181d611d4c910a4104/color/svg/1F30A.svg, changes: recoloured.
 ```
 
-Here the credit is in the file, and a licence decision is still owed before the file is shared. The file is written either way.
+Here the credit is in the file, and a licence decision is still owed before the file is shared.
 
 | Status | Meaning | Exit |
 |---|---|---|
@@ -127,6 +134,7 @@ Five engine modules, all pure: no network, no clock, no filesystem. The rule dat
 The expectation files in `tests/fixtures/rights/` were written from the licence texts rather than from the evaluator's output, and their README cites the section behind each expectation.
 :::
 
+<!--i:eti-hammer-->
 ## What this does not do yet
 
 - **No destination is confirmed.** Lolly prepares a caption. A connector accepting a request is not proof that a credit reached a reader, and nothing here promises that a later upload, screenshot or transcode keeps hidden metadata.

@@ -1,6 +1,6 @@
 {
   "name": "Kod QR",
-  "description": "Kody QR dla linku, wizytówki, sieci Wi-Fi, wydarzenia w kalendarzu, lokalizacji lub zwykłego tekstu.",
+  "description": "Skanowalne kody każdego rodzaju: QR, Micro QR, Data Matrix, Aztec i PDF417 - oraz kody kreskowe dla handlu i logistyki od EAN-13 do MaxiCode.",
   "a11yLabel": "Kod QR prowadzący do {{default url \"(no URL set)\"}}",
   "featured.blurb": "Kody QR w każdym kolorze marki",
   "inputs.url.label": "URL",

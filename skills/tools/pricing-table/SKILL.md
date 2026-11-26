@@ -5,13 +5,13 @@ description: "Operate the Lolly Pricing tool (pricing-table) using its declared 
 
 # Pricing
 
-Tool ID: `pricing-table`. Tool version: `1.1.2`. Engine range: `^1.82.0`.
+Tool ID: `pricing-table`. Tool version: `1.2.0`. Engine range: `^1.343.0`.
 
 Plans as columns, features as rows, ticks and crosses, and one plan picked out as the recommended one.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 
-Declared output formats: png, svg, penpot, pdf, csv, json, jpg, webp, avif, svgz, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
+Declared output formats: png, svg, penpot, pdf, csv, json, jpg, webp, avif, mp4, webm, gif, html, svgz, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
 
 Required host APIs: none. Device capabilities: none.
 
@@ -28,6 +28,9 @@ Required host APIs: none. Device capabilities: none.
 | background | color |  |
 | accent | color |  |
 | layout | select |  |
+| ground | select |  |
+| density | select |  |
+| motion | select |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

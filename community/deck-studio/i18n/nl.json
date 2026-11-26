@@ -1,6 +1,6 @@
 {
   "name": "Markdown Slides",
-  "description": "Zet Markdown of een JSON-specificatie binnen seconden om in een native, bewerkbare PowerPoint-presentatie - echte tekst, opsommingstekens, tabellen en het thema van je huisstijl. De snelle, tekstgerichte weg naar een presentatie; grijp naar het Design-canvas als je dia's met de hand wilt indelen of animeren. Grafieken en diagrammen komen uit je andere Lolly-tools. Exporteert .pptx (bewerkbaar), plus PDF en PNG.",
+  "description": "Zet Markdown of een JSON-specificatie om in een native, bewerkbare PowerPoint-presentatie. Exporteert .pptx (bewerkbaar), plus PDF en PNG.",
   "a11yLabel": "Presentatiedeck met {{_slideCount}} slides",
   "inputs.size.label": "Deckgrootte",
   "inputs.size.help": "Eén formaat voor de hele presentatie - PowerPoint geeft elke dia dezelfde grootte.",

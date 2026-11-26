@@ -12,6 +12,7 @@
  * profile. Those three are getters because the view's reload() replaces them, and a job
  * reads them after its first await, as the code did when it was part of the view.
  */
+import { rowPictureDataUrl, rowPicturePng, type PictureState } from '../lib/session-picture.ts';
 import { ENGINE_VERSION } from '@lolly/engine';
 import type { AssetRef, HostV1, Profile } from '@lolly-tools/core/host-v1';
 import { t, tRaw, tn } from '../i18n.ts';
@@ -110,6 +111,9 @@ export async function downloadOriginals(view: ProjectDownloadView, label: string
     let done = 0, skipped = 0;
     // The design system rides in every .lolly of the batch; read once, not per session.
     const designSystem = await readSenderDesignSystem(host);
+    // Other catalog files stay references in a batch. A document's emoji still travel
+    // as the glyphs it uses, so the file opens offline with its own artwork.
+    const resolveEmojiPack = (await import('./tool-lolly-vehicle.ts')).lollyLibraryResolver(host.assets);
     for (const it of items) {
       if (job.cancelled) return;
       try {
@@ -121,7 +125,9 @@ export async function downloadOriginals(view: ProjectDownloadView, label: string
           if (isBatchSlot(it.ref)) {
             entries[unique(`${it.dir}${slug(name) || 'batch'}.json`)] = new TextEncoder().encode(JSON.stringify(data, null, 2));
           } else {
-            const { blob } = await buildLollyFile({ session: data, toolId: e.toolId, name, thumb: e.thumb, userAssets, creator, appVersion, engineVersion: ENGINE_VERSION, ...(designSystem ? { designSystem } : {}) });
+            // The file's thumbnail is a PNG: the Linux thumbnailer and Quick Look read PNG only.
+            const thumb = await rowPicturePng(host.state as PictureState, e);
+            const { blob } = await buildLollyFile({ session: data, toolId: e.toolId, name, thumb, userAssets, resolveEmojiPack, creator, appVersion, engineVersion: ENGINE_VERSION, ...(designSystem ? { designSystem } : {}) });
             entries[unique(`${it.dir}${slug(name) || 'session'}.lolly`)] = new Uint8Array(await blob.arrayBuffer());
           }
         } else {
@@ -169,6 +175,8 @@ export async function downloadProject(view: ProjectDownloadView, id: string, sha
     const designSystem = await readSenderDesignSystem(host);
     const keys = new Map<string, string>();
     const sessions: LollyProjectSessionInput[] = [];
+    // The first session with a picture: the project file's own thumbnail.
+    let coverRow: Parameters<typeof rowPicturePng>[1] = null;
     const members = tree.flatMap(f => f.items.filter(it => it.type === 'session').map(it => it.ref));
     let skipped = 0;
     for (const slot of members) {
@@ -178,11 +186,14 @@ export async function downloadProject(view: ProjectDownloadView, id: string, sha
       if (!e || !data) { skipped++; job.progress(sessions.length + skipped, members.length); continue; }
       const key = `s${sessions.length + 1}`;
       keys.set(slot, key);
+      // The stored picture rebuilt as the data URL the pack has always carried.
+      const thumb = await rowPictureDataUrl(host.state as PictureState, e);
+      if (thumb && !coverRow) coverRow = e;
       sessions.push({
         key, toolId: e.toolId, data,
         ...(e.toolVersion ? { toolVersion: e.toolVersion } : {}),
         ...(e.label || e.filename ? { label: e.label || e.filename || '' } : {}),
-        ...(e.thumb ? { thumb: e.thumb } : {}),
+        ...(thumb ? { thumb } : {}),
       });
       job.progress(sessions.length + skipped, members.length);
     }
@@ -194,8 +205,12 @@ export async function downloadProject(view: ProjectDownloadView, id: string, sha
       ...(f.emoji ? { emoji: f.emoji } : {}),
       ...(f.tags?.length ? { tags: f.tags } : {}),
     }));
-    const { blob, filename } = await lp.buildLollyFile({
+    // The project file's own thumbnail (its first session's picture) as a PNG, for the
+    // Linux thumbnailer and Quick Look; each session's tile keeps its stored form.
+    const cover = coverRow ? await rowPicturePng(host.state as PictureState, coverRow) : null;
+    const { blob, filename, summary } = await lp.buildLollyFile({
       kind: 'project', toolId: lp.LOLLY_PROJECT_TOOL_ID, session: null, name: root.name,
+      ...(cover ? { thumb: cover } : {}),
       project: { name: root.name, folders: projectFolders, sessions },
       userAssets, resolveLibrary: lollyLibraryResolver(host.assets),
       creator: lp.creatorFromProfile(view.profile(), { appVersion }), appVersion, engineVersion: ENGINE_VERSION,
@@ -204,6 +219,8 @@ export async function downloadProject(view: ProjectDownloadView, id: string, sha
     if (share) await shareFile(host.export, blob, filename);
     else await host.export.file(blob, { filename });
     if (skipped) announce(tn('1 file could not be packed and was left out', '{n} files could not be packed and were left out', { n: skipped }));
+    const { noticeUnrecorded } = await import('../lib/unrecorded-notice.ts');
+    void noticeUnrecorded(summary.unrecorded);
     return { zipName: filename };
   });
 }

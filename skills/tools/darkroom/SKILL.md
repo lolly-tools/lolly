@@ -5,9 +5,9 @@ description: "Operate the Lolly Darkroom tool (darkroom) using its declared inpu
 
 # Darkroom
 
-Tool ID: `darkroom`. Tool version: `2.5.2`. Engine range: `^1.242.0`.
+Tool ID: `darkroom`. Tool version: `2.6.0`. Engine range: `^1.341.0`.
 
-Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Reuse a look through LUT export or Grade a video. Opens Photoshop and GIMP layers for positioning, blending and image export.
+Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Opens Photoshop and GIMP layers.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

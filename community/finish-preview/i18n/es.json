@@ -1,6 +1,6 @@
 {
   "name": "Acabados",
-  "description": "Previsualiza acabados de foil, UV localizado, relieve y soft-touch en tu diseño - luego exporta la plancha lista para imprenta. El brillo en pantalla es solo presentación; la plancha es el entregable real que necesita tu imprenta.",
+  "description": "Previsualiza acabados de foil, UV localizado, relieve y soft-touch en tu diseño y luego exporta la plancha spot. El brillo en pantalla es solo de presentación.",
   "a11yLabel": "Arte con un acabado de impresión simulado o la plancha lista para imprenta en la vista de plancha",
   "inputs.image.label": "Arte",
   "inputs.image.help": "Elige tu arte o sube el tuyo. Se procesa en tu dispositivo, los píxeles nunca salen del navegador.",

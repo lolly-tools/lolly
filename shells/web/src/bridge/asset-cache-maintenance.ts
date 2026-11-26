@@ -7,7 +7,43 @@ import type { AssetsDb, AssetMetaRecord, TrashedUserAssetRow } from './assets.ts
 import type { CatalogHistoryDb } from './catalog-history.ts';
 import { assetFileMetas } from './asset-file-meta.ts';
 
-export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string>, keepIds: Set<string>, urls: { evict(key: string): void; evictPrefix(prefix: string): void }, deferredProviders: readonly string[] = []): Promise<{ blobs: number; meta: number }> {
+/** The held list's key in the 'profile' store, beside the offline pins. It describes
+ *  this device's cache, so it stays out of the portable backup as they do. */
+const HELD_CATALOG_ASSETS = 'held-catalog-assets';
+const HELD_CATALOG_MAX = 3;
+/** Fallback fonts a document on this device has drawn with, kept apart from the emoji
+ *  sets so trying sets never evicts a script. The whole set of them is small and bounded
+ *  by the catalog, so every one used stays. */
+const HELD_FALLBACK_FONTS = 'held-fallback-fonts';
+const HELD_FALLBACK_MAX = 32;
+
+async function heldList(db: AssetsDb, key: string): Promise<string[]> {
+  const held = await db.get('profile', key);
+  return Array.isArray(held) ? held.filter((id): id is string => typeof id === 'string') : [];
+}
+
+async function heldCatalogAssets(db: AssetsDb): Promise<string[]> {
+  return [...await heldList(db, HELD_CATALOG_ASSETS), ...await heldList(db, HELD_FALLBACK_FONTS)];
+}
+
+async function hold(db: AssetsDb, key: string, max: number, ids: readonly string[]): Promise<void> {
+  const prior = await heldList(db, key);
+  const next = [...new Set([...ids, ...prior])].slice(0, Math.max(max, ids.length));
+  if (JSON.stringify(next) !== JSON.stringify(prior)) await db.put('profile', next, key);
+}
+
+/** Newest first. A style with more sets than the limit still keeps every one of them. */
+export async function holdCatalogAssets(db: AssetsDb, ids: readonly string[]): Promise<void> {
+  await hold(db, HELD_CATALOG_ASSETS, HELD_CATALOG_MAX, ids);
+}
+
+/** Newest first, on a list of their own: a fallback font used once stays for offline work. */
+export async function holdFallbackFonts(db: AssetsDb, ids: readonly string[]): Promise<void> {
+  await hold(db, HELD_FALLBACK_FONTS, HELD_FALLBACK_MAX, ids);
+}
+
+export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaRecord[], sessionBlobKeys: Set<string>, requestedKeepIds: Set<string>, urls: { evict(key: string): void; evictPrefix(prefix: string): void }, deferredProviders: readonly string[] = []): Promise<{ blobs: number; meta: number }> {
+  const keepIds = new Set([...requestedKeepIds, ...await heldCatalogAssets(db)]);
   if (deferredProviders.length) {
     const providers = new Set(deferredProviders);
     const held = (await db.getAll('asset-meta')).filter(meta => typeof meta.provider === 'string' && providers.has(meta.provider) && (keepIds.has(meta.id) || [...keepIds].some(id => id.startsWith(`${meta.id}?file=`)) || [...sessionBlobKeys].some(key => key.startsWith(`${meta.id}:`) || key.startsWith(`${meta.id}?file=`))));
@@ -89,7 +125,7 @@ export async function pruneAssetCache(db: AssetsDb, currentAssets: AssetMetaReco
 }
 
 /** Write fresh metadata and retire bytes when a DAM changes URLs without a version bump. */
-export async function syncAssetIndex(db: AssetsDb, assets: AssetMetaRecord[], source: { origin: string; tokensHead?: string | null } | undefined, invalidate: (key: string) => void): Promise<void> {
+export async function syncAssetIndex(db: AssetsDb, assets: AssetMetaRecord[], source: { origin: string; tokensHead?: string | null; companions?: unknown } | undefined, invalidate: (key: string) => void): Promise<void> {
   const old = new Map((await Promise.all(assets.map(meta => db.get('asset-meta', meta.id)))).filter((meta): meta is AssetMetaRecord => !!meta).map(meta => [meta.id, meta]));
   for (const incoming of assets) {
     const previous = old.get(incoming.id);

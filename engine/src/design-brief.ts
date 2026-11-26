@@ -50,7 +50,7 @@ import type { LogoSetV1 } from './logo-variant.ts';
 import { parseIconThemesDoc } from './icon-theme.ts';
 import { textStylesFromBrief } from './design-text-style.ts';
 import { parsePhotoTreatmentsDoc } from './photo-treatment.ts';
-import { deriveIconThemesDoc, derivePhotoTreatmentsDoc } from './brand-treatments.ts';
+import { colourwayPhotoTreatments, colourwaySurfaceIconThemes, deriveIconThemesDoc, derivePhotoTreatmentsDoc } from './brand-treatments.ts';
 import { neutralSlideMaster } from './rebrand-design-system.ts';
 import { DESIGN_HOUSE_RULE_KINDS, designHouseRules } from './design-house-rules.ts';
 import { parseColorToSrgb8 } from './css-color.ts';
@@ -328,9 +328,13 @@ function logoSection(catalog: DesignBriefCatalogV1, assets: DesignBriefAssetV1[]
 function iconSection(doc: unknown, catalog: DesignBriefCatalogV1, assets: DesignBriefAssetV1[], themes: Array<{ name: string; semantic: Record<string, string> }>) {
   const icons = assets.filter((a) => tagsOf(a).includes('icon'))
     .map((a) => ({ id: a.id, ...(a.name ? { name: a.name } : {}), themable: tagsOf(a).includes('themable') }));
+  // The design system's colourway pairings lead (the ones the app offers), then whatever
+  // the pack's palette declares under another id, which still resolves.
+  let ours: ReturnType<typeof colourwaySurfaceIconThemes> = [];
+  try { ours = colourwaySurfaceIconThemes(doc); } catch { ours = []; }
   const declared = parseIconThemesDoc(record(catalog.iconThemes) ? catalog.iconThemes : null);
-  let from: Coverage = declared.length ? 'declared' : 'unavailable';
-  let list = declared as Array<Record<string, unknown> & { id: string; c1: string; c2: string; previewBg?: string }>;
+  let from: Coverage = declared.length ? 'declared' : ours.length ? 'derived' : 'unavailable';
+  let list = [...ours, ...declared.filter((d) => !ours.some((o) => o.id === d.id))] as Array<Record<string, unknown> & { id: string; c1: string; c2: string; previewBg?: string }>;
   if (!list.length) {
     try {
       const derived = deriveIconThemesDoc(doc).themes;
@@ -373,9 +377,12 @@ function mediaSection(doc: unknown, catalog: DesignBriefCatalogV1, assets: Desig
     if (a.license && !f.licenses.includes(a.license)) f.licenses.push(a.license);
     families.set(family, f);
   }
+  // The colourway washes lead, then the palette's own under another id (see iconSection).
+  let ours: ReturnType<typeof colourwayPhotoTreatments> = [];
+  try { ours = colourwayPhotoTreatments(doc); } catch { ours = []; }
   const declared = parsePhotoTreatmentsDoc(record(catalog.photoTreatments) ? catalog.photoTreatments as { treatments?: unknown } : null);
-  let from: Coverage = declared.length ? 'declared' : 'unavailable';
-  let treatments: unknown[] = declared;
+  let from: Coverage = declared.length ? 'declared' : ours.length ? 'derived' : 'unavailable';
+  let treatments: unknown[] = [...ours, ...declared.filter((d) => !ours.some((o) => o.id === d.id))];
   if (!treatments.length) {
     try {
       const derived = derivePhotoTreatmentsDoc(doc).treatments;

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { assetOpenErrors } from '@lolly-tools/core/asset-open-v1';
+import { renditionOfErrors } from '@lolly-tools/core/rendition-v1';
 import { parseTemplateMotion } from '../shells/web/src/lib/template-motion.ts';
 import { parseKitDefinition, createKitRows, kitIssues } from '../shells/web/src/pro/kit-model.ts';
 import type { ToolManifest } from '../engine/src/loader.ts';
@@ -22,11 +23,14 @@ import type { ToolManifest } from '../engine/src/loader.ts';
  *     with a written reason, and every named entry is still a raster (both ways).
  *     "Raster" is decided on CONTENT, not on the extension - an .svg that is only a
  *     wrapper around one embedded bitmap counts as one
- *   - Preview byte budgets: 300 KB a tile, 150 KB a look, 8 MB the directory - with
- *     per-file ceilings in OVER_BUDGET_PREVIEWS for the few that fit in no format
- *   - No blank tiles: a card measured empty is an ERROR when the tool has a usable
+ *   - Preview byte budgets: 300 KB a tile, 8 MB the directory - with per-file
+ *     ceilings in OVER_BUDGET_PREVIEWS for the few that fit in no format
+ *   - No blank tiles: a card measured empty is an ERROR when the tool declares an
  *     example look to have captured instead, and a WARNING (the preset backlog) when
  *     it has none. Reads catalog/previews/blank-report.json and refuses a stale one
+ *   - Pre-rendered example look files (`<id>.look<n>.<ext>`) are no longer read by
+ *     anything: they are left out of every preview check, and a pack that still
+ *     carries some gets one warning that lists them
  *   - Every asset format URL resolves to a file that exists on disk
  *   - Every asset checksum matches the file's actual SHA-256 on disk
  *   - No two asset ids claim one catalog file, by Lolly Work's own path rules, including
@@ -55,7 +59,7 @@ import type { ToolManifest } from '../engine/src/loader.ts';
 import { readFileSync, readdirSync, realpathSync, statSync, existsSync } from 'node:fs';
 import { analyseRequires } from './tool-requires.ts';
 import {
-  catalogFile, contentRoots, contentUrlFile, toolDirs as resolveToolDirs, toolFile,
+  catalogFile, contentRoots, contentUrlFile, readBrandAssetIndex, toolDirs as resolveToolDirs, toolFile,
   readToolManifest, listToolFiles,
 } from '@lolly-tools/node-shell/content-roots';
 import { parseToolAssetId } from '@lolly-tools/node-shell/tool-asset-id';
@@ -63,6 +67,7 @@ import { parseToolAssetId } from '@lolly-tools/node-shell/tool-asset-id';
 // own audits only when it IS the command (see its main guard).
 import { auditBundle, checkEmojiPackSpecimen, readPackFacts } from './check-emoji-packs.ts';
 import { applyProfileArg } from './lib/profile-arg.ts';
+import { coverSourceFingerprint } from './lib/cover-source.ts';
 import { createHash } from 'node:crypto';
 import { join, resolve, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -80,8 +85,10 @@ import { entryFromManifest, slimEntry } from './build-catalog-index.ts';
 // silently resolve such a clash by entry order.
 import { PALETTE } from '../shells/web/src/palette.ts';
 import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../engine/src/icon-theme.ts';
+import { colourwaySurfaceIconThemes } from '../engine/src/brand-treatments.ts';
 import { checkToolIntents, parseToolIntents } from '../engine/src/intent.ts';
 import { TOOL_INTENTS_FILE } from '../packages/core/src/intent-v1.ts';
+import { BROWSER_FREE_FILE, browserFreeStatus, parseBrowserFreeRecord, readBrowserFreeText, toolSourceDigest } from '../packages/node-shell/src/browser-free-record.ts';
 // The head-vs-version asset rule and the reserved head slug (plans/97 section 6a). Imported
 // rather than re-stated: if the validator's idea of "this is a version asset" drifts
 // from the shells', it either passes a pack that cannot resolve or fails one that can.
@@ -171,6 +178,7 @@ const slideMasterSchema = readJson('schemas/slide-master-v1.schema.json');
 const ajv = new Ajv({ allErrors: true, strict: false });
 const validateTool = ajv.compile<any>(toolSchema);
 const validateToolIntents = ajv.compile<any>(readJson('schemas/tool-intents-v1.schema.json'));
+const validateBrowserFree = ajv.compile<any>(readJson('schemas/browser-free-v1.schema.json'));
 const validateAsset = ajv.compile<any>(assetSchema);
 const validateTokens = ajv.compile<any>(tokensSchema);
 const validateRateCard = ajv.compile<any>(rateCardSchema);
@@ -181,7 +189,9 @@ const validateSlideMasters = ajv.compile<any>(slideMasterSchema);
 const errors: string[] = [];
 const warnings: string[] = [];
 
-const assetsIndex = readCatalogJson('assets/index.json');
+// The brand's own index, plus the rows a profile's companions mount: the same merge a
+// pack serves, so every rule below judges the rows a shell will really read.
+const assetsIndex: any = readBrandAssetIndex();
 const toolsIndex = readCatalogJson('tools/index.json');
 
 // Tool ids for the active profile, overlay-aware and already excluding pack
@@ -269,6 +279,7 @@ for (const dir of toolDirs) {
   }
 
   for (const issue of assetOpenErrors(manifest)) errors.push(`[${dir}] ${issue.path} ${issue.message}`);
+  for (const issue of renditionOfErrors(manifest)) errors.push(`[${dir}] ${issue.path} ${issue.message}`);
 
   // Required files present?
   if (!toolFile(dir, 'template.html')) {
@@ -323,6 +334,24 @@ for (const dir of toolDirs) {
       }
       for (const issue of checkToolIntents({ ...manifest, intents: parsedIntents.intents })) {
         errors.push(`[${dir}] ${TOOL_INTENTS_FILE} ${issue.path}: ${issue.message}`);
+      }
+    }
+  }
+  // A tool's optional browser-free.json (the evidence for the Node shells' resvg route,
+  // scripts/tool-browser-free.ts): the shape is an error, a record that no longer describes
+  // the tool only a warning, since a tool edit must not wait on a browser to re-measure.
+  const recordPath = toolFile(dir, BROWSER_FREE_FILE);
+  if (recordPath) {
+    const recordRead = readBrowserFreeText(recordPath);
+    const recordText = 'text' in recordRead ? recordRead.text : '';
+    const parsedRecord = 'problem' in recordRead ? recordRead : parseBrowserFreeRecord(recordText);
+    if ('problem' in parsedRecord) errors.push(`[${dir}] ${parsedRecord.problem}`);
+    else if (!validateBrowserFree(JSON.parse(recordText))) {
+      for (const err of validateBrowserFree.errors ?? []) errors.push(`[${dir}] ${BROWSER_FREE_FILE} ${err.instancePath} ${err.message}`);
+    } else {
+      const status = browserFreeStatus(parsedRecord.record, { id: manifest.id, version: manifest.version, digest: toolSourceDigest(dir) });
+      if (status.stale && parsedRecord.record.verdict === 'resvg') {
+        warnings.push(`[${dir}] ${BROWSER_FREE_FILE} is stale (${status.stale}): the CLI, TUI and MCP draw this tool's PNG in the browser tier until \`LOLLY_PROFILE=lolly-demo node scripts/tool-browser-free.ts --verify --write --tools=${dir}\` runs again`);
       }
     }
   }
@@ -703,47 +732,9 @@ if (!slimIndex) {
   }
 }
 
-// ─── Pre-rendered look bundle (first-paint guard) ───────────────────────────
-// The gallery's example carousel + featured hero are bundle-FIRST: renderFeaturedVariant
-// (shells/web/src/lib/featured-render.ts) asks bundledLook() for a committed data-URI out
-// of catalog/previews/bundle.json BEFORE it will touch the engine, and only falls through
-// to a LIVE off-screen render when a look is missing from the bundle or its sig no longer
-// matches. That fallback is SILENT - the tile still fills, just by mounting a runtime - so
-// editing a look's values in a manifest can quietly put an engine render back on the
-// first-paint path. This guards the invariant that a pre-rendered look stays pre-rendered.
-//
-// The sig is one contract across three files and all three must agree:
-//   build-preview-bundle.ts  JSON.stringify(looks[i].values ?? {})   ← written here
-//   featured-render.ts:135   JSON.stringify(values)                  ← compared on the client
-//   this check                                                        ← keeps them honest
-//
-// Severity split mirrors the tolerance the preview-path check above already applies:
-// a STALE sig is an error (a demonstrable manifest↔bundle drift, always fixable by
-// regenerating), while an ABSENT look is only a warning - build-previews is best-effort
-// by design ("a look that fails just isn't bundled, and the gallery live-renders it as
-// before"), so a missing entry must not turn a documented graceful degrade into a red
-// build. No bundle at all = a checkout that hasn't generated previews: skip entirely.
-const previewBundle = readCatalogJsonOptional('previews/bundle.json');
-if (previewBundle) {
-  for (const [id, manifest] of toolManifests) {
-    // Canonical source is `examples`; `featured.variants` is the pre-`examples` alias.
-    // Order MUST match build-preview-bundle.ts's looksOf() so the `<id>:<i>` keys line up.
-    const looks: any[] = manifest.examples ?? manifest.featured?.variants ?? [];
-    looks.forEach((look: any, i: number) => {
-      const entry = previewBundle[`${id}:${i}`];
-      const sig = JSON.stringify(look?.values ?? {});
-      if (!entry) {
-        warnings.push(`[${id}] example look ${i} is absent from catalog/previews/bundle.json - the gallery will LIVE-RENDER it on first paint; run \`pnpm run previews\` then \`pnpm run build:catalog\``);
-      } else if (entry.sig !== sig) {
-        errors.push(`[${id}] example look ${i} bundle sig is stale - the gallery will silently fall back to a live render on first paint; run \`pnpm run previews\` then \`pnpm run build:catalog\``);
-      }
-    });
-  }
-}
-
 // ─── Preview bytes: the raster allowlist + size gates ───────────────────────
-// catalog/previews/ is SVG-FIRST (plans/155 WP-2): a tool tile and every example look is
-// a vector screenshot from the shell's own DOM→SVG walker unless the walker cannot recover it.
+// catalog/previews/ is SVG-FIRST (plans/155 WP-2): a tool tile is a vector screenshot
+// from the shell's own DOM→SVG walker unless the walker cannot recover the picture.
 // This is the doctrine tests/docs-shots-vector.test.ts already enforces for /info
 // screenshots, and it is here for the same measured reason. That docs PNG allowlist was
 // never a set of limits anyone had measured: twelve of its twenty entries were born
@@ -775,35 +766,36 @@ if (previewBundle) {
 // Task 6.2 puts that on the ship path). Entries are keyed by FILE NAME rather than tool
 // id for exactly that reason: a name is something a given brand pack either ships or
 // does not, so one list can be true of every profile it is run against. That is also why
-// the both-ways check turns on the BASE name (`filter.look6`), not the whole filename: a
+// the both-ways check turns on the BASE name (`street-map`), not the whole filename: a
 // profile that has no preview for that base at all simply doesn't ship it (suse excludes
 // street-map, so `street-map.webp` is a lolly-start-only entry), while a profile that has
 // the base in some OTHER form has genuinely retired the reason and must delete the entry.
 
-/** `filter.look6.webp` → `filter.look6`; `filter.webp` → `filter`. */
+/** `filter.webp` → `filter`; `prompt-card.webp` → `prompt-card`. */
 function previewBase(file: string): string {
   return file.replace(/\.[^.]+$/, '');
 }
 
 /**
  * Whether the ACTIVE profile is supposed to have a preview by that name at all - i.e.
- * it ships that tool, and (for a look) that tool has an example at that index.
+ * it ships that tool.
  *
  * This is what lets ONE name-keyed list be true of every profile without going blind:
  * a listed file that is simply not this brand pack's business is skipped, but a listed
  * file the profile SHOULD have and doesn't is a deletion, and a deletion has to fail or
- * the reason outlives the file. The look-count half matters as much as the tool half -
- * a tool that drops its sixth example leaves a `…look5.webp` behind, and that stale
- * file is exactly the kind of thing a name-keyed list quietly grandfathers.
+ * the reason outlives the file.
  */
 function previewShippable(name: string): boolean {
-  const look = /^(.*)\.look(\d+)$/.exec(previewBase(name));
-  const manifest = toolManifests.get(look ? look[1]! : previewBase(name));
-  if (!manifest) return false;
-  if (!look) return true;
-  // Mirrors build-previews.ts's own derivation (`t.examples ?? t.featured?.variants`).
-  const looks = manifest.examples ?? manifest.featured?.variants ?? [];
-  return Number(look[2]) < looks.length;
+  return toolManifests.has(previewBase(name));
+}
+
+/**
+ * A pre-rendered example look (`filter.look6.webp`). The gallery stopped reading these
+ * when it moved to live renders and baked covers, so no preview check counts one. A pack
+ * that still carries them gets a single warning until its own commit deletes them.
+ */
+function isLookFile(file: string): boolean {
+  return /\.look\d+\.[a-z0-9]+$/i.test(file);
 }
 
 /**
@@ -871,10 +863,6 @@ function isRasterInSvgClothing(svg: string): boolean {
  */
 const RASTER_PREVIEWS: Record<string, string> = {
   // ── Class 1: no geometry to recover ────────────────────────────────────────
-  'darkroom.look1.webp':
-    'Grain 45: darkroom bakes its texture pass (grain, halation, dust) per-pixel into a real <canvas> - hooks.js says so at its head - so captureThumbnail hands back a bitmap, not a walkable DOM. The three grain-free looks (0/2/4) do come back as SVG.',
-  'darkroom.look3.webp':
-    'Grain 35 on the black-and-white look - same canvas texture pass as look1: the pixels are computed, there is no geometry behind them.',
   'prompt-card.webp':
     'The generated illustration arrives as one traced shape: 2 <path> elements, one of them a 193,303-char `d`. That is 196,041 B of SVG for a picture WebP stores in 94,254 B, and the path is a tessellation of pixels, not drawn geometry.',
 
@@ -883,72 +871,26 @@ const RASTER_PREVIEWS: Record<string, string> = {
     'The studio is a WebGL scene: lights, shadows and depth of field are rendered into a <canvas> by three.js and read back as pixels, so there is no DOM geometry for the walker to trace. The tile is the rendered frame, which is the picture the tool makes.',
   // Each of these is one <image href="data:image/…"> plus the few hundred bytes of
   // markup quoted in its reason - an <svg>, the <image>, sometimes a background
-  // <rect>. They are here for the SAME reason as the .webp entries above (the tool
-  // paints into a <canvas>, or the picture is a photograph), and they carry the
+  // <rect>. They are rasters for the reason each one states (the tool paints
+  // into a <canvas>, or the picture is a photograph), and they carry the
   // base64 tax on top; converting them to WebP is a build-previews change, not a
   // preview-tree one (see plans/155 review, problem C).
   '3d.svg':
     'A WebGL/canvas render of the 3-D scene - the walker gets pixels, never the mesh. 528 B of markup survives once the one embedded <image> is removed, and 97.5% of the file is that image.',
   'synth.svg':
     'Synth is a WebGL2 fluid simulation: the ink is a per-pixel field advected on the GPU each frame, so the walker gets one <image> and there is no geometry behind it to recover. Same class as 3d.svg and the neuro-viz shot.',
-  'synth.look0.svg':
-    'Ink bloom - the same WebGL2 per-pixel field as the synth tile, at a curated seed/intensity. One embedded <image>, no geometry to recover.',
-  'synth.look1.svg':
-    'Headline swarm - 200k transform-feedback particles tracing the headline, drawn into the GPU dye field. Pixels, not paths.',
-  'synth.look2.svg':
-    'Kaleidoscope - the field scene folded 8-way in the fragment shader; every fold is per-pixel arithmetic, nothing walkable.',
-  'synth.look3.svg':
-    'Slow drift - the field scene at drift settings; same GPU field as the others, one embedded <image>.',
   'audiogram.svg':
     'Audiogram composites artwork + waveform into a real <canvas> before anything is walkable, so the capture is one <image> with 768 B of markup around it. The waveform is drawn per-pixel; there are no bars in the DOM to recover.',
-  'audiogram.look0.svg':
-    'Podcast quote - bars: the same canvas composite as the tile. One embedded <image>, 1,009 B of surviving markup, 92% of the file bitmap.',
-  'audiogram.look1.svg':
-    'Interview - captioned: canvas composite, two embedded rasters (artwork + rendered caption frame), 1,080 B of surviving markup.',
-  'audiogram.look2.svg':
-    'Broadcast - wave: canvas composite, one embedded <image>, 984 B of surviving markup. The wave is a per-pixel draw, not a <path>.',
-  'audiogram.look3.svg':
-    'Release - ring: canvas composite, one embedded <image>, 981 B of surviving markup. The ring is stroked into the bitmap by hooks.js.',
-  'audiogram.look4.svg':
-    'Music - spectrum: canvas composite, one embedded <image>, 1,788 B of surviving markup. A per-band spectrum is computed pixels, not geometry.',
-  'audiogram.look5.svg':
-    'Ridgeline: canvas composite, one embedded <image>, 971 B of surviving markup - hundreds of stacked traces exist only in the bitmap.',
-  'audiogram.look6.svg':
-    'MilkDrop revival: a feedback/warp shader pass into the canvas. One embedded <image>, 1,804 B of surviving markup, and nothing about a per-pixel warp is expressible as geometry.',
   'booth-studio.svg':
     'A 3-D exhibition booth that three.js renders into a <canvas>, so the walker gets one embedded <image> (93% of the file) and 373 B of markup, with no geometry behind the picture.',
   'darkroom.svg':
-    'Darkroom is a photo grader: the graded frame is a bitmap the tool draws into a <canvas>. One embedded <image>, 450 B of surviving markup. (The grain looks 1/3 are .webp above for the same reason, encoded rather than wrapped.)',
-  'darkroom.look0.svg':
-    'Teal & orange cinema: a graded photograph. One embedded <image>, 457 B of surviving markup - 93.9% of the file is the picture itself.',
-  'darkroom.look2.svg':
-    'Brand duotone: a graded photograph, one embedded <image>, 453 B of surviving markup. The duotone is a per-pixel colour map applied to bitmap data.',
-  'darkroom.look4.svg':
-    'Vivid slide LUT: a 3-D LUT applied per pixel to a photograph. One embedded <image>, 450 B of surviving markup.',
+    'Darkroom is a photo grader: the graded frame is a bitmap the tool draws into a <canvas>. One embedded <image>, 450 B of surviving markup.',
   // backdrop: every effect is a WebGL2 fragment shader painted into a <canvas>
   // (vendored Paper Shaders) - a per-pixel field with no geometry to recover,
   // the incl-neuro-viz class. The whole tool is raster by design; both .svg
   // (walker-wrapped bitmap) and .webp (encoded) spellings occur depending on
   // what the capture pipeline chose per file.
   'backdrop.svg': 'Default metaballs - GPU per-pixel field, one embedded <image>.',
-  'backdrop.look0.svg': 'Lava lamp (metaballs) - GPU per-pixel field, one embedded <image>.',
-  'backdrop.look1.svg': 'Cathedral rays (god-rays) - GPU per-pixel field, one embedded <image>.',
-  'backdrop.look2.svg': 'Neural drift (neuro-noise) - GPU per-pixel field, one embedded <image>.',
-  'backdrop.look3.svg': 'Smoke halo (smoke-ring) - GPU per-pixel field, one embedded <image>.',
-  'backdrop.look4.svg': 'Velvet warp (warp) - GPU per-pixel field, one embedded <image>.',
-  'backdrop.look5.svg': 'Liquid silk (silk-flow) - animated GLSL filaments, one embedded <image>.',
-  'backdrop.look6.svg': 'Prismatic bloom (prism-bloom) - animated GLSL facets, one embedded <image>.',
-  'backdrop.look7.svg': 'Mercury contours (liquid-contours) - animated GLSL relief, one embedded <image>.',
-  'frame.look2.svg':
-    'Laptop - synth headline swarm inside: the framed screen content is Synth\'s WebGL2 dye field (the synth.look1 class), so the capture is the frame geometry around one embedded <image> of GPU pixels.',
-  'gradient.look2.svg':
-    'Silk flow: the Flow mode is a WebGL fragment shader (simplex-noise colour field) painted into a <canvas> - a per-pixel field with no geometry to recover, the incl-neuro-viz class. The Blend/Subdivide looks stay SVG.',
-  'gradient.look4.svg':
-    'Studio mesh: the Mesh mode gouraud-rasterises its Coons patches per pixel into a <canvas> (that raster finish is the mode\'s whole point - the vector spelling of the same mesh is the Subdivide look, which IS SVG).',
-  'filter.look1.svg':
-    'Duotone: a per-pixel colour map over a source photograph. Two embedded rasters and 514 B of surviving markup - there is no vector content in this look at all.',
-  'filter.look7.svg':
-    'Glitch: pixel-sorted and block-displaced bitmap data. One embedded <image> and 271 B of surviving markup, the thinnest wrapper in the catalog.',
   'flythrough.svg':
     'A frame from the 3-D camera flythrough - a canvas render of the scene. One embedded <image>, 522 B of surviving markup.',
   // susecon-background (SUSE pack only): lib/orb.js draws every look in one WebGL2
@@ -959,52 +901,12 @@ const RASTER_PREVIEWS: Record<string, string> = {
   // embedded.
   'susecon-background.svg':
     'The default glass look: orb, hairline ribbon and light pools computed per pixel by a WebGL2 shader. One embedded <image> over the CSS wash fallback, 1,299 B of surviving markup.',
-  'susecon-background.look0.svg':
-    'Jungle glass: the same WebGL2 per-pixel field as the tile, with glass refraction and glow. One embedded <image>, 1,299 B of surviving markup.',
-  'susecon-background.look1.svg':
-    'Amethyst glass: the glass orb and hairline ribbon in the amethyst colourway, all per-pixel shader output. One embedded <image>, 1,299 B of surviving markup.',
-  'susecon-background.look2.svg':
-    'Fibres meet glass: fibre strands resolved per pixel in ribbon space, with a hard seam to the rim-only half. One embedded <image>, 1,299 B of surviving markup.',
-  'susecon-background.look3.svg':
-    'Cloud dome: shader cloud lobes, a dot sheet with depth falloff and a top beam, all computed per pixel. One embedded <image>, 1,299 B of surviving markup.',
-  'susecon-background.look4.svg':
-    'Horizon: a bowl centred above the frame with its floor reflection, drawn per pixel in WebGL2. One embedded <image>, 1,386 B of surviving markup.',
-  'susecon-background.look5.svg':
-    'Orbiting light: moving light pools and rim hot spots in the persimmon colourway, per-pixel shader output. One embedded <image>, 1,299 B of surviving markup.',
-  'susecon-background.look6.svg':
-    'Live set: the glass look at energy 85 with rim waves and ripple, per-pixel shader output. One embedded <image>, 1,299 B of surviving markup.',
-  'susecon-background.look7.svg':
-    'Four scenes: the first frame of a morphing scene timeline, the same WebGL2 per-pixel field. One embedded <image>, 1,299 B of surviving markup.',
 
   // ── Class 2: the geometry IS the pixels ────────────────────────────────────
-  'filter.look2.webp':
-    'Scanline CRT: the scan lines and phosphor mask serialise to a 163,554 B SVG, past the 140 KB thumbnail ceiling, and compress to 124,106 B as WebP. Line-per-pixel-row art is what raster formats are for.',
-  'filter.look4.webp':
-    'Print imperfections: three feTurbulence primitives at 2 octaves each plus an feDisplacementMap - seven octave-equivalents of synthesised noise, measured at 61.9 ms to decode+draw at 600 px, six times any other preview in this catalog. Noise has no geometry and it is the one thing SVG filters are genuinely slow at.',
-  'filter.look5.webp':
-    'Dither: a 4-colour ordered dither is one <rect> per output cell, past the 800-element ceiling by a wide margin, and the whole point of the look is per-pixel quantisation.',
-  'filter.look6.webp':
-    'ASCII art: a full-frame character grid, 4,937 <text> glyphs and 721,179 B as SVG. Neither form fits the look budget - see its OVER_BUDGET_PREVIEWS entry for the measurements and the ceiling it ships under.',
   'filter.webp':
     'Halftone (the default effect): ~1,910 image-coloured <circle> dots, past the 800-element SVG ceiling. Now transparent by default so the screen drops onto any design, which is exactly why the card is raster - a transparent WebP carries the dots + alpha where an 800+-element SVG cannot.',
-  'filter.look0.webp':
-    'Halftone look: same ~1,900-dot screen as the default card (see filter.webp), rasterised for the same reason and carrying its transparency in the WebP alpha channel.',
-  'print-sheet.look0.webp':
-    'QR codes, 3 x 3 to cut apart: nine QR module grids on one sheet - thousands of module <rect>s, far past the 800-element SVG ceiling, so the capture pipeline rasterises it at the point of capture (finalizePreview). The other imposition looks carry lighter content and stay SVG.',
-  'contrast-check.look3.webp':
-    'The full type-scale matrix: 315 <text> runs over 312 <rect> swatches plus 147 <path>, serialising to 166,949 B - past the 140 KB ceiling - for a tile nobody reads the numbers off. 94,666 B as WebP.',
   'street-map.webp':
     'A city street network is a tessellation, not a drawing: 8 <path> elements totalling 211,130 B of SVG against 83,354 B of WebP. The vector form is 2.6x the bytes for a picture nobody zooms. (lolly-start only - the suse profile excludes street-map.)',
-  'street-map.look0.webp':
-    'Paris in ink: the densest of the five, 361,900 B as SVG against 144,906 B of WebP - one road-network path with a six-figure `d`, which is pixels expressed as coordinates.',
-  'street-map.look1.webp':
-    'Tokyo neon: 10 paths, the largest a 167,764-char `d`; 279,881 B as SVG against 244,960 B of WebP. Over the look budget in both forms - see its OVER_BUDGET_PREVIEWS entry.',
-  'street-map.look2.webp':
-    'Amsterdam canals: 248,752 B as SVG against 103,754 B of WebP - 2.4x, and the canal fills are the same tessellated-coordinate problem as the roads.',
-  'street-map.look3.webp':
-    'Brand-primary Berlin: 281,479 B as SVG against 131,566 B of WebP. Recolouring the network does not reduce its coordinate count.',
-  'street-map.look4.webp':
-    'Nuremberg morning run: 214,463 B as SVG against 48,334 B of WebP - 4.4x, the worst vector/raster ratio in this catalog.',
 };
 
 /**
@@ -1021,7 +923,7 @@ const RASTER_PREVIEWS: Record<string, string> = {
  *
  * suse joined this list on 1 Nov 2026. Its 29 Oct re-capture for the Jungle lead (85
  * cards and looks, suse-lolly b3e223b) was taken on its own, and a few files from that
- * run no longer measure the way lolly-start's do. The backdrop entries below are the
+ * run no longer measure the way lolly-start's do. The backdrop entry below is the
  * borderline case of isRasterInSvgClothing: the file is still one GPU frame plus the CSS
  * wash, and only the share of the frame moved. Re-capturing does not settle them, because
  * the share falls either side of 60% from one capture to the next.
@@ -1031,48 +933,32 @@ const RASTER_PREVIEW_CHANGES: Record<string, { drop: Record<string, string>; add
     drop: {
       'backdrop.svg':
         "This pack's default metaballs capture is one GPU frame under the CSS wash, as the shared entry says, but the Jungle greens encode to a 3,836 B JPEG: 59.5% of the file, under the 60% line, with 1,010 B of markup.",
-      'backdrop.look0.svg':
-        "Lava lamp in this pack: the same GPU frame and CSS wash, with the frame at 56.8% of the file, under the 60% line, and 1,526 B of markup. Nothing in it is tool geometry.",
-      'backdrop.look2.svg':
-        "Neural drift in this pack: the GPU frame is nearly flat (per-channel stddev under 1.5), so its JPEG is 2,091 B and 44.5% of the file, under the 60% line, with 1,010 B of markup. The lolly-demo drop records the same case.",
     },
-    add: {
-      'frame.look0.svg':
-        "Browser frame around the Mesh Gradient tool's Flow mode, a WebGL fragment shader (the gradient.look2 class): one embedded <image>, 63.6% of the file, inside 3,707 B of frame markup. The same capture as lolly-demo's frame.look0.svg; a re-capture on 1 Nov 2026 measured the same.",
-    },
+    add: {},
   },
   'lolly-demo': {
     drop: {
       '3d-studio.svg': 'This pack carries the same WebGL frame as 3d-studio.webp, added below.',
-      'darkroom.look1.webp': 'This pack carries the grain look as darkroom.look1.svg, added below.',
-      'darkroom.look3.webp': 'This pack carries the grain look as darkroom.look3.svg, added below.',
-      'backdrop.look2.svg':
-        'The Neural drift capture keeps real markup here: its one <image> is 46% of the file, under the 60% line.',
-      'frame.look2.svg':
-        'No capture ships: the composed Synth render did not draw in the headless capture, so the gallery renders this look live.',
       'prompt-card.webp': "Lolly Demo ships no generated illustration, so this pack's prompt card is plain text and stays SVG.",
     },
     add: {
       '3d-studio.webp':
         'The studio is a WebGL scene: lights, shadows and depth of field are rendered by three.js into a <canvas> and read back as pixels, the frame the shared 3d-studio.svg entry describes, encoded as WebP (19,872 B).',
-      'darkroom.look1.svg':
-        'Faded matte with grain 45: darkroom bakes grain, halation and dust per pixel into a <canvas>, so the capture is one embedded <image>, 96% of the file, with 451 B of markup around it.',
-      'darkroom.look3.svg':
-        'Classic black and white with grain 35: the same canvas texture pass as look 1. One embedded <image>, 95% of the file, 448 B of markup.',
-      'finish-preview.look3.svg':
-        "The plate itself: the spot UV gloss plate is a per-pixel threshold of the artwork's lightness at 62, so there is no geometry to recover. One embedded <image>, 93% of the file, 550 B of markup.",
-      'frame.look0.svg':
-        "Browser frame around the Mesh Gradient tool's Flow mode, a WebGL fragment shader (the gradient.look2 class): one embedded <image>, 64% of the file, inside 3,707 B of frame markup.",
       'spatial-photo.webp':
         'Spatial photo draws its stage with WebGL2 into a <canvas>, and with no photo picked it refuses to export, so the capture is a screenshot of the empty stage and its prompt (7,594 B).',
-      'timezone.look1.webp':
-        'Infrastructure atlas: the walker writes the world map as 248,785 B of SVG in 28 shapes, a few very long paths, past the 140 KB ceiling; 47,554 B as WebP. Measured before svgo on 15 Oct 2026.',
     },
   },
 };
 
 /** The raster list for the active profile: the shared entries with that pack's changes. */
-const PREVIEW_PROFILE = contentRoots().profile;
+// Read by catalog, not by profile name: a profile that only adds a companion serves its
+// brand's previews, so the brand's written reasons hold for this profile too.
+const PREVIEW_PROFILE = ((): string => {
+  const name = contentRoots().profile;
+  const profiles = (readJson('profiles.json') as { profiles?: Record<string, { catalog?: string }> }).profiles ?? {};
+  const catalog = profiles[name]?.catalog;
+  return Object.keys(profiles).find(other => catalog && profiles[other]?.catalog === catalog) ?? name;
+})();
 const RASTER_ALLOWED: Record<string, string> = (() => {
   const changes = RASTER_PREVIEW_CHANGES[PREVIEW_PROFILE];
   if (!changes) return RASTER_PREVIEWS;
@@ -1084,62 +970,50 @@ const RASTER_ALLOWED: Record<string, string> = (() => {
 /**
  * The few previews that fit in NO format, each with a byte ceiling and the measurement
  * behind it. An exception, not a raised budget: it applies to one named file, the file
- * must still stay under the ceiling declared here, and the gate keeps biting at 300/150
- * KB for everything else.
+ * must still stay under the ceiling declared here, and the gate keeps biting at 300 KB
+ * for everything else.
  *
  * Both ways, like RASTER_PREVIEWS: an entry whose file now fits the normal budget - or
  * whose ceiling is not actually above the normal budget - FAILS, so a ceiling cannot
  * quietly outlive the thing it excused.
  *
- * Both of the entries below are the same shape: dense pixel-field art captured at
- * build-previews' 1024 px RASTER_MAX_DIM. Getting them under 150 KB needs a smaller cap
- * for LOOKS specifically (a generator decision that would touch every look in the
- * catalog), not a per-file quality hack - so they are recorded here rather than quietly
- * re-encoded into mush. plans/155 review, problem B.
+ * Empty is the correct state. The last entry, filter.look6.webp, went with the
+ * pre-rendered example looks.
  */
-const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
-  'filter.look6.webp': {
-    max: 768 * 1024,
-    why:
-      'ASCII art, and the one preview measured to be over budget in BOTH forms. As SVG: ' +
-      '4,937 <text> glyphs, 721,179 B. As WebP at the 1024 px capture cap: 747,526 B, and ' +
-      'WebP has nothing to exploit in a full-frame character grid - 512 px q70 is still ' +
-      '194 KB and only 384 px q80 (124 KB) clears the budget, at which size the glyphs are ' +
-      'mush and the look is no longer what the tool makes. Shipping the honest capture and ' +
-      'declaring the ceiling. Worth knowing before re-litigating: the SVG form transfers in ' +
-      '24,387 B brotli where the WebP transfers all 747,526 - the disk cost buys a picture ' +
-      'that is right on every platform, the wire cost is the reverse.',
-  },
-  // (street-map.look1.webp shipped an exception here until the 2026-08-28 full
-  // re-capture brought it to 139 KB - inside the 150 KB look budget, so the
-  // ceiling died with its reason.)
-};
+const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {};
 
 {
   const previewsDir = catalogFile('previews');
   // Budgets from plans/155 (Phase 1 exit: first-viewport art ≤ 1 MB, measured against a
   // 4G-throttled cold load). KiB, matching the `find catalog/previews -size +300k` the
-  // plan's own accept step uses. A look is capped harder than a tile because a tool's
-  // carousel ships six to eight of them and they load as a set.
+  // plan's own accept step uses.
   const PREVIEW_MAX_BYTES = 300 * 1024;
-  const LOOK_MAX_BYTES = 150 * 1024;
   const PREVIEWS_TOTAL_MAX_BYTES = 8 * 1024 * 1024;
 
   const isImage = (f: string): boolean => /\.(svg|png|webp|jpg|jpeg|avif|gif)$/i.test(f);
-  const isLook = (f: string): boolean => /\.look\d+\.[a-z0-9]+$/i.test(f);
   const kb = (n: number): string => Math.round(n / 1024).toLocaleString();
 
   // A checkout that has never run `pnpm run previews` has no preview images at all: no
-  // dir, or only the .gitkeep a new pack is laid out with and the empty bundle.json that
-  // build:catalog writes regardless. Skip the whole block there rather than reporting
-  // every allowlist entry as stale - same tolerance the bundle-sig check above applies
-  // to a missing bundle.json.
+  // dir, or only the .gitkeep a new pack is laid out with. Skip the whole block there
+  // rather than reporting every allowlist entry as stale.
+  //
+  // Pre-rendered example looks are left out here, so a pack that still carries them is
+  // judged on the files the gallery reads. They get the one warning below instead.
   const sizes = new Map<string, number>();
+  const lookFiles: string[] = [];
   if (existsSync(previewsDir)) {
     for (const f of readdirSync(previewsDir).sort()) {
       const st = statSync(join(previewsDir, f));
-      if (st.isFile()) sizes.set(f, st.size);
+      if (!st.isFile()) continue;
+      if (isLookFile(f)) lookFiles.push(f);
+      else sizes.set(f, st.size);
     }
+  }
+  if (lookFiles.length) {
+    warnings.push(
+      `catalog/previews: ${lookFiles.length} pre-rendered example look file${lookFiles.length === 1 ? '' : 's'} ` +
+      `(<id>.look<n>.<ext>) that nothing reads any more - delete them and run \`pnpm run check:blank-previews\``,
+    );
   }
 
   if ([...sizes.keys()].some(isImage)) {
@@ -1163,8 +1037,8 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
 
     // The half that keeps the list honest. Report WHICH way the entry died, so the fix is
     // obvious: the same name carrying real vector content now is a win to record, a
-    // different extension is a re-encode, and nothing at all - for a tool + look this
-    // profile does ship - is a preview someone deleted without deleting its reason.
+    // different extension is a re-encode, and nothing at all - for a tool this profile
+    // does ship - is a preview someone deleted without deleting its reason.
     for (const name of Object.keys(RASTER_ALLOWED).sort()) {
       if (rasters.includes(name)) continue;
       if (!previewShippable(name)) continue;   // a sibling brand pack's file, not this one's
@@ -1196,14 +1070,13 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
     // Size gates. Reported as one line per class rather than per file: a tree that has
     // drifted drifts wholesale (the 60 MB that shipped was 39 files at once), and a wall
     // of near-identical errors buries the other checks.
-    const budget = (f: string): number => isLook(f) ? LOOK_MAX_BYTES : PREVIEW_MAX_BYTES;
     const over = [...sizes.entries()]
-      .filter(([f, n]) => isImage(f) && n > (OVER_BUDGET_PREVIEWS[f]?.max ?? budget(f)))
+      .filter(([f, n]) => isImage(f) && n > (OVER_BUDGET_PREVIEWS[f]?.max ?? PREVIEW_MAX_BYTES))
       .sort((a, b) => b[1] - a[1]);
     if (over.length) {
       errors.push(
         `catalog/previews: ${over.length} preview${over.length === 1 ? '' : 's'} over budget ` +
-        `(${kb(PREVIEW_MAX_BYTES)} KB per tile, ${kb(LOOK_MAX_BYTES)} KB per look) - these paint in the ` +
+        `(${kb(PREVIEW_MAX_BYTES)} KB per tile) - these paint in the ` +
         `first viewport on a cold mobile load. Re-capture as SVG, or let optimize-preview-webp.ts ` +
         `re-encode the raster: ${over.map(([f, n]) => `${f} ${kb(n)} KB` + (OVER_BUDGET_PREVIEWS[f] ? ` (past its own ${kb(OVER_BUDGET_PREVIEWS[f]!.max)} KB ceiling)` : '')).join(', ')}`,
       );
@@ -1216,10 +1089,10 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
       if (exc.why.trim().length <= 40) {
         errors.push(`catalog/previews: OVER_BUDGET_PREVIEWS["${name}"] reason is too short to re-check later - say what makes this file fit in no format`);
       }
-      if (exc.max <= budget(name)) {
+      if (exc.max <= PREVIEW_MAX_BYTES) {
         errors.push(
           `catalog/previews: OVER_BUDGET_PREVIEWS["${name}"] declares a ${kb(exc.max)} KB ceiling, which is not above the ` +
-          `${kb(budget(name))} KB budget it exists to except - delete the entry, the normal gate covers this file`,
+          `${kb(PREVIEW_MAX_BYTES)} KB budget it exists to except - delete the entry, the normal gate covers this file`,
         );
         continue;
       }
@@ -1230,9 +1103,9 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
         }
         continue;   // otherwise: a sibling brand pack's file, same as RASTER_PREVIEWS
       }
-      if (n <= budget(name)) {
+      if (n <= PREVIEW_MAX_BYTES) {
         errors.push(
-          `catalog/previews: OVER_BUDGET_PREVIEWS["${name}"] is ${kb(n)} KB and fits the ${kb(budget(name))} KB budget now - ` +
+          `catalog/previews: OVER_BUDGET_PREVIEWS["${name}"] is ${kb(n)} KB and fits the ${kb(PREVIEW_MAX_BYTES)} KB budget now - ` +
           `delete the exception, it stopped being one`,
         );
       }
@@ -1257,15 +1130,19 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
 // because their template presets aren't baked yet, so a blank tile is written, committed and
 // shipped exactly like a good one.
 //
-// The severity split is the whole design, and it is the same split the bundle-sig check
-// above applies:
-//   ERROR - a blank card on a tool that HAS a usable example look. That is a generator
-//           regression, not a content gap: the capture had somewhere honest to fall back to
-//           (Task 4.4.2) and didn't, and re-running the capture fixes it.
-//   WARN  - a blank card on a tool with no usable look. There is no honest tile to generate
-//           and inventing one would misrepresent the tool (Task 4.4.3), so this is the
-//           preset-baking backlog: it must stay VISIBLE without wedging the ship path while
-//           those presets are unbaked.
+// The severity split is the whole design:
+//   ERROR - a blank card on a tool that declares an example look. build-previews.ts
+//           re-captures a blank card from the example that reads best (Task 4.4.2), so a
+//           blank card here means the capture did not fall back, or every example renders
+//           blank too. Re-running the capture fixes the first; the second needs content.
+//   WARN  - a blank card on a tool with no example look. There is no honest tile to
+//           generate and inventing one would misrepresent the tool (Task 4.4.3), so this
+//           is the preset-baking backlog: it must stay VISIBLE without wedging the ship
+//           path while those presets are unbaked.
+//
+// The gate used to measure the pre-rendered look files to decide which examples were
+// usable. Those files are gone, so any example with values counts, and a pack that still
+// carries look files has them left out here, both from the previews and from the report.
 //
 // Only `blank` (flat on every ground) can fail a build. The probe's other verdict, `sparse`,
 // is reported for review and never errors - see BLANK_INK_RATIO in check-blank-previews.ts
@@ -1282,7 +1159,7 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
   const previewsDir = catalogFile('previews');
   const isImage = (f: string): boolean => /\.(svg|png|webp|jpg|jpeg|avif)$/i.test(f);
   const images = existsSync(previewsDir)
-    ? readdirSync(previewsDir).filter((f) => isImage(f) && statSync(join(previewsDir, f)).isFile()).sort()
+    ? readdirSync(previewsDir).filter((f) => isImage(f) && !isLookFile(f) && statSync(join(previewsDir, f)).isFile()).sort()
     : [];
   const report = readCatalogJsonOptional(`previews/${BLANK_REPORT_FILE}`);
 
@@ -1292,7 +1169,9 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
       `nothing is measuring whether any of them is an empty card; run \`pnpm run check:blank-previews\``,
     );
   } else if (report && images.length) {
-    const rows = new Map<string, any>((report.rows ?? []).map((r: any) => [r.file, r]));
+    // A report from before the looks were deleted still has rows for them. Those rows
+    // describe files no preview check reads, so they are neither verdicts nor orphans.
+    const rows = new Map<string, any>((report.rows ?? []).filter((r: any) => !isLookFile(String(r?.file ?? ''))).map((r: any) => [r.file, r]));
     const t = report.thresholds ?? {};
     const grounds = GROUNDS.map((g) => g.name);
 
@@ -1331,22 +1210,15 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
     // Verdicts only mean something if the report is about this tree, measured this way.
     if (thresholdsAgree && !unmeasured.length && !orphaned.length) {
       /**
-       * Example looks that are worth capturing a card FROM: declared in the manifest, already
-       * previewed, and neither blank nor near-empty. Deliberately conservative - "usable" is
-       * what promotes a blank card to an ERROR, so a look that is itself thin must not be
-       * ordered up as the fix.
+       * The example looks a card could have been captured FROM: declared in the manifest
+       * with values to seed the render. The same test build-previews.ts applies before it
+       * tries one (lookQuery), so a look it cannot even render is not ordered up as the fix.
        */
-      const usableLooksOf = (id: string): number[] => {
+      const examplesOf = (id: string): number => {
         const manifest = toolManifests.get(id);
-        if (!manifest) return [];
+        if (!manifest) return 0;
         const looks: any[] = manifest.examples ?? manifest.featured?.variants ?? [];
-        return looks
-          .map((_, i) => i)
-          .filter((i) => {
-            const file = images.find((f) => previewBase(f) === `${id}.look${i}`);
-            const row = file ? rows.get(file) : undefined;
-            return !!row && !row.blank && !row.sparse;
-          });
+        return looks.filter((look) => !!look?.values && typeof look.values === 'object').length;
       };
 
       const blankRows = images.map((f) => rows.get(f)).filter((r) => r?.blank);
@@ -1354,15 +1226,15 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
 
       for (const row of blankRows) {
         const base = previewBase(row.file);
-        if (/\.look\d+$/.test(base)) continue;         // looks are handled as a group below
         if (!toolManifests.get(base)) continue;        // a preview for no tool in this profile
-        const usable = usableLooksOf(base);
-        if (usable.length) {
+        const examples = examplesOf(base);
+        if (examples) {
           errors.push(
             `[${base}] card preview ${row.file} is blank (${row.reason}) but the tool declares ` +
-            `${usable.length} usable example look${usable.length === 1 ? '' : 's'} (look${usable.join(', look')}) - ` +
-            `the card capture is supposed to fall back to one instead of shipping the empty default (plans/155 Task 4.4.2); ` +
-            `re-capture with \`node scripts/build-previews.ts --only=${base}\` against a running dev server, then \`pnpm run check:blank-previews\``,
+            `${examples} example look${examples === 1 ? '' : 's'} - the card capture is supposed to fall back to the one ` +
+            `that reads best instead of shipping the empty default (plans/155 Task 4.4.2); re-capture with ` +
+            `\`node scripts/build-previews.ts --only=${base}\` against a running dev server, then \`pnpm run check:blank-previews\`. ` +
+            `If the capture reports that every example renders blank too, the examples need content`,
           );
         } else {
           backlog.push(base);
@@ -1376,16 +1248,8 @@ const OVER_BUDGET_PREVIEWS: Record<string, { max: number; why: string }> = {
       if (backlog.length) {
         const one = backlog.length === 1;
         warnings.push(
-          `catalog/previews: ${backlog.length} tool${one ? '' : 's'} ship${one ? 's' : ''} a BLANK card and declare${one ? 's' : ''} no usable example look ` +
+          `catalog/previews: ${backlog.length} tool${one ? '' : 's'} ship${one ? 's' : ''} a BLANK card and declare${one ? 's' : ''} no example look ` +
           `- the preset-baking backlog (plans/155 Task 4.4.3), not something to invent art for: ${backlog.sort().join(', ')}`,
-        );
-      }
-
-      const blankLooks = blankRows.filter((r) => /\.look\d+$/.test(previewBase(r.file))).map((r) => r.file);
-      if (blankLooks.length) {
-        warnings.push(
-          `catalog/previews: ${blankLooks.length} example look${blankLooks.length === 1 ? '' : 's'} render${blankLooks.length === 1 ? 's' : ''} blank ` +
-          `- a declared example whose own values produce an empty canvas, so re-capturing cannot fix it; the look needs content: ${blankLooks.join(', ')}`,
         );
       }
 
@@ -1521,7 +1385,10 @@ for (const [toolId, manifest] of toolManifests) {
 
 const seenAssetIds = new Set<string>();
 const assetById = new Map<string, any>();
-const iconThemePalettes: { assetId: string; themes: ReturnType<typeof parseIconThemesDoc> }[] = [];     // { assetId, themes } per icon-themes palette
+const iconThemePalettes: { assetId: string; themes: ReturnType<typeof parseIconThemesDoc> }[] = [];
+// The icon pairing ids each design system's colourways make (engine brand-treatments.ts),
+// the ids a pack offers now that colour pairings come from colourways.
+const colourwayThemeIds = new Set<string>();     // { assetId, themes } per icon-themes palette
 const themableIconDefaults: { assetId: string; c1: string; c2: string }[] = [];  // { assetId, c1, c2 } per themable icon
 
 for (const asset of assetsIndex.assets) {
@@ -1606,6 +1473,11 @@ for (const asset of assetsIndex.assets) {
           // link. A non-confidential catalog card would leak the rates.
           errors.push(`[asset ${asset.id}] rate card "${fmt.url}" is a catalog asset but is not confidential:true - a shipped house card must set confidential:true so its rates are protected`);
         }
+      }
+
+      // A design system's colourways make icon pairings of their own: a reference may name one.
+      if (asset.type === 'tokens' && fmt.format === 'json') {
+        try { for (const theme of colourwaySurfaceIconThemes(JSON.parse(bytes.toString('utf8')))) colourwayThemeIds.add(theme.id); } catch { /* the tokens checks below report a bad document */ }
       }
 
       // Icon-themes palettes: the colour pairings the shells offer for themable
@@ -1900,10 +1772,14 @@ for (const shared of contentRoots().assetRoots) {
 // (suffix-less) id - it only reads true if it matches the fills actually baked
 // into the icons. Reordering the palette without recolouring the icons would
 // silently mislabel every default pick.
+// A profile that mounts a companion holds two palettes, and each answers for the icons in
+// its own namespace, which is the palette the asset bridge resolves them against.
+const assetNamespace = (id: string): string => id.split('/')[0]!;
 for (const pal of iconThemePalettes) {
   const first = pal.themes[0];
   if (!first) continue;
   for (const icon of themableIconDefaults) {
+    if (iconThemePalettes.length > 1 && assetNamespace(icon.assetId) !== assetNamespace(pal.assetId)) continue;
     if (icon.c1.toLowerCase() !== first.c1.toLowerCase() || icon.c2.toLowerCase() !== first.c2.toLowerCase()) {
       errors.push(`[asset ${icon.assetId}] default fills (${icon.c1}/${icon.c2}) don't match the first icon-themes pairing "${first.id}" (${first.c1}/${first.c2}) in ${pal.assetId}`);
     }
@@ -2113,8 +1989,8 @@ for (const [toolId, manifest] of toolManifests) {
         errors.push(`[${toolId}] input "${input.id}" default asset "${input.default}" has a malformed ?theme= suffix (theme ids are [a-z0-9-])`);
       } else if (!assetById.has(baseId)) {
         errors.push(`[${toolId}] input "${input.id}" default asset "${input.default}" not in catalog`);
-      } else if (theme && theme !== 'auto' && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
-        errors.push(`[${toolId}] input "${input.id}" default asset theme "${theme}" not in any icon-themes palette`);
+      } else if (theme && theme !== 'auto' && !colourwayThemeIds.has(theme) && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
+        errors.push(`[${toolId}] input "${input.id}" default asset theme "${theme}" is not a colourway's pairing or in any icon-themes palette`);
       }
     }
     // Color palette refs must resolve. `colourway-leads` is not an asset: it asks
@@ -2172,8 +2048,8 @@ for (const [toolId, manifest] of toolManifests) {
       errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") has a malformed ?theme= suffix (theme ids are [a-z0-9-])`);
     } else if (!assetById.has(baseId)) {
       errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") not in catalog`);
-    } else if (theme && theme !== 'auto' && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
-      errors.push(`[${toolId}] ${at}: asset theme "${theme}" (input "${spec.id}") not in any icon-themes palette`);
+    } else if (theme && theme !== 'auto' && !colourwayThemeIds.has(theme) && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
+      errors.push(`[${toolId}] ${at}: asset theme "${theme}" (input "${spec.id}") is not a colourway's pairing or in any icon-themes palette`);
     }
   };
 
@@ -2319,12 +2195,21 @@ for (const err of verifySharedRegions()) {
 
 // ─── Report ─────────────────────────────────────────────────────────────────
 
-// Baked gallery covers: a stale one only costs a live render, so this reminds, never fails.
+// Baked gallery covers. One tool's new version retires one cover, which costs a live
+// render and is a reminder. A changed token document retires all of them at once, and the
+// gallery shows no sign of that, so a bake drawn from other tokens is an error.
 if (existsSync(catalogFile('previews/covers.json')) && existsSync(catalogFile('tools/index.json'))) {
-  const baked = JSON.parse(readFileSync(catalogFile('previews/covers.json'), 'utf8')) as { covers?: Record<string, { version?: string }> };
+  const baked = JSON.parse(readFileSync(catalogFile('previews/covers.json'), 'utf8')) as { source?: { fingerprint?: string }; covers?: Record<string, { version?: string }> };
   const listed = JSON.parse(readFileSync(catalogFile('tools/index.json'), 'utf8')) as { tools?: Array<{ id: string; version?: string }> };
+  const bake = `pnpm run build:gallery-covers --profile=${contentRoots().profile}`;
+  const drawnFrom = baked.source?.fingerprint;
+  if (drawnFrom === undefined) {
+    warnings.push(`catalog/previews/covers.json: this bake does not record the tokens it was drawn from, so a retired bake cannot be seen here - run \`${bake}\``);
+  } else if (drawnFrom !== coverSourceFingerprint(readBrandAssetIndex().assets)) {
+    errors.push(`catalog/previews/covers.json: the covers were baked from other design system tokens, so no visitor is shown any of them - run \`${bake}\``);
+  }
   const stale = (listed.tools ?? []).filter((t) => baked.covers?.[t.id] && baked.covers[t.id]!.version !== t.version).map((t) => t.id);
-  if (stale.length) warnings.push(`catalog/previews/covers.json: ${stale.length} baked covers are stale (${stale.slice(0, 6).join(', ')}) - run \`pnpm run build:gallery-covers --url=<dev server>\``);
+  if (stale.length) warnings.push(`catalog/previews/covers.json: ${stale.length} baked covers are stale (${stale.slice(0, 6).join(', ')}) - run \`${bake}\``);
 }
 
 if (warnings.length) {
@@ -2384,6 +2269,11 @@ function unresolvedSidecarKey(manifest: any, key: string): string | null {
   if (optMatch) {
     const found = (input.options ?? []).some((o: any) => o.value === optMatch[1]);
     return found ? null : `references unknown option "${optMatch[1]}" on input "${inputId}"`;
+  }
+  const groupMatch = /^groups\.(.+)$/.exec(rest);
+  if (groupMatch) {
+    const found = (input.options ?? []).some((o: { group?: unknown }) => o.group === groupMatch[1]);
+    return found ? null : `references unknown option group "${groupMatch[1]}" on input "${inputId}"`;
   }
   if (rest === 'addMenu.label') return input.addMenu ? null : `input "${inputId}" has no addMenu`;
   if (rest === 'tableEditor.title') return input.tableEditor ? null : 'has no table editor';

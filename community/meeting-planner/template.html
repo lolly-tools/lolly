@@ -11,6 +11,7 @@
 
 /* ── Themes ──────────────────────────────────────────────────────────────── */
 .mp-dark { background: var(--brand-primary, #16202b); color: var(--brand-on-primary, #fff); --accent: var(--brand-secondary, #2d6bd8); --muted: color-mix(in srgb, currentColor 65%, transparent); --land: color-mix(in srgb, var(--brand-primary, #16202b) 65%, var(--brand-secondary, #2d6bd8)); --ocean: var(--brand-primary, #16202b); }
+.mp-brand { background: color-mix(in srgb, var(--brand-primary, #2563eb) 10%, var(--brand-surface, #fff)); color: var(--brand-text, #17232b); --accent: var(--brand-primary, #2563eb); --muted: color-mix(in srgb, currentColor 75%, transparent); --land: color-mix(in srgb, var(--brand-secondary, #2563eb) 30%, var(--brand-surface, #fff)); --ocean: var(--brand-surface, #fff); }
 .mp-light { background: var(--brand-surface, #fff); color: var(--brand-text, #16202b); --accent: var(--brand-primary, #2d6bd8); --muted: var(--brand-muted, #616975); --land: color-mix(in srgb, var(--brand-secondary, #2d6bd8) 30%, var(--brand-surface, #fff)); --ocean: var(--brand-surface, #fff); }
 .mp-green { background: var(--brand-primary, #2d6bd8); color: var(--brand-on-primary, #fff); --accent: var(--brand-on-primary, #fff); --muted: color-mix(in srgb, currentColor 75%, transparent); --land: var(--brand-secondary, #16202b); --ocean: var(--brand-primary, #2d6bd8); }
 
@@ -136,6 +137,12 @@
 .mp-zoom-controls{opacity:0; pointer-events:none; transition:opacity .15s;}
 .mp-map-wrap:hover .mp-zoom-controls,
 .mp-map-wrap:focus-within .mp-zoom-controls{opacity:1; pointer-events:auto;}
+@media (hover: none) {
+  .mp-zoom-controls { opacity: 1; pointer-events: auto; }
+}
+@media (any-pointer: coarse) {
+  .mp-zoom-btn { min-width: 44px; min-height: 44px; }
+}
 </style>
 
 <div class="mp-root mp-{{theme}} mp-layout-{{layout}}" id="mp-root" style="--title-weight:{{default titleWeight 700}}">
@@ -640,6 +647,7 @@
     /* Zoom control buttons */
     var ctrlDiv = document.createElement('div');
     ctrlDiv.className = 'mp-zoom-controls';
+    ctrlDiv.setAttribute('data-export-hide', '');
     ctrlDiv.innerHTML =
       '<button class="mp-zoom-btn" id="mp-zi" type="button" aria-label="Zoom in">+</button>' +
       '<button class="mp-zoom-btn" id="mp-zo" type="button" aria-label="Zoom out">−</button>' +
@@ -649,13 +657,16 @@
     var svgRef = svg;
     /* Looked up on the new node, not the document: a gallery preview can be torn
        down while the map data loads, which leaves this subtree detached. */
-    ctrlDiv.querySelector('#mp-zi').onclick = function() {
+    ctrlDiv.querySelector('#mp-zi').onclick = function(e) {
+      e.preventDefault();
       svgRef.transition().duration(250).call(zoomFn.scaleBy, 1.5);
     };
-    ctrlDiv.querySelector('#mp-zo').onclick = function() {
+    ctrlDiv.querySelector('#mp-zo').onclick = function(e) {
+      e.preventDefault();
       svgRef.transition().duration(250).call(zoomFn.scaleBy, 0.667);
     };
-    ctrlDiv.querySelector('#mp-zr').onclick = function() {
+    ctrlDiv.querySelector('#mp-zr').onclick = function(e) {
+      e.preventDefault();
       /* Reset: clear live state so the next render doesn't re-apply the old position */
       window.__mpZoom = null;
       svgRef.transition().duration(300).call(zoomFn.transform, d3.zoomIdentity);

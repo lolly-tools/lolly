@@ -211,7 +211,7 @@ function coverHtml(m: IssueModel, contents: Array<{ id: string; label: string }>
 // ── 2. Colour ────────────────────────────────────────────────────────────────
 
 function leadSlotHtml(slot: LookSlot): string {
-  const role = { surface: t('Surface'), text: t('Text'), primary: t('Primary'), secondary: t('Secondary') }[slot.role];
+  const role = slot.word ? escapeText(slot.word) : { surface: t('Surface'), text: t('Text'), primary: t('Primary'), secondary: t('Secondary') }[slot.role];
   const hex = safeHex(slot.hex);
   return `
     <li class="ds-lead">
@@ -251,22 +251,23 @@ function chipHtml(c: PaletteEntry): string {
     </li>`;
 }
 
-function roleRowHtml(c: PaletteEntry): string {
+function roleRowHtml(c: PaletteEntry, words: Readonly<Record<string, string>>): string {
   const hex = safeHex(c.hex);
   const path = c.token?.path ?? '';
   const note = c.token?.description ?? '';
+  const name = words[path] ?? (path ? rolePathName(path) : c.label);
   return `
     <li class="ds-role">
       <span class="ds-role-chip"${hex ? ` style="background:${hex}"` : ''} aria-hidden="true"></span>
-      <span class="ds-role-name">${escapeText(path ? rolePathName(path) : c.label)}</span>
-      ${hex ? hexButton(hex, path ? rolePathName(path) : c.label) : ''}
+      <span class="ds-role-name">${escapeText(name)}</span>
+      ${hex ? hexButton(hex, name) : ''}
       ${path ? `<code class="ds-role-path">${escapeText(path)}</code>` : ''}
       ${note ? `<span class="ds-role-note">${escapeText(note)}</span>` : ''}
     </li>`;
 }
 
 function colourPage(m: IssueModel): string {
-  const { named, ramps, spectrum, roles, lockedInks } = m.colours;
+  const { named, ramps, spectrum, roles, roleWords, lockedInks } = m.colours;
   const facts = [colourCount(m.facts.colours), lockedInks > 0 ? tRaw('{n} with an exact print ink', { n: lockedInks }) : ''].filter(Boolean).map(escapeText).join(' · ');
   const leads = m.leads.map(l => `
     <div class="ds-leads-mode">
@@ -290,7 +291,7 @@ function colourPage(m: IssueModel): string {
       ${roles.length ? `
       <details class="ds-issue-fold">
         <summary>${foldChevron()}<span>${t('Colour roles')}</span> <span class="ds-issue-count">${roles.length}</span></summary>
-        <ul class="ds-role-list">${roles.map(roleRowHtml).join('')}</ul>
+        <ul class="ds-role-list">${roles.map(c => roleRowHtml(c, roleWords)).join('')}</ul>
       </details>` : ''}
     </section>`;
 }

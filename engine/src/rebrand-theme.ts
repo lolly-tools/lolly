@@ -610,7 +610,7 @@ export function solveThemeColors(plan: RenovationPlanV1, theme: DeckThemeV1 | nu
     uses: ctx.census.colors.uses,
     contrastPairs: ctx.census.colors.contrastPairs,
     swatches: swatchesFromColors(themed.colors),
-    slots: themeSlotsFromColors(themed.colors),
+    slots: themeSlotsFromColors(themed.colors, ctx.system.themeAccents),
     ...(locked.length > 0 ? { locked } : {}),
     ...(rasters.length > 0 ? { rasterObjectIds: rasters } : {}),
     ...(ctx.minSeparation === undefined ? {} : { minSeparation: ctx.minSeparation }),

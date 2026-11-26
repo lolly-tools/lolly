@@ -20,7 +20,7 @@
        width="{{width}}" height="{{height}}" aria-hidden="true"
        style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;overflow:visible;">
     <style>[data-chart3d-overlay] text{font-family:var(--font-brand,'SUSE',system-ui,-apple-system,sans-serif)}</style>
-    <g data-chart3d-overlay-root></g>
+    <g data-chart3d-overlay-root>{{{_threeOverlay}}}</g>
   </svg>
 </div>
 {{{_a11yTable}}}
@@ -71,7 +71,13 @@
   ]).then(function () {
     if (ROOT.__chart3dEpoch !== epoch) return;
     if (!window.LollyChartThree || !window.LollyChart3D) throw new Error('3-D chart renderer is unavailable');
-    var mounted = window.LollyChart3D.mount({ root: wrap, state: state, THREE: window.LollyChartThree });
+    // In the editor, a hand on the canvas turns, pans and zooms the camera and
+    // saves the view it leaves as an input. Anywhere else the chart only plays.
+    var editing = typeof window.__lollySetInput === 'function' && !!(wrap.closest && wrap.closest('#tool-canvas, #tool-content'));
+    var mounted = window.LollyChart3D.mount({
+      root: wrap, state: state, THREE: window.LollyChartThree,
+      commit: editing ? function (id, value) { window.__lollySetInput(id, value); } : null
+    });
     ROOT.__lollyChart3d = mounted;
     if (clock && mounted && typeof mounted.renderAt === 'function') clock.__lollyFrameRender = mounted.renderAt;
     fireReady();
@@ -444,6 +450,8 @@
     /* ── palette source ───────────────────────────────────────────────────────
        'ordered'  categorical - the brand's swatches in their authored order (the
                   default; follows the palette the way the brand shows it).
+       'roles'    categorical - the design system's colour roles in its own order
+                  (cfg.brandRoles, see hooks.js), then the ordered palette.
        'suse'     categorical - the brand's spectrum, spaced apart for contrast.
        'seed'     categorical + ramps extrapolated from one base colour (the hook
                   builds cfg.seedPalette off host.color).
@@ -451,6 +459,7 @@
     var pal = String(cfg.palette || 'ordered');
     var SEED = (pal === 'seed' && cfg.seedPalette) ? cfg.seedPalette : null;
     var CAT_ORDERED = (cfg.brandOrdered && cfg.brandOrdered.length) ? cfg.brandOrdered : null;
+    var CAT_ROLES = (cfg.brandRoles && cfg.brandRoles.length) ? cfg.brandRoles : null;
     /* The shipped hues stand in for a spectrum the design system did not author.
        A design system with colourways puts its leads ahead of them (cfg.brandLeads,
        see hooks.js) and drops each shipped hue a lead nearly matches. Two shipped
@@ -560,6 +569,11 @@
     function catColorFn(n) {
       var catList = null;
       if (pal === 'ordered')   catList = CAT_ORDERED || CAT_SHIPPED;
+      // The roles lead and the ordered palette follows, each colour once. No roles:
+      // exactly the ordered palette.
+      else if (pal === 'roles') catList = CAT_ROLES
+                               ? CAT_ROLES.concat((CAT_ORDERED || CAT_SHIPPED).filter(function (h) { return CAT_ROLES.indexOf(String(h).toLowerCase()) < 0; }))
+                               : (CAT_ORDERED || CAT_SHIPPED);
       // Seed mode is a DISTINCT categorical set by default - but choosing Vivid turns
       // it into a hue journey (base → Second colour, short/long way), so the series
       // sample that ramp instead. (Ramp palettes already sample it: catList stays null.)

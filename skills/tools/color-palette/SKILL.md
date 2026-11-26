@@ -5,9 +5,9 @@ description: "Operate the Lolly Palette Lab tool (color-palette) using its decla
 
 # Palette Lab
 
-Tool ID: `color-palette`. Tool version: `2.3.4`. Engine range: `^1.0.0`.
+Tool ID: `color-palette`. Tool version: `2.3.5`. Engine range: `^1.0.0`.
 
-Grow a palette from one seed colour - harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export.
+Grow a palette from one seed colour - harmony accents, OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

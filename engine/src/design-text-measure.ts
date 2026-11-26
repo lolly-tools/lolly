@@ -301,6 +301,12 @@ export function chromiumBreakOffsets(text: string): number[] {
  * or anywhere, so their lines are flagged.
  */
 export const DICTIONARY_SCRIPT = /[\u0E00-\u0EFF\u1000-\u109F\u1780-\u17FF\u19E0-\u19FF\u1A20-\u1AAF\uA9E0-\uA9FF\uAA60-\uAADF]/;
+/**
+ * Right-to-left letters: Hebrew and Arabic with the scripts around them, their presentation
+ * forms and the historic right-to-left blocks. The canvas orders these by bidi from its own
+ * direction, which the measure does not know.
+ */
+export const RIGHT_TO_LEFT_SCRIPT = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFC\u{10800}-\u{10FFF}\u{1E800}-\u{1EFFF}]/u;
 /** Characters a measure lists as uncovered, at most. */
 const UNCOVERED_LIST_MAX = 64;
 

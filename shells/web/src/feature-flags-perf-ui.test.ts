@@ -142,7 +142,9 @@ test('item 1: decorative rAF loops fold perf-ui into their reduce-motion guard',
   // The ambient MilkDrop backdrop is gated at its call site, the dock host, NOT in the
   // butterchurn-viz engine wrapper (that wrapper also serves user-invoked rendering like
   // the catalog audio-asset preview, which must still paint under perf-ui).
-  assert.match(DOCK, /prefersReducedMotion\(\) \|\| perfUiOn\(\)/, 'the ambient dock visualiser never starts');
+  // Reduced motion keeps it off unless the person chose MilkDrop themselves (the music
+  // generator's Expand and Full screen); perf-ui keeps it off whatever was chosen.
+  assert.match(DOCK, /\(prefersReducedMotion\(\) && !this\.chosen\) \|\| perfUiOn\(\)/, 'the ambient dock visualiser never starts under perf-ui');
 });
 
 test('item 2: the gallery skips live grid-tile rasterisation and settles on the static icon', () => {
@@ -169,7 +171,7 @@ test('item 5: ambient animation pauses, but spinners/progress/recording keep run
   // Loading/progress/recording motion must never be paused - none of these appear in the sheet.
   // (export-shutter is deliberately NOT here: its will-change is released, but its transient
   // export animation is left running - so the class DOES appear, in the will-change block only.)
-  for (const functional of ['job-bar-fill', 'canvas-processing-spinner', 'gtile-icon-trace', 'tl-rec-dot', 'odl-indet']) {
+  for (const functional of ['job-bar-fill', 'canvas-processing-spinner', 'gtile-icon-wait', 'gtile-iconfill-trace', 'tl-rec-dot', 'odl-indet']) {
     assert.ok(!CSS_NO_COMMENTS.includes(functional), `${functional} must keep animating (loading/progress/recording feedback)`);
   }
   // And the export-shutter animation specifically is never paused (only its will-change is dropped).

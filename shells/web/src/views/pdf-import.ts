@@ -26,6 +26,7 @@
 // where the browser can (JPEG directly; Flate RGB/Gray via canvas). Clipped paint
 // remains in SVG assets. Unsupported content is reported for source review.
 
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { PDFName, PDFDict, PDFArray, PDFRef, PDFRawStream, decodePDFRawStream } from 'pdf-lib';
 import type { PDFDocument, PDFContext, PDFObject } from 'pdf-lib';
 import {
@@ -1177,7 +1178,7 @@ export function pickPdfPages(
       <div class="pdfpick-panel" role="dialog" aria-modal="true" aria-label="${mode === 'single' ? 'Choose a page' : 'Choose pages'}">
         <header class="pdfpick-head">
           <span class="pdfpick-title">${mode === 'single' ? 'Choose a page' : 'Choose pages'}${fileName ? ` - ${xmlEsc(fileName)}` : ''}</span>
-          <button type="button" class="pdfpick-close" aria-label="Close">&times;</button>
+          ${closeButtonHtml({ className: 'pdfpick-close' })}
         </header>
         <p class="pdfpick-sub">${mode === 'single' ? 'Pick the page to import.' : copy.sub}</p>
         <div class="pdfpick-grid">

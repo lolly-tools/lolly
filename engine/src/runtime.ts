@@ -34,8 +34,10 @@ import { DESIGN_STILL_RASTER_FORMATS } from './design-export-route.ts';
 import { missingRequires, type HostApiName } from '@lolly-tools/core';
 import type { EmojiStyleV1 } from '@lolly-tools/core';
 import type { CanvasSize } from '@lolly-tools/core';
+import type { RenditionAction } from '@lolly-tools/core/rendition-v1';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import { defaultEmojiStyle } from './emoji-default.ts';
+import { emojiTextTrigger } from './emoji-trigger.ts';
 import { emojiSourceIngredients, emojiWorksAndUses, emojiCreditsText } from './emoji-rights.ts';
 import { sourceIngredientsFor } from './rights-attribution.ts';
 import type { SourceDetailV1 } from './rights-attribution.ts';
@@ -43,13 +45,14 @@ import { evaluateCreativeUses } from './rights-evaluate.ts';
 import { outputLicenceId, outputLicenceNotice } from './rights-profiles.ts';
 import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputDigests, matchesShowIf, normalizeTableValue, tokenBindingsOf, type InputWriteOptions } from './inputs.ts';
 import { hydrate, resolvePaintBindings } from './template.ts';
-import { buildExportMeta, designRecordFrom, isEmptyDesignRecord, type MadeWithPreview } from './metadata.ts';
+import { buildExportMeta, designRecordFrom, isEmptyDesignRecord, partnerRecord, type MadeWithPreview } from './metadata.ts';
 import { isTokenValue, isAlias, aliasPath, colorToHex } from './tokens.ts';
 import { resolveBlockTokenBindings } from './token-block-bindings.ts';
 import { resolveTextDocumentTokenBindings } from './text-token-bindings.ts';
 import { resolveNestedRenders } from './compose.ts';
 import { isToolUrl } from './tool-url.ts';
 import { isBakedRef } from './bake.ts';
+import { base64ToBytes } from './bytes.ts';
 import type { InputModelItem, InputValue } from './inputs.ts';
 import type { LoadedTool, ToolManifest } from './loader.ts';
 import type { ComposeMemo } from './compose.ts';
@@ -59,7 +62,7 @@ import type { EmojiLineSource } from './emoji-line.ts';
 import type { VerifiedEmojiPack } from './emoji-pack.ts';
 import type { C2paSourceIngredient } from './c2pa.ts';
 import type {
-  HostV1, AssetRef, ExportFormat, ExportOpts, ExportMeta, MediaFrame, TokenSet, TokenSelection, TokensSnapshot,
+  HostV1, AssetRef, ExportFormat, ExportOpts, ExportMeta, ExportPartner, MediaFrame, TokenSet, TokenSelection, TokensSnapshot,
   AudioLevel, RecordOpts, RecordSession, IngredientCredential, SourceIngredient,
 } from './bridge/host-v1.ts';
 import type {
@@ -464,10 +467,20 @@ export interface Runtime {
   setMadeWith(on: boolean): void;
   madeWith(): boolean;
   /**
+   * The partner company and programme this work is made for (Lolly Work plans/82
+   * M3), as the host's workspace gives them, or null for none. While the record is
+   * on, an export records them beside the design system (`ExportMeta.partner`)
+   * and `madeWithPreview` shows them. Shape-checked; a malformed part is dropped.
+   */
+  setPartner(partner: ExportPartner | null): void;
+  /** The partner set by `setPartner`, as recorded (a copy), or null. A second
+   *  runtime that exports the same document copies it from here. */
+  partner(): ExportPartner | null;
+  /**
    * What an export would write about its design system right now: the record and
    * the description with the record on and off, so the export panel can show the
    * exact words before anything is written. Null for an on-device utility, a host
-   * with no token snapshot, and a render with nothing to record.
+   * with neither a token snapshot nor a partner, and a render with nothing to record.
    */
   madeWithPreview(): Promise<MadeWithPreview | null>;
   /**
@@ -608,6 +621,29 @@ export interface Runtime {
 // meaningful for. SVG keeps its transparency through a fill:none bg rect, so it needs no
 // help here; JPEG has no alpha at all.
 const ALPHA_EXPORT_FORMATS = new Set(['jxl', 'jxl-lossless', 'png', 'webp', 'avif', 'apng', 'webp-anim', 'gif']);
+
+/** Which picture an asset value is, for the rendition's camera guard: a re-applied or
+ *  re-resolved copy of the same picture is the same picture. */
+function pictureIdentity(v: unknown): string {
+  if (!v || typeof v !== 'object') return String(v ?? '');
+  const ref = v as { id?: unknown; url?: unknown };
+  return typeof ref.id === 'string' && ref.id ? `id:${ref.id}` : `url:${String(ref.url ?? '')}`;
+}
+
+/** A `data:` URL's body that is not base64, as bytes: each `%XX` is one byte, any other
+ *  character its UTF-8 bytes (WHATWG percent-decode), so a binary picture survives. */
+function percentDecodedBytes(body: string): Uint8Array {
+  const out: number[] = [];
+  const enc = new TextEncoder();
+  for (let i = 0; i < body.length; i++) {
+    const hex = body[i] === '%' ? body.slice(i + 1, i + 3) : '';
+    if (/^[0-9a-fA-F]{2}$/.test(hex)) { out.push(parseInt(hex, 16)); i += 2; continue; }
+    const cp = body.codePointAt(i)!;
+    if (cp > 0xffff) i++;
+    out.push(...enc.encode(String.fromCodePoint(cp)));
+  }
+  return Uint8Array.from(out);
+}
 
 export async function createRuntime(
   tool: LoadedTool,
@@ -993,6 +1029,11 @@ export async function createRuntime(
   // (the recording IS the content, re-composited across edits); a fresh take re-sets
   // them per the captured MIME + the tool's declared capabilities.
   let liveCameraShown = false;
+  // A rendition's camera guard (manifest `renditionOf`): set with liveCameraShown, but
+  // cleared only when the rendition's own picture changes to another picture or a decoded
+  // asset frame replaces the camera, because a frozen camera frame keeps showing while an
+  // unrelated asset (a filter's lower-third headshot) changes.
+  let cameraOverPicture = false;
   let recordedCamera = false;
   let recordedMic = false;
   // A SCREEN take is a distinct origin from a camera take - IPTC screenCapture, not
@@ -1189,15 +1230,9 @@ export async function createRuntime(
   const emojiListeners = new Set<(state: RuntimeEmojiState) => void>();
   let emojiChain: Promise<unknown> = Promise.resolve();
 
-  /**
-   * Cheapest possible gate, and the reason a plain Latin render pays nothing for
-   * this feature: the pinned Unicode tables are half a megabyte, so they are
-   * loaded on demand, and no character at or above U+00A9 means no emoji of any
-   * kind. U+00A9 (copyright) is the lowest scalar the pass's own pre-check looks
-   * for, so this is a true superset of it and never hides a real emoji. Written
-   * as an escaped range, so this file carries no invisible characters.
-   */
-  const EMOJI_MAYBE = /[\u00A9-\uFFFF]/;
+  // The last text the pass tested, so a repaint of the same words asks nothing twice.
+  let emojiTextChecked: string | null = null;
+  let emojiTextDraws = false;
 
   let emojiAssets: import('@lolly-tools/core/host-v1').AssetRef[] = [];
   let emojiStyleGeneration = 0;
@@ -1309,9 +1344,21 @@ export async function createRuntime(
       notifyEmoji();
     };
     if (track) { emojiNode = root; emojiCensusKnown = false; }
-    if (!EMOJI_MAYBE.test(root.textContent ?? '') && !(root as {querySelector?: (selector:string) => unknown}).querySelector?.('[data-emoji-tool-source]')) {
-      record(nothing);
-      return { present: true, ...nothing };
+    // Asked before the next step, because that one loads the whole set. Plain text pays
+    // nothing: the trigger needs no tables, and a curly quote or an accented letter says
+    // no. Emoji-shaped text then asks the segmenter, the pass's own test, because a bare
+    // warning sign or copyright sign in a template draws nothing and is worth no download.
+    if (!(root as {querySelector?: (selector:string) => unknown}).querySelector?.('[data-emoji-tool-source]')) {
+      const text = root.textContent ?? '';
+      if (text !== emojiTextChecked) {
+        // Recorded after the await: a chunk that fails to load must not read as "no emoji".
+        emojiTextDraws = emojiTextTrigger(text) && (await import('./emoji-segment.ts')).textHoldsEmoji(text);
+        emojiTextChecked = text;
+      }
+      if (!emojiTextDraws) {
+        record(nothing);
+        return { present: true, ...nothing };
+      }
     }
     // One read, held across every await below. setEmojiStyle assigns
     // synchronously and queues its own pass, so a swap landing during the pack
@@ -1371,6 +1418,8 @@ export async function createRuntime(
   let lastRightsReceipt: AttributionReceiptV1 | null = null;
   // The design-system record (plans/319): on unless the person turned it off.
   let madeWithOn = true;
+  // The partner the work is made for (Lolly Work plans/82 M3), set by the host.
+  let partnerFacts: ExportPartner | null = null;
   let lastExportMeta: ExportMeta | null = null;
   /** The render's token snapshot, read through this runtime's scoped host so it
    *  carries the artefact's own theme choice. Null when the host has none. */
@@ -1517,11 +1566,13 @@ export async function createRuntime(
     outputLicence: () => declaredLicence,
     setMadeWith(on) { madeWithOn = on !== false; },
     madeWith: () => madeWithOn,
+    setPartner(next) { partnerFacts = partnerRecord(next) ?? null; },
+    partner: () => (partnerFacts ? structuredClone(partnerFacts) : null),
     async madeWithPreview() {
       if (tool.manifest.privacy === 'on-device') return null;
       const snapshot = await recordSnapshot();
-      if (!snapshot) return null;
-      const on = await buildExportMeta(host, tool.manifest, profile, model, { snapshot });
+      if (!snapshot && !partnerFacts) return null;
+      const on = await buildExportMeta(host, tool.manifest, profile, model, { ...(snapshot ? { snapshot } : {}), ...(partnerFacts ? { partner: partnerFacts } : {}) });
       const record = designRecordFrom(on);
       if (isEmptyDesignRecord(record)) return null;
       const off = await buildExportMeta(host, tool.manifest, profile, model);
@@ -1638,7 +1689,9 @@ export async function createRuntime(
       // the capture the moment it's committed.
       const priorType = model.find(i => i.id === id)?.type;
       if (priorType === 'asset' || priorType === 'file' || priorType === 'url') liveCameraShown = false;
+      const priorPicture = pictureIdentity(model.find(i => i.id === id)?.value);
       model = updateInput(model, id, value, writeOptionsFor(id, value, options));
+      if (id === tool.manifest.renditionOf?.input && pictureIdentity(model.find(i => i.id === id)?.value) !== priorPicture) cameraOverPicture = false;
       // A live-camera resolution slider (render.liveMaxEdgeInput) re-applies to the
       // running stream without a camera stop/start - the grab loop just starts
       // producing frames at the new working edge. No-op unless currently live.
@@ -1735,6 +1788,7 @@ export async function createRuntime(
         // Same live-capture retirement as setInput - swapping the image SOURCE
         // means the render no longer shows camera essence.
         if (before.type === 'asset' || before.type === 'file' || before.type === 'url') liveCameraShown = false;
+        if (id === tool.manifest.renditionOf?.input && pictureIdentity(after.value) !== pictureIdentity(before.value)) cameraOverPicture = false;
         model = next;
         applied.push({ id, value: flattenValue(after.value) });
       }
@@ -1955,7 +2009,7 @@ export async function createRuntime(
             // Guard liveUnsub so a frame in flight when stopLive() ran can't repaint.
             // A SENSOR frame drove the render → its essence is now a live camera
             // capture; an animated-asset frame is decoded file content and is not.
-            if (patch && liveUnsub && generation === liveGeneration) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); if (sensorSource) liveCameraShown = true; emit(); }
+            if (patch && liveUnsub && generation === liveGeneration) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); if (sensorSource) { liveCameraShown = true; cameraOverPicture = true; } else cameraOverPicture = false; emit(); }
           })
           .catch((e: unknown) => host.log('warn', `onFrame ${(e as Error).message}`, { toolId: tool.manifest.id }))
           .finally(() => { framePending = false; });
@@ -2270,10 +2324,12 @@ export async function createRuntime(
         // The brand skills an agent declared (plan 323) ride the same switch, and
         // only as the caller handed them: the runtime never fills them in itself.
         const brandSkills = recordOn && opts.brandSkills?.length ? opts.brandSkills : null;
+        // The partner (Lolly Work plans/82 M3) rides the same switch.
+        const partner = recordOn ? partnerFacts : null;
         // Pass the input model so bindToMeta inputs (the artist's author/copyright/
         // licence declaration) merge over the profile-derived provenance.
-        meta = await buildExportMeta(host, tool.manifest, profile, model, snapshot || brandSkills
-          ? { ...(snapshot ? { snapshot } : {}), ...(brandSkills ? { brandSkills } : {}) }
+        meta = await buildExportMeta(host, tool.manifest, profile, model, snapshot || brandSkills || partner
+          ? { ...(snapshot ? { snapshot } : {}), ...(brandSkills ? { brandSkills } : {}), ...(partner ? { partner } : {}) }
           : undefined);
         // The licence the person picked in the export panel. A tool input bound to
         // the licence field is the more specific declaration, so it wins.
@@ -2295,17 +2351,43 @@ export async function createRuntime(
       // ingest) and library/catalog assets (the host may extract one from the
       // asset's own bytes - v1.31). A credential we can't read is skipped,
       // never fatal to the export.
+      //
+      // Each placed picture is a COMPONENT of the composition (C2PA 2.2 section
+      // 18.15.3: `componentOf`, "the current asset is composed of multiple parts,
+      // this ingredient being one of them"), recorded as a `c2pa.placed` step.
+      // It is never the export's parent: `parentOf` says the export is a
+      // rendition of that one asset, and a manifest may hold one parentOf
+      // ingredient at most, so two credentialed pictures on one page used to
+      // make the embedder refuse the whole credential (manifest.multipleParents).
+      // The SVG and PDF walkers record the same picture as componentOf when
+      // they inline its bytes, so both routes now name it the same way.
       let ingredients: (IngredientCredential | SourceIngredient)[] | undefined;
+      // A rendition tool (manifest `renditionOf`) makes its output FROM one picture: that
+      // picture's credential is the export's parent (`parentOf`, opened first), and the
+      // tool's own action takes the place of `c2pa.created`. Only a credentialed picture
+      // becomes the parent; a picture without a credential changes nothing and adds no ingredient.
+      // The picture is the source only while nothing replaced it: no live camera frame or
+      // recording took its place, and no input the manifest lists in `unlessSet` holds anything.
+      const holds = (v: unknown): boolean => (Array.isArray(v) ? v.length > 0 : v !== undefined && v !== null && v !== '' && v !== false);
+      const renditionOf = tool.manifest.renditionOf && !cameraOverPicture && !recordedCamera && !recordedScreen
+        && !(tool.manifest.renditionOf.unlessSet ?? []).some((id) => holds(model.find((input) => input.id === id)?.value))
+        ? tool.manifest.renditionOf : undefined;
+      let parentKey: string | undefined;
+      let c2paRendition: { action: RenditionAction } | undefined;
       if (!isOnDevice && meta !== undefined && host.assets?.credential) {
         const ids = new Set<string>();
-        const note = (v: unknown): void => {
+        const note = (v: unknown, parent = false): void => {
           if (v && typeof v === 'object') {
             const { id, source } = v as { id?: unknown; source?: unknown };
-            if (typeof id === 'string' && (source === 'user' || source === 'library')) ids.add(assetDependency(v as AssetRef).key);
+            if (typeof id === 'string' && (source === 'user' || source === 'library')) {
+              const key = assetDependency(v as AssetRef).key;
+              ids.add(key);
+              if (parent) parentKey = key;
+            }
           }
         };
         for (const input of model) {
-          if (input.type === 'asset') note(input.value);
+          if (input.type === 'asset') note(input.value, input.id === renditionOf?.input);
           else if (input.type === 'blocks' && Array.isArray(input.value)) {
             const assetFields = (input.fields ?? []).filter(f => f.type === 'asset').map(f => f.id);
             for (const item of input.value) {
@@ -2320,10 +2402,41 @@ export async function createRuntime(
             // Lazy: the C2PA read side (c2pa-verify → c2pa-extract → containers)
             // is ~7K lines that only an export with placed credentials needs.
             const ing = cred?.store ? (await import('./c2pa-verify.ts')).prepareC2paIngredientFromStore(cred.store, cred.format) : null;
-            if (ing) prepared.push(ing);
+            const parent = id === parentKey && !!renditionOf;
+            if (ing) prepared.push({ ...ing, relationship: parent ? 'parentOf' : 'componentOf' });
+            if (ing && parent) c2paRendition = { action: renditionOf.action };
           } catch { /* unreadable credential - skip, don't fail the export */ }
         }
-        if (prepared.length) ingredients = prepared;
+        // One manifest is one ingredient: a picture that is the parent is not also placed.
+        const parentLabel = prepared.find((i) => i.relationship === 'parentOf')?.activeLabel;
+        const kept = prepared.filter((i) => i.relationship === 'parentOf' || i.activeLabel !== parentLabel);
+        if (kept.length) ingredients = kept;
+      }
+      // A rendition's picture given as a `data:` URL (a share link, the CLI, an agent) is
+      // no stored asset, so its credential is read from the bytes themselves.
+      if (renditionOf && !c2paRendition && !isOnDevice && meta !== undefined) {
+        const value = model.find((input) => input.id === renditionOf.input && input.type === 'asset')?.value as { url?: unknown } | null | undefined;
+        const url = typeof value?.url === 'string' ? value.url : '';
+        if (url.startsWith('data:')) {
+          try {
+            const { extractC2paStore, prepareC2paIngredientFromStore } = await import('./c2pa-verify.ts');
+            const comma = url.indexOf(',');
+            const body = url.slice(comma + 1);
+            // A data: URL body is percent-decoded first, then base64-decoded when it says so
+            // (WHATWG fetch). A base64 body with no escapes, the common case, skips the first step.
+            const base64 = /;[ ]*base64[\t\n\f\r ]*$/i.test(url.slice(0, comma));
+            const text = (b: string): string => b.replace(/[\t\n\f\r ]/g, '');
+            const bytes = !base64 ? percentDecodedBytes(body)
+              : base64ToBytes(text(body.includes('%') ? Array.from(percentDecodedBytes(body), (c) => String.fromCharCode(c)).join('') : body));
+            const found = extractC2paStore(bytes);
+            const ing = found ? prepareC2paIngredientFromStore(found.store, found.format) : null;
+            if (ing) {
+              const others = (ingredients ?? []).filter((i) => !('activeLabel' in i) || i.activeLabel !== ing.activeLabel);
+              ingredients = [{ ...ing, relationship: 'parentOf' }, ...others];
+              c2paRendition = { action: renditionOf.action };
+            }
+          } catch { /* a picture with no readable credential is no parent */ }
+        }
       }
       // Emoji artwork this render placed: one source ingredient per distinct
       // glyph, recording the set's own licence and creator and the exact bytes
@@ -2364,7 +2477,7 @@ export async function createRuntime(
             ...(recordedMic ? { microphone: true as const } : {}),
           }
         : undefined;
-      // Text-added provenance: honest ONLY when rendered text sits over an OPENED
+      // Text-added provenance: honest ONLY when rendered text sits over a placed
       // asset (an ingredient is present) - a genuine edit on someone else's image.
       // Profile fields and inactive controls do not contribute a text edit step.
       let c2paTextAdded: { sample?: string } | undefined;
@@ -2430,6 +2543,7 @@ export async function createRuntime(
           ...(c2paCapture ? { c2paCapture } : {}),
           ...(c2paTextAdded ? { c2paTextAdded } : {}),
           ...(c2paAiUpscale ? { c2paAiUpscale } : {}),
+          ...(c2paRendition ? { c2paRendition } : {}),
           ...(c2paAiIngredients.length ? { c2paAiIngredients } : {}),
           // The attribution this export promised, and the way back for what it
           // delivered. A host that reads its own bytes back calls onReceipt
@@ -2699,8 +2813,24 @@ async function surfaceContext(host: HostV1): Promise<SurfaceRuntimeContext> {
   let set: TokenSet | undefined;
   try { set = await host.tokens?.get(); } catch { /* no token set: the table answers from what is left */ }
   let doc: unknown = null;
-  try { doc = (await host.tokens?.snapshot?.())?.document ?? null; } catch { doc = null; }
-  let iconThemes = await readIconThemesPalette(host);
+  let selection: TokensSnapshot['selection'] | null = null;
+  try {
+    const snap = await host.tokens?.snapshot?.();
+    doc = snap?.document ?? null;
+    selection = snap?.selection ?? null;
+  } catch { doc = null; }
+  // An auto icon takes the piece's own colourway: its pairing for a light ground, and for
+  // a dark ground or a photograph its dark pairing (brand-treatments.ts). A design system
+  // with no colourways falls back to a catalog palette, then to one derived from the palette.
+  let iconThemes: unknown = null;
+  if (doc) {
+    try {
+      const looks = await import('./brand-treatments.ts');
+      const themes = looks.colourwaySurfaceIconThemes(doc, looks.activeColourwayOf(doc, selection));
+      if (themes.length) iconThemes = { themes };
+    } catch { iconThemes = null; }
+  }
+  iconThemes ??= await readIconThemesPalette(host);
   if (!iconThemes && doc) {
     try { iconThemes = (await import('./brand-treatments.ts')).deriveIconThemesDoc(doc); } catch { iconThemes = null; }
   }

@@ -1,0 +1,19 @@
+{
+  "id": "unit-blocks",
+  "name": "Count it in blocks",
+  "category": "3-D",
+  "description": "One cube for each round unit, stacked per category and coloured by series, so a total can be counted as well as compared.",
+  "values": {
+    "renderMode": "scene",
+    "chartType": "waffle",
+    "sceneType": "blocks3d",
+    "data": "Team,Hired,Transferred\nDesign,12,4\nEngineering,21,6\nSales,9,7\nSupport,6,3",
+    "heading": "New people by team",
+    "subheading": "This year",
+    "sceneStage": "plinth",
+    "sceneMaterial": "clay",
+    "motionPreset": "stagger",
+    "showLegend": true
+  },
+  "presets": []
+}

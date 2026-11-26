@@ -34,26 +34,29 @@ import { canStartCollab, startCollab } from '../lib/collab-availability.ts';
 import { syncCatalog, prefetchAssetsById, defaultHiddenToolIds } from '../catalog/sync.ts';
 import { shippedTemplateRef, userTemplateRef } from '../lib/template-ref.ts';
 import { createUserTemplateStore, type UserTemplate } from '../lib/user-templates.ts';
-import { galleryTemplates, templateLine, templateSearchTerms, templateMotionPreviews, infoTemplates, NO_INFO_TEMPLATES, type InfoTemplates } from './gallery-templates.ts';
-import { activeExampleIndex, markLookFailed, stripCarouselNav, wireCarousel } from './gallery-carousel.ts';
+import { galleryTemplates, templateChip, templateSearchTerms, templateMotionPreviews, infoTemplates, NO_INFO_TEMPLATES, type InfoTemplates } from './gallery-templates.ts';
+import { CAR_WANTED_ATTR, activeExampleIndex, markLookFailed, stripCarouselNav, wantLooks, wireCarousel, wireLookInterest } from './gallery-carousel.ts';
 import { cardMarkup, catLabel, fmtLabel, galleryExampleLooks, statusLabel, viewCardMarkup, viewFavKey, type SavedEntry } from './gallery-tiles.ts';
 import { matchesGalleryFilter } from './gallery-filter.ts';
 import { pinTool, unpinTool, pinnedToolIds, pinnedRenderLayouts } from '../lib/offline-pins.ts';
 import { getInjectedTools } from '../lib/injected-tools.ts';
 import { LEAD_TOOL_ORDER } from '../lib/lead-tools.ts';
 import { instanceFetch, instancePath } from '../lib/instance.ts';
-import { privacyNoticeMarkup, mountPrivacyNotice } from './privacy-notice.ts';
-import { personalizeNudgeMarkup, mountPersonalizeNudge } from './personalize-nudge.ts';
-import { offlineNudgeMarkup, mountOfflineNudge } from './offline-nudge.ts';
+import { mountPrivacyNotice } from './privacy-notice.ts';
+import { mountPersonalizeNudge } from './personalize-nudge.ts';
+import { mountOfflineNudge } from './offline-nudge.ts';
 import { holdFirstRunBanner, settleFirstRunBanner } from '../lib/first-run-prompts.ts';
+import { firstRunBannerMarkup } from './first-run-banner.ts';
 import { viewTopbarHtml, mountViewTopbar } from '../components/view-topbar.ts';
 import { mountFeaturedRow, resolveExamples } from '../components/featured-row.ts';
 import { armMotionPreviews, playMotionIn, stopMotionIn } from '../lib/preview-media.ts';
-import { galleryPreviewLooks, galleryLookHref, renderGalleryLook, galleryPreviewPriority } from '../lib/gallery-preview.ts';
-import { createPreviewQueue } from '../lib/preview-queue.ts';
-import { galleryWelcomeStep } from './gallery-welcome.ts';
-import { loadGalleryLook } from './gallery-look-loader.ts';
-import { renderFeaturedVariant, renderFeaturedPages, displayFormatOf } from '../lib/featured-render.ts';
+import { galleryPreviewLooks, galleryLookHref, renderGalleryLook, storedGalleryLook, galleryPreviewPriority } from '../lib/gallery-preview.ts';
+import { holdWhileBusy } from '../lib/preview-queue.ts';
+import { galleryWelcomeStep, placeGalleryWelcome } from './gallery-welcome.ts';
+import { isProgrammeMember } from '../lib/workspace-templates.ts';
+import { createLookQueue, loadGalleryLook, lookTask, placeBakedCovers, readStoredLook, slideFinished, withHeldLook } from './gallery-look-loader.ts';
+import { hydratePaged } from './gallery-paged-deck.ts';
+import { renderFeaturedVariant, coverFormats, displayFormatOf } from '../lib/featured-render.ts';
 import { currentTheme } from '../theme.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { wireStripMenu } from './gallery-strip-menu.ts';
@@ -78,7 +81,7 @@ import type { WebStateAPI } from '../bridge/state.ts';
 import type { WebProfileAPI } from '../bridge/profile.ts';
 import type { createAssetsAPI } from '../bridge/assets.ts';
 import type { WebTokensAPI } from '../bridge/tokens.ts';
-import type { PreviewsAPI } from '../bridge/previews.ts';
+import type { PreviewCacheAPI } from '../lib/preview-cache.ts';
 export { showGalleryWelcome } from './gallery-welcome.ts';
 
 /**
@@ -102,6 +105,9 @@ export interface GalleryTool {
   privacy?: string;
   tags?: readonly string[];   // searched alongside name/description; never displayed
   listed?: boolean;   // false = unlisted from the gallery (a mechanism invoked from context, e.g. asset-export)
+  /** The workspace template a rules tool was built from. Such a tool is a card on the
+   *  workspace's shelf (views/published-shelf.ts onShelf), so the grid leaves it out. */
+  templateId?: string;
   formats?: readonly string[];
   width?: number;
   height?: number;
@@ -191,18 +197,6 @@ const FIRST_RUN_FEATURED_MAX = 6;
  *  written to the profile - the first star replaces it with the user's own list. */
 const UTILITY_FIRST_RUN: readonly string[] = ['view:verify', 'jump', 'sandbox', 'view:pdf-extract'];
 
-// Fit a page of aspect `ar` (width / height) inside the square deck box (hydratePaged),
-// as width/height percentages of that square. A landscape page keeps full width and loses
-// height; a portrait page keeps full height and loses width; a square page fills it. Extreme
-// aspects (a 5:1 banner → h 20%, a 1:5 vertical banner → w 20%) stay true to shape - the fan
-// offset is applied by the outer layer in box units, so the deck still reads as a stack even
-// when each sheet is a thin strip. The card element is then sized to the page's TRUE shape,
-// so its shadow + hairline rim wrap the real page rather than a letterboxed square.
-function deckPageFit(ar: number): { w: number; h: number } {
-  if (!(ar > 0) || !Number.isFinite(ar)) return { w: 100, h: 100 };
-  return ar >= 1 ? { w: 100, h: 100 / ar } : { w: 100 * ar, h: 100 };
-}
-
 /** Open the saved session a `[data-resume][data-slot]` control names. First hands the
  *  tool view the name and thumbnail this list already shows for it, for its "Opening…"
  *  card (lib/open-intent.ts). */
@@ -226,7 +220,7 @@ export type GalleryHost = HostV1 & {
   profile: WebProfileAPI;
   assets: ReturnType<typeof createAssetsAPI>;
   tokens?: WebTokensAPI;
-  previews?: PreviewsAPI;
+  previews?: PreviewCacheAPI;
 };
 
 // Section order for the filter pills. 'utility' is intentionally absent: the
@@ -280,6 +274,7 @@ import { yoursShelfTools, yoursShelfHtml } from './yours-shelf.ts';
 import { captureNeutralPinned, settleForCapture } from '../lib/capture-neutral.ts';
 import { wireArrowNav } from '../lib/arrow-nav.ts';
 import { appPathname } from '../lib/any-site.ts';
+import { holdEarlyDrops } from '../lib/drop-early.ts';
 
 // Lucide "info" and "history" - context-menu / bulk-bar action icons. Path data
 // lives in lib/icons.ts; 'info' is deduped against profile.ts's identical
@@ -446,12 +441,18 @@ function createGalleryLifecycle(viewEl: HTMLElement) {
   // the featured row (timers + drift loop) and the preview queue below
   // register their teardown here so neither keeps running after the user moves on.
   const cleanups: Array<() => void> = [];
-  const previewQueue = createPreviewQueue();
+  const previewQueue = createLookQueue();
   previewQueue.setPaused(true); // Wait for the welcome decision before rendering behind it.
   cleanups.push(() => previewQueue.destroy());
+  cleanups.push(holdWhileBusy(previewQueue));   // no render starts while the person scrolls or types
   // Arrow keys walk the cards once one has focus (lib/arrow-nav.ts), landing on each
   // card's name link, so browsing never means tabbing through every dot and "+ New".
   cleanups.push(wireArrowNav(viewEl, { items: '.gtile', primary: '.gtile-name' }));
+  // What a card looks like before its preview is drawn. A Back from a tool that is still
+  // opening shows the old snapshot until this gallery looks the same (view-fade.ts
+  // viewSettled, which reads this attribute), so no card shows empty at the swap.
+  viewEl.setAttribute('data-settle-pending', '.gtile-hero--preview:not(.is-ready), .gcar:not(.has-art)');
+  cleanups.push(() => viewEl.removeAttribute('data-settle-pending'));
   (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => {
     for (const fn of cleanups.splice(0)) { try { fn(); } catch { /* best-effort teardown */ } }
   };
@@ -474,8 +475,100 @@ function galleryEmptyHtml(loadFailed: boolean): string {
       `;
 }
 
+/** Fill the workspace's shelf, then draw each card's preview when the page is idle. It
+ *  takes the whole index, unlisted tools included: a tool the workspace set to templates
+ *  only is unlisted, and its templates belong on the shelf all the more. Called once the
+ *  catalog answers, so the shelf never holds the grid back; with nothing published (every
+ *  plain build) the mount stays empty and the gallery is as it was. */
+async function fillPublishedShelf(viewEl: HTMLElement, host: GalleryHost, tools: readonly GalleryTool[], initialQuery = ''): Promise<void> {
+  try {
+    const mount = viewEl.querySelector<HTMLElement>('.published-mount');
+    if (!mount) return;
+    const [{ listWorkspaceTemplates, fetchWorkspaceValues, companyValuesFor }, { publishedItems, publishedShelfHtml, fillShelfCopies, wireShelfCopies }, { getSessionSource }] = await Promise.all([
+      import('../lib/workspace-templates.ts'), import('./published-shelf.ts'), import('../lib/session-source.ts'),
+    ]);
+    const templates = await listWorkspaceTemplates(host as never);
+    const items = publishedItems(templates, tools);
+    // The person's company card leads the shelf (plans/82 M3, views/company-card.ts),
+    // asked for only when the workspace says which company the person is in.
+    const { workspaceCompany } = await import('../lib/workspace-templates.ts');
+    const companyCard = workspaceCompany() ? await import('./company-card.ts') : null;
+    const company = companyCard ? await companyCard.loadCompanyView() : null;
+    if ((!items.length && !company) || !mount.isConnected) return;
+    mount.innerHTML = publishedShelfHtml(items, getSessionSource()?.label, company && companyCard ? companyCard.companyCardHtml(company) : '');
+    const card = mount.querySelector<HTMLElement>('[data-company-card]');
+    if (card && company && companyCard) {
+      let view = company;
+      void companyCard.drawCardLogo(card, view, host as never);
+      card.addEventListener('click', () => companyCard.openCompanySheet(view, host as never, (next) => { view = next; void companyCard.drawCardLogo(card, next, host as never); }));
+    }
+    // The home search filters the shelf with the tiles (plans/82 M6): a search typed
+    // before the shelf arrived, or handed over by a #/?q= link, applies at once.
+    searchShelf(viewEl, shelfSearch.get(viewEl) ?? tokenize(initialQuery));
+    // The person's copies, once the page is idle: "Your copy" and "New version".
+    wireShelfCopies(mount);
+    whenIdle(() => { void fillShelfCopies(mount, host, items).catch(() => { /* the cards stay as drawn */ }); });
+    // Previews: the template's own values, or a rules tool's starting values, drawn the
+    // way the Start chooser draws its tiles, with the person's company details where the
+    // tool would take them (plans/82 M3): the same values the tool opens with. A
+    // preview that cannot be drawn keeps the icon.
+    const { coverFormats, renderFeaturedVariant } = await import('../lib/featured-render.ts');
+    const { toolStartValues } = await import('../lib/input-policy.ts');
+    for (const item of items) {
+      if (!mount.isConnected) return;
+      const formats = coverFormats({ formats: item.formats });
+      if (!formats?.length) continue;
+      const tpl = templates.find((x) => x.id === item.key && x.toolId === item.toolId);
+      const own = tpl ? await fetchWorkspaceValues(tpl) : {};
+      if (!own) continue;
+      const values = tpl ? { ...own, ...companyValuesFor(tpl.bindings, 'light') } : { ...toolStartValues(item.toolId), ...own };
+      try {
+        const src = await renderFeaturedVariant(host as Parameters<typeof renderFeaturedVariant>[0], item.toolId, formats, `published:${item.key}`, values, 'published');
+        const media = mount.querySelector<HTMLElement>(`.published-card[data-published-key="${CSS.escape(item.key)}"] .published-card-media`);
+        if (!src || !media) continue;
+        const img = document.createElement('img');
+        img.className = 'published-card-thumb';
+        img.alt = '';
+        img.src = src;
+        media.prepend(img);
+      } catch { /* the icon stays */ }
+    }
+  } catch { /* the shelf is an offer, never something the gallery waits on */ }
+}
+
+/** The home search's words per gallery mount, so a shelf drawn after the person started
+ *  typing opens filtered. */
+const shelfSearch = new WeakMap<HTMLElement, readonly string[]>();
+
+/** Filter the workspace's shelf with the home search (views/published-shelf.ts). The
+ *  module is asked for only when a shelf is on screen, so a plain build loads nothing.
+ *  When the shelf answers the search, the grid's "No tools match" line stands down, as
+ *  the matching card sits right above the grid. */
+function searchShelf(viewEl: HTMLElement, tokens: readonly string[]): void {
+  shelfSearch.set(viewEl, tokens);
+  if (!viewEl.querySelector('.published-shelf')) return;
+  void import('./published-shelf.ts').then(({ filterShelf }) => {
+    if (filterShelf(viewEl, tokens) > 0) viewEl.querySelector<HTMLElement>('.gallery-no-results')?.setAttribute('hidden', '');
+  });
+}
+
+/** Run `fn` when the page is idle, or soon where there is no idle callback. */
+function whenIdle(fn: () => void): void {
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(fn, { timeout: 2000 });
+  else setTimeout(fn, 200);
+}
+
+/** The home shelves under the featured strip: the mount the workspace's published
+ *  templates fill later (fillPublishedShelf), then the person's own tools. The Utilities
+ *  view shows neither. */
+function homeShelvesHtml(only: GalleryMountOpts['only'], yours: Parameters<typeof yoursShelfTools>): string {
+  return only ? '' : `<div class="published-mount"></div>
+        ${yoursShelfHtml(yoursShelfTools(...yours))}`;
+}
+
 export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts: GalleryMountOpts = {}): Promise<void> {
   document.title = opts.only ? 'Utilities - Lolly' : 'Lolly';
+  holdEarlyDrops(viewEl); // a file dropped before the drop router loads waits for it (see below)
   // #/?q=<text> restores a handed-off search (plans/99 section 2c): raw for the field's
   // display value, lowercased below for `query` (the same normalisation the input
   // handler applies at each keystroke).
@@ -518,7 +611,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // Drop them once, here, so every downstream membership set (grid, search, favourites,
   // featured + utility strips, pill counts) excludes them with no per-site guard. They
   // still load via #/tool/<id>, URL mode and the CLI - this only hides them from the listing.
-  const index: { tools: GalleryTool[] } = { tools: rawIndex.tools.filter(t => t.listed !== false).map(tool => ({
+  const index: { tools: GalleryTool[] } = { tools: rawIndex.tools.filter(t => t.listed !== false && typeof t.templateId !== 'string').map(tool => ({
     ...tool,
     // Discovery artwork is rendered with this device's active tokens. Static
     // posters, motion cards and historic session thumbnails may belong to another brand.
@@ -704,7 +797,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     const featured = t.featured ?? { blurb: t.description };
     return {
       id: t.id, name: t.name, icon: t.icon, version: t.version, galleryPreview: !iconHero,
-      formats: t.formats, status: t.status,
+      formats: coverFormats(t), status: t.status,
       examples: iconHero ? undefined : t.examples,
       // `featured.variants` is the pre-`examples` alias resolveExamples() still
       // honours, so an icon-hero entry must shed it too or the looks come back.
@@ -730,7 +823,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // Sorted before the cap because featured-row.ts re-sorts by `featured.order` anyway: slicing
   // catalog order first could drop a lower-order tool and leave a higher-order one as the hero.
   const firstRunFeatured = (): Set<string> | null => {
-    if (profile?.favourites !== undefined || FIRST_RUN_FEATURED_MAX <= 0) return null;
+    if (profile?.favourites !== undefined || FIRST_RUN_FEATURED_MAX <= 0 || isProgrammeMember()) return null;
     const curated = index.tools
       .filter(t => t.featured?.order != null && !hidden.has(t.category) && !hiddenTools.has(t.id))
       .sort((a, b) => a.featured!.order! - b.featured!.order!)
@@ -823,7 +916,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // shows, nothing else does, and the answer to that is async (token discovery).
   // Placed ahead of the content so the phone-width nudge reads as an in-flow
   // card at the top of the gallery (A4); the privacy strip is fixed either way.
-  const firstRunBanner = privacyNoticeMarkup() || personalizeNudgeMarkup(profile) || offlineNudgeMarkup(profile);
+  const firstRunBanner = firstRunBannerMarkup(profile, isProgrammeMember());
 
   const cardSizeView = opts.only ? 'utilities' : 'tools', cardSize = readCardSize(cardSizeView);
   let browseLayout = readLayout(cardSizeView, opts.params, GALLERY_LAYOUTS);
@@ -854,17 +947,14 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
 
       ${visibleCats.length === 0 ? galleryEmptyHtml(index.tools.length === 0) : `
         <div class="featured-mount"></div>
-        ${opts.only ? '' : yoursShelfHtml(yoursShelfTools(
-          [...new Set(sortedSaved.filter(e => !isBatchSlot(e.slot)).map(e => e.toolId))],
-          favourites,
-          toolById,
-          hiddenTools,
-        ))}
+        ${homeShelvesHtml(opts.only, [[...new Set(sortedSaved.filter(e => !isBatchSlot(e.slot)).map(e => e.toolId))], favourites, toolById, hiddenTools])}
         <p class="gallery-search-status visually-hidden" role="status" aria-live="polite"></p>
         <div class="tool-masonry${opts.only === 'utility' ? ' tool-masonry--utility' : ''}"${cardSizeAttr(cardSize)}${layoutAttr(browseLayout)}${densityAttr(browseDensity)}></div>
       `}
     </div>
   `;
+
+  if (!opts.only) void fillPublishedShelf(viewEl, host, rawIndex.tools, initialQuery); // views/published-shelf.ts
 
   // Hidden until the ladder reveals it (see revealFirstRunBanner) - and hidden
   // from the accessibility tree with it, so a screen reader isn't told about a
@@ -913,13 +1003,12 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     headshotId: profile.headshot?.id,
   });
 
-  // Universal drop front door: any file dragged onto the gallery is sniffed and
-  // routed (design → Design, PDF → import/compress, media → library or
-  // /verify). Scoped to this view's root (its listeners die with the node on
-  // navigation) - never a window/document-global handler. drop-router (~6 KB) is
-  // dynamic-imported off the boot path; kicked at mount, it resolves in ~ms same-origin,
-  // so a file dropped in that sliver is effectively never missed. The cast is erased:
-  // the concrete web host carries the picker's upload surface.
+  // Universal drop front door: any file dragged onto the gallery is sniffed and routed
+  // (design → Design, PDF → import/compress, media → library or /verify). Scoped to this
+  // view's root (its listeners die with the node on navigation) - never a window/document-global
+  // handler. drop-router is dynamic-imported off the boot path, seconds after the paint on a slow
+  // first visit, so holdEarlyDrops() above keeps a file dropped before then for it (lib/drop-early.ts).
+  // The cast is erased: the concrete web host carries the picker's upload surface.
   void import('../lib/drop-router.ts').then((m) => m.attachDropRouter(viewEl, host as unknown as PickerHost));
 
   // Empty catalog: re-sync, then remount through navigate() ('lolly:remount'), which cleans up and keeps the WebGPU guard.
@@ -1242,66 +1331,16 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   let revealObserver: IntersectionObserver | null = null;
   cleanups.push(() => revealObserver?.disconnect());   // render() replaces it; unmount drops the last one
 
-  // Finish covers before nearby extra templates, across both gallery consumers.
+  // Finish covers before any extra template, across both gallery consumers. An extra
+  // template waits until the person shows interest in its card (wireLookInterest).
   function previewPriority(gcar: HTMLElement, cover: boolean): number | null {
-    return perfUiOn() ? null : galleryPreviewPriority(gcar, cover, captureNeutralPinned());
+    return perfUiOn() ? null : galleryPreviewPriority(gcar, cover, captureNeutralPinned(), gcar.hasAttribute(CAR_WANTED_ATTR));
   }
-  // A paged tool (multi-page-pdf): render each page and rebuild the strip's slides +
-  // dots from them (page count is unknown until rendered). The track element persists,
-  // so its listeners survive; nav/dots are delegated off .gcar (see wireCarousel).
-  async function hydratePaged(gcar: HTMLElement, toolId: string, tool: GalleryTool): Promise<void> {
-    if (gcar.dataset.pagedDone === '1') return;
-    let urls: string[];
-    try {
-      urls = await renderFeaturedPages(host, toolId, tool.formats);
-    } catch (e) {
-      host.log?.('warn', `Gallery pages failed for ${toolId}`, { error: String((e as { message?: unknown })?.message ?? e) });
-      return;
-    }
-    const track = gcar.querySelector<HTMLElement>('.gcar-track');
-    if (!gcar.isConnected || !track || !urls.length) return;
-    gcar.dataset.pagedDone = '1';
-    const openHref = `#/tool/${escape(toolId)}`;
-    // Multi-page content reads as a swipeable STACK, not a flat carousel - the same
-    // language as carousel-maker's featured card. Show the first few pages as an offset,
-    // slightly-rotated deck (front page on top, the rest peeking behind). Cap at 3: enough
-    // to say "multiple pages" without clutter; the real page-by-page view is the tool.
-    const shown = urls.slice(0, 3);
-    // Two layers per page: an OUTER square layer (.gcar-deck-page) carries the fan offset +
-    // rotation - expressed as % of the square box, so the spread stays constant no matter the
-    // page shape (a razor-thin 5:1 banner fans by the same amount as a portrait sheet). The
-    // INNER image (.gcar-deck-card) is sized to the page's real aspect (deckPageFit) so its
-    // shadow + rim wrap the true sheet. Seed the size from the manifest render size (no load
-    // flash for the common case); the image's own dimensions correct it below.
-    const seed = deckPageFit((tool.width && tool.height) ? tool.width / tool.height : 1);
-    const pages = shown.map((u, k) =>
-      // --d = depth: 0 = front (on top), higher = further back. Positioned + z-ordered in CSS.
-      `<span class="gcar-deck-page" style="--d:${k}"><img class="gcar-deck-card" style="width:${seed.w.toFixed(2)}%;height:${seed.h.toFixed(2)}%" src="${u}" alt="" aria-hidden="true" decoding="async"></span>`,
-    ).join('');
-    track.outerHTML =
-      `<a class="gcar-open gcar-deck" href="${openHref}" data-new-tool="${escape(toolId)}" tabindex="-1" aria-hidden="true">${pages}</a>`;
-    gcar.classList.add('has-art', 'gcar--deck');   // pages rendered → stop the waiting tracer
-    // Correct each card to the decoded image's true aspect (authoritative - covers tools
-    // whose rendered page differs from, or omits, its manifest size, incl. wide banners).
-    gcar.querySelectorAll<HTMLImageElement>('.gcar-deck-card').forEach(img => {
-      const fit = (): void => {
-        if (!img.naturalWidth || !img.naturalHeight) return;
-        const f = deckPageFit(img.naturalWidth / img.naturalHeight);
-        img.style.width = `${f.w.toFixed(2)}%`;
-        img.style.height = `${f.h.toFixed(2)}%`;
-      };
-      if (img.complete) fit();
-      else img.addEventListener('load', fit, { once: true });
-    });
-    // The deck is a static preview - it has no per-page nav/dots (unlike the old carousel).
-    stripCarouselNav(gcar);
-  }
-
   function queueCarousel(gcar: HTMLElement): void {
     const toolId = gcar.dataset.tool;
     const tool = toolId ? toolById.get(toolId) : undefined;
     if (!tool) return;
-    const fmt = displayFormatOf(tool.formats);
+    const fmt = displayFormatOf(coverFormats(tool));
     if (!fmt) return;
     // perf-ui: skip the live grid-tile preview render (renderFeaturedVariant / renderFeaturedPages
     // rasterise on the main thread) - settle the tile on its static icon instead. Adding has-art
@@ -1322,33 +1361,50 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
         return { thumb, href };
       });
     };
-    slides.forEach((slide, i) => previewQueue.add({
-      priority: () => previewPriority(gcar, i === 0),
-      stale: () => !gcar.isConnected,
-      run: () => renderSlide(slide),
-    }));
+    // A stored look is read first; a missing one is drawn when the page is at rest (lookTask).
+    slides.forEach((slide, i) => previewQueue.add(withHeldLook(gcar, slide, tool.id, i, lookTask(previewQueue, gcar, () => previewPriority(gcar, i === 0), {
+      read: () => readStoredLook(gcar, slide, async () => (looks[i] ? storedGalleryLook(host, tool, i, looks[i]!) : null), () => galleryLookHref(tool.id, looks[i])),
+      draw: () => renderSlide(slide), done: () => slideFinished(slide),
+    }))));
     // A paged document also gets its single cover before we export the full deck.
-    if (gcar.dataset.paged === '1') previewQueue.add({
-      priority: () => previewPriority(gcar, false),
-      stale: () => !gcar.isConnected,
-      run: () => hydratePaged(gcar, toolId!, tool),
-    });
+    if (gcar.dataset.paged === '1') previewQueue.add(lookTask(previewQueue, gcar, () => previewPriority(gcar, false), {
+      read: () => hydratePaged(host, gcar, toolId!, tool, { storedOnly: true }),
+      draw: () => hydratePaged(host, gcar, toolId!, tool), done: () => gcar.dataset.pagedDone === '1',
+    }));
   }
 
+  // The tool and first look of a card, for the baked cover pass (gallery-look-loader.ts).
+  const coverTarget = (gcar: HTMLElement, slide: HTMLElement) => {
+    const tool = gcar.dataset.tool ? toolById.get(gcar.dataset.tool) : undefined;
+    const index = Number(slide.dataset.exIndex);
+    const look = tool ? resolveExamples(tool)[index] : undefined;
+    return tool && look ? { tool, look, index } : null;
+  };
+
   let carouselObserver: IntersectionObserver | null = null;
+  // With no pointer to hover, a card on the screen is the only sign of interest there is.
+  const hoverless = typeof matchMedia === 'function' && !matchMedia('(hover: hover)').matches;
   function armCarousels(): void {
     carouselObserver?.disconnect();
     carouselObserver = null;
     if (!masonry) return;
     const cars = [...masonry.querySelectorAll<HTMLElement>('.gcar')];
     cars.forEach(queueCarousel);
-    // The observer wakes parked extra templates as their card approaches.
+    // Baked covers go on at once, ahead of the queue. A capture keeps its live vector
+    // renders, so its baselines hold. A baked file that is gone is queued like any cover.
+    if (!captureNeutralPinned()) void placeBakedCovers(host, cars, coverTarget, (target) => galleryLookHref(target.tool.id, target.look), queueCarousel);
+    // The observer wakes parked work as a card approaches, and on a touch screen marks
+    // the cards in view as wanted.
     if (typeof IntersectionObserver !== 'undefined') {
-      carouselObserver = new IntersectionObserver(() => previewQueue.wake(), { rootMargin: '250px 0px' });
+      carouselObserver = new IntersectionObserver((entries) => {
+        if (hoverless) for (const entry of entries) if (entry.isIntersecting && entry.intersectionRatio >= 0.5) wantLooks(entry.target as HTMLElement);
+        previewQueue.wake();
+      }, { rootMargin: '250px 0px', threshold: [0, 0.5] });
       cars.forEach(g => carouselObserver!.observe(g));
     }
   }
   cleanups.push(() => carouselObserver?.disconnect());
+  if (masonry) cleanups.push(wireLookInterest(masonry, () => previewQueue.wake()));
 
   // Motion previews (plans/155 WP-5.3). hover:false because the tile's own pointerenter
   // hook (wireCards) already drives hover - this arm covers keyboard focus everywhere and,
@@ -1510,7 +1566,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
         .slice(0, featuredHandle ? EAGER_TILES_WITH_HERO : EAGER_TILES).map(t => t.id),
     );
     masonry.innerHTML = viewCards + allTools
-      .map(t => cardMarkup(t, latestByTool(t.id), host.capabilities, theme.dark, opts.only === 'utility', eagerIds.has(t.id), templateLine(gtpl, t)))
+      .map(t => cardMarkup(t, latestByTool(t.id), host.capabilities, theme.dark, opts.only === 'utility', eagerIds.has(t.id), templateChip(gtpl, t)))
       .join('');
     syncDescriptions(masonry, browseLayout);
     masonry.append(noResults);
@@ -1749,7 +1805,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     // Type-to-find on fine-pointer devices (the bar skips touch so the keyboard
     // doesn't pop over the gallery).
     autoFocus: true,
-    onQuery: (raw) => { query = raw.toLowerCase(); queryTokens = tokenize(raw); syncBrowseUrl(); applyView(); },
+    onQuery: (raw) => { query = raw.toLowerCase(); queryTokens = tokenize(raw); syncBrowseUrl(); applyView(); searchShelf(viewEl, queryTokens); },
   }));
 
   // "clear search" link inside the empty-state line (rebuilt by applyView). The <p> node
@@ -2184,9 +2240,9 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // components/welcome-dialog.ts) - no cleanup entry here, so the same-route
   // post-sync re-mount keeps it open without a flash. The decision and the open
   // dialog both hold lib/welcome-gate.ts, so boot-time maintenance waits for them.
-  const galleryRoot = viewEl.querySelector<HTMLElement>('.gallery');
+  const galleryRoot = viewEl.querySelector<HTMLElement>('.gallery'), welcomeHost = host as unknown as GalleryHost & PickerHost, classicWelcome = deepLink.get('welcome') === 'classic'; placeGalleryWelcome(galleryRoot, welcomeHost, { classic: classicWelcome });
   void (async () => {
-    const step = await galleryWelcomeStep(host as unknown as GalleryHost & PickerHost, () => !!galleryRoot?.isConnected, deepLink.has('welcome'));
+    const step = await galleryWelcomeStep(welcomeHost, () => !!galleryRoot?.isConnected, deepLink.has('welcome'), { classic: classicWelcome, root: () => galleryRoot });
     if (!step || !galleryRoot?.isConnected) return;
     // Branded (or locked): no welcome to wait for, so the banner slot is free.
     // The branded intro strip that used to come first ("Your brand is loaded")
@@ -2196,16 +2252,16 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       revealFirstRunBanner();
       return;
     }
-    // The step opened the welcome when it was due. 'brand' navigates itself; the
-    // upload host enables the "Bring your design" card. A welcome visit is the
-    // whole ask - the banner stays hidden until a later visit, and previews stay
-    // paused until the dialog closes.
+    // The step opened the welcome when due (the greeting in place, or the classic dialog
+    // at #/?welcome=classic). A welcome visit is the whole ask: the banner waits for a
+    // later visit, and previews wait for the dialog but never for the greeting.
     // `#/?welcome` forces it open past the dismissed flag, so docs and screenshot
     // runs can capture the greeting deterministically instead of needing a virgin
     // profile. It rides INSIDE the ladder on purpose: everything above still
     // applies, so a locked or already-branded install has already returned and the
     // flag is silently ignored there - a deep link can't nag someone who has a brand.
     if (step.closed) {
+      if (step.inPlace) previewQueue.setPaused(false);
       await step.closed;
       return;
     }
@@ -2248,6 +2304,9 @@ export interface UtilityView {
  * disagree about whether the card exists.
  */
 const utilityViews = (speechOk: boolean): UtilityView[] => [{
+  id: 'music', href: '#/music', icon: 'music', name: t('Music generator'),
+  description: t('Make a track in any Lolly Sings style: pick a seed, lock the instruments you like, mix it, then download it or save it to your library. A link opens the same track for anyone.'),
+}, {
   id: 'compare', href: '#/compare', icon: 'document', name: t('Compare'),
   description: t('Compare text, JSON, YAML, tables, documents, images, PDFs and saved versions locally. See what changed without changing either source.'),
 }, {
@@ -2573,7 +2632,7 @@ async function hydrateInfoTemplates(
     try {
       const values = await fetchTemplateValues(tool.id, tp.id);
       if (!values || !dialog.isConnected) continue;
-      const thumb = await renderFeaturedVariant(host, tool.id, tool.formats, tp.id, values as Record<string, unknown>, 'template', tp.motion?.posterMs);
+      const thumb = await renderFeaturedVariant(host, tool.id, coverFormats(tool), tp.id, values as Record<string, unknown>, 'template', tp.motion?.posterMs);
       if (!dialog.isConnected || !thumb) continue;
       img.src = thumb;   // the [src] CSS reveals it; the glyph sits behind
     } catch { /* leave the glyph */ }
@@ -2585,7 +2644,7 @@ async function hydrateInfoTemplates(
     const img = dialog.querySelector<HTMLImageElement>(`.meta-look[data-utpl="${esc(ut.id)}"] .meta-look-img`);
     if (!img || img.getAttribute('src')) continue;
     try {
-      const thumb = await renderFeaturedVariant(host, tool.id, tool.formats, ut.id, ut.values, 'template');
+      const thumb = await renderFeaturedVariant(host, tool.id, coverFormats(tool), ut.id, ut.values, 'template');
       if (!dialog.isConnected || !thumb) continue;
       img.src = thumb;
     } catch { /* leave the glyph */ }
@@ -2808,7 +2867,7 @@ function savedItem(entry: SavedEntry, bytes: number | undefined): string {
     subTag: 'small',
     subtitle,
     sizeBytes: bytes,
-    deleteAttr: `data-delete="${escape(entry.slot)}"`,
+    deleteAttr: { 'data-delete': entry.slot },
     deleteClass: 'saved-delete',
     deleteTitle: t('Delete'),
     deleteLabel: t('Delete'),

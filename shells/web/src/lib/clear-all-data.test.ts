@@ -7,8 +7,10 @@
  *   - every object store in the app database is emptied, read from the database's
  *     own store list: the test builds its fake from the stores bridge/db.ts really
  *     creates, plus one no code has made yet, so a store added later is covered;
- *   - every other database, every Cache Storage cache (known names and an unknown
- *     one), every entry in the origin-private file system, and web storage;
+ *   - every other database, every service worker registered on the origin (before
+ *     the caches, so a worker cannot fill one again), every Cache Storage cache
+ *     (known names and an unknown one), every entry in the origin-private file
+ *     system, and web storage;
  *   - every other tab is told to stop writing and the clear waits for them
  *     (lib/clear-signal.ts; the two-tab runs are clear-signal.test.ts and
  *     clear-all-tabs.test.ts), and sync is switched off BEFORE anything is
@@ -23,7 +25,7 @@
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { clearAllLollyData, type ClearAllEnv, type ClearableDb, type ClearableDirectory } from './clear-all-data.ts';
+import { clearAllLollyData, unclearedParts, type ClearAllEnv, type ClearableDb, type ClearableDirectory } from './clear-all-data.ts';
 import { registerDeviceDataClearer, resetDeviceDataClearersForTests } from './device-data-clearers.ts';
 
 const src = (rel: string): string => readFileSync(new URL(rel, import.meta.url), 'utf8');
@@ -70,6 +72,7 @@ function fakeEnv(order: string[], over: Partial<ClearAllEnv> = {}) {
   const opfs = fakeDir(['lolly-file-results-v1', 'lolly-preview-pcm-v1', 'recorder-scratch']);
   const local = fakeStorage(['lolly-theme', 'lolly.flags', 'lolly:projectsViewPrefs', 'theme', 'lang', 'sidebarWidth', 'sbt-catalog:assets-index']);
   const session = fakeStorage(['lolly:file-into']);
+  const workers = new Set(['http://localhost:5173/']);
   const env: ClearAllEnv = {
     tabs: {
       begin: async () => { order.push('tabs'); return { tabs: 1, ready: 1 }; },
@@ -88,13 +91,19 @@ function fakeEnv(order: string[], over: Partial<ClearAllEnv> = {}) {
         return req;
       },
     },
+    serviceWorkers: {
+      getRegistrations: async () => {
+        order.push('service-workers');
+        return [...workers].map(scope => ({ scope, unregister: async () => workers.delete(scope) }));
+      },
+    },
     caches: { keys: async () => { order.push('caches'); return [...caches.keys()]; }, delete: async (k: string) => caches.delete(k) },
     storageRoot: async () => { order.push('opfs'); return opfs.dir; },
     localStorage: local.api,
     sessionStorage: session.api,
     ...over,
   };
-  return { env, app, caches, dbNames, opfs, local, session, extraStore };
+  return { env, app, caches, dbNames, opfs, local, session, workers, extraStore };
 }
 
 afterEach(() => resetDeviceDataClearersForTests());
@@ -117,6 +126,9 @@ test('every store, database, cache, file and storage key goes, including ones ad
   assert.equal(report.stores.length, SCHEMA_STORES.length + 1);
   assert.deepEqual([...f.dbNames], ['lolly'], 'other databases are deleted; the app database is emptied, not deleted');
   assert.deepEqual(report.databases, ['some-library-cache']);
+  assert.equal(f.workers.size, 0, 'every service worker is unregistered');
+  assert.deepEqual(report.serviceWorkers, ['http://localhost:5173/']);
+  assert.ok(order.indexOf('service-workers') < order.indexOf('caches'), 'the worker goes before the caches it could fill');
   assert.equal(f.caches.size, 0, 'every cache is deleted');
   assert.ok(report.caches.includes('lolly-some-future-cache'));
   assert.equal(f.opfs.entries.size, 0, 'the private file system is empty');
@@ -143,6 +155,17 @@ test('a tab that did not confirm is reported, and the others still reload when a
   });
   assert.ok(report.errors.includes('tabs: 1 of 2 did not confirm they stopped writing'));
   assert.equal(order.at(-1), 'finish');
+});
+
+test('a service worker that will not unregister is reported, and the caches still go', async () => {
+  const order: string[] = [];
+  const f = fakeEnv(order);
+  const report = await clearAllLollyData({
+    env: { ...f.env, serviceWorkers: { getRegistrations: async () => [{ scope: 'http://localhost:5173/', unregister: async () => false }] } },
+  });
+  assert.ok(report.errors.includes('service worker http://localhost:5173/: not unregistered'));
+  assert.deepEqual(report.serviceWorkers, []);
+  assert.equal(f.caches.size, 0);
 });
 
 test('web storage keeps only the clear marker, so every tab can still compare it', async () => {
@@ -184,6 +207,34 @@ test('one refusal never stops the rest', async () => {
   assert.ok(report.errors.some(e => e.startsWith('sync:')));
   assert.ok(report.errors.some(e => e.startsWith('broken:')));
   assert.ok(report.errors.some(e => e.startsWith('store stuck:')));
+});
+
+test('a partial clear says which parts of the device it left behind, once each, in the order it ran', async () => {
+  const clean = await clearAllLollyData({ env: fakeEnv([]).env });
+  assert.deepEqual(clean.failedSteps, []);
+  assert.deepEqual(unclearedParts(clean), [], 'a clear that finished leaves nothing to tell');
+
+  const f = fakeEnv([]);
+  const failing = fakeDb(['state', 'stuck'], { failWholeTx: true, failStore: 'stuck' });
+  registerDeviceDataClearer('broken', async () => { throw new Error('disk says no'); });
+  const report = await clearAllLollyData({
+    env: {
+      ...f.env,
+      tabs: { ...f.env.tabs, begin: async () => ({ tabs: 2, ready: 1 }) },
+      stopSync: async () => { throw new Error('offline'); },
+      openAppDb: async () => failing.db,
+      caches: { keys: async () => ['lolly-v17', 'lolly-pins'], delete: async () => false },
+    },
+  });
+  assert.deepEqual(report.failedSteps, ['tabs', 'sync', 'broken', 'indexeddb', 'caches'], 'one label per failed step, however many lines it logged');
+  assert.equal(report.errors.filter(e => e.startsWith('cache ')).length, 2);
+  // A slow tab is refused every later write, and Sync's settings went with the database
+  // step, so neither leaves anything of its own behind to report.
+  assert.deepEqual(unclearedParts(report), ['app-files', 'database', 'offline']);
+  assert.deepEqual(
+    unclearedParts({ failedSteps: ['opfs', 'localStorage', 'sessionStorage', 'databases', 'pack-store', 'state', 'user-assets-fs'] }),
+    ['files', 'preferences', 'database', 'app-files'],
+  );
 });
 
 test('a database another tab holds open is reported, not waited on forever', async () => {

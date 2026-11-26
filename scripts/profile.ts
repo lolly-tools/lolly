@@ -83,8 +83,12 @@ function main(): void {
   if (roots.assetRoots.length) {
     console.log(`asset roots  ${roots.assetRoots.map((a) => `${rel(a.dir)} (/catalog/packs/${a.name}/)`).join(', ')}`);
   }
+  for (const companion of roots.companions ?? []) {
+    console.log(`companion    ${companion.label} from ${rel(companion.catalogDir)} (${companion.assets.join(', ')})`);
+  }
   console.log(`tools        ${ids.length}`);
   if (roots.exclude.size) console.log(`excluded     ${[...roots.exclude].sort().join(', ')}`);
+  if (roots.unlist.size) console.log(`unlisted     ${[...roots.unlist].sort().join(', ')}`);
 
   const others = inventory().filter((p) => p.name !== roots.profile);
   if (others.length) {

@@ -213,6 +213,8 @@ export interface ActionsCtx {
   songWavUrl: string | null;
   /** The rondocode songs the export sheet last said the next export's credential records (notes.ts). */
   songNoteNames: string[];
+  /** The saved tunes the export sheet last said the next export's credential records (notes.ts). */
+  tuneNoteNames: string[];
   /** Bumped per song-note paint, so a slower earlier check never paints over a newer one. */
   songNoteSeq: number;
   /** Debounce for the song note after an input change. */

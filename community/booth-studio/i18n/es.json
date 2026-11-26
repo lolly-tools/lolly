@@ -1,6 +1,6 @@
 {
   "name": "Stand",
-  "description": "Viste un stand de eventos en 3D con material del patrocinador. Haz clic en cualquier panel para soltar una imagen, elige un diseño de stand y renderiza una imagen fija o un giro de 360° para una presentación de patrocinio.",
+  "description": "Viste un stand de eventos en 3D con material del patrocinador. Elige un diseño de stand y renderiza una imagen fija o un giro de plataforma para la propuesta a un patrocinador.",
   "a11yLabel": "Maqueta 3D de un stand de evento {{default design \"an inline\"}} vestido con arte del patrocinador",
   "inputs.design.label": "Diseño de stand",
   "inputs.design.help": "La forma del stand. El arte de tus paneles se mantiene entre diseños - una pared de fondo sigue siendo una pared de fondo.",

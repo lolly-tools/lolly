@@ -1,5 +1,5 @@
 {
   "name": "Filter",
-  "description": "Ein Werkzeug für Fotoeffekte: wählen Sie Halbton, Scanline, Posterize, Voronoi, Dither oder ASCII-Art (Vektor) oder Duoton, Pixel-Stretch, Fehldruck oder Glitch (Raster). Overlays aus Ihrem Designsystem, Live-Kamera und Export in so viele Formate, wie jeder Effekt unterstützt.",
+  "description": "Fotoeffekte: Halbton, Scanline, Posterize, Voronoi, Dither oder ASCII-Art (Vektor) oder Duoton, Pixel-Stretch, Fehldruck oder Glitch (Raster).",
   "featured.blurb": "Zehn Fotoeffekte, vektoriell oder Raster, in einem Tool"
 }

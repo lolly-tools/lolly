@@ -1,7 +1,19 @@
 # VectorCraft Affinity reader source
 
-Source: https://github.com/storytold/vectorcraft/tree/05d5f99fd7e7dc00db3a9754d594b1214945d855/crates/affinity
-Commit: 05d5f99fd7e7dc00db3a9754d594b1214945d855 (crate version 0.19.0)
+Source: https://github.com/storytold/vectorcraft/tree/1b744eae520b7f0e1980d030560194b2121ae651/crates/affinity
+Commit: 1b744eae520b7f0e1980d030560194b2121ae651 (crate version 0.24.0, 2026-11-11)
+
+This is the last VectorCraft revision with the reader in its own crate. On 2026-11-12 VectorCraft
+switched to `craft-affinity` in storytold/craft-libs, which merges in PhotoCraft's reader and adds a
+zstd decoder and five more image decoders; moving to it is a separate change. The revisions taken
+since 05d5f99 (0.19.0, the first vendoring) bound hostile input: archive index names get one
+allowance for the whole archive and a failed entry stays charged (#5291); repeated links to a
+shared object share one work and name budget; the fields of a large object are indexed instead of
+searched each time (#5310); pressure curves have a document-wide point limit and an unreadable one
+counts against it. They also read a stroke's pressure curve from the Width tool into
+`Stroke::profile`, sweep conic gradient stops once around the centre in pixel overlays, and find
+gradient stops by binary search. Lolly's adapter does not draw width profiles, so it warns about
+those strokes itself, as the reader did before (see `src/lib.rs`).
 Licence: MIT OR Apache-2.0. The upstream licence files are retained here, taken from the
 repository root at the same commit, with a NOTICE that keeps the copyright line and states that
 the ArtCraft marks are not part of this source.

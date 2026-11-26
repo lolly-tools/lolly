@@ -1,45 +1,46 @@
 # Hanapin at bawiin ang gawa mo
 
-May nawawala: design na hindi mo na-save, file na dina-download mo, bersyon noong nakaraang linggo, o lahat pagkatapos ma-clear ang browser. Magsimula sa table, saka sundan ang seksyong itinuturo nito.
+Hanapin ang design na hindi mo na-save, ang file na na-download mo, ang bersyon noong nakaraang linggo o ang gawa mo matapos malinis ang browser. Magsimula sa table.
 
-Ang personal na gawa ay nananatili sa browser o app na ginawan mo nito, sa device na iyon, maliban kung i-on mo ang [Sync](/info/sync.html). Ang organisasyong gumagamit ng opsyonal na Lolly Work ay nag-iingat din ng **Team projects** sa server nito, na tinatalakay sa ibaba.
+Nananatili ang personal na gawa sa browser o app kung saan mo ito ginawa, sa device na iyon, maliban kung i-on mo ang [Sync](/info/sync.html). Iniingatan din ng organisasyong gumagamit ng opsyonal na Lolly Work ang **Team projects** sa server nito.
 
-| Ano ang ginawa mo | Saan titingin |
+| Ang ginawa mo | Saan titingin |
 |---|---|
-| Pinindot ang **I-save bilang** o **I-save** | **Mga Project** |
-| Pinindot ang **I-download** | Downloads ng browser mo, at may kopya sa **Mga asset** |
-| Wala sa dalawa, sa [isang tool na nag-sa-save habang ginagawa mo](#which-tools-save-as-you-work) | **Mga Project** at **History** |
-| Wala sa dalawa, sa ibang tool | Ang tab lang na ginamit mo, hanggang isara mo ang tab |
-| Na-delete mo ito sa app | **Trash**, sa **Mga Project**, **Mga asset** o **Mga Setting → Imbakan**, sa loob ng 30 araw |
+| Pinindot ang **Save as** o **Save** | **Projects** |
+| Pinindot ang **Download** | Mga download ng browser mo at isang kopya sa **Assets** |
+| Wala sa dalawa, sa [tool na nagse-save habang gumagawa ka](#which-tools-save-as-you-work) | **Projects** at **History** |
+| Wala sa dalawa, sa tool na hindi nagse-save habang gumagawa ka | Sa tab lang na ginamit mo, hanggang isara mo ito |
+| Binura ito sa app | **Trash**, sa **Projects**, **Assets** o **Settings → Storage**, sa loob ng 30 araw |
 
 ::: figure find-your-work-places
-Kung saan nakatira ang gawa mo: ang sariling storage ng browser ang may hawak ng Projects, History at Trash; ang mga download ay napupunta sa mga folder ng device mo; ang Sync at backup file ay ang mga kopya sa labas ng browser.
+Kung saan nakalagay ang gawa mo: hawak ng sariling storage ng browser ang Projects, History at Trash; napupunta ang mga download sa mga folder ng device mo; ang Sync at backup file ang mga kopya sa labas ng browser.
 :::
 
-::: details Hanapin ang shared na gawa sa Lolly Work (opsyonal)
-Buksan ang Lolly ng organisasyon mo at mag-sign in, saka tumingin sa **Projects → Team projects**. Hawak ng instance na iyon ang mga shared session at lumilitaw ayon sa access mo. Ang pag-sign in ay maaaring magbalik ng access sa mga session na iyon sa ibang device; hindi nito ibinabalik ang personal mong library o device backup.
+::: details Hanapin ang ibinahaging gawa sa Lolly Work (opsyonal)
+Buksan ang Lolly ng organisasyon mo, mag-sign in at tumingin sa **Projects → Team projects**. Nasa instance na iyon ang mga ibinahaging session at ipinapakita nito ang mga may access ka. Maibabalik ng pag-sign in sa ibang device ang access sa mga session na iyon. Hindi ibinabalik ng pag-sign in ang personal mong library o backup ng device.
 
-Sa [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), hintaying lumabas ang **Saved to work** bago umalis. Kung nawawala ang shared project, i-check na nakakonekta ka sa tamang instance at itanong sa operator nito ang tungkol sa access o retention. Ang pag-clear ng browser data ay nag-aalis ng mga lokal na kopya, hindi ng kopya ng server ng organisasyon. Tingnan ang [Gamitin ang Lolly sa organisasyon mo](/info/organisation.html).
+Sa isang [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), hintayin ang **Saved to work** bago umalis. Kung may nawawalang ibinahaging project, tingnan kung nakakonekta ka sa tamang instance at tanungin ang operator nito tungkol sa access o retention. Inaalis ng paglilinis ng browser data ang mga lokal na kopya, hindi ang kopya sa server ng organisasyon. Tingnan ang [Gamitin ang Lolly sa organisasyon mo](/info/organisation.html).
 :::
 
-## Hanapin ang na-save mong gawa
+<!--i:eti-search-->
+## Hanapin ang na-save mo
 
 1. Pindutin ang **Home** sa kaliwang itaas ng tool.
-2. Buksan ang tab na **Mga Project** sa itaas ng home screen (ang folder icon sa telepono).
-3. Tingnan ang unang screen. Nandoon ang gawang na-save sa **Aking library**, at bawat project ay isang folder. Para maghanap sa lahat ng folder nang sabay, mag-type sa **Hanapin sa lahat ng project…** sa ilalim ng screen.
+2. Buksan ang **Projects** tab sa itaas ng home screen (ang folder icon sa phone).
+3. Nasa unang screen ang lahat ng na-save mo sa **My library**. Isang folder ang bawat project. Para maghanap sa bawat folder, mag-type sa **Search all projects…** sa ibaba ng screen.
 
-Ang item ay pinangalanan ayon sa file name na tinype mo sa export panel, o ayon sa tool nito, tulad ng **QR Code**, kung wala kang tinype. Buksan ang item at bumabalik ang bawat setting, handang baguhin at i-export muli. Para itago ang bagong gawa sa ganitong paraan, tingnan ang [Saving & continuing](/info/using.html#saving-continuing).
+Ginagamit ng item ang pangalan ng file na tinype mo sa export panel. Kung walang pangalan ng file, ginagamit nito ang pangalan ng tool nito, tulad ng **QR Code**. Ibinabalik ng pagbubukas ng item ang bawat setting. Para mag-save ng bagong gawa, tingnan ang [Pag-save & pagpapatuloy](/info/using.html#saving-continuing).
 
-::: note Wala sa Mga Project?
-- Baka nasa **Trash** ito: tingnan ang [Bawiin ang na-delete mong bagay](#get-back-something-you-deleted).
-- Nagsisimulang walang laman ang ibang browser, isang private window o ibang device, maliban kung gagamitin mo ang [Sync](/info/sync.html) o [ililipat ang gawa mo](#move-your-work-to-another-device).
-- Kung **I-download** lang ang pinindot mo, tingnan ang [Hanapin ang file na na-download mo](#find-a-file-you-downloaded).
+::: note Wala sa Projects?
+- Baka nasa **Trash** ito: tingnan ang [Ibalik ang binura mo](#get-back-something-you-deleted).
+- Nagsisimulang walang laman ang ibang browser, private window o ibang device, maliban kung gumagamit ka ng [Sync](/info/sync.html) o [inililipat mo ang gawa mo](#move-your-work-to-another-device).
+- Kung **Download** lang ang pinindot mo, tingnan ang [Hanapin ang na-download mong file](#find-a-file-you-downloaded).
 :::
 
-::: details Paggamit ng Mga Project
-Puwede mo ring buksan ang **Mga Project** mula sa **Mga Setting → Imbakan → Mga naka-save na session → Ayusin sa Projects**. Gumagana ito tulad ng isang file manager:
+::: details Paggamit ng Projects
+Puwede mo ring buksan ang **Projects** view mula sa **Settings → Storage → Saved sessions → Organise in Projects**. Gumagana ito tulad ng file manager:
 
-![Ang Mga Project bago pa man magkaroon ng na-save: ang mga tile na New folder, New asset at Templates, ang History clock sa kanang itaas at ang Search all projects bar sa ilalim](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
+![Ang Projects bago may ma-save: ang mga tile na New folder, New asset at Templates, ang History clock sa kanang itaas at ang Search all projects bar sa ibaba](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
 SHOT NOTE (projects): build-docs-shots.ts gives every shot a fresh browser
 context with no storage seeding, so this frame is always the empty Projects
@@ -47,16 +48,16 @@ root. The alt says so. Revisit (and re-caption) if the pipeline gains a
 storage-seeding hook.
 -->
 
-- <!--i:folder--> **Mga folder na nagnenest.** Igrupo ang mga naka-save na session sa mga folder, at mga folder sa loob ng mga folder, kasing-lalim ng gusto mo. Gumawa ng folder, palitan ang pangalan nito o i-drag ang tile sa ibang folder para ilipat; ibinabalik ka ng breadcrumb pataas. Ang mga session na na-save nang walang folder ay lumilitaw diretso sa **Projects** root.
-- <!--i:clock--> **Ayusin ayon sa gusto mo.** Ang **View options**, ang sliders button sa kanang itaas, ay nag-aalok ng **Grid** o **List** at nag-aayos ayon sa **Name**, **Date added**, **Last modified** (ang default), **Size** at, sa loob ng folder, **By tool**. Laging nauuna ang mga folder anuman ang aktibong sort - ang sort ay nag-aayos lang ng mga session at folder sa loob ng sarili nilang grupo.
-- <!--i:document--> **I-file diretso ang bagong gawa.** Ang **New asset** ay nagbubukas ng shared picker. Piliin ang **Templates** para magsimula sa naka-save na template: buksan ito para i-edit, o gamitin ang **+ Add** para agad i-save ang bagong likha.
-- <!--i:checklist--> **Multi-select (desktop).** I-tsek ang checkbox ng tile, mag-drag ng selection box sa walang laman na espasyo o **Shift/Cmd-click**; **i-right-click** ang tile para sa context menu nito. Ang selection bar ay mag-aalok ng **Render selection**, **Move to…**, **New folder**, **Delete** (na naglilipat sa Trash), **Edit together** para sa dalawa hanggang walong single-tool na session, magkatabi sa ilalim ng isang sidebar, at **Edit as sheet**, na nagbubukas ng seleksyon ng anumang laki o halo bilang mga row sa batch grid.
-- <!--i:download--> **I-render ang buong folder o seleksyon.** Ine-export ng **Render folder** ang bawat naka-save na session sa folder - kasama ang mga sub-folder nito - bilang isang naka-nest na `.zip`. Ginagawa ng **Render selection** ang pareho para sa anumang multi-selection, at ang isang session ay nagre-render diretso sa sarili nitong file.
-- <!--i:link--> **Dumiretso sa naka-save na gawa ng tool.** I-tsek ang isa o higit pang tool sa Tools gallery at piliin ang **View sessions** mula sa selection bar - bubukas ang Projects na nagpapakita lang ng mga session na ginawa gamit ang mga tool na iyon, na may **Clear** para bumalik sa buong view.
-- <!--i:link--> **Magbahagi ng naka-save na session.** I-right-click ang session (sa phone, pindutin ang **•••** sa tile nito) → **Share link** para kopyahin ang link na muling nagbubukas nito na may parehong setting; ang mga larawan mula sa device mo ay hindi sumasama sa link (ang buong Share dialog: tingnan ang [Pagbabahagi ng gawa mo](/info/using.html#sharing-your-work)).
-- <!--i:pentool--> **Palitan ang pangalan o kopyahin ang isa.** I-right-click ang session (sa phone, pindutin ang **•••** sa tile nito) para sa **Rename**, **Duplicate** (kopya sa parehong folder) at **Move to…**.
+- <!--i:folder--> **Mga folder sa loob ng mga folder.** Ilagay ang mga naka-save na session sa mga folder at ang mga folder sa loob ng ibang folder, sa kahit anong lalim. Gumawa o magpalit ng pangalan ng folder, o mag-drag ng tile papunta sa folder para ilipat ang tile. Ibinabalik ka ng breadcrumb sa mas mataas na antas. Nasa root ng **Projects** ang mga session na na-save nang walang folder.
+- <!--i:clock--> **Ayusin ayon sa gusto mo.** Ang **View options**, ang button na may mga slider sa kanang itaas, ay nag-aalok ng **Grid** o **List** at nag-aayos ayon sa **Name**, **Date added**, **Last modified** (ang default), **Size** at, sa loob ng folder, **By tool**. Laging nauuna ang mga folder. Magkahiwalay na inaayos ang mga session at folder sa sarili nilang grupo.
+- <!--i:document--> **Direktang ilagay ang bagong gawa.** Binubuksan ng **New asset** ang pinagsasaluhang picker. Piliin ang **Templates** para magsimula sa naka-save na template. Buksan ang template para i-edit, o pindutin ang **+ Add** para agad mag-save ng bagong gawa.
+- <!--i:checklist--> **Pumili ng marami (desktop).** Lagyan ng tsek ang checkbox ng tile, mag-drag ng selection box sa bakanteng espasyo o **Shift/Cmd-click**. Para sa context menu ng tile, **i-right-click** ang tile. Nag-aalok ang selection bar ng **Render selection**, **Move to…**, **New folder** at **Delete** (papunta sa Trash). Binubuksan ng **Edit together** nito ang dalawa hanggang walong session na tig-iisang tool, magkakatabi sa ilalim ng iisang sidebar. Binubuksan ng **Edit as sheet** ang seleksyon, anuman ang laki o halo, bilang mga row sa batch grid.
+- <!--i:download--> **I-render ang buong folder o seleksyon.** Ine-export ng **Render folder** ang bawat naka-save na session sa folder at mga subfolder nito bilang iisang nested na `.zip`. Ganoon din ang ginagawa ng **Render selection** para sa seleksyon ng marami. Nire-render ang isang session sa sarili nitong file.
+- <!--i:link--> **Dumiretso sa naka-save na gawa ng isang tool.** Lagyan ng tsek ang isa o higit pang tool sa Tools gallery at piliin ang **View sessions** sa selection bar. Pagkatapos, ipinapakita lang ng Projects ang mga session na ginawa gamit ang mga tool na iyon. Ibinabalik ng **Clear** ang buong view.
+- <!--i:link--> **Magbahagi ng naka-save na session.** I-right-click ang session (sa phone, pindutin ang **•••** sa tile nito) at piliin ang **Share link**. Muling binubuksan ng link ang session na may parehong mga setting. Hindi sumasama sa link ang mga larawan mula sa device mo. Para sa buong Share dialog, tingnan ang [Pagbabahagi ng gawa mo](/info/using.html#sharing-your-work).
+- <!--i:pentool--> **Palitan ang pangalan o gumawa ng kopya.** May **Rename**, **Duplicate** (kopya sa parehong folder) at **Move to…** din sa parehong menu.
 
-![Ang View options popover sa Mga Project: Layout na may Grid at List, at Sort by na naka-set sa Last modified, sa tabi ng isang button na binabaligtad ang pagkakasunod-sunod](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
+![Ang View options popover sa Projects: Layout na may Grid at List, at Sort by na nakatakda sa Last modified, sa tabi ng button na bumabaligtad sa pagkakasunod](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
 <!--
 SHOT NOTE (misc-projects-sort): trigger button confirmed as
 `.filter-fab.projects-viewopts` in views/projects.ts (openViewOpts() is bound
@@ -79,166 +80,174 @@ not visible in the closed menu, so the alt does not list them.
 
 :::
 
-## Kung isinara mo ang tab o umalis ka sa tool
+<!--i:eti-refresh-->
+## Kung isinara mo ang tab o umalis sa tool
 
-Nakadepende ang babalik sa kung paano ka umalis at kung aling tool ang ginamit mo:
+Nakadepende sa paraan ng pag-alis mo at sa tool kung ano ang babalik:
 
-- **Isinara mo ang tab, o bumalik ka sa ibang pagkakataon.** Wala na ang hindi na-save na gawa, maliban sa [mga tool na nagse-save habang gumagawa ka](#which-tools-save-as-you-work): buksan ang gawang iyon mula sa **Projects**.
-- **Nag-reload ka ng page sa parehong tab.** Bumabalik ang mga setting mo mula sa address ng page. Sa mga tool na hindi nagse-save habang gumagawa ka, ang mga larawan at file na idinagdag mo mula sa device mo, at ang single-line na text na mas mahaba sa 150 character, ay hindi bumabalik, dahil hindi hawak ng address ang mga ito.
-- **Pinindot mo ang Home, o ang back button sa kaliwang itaas.** Kung may binago ka mula noong huli mong pag-save, pag-download o pagkopya, tinatanong ng dialog na **Unsaved edits** kung mag-save muna. Sine-save ng **Save & leave** ang gawa at dinadala ka sa **Projects**, o pabalik sa project folder na pinagbuksan mo ng gawa. Itinatapon ng **Leave anyway** ang mga pagbabago mo: ang naka-save na item ay bumabalik sa kung paano mo ito huling na-save, at ang likhang hindi mo kailanman na-save ay umaalis sa **Projects**. Pinananatili ka ng **Cancel** sa tool.
+- **Isinara mo ang tab, o bumalik ka sa ibang pagkakataon.** Wala na ang hindi na-save na gawa, maliban sa [mga tool na nagse-save habang gumagawa ka](#which-tools-save-as-you-work). Buksan ang gawang iyon mula sa **Projects**.
+- **Ni-reload mo ang page sa parehong tab.** Bumabalik ang mga setting mo mula sa address ng page. Sa mga tool na hindi nagse-save habang gumagawa ka, hindi hawak ng address ang mga larawan at file mula sa device mo o text na nasa iisang linya na lampas 150 character, kaya hindi bumabalik ang mga ito.
+- **Pinindot mo ang Home, o ang back button sa kaliwang itaas.** Kung may binago ka mula noong huli kang nag-save, nag-download o nag-copy, nagtatanong ang **Unsaved edits** dialog kung ise-save muna. Sine-save ng **Save & leave** ang gawa at dinadala ka sa **Projects**, o pabalik sa project folder kung saan mo binuksan ang gawa. Itinatapon ng **Leave anyway** ang mga pagbabago mo. Bumabalik ang naka-save na item sa huling save nito, at inaalis sa **Projects** ang gawang hindi mo na-save kailanman. Pinapanatili ka ng **Cancel** sa tool.
 
-Nagtatanong lang ang Lolly kapag pinindot mo ang **Home** o ang back button sa isang tool. Hindi kailanman nagtatanong ang pagsara ng tab, pag-reload at ang sariling Back button ng browser mo. Para sigurado, pindutin ang **I-save bilang**, o **I-save** sa export panel, bago ka umalis sa isang tool.
+::: warning Hindi muna nagtatanong kapag isinasara ang tab
+Hindi kailanman nagtatanong ang pagsasara ng tab, pag-reload at sariling Back button ng browser mo. Para makasiguro, pindutin ang **Save as**, o **Save** sa export panel, bago ka umalis sa tool.
+:::
 
-Kapag hindi available ang automatic recovery, sinasabi ng tala sa tabi ng mga editing control kung ano ang itatago:
+Kapag walang awtomatikong recovery, sinasabi ng tala sa tabi ng mga kontrol sa pag-edit kung ano ang dapat itago:
 
 - Sa tool na gumagana sa file na dala mo, i-save ang mga setting mo at itago rin ang mga orihinal na file.
 - Sa recording tool, o utility na walang Save action, i-save o i-download ang resulta bago umalis.
-- Sinasabi ng mga desktop at mobile app kapag kailangan mong mag-save nang mano-mano.
-- Sa pribadong collaboration, ang taong nag-imbita ang nag-iingat ng dokumento at ng history nito, kasama ang mga pagbabago ng kabilang tao. Ang taong sumali ay gumagawa sa pansamantalang kopya at dapat mag-save ng hiwalay na kopya bago matapos ang session.
+- Sinasabi ng mga desktop at mobile app kung kailan mo kailangang mag-save nang mano-mano.
+- Sa pribadong collaboration, ang taong nag-imbita ang nag-iingat ng dokumento at history nito, kasama ang mga pagbabago ng kabilang tao. Gumagawa sa pansamantalang kopya ang taong sumali at dapat siyang mag-save ng hiwalay na kopya bago matapos ang session.
 
-::: note Hindi sinasadyang umalis nang hindi nag-save?
-Sa mga tool na nag-sa-save habang ginagawa mo, may kopya ang History ng mga natanggal na edit. Buksan ang **History** page, hanapin ang mga ito sa ilalim ng **Changes** at pindutin ang **Open as a copy**. Sa ibang tool, nawawala na ang mga pagbabago.
+::: note Aksidenteng umalis nang hindi nag-save?
+Sa mga tool na nagse-save habang gumagawa ka, nag-iingat ang History ng kopya ng mga itinapong edit sa loob ng 30 araw. Buksan ang **History** page, hanapin ang mga ito sa ilalim ng **Changes** at pindutin ang **Open as a copy**. Sa ibang tool, wala na ang mga pagbabago.
 :::
 
-::: details Aling mga tool ang nag-sa-save habang ginagawa mo
-Sa web app, nag-sa-save habang ginagawa mo ang bawat tool na gumagawa ng dokumento: Design, Chart, QR Code, Text, Sandbox at ang iba pa. Hindi ito ginagawa ng mga sumusunod na tool:
+::: details Aling mga tool ang nagse-save habang gumagawa ka
+Sa web app, nagse-save habang gumagawa ka ang bawat tool na gumagawa ng dokumento, tulad ng Lolly Design, Lolly Chart, QR Code, Text at Lolly Sandbox. Hindi ito ginagawa ng mga tool na ito:
 
-- mga tool na gumagana sa file na dala mo, tulad ng Redact, Sign o Convert Image, dahil hindi kailanman nag-iingat ng kopya ng file na iyon ang Lolly;
-- mga tool na nagre-record mula sa camera, mikropono o screen mo, tulad ng Record, Screen Capture at Voice Recorder;
-- tool na walang babaguhin, tulad ng Countdown.
+- mga tool na gumagana sa file na dala mo, tulad ng Redact, Sign o Convert Image, dahil hindi kailanman nag-iingat ang Lolly ng kopya ng file na iyon;
+- mga tool na nagre-record mula sa camera, mikropono o screen mo, tulad ng Record, Lolly Screen Capture at Lolly Voice Recorder;
+- tool na walang mababago, tulad ng Countdown.
 
-Sa ibang mga tool, ang unang pagbabago mo ay nagfa-file ng gawa sa **Projects** na parang nag-save ka, at ang mga susunod na pagbabago ay iniingatan habang gumagawa ka kapag natapos nang gumuhit ang tool. Ang hindi pa na-save na likha ay nasa Projects pa rin pagkatapos mong isara ang tab, at muling bumubukas na may markang unsaved ang mga pagbabago nito.
+Sa ibang tool, inilalagay ng unang pagbabago mo ang gawa sa **Projects** na para bang nag-save ka. Iniingatan ang mga susunod na pagbabago kapag tapos nang gumuhit ang tool. Nananatili sa Projects ang hindi na-save na gawa matapos mong isara ang tab at muling bumubukas na may markang hindi pa na-save ang mga pagbabago nito.
 
-Itinatapon pa rin ng **Leave anyway** ang mga pagbabagong iyon, at nag-iingat ang History ng kopya ng mga itinapong edit sa loob ng 30 araw. Ang muling pagbubukas ng tool mula sa home screen ay nagsisimula ng bagong likha; buksan ang nauna mula sa Projects.
+**Leave anyway** ang nagtatapon pa rin ng mga pagbabagong iyon. Nagsisimula ng bagong gawa ang muling pagbubukas ng tool mula sa home screen; buksan ang nauna mula sa Projects.
 
-Ang 3D at Darkroom ay nagse-save habang gumagawa ka, pero hindi sila nag-iingat ng file na nilo-load mo sa kanila, tulad ng 3D model o LUT. Iniingatan ng History at **Save** ang pangalan, uri at laki ng file, hindi ang file. Kapag muli mong binuksan ang gawa, sinasabi ng tala kung aling file iyon, at gumagana ang tool nang wala ito hanggang i-load mo muli. Itago ang mga orihinal mong file.
+Nagse-save habang gumagawa ka ang 3D at Lolly Darkroom, pero hindi nila iniingatan ang file na nilo-load mo sa mga ito, tulad ng 3D model o LUT. Iniingatan ng History at **Save** ang pangalan, uri at laki ng file, hindi ang file mismo. Kapag binuksan mo ulit ang gawa, sinasabi ng tala kung aling file iyon, at gumagana ang tool nang wala ang file hanggang i-load mo ulit ang file na iyon. Itago ang mga orihinal mong file.
 
-Kapag naka-on ang [Sync](/info/sync.html), pumupunta rin sa ibang device mo ang isang likhang na-file sa ganitong paraan, tulad ng iba pang laman ng Projects. Nananatili ang mga bersyon nito sa device kung saan ito ginawa.
+Kapag naka-on ang [Sync](/info/sync.html), napupunta sa iba mong device ang gawang inilagay sa ganitong paraan. Nananatili ang mga bersyon nito sa device kung saan ginawa ang mga ito.
 
-Kung bukas ang isang likha sa dalawang tab at nag-save ka sa pareho, ang huling pag-save ang mananatili. Hindi nawawala ang ginawang pinalitan nito: nasa ilalim ito ng **Protected drafts** sa History ng likha, may **Open draft as a copy**.
+Kung bukas ang isang gawa sa dalawang tab at nag-save ka sa pareho, ang huling save ang iniingatan. Nasa ilalim ng **Protected drafts** sa History ng gawa ang napalitang gawa, na may **Open draft as a copy**.
 
-Gumagana ito sa web app lang, hindi sa desktop o mobile app, at hindi habang nagtatrabaho ka nang live kasama ang iba.
+Gumagana lang ito sa web app, hindi sa mga desktop o mobile app, at hindi habang live kang gumagawa kasama ang iba.
 :::
 
-## Hanapin ang file na na-download mo
+<!--i:eti-download-->
+## Hanapin ang na-download mong file
 
-Sa isang browser, ibinibigay ng **I-download** ang file sa browser mo, na nagse-save nito sa downloads folder nito (karaniwan ay **Downloads**) o nagtatanong sa iyo kung saan. Hindi sinasabihan ang Lolly kung saan napunta ang file, kaya tingnan ang listahan ng downloads ng browser mo.
+Sa browser, ipinapasa ng **Download** ang file sa browser mo. Sine-save ng browser ang file sa downloads folder nito (karaniwang **Downloads**) o nagtatanong kung saan. Hindi sinasabi sa Lolly kung saan napunta ang file, kaya tumingin sa listahan ng mga download ng browser mo.
 
-Kung walang lumabas na file, tingnan sa export panel habang nasa tool ka pa. Sa ilalim ng **I-download**, may isang linya na nagbibigay ng pangalan ng file at ang oras, may **Retry download**, at sa Chrome, Edge at iba pang Chromium browser, may **Save file…** para pumili ka mismo ng folder. Nananatili ang linya at ang file nito hangga't hindi ka umaalis sa tool, nagre-reload o nag-export ulit.
+Kung walang lumabas na file, tumingin sa export panel habang nasa tool ka pa. Sa ilalim ng **Download**, may linyang nagsasaad ng pangalan ng file at oras, kasama ang **Retry download**. Sa Chrome, Edge at iba pang Chromium browser, nag-aalok din ang linya ng **Save file…** para pumili ng folder. Nananatili ang linya at file nito hanggang umalis ka sa tool, mag-reload o mag-export ulit.
 
-Iniingatan din ng Lolly ang dalawang bagay pagkatapos ng bawat download:
+Nag-iingat din ang Lolly ng dalawang bagay pagkatapos ng bawat download:
 
-- **Isang kopya ng file**, sa **Mga asset** sa ilalim ng **Ang iyong mga upload**, habang naka-on ang **I-save ang mga render ko sa library ko** sa ilalim ng **Mga Setting → Mga render mo** (nasa ilalim ng home screen ang **Mga Setting**). Naka-on ang setting bilang default. Ang isang video, o isang file na mahigit 50 MB, ay nagtatanong muna, at hindi kinokopya ang isang zip.
-- **Ang mga setting na ginamit mo**, para sa huli mong 24 na download. Ang **Kamakailang mga export**, sa ilalim ng na-save mong gawa sa **Mga Project**, ay muling nagbubukas ng tool gamit ang mga setting na iyon para magawa mo ulit ang file, bagaman hindi kasama ang mga larawan at file na idinagdag mo mula sa device mo. Nasa ilalim din ng **Mga Setting → Aktibidad at stats → Pinakabagong exports** ang parehong listahan, at sa **Changes** tab ng **History**. Iniingatan ng listahang ito ang mga setting, hindi ang mga file.
+- **Isang kopya ng file**, sa **Assets** sa ilalim ng **Your uploads**, habang naka-on ang **Save my renders to my library** sa ilalim ng **Settings → Your renders** (nasa ibaba ng home screen ang **Settings**). Naka-on ang setting sa simula. Nagtatanong muna kapag video, o file na lampas 50 MB, at hindi kinokopya ang zip.
+- **Ang mga setting na ginamit mo**, para sa huling 24 na download mo. Muling binubuksan ng **Recent exports**, sa ibaba ng naka-save mong gawa sa **Projects**, ang tool na may mga setting na iyon. Hindi kasama ang mga larawan at file na idinagdag mo mula sa device mo. Nasa ilalim din ng **Settings → Activity & stats → Latest exports** at sa **Changes** tab ng **History** ang parehong listahan.
 
-::: details Sa desktop at mobile app
-- **Desktop app:** direktang sina-save ng **I-download** sa isang **Lolly** folder sa loob ng **Downloads** folder mo, nang walang dialog. Sinasabi ng linya sa ilalim ng **I-download** kung saan ito napunta, gaya ng "Saved to Downloads/Lolly", may **Show in folder**. Binubuksan ng **Open Exports Folder**, sa **Window** o **Exports** menu, ang folder anumang oras. Ang isang file na may parehong pangalan ng naunang isa ay nase-save bilang "name (1)".
-- **iPhone at iPad:** na-save ang file sa **Files** app, sa ilalim ng **Lolly**, at bubukas ang share sheet para maipadala mo ito. Ganito ang linya sa ilalim ng **I-download**: "Saved to Files → Lolly".
-- **Android:** bubukas ang share menu para mapili mo kung saan mapupunta ang file.
+::: details Sa mga desktop at mobile app
+- **Desktop app:** nagse-save ang **Download** sa **Lolly** folder sa loob ng **Downloads** folder mo, nang walang dialog. Sinasabi ng linya sa ilalim ng **Download** kung saan napunta ang file, tulad ng "Saved to Downloads/Lolly", kasama ang **Show in folder**. Binubuksan ng **Open Exports Folder**, sa **Window** o **Exports** menu, ang folder anumang oras. Ang file na kapangalan ng nauna ay sine-save bilang "name (1)".
+- **iPhone at iPad:** sine-save ang file sa **Files** app, sa ilalim ng **Lolly**, at bumubukas ang share sheet. Nakasaad sa linya sa ilalim ng **Download** ang "Saved to Files → Lolly".
+- **Android:** bumubukas ang share menu. Piliin kung saan pupunta ang file.
 
-Sa iPhone, iPad at Android, pinapalitan ng bagong file ang naunang isa na may parehong pangalan.
+Sa iPhone, iPad at Android, pinapalitan ng bagong file ang naunang file na may parehong pangalan.
 :::
 
-## Bumalik sa mas naunang bersyon
+<!--i:eti-history-->
+## Bumalik sa naunang bersyon
 
-- **Habang nasa pagbisitang ito:** umuurong ang **I-undo** sa huli mong 100 pagbabago, hangga't hindi ka umaalis sa tool o nagre-reload. Tingnan ang [Undo at redo](/info/using.html#undo-and-redo).
-- **Sa [mga tool na nag-sa-save habang ginagawa mo](#which-tools-save-as-you-work):** iniingatan ang mas naunang bersyon ng bawat likha. Sundin ang mga hakbang sa ibaba.
-- **Lahat sa device:** kapag naka-on ang [Sync](/info/sync.html), ibinabalik ng **Restore an earlier copy**, sa ilalim ng **Mga Setting → Mga nakakonektang serbisyo**, ang isa sa huling pitong pang-araw-araw na kopya, o ang kopya mula bago ang huli mong apply. Tutugma noon ang lahat sa device na ito sa kopyang iyon, hindi lang iisang disenyo.
+- **Sa pagbisitang ito:** umaatras ang **Undo** sa huling 100 pagbabago mo, hanggang umalis ka sa tool o mag-reload. Tingnan ang [Undo at redo](/info/using.html#undo-and-redo).
+- **Sa [mga tool na nagse-save habang gumagawa ka](#which-tools-save-as-you-work):** iniingatan ang mga naunang bersyon ng bawat gawa.
+- **Lahat ng nasa device:** kapag naka-on ang [Sync](/info/sync.html), ibinabalik ng **Restore an earlier copy**, sa ilalim ng **Settings → Connected services**, ang isa sa huling pitong pang-araw-araw na kopya o ang kopya bago ang huli mong pag-apply. Pagkatapos, tumutugma sa kopyang iyon ang lahat ng nasa device na ito.
 
-Para buksan ang mas naunang bersyon:
+Para magbukas ng naunang bersyon:
 
-1. Pindutin ang **History**, ang clock button sa tabi ng **I-undo** at **I-redo**. Sa Design, nasa top bar ang **History**; sa telepono, pindutin ang **•••** at pagkatapos ay **History**. Sa mga tool na walang **I-undo**, tulad ng Text at Sandbox, nasa tabi ng **Home** ang **History** sa kaliwang itaas.
-2. Hanapin ang bersyon ayon sa petsa at oras nito. Kinukuha ang mga row ng **Automatic checkpoint** habang ginagawa mo ito; ang mga row ng **Saved version** ay ang mga oras na nag-save ka.
-3. Pindutin ang **Open as a copy**. Bubukas ang bersyon bilang bagong likha, at mananatili ang isang bukas ka na sa dating anyo. Nasa **Mga Project** ang kopya, may "(copy)" pagkatapos ng pangalan nito.
+1. Pindutin ang **History**, ang clock button sa tabi ng **Undo** at **Redo**. Sa Lolly Design, nasa top bar ang **History**. Sa phone, pindutin ang **•••** at pagkatapos ang **History**. Sa mga tool na walang **Undo**, tulad ng Text at Lolly Sandbox, nasa tabi ng **Home** sa kaliwang itaas ang **History**.
+2. Hanapin ang bersyon ayon sa petsa at oras nito. Kinukuha ang mga row na **Automatic checkpoint** habang gumagawa ka; ang mga row na **Saved version** ang mga pagkakataong nag-save ka.
+3. Pindutin ang **Open as a copy**. Bumubukas ang bersyon bilang bagong gawa, at nananatili sa dati nitong kalagayan ang nakabukas mong gawa. Nasa **Projects** ang kopya, na may "(copy)" pagkatapos ng pangalan nito.
 
-Para itago ang isang bersyon ayon sa pangalan, pindutin ang **Name version**, mag-type ng pangalan at pindutin ang **Keep milestone**. Nakalista ang mga pinangalanang bersyon sa **History** page, sa ilalim ng **Milestones**.
+Para mag-ingat ng bersyon na may pangalan, pindutin ang **Name version**, mag-type ng pangalan at pindutin ang **Keep milestone**. Nakalista ang mga pinangalanang bersyon sa **History** page, sa ilalim ng **Milestones**.
 
 ::: details Ang History panel at ang History page
-Nililista rin ng **History** panel ang mga row ng **Recovered work**, at hawak ng **Protected drafts** ang huli mong mga edit sa pagitan ng mga checkpoint, may **Open draft as a copy**. Tinutulungan ka ng **Compare** at **Check assets** na pumili bago ka magbukas ng kopya. Baguhin ang **This creation** tungong **All history on this device** para makita ang bawat likha.
+Inililista rin ng **History** panel ang mga row na **Recovered work**, at hawak ng **Protected drafts** ang mga pinakahuling edit mo sa pagitan ng mga checkpoint, kasama ang **Open draft as a copy**. Tumutulong ang **Lolly Compare** at **Check assets** sa pagpili bago ka magbukas ng kopya. Ilipat ang **This creation** sa **All history on this device** para makita ang bawat gawa.
 
-Nagiging mas iilan ang Automatic checkpoint habang tumatagal: isa kada minuto para sa huling oras, isa kada oras para sa huling araw, isa kada araw para sa 30 araw, tapos isa kada linggo. Iniingatan lahat ang mga Saved version at ang mga pinangalanang bersyon. Ang pagbura ng isang likha ay naglilipat din ng mga bersyon nito sa **Trash**, at inaalis ito ng **I-delete nang tuluyan**.
+Paunti nang paunti ang mga awtomatikong checkpoint habang tumatagal: isa bawat minuto sa huling oras, isa bawat oras sa huling araw, isa bawat araw sa loob ng 30 araw, pagkatapos ay isa bawat linggo. Iniingatan ang lahat ng na-save at pinangalanang bersyon. Inililipat din sa **Trash** ang mga bersyon kapag binura ang isang gawa, at inaalis ang mga ito ng **Delete forever**.
 
-Kapag napuno na ang imbakan ng History, ang pinakalumang Automatic checkpoint ng mga likhang hindi mo binuksan sa loob ng 30 araw ang unang inaalis. Palaging naiingatan ang isang save, kahit noon: isinusulat ito bilang kasalukuyang gawa, at sinasabi ng History na hindi ini-keep ang save na ito bilang isang bersyon. Ipinapakita ng **Mga Setting → Imbakan** kung gaano karami ang ginagamit ng History.
+Kapag napuno ang storage ng History, unang inaalis ang mga pinakalumang awtomatikong checkpoint ng mga gawang hindi mo nabubuksan sa loob ng 30 araw. Kahit ganoon, laging iniingatan ang isang save. Isinusulat ito bilang kasalukuyang gawa, at sinasabi ng History na hindi iniingatan ang save na ito bilang bersyon. Ipinapakita ng **Settings → Storage** kung gaano kalaking espasyo ang ginagamit ng History.
 
-Sinasaklaw ng **History** page (`#/history`) ang bawat likha sa browser na ito. Para buksan ito, pindutin ang clock button sa kanang itaas ng home screen o ng **Projects**, piliin ang **Saved sessions** sa profile menu (sa phone, ang bilog na logo button sa kanang itaas), o pindutin ang **Open app history** sa History panel ng tool. Ang mga desktop at mobile app ay walang History page, kaya doon ang clock button ng home screen at ang **Saved sessions** ay nagbubukas ng **Your recent work** sa halip: ang mga pinakabago mong naka-save na session at export, na may link sa Projects.
+Sinasaklaw ng **History** page (`#/history`) ang bawat gawa sa browser na ito. Para buksan ang page, pindutin ang clock button sa kanang itaas ng home screen o ng **Projects**, piliin ang **Saved sessions** sa profile menu (sa phone, ang bilog na logo button sa kanang itaas) o pindutin ang **Open app history** sa History panel ng tool. Walang History page ang mga desktop at mobile app. Doon, binubuksan ng clock button ng home screen at ng **Saved sessions** ang **Your recent work**: ang mga pinakahuli mong naka-save na session at export, na may link sa Projects.
 
-- Nililista ng **Kamakailan** ang mga likha mo, bagong-bago muna, may **Ipagpatuloy**.
-- Inilalagay ng **Changes** ang mga checkpoint, download at resulta ng Convert sa iisang timeline. May **Reopen settings** ang isang download.
-- Nililista ng **Milestones** ang mga pinangalanang bersyon.
+- Inililista ng **Recent** ang mga gawa mo, pinakabago muna, kasama ang **Resume**.
+- Inilalagay ng **Changes** ang mga checkpoint, download at resulta ng Convert sa iisang timeline. May **Reopen settings** ang download.
+- Inililista ng **Milestones** ang mga pinangalanang bersyon.
 
-I-filter ayon sa project, tool at petsa (nasa likod ng **Filters** sa telepono). Walang delete button ang History page; para tanggalin ang isang item, gamitin ang Projects.
+Bawat gawa ay isang tile na may larawan nito. Binabago ng **Grid** o **List** ang layout. Mag-filter ayon sa project, tool at petsa (sa loob ng **Filters** sa phone). Nag-aalok ang menu ng tile (right-click o pindutin nang matagal) ng **Resume**, **Versions**, **Show in Projects** at **Move to Trash**. Para mag-alis ng marami, piliin ang mga ito at piliin ang **Move to Trash**, na nag-aalok ng Undo.
 :::
 
+<!--i:eti-folder-move-->
 ## Ilipat ang gawa mo sa ibang device
 
 | Para | Gamitin |
 |---|---|
-| Panatilihing magkasabay ang mga device mo | **I-sync sa lahat ng device**, sa ilalim ng **Mga Setting → Mga nakakonektang serbisyo**: tingnan ang [Sync your devices](/info/sync.html) |
-| Ilipat ang lahat nang minsan | **I-export ang data ko** at **I-import ang data…**, sa ibaba |
-| Ibigay ang isang disenyo o isang project | Isang `.lolly` file: **I-export**, tapos **Ibahagi**, tapos **Download .lolly**; para sa buong project, **Download project (.lolly)** sa menu ng folder. Pindutin ang **Buksan** sa ibang device. Tingnan ang [Ang .lolly na file](/info/using.html#the-lolly-file) |
+| Panatilihing magkatugma ang mga device mo | **Sync across devices**, sa ilalim ng **Settings → Connected services**: tingnan ang [I-sync ang mga device mo](/info/sync.html) |
+| Ilipat ang lahat nang isang beses | **Export my data** at **Import data…**, sa ibaba |
+| Ipasa ang isang design o isang project | Isang `.lolly` file: **Export**, pagkatapos **Share**, pagkatapos **Download .lolly**; para sa buong project, **Download project (.lolly)** sa menu ng folder. Pindutin ang **Open** sa kabilang device. Tingnan ang [Ang .lolly file](/info/using.html#the-lolly-file) |
 
-Dala ng isang share link ang mga setting mo, pero hindi ang mga larawan o file na idinagdag mo mula sa device mo.
+Dala ng share link ang mga setting mo, pero hindi ang mga larawan o file na idinagdag mo mula sa device mo.
 
-::: note Walang idinaragdag o binubura ang pag-import
-Idinaragdag ang mga folder, favourite at template sa file sa tabi ng mga nasa ibang device na. Kapag nasa dalawa ang isang naka-save na item, ang kopyang mas kamakailang na-save ang mananatili. Nananatili ang mga detalye at setting mo sa device na iyon nang gaya ng dati; napupunan ang mga blangko mula sa file. Ganito rin gumagana ang **Bring it to this device**, sa Sync.
+::: note Nagdaragdag ang pag-import at walang binubura
+Idinaragdag ang mga folder, paborito at template sa file sa mga nasa kabilang device na. Kapag nasa pareho ang isang naka-save na item, iniingatan ang kopyang mas bagong na-save. Nananatili sa dati ang mga detalye at setting mo sa device na iyon. Pinupunan mula sa file ang mga walang laman. Ganoon din gumagana ang **Bring it to this device**, sa Sync.
 :::
 
-Para ilipat ang lahat nang minsan:
+Para ilipat ang lahat nang isang beses:
 
-1. Sa lumang device, buksan ang **Mga Setting → Imbakan** at, sa ilalim ng **Ilipat sa ibang device**, pindutin ang **I-export ang data ko**. Nagda-download ang Lolly ng isang `.zip` file na ang pangalan ay nagsisimula sa `LollyTools-`.
-2. Dalhin ang file gamit ang USB, i-email sa sarili mo, AirDrop o isang shared folder.
-3. Sa bagong device, buksan ang **Mga Setting → Imbakan**, pindutin ang **I-import ang data…**, piliin ang file at pindutin ang **I-import**.
+1. Sa lumang device, buksan ang **Settings → Storage** at, sa ilalim ng **Move to another device**, pindutin ang **Export my data**. Nagda-download ang Lolly ng isang `.zip` file na nagsisimula sa `LollyTools-` ang pangalan.
+2. Ilipat ang file gamit ang USB, email sa sarili mo, AirDrop o ibinahaging folder.
+3. Sa bagong device, buksan ang **Settings → Storage**, pindutin ang **Import data…**, piliin ang file at pindutin ang **Import**.
 
-::: note Ang naiiwan
-Nananatili sa bawat device ang mga sign-in, key at sync passphrase. Hindi naglalakbay sa anumang ruta ang listahan ng kamakailang download, offline download at AI model. Naglalakbay lang ang version history sa isang **Export my data** file, hindi sa pamamagitan ng Sync o isang `.lolly`. Kapag masyadong malaki ang history para sa isang file, inaalis ang pinakalumang Automatic checkpoint at sinasabi ng export line kung ilan. Puwedeng i-download at buksan ang isang kopyang hawak ng Sync sa storage mo, o piliin sa **Import data…**, tulad ng isang backup file; hihingi ng passphrase mo ang isang naka-encrypt na kopya.
+::: note Ano ang naiiwan
+Nananatili sa bawat device ang mga sign-in, key at sync passphrase. Hindi sumasama sa alinmang paraan ng paglipat ang listahan ng mga kamakailang download, mga offline download at AI model. Sumasama lang ang version history sa **Export my data** file, hindi sa Sync o `.lolly`. Kapag masyadong malaki ang history para sa isang file, hindi isinasama ang mga pinakalumang awtomatikong checkpoint at sinasabi ng export line kung ilan. Puwede mong i-download at buksan ang kopyang iniingatan ng Sync sa storage mo, o piliin ang kopya sa **Import data…**, tulad ng backup file. Hinihingi ng naka-encrypt na kopya ang passphrase mo.
 :::
 
 ::: details Ano ang laman ng backup file
-Ang file ay pinangalanang `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (ang mga bahagi ng pangalan ay galing sa profile mo at inaalis kapag hindi nakatakda; ang `<n>` ay isang pang-araw-araw na counter kaya hindi nagbabanggaan ang mga export sa parehong araw). Naglalaman ito ng profile mo, kasama ang mga folder, Trash, template at favourites mo; bawat naka-save na session kasama ang thumbnail nito; ang mga na-upload mong larawan, font, logo at ang mga kopya ng mga download mo; ang mga design system mo; ang mga preference mo (theme, lapad ng sidebar, lokal na istatistika ng aktibidad); mga na-save na bersyon at resulta mula sa Convert; at, mula sa web app, ang version history ng mga likha mo.
+Ang pangalan ng file ay `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`. Galing sa profile mo ang mga bahagi ng pangalan at inaalis ang mga ito kung hindi nakatakda. Binibilang ng `<n>` ang mga export na ginawa sa parehong araw. Naglalaman ito ng profile mo, kasama ang mga folder, Trash, template at paborito mo; bawat naka-save na session kasama ang thumbnail nito; mga na-upload mong larawan, font, logo at kopya ng mga download mo; mga design system mo; mga preference mo (theme, lapad ng sidebar, lokal na istatistika ng aktibidad); mga naka-save na bersyon at resulta mula sa Convert; at, mula sa web app, ang version history ng mga gawa mo.
 
-Hindi kasama ang catalogue cache - dina-download muli nito ang sarili sa bagong device. May checksum ang bawat bahagi, kaya ang file na nasira sa daan ay nahuhuli sa pag-import sa halip na maibalik nang sira-sira. Ang mga naka-save na session ay awtomatikong nagre-re-link sa mga na-import mong larawan. Binabasa ng web, desktop at mobile app ang parehong file; ang terminal app ay nagsusulat ng mas simpleng sariling backup, na hindi binabasa ng format na ito. Ang **Export my data & render everything** ay gumagawa ng parehong file kasama ang pangalawang zip na may bawat naka-save na session na na-render sa output nito. (Buong format spec: [Data transfer](/info/data-transfer.html).)
+Hindi kasama ang catalogue cache. Dina-download ulit ng bagong device ang cache. May checksum ang bawat bahagi, kaya natutukoy ng pag-import ang file na nasira habang inililipat. Muling naka-link ang mga naka-save na session sa mga na-import mong larawan. Binabasa ng mga web, desktop at mobile app ang parehong file. Nagsusulat ang terminal app ng sarili nitong mas simpleng backup, na hindi nababasa ng format na ito. Ginagawa ng **Export my data & render everything** ang parehong file at isa pang zip na may bawat naka-save na session na na-render sa output nito. Nasa [Paglipat ng data](/info/data-transfer.html) ang buong format.
 :::
 
-## Kung binura mo ang data ng browser mo
+<!--i:eti-globe-->
+## Kung buburahin mo ang browser data mo
 
-Sa web app, iniingatan ng Lolly ang lahat sa imbakan ng browser mo para sa site na ito: na-save na gawa, larawan, font, design system, version history at offline download. Tinatanggal ng pag-clear ng data ng site na ito sa browser mo ang lahat noon, at hindi na maibabalik ng Lolly ang kahit alin dito. Ang natitira ay ang mga umalis na sa browser: mga file na na-download mo, isang **I-export ang data ko** na file, isang kopya ng [Sync](/info/sync.html) at mga link na ibinahagi mo.
+Sa web app, iniingatan ng Lolly ang lahat sa storage ng browser mo para sa site na ito: naka-save na gawa, mga larawan, font, design system, version history at mga offline download. Inaalis ang lahat ng iyon kapag binura ang data ng site na ito sa browser mo, at hindi maibabalik ng Lolly ang alinman dito. Ang natitira ay ang mga nakalabas na sa browser: mga file na na-download mo, **Export my data** file, kopya sa [Sync](/info/sync.html) at mga link na ibinahagi mo.
 
-::: warning Bago ka mag-clear ng data ng browser
-Pindutin ang **I-export ang data ko** sa ilalim ng **Mga Setting → Imbakan**, at itago ang file sa ibang lugar.
+::: warning Bago mo burahin ang browser data
+Pindutin ang **Export my data** sa ilalim ng **Settings → Storage** at itago ang file sa ibang lugar.
 :::
 
-Kapag nagsimula ang app, hinihiling ng Lolly sa browser na huwag i-clear ang storage nito kapag nauubusan ng espasyo ang device, at ang browser ang magpapasya. Sa ilalim ng **Settings → Available offline**, ang linyang nagsisimula sa **Protected** ay nangangahulugang pumayag ang browser. Ang "The browser may clear downloads if the device runs low on space" ay nangangahulugang hindi, at muling humihingi ang **Protect downloads**.
+Kapag nagsisimula ang app, hinihiling ng Lolly sa browser na huwag burahin ang storage nito kapag kapos na sa espasyo ang device, at ang browser ang nagpapasya. Sa ilalim ng **Settings → Available offline**, ang linyang nagsisimula sa **Protected** ay nangangahulugang pumayag ang browser. Ang "The browser may clear downloads if the device runs low on space" ay nangangahulugang hindi ito pumayag, at humihiling ulit ang **Protect downloads**.
 
-Kung hindi pumayag ang browser, maaari nitong i-clear ang naka-save na gawa pati ang mga download kapag nauubusan ng espasyo, kaya magtago ng kamakailang file ng **Export my data**.
+Kung hindi pumayag ang browser, puwede nitong burahin ang naka-save na gawa pati ang mga download kapag kapos na sa espasyo, kaya mag-ingat ng bagong **Export my data** file.
 
-Ipinapakita ng **Mga Setting → Imbakan** kung gaano karaming espasyo ang ginagamit ng bawat uri ng data. Binibilang ng row ng **History** nito ang Automatic checkpoint, ang mga preview at recovery draft ng mga ito; pinapalaya ng **Remove automatic checkpoints older than 30 days** ang espasyong iyon at iniingatan ang mga Saved version at pinangalanang bersyon. Inaalis ng **Burahin ang cache** ang mga na-download na catalogue file, na muling magda-download kapag kailangan. Hinihiling sa iyo ng **Burahin ang lahat ng aking data** na mag-type ng isang salita, i-off ang Sync, at pagkatapos ay alisin ang lahat ng hawak ng Lolly sa browser na ito: ang profile at setting mo, mga naka-save na session kasama ang history at Trash ng mga ito, mga upload, font at design system, ang download log, resulta ng Convert, na-download na AI model at offline copies. Nananatili ang mga file na na-download mo kung saan mo ito na-save. Magsisimula ang app tulad ng sa unang bisita.
+**Settings → Storage** ang nagpapakita kung gaano kalaking espasyo ang ginagamit ng bawat uri ng data. Binibilang ng **History** row nito ang mga awtomatikong checkpoint, preview ng mga ito at mga recovery draft. Binabakante ng **Remove automatic checkpoints older than 30 days** ang espasyong iyon at iniingatan ang mga na-save at pinangalanang bersyon. Inaalis ng **Clear cache** ang mga na-download na catalogue file, na muling dina-download kapag kailangan. Hinihingi ng **Clear all my data** na mag-type ka ng isang salita, ino-off ang Sync at pagkatapos ay inaalis ang lahat ng iniingatan ng Lolly sa browser na ito: ang profile at mga setting mo, mga naka-save na session kasama ang history ng mga ito at ang Trash, mga upload, font at design system, ang download log, mga resulta ng Convert, mga na-download na AI model at offline na kopya. Nananatili ang mga na-download mong file kung saan mo sine-save ang mga ito. Pagkatapos, nagsisimula ang app na parang unang pagbisita.
 
-![Ang storage card sa screen na kasinlapad ng phone: pinangalanan ang bawat kategorya ng on-device data, na may Clear all my data button sa ibaba](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![Ang storage card sa screen na kasinglapad ng phone: nakapangalan ang bawat kategorya ng data sa device, kasama ang Clear all my data button sa ibaba](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
-Sa desktop at mobile app, ang mga naka-save na session ay mga file sa sariling data folder ng app at nasa sariling imbakan ng app ang iba, kaya hindi naaapektuhan ang mga ito ng pag-clear ng isang web browser.
+Sa mga desktop at mobile app, ang mga naka-save na session ay mga file sa sariling data folder ng app, at nasa sariling storage ng app ang lahat ng iba pa. Hindi naaapektuhan ang mga ito ng paglilinis ng web browser.
 
-::: details Kung saan iniingatan ng desktop at mobile app ang mga naka-save na session
-Isang file kada naka-save na session, sa isang `saved-state` folder:
+::: details Kung saan iniingatan ng mga desktop at mobile app ang mga naka-save na session
+Isang file bawat naka-save na session, sa isang `saved-state` folder:
 
 - macOS: `~/Library/Application Support/tools.lolly.Desktop/saved-state/`
 - Windows: `%APPDATA%\tools.lolly.Desktop\saved-state\`
 - Linux: `~/.local/share/tools.lolly.Desktop/saved-state/`, o ang parehong path sa ilalim ng `$XDG_DATA_HOME`
-- iPhone, iPad at Android: sa loob ng sariling imbakan ng app, na hindi ipinapakita ng Files app
+- iPhone, iPad at Android: sa loob ng sariling storage ng app, na hindi ipinapakita ng Files app
 
-Nananatili ang mga larawan, design system at ang listahan ng kamakailang download sa internal storage ng app, hindi sa mga folder na ito. Binabasa ng terminal app at ng command line ang parehong `saved-state` folder: tingnan ang [Where saved sessions live](/info/cli-reference.html#where-saved-sessions-live).
+Nananatili ang mga larawan, design system at listahan ng mga kamakailang download sa internal storage ng app, hindi sa mga folder na ito. Binabasa ng terminal app at command line ang parehong `saved-state` folder: tingnan ang [Kung saan nakalagay ang mga naka-save na session](/info/cli-reference.html#where-saved-sessions-live).
 :::
 
-## Bawiin ang na-delete mong bagay
+<!--i:eti-trash-->
+## Ibalik ang binura mo
 
-Ang pagbura ng isang naka-save na session, isang folder, isa sa mga upload mo o isa sa mga font mo sa app ay naglilipat nito sa **Trash** sa loob ng 30 araw, saan mo man ito binura: **Mga Project**, **Mga asset**, **Mga Setting → Imbakan** o ang listahan ng naka-save na session ng isang tool. Napupunta ang isang folder kasama ang lahat ng laman nito, bilang iisang entry, at pinapanatili ng isang session ang version history nito habang naroon ito. Kaagad pagkatapos, nag-aalok ang isang mensahe ng **Undo**. Pagkatapos:
+Kapag binura mo sa app ang isang naka-save na session, folder, isa sa mga upload mo o isa sa mga font mo, inililipat ito sa **Trash** sa loob ng 30 araw, saan mo man ito binura: **Projects**, **Assets**, **Settings → Storage** o listahan ng mga naka-save na session ng tool. Napupunta sa Trash bilang iisang entry ang folder at lahat ng laman nito. Nananatili ang version history ng session sa Trash. Pagkabura mo, may mensaheng nag-aalok ng **Undo**. Sa ibang pagkakataon:
 
-1. Buksan ang **Trash**: ang **Trash** tile sa **Mga Project**, ang **Trash** button sa **Mga asset → Ang iyong mga upload**, o ang **Trash** row sa **Mga Setting → Imbakan**. Ang tatlo ay nagbubukas ng parehong listahan.
-2. Pindutin ang **I-restore** sa tabi ng item. Babalik ito sa folder nito, at makukuha ulit ng isang font ang mga role nito sa design system nito.
+1. Buksan ang **Trash**: ang **Trash** tile sa **Projects**, ang **Trash** button sa **Assets → Your uploads** o ang **Trash** row sa **Settings → Storage**. Parehong listahan ang binubuksan ng tatlo.
+2. Pindutin ang **Restore** sa tabi ng item. Bumabalik ito sa folder nito, at naibabalik sa font ang mga role nito sa design system nito.
 
-Tinatanggal ng **I-delete nang tuluyan** ang isang item nang tuluyan. Nagtatanong muna ang **I-empty ang Trash**, saka tinatanggal ang bawat item sa Trash. Tinatanggal nang tuluyan ang mga item na mas matanda sa 30 araw.
+**Delete forever** ang permanenteng nag-aalis ng isang item. Nagtatanong muna ang **Empty Trash**, pagkatapos ay inaalis ang bawat item sa Trash. Permanenteng inaalis ang mga item na lampas 30 araw na.
 
 ::: warning Agad ang ilang pagbura
-Ang pagbura ng isang design system, isang logo o ng iyong profile photo ay hindi napupunta sa Trash. Agad ding nagbubura ang command line at ang terminal app.
+Hindi napupunta sa Trash ang binurang design system, logo o profile photo mo. Agad ding nagbubura ang command line at terminal app.
 :::
 
-Kapag naka-on ang [Sync](/info/sync.html), puwedeng ibalik ng **Restore an earlier copy** ang estado ng buong device mula sa isang naunang araw, at ibinabalik ng isang **I-export ang data ko** na file ang laman nito.
+Kapag naka-on ang [Sync](/info/sync.html), maibabalik ng **Restore an earlier copy** ang kalagayan ng buong device sa isang naunang araw, at ibinabalik ng **Export my data** file ang laman nito.

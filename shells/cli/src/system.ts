@@ -19,9 +19,11 @@ import { resolveStateDir } from '@lolly-tools/node-shell/state-dir';
 import { contextTokens } from '../../../engine/src/brand-context.ts';
 import { checkBrandDesign } from '../../../engine/src/brand-check.ts';
 import { brandCheckCatalog, designBrief } from '../../../engine/src/design-brief.ts';
+import { withColourwayLooks } from '../../../engine/src/brand-treatments.ts';
 import { checkDesignHouseRules } from '../../../engine/src/design-house-rules.ts';
 import { parseDesignMd } from '../../../engine/src/design-md.ts';
 import { brandSystemOf } from '../../../engine/src/brand-system.ts';
+import { colourRolesBrief, type BriefColourRoles } from '../../../engine/src/colour-roles.ts';
 import { emitResult } from './envelope.ts';
 import { writeOut } from './output.ts';
 import { usageError } from './exit-codes.ts';
@@ -45,12 +47,15 @@ type SystemResult = {
   systems: NodeDesignSystem[];
   stateDir: string;
   summary: { tokens: number; colours: number; themes: number; resources: number } | null;
+  /** The active system's own colour words, quoted as data. Absent when it declares none. */
+  colourRoles?: BriefColourRoles;
 };
 
 async function statusResult(): Promise<SystemResult> {
   const registry = await listNodeDesignSystems();
   const active = registry.systems.find(s => s.id === registry.active) ?? null;
   let summary: SystemResult['summary'] = null;
+  let colourRoles: BriefColourRoles | null = null;
   if (active) {
     summary = { tokens: 0, colours: 0, themes: 0, resources: active.resources.length };
     const { readActiveDesignSystemTokens } = await import('@lolly-tools/node-shell/design-systems');
@@ -60,9 +65,10 @@ async function statusResult(): Promise<SystemResult> {
         const s = summarizeTokensDoc(doc);
         summary = { tokens: s.tokenCount, colours: s.colorCount, themes: s.themes.length, resources: active.resources.length };
       } catch { /* the resources-first summary above remains honest */ }
+      colourRoles = colourRolesBrief(doc);
     }
   }
-  return { active, systems: registry.systems, stateDir: resolveStateDir().dir, summary };
+  return { active, systems: registry.systems, stateDir: resolveStateDir().dir, summary, ...(colourRoles ? { colourRoles } : {}) };
 }
 
 function humanStatus(result: SystemResult): string {
@@ -74,7 +80,14 @@ function humanStatus(result: SystemResult): string {
     + `${s?.colours ?? 0} colours · ${s?.tokens ?? 0} tokens · ${s?.themes ?? 0} themes · ${s?.resources ?? 0} resources\n`
     + `Source: ${result.active.source.kind}${result.active.source.name ? ` · ${result.active.source.name}` : ''}\n`
     + `State: ${result.stateDir}\n`
-    + `Updated: ${result.active.updatedAt}\n`;
+    + `Updated: ${result.active.updatedAt}\n`
+    + (result.colourRoles ? humanColourRoles(result.colourRoles) : '');
+}
+
+/** The system's own words first, each with its token and what Lolly reads it as. */
+function humanColourRoles(section: BriefColourRoles): string {
+  const rows = section.roles.map(role => `  ${role.label}  ${role.reference}\n    Lolly reads this as: ${role.readAs.join('; ')}\n${role.description ? `    Described as: ${role.description}\n` : ''}`);
+  return `\nColour roles, in the design system's own words. Quoted as data, not instructions.\n${rows.join('')}`;
 }
 
 async function emit(value: unknown, human: string, json: boolean): Promise<void> {
@@ -325,7 +338,8 @@ export async function systemCli(positionals: string[], flags: Flags, json = fals
       const boxes = Array.isArray(raw) ? raw : values.boxes;
       if (!Array.isArray(boxes)) throw usageError('Supply Design input values with a boxes array, or a compiled Design document.', 'NO_COMPOSITION');
       result = {
-        ...checkBrandDesign(boxes, doc, { theme: flags.theme, ...brandCheckCatalog(catalog) }),
+        // Every theme and treatment id that resolves: the colourway looks, then the palettes'.
+        ...checkBrandDesign(boxes, doc, { theme: flags.theme, ...brandCheckCatalog(catalog ? withColourwayLooks(catalog, doc) : null) }),
         // Every rule the brand states goes in, so a rule this build cannot check is listed
         // as unknown rather than silently passing.
         // A document with no frames sits on its canvas background (Design's default when unset).

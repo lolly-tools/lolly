@@ -20,7 +20,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { assetDependency, readZip } from '@lolly/engine';
+import { assetDependency, gunzip, gzip, readZip } from '@lolly/engine';
 import { lollyFeatureReader } from '../../core/src/lolly-features.ts';
 
 /** One font face the session's render depended on, by identity. Mirrors `LollyFontEntry`
@@ -301,4 +301,22 @@ export function stripSvgC2pa(svg: string): string {
     .replace(/<metadata><c2pa:manifest(?:\s[^>]*)?>[^<]*<\/c2pa:manifest><\/metadata>/g, '')
     .replace(/<c2pa:manifest(?:\s[^>]*)?>[^<]*<\/c2pa:manifest>/g, '')
     .replace(/ xmlns:c2pa="[^"]*"/g, '');
+}
+
+/**
+ * A finished SVG (or `.svgz`) with every `<c2pa:manifest>` taken out, and only those, for an
+ * export whose caller asked for no credential: an SVG that inlines credentialed artwork,
+ * such as a catalog logo, carries that piece's manifest as well, and a verifier reads it as
+ * the file's own. Any other format, or an SVG with none, comes back as it was. Latin-1 keeps
+ * every byte around the elements exactly as it found them.
+ */
+export function withoutSvgCredentials(bytes: Uint8Array, format: string): Uint8Array {
+  if (format === 'svgz') {
+    const svg = gunzip(bytes);
+    const clean = withoutSvgCredentials(svg, 'svg');
+    return clean === svg ? bytes : gzip(clean);
+  }
+  if (format !== 'svg' && format !== 'svg-anim') return bytes;
+  const text = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString('latin1');
+  return text.includes('<c2pa:manifest') ? new Uint8Array(Buffer.from(stripSvgC2pa(text), 'latin1')) : bytes;
 }

@@ -153,5 +153,81 @@
     "group": "Look",
     "default": "{color.semantic.primary}",
     "help": "The edge bar, the rules, and the field the card back prints on."
+  },
+  {
+    "id": "ground",
+    "label": "Colour treatment",
+    "type": "select",
+    "default": "piece",
+    "options": [
+      {
+        "value": "piece",
+        "label": "By piece"
+      },
+      {
+        "value": "tint",
+        "label": "Brand tint"
+      },
+      {
+        "value": "lead",
+        "label": "Lead colour"
+      },
+      {
+        "value": "ink",
+        "label": "Ink"
+      },
+      {
+        "value": "surface",
+        "label": "Surface"
+      }
+    ],
+    "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+    "section": "Treatment"
+  },
+  {
+    "id": "density",
+    "label": "Spacing",
+    "type": "select",
+    "default": "auto",
+    "options": [
+      {
+        "value": "auto",
+        "label": "Fit content"
+      },
+      {
+        "value": "compact",
+        "label": "Compact"
+      },
+      {
+        "value": "comfortable",
+        "label": "Comfortable"
+      },
+      {
+        "value": "spacious",
+        "label": "Spacious"
+      }
+    ],
+    "section": "Treatment"
+  },
+  {
+    "id": "layout",
+    "label": "Layout",
+    "type": "select",
+    "default": "classic",
+    "options": [
+      {
+        "value": "classic",
+        "label": "Classic"
+      },
+      {
+        "value": "stack",
+        "label": "Stack"
+      },
+      {
+        "value": "side",
+        "label": "Side by side"
+      }
+    ],
+    "section": "Treatment"
   }
 ]

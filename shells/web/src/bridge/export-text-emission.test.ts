@@ -49,6 +49,12 @@ const REPO_ROOT = fileURLToPath(new URL('../../../../', import.meta.url));
 /** The platform face, committed in the web shell itself - not a brand asset. */
 const OUTFIT_TTF = join(REPO_ROOT, 'shells/web/public/fonts/Outfit[wght].ttf');
 const HB_WASM = join(REPO_ROOT, 'node_modules/harfbuzzjs/dist/harfbuzz.wasm');
+/** Faces with the scripts Outfit lacks: the text composition fixtures, on every clone. */
+const FIXTURE_FONTS: Record<string, string> = {
+  '/fonts/NotoSansArabic.ttf': join(REPO_ROOT, 'tests/fixtures/text-composition/fonts/notosansarabic/NotoSansArabic[wdth,wght].ttf'),
+  '/fonts/NotoSansHebrew.ttf': join(REPO_ROOT, 'tests/fixtures/text-composition/fonts/notosanshebrew/NotoSansHebrew[wdth,wght].ttf'),
+  '/fonts/NotoSansDevanagari.ttf': join(REPO_ROOT, 'tests/fixtures/text-composition/fonts/notosansdevanagari/NotoSansDevanagari[wdth,wght].ttf'),
+};
 
 async function chromiumOrSkip(): Promise<{ chromium: any } | string> {
   if (!existsSync(OUTFIT_TTF)) return `missing ${OUTFIT_TTF}`;
@@ -76,11 +82,12 @@ async function bundle(): Promise<string> {
       // outlining branch is gated on `_host?.text` - without this call every run
       // silently falls back to <text> and the whole suite would pass vacuously.
       // The `emits a <path>` test is the canary for exactly that mistake.
-      contents: `import { renderSvgFromHtml, createExportAPI } from ${JSON.stringify(EXPORT_MODULE)};
+      contents: `import { renderSvgFromHtml, renderSvg, createExportAPI } from ${JSON.stringify(EXPORT_MODULE)};
                  import { createTextAPI } from ${JSON.stringify(join(HERE, 'text.ts'))};
                  window.__setup = (overrides = {}) => createExportAPI({ text: createTextAPI(), log: () => {}, ...overrides });
                  window.__makeText = createTextAPI;
-                 window.__render = renderSvgFromHtml;`,
+                 window.__render = renderSvgFromHtml;
+                 window.__renderFormat = renderSvg;`,
       resolveDir: HERE, loader: 'ts',
     },
     bundle: true, write: false, format: 'esm', platform: 'browser',
@@ -108,7 +115,13 @@ async function bundle(): Promise<string> {
 }
 
 const FONT_CSS =
-  `@font-face{font-family:Outfit;src:url('/fonts/Outfit[wght].ttf') format('truetype');font-weight:100 900}`;
+  `@font-face{font-family:Outfit;src:url('/fonts/Outfit[wght].ttf') format('truetype');font-weight:100 900}` +
+  `@font-face{font-family:Arabic;src:url('/fonts/NotoSansArabic.ttf') format('truetype');font-weight:100 900}` +
+  `@font-face{font-family:Hebrew;src:url('/fonts/NotoSansHebrew.ttf') format('truetype');font-weight:100 900}` +
+  `@font-face{font-family:Devanagari;src:url('/fonts/NotoSansDevanagari.ttf') format('truetype');font-weight:100 900}` +
+  // One family in two disjoint files, the shape a Google font arrives in.
+  `@font-face{font-family:Mixed;src:url('/fonts/NotoSansArabic.ttf') format('truetype');font-weight:100 900;unicode-range:U+0600-06FF,U+FB50-FDFF,U+FE70-FEFF}` +
+  `@font-face{font-family:Mixed;src:url('/fonts/Outfit[wght].ttf') format('truetype');font-weight:100 900;unicode-range:U+0000-00FF,U+2000-206F}`;
 
 /** One browser for the whole file - launching per test dominates the runtime. */
 let shared: any = null;
@@ -130,6 +143,9 @@ async function page(): Promise<any> {
       const p = decodeURIComponent(new URL(route.request().url()).pathname);
       if (p === '/fonts/Outfit[wght].ttf') {
         return route.fulfill({ status: 200, contentType: 'font/ttf', body: readFileSync(OUTFIT_TTF) });
+      }
+      if (FIXTURE_FONTS[p]) {
+        return route.fulfill({ status: 200, contentType: 'font/ttf', body: readFileSync(FIXTURE_FONTS[p]!) });
       }
       if (p.endsWith('.wasm')) {
         return route.fulfill({ status: 200, contentType: 'application/wasm', body: readFileSync(HB_WASM) });
@@ -693,4 +709,276 @@ test('text shadow filter IDs are deterministic and owned by each render', { skip
   assert.match(first, /id="fctxsh-1"/);
   assert.match(first, /id="fctxsh-2"/);
   assert.equal(second, first);
+});
+
+// ── right-to-left text ───────────────────────────────────────────────────────
+//
+// The live page is the reference: these tests put the exported SVG back into the same
+// page and compare each character's place with the browser's. Nothing here depends on a
+// machine having an Arabic font. A missing glyph is still a box, in the same place, in
+// both.
+
+const AR = 'أفضل الأدوات تختفي، حتى يتحدث العمل عن نفسه.';
+const HE = 'הכלים הטובים ביותר נעלמים.';
+
+/** Render into the page and load the fonts every @font-face names, used or not. */
+async function mount(inner: string): Promise<any> {
+  const pg = await page();
+  await pg.setContent(`<!doctype html><body style="margin:0"><style>${FONT_CSS}</style>` +
+    `<div id="root" style="width:500px;height:150px;background:#fff;position:relative">${inner}</div></body>`);
+  await pg.evaluate(async () => { await Promise.all([...(document as any).fonts].map((f: any) => f.load().catch(() => {}))); });
+  await pg.addScriptTag({ content: await bundle(), type: 'module' });
+  await pg.waitForFunction(() => !!(window as any).__render);
+  return pg;
+}
+
+/**
+ * Each non-space character of `el`'s first text node, on the live page and in the
+ * exported <text> placed inline over the same spot: the centre x of each. A character
+ * the export moved shows up here whatever font draws the glyph.
+ */
+async function charCentres(selector: string): Promise<{ svg: string; live: number[]; exported: number[]; text: string }> {
+  const pg = await page();
+  return await pg.evaluate(async (sel: string) => {
+    (window as any).__setup();
+    const root = document.getElementById('root')!;
+    const svg: string = await (await (window as any).__render(root, { rasterFallback: false })).text();
+    const el = document.querySelector(sel)!;
+    const node = [...el.childNodes].find((n) => n.nodeType === 3 && n.textContent!.trim())!;
+    const full = node.textContent!;
+    const range = document.createRange();
+    const live: number[] = [];
+    const left = root.getBoundingClientRect().left;
+    for (let i = 0; i < full.length; i++) {
+      if (!full[i]!.trim()) continue;
+      range.setStart(node, i); range.setEnd(node, i + 1);
+      const r = range.getBoundingClientRect();
+      live.push(r.left + r.width / 2 - left);
+    }
+    const host = document.createElement('div');
+    host.style.cssText = `position:absolute;left:${left}px;top:0;width:500px;height:150px`;
+    host.innerHTML = svg;
+    document.body.appendChild(host);
+    const t = host.querySelector('text') as SVGTextElement;
+    const exported: number[] = [];
+    const words = t.textContent!;
+    const hostLeft = (host.querySelector('svg') as SVGSVGElement).getBoundingClientRect().left;
+    for (let i = 0; i < words.length; i++) {
+      if (!words[i]!.trim()) continue;
+      const box = t.getExtentOfChar(i);
+      exported.push(box.x + box.width / 2 + hostLeft - left);
+    }
+    const textOut = t.outerHTML;
+    host.remove();
+    return { svg: textOut, live, exported, text: full };
+  }, selector);
+}
+
+function assertSamePlaces(r: { live: number[]; exported: number[] }, label: string, within = 3): void {
+  assert.equal(r.exported.length, r.live.length, `${label}: the export has the same characters as the page`);
+  r.live.forEach((x, i) => {
+    assert.ok(Math.abs(x - r.exported[i]!) <= within,
+      `${label}: character ${i} is at ${r.exported[i]!.toFixed(1)} in the export and ${x.toFixed(1)} on the page`);
+  });
+}
+
+const FALLBACK_CASES: Array<[string, string]> = [
+  ['Arabic with a closing full stop', `<p id="t" dir="rtl" style="font-family:Outfit;font-size:20px;margin:8px">${AR}</p>`],
+  ['Hebrew with a closing full stop', `<p id="t" dir="rtl" style="font-family:Outfit;font-size:24px;margin:8px">${HE}</p>`],
+  ['a Latin word inside Arabic', `<p id="t" dir="rtl" style="font-family:Outfit;font-size:24px;margin:8px">مرحبا Hello World بالعالم.</p>`],
+  ['parentheses, Latin and numbers', `<p id="t" dir="rtl" style="font-family:Outfit;font-size:24px;margin:8px">(كتاب الأدوات) Lolly 2024، صفحة 15.</p>`],
+  ['numbers', `<p id="t" dir="rtl" style="font-family:Outfit;font-size:24px;margin:8px">عام 2024 و 1500 نسخة.</p>`],
+  ['dir="auto"', `<p id="t" dir="auto" style="font-family:Outfit;font-size:20px;margin:8px">${AR}</p>`],
+  ['CSS direction with no attribute', `<p id="t" style="direction:rtl;font-family:Outfit;font-size:20px;margin:8px">${AR}</p>`],
+  ['dir on an ancestor', `<section dir="rtl"><p id="t" style="font-family:Outfit;font-size:20px;margin:8px">${AR}</p></section>`],
+  ['text aligned to the left', `<p id="t" dir="rtl" style="text-align:left;font-family:Outfit;font-size:24px;margin:8px">مرحبا بالعالم.</p>`],
+  ['centred text', `<p id="t" dir="rtl" style="text-align:center;font-family:Outfit;font-size:24px;margin:8px">مرحبا بالعالم.</p>`],
+];
+
+for (const [label, markup] of FALLBACK_CASES) {
+  test(`a <text> fallback keeps the browser's order: ${label}`, { skip: SKIP }, async () => {
+    await mount(markup);
+    const r = await charCentres('#t');
+    assert.match(r.svg, /direction="rtl"/, 'the line states its direction');
+    assertSamePlaces(r, label);
+  });
+}
+
+test('a right-to-left <text> is anchored at the right edge of its line', { skip: SKIP }, async () => {
+  const pg = await mount(`<p id="t" dir="rtl" style="font-family:Outfit;font-size:24px;margin:0 20px 0 0">مرحبا بالعالم.</p>`);
+  const r = await pg.evaluate(async () => {
+    (window as any).__setup();
+    return (await (window as any).__render(document.getElementById('root'), { rasterFallback: false })).text();
+  });
+  const x = Number(/<text[^>]*\bx="([\d.]+)"/.exec(r)![1]);
+  assert.ok(Math.abs(x - 480) <= 1, `expected the run's right edge, 480, got ${x}`);
+});
+
+test('unicode-bidi: plaintext takes the direction from the text', { skip: SKIP }, async () => {
+  await mount(`<p id="t" style="unicode-bidi:plaintext;font-family:Outfit;font-size:24px;margin:8px">مرحبا بالعالم.</p>`);
+  const r = await charCentres('#t');
+  assert.match(r.svg, /direction="rtl"/);
+  assertSamePlaces(r, 'plaintext');
+});
+
+test('bidi-override stays text, because a shaper cannot reverse characters', { skip: SKIP }, async () => {
+  await mount(`<p id="t" style="direction:rtl;unicode-bidi:bidi-override;font-family:Outfit;font-size:24px;margin:8px">Hello World.</p>`);
+  const r = await charCentres('#t');
+  assert.match(r.svg, /unicode-bidi="bidi-override"/);
+  assertSamePlaces(r, 'override');
+});
+
+test('a left-to-right paragraph holding an Arabic phrase states no direction', { skip: SKIP }, async () => {
+  await mount(`<p id="t" style="font-family:Outfit;font-size:24px;margin:8px">She said مرحبا بالعالم. Then left.</p>`);
+  const r = await charCentres('#t');
+  assert.doesNotMatch(r.svg, /direction=/);
+  assert.doesNotMatch(r.svg, /unicode-bidi=/);
+  assertSamePlaces(r, 'ltr paragraph');
+});
+
+test('an inline span with direction but no unicode-bidi orders nothing, as in the browser', { skip: SKIP }, async () => {
+  await mount(`<p style="font-family:Outfit;font-size:24px;margin:8px">Hello <span id="t" style="direction:rtl">مرحبا.</span> World</p>`);
+  const r = await charCentres('#t');
+  assert.doesNotMatch(r.svg, /direction=/);
+  assertSamePlaces(r, 'inline direction');
+});
+
+test('a pseudo-element with right-to-left text states its direction and its right edge', { skip: SKIP }, async () => {
+  const pg = await mount(`<style>.p{position:relative;height:60px;font-family:Outfit;font-size:24px;direction:rtl}.p::before{content:"مرحبا بالعالم.";position:absolute;right:12px;top:12px}</style><div class="p"></div>`);
+  const svg: string = await pg.evaluate(async () => {
+    (window as any).__setup();
+    return (await (window as any).__render(document.getElementById('root'), { rasterFallback: false })).text();
+  });
+  assert.match(svg, /<text[^>]*direction="rtl"/);
+  const x = Number(/<text[^>]*\bx="([\d.]+)"/.exec(svg)![1]);
+  assert.ok(Math.abs(x - 488) <= 1, `expected the pseudo's right edge, 488, got ${x}`);
+});
+
+test('native <text> nested in HTML keeps the direction it inherited from the page', { skip: SKIP }, async () => {
+  const pg = await mount(`<div dir="rtl"><svg width="400" height="60" viewBox="0 0 400 60" style="display:block"><text x="380" y="40" font-family="Outfit" font-size="20">مرحبا بالعالم.</text></svg></div>`);
+  const svg: string = await pg.evaluate(async () => {
+    (window as any).__setup();
+    return (await (window as any).__render(document.getElementById('root'), { rasterFallback: false })).text();
+  });
+  assert.match(svg, /<text[^>]*direction:\s*rtl/, 'the standalone file has no page around it to inherit from');
+});
+
+test('a tool whose root is an <svg> keeps a right-to-left <text>, and its anchor means the same', { skip: SKIP }, async () => {
+  const pg = await mount(`<svg dir="rtl" width="400" height="90" viewBox="0 0 400 90" style="display:block;direction:rtl"><text x="380" y="30" font-family="Outfit" font-size="20">مرحبا بالعالم.</text></svg>`);
+  const svg: string = await pg.evaluate(async () => {
+    (window as any).__setup();
+    return (await (window as any).__renderFormat(document.getElementById('root'), {})).text();
+  });
+  assert.match(svg, /<text[^>]*direction="rtl"/, 'no font covers it, so the run stays text and says which way it reads');
+});
+
+test('a root <svg> outlined run reads text-anchor against its direction', { skip: SKIP }, async () => {
+  const pg = await mount(`<svg width="400" height="90" viewBox="0 0 400 90" style="display:block;direction:rtl"><text x="380" y="30" font-family="Arabic" font-size="20">مرحبا</text><text x="20" y="70" text-anchor="end" font-family="Arabic" font-size="20">مرحبا</text></svg>`);
+  const places = await pg.evaluate(async () => {
+    (window as any).__setup();
+    const svg: string = await (await (window as any).__renderFormat(document.getElementById('root'), {})).text();
+    const host = document.createElement('div');
+    host.innerHTML = svg;
+    document.body.appendChild(host);
+    const out = [...host.querySelectorAll('path')].map((p) => { const b = (p as SVGPathElement).getBBox(); const m = (p as SVGPathElement).getCTM()!; return { left: b.x + m.e, right: b.x + b.width + m.e }; });
+    host.remove();
+    return out;
+  });
+  assert.equal(places.length, 2, 'both runs outline');
+  assert.ok(Math.abs(places[0]!.right - 380) <= 2, `start in right-to-left text is the right edge, 380, got ${places[0]!.right}`);
+  assert.ok(Math.abs(places[1]!.left - 20) <= 2, `end in right-to-left text is the left edge, 20, got ${places[1]!.left}`);
+});
+
+/**
+ * How much of the live page's ink the exported file covers, and the other way round, as
+ * the smaller of the two. Both are screenshots from the same browser, with a little
+ * slack around each dark pixel because a path and a browser glyph antialias differently.
+ */
+async function inkAgreement(svgText: string): Promise<number> {
+  const pg = await page();
+  const live: Buffer = await pg.locator('#root').screenshot();
+  const shared2 = await shared.newPage({ viewport: { width: 900, height: 700 } });
+  try {
+    await shared2.setContent(`<!doctype html><body style="margin:0"><img id="i" style="display:block;width:500px;height:150px" src="data:image/svg+xml;base64,${Buffer.from(svgText).toString('base64')}"></body>`);
+    await shared2.evaluate(() => (document.getElementById('i') as HTMLImageElement).decode());
+    const out: Buffer = await shared2.locator('#i').screenshot();
+    return await pg.evaluate(async ([a, b]: string[]) => {
+      const mask = async (b64: string) => {
+        const bmp = await createImageBitmap(await (await fetch(`data:image/png;base64,${b64}`)).blob());
+        const c = new OffscreenCanvas(bmp.width, bmp.height);
+        const g = c.getContext('2d')!;
+        g.drawImage(bmp, 0, 0);
+        const d = g.getImageData(0, 0, bmp.width, bmp.height).data;
+        const m = new Uint8Array(bmp.width * bmp.height);
+        for (let i = 0; i < m.length; i++) m[i] = d[i * 4]! < 128 ? 1 : 0;
+        return { m, w: bmp.width, h: bmp.height };
+      };
+      const A = await mask(a!), B = await mask(b!);
+      const covered = (p: typeof A, q: typeof A) => {
+        let ink = 0, hit = 0;
+        for (let y = 0; y < p.h; y++) for (let x = 0; x < p.w; x++) {
+          if (!p.m[y * p.w + x]) continue;
+          ink++;
+          search: for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+            const yy = y + dy, xx = x + dx;
+            if (yy >= 0 && yy < q.h && xx >= 0 && xx < q.w && q.m[yy * q.w + xx]) { hit++; break search; }
+          }
+        }
+        return ink ? hit / ink : 1;
+      };
+      return Math.min(covered(A, B), covered(B, A));
+    }, [live.toString('base64'), out.toString('base64')]);
+  } finally { await shared2.close(); }
+}
+
+async function renderedSvg(pg: any): Promise<string> {
+  return await pg.evaluate(async () => {
+    (window as any).__setup();
+    return (await (window as any).__render(document.getElementById('root'), { rasterFallback: false })).text();
+  });
+}
+
+const OUTLINE_CASES: Array<[string, string]> = [
+  ['pure Arabic with a closing full stop', `<p dir="rtl" style="font-family:Arabic;font-size:24px;margin:8px">${AR}</p>`],
+  ['pure Hebrew', `<p dir="rtl" style="font-family:Hebrew;font-size:24px;margin:8px">${HE}</p>`],
+  ['Latin words and numbers inside Arabic, in two subset files', `<p dir="rtl" style="font-family:Mixed;font-size:24px;margin:8px">مرحبا Hello World بالعالم 2024.</p>`],
+  ['Arabic inside a left-to-right paragraph, in two subset files', `<p style="font-family:Mixed;font-size:24px;margin:8px">Hello مرحبا بالعالم 2024 World.</p>`],
+  ['a closing full stop on Latin in a right-to-left paragraph', `<p dir="rtl" style="font-family:Outfit;font-size:24px;margin:8px">Sketch of the Engine.</p>`],
+  ['Latin split by bold in a right-to-left paragraph', `<p dir="rtl" style="font-family:Outfit;font-size:24px;margin:8px">Hello <b>World</b> again.</p>`],
+  ['Arabic and Latin split by bold', `<p dir="rtl" style="font-family:Mixed;font-size:24px;margin:8px">مرحبا <b>Hello</b> world بالعالم.</p>`],
+  ['Devanagari after a Latin word in a face that has both', `<p style="font-family:Devanagari;font-size:24px;margin:8px">Lolly का नया संस्करण क्ष्म्य</p>`],
+  ['wrapped Arabic', `<p dir="rtl" style="font-family:Arabic;font-size:24px;margin:8px;width:300px">${AR}</p>`],
+];
+
+for (const [label, markup] of OUTLINE_CASES) {
+  test(`an outlined run draws what the page draws: ${label}`, { skip: SKIP }, async () => {
+    const pg = await mount(markup);
+    const svg = await renderedSvg(pg);
+    assert.equal(textCount(svg), 0, 'the face covers it, so it is outlined');
+    assert.ok(pathCount(svg) >= 1);
+    const agreement = await inkAgreement(svg);
+    assert.ok(agreement > 0.93, `the exported ink agrees with the page's on only ${(agreement * 100).toFixed(1)}%`);
+  });
+}
+
+test('the agreement measure can tell: reversed Latin scores well below the threshold', { skip: SKIP }, async () => {
+  const pg = await mount(`<p style="font-family:Outfit;font-size:24px;margin:8px">Hello World</p>`);
+  const svg = await renderedSvg(pg);
+  assert.ok(await inkAgreement(svg) > 0.93, 'the run agrees with itself');
+  await mount(`<p style="font-family:Outfit;font-size:24px;margin:8px">dlroW olleH</p>`);
+  assert.ok(await inkAgreement(svg) < 0.85, 'and not with the same letters reversed');
+});
+
+test('left-to-right text asks the shaper nothing new', { skip: SKIP }, async () => {
+  const pg = await mount(OUTFIT('Plain Latin, nothing to see.'));
+  const keys: string[][] = await pg.evaluate(async () => {
+    const harness = window as any;
+    const seen: string[][] = [];
+    const api = harness.__makeText();
+    harness.__setup({ text: { ...api, async toPath(opts: any) { seen.push(Object.keys(opts)); return api.toPath(opts); } }, log: () => {} });
+    await harness.__render(document.getElementById('root'), { rasterFallback: false });
+    return seen;
+  });
+  assert.ok(keys.length >= 1);
+  for (const list of keys) assert.ok(!list.includes('direction'), 'no direction key on a purely left-to-right run');
 });

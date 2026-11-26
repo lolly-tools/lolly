@@ -1,6 +1,6 @@
 {
   "name": "Lab Palet",
-  "description": "Tumbuhkan palet dari satu warna benih - aksen harmoni, ramp OKLab perseptual dan lencana keterbacaan WCAG/APCA, dengan token DTCG dan ekspor CSV.",
+  "description": "Tumbuhkan palet dari satu warna benih - aksen harmoni, ramp OKLab dan lencana keterbacaan WCAG/APCA, dengan token DTCG dan ekspor CSV.",
   "inputs.seed.label": "Warna seed",
   "inputs.seed.help": "Warna yang menjadi dasar seluruh palet - default ke primary brand Anda.",
   "inputs.harmony.label": "Harmoni",

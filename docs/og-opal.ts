@@ -40,8 +40,9 @@ export type OpalKind = 'house' | 'tool' | 'stage';
 
 /** A house card: the title, one line of text and the address. */
 export interface OpalHouseCard { title: string; line: string; url: string; }
-/** A tool card: the pitch comes from `description`, the sticker from `iconSvg`. */
-export interface OpalToolCard { name: string; description: string; url: string; iconSvg?: string; }
+/** A tool card: the pitch comes from `description`, the sticker from `iconSvg`. `kicker`
+ *  replaces "Tool · Name" for a card that is not a tool's (a music genre page's). */
+export interface OpalToolCard { name: string; description: string; url: string; iconSvg?: string; kicker?: string; }
 /** A stage card: the kicker, the title and a short line cut from `line`. */
 export interface OpalStageCard { kicker: string; title: string; line: string; }
 
@@ -502,7 +503,7 @@ async function layoutHouse(card: OpalHouseCard): Promise<OpalLayout> {
 async function layoutTool(card: OpalToolCard): Promise<OpalLayout> {
   const m = await loadOpalType();
   const s = SPEC.tool;
-  const kicker = choose([`Tool · ${card.name}`], s.kicker, COPY_W, m);
+  const kicker = choose([card.kicker ?? `Tool · ${card.name}`], s.kicker, COPY_W, m);
   const pitch = choose(oneLiners(card.description), s.title, COPY_W, m);
   const url = fitAddress(card.url, s.url, COPY_W, m);
   return {

@@ -71,7 +71,16 @@ export interface MeterHandle {
   context(): BaseAudioContext | null;
 }
 
-export function attachAudioMeter(canvas: HTMLCanvasElement, audioEl: HTMLAudioElement): MeterHandle {
+/**
+ * Where a meter reads a source the element cannot hand over. A generated tune plays into
+ * the element as a live stream, from its own audio graph, which already has an analyser
+ * (lib/tune-preview.ts): the meter reads that one, and never wraps the element in a
+ * MediaElementSource, so the element's own output stays as it is. Asked afresh each time,
+ * since a tune that ends and plays again brings a new analyser.
+ */
+export type MeterTap = () => { analyser: AnalyserNode; context: BaseAudioContext } | null;
+
+export function attachAudioMeter(canvas: HTMLCanvasElement, audioEl: HTMLAudioElement, tap?: MeterTap): MeterHandle {
   const c2d = canvas.getContext('2d');
   if (!c2d) return Object.assign(() => { /* nothing attached */ }, { analyser: () => null, context: () => null });
   // A function, not a captured boolean: a meter attached at page load would
@@ -101,7 +110,11 @@ export function attachAudioMeter(canvas: HTMLCanvasElement, audioEl: HTMLAudioEl
     } catch { return 'unsafe'; }
   };
 
+  /** The analyser to draw from: the tap's, when the meter has one, else the element's own. */
+  const current = (): AnalyserNode | null => (tap ? tap()?.analyser ?? null : analyser);
+
   const ensureGraph = (): boolean => {
+    if (tap) return current() !== null;
     if (analyser) return true;
     const state = sourceState();
     if (state !== 'ok') {
@@ -125,10 +138,11 @@ export function attachAudioMeter(canvas: HTMLCanvasElement, audioEl: HTMLAudioEl
 
   const draw = (): void => {
     if (disposed || !canvas.isConnected) { running = false; return; }
-    if (analyser && !audioEl.paused && !audioEl.ended && !reduced()) {
+    const node = current();
+    if (node && !audioEl.paused && !audioEl.ended && !reduced()) {
       const color = getComputedStyle(canvas).color || '#888';
       c2d.clearRect(0, 0, canvas.width, canvas.height);
-      drawMeterBars(c2d, canvas.width, canvas.height, analyser, color);
+      drawMeterBars(c2d, canvas.width, canvas.height, node, color);
       requestAnimationFrame(draw);
     } else {
       idle();
@@ -141,16 +155,19 @@ export function attachAudioMeter(canvas: HTMLCanvasElement, audioEl: HTMLAudioEl
     requestAnimationFrame(draw);
   };
   audioEl.addEventListener('play', onPlay);
+  // A live tune's analyser exists only once its stream is running, after 'play'.
+  audioEl.addEventListener('playing', onPlay);
 
   return Object.assign(
     () => {
       disposed = true;
       audioEl.removeEventListener('play', onPlay);
+      audioEl.removeEventListener('playing', onPlay);
       try { source?.disconnect(); analyser?.disconnect(); } catch { /* already torn down */ }
     },
     {
-      analyser: () => analyser,
-      context: () => (analyser ? previewCtx : null),
+      analyser: current,
+      context: () => (tap ? tap()?.context ?? null : analyser ? previewCtx : null),
     },
   );
 }

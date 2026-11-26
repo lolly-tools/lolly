@@ -1,0 +1,18 @@
+{
+  "id": "rose-wedges",
+  "name": "Wedges sized by value",
+  "category": "3-D",
+  "description": "Equal wedges whose reach shows the value, measured so the area stays honest, around a small hub.",
+  "values": {
+    "renderMode": "scene",
+    "chartType": "polar",
+    "sceneType": "rose3d",
+    "data": "Month,Rain\nJan,82\nFeb,64\nMar,58\nApr,41\nMay,33\nJun,22\nJul,18\nAug,21\nSep,35\nOct,52\nNov,71\nDec,88",
+    "heading": "A wet winter, a dry summer",
+    "subheading": "Rainfall by month, in millimetres",
+    "sceneStage": "plinth",
+    "sceneMaterial": "satin",
+    "showLegend": false
+  },
+  "presets": []
+}

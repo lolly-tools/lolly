@@ -18,6 +18,7 @@ import { deliverBatchFile, releaseBackgroundDelivery } from '../../lib/backgroun
 import { approvalPdfPreview, approvalWantsArtifact, openApprovalRequest } from '../../lib/approval-request.ts';
 import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { stageDeckAsSequence, stagedDeckMs } from '../../lib/deck-as-sequence.ts';
+import { fansOutPerPage, pageExportSize, stagePages } from '../../lib/export-target.ts';
 import { saveExportPrefs } from '../../lib/export-prefs.ts';
 import { livePalette } from '../../lib/live-palette.ts';
 import { isModuleFormat, modUrlToWavBlobUrl } from '../../lib/mod-render.ts';
@@ -35,8 +36,8 @@ import { wireDurableConsent } from '../export-durable-card.ts';
 import { wirePreflight } from '../export-preflight.ts';
 import type { SourceIngredient } from '@lolly-tools/core/host-v1';
 import type { IdentityStatus, RunExportOpts } from '../tool.ts';
-import { addScrubBehavior, captureThumbnail, exportTargetNode } from '../tool-action-helpers.ts';
-import { ZIP_BUNDLE, extFor, fmtLabel, isC2paFmt, isCmykFmt, isPrintFmt } from './shared.ts';
+import { addScrubBehavior, capturePreview, exportTargetNode } from '../tool-action-helpers.ts';
+import { ZIP_BUNDLE, c2paBoxOptedOut, extFor, fmtLabel, isC2paFmt, isCmykFmt, isPrintFmt } from './shared.ts';
 import type { MediaFrameLike } from './shared.ts';
 import { holdStageView } from '../../lib/stage-lod.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
@@ -318,9 +319,9 @@ export function readPassword(ta: ActionsCtx): void {
   // marks / pdf-cmyk. When Standard can't apply we disable it and fall to Strong.
   // The same two hints serve the PDF and the ZIP lock.
   const STD_LOCK_HINT =
-    'The password travels in share links, so treat this as a deterrent, not protection for confidential files.'; ta.STD_LOCK_HINT = STD_LOCK_HINT;
+    'A deterrent, not protection for confidential files. The password stays out of links.'; ta.STD_LOCK_HINT = STD_LOCK_HINT;
   const STRONG_LOCK_HINT =
-    'The password is never put in a link and can’t be recovered if lost.'; ta.STRONG_LOCK_HINT = STRONG_LOCK_HINT;
+    'The password stays out of links and can’t be recovered if lost.'; ta.STRONG_LOCK_HINT = STRONG_LOCK_HINT;
 }
 
 export function wirePrint(ta: ActionsCtx): void {
@@ -403,14 +404,13 @@ export function wirePrint(ta: ActionsCtx): void {
     );
   }
 
-  // PDF open-password - clear-text in the URL by design (see pdfPassRow). Syncs on
-  // input so a crafted/edited link round-trips; syncUrl gates it to the pdf format.
+  // PDF open-password. Typed here it stays here: it is never written to the address
+  // or a copied link (see collectExportParams).
   el.querySelector<HTMLInputElement>('[data-action="pdf-password"]')?.addEventListener(
     'input',
     () => {
       ta.pwFromUrl = false;
       ta.refresh.refreshLockTier();
-      onUrlSync?.('password');
     }
   );
 
@@ -463,15 +463,12 @@ export function wirePrint(ta: ActionsCtx): void {
     }
   );
 
-  // Encryption-tier switch: refresh the hint/constraints, re-evaluate the C2PA
-  // exclusion, and re-sync the URL - the strong tier is deliberately never written
-  // to a link, so switching to it drops any ?password= that was there.
+  // Encryption-tier switch: refresh the hint/constraints and re-evaluate the C2PA exclusion.
   el.querySelector<HTMLSelectElement>('[data-action="pdf-lock-tier"]')?.addEventListener(
     'change',
     () => {
       ta.refresh.refreshLockTier();
       ta.refresh.refreshC2paUi('tier');
-      onUrlSync?.('password');
     }
   );
 
@@ -662,8 +659,8 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
       // html / zip formats keep their own paths.) Each [data-pdf-page] frame is exported
       // at its own measured size - width/height dims are stripped so a re-sized page still
       // exports at its true pixel size rather than the static render dimensions.
-      // Gate on the carousel-specific render.pages - NOT render.paged, which also marks
-      // multi-page-pdf / doc-studio, whose SVG export must stay a single whole-canvas file.
+      // A paged document (render.paged) fans out too: its single-image export used to hold
+      // the first page only, cropped to the export size (lib/export-target.ts).
       // Also admit the Design frame primitive: an editor-layout tool whose
       // boxes input declares canvas.frameField emits one [data-pdf-page] per ARTBOARD (frame
       // box). A no-frames Design doc renders a single .artboard with zero [data-pdf-page], so
@@ -678,8 +675,9 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             )?.canvas
           : undefined;
       const hasFrames = !!framesCanvas?.frameField;
+      const pageSource = stagePages(manifest.render, hasFrames);
       const pageEls =
-        (manifest.render.pages || hasFrames) && canvasEl
+        pageSource && canvasEl
           ? [...canvasEl.querySelectorAll<HTMLElement>('[data-pdf-page]')]
           : [];
       // The `?s=` STILL-EXPORT FILTER (plan 112 section 10): `?s=2&format=png` renders just
@@ -831,18 +829,40 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             throw new Error(words.rondoFailureSentence(err));
           }
         };
-        // ZzFXM songs, tracker modules and rondocode songs have no playable audio file -
-        // render them to a transient WAV blob URL so the URL-driven muxer paths consume
-        // them exactly like an encoded loop. (mod → libopenmpt, zzfxm → the synth,
-        // rondo → the song renderer.)
-        const toWavIfNeeded = async (r: { url: string; format?: string }, seconds?: number): Promise<string> =>
+        // A saved tune is a recipe Lolly composes (Andy's approval of 2026-11-10): rendered
+        // to a WAV blob here, and recorded as one C2PA source ingredient of the file it
+        // sounds in, with its name, the licence it records, the digest of its recipe and
+        // the engine version, and its maker only while "Use my details" is on. The sheet
+        // said so before the click (notes.ts fillSongNote). A record that cannot be built
+        // never stops the export.
+        const tuneToWav = async (r: { url: string; meta?: Record<string, unknown> }, seconds?: number): Promise<string> => {
+          const url = trackBlobUrl(await (await import('../../lib/lofi-tune.ts')).lofiTuneUrlToWavBlobUrl(r.url, seconds));
+          try {
+            const prov = await import('../../lib/tune-provenance.ts');
+            const source = await prov.tuneSourceOfRef({ format: 'lofi', url: r.url, ...(r.meta ? { meta: r.meta } : {}) });
+            const ing = source ? await prov.tuneSourceIngredient(source, { withMaker: await prov.usesDetails(host) }) : null;
+            // One ingredient per tune: the same tune as the tool's audio and the bed is one source.
+            if (ing && !songIngredients.some((have) => have.instanceId === ing.instanceId)) songIngredients.push(ing);
+          } catch (err) {
+            host.log('warn', `export: the tune record for Content Credentials could not be built (${(err as Error)?.message || err}).`);
+          }
+          return url;
+        };
+        // ZzFXM songs, tracker modules, rondocode songs and saved station tunes have no
+        // playable audio file - render them to a transient WAV blob URL so the URL-driven
+        // muxer paths consume them exactly like an encoded loop. (mod → libopenmpt,
+        // zzfxm → the synth, rondo → the song renderer, lofi → the station, repeating
+        // the tune to fill the video.)
+        const toWavIfNeeded = async (r: { url: string; format?: string; meta?: Record<string, unknown> }, seconds?: number): Promise<string> =>
           r.format === 'zzfxm'
             ? trackBlobUrl(await songUrlToWavBlobUrl(r.url))
             : isModuleFormat(r.format)
               ? trackBlobUrl(await modUrlToWavBlobUrl(r.url))
               : r.format === 'rondo'
                 ? await songToWav(r.url, seconds)
-                : r.url;
+                : r.format === 'lofi'
+                  ? await tuneToWav(r, seconds)
+                  : r.url;
         // The video's own length, which a song bed is rendered to fill.
         const videoSec = (): number | undefined => {
           const d = ta.video.videoParams().duration;
@@ -1078,8 +1098,8 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
               el!.querySelector<HTMLSelectElement>('[data-action="pdf-lock-tier"]')?.value ===
               'strong';
             // Strong (AES-256, encrypt-last) composes with RGB pdf AND print pdf-cmyk;
-            // the 40-bit standard lock is applied by the writer and RGB-pdf only.
-            if (strong && (fmt === 'pdf' || fmt === 'pdf-cmyk')) return { strongPassword: pw };
+            // the 40-bit standard lock is RGB pdf only, so a Print PDF is always strong.
+            if (fmt === 'pdf-cmyk' || (strong && fmt === 'pdf')) return { strongPassword: pw };
             if (fmt === 'pdf') return { password: pw };
             return {};
           })(),
@@ -1111,7 +1131,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
           ...(isC2paFmt(fmt) &&
           el!.querySelector<HTMLInputElement>('[data-action="pdf-c2pa"]')?.checked
             ? { c2pa: true, ...(ta.dims.c2paDaysVal() ? { c2paDays: ta.dims.c2paDaysVal()! } : {}) }
-            : {}),
+            : c2paBoxOptedOut(el, ta.exportDefaults, manifest) ? { dropInlinedC2pa: true } : {}),
           // Pixel watermark - the popup toggle (seeded by ?imprint=); the bridge
           // applies it only to raster formats, so it's harmless to pass through for
           // others / zip members. A tool with no raster format renders no toggle -
@@ -1166,7 +1186,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
                 // bundled file gets its own credential; the zip container never does.
                 ...(el!.querySelector<HTMLInputElement>('[data-action="pdf-c2pa"]')?.checked
                   ? { c2pa: true, ...(ta.dims.c2paDaysVal() ? { c2paDays: ta.dims.c2paDaysVal()! } : {}) }
-                  : {}),
+                  : c2paBoxOptedOut(el, ta.exportDefaults, manifest) ? { dropInlinedC2pa: true } : {}),
                 // Whole-zip lock: standard = ZipCrypto, strong = AES-256 (renderZip strips
                 // these off the per-member opts so members aren't double-locked).
                 ...(() => {
@@ -1289,15 +1309,9 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
           );
           await deliver(downloadedBlob!, `${outputBase}.pdf`);
         } else if (
+          pageSource &&
           pageEls.length >= 1 &&
-          !isAnimated &&
-          fmt !== 'pdf' &&
-          fmt !== 'zip' &&
-          fmt !== 'html' &&
-          fmt !== 'pptx' &&
-          fmt !== 'penpot' &&
-          fmt !== 'rpm' &&
-          fmt !== 'tar.gz'
+          fansOutPerPage(fmt, isAnimated, pageSource)
         ) {
           if (framePick.kind === 'unmatched') {
             const why = tRaw('No slide matches ?s={s}. Exporting every slide.', {
@@ -1383,8 +1397,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
                   }
                   const pb = await runtime.export(el, fmt, {
                     ...pageOpts,
-                    width: el.offsetWidth,
-                    height: el.offsetHeight,
+                    ...pageExportSize(el, exportDims, pageSource),
                   });
                   out.push({ name: `${filename}-${i + 1}.${extFor(fmt, pb)}`, blob: pb });
                 }
@@ -1543,7 +1556,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             format: fmt, query: shareUrlState(runtime.getModel()), ...(ta.activeSlot ? { slot: ta.activeSlot } : {}) };
           void import('../../lib/export-activity.ts').then(({ recordExportActivity }) => recordExportActivity({
             allowed: true, entry, bytes: downloadedBlob,
-            capture: () => captureThumbnail(manifest, canvasEl, runtime, exportUnscaled, fmt, false),
+            capture: () => capturePreview(manifest, canvasEl, runtime, exportUnscaled, false),
           })).catch(() => {});
         }
         // Auto-save the SAME credentialed bytes into the personal library (the

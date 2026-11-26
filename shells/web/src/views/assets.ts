@@ -158,6 +158,8 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // against the bucket table itself (a Set - an object lookup would answer yes to
   // 'constructor'); anything unrecognised leaves the default 'all' standing.
   cat.showHidden = new URLSearchParams(params).has('hidden');
+  cat.scope = null;
+  cat.allSystems = new URLSearchParams(params).get('systems') === 'all';
   // The role colours start behind their card (sections.ts swatchRevealHtml); ?swatches shows them.
   cat.showSwatches = new URLSearchParams(params).has('swatches');
   cat.loadFailed = false;                    // the catalog query threw - a total sync failure, distinct from an empty catalogue
@@ -169,6 +171,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // mount (plans/99 M0) with the same trim+lowercase the input handler applies.
   cat.query = (new URLSearchParams(params).get('q') || '').trim().toLowerCase();
   cat.iconThemes = [];          // two-colour pairings for themable icons (styler)
+  cat.iconThemeGround = 'light'; // the ground those pairings are for; the Dark ground switch moves it
   cat.catIconTheme = null;    // colour applied to a themable category's grid (null = base)
   const iconSvgCache = new Map<string, string>(); cat.iconSvgCache = iconSvgCache;  // base SVG text per themable-icon id - the recolour source
   cat.photoTreatments = [];  // greyscale/duotone washes for raster photo groups (like iconThemes)
@@ -377,7 +380,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     rootSelector: '.catalog',
     count: () => selected.size,
     actions: [
-      { id: 'open-with', icon: icon('externalLink'), label: () => t('Open with'), disabled: () => !cat.actions.choices(cat.actions.selection()).length, title: () => cat.actions.choices(cat.actions.selection()).length ? t('Open the selection in a compatible tool') : t('No tool accepts this selection.') },
+      { id: 'open-with', icon: icon('externalLink'), label: () => t('Open with'), disabled: () => !cat.actions.canOpen(cat.actions.selection()), title: () => cat.actions.canOpen(cat.actions.selection()) ? t('Open the selection in a compatible tool') : t('No tool accepts this selection.') },
       { id: 'convert', icon: icon('duplicate'), label: () => t('Convert'), disabled: () => !cat.actions.canConvert(cat.actions.selection()), title: () => cat.actions.canConvert(cat.actions.selection()) ? t('Choose a supported transformation') : t('No conversion accepts this selection.') },
       { id: 'compare', icon: icon('duplicate'), label: () => t('Compare'), hidden: () => !cat.bulk.canCompareSelection() },
       { id: 'fav', icon: STAR_ICON, label: () => (cat.bulk.allSelectedFav() ? t('Unfavourite') : t('Favourite')) },
@@ -407,6 +410,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   cat.detailsMeterDispose = null;
   /** The themed transport driving the preview's <audio> - disposed with the modal. */
   cat.detailsTransport = null;
+  cat.detailsTune = null;
   /** Releases the details modal's live visualiser (its WebGL2 context) + key handler. */
   cat.vizTeardown = null;
   cat.vizCycleStop = null;
@@ -475,9 +479,13 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // multi-select above only covers your own uploads, so this is what reaches the
   // catalogue's tiles.
   const unwireArrows = wireArrowNav(viewEl, { items: '.cat-tile', primary: '.cat-tile-open' });
+  // The ground behind the assets follows the app's light or dark scheme until the Dark
+  // ground switch says otherwise, so a theme change while the view is open moves it too.
+  const groundObserver = new MutationObserver(() => cat.wiring.syncAssetGround());
+  groundObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
   (viewEl as ViewElement)._cleanup = () => {
-    unwireArrows(); cat.uploadToolbarDispose?.();
+    unwireArrows(); groundObserver.disconnect(); cat.uploadToolbarDispose?.();
     cat.mounted = false; cat.sourceDispose?.();
     cat.actionsPopover?.close();
     viewEl.removeEventListener('dragstart', cat.wiring.onTileDragStart);
@@ -567,6 +575,12 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     const { theme } = parseThemedAssetId(linkedAsset);
     const { treatment } = parseTreatedAssetId(linkedAsset);
     const baseId = assetBaseId(linkedAsset);   // strips ?theme= AND ?treatment=
+    // A link can point at another design system's asset: the details open, and the grid stays as it is.
+    if (cat.scope && !cat.assetById.has(baseId)) {
+      const everySystem = await host.assets._queryEverySystem?.({ includeDeprecated: true }).catch(() => [] as AssetRef[]);
+      const found = everySystem?.find(a => assetBaseId(a.id) === baseId);
+      if (found) cat.assetById.set(found.id, found);
+    }
     const ref = cat.assetById.get(baseId)
       ?? cat.assetById.get(linkedAsset)
       ?? [...cat.assetById.values()].find(a => assetBaseId(a.id) === baseId);

@@ -44,6 +44,9 @@ function overlayInputs(inp) {
     title: inp.title,
     nameWeight: inp.nameWeight,
     subtitleWeight: inp.subtitleWeight,
+    // The design system's text face, as a font-family list; the consumer reads it
+    // from the tokens and passes it in as _fontBrand.
+    font: inp._fontBrand,
   };
 }
 function overlayActive(o) { return !!(o.showLogo || o.lowerThird); }
@@ -162,7 +165,7 @@ function buildOverlaySvg(OW, OH, o) {
     var titleShadow = theme === 'minimal'
       ? ' style="paint-order:stroke;stroke:#0b1512;stroke-opacity:0.55;stroke-width:' + ovF2(titleSize * 0.16) + 'px;stroke-linejoin:round"'
       : '';
-    var FONT = 'SUSE, system-ui, -apple-system, sans-serif';
+    var FONT = o.font || 'SUSE, sans-serif';
 
     if (hasShot) {
       var cxs = padX + chip / 2, cys = cardH / 2, rad = chip / 2;

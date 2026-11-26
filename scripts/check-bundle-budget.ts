@@ -11,7 +11,8 @@
  * engine + handlebars + ajv back onto the critical path, and nothing would fail.
  *
  * This script re-derives the boot payload straight from the built
- * `dist/index.html` (every module <script> + every <link rel="modulepreload">) and
+ * `dist/index.html` (every module <script> + every <link rel="modulepreload">) and,
+ * since plan 371, the gallery import's own preload list in the boot JS, and
  * asserts two things:
  *   1. None of the deliberately-lazied heavy chunks appear on the boot path.
  *   2. The total GZIPPED size of the boot JS stays under a budget.
@@ -142,7 +143,11 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 // 158.5 KB after LUT admission, operation queues and recovery UI were split from
 // normal startup. Plan 295 records both measurements and the built-shell check.
 // Allow this required capability within 159 KB; later numerical work stays lazy.
-const MAX_PRELOAD_JS_GZ = 159 * 1024;
+// 2026-11-09: the maintainer set the ceiling to 200 KB (boot measured 158.6): room
+// for ordinary growth, low enough that a large import we could avoid still fails.
+// The forbidden-chunk check above still keeps the heavy libraries off first paint, and
+// boot-path-guard.test.ts still refuses the static imports that drag them back.
+const MAX_PRELOAD_JS_GZ = 200 * 1024;
 // -----------------------------------------------------------------------------
 
 function fail(msg: string): never {
@@ -212,7 +217,35 @@ if (totalGz > MAX_PRELOAD_JS_GZ) {
   );
 }
 
+// The gallery is the first view almost everyone sees, and boot starts its code at the top of
+// boot() (plan 371). Its dynamic import carries a preload list (__vite__mapDeps) that the
+// checks above cannot see: until 2026-11-21 that list held engine-render, engine-geom, Ajv and
+// Handlebars, pulled in by two small colourway helpers. Read the list from the boot chunk and
+// hold it to the same forbidden set, plus the geometry kernel.
+const FORBIDDEN_GALLERY_CHUNK = /(engine-render|engine-c2pa|engine-geom|handlebars|ajv|html2canvas)-/;
+const galleryDeps = ((): string[] | null => {
+  for (const href of bootHrefs) {
+    let text: string;
+    try { text = readFileSync(path.join(distDir, href.replace(/^\//, '').split('?')[0] ?? href), 'utf8'); } catch { continue; }
+    const call = /import\(`\.\/gallery-[A-Za-z0-9_-]+\.js`\),__vite__mapDeps\(\[([0-9,]+)\]\)/.exec(text);
+    const list = /m\.f\|\|\(m\.f=(\[[^\]]*\])/.exec(text);
+    if (!call || !list) continue;
+    const files = JSON.parse(list[1] as string) as string[];
+    return (call[1] as string).split(',').map(Number).map((i) => files[i] ?? '');
+  }
+  return null;
+})();
+if (!galleryDeps) fail('found no gallery import with a preload list in the boot JS - did the gallery import or the chunk names change?');
+const galleryHeavy = galleryDeps.filter((f) => FORBIDDEN_GALLERY_CHUNK.test(path.basename(f)));
+if (galleryHeavy.length > 0) {
+  fail(
+    `heavy chunk(s) in the gallery's preload list (matched ${FORBIDDEN_GALLERY_CHUNK}):\n  ` +
+      galleryHeavy.map((o) => path.basename(o)).join('\n  ') +
+      '\n  A module the gallery imports landed in one of these chunks; give it a chunk group of its own ahead of engine-render (shells/web/vite.config.js).',
+  );
+}
+
 console.log(
   `✓ bundle budget OK (${kb(totalGz)} KB gz / ${kb(MAX_PRELOAD_JS_GZ)} KB budget; ` +
-    `no heavy chunks preloaded)`,
+    `no heavy chunks preloaded; gallery preload list of ${galleryDeps.length} files holds none)`,
 );

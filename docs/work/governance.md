@@ -1,11 +1,8 @@
 # Policy and governance
 
-This page is for the brand or design-system admin who sets the rules members work within:
-which tools each group sees, which inputs they may change, which shell features they get and
-how to keep all of it as one reviewable document. A typical rule: sales can change the
-headline, but not the logo.
+A typical rule: sales can change the headline, but not the logo.
 
-Governance is data, held on the server, edited live and exportable as one document. It never
+Governance is data, held on the server and exportable as one document. It never
 forks the pack's `tool.json`: the open-source tool definition stays untouched, and Lolly Work lays
 its rules over that definition. Everything here is live-editable in the console (**This Deploy → Tools**,
 **This Deploy → Feature flags** and **Grants**) and reaches connected shells on their next
@@ -13,17 +10,26 @@ poll.
 
 ![Tool policy: lock a preset, restrict choices or hide an input entirely, per group](shots/tool-policy.svg)
 
+<!--i:eti-sliders-->
 ## Tool overlays
 
 Each tool has one versioned overlay, saved with `PUT /api/v1/policy/overlays/:toolId` under
 `policy.edit`. That action is admin by default and can be granted to a brand group, so a brand
-team can govern inputs without holding the admin role. Saving records the before and after in
+team can govern inputs without having the admin role. Saving records the before and after in
 the audit log and clears the render cache for exactly the affected renders.
 
 ### Per-input access
 
 `inputAccess` maps an input id (or `*` as the default) to an ordered list of rules. The first
 rule whose groups match the person wins, and no match means `editable`.
+
+People in a partner programme are the exception: for them, order never decides. A rule for their
+company overrides their programme's rule, the stricter result wins across programmes, and a
+programme or company rule beats a rule for everyone. See
+[Partner programmes](partner-programmes.md#input-rules-for-partners). A tool's policy can also
+take inputs from a partner company's details, such as its logo or contact line (`bindings`,
+under **Takes from the company**; see [company details in
+templates](partner-programmes.md#company-details-in-templates)).
 
 ::: figure work-governance-rule-order
 Lolly Work reads one input's rules from the top and stops at the first group that matches.
@@ -52,14 +58,17 @@ Lolly Work reads one input's rules from the top and stops at the first group tha
 Enforcement happens on the server, before rendering. A locked input supplied by a caller is a
 `422 INPUT_LOCKED`, and the locked value is used whatever the request said. The same pure
 functions filter the schema the shell sees, so the interface and the enforcement cannot
-disagree.
+disagree. An [open link](sharing.md#signed-links), whose recipients may set the tool's own
+inputs, still refuses a locked, hidden or disallowed one (`INPUT_LOCKED`, `INPUT_HIDDEN`,
+`INPUT_NOT_ALLOWED`).
 
-Give the overlay a `name` and a rule an optional `reason`, and a person meets an answer instead
-of a dead control. The resolved access carries `by` (the overlay name) and `reason` into
-`org-config`, where the shell prints them under the input, and into the `422` body as
+A person never reads policy notes in Lolly: a locked input shows its value with no line naming
+the rule, and a hidden input is absent. Give the overlay a `name` and a rule a
+`reason` for the people who govern and the agents that render. The console's policy editor and
+Preview show both, and the `422` body includes them as
 `{ "error": { "code": "INPUT_LOCKED", "input": "bg", "by": "...", "reason": "..." } }`, so an
-agent driving a render reads the same explanation. Both are optional, and an unnamed overlay
-attributes nothing.
+agent driving a render reads the explanation. `org-config` never includes them. Both are
+optional, and an unnamed overlay attributes nothing.
 
 Guests are a special case: governing an input at all locks it for them
 ([guest write authority](permissions.md#guest-write-authority)).
@@ -73,6 +82,13 @@ Guests are a special case: governing an input at all locks it for them
 A tool with a `visibility` block is **absent** from the catalog feed for anyone outside those
 groups: not greyed out, not hidden in the client. `*` means everyone.
 
+A `tool.use` grant changes the same list. A deny removes the tool for that group or person,
+whether or not the tool has an overlay, and an allow adds it for someone outside the
+`visibility` groups ([explicit allow and the role
+default](permissions.md#explicit-allow-and-the-role-default)). The catalog feed, the tool's
+files, org-config, Preview, server renders and the organisation MCP all apply the same rule,
+and Preview lists every tool a set of groups would not see.
+
 ### The enforce block
 
 | Key | Values | Status today |
@@ -81,11 +97,12 @@ groups: not greyed out, not hidden in the client. `*` means everyone.
 | `watermark` | `always` | Enforced: every render carries the [PREVIEW watermark](sharing.md#preview-watermarking). |
 | `watermark` | `never` | Enforced: no render carries the watermark. |
 | `watermark` | `until-approved` | Enforced on server renders: each render carries the watermark until a request for the same inputs is approved. See [follow approval](#a-watermark-that-follows-approval). |
-| `defaults` | input values | Stored, not applied to a tool's initial inputs by org-config or the render paths. Locked presets do enforce values. |
-| `escalation` | a chain id | Enforced for requests: the chain a tool's exports go through, and an export review naming another chain is refused. Pair it with a deny on `export.download` to route a group through review ([review an exported file](approvals.md#review-an-exported-file)). The chain must exist when you save. |
+| `defaults` | input values for groups, as `[{ groups, values }]` | Applied when saved in that shape: new work and server renders start from the values for the person's groups, the most specific group winning, below a template's own values and the person's own entry. Stored in the older flat shape, defaults are not applied to a tool's initial inputs by org-config or the render paths. The policy editor marks them, and saving them again as group rules applies them. Locked presets do enforce values. |
+| `escalation` | a chain id | Enforced for requests: the chain a tool's exports go through, and an export review naming another chain is refused. Pair it with a deny on `export.download` to route a group through review ([review an exported file](approvals.md#review-an-exported-file)). The chain must exist when you save. Otherwise the save answers `400 CHAIN_NOT_BOUND`. |
+| `approvalCovers` | `file` (the default) or `template-variants` | Enforced under `until-approved`: with `template-variants`, one approval of a published template's version covers every partner render from it ([one approval for a template's variants](partner-approvals.md#one-approval-for-a-template-s-variants)). |
 | `c2pa` | | Declared in the overlay type, refused by the write paths. Signing is instance-wide through `render.c2pa` ([Configure Lolly Work export signing](c2pa.md)). |
 
-With no `watermark` rule, a server render carries no mark. The render pipeline can take a request for the preview mark, but no Lolly Work route makes that request today, so a share link or a preview does not ask for the mark.
+With no `watermark` rule, a server render has no mark. The render pipeline can take a request for the preview mark, but no Lolly Work route makes that request today, so a share link or a preview does not ask for the mark.
 
 The console offers **No rule**, **Never watermark**, **Always watermark** and **Until approved**.
 Stored fields the policy writer cannot keep, such as `enforce.c2pa`, block a console save with an
@@ -93,7 +110,7 @@ explanation rather than being silently removed.
 
 ### A watermark that follows approval
 
-With `until-approved`, a server render carries the PREVIEW pattern unless an approved
+With `until-approved`, a server render has the PREVIEW pattern unless an approved
 [export review](approvals.md) matches it: the same tool, the same tool version, the same format
 and the same input values. A different value, a new tool version or another format stays marked
 until someone approves that one too. A request in review, rejected or withdrawn leaves the mark on.
@@ -105,17 +122,22 @@ tool, so its renders stay marked, and the console says so.
 
 Server renders under this rule, share links included, are never stored by a browser or shared
 cache. An `x-lolly-watermark` header says how each one came out: `Marked until approved` or
-`Approved, not marked`. A durable render's output carries the same words, and its receipt gives the
+`Approved, not marked`. A durable render's output has the same words, and its receipt gives the
 id of the approval that matched. The words are in the record, not the artwork.
 
-- **Upgrading.** Until this release `until-approved` was stored and not enforced. An instance
-  already holding the setting starts showing PREVIEW on the first render after the upgrade. Change
-  the rule first if that is not what you want.
-- **What a match rests on.** The match uses the input values the requesting app states. A member
-  could send values that do not match the file they send. The mark is a preview signal for people,
-  not a security boundary.
-- **What it covers.** The rule applies to renders Lolly Work makes. Exports a person makes on their
-  own device follow **Approval chain for exports** and their `export.download` permission instead.
+::: warning An until-approved rule starts marking after the upgrade
+**Upgrading.** Until this release `until-approved` was stored and not enforced. An instance
+already holding the setting starts showing PREVIEW on the first render after the upgrade. Change
+the rule first if that is not what you want.
+:::
+
+::: note The mark is a preview signal, not a security boundary
+**What a match rests on.** The match uses the input values the requesting app states. A member
+could send values that do not match the file they send.
+:::
+
+**What it covers.** The rule applies to renders Lolly Work makes. Exports a person makes on their
+own device follow **Approval chain for exports** and their `export.download` permission instead.
 
 ::: details Using the policy editor
 - The console keeps saved format restrictions and input defaults when you edit inputs,
@@ -141,6 +163,7 @@ id of the approval that matched. The words are in the record, not the artwork.
 Before you rely on a rule, preview what a group will see ([Checking your
 work](permissions.md#checking-your-work)).
 
+<!--i:eti-palette-->
 ## Design systems and injectables
 
 Two more tabs in **This Deploy** govern what members work with:
@@ -152,6 +175,7 @@ Two more tabs in **This Deploy** govern what members work with:
 - **Injectables** publishes assets and tools into members' shells, under
   `catalog.injectable.manage`. The routes are in the [API reference](api.md).
 
+<!--i:eti-user-check-->
 ## Profile governance
 
 Identity fields the identity provider owns are managed, not editable. `claimMap` decides which
@@ -159,6 +183,7 @@ claim fills `firstname`, `lastname`, `email` and `title`, and those fields reach
 `mode: locked, source: idp`, which draws the padlocks in the shell's profile view. The person
 keeps every field your organisation has no opinion about.
 
+<!--i:eti-flask-->
 ## Feature flags
 
 Lolly Work governs the shell's per-person feature toggles it knows about, with two settings per
@@ -181,6 +206,7 @@ Governable today (the ids are the shell's own):
 | `export-preflight` | off | the export panel's prepress card: bleed, resolution, ink coverage and plate counts |
 | `private-collab` | on | the device-to-device invite and accept for editing together; force it off and hide it to route collaboration through Lolly Work only |
 | `nearby-discovery` | on | mDNS discovery of nearby Lolly devices for handing over collab invites (native shells only) |
+| `colourway-asset-treatments` | on | the colour choices for two-colour icons and photos in Assets and the asset picker, one per colourway; force it off and hide it to show icons and photos only in their own colours |
 
 `GET /api/v1/policy/flags` and `PUT /api/v1/policy/flags/:flagId` use the same `policy.edit`
 gate. The `off` and `hide` combination is how a seasonal surprise ships dark: stage it now, flip
@@ -206,9 +232,9 @@ For one person, Lolly Work works out each setting in this order:
 3. Without a matching rule, the setting for everyone applies, and then the shell's built-in
    default.
 
-A rule may set only the default or only the toggle; the setting it leaves out stays the one
+A rule may set only the default or only the toggle; the setting it leaves out is the one
 for everyone. Group names match exactly as the identity provider or Lolly Work holds them,
-including letter case, and `*` is not a group. Each flag holds up to 100 rules, one per group.
+including letter case, and `*` is not a group. Each flag has up to 100 rules, one per group.
 
 In the console, open **Group rules** on a flag's card to add, change or remove a rule. Known
 groups are suggested, and any group name can be typed. Connected apps pick up the change on
@@ -220,7 +246,7 @@ their next poll.
 never stores. A request without `groups` keeps the stored rules, so an older script that sets
 only the two settings for everyone cannot drop them, and `"groups": []` removes them all. A
 second rule for the same group, a rule on `ai` or more than 100 rules answer `400`. Every save
-is audited as `policy.flag.edit`, and the policy-as-code document carries the rules in each
+is audited as `policy.flag.edit`, and the policy-as-code document has the rules in each
 flag's `groups`.
 
 ### Your own flag service
@@ -228,15 +254,16 @@ flag's `groups`.
 With `featureFlags.ofrep` set in `instance.json`, your organisation's flag service decides
 the default of the flags it lists, through OpenFeature (OFREP). It sees only the person's
 groups and role. The settings on this page are then the fallback whenever the service does
-not answer, and the toggle setting always stays Lolly Work's. The shell keeps reading one value per
+not answer, and the toggle setting is always Lolly Work's. The shell keeps reading one value per
 flag from Lolly Work, so it never contacts the flag service. The console shows a **Flag service**
 card with the service's address, its request and fallback counts and its last answer, and
 marks each flag the service decides. [Configuration](configuration.md#featureflags) lists
 what is sent and how failures are handled.
 
+<!--i:eti-code-->
 ## Policy-as-code
 
-One canonical document holds the whole governance state, serialized deterministically so that
+One canonical document has the whole governance state, serialized deterministically so that
 logically equal states hash the same:
 
 - grants;
@@ -260,7 +287,13 @@ lw apply governance.json                       # apply
 lw apply governance.json --prune               # also delete store-only entries
 ```
 
-The diff reports create, update, delete and unchanged per category, and the response carries
+::: warning `--prune` deletes what the document leaves out
+Grants, overlays, approval chains, feature flags and the other entries the store holds and the
+document does not are deleted; a catalog provider is pruned only while it is disabled. Run
+`lw apply governance.json --dry-run --prune` first and read the deletes in the diff.
+:::
+
+The diff reports create, update, delete and unchanged per category, and the response includes
 the document hash. Two guards apply:
 
 - A document that creates or removes a grant on an owner-only action needs the **owner** role
@@ -285,6 +318,7 @@ a provider or stores a credential, because neither is in the document. Seeding b
 deployment up already governed, and makes governance reviewable and promotable between
 environments, for example from version control.
 
+<!--i:eti-link-->
 ## Related
 
 - Who may edit any of this: [Roles and grants](permissions.md)

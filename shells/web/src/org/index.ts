@@ -42,7 +42,9 @@ import { setFieldPolicies } from '../lib/field-policy.ts';
 import { beginAiProbe, finishAiProbe, knownManagedAi, startAiPolicyPolling, stopAiPolicyPolling } from './ai-policy.ts';
 import type { AiPolicy } from '../lib/ai-policy.ts';
 import type { FieldPolicy } from '../lib/field-policy.ts';
-import { setToolInputPolicies, clearInputPolicies, setInputPolicyFailClosed, onToolInputMount } from '../lib/input-policy.ts';
+import { setToolInputPolicies, clearInputPolicies, setInputPolicyFailClosed, onToolInputMount, setToolStartValues, clearToolStartValues } from '../lib/input-policy.ts';
+import { companyLogo, setProgrammeMember, setWorkspaceCompany, setWorkspaceProgramme, type WorkspaceCompany } from '../lib/workspace-templates.ts';
+import { readPartnerKitOffer, setPartnerKitOffer } from '../lib/partner-kit-state.ts';
 import type { InputPolicy } from '../lib/input-policy.ts';
 import { registerShareSection } from '../lib/share-sections.ts';
 import { registerProfileSection } from '../lib/profile-sections.ts';
@@ -64,7 +66,7 @@ import { setOrgGovernanceResolver, type FlagGovernance } from './governance.ts';
 // The probe half of this seam, in its own leaf so boot can run it without loading
 // this module - see org/probe.ts's header. The helpers below are shared, not
 // duplicated: one definition of "tolerant, time-boxed, JSON-only".
-import { PROBE_TIMEOUT_MS, isRecentlyAbsent, jsonBody, probeInstance, rememberAbsent, safeFetch } from './probe.ts';
+import { PROBE_TIMEOUT_MS, isRecentlyAbsent, jsonBody, noteGateShown, probeInstance, rememberAbsent, safeFetch } from './probe.ts';
 // Import from the LEAF module, not the '@lolly/engine' barrel: org/index.ts is on the boot
 // static-import chain (jelly → feature-flags → org), so a barrel import drags the whole
 // engine (render/c2pa/handlebars/ajv, ~555KB) onto first paint. tool-url.ts only pulls the
@@ -146,6 +148,36 @@ export interface ToolPolicySpec {
    *  this set, the same cooperative overlay a choice input gets - the control
    *  plane enforces the same set on its own render path. */
   formats?: string[];
+  /** This tool's own answer for an export action, where it differs from the
+   *  deployment-wide `can` bit (a grant named the tool). Mapped onto the
+   *  export-policy seam's per-tool answers. */
+  can?: { 'export.download'?: boolean; 'export.request'?: boolean };
+  /** What new work in this tool starts from for this caller (the workspace's group
+   *  defaults and their company's details), below a template's values and their own. */
+  defaults?: Record<string, unknown>;
+  /** Inputs that take this caller's company details, by company field. A bound
+   *  input the workspace locks is filled and not offered as a control. */
+  bindings?: Record<string, string>;
+}
+
+/** The caller's partner company and programme (control-plane shape). The logo ids
+ *  are catalog assets the caller already receives. */
+export interface PartnerSpec {
+  company?: {
+    id: string; name: string; revision?: number;
+    logos?: { light?: string; dark?: string; mark?: string };
+    website?: string; contact?: { name?: string; email?: string; phone?: string };
+    address?: string; currency?: string; taxNote?: string;
+    /** The company's partner kit (plans/82 M8): its asset id, live revision and the company's name. */
+    kit?: { id: string; revision: number; label: string };
+  };
+  programme?: { id: string; name: string };
+  /** When the person's access through a programme ends (Lolly Work plans/82 M5): the
+   *  earliest of their membership end dates and the ends scheduled for their company
+   *  or programme that they are told about, and the programme it ends through. The
+   *  home's company card shows it as one line (views/company-card.ts). */
+  accessEndsAt?: string;
+  accessEndsThrough?: { id: string; name: string };
 }
 
 /** A tool the instance injects into the gallery (control-plane shape). `toolId` is
@@ -189,6 +221,11 @@ export interface OrgConfig {
   session?: Session;
   profilePolicy?: Record<string, ProfileFieldSpec>;
   tools?: Record<string, ToolPolicySpec>;
+  /** The caller's partner company and programme, for programme members only. */
+  partner?: PartnerSpec;
+  /** True when the caller reaches the workspace through a partner programme
+   *  (plans/82 M6). Absent for everyone else and on older servers. */
+  programmeScoped?: true;
   /** Capability flags the caller has on this instance (e.g. 'link.create',
    *  'export.download', 'export.request'. 'export.preflight' is LEGACY: the
    *  prepress card is a personal feature flag since 2026-08-06, and
@@ -209,6 +246,8 @@ export interface OrgConfig {
   approvals?: { exportReview?: { maxFileBytes: number; partBytes: number; match?: boolean; recordInCredentials?: boolean } };
   /** Present when this instance serves brand pages and this caller may publish one. */
   brandPages?: BrandPagesCapability;
+  /** Present only for someone who may send this instance an edit (`can['brand.edit']`). */
+  brandEdits?: BrandEditsCapability;
   /** Fixed organisation-owned outbound targets already filtered for this
    *  caller. Provider options and credentials never enter the shell. */
   destinations?: OrgDeliveryDestination[];
@@ -360,6 +399,7 @@ export { orgAgentInvitesEnabled } from './document-agent-config.ts';
 import { setAgentInviteAvailability } from './document-agent-config.ts';
 import { setConnectedInstance } from '../lib/brand-page-hosting.ts';
 import { connectedInstanceFrom, type BrandPagesCapability } from './brand-page-publish.ts';
+import type { BrandEditsCapability } from './brand-edit-send.ts';
 import { homeHref, setHomeDestination } from '../lib/home-destination.ts';
 
 /** Control-plane governance for one feature flag, or null when this control plane
@@ -733,17 +773,24 @@ function applyExportPolicy(config: OrgConfig | null, failClosed = false): void {
   // orgFlagGovernance below, not applied here.
   const chains: Record<string, string> = {};
   const formats: Record<string, string[]> = {};
+  const downloads: Record<string, boolean> = {};
+  const requests: Record<string, boolean> = {};
   for (const [toolId, spec] of Object.entries(config.tools ?? {})) {
     if (spec?.approvalChain) chains[toolId] = spec.approvalChain;
     // An empty list is a real (fully restrictive) policy and is passed through - 
     // the view's never-empty rule decides what to render, not this mapper.
     if (Array.isArray(spec?.formats)) formats[toolId] = spec.formats.filter((f): f is string => typeof f === 'string');
+    // A tool's own export answer, present only where a grant named the tool.
+    if (typeof spec?.can?.['export.download'] === 'boolean') downloads[toolId] = spec.can['export.download'];
+    if (typeof spec?.can?.['export.request'] === 'boolean') requests[toolId] = spec.can['export.request'];
   }
   setExportPolicy({
     canDownload: can['export.download'] !== false,
     canRequestApproval: !!can['export.request'],
     chains,
     formats,
+    downloads,
+    requests,
   });
 }
 
@@ -778,6 +825,12 @@ function applyInputFailClosed(on: boolean): void {
  */
 export function applyOrgToolPolicies(): void {
   clearInputPolicies();
+  clearToolStartValues();
+  const company = partnerCompany(orgConfigState);
+  setWorkspaceCompany(company);
+  setWorkspaceProgramme(partnerProgramme(orgConfigState));
+  setPartnerKitOffer(readPartnerKitOffer(orgConfigState?.partner?.company?.kit));
+  setProgrammeMember(orgConfigState?.programmeScoped === true);
   const tools = orgConfigState?.tools;
   if (!tools) return;
   const instanceName = orgConfigState!.instance?.name || '';
@@ -802,7 +855,15 @@ export function applyOrgToolPolicies(): void {
       const by = typeof access.by === 'string' && access.by ? access.by : undefined;
       const reason = by && typeof access.reason === 'string' && access.reason ? access.reason : undefined;
       const why = { ...(by ? { by } : {}), ...(reason ? { reason } : {}) };
-      if (access.level === 'locked') {
+      // An input locked to the caller's company details is filled and not offered
+      // as a control: the logo and the details line are simply there. A logo by
+      // mode follows the document between the company's light and dark logos.
+      const field = spec.bindings?.[inp.id];
+      if (access.level === 'locked' && field) {
+        const byMode = field === 'logo' && company
+          ? { byMode: { light: companyLogo(company, 'light') ?? access.value, dark: companyLogo(company, 'dark') ?? access.value } } : {};
+        out[inp.id] = { mode: 'hidden', value: access.value, ...byMode };
+      } else if (access.level === 'locked') {
         out[inp.id] = { mode: 'locked', note: managedNote, value: access.value, ...why };
       } else if (access.level === 'choice') {
         out[inp.id] = { mode: 'choice', note: managedNote, value: access.value, allow: access.allow, ...why };
@@ -811,7 +872,32 @@ export function applyOrgToolPolicies(): void {
     // `hidden` (must-not-see) wins over any access rule for the same input.
     for (const id of spec.hidden ?? []) out[id] = { mode: 'hidden' };
     setToolInputPolicies(toolId, out);
+    if (spec.defaults && typeof spec.defaults === 'object') setToolStartValues(toolId, spec.defaults);
   }
+}
+
+/** The caller's partner programme as the neutral seam takes it, or null. */
+function partnerProgramme(config: OrgConfig | null): { id: string; name: string } | null {
+  const g = config?.partner?.programme;
+  return g?.id && g.name ? { id: g.id, name: g.name } : null;
+}
+
+/** The caller's company as the neutral seam takes it, or null. */
+function partnerCompany(config: OrgConfig | null): WorkspaceCompany | null {
+  const c = config?.partner?.company;
+  if (!c?.id || !c.name) return null;
+  return {
+    id: c.id, name: c.name, ...(typeof c.revision === 'number' ? { revision: c.revision } : {}),
+    logos: { ...(c.logos?.light ? { light: c.logos.light } : {}), ...(c.logos?.dark ? { dark: c.logos.dark } : {}), ...(c.logos?.mark ? { mark: c.logos.mark } : {}) },
+    ...(c.website ? { website: c.website } : {}), ...(c.contact ? { contact: { ...c.contact } } : {}),
+    ...(c.address ? { address: c.address } : {}), ...(c.currency ? { currency: c.currency } : {}), ...(c.taxNote ? { taxNote: c.taxNote } : {}),
+  };
+}
+
+/** The caller's partner company and programme, for surfaces that show them (the
+ *  home's company card). Null on a plain build or for an internal person. */
+export function orgPartner(): PartnerSpec | null {
+  return orgConfigState?.partner ?? null;
 }
 
 /**
@@ -924,6 +1010,8 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
   // this shell in via any browser where the person already has a session.
   const slot = view.querySelector<HTMLElement>('#org-gate-device');
   if (slot) wireDeviceCodeSignIn(slot);
+  // A view that painted before the probe answered is stopped here, in the same task.
+  noteGateShown(view.querySelector('.org-gate'));
   // Local backups remain in authenticated Settings. A signed-out visitor cannot
   // establish custody of saved sessions or documents derived into templates/tools.
   return true;
@@ -1114,6 +1202,15 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
       // more restrictive state rather than falling open.
       applyExportPolicy(orgConfigState, failClosed);
       applyInputFailClosed(failClosed);
+      // The person's partner company, for the home's company card and the tools that
+      // take its details: known from the start, not only once a tool mounts.
+      setWorkspaceCompany(partnerCompany(orgConfigState));
+      // And the programme, which an export records beside the company (plans/82 M3).
+      setWorkspaceProgramme(partnerProgramme(orgConfigState));
+      setPartnerKitOffer(readPartnerKitOffer(orgConfigState?.partner?.company?.kit));
+      // Whether the person reaches the workspace through a partner programme: the
+      // home keeps to what is published to them (plans/82 M6).
+      setProgrammeMember(orgConfigState?.programmeScoped === true);
       applySitePolicy(orgConfigState, failClosed);
       // Route the instance's injectables (plans/19): tool descriptors into the
       // gallery registry (pure data, beside the apply* group); chrome descriptors

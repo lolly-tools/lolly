@@ -1,0 +1,19 @@
+{
+  "id": "conversion-funnel",
+  "name": "Conversion funnel",
+  "category": "3-D",
+  "description": "Each stage of the journey is a ring of the funnel, as wide as the people who reached it, with the share that stayed.",
+  "values": {
+    "renderMode": "scene",
+    "chartType": "funnel",
+    "sceneType": "funnel3d",
+    "data": "Stage,People\nVisited,12000\nSigned up,5400\nTried it,2900\nPaid,1100\nRenewed,800",
+    "heading": "From first visit to renewal",
+    "subheading": "This quarter",
+    "sceneStage": "studio",
+    "sceneMaterial": "gloss",
+    "sceneLayout": "funnel",
+    "showLegend": false
+  },
+  "presets": []
+}

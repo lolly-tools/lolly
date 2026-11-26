@@ -73,7 +73,7 @@ const tailSection = siteSections[siteSections.length - 1]!;
 // formats.json / formats-catalog.json / import.json are absent BY DESIGN: plan
 // 117 block 9 moved those bands off the landing onto their own pages, so they
 // are tier-2 sources and the landing register no longer applies to them.
-const LANDING_JSON = ['downloads.json', 'hero-chrome.json', 'covers.json', 'whatwhy.json', 'persona.json', 'work.json', 'behind.json'];
+const LANDING_JSON = ['downloads.json', 'hero-chrome.json', 'format-last.json', 'covers.json', 'whatwhy.json', 'persona.json', 'work.json', 'behind.json'];
 const LANDING_SITE_MD: string[] = [];
 const MOVED_OFF_LANDING = ['formats.json', 'formats-catalog.json', 'import.json'];
 
@@ -85,9 +85,16 @@ const MOVED_OFF_LANDING = ['formats.json', 'formats-catalog.json', 'import.json'
  * string under it is excused from THAT rule and no other.
  */
 const CLAIMS_ALLOW: Record<string, Array<[file: string, path: string]>> = {
-  // The hero cycle needs no exception: since plan 341 its words are short claims
-  // ("is yours", "is private" ...) with no offline phrase in them, and the privacy
-  // receipt stands in for the offline claim above the fold.
+  // The hero cycle's words are short claims ("is sovereign", "is yours", "is private"
+  // ...) with no offline phrase in them; the privacy receipt stands in for the offline
+  // claim above the fold. One word is excused from the banned-word list: the first.
+  // Plan 341 retired "is sovereign" (2026-11-01) and Andy asked for it back
+  // (2026-11-06): "lolly is indeed about content sovereignty". It links the page
+  // that defines the term (content-sovereignty.md: control over how your content is
+  // created, governed, stored and moved), so the one esoteric word on the door
+  // arrives with its definition one click away (the entry's slug is that page's own,
+  // so the whole entry is excused). Nowhere else on the landing.
+  'hero-cycle': [['hero-chrome.json', 'cycle.0']],
   // The Why column IS the offline claim - its one home on the door.
   'offline-statement': [['whatwhy.json', 'why.statement']],
   // FINAL copy, pinned identical in three homes, that happens to contain the phrase.
@@ -203,19 +210,21 @@ function offend(text: string): string[] {
 
 /**
  * The hero cycle's first word: what a reduced-motion reader, a screenshot and a
- * share preview see, so it carries the page's main claim. Plan 341 (Andy,
- * 2026-11-01): "is yours", the kitchen-table form of content sovereignty, replaced
- * "is sovereign" (a sovereign rules; the person is sovereign over their content,
- * Lolly is not sovereign over anything). The long forms live on the receipt pages.
+ * share preview see, so it carries the page's main claim. Plan 341 (2026-11-01)
+ * put "is yours", the kitchen-table form of content sovereignty, in place of "is
+ * sovereign"; Andy asked for the sovereignty message back (2026-11-06), so "is
+ * sovereign" leads again, linking the content sovereignty page, and "is yours"
+ * comes second. The long forms live on the receipt pages.
  */
-const CYCLE_H1 = 'is yours';
+const CYCLE_H1 = 'is sovereign';
 
 test('say offline once: the hero stays clear of the claim and the Why column states it', () => {
-  // plans/177: the hero is "Lolly is <cycling word>" + a tagline and a one-liner
-  // from site.md. Above the fold the privacy receipt in the cycle stands in for the
-  // offline claim; neither the cycle words nor the subtitle lines may state the claim.
+  // plans/177: the hero is "Lolly is <cycling word>" + one line from site.md (Andy,
+  // 2026-11-14: the tagline and the one-liner said much the same thing, so they became
+  // one line). Above the fold the privacy receipt in the cycle stands in for the
+  // offline claim; neither the cycle words nor the subtitle line may state the claim.
   const heroLines = heroSection.split('\n').filter(l => l.trim() && !l.startsWith('#'));
-  assert.ok(heroLines.length >= 2, 'the hero subtitle should still be at least two lines (tagline + one-liner)');
+  assert.equal(heroLines.length, 1, 'the hero subtitle is one line under the cycling claim');
   for (const line of heroLines) {
     assert.deepEqual(offend(line), [], `hero line repeats the offline claim: ${line}`);
   }
@@ -224,7 +233,9 @@ test('say offline once: the hero stays clear of the claim and the Why column sta
   // Andy's 2026-09-02 short form: single words. The privacy receipt is the
   // cycle's stand-in for the offline claim (the Why column states it in full).
   assert.ok(hero.cycle.some((c) => c.slug === 'privacy'), 'the hero cycle must carry the privacy receipt');
-  assert.equal(words[0], CYCLE_H1, 'the hero cycle must lead with "is yours", the page\'s main claim');
+  assert.equal(words[0], CYCLE_H1, `the hero cycle must lead with "${CYCLE_H1}", the page's main claim`);
+  assert.equal(hero.cycle[0]!.slug, 'content-sovereignty', 'the first word links the page that defines content sovereignty');
+  assert.ok(words.includes('is yours'), 'the cycle keeps "is yours", the plain form of the first word');
   for (const w of words) assert.deepEqual(offend(w), [], `hero cycle word states the offline claim: ${w}`);
   for (const c of hero.cycle) assert.match(buildTs, new RegExp(`slug: '${c.slug}'`), `cycle word "${c.word}" links a page that is not registered: ${c.slug}`);
 
@@ -359,9 +370,9 @@ test('the sceptic paragraph is byte-identical in all three homes', () => {
 
 /**
  * The rulebook list (plan 117 section 1), minus the two entries no regex can judge (see
- * the header). Each entry is [label, regex]. "sovereignty" was allowed in the hero
- * H1 until plan 341 retired "is sovereign" (Andy, 2026-11-01); it is now banned on
- * the landing like the rest, and the long form lives on content-sovereignty.md.
+ * the header). Each entry is [label, regex]. "sovereignty" stays banned on the
+ * landing, with one named exception (CLAIMS_ALLOW 'hero-cycle'): the hero's first
+ * word, "is sovereign", which links content-sovereignty.md, where the long form lives.
  */
 const BANNED_WORDS: Array<[string, RegExp]> = [
   ['deterministic', /\bdeterminis(tic|m)\b/i],
@@ -385,13 +396,13 @@ test('banned words stay off the landing', () => {
   // The hero, and the copy the landing composes in build.ts (its t() literals -
   // code identifiers and comments are not copy).
   assert.deepEqual(banned(heroSection), [], 'the hero subtitle carries a banned word');
-  // No exceptions since plan 341: the behind-block line that closed on "creative
-  // sovereignty" is gone, and the hero cycle no longer opens on "is sovereign".
+  // One exception, named in CLAIMS_ALLOW: the hero cycle's first word, "is sovereign"
+  // (Andy, 2026-11-06), which links the page that defines the term.
   for (const copy of tLiterals(landingRegion())) {
     assert.deepEqual(banned(copy), [], `landing copy carries a banned word: ${copy}`);
   }
   for (const name of LANDING_JSON) {
-    for (const [path, s] of jsonStringsWithPaths(siteJson(name))) {
+    for (const [path, s] of jsonStringsExcept(name, 'hero-cycle')) {
       assert.deepEqual(banned(s), [], `docs/site/${name} ${path} carries a banned word: ${s}`);
     }
   }
@@ -400,7 +411,7 @@ test('banned words stay off the landing', () => {
   }
 });
 
-test('the H1 opens on "Lolly is yours" and never calls Lolly an AI', () => {
+test('the H1 opens on "Lolly is sovereign" and never calls Lolly an AI', () => {
   // The H1 is "Lolly is <cycling word>"; the first word is what stands under
   // reduced motion and what the page opens on - FINAL copy (plan 341).
   const hero = siteJson('hero-chrome.json') as { lead: string; cycle: Array<{ word: string }> };
@@ -462,7 +473,7 @@ test('a number typed into the landing copy matches the live count it states', ()
   // instead of shipping a stale sentence.
   const cv = siteJson('covers.json') as { caption?: string; covers: unknown[] };
   const WORDS: Record<string, number> = { twelve: 12, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, twenty: 20 };
-  const said = /^(\w+) design systems/i.exec(cv.caption ?? '')?.[1]?.toLowerCase();
+  const said = /^(\w+) covers\b/i.exec(cv.caption ?? '')?.[1]?.toLowerCase();
   assert.ok(said && said in WORDS, `the covers caption should open with the number of covers in words: ${cv.caption}`);
   assert.equal(WORDS[said!], cv.covers.length, `the covers caption says ${said} but the fan holds ${cv.covers.length} covers`);
   // Every language including English (plan 341, decision 9): the LANGS register.
@@ -472,43 +483,6 @@ test('a number typed into the landing copy matches the live count it states', ()
       for (const m of str.matchAll(/\b(\d+) languages\b/g)) {
         assert.equal(Number(m[1]), langs, `docs/site/${name} ${path} says ${m[1]} languages; LANGS holds ${langs} (English included)`);
       }
-    }
-  }
-});
-
-// ── 5. block 2's worked examples ─────────────────────────────────────────────
-
-/**
- * The three tools the landing hands a first-time reader. Pinned here because the
- * block's promise is that a click works with nothing set up and nothing sent
- * anywhere - so the set may only change with this test.
- *
- * NOTE on the plan's "∈ SW-precached" wording: there is no per-tool precache list
- * to be a member of. `shells/web/public/sw.js` serves /tools/ NETWORK-FIRST with a
- * cache fallback, and the only pinned bucket is the one a user fills themselves
- * ("available offline"). So the property that actually exists - and the one the
- * claim rests on - is ZERO EGRESS: a community tool (present on every profile)
- * that declares no capabilities and whose hooks reach no network. That is what is
- * asserted.
- */
-const BLOCK2_TOOLS = ['qr-code', 'audiogram', 'filter'];
-
-test('block 2 seeds tools that exist on every profile and touch no network', () => {
-  const region = landingRegion();
-  const pinned = [...region.matchAll(/tool: '([a-z0-9-]+)'/g)].map(m => m[1]!);
-  assert.deepEqual(pinned, BLOCK2_TOOLS,
-    'the landing example tools changed - update BLOCK2_TOOLS and re-check the properties below');
-
-  for (const id of BLOCK2_TOOLS) {
-    const dir = resolve(repoRoot, 'community', id);
-    assert.ok(existsSync(dir), `${id} must be a COMMUNITY tool, so it exists on every profile`);
-    const manifest = JSON.parse(readFileSync(resolve(dir, 'tool.json'), 'utf-8'));
-    assert.ok(!manifest.capabilities?.length,
-      `${id} declares capabilities (${JSON.stringify(manifest.capabilities)}) - block 2 needs a tool that just works`);
-    for (const file of readdirSync(dir).filter(f => f.endsWith('.js'))) {
-      const src = readFileSync(resolve(dir, file), 'utf-8');
-      assert.ok(!/\bfetch\s*\(|XMLHttpRequest|host\.net\b|EventSource|WebSocket/.test(src),
-        `${id}/${file} reaches the network - block 2's cards must work with the Wi-Fi off`);
     }
   }
 });

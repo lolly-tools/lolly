@@ -57,24 +57,26 @@ public/info/work/
 # (2026-10-08). The build deletes them, but an older local build can still hold
 # them, so they stay ignored rather than show up as 29 MB of untracked files.
 public/info/audio/
-# The landing's worked-example previews (plan 117 block 2) - copied per build out
-# of the ACTIVE brand's catalog/previews/, which is where they are committed. Same
-# rule as shots/: mirrored from a source of truth that lives elsewhere, and the
-# copy here is per-profile, so committing it would freeze one brand's art into a
-# build output that every other profile rewrites.
+# The landing's retired worked-example pictures. The build deletes the folder, but an
+# older local build can still hold it, so it stays ignored, like audio/ above.
 public/info/examples/
 # The document model specification, built by docs/spec-pages.ts (plan 276). Its
 # chapters and the concatenated twin are already covered by the **/*.html and
 # **/*.md rules at the top; these two are the rest of that build: the diagrams
 # copied from the committed docs/diagrams/, and the chapter index derived from the
-# committed docs/spec/ sources. Same rule as shots/ and examples/ above - mirrored
+# committed docs/spec/ sources. Same rule as shots/ above - mirrored
 # from a source of truth that lives elsewhere, so a copy here would go stale.
 public/info/diagrams/
 # Print editions (a page's PDF), copied from the committed docs/editions/.
 public/info/editions/
+# The music genre pages' listening samples, copied from the committed docs/music/samples/.
+public/info/music/samples/
 public/info/spec/**/index.json
 public/info/search-index.json
 public/info/*/search-index.json
+# The tool to docs list (plan 354 D6), derived from docs/manifest.json each build.
+public/info/tool-guides.json
+public/info/*/tool-guides.json
 public/info/audio-index.json
 public/info/docs-player*
 public/info/manifest.json

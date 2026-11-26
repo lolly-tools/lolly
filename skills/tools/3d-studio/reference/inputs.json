@@ -682,7 +682,7 @@
     "showIf": {
       "source": "arrangement"
     },
-    "help": "The object that Move objects, Fit selected and the material slot notes refer to. Click an object in Move objects mode to select it."
+    "help": "The object that Fit selected, the handles on the preview and the material slot notes refer to. Click an object on the preview to select it."
   },
   {
     "id": "objects",
@@ -833,7 +833,7 @@
         "min": -6,
         "max": 6,
         "step": 0.05,
-        "help": "Studio units. A new object starts at the centre and moves to the next free place if another object is already there; drag it in Move objects mode, or type here.",
+        "help": "Studio units. A new object starts at the centre and moves to the next free place if another object is already there; drag it on the preview, or type here.",
         "default": 0
       },
       {
@@ -1880,7 +1880,7 @@
         "wordPose": "scene"
       }
     ],
-    "help": "Turns and tilts the object. It stays standing on the floor. Turn object above the preview does the same by dragging."
+    "help": "Turns and tilts the object. It stays standing on the floor. On the preview, the ring round the selected object turns the object, and Tilt turns and tilts the object as you drag."
   },
   {
     "id": "position",

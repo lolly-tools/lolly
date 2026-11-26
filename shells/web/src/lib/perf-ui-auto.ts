@@ -50,6 +50,7 @@ import { t } from '../i18n.ts';
 import { captureNeutralPinned } from './capture-neutral.ts';
 import { firstRunPromptDue, firstRunPromptShowing, whenFirstRunPrompts } from './first-run-prompts.ts';
 import { isIframeMode } from './iframe-mode.ts';
+import { viewingAs } from '../org/view-as.ts';
 import { activeJobs } from './jobs.ts';
 import { previewIsActive } from './preview-activity.ts';
 import { showUndoToast } from './undo-toast.ts';
@@ -101,9 +102,9 @@ function constraintTimings(): typeof CONSTRAINT_TIMINGS {
   try { return scaledTimings(Number(localStorage.getItem(PERF_UI_AUTO_TIMESCALE_KEY) ?? 1)); } catch { return CONSTRAINT_TIMINGS; }
 }
 
-/** Never in a capture, a framed tool or an automated browser (unless a test opts in). */
+/** Never in a capture, a framed tool, a view as a partner or an automated browser (unless a test opts in). */
 export function perfUiAutoAllowedHere(): boolean {
-  if (typeof document === 'undefined' || isIframeMode() || captureNeutralPinned()) return false;
+  if (typeof document === 'undefined' || isIframeMode() || captureNeutralPinned() || viewingAs()) return false;
   const nav = globalThis.navigator;
   const automated = nav?.webdriver === true || /HeadlessChrome/.test(nav?.userAgent ?? '');
   return !automated || probeOptIn();

@@ -1,50 +1,55 @@
 # Veri aktarımı: `lolly-backup` paketi
 
-Lolly kişisel kitaplığını cihazda tutar. Bir yedek paketi bu kitaplığın nasıl taşındığıdır: bir kurulumda dışa aktar, dosyayı istediğin gibi taşı (USB, AirDrop, kendine e-posta veya bir ağ paylaşımı) ve başka birinde içe aktar. Dışa ve içe aktarma sunucu gerektirmez ve hedef çevrimdışı olabilir.
+Yedekleme paketi, Lolly'nin cihazda tuttuğu kişisel kitaplığı taşır: bir kurulumda dışa aktar, dosyayı taşı (USB, AirDrop, kendine e-posta veya ağ paylaşımı) ve başka bir kurulumda içe aktar. Dışa ve içe aktarma sunucu gerektirmez ve hedef çevrimdışı olabilir.
 
-Bu sayfa, yedeklerin etrafında kabuklar, araçlar veya betikler kuran kişiler için biçim şartnamesidir: zip içinde ne olduğu, sürümlerin nasıl kapılandığı, bir içe aktarmanın nasıl birleştiği ve nelerin denetlendiği. Kendi işini taşıyan kişiler için anlatım [Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device) sayfasındadır.
+Bu, yedeklerle çalışan kabuklar, araçlar veya betikler geliştirenler için biçim belirtimidir. Kendi işini taşımak için [İşini başka bir cihaza taşı](/info/find-your-work.html#move-your-work-to-another-device) sayfasını oku.
 
-![Bütün bir kurulumu taşıyan iki düğme: Export my data tek bir zip yazar, Import data onu geri okur](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
+![Tüm kurulumu taşıyan iki düğme: Export my data tek bir zip yazar, Import data onu geri okur](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-> **Kapsam.** Bir paket *kullanıcı verisi* taşır, katalog araçlarını değil. Katalog araçları ve katalog varlıkları ayrı eşitlenir ve hedefte en kötü ihtimalle daha yüksek bir sürümde zaten var oldukları varsayılır. Kullanıcıların kendi yaptıkları araçlar `profile.json` içinde gider. İçe aktarma asla bir katalog aracını kurmaz veya yükseltmez.
+::: note Kapsam
+Paket, katalog araçlarını değil *kullanıcı verilerini* taşır. Katalog araçları ve katalog varlıkları ayrı eşitlenir ve hedefte, en kötü ihtimalle daha yüksek bir sürümde, bulundukları varsayılır. Kullanıcının oluşturduğu araçlar `profile.json` içinde taşınır. İçe aktarma hiçbir zaman bir katalog aracını kurmaz veya yükseltmez.
+:::
 
+<!--i:eti-badge-check-->
 ## Hedefler
 
-- <!--i:box--> **Tek biçim, her kabuk.** Web uygulaması, masaüstü ve mobil uygulamalar ve gelecekteki kabuklar aynı zarfı ve parça şemalarını paylaşır. İsteğe bağlı parçalar her kabuğun yeteneklerine bağlıdır ve desteklenmeyen parçalar bildirilir. Her yetenek köprüsü kendi depolama bağdaştırıcısını sağlar.
-- <!--i:shieldcheck--> **Yolculuktan sağ çıkar.** Aktarım sırasında bozulmuş veya kesilmiş bir paket içe aktarmada yüksek sesle başarısız olur ve asla yarım geri yüklenmez.
-- <!--i:clock--> **Bu sürümden uzun yaşar.** Daha eski bir uygulama, daha yeni bir paketin tanıdığı parçalarını yine içe aktarabilir. Gerçekten kırıcı bir biçim temiz biçimde reddedilir.
-- <!--i:check--> **Birleştirmek güvenlidir.** Zaten kullanımda olan bir kuruluma içe aktarmak, pakette olmayan hiçbir şeyi asla silmez.
+- <!--i:box--> **Tek biçim, her kabuk.** Web uygulaması, masaüstü ve mobil uygulamalar ve gelecekteki kabuklar aynı kapsayıcı ve parça şemalarını paylaşır. İsteğe bağlı parçalar her kabuğun yeteneklerine bağlıdır ve desteklenmeyen parçalar bildirilir. Her yetenek köprüsü kendi depolama bağdaştırıcısını sağlar.
+- <!--i:shieldcheck--> **Yolculuğa dayanır.** Aktarım sırasında hasar gören veya kesilen bir paket, içe aktarmada hatayla başarısız olur ve hiçbir zaman yarım geri yüklenmez.
+- <!--i:clock--> **Bu sürümden daha uzun ömürlüdür.** Eski bir uygulama, daha yeni bir paketin tanıdığı parçalarını içe aktarır. Uyumluluğu bozan bir biçim sorunsuzca reddedilir.
+- <!--i:check--> **Güvenle birleştirilir.** Kullanılmakta olan bir kuruluma içe aktarma, pakette olmayan hiçbir şeyi silmez.
 
-## Zarf
+<!--i:eti-package-->
+## Kapsayıcı
 
-Bir paket düz bir `.zip` dosyasıdır; bu yüzden her taşıma yolunda sağlam kalır ve herhangi bir açma aracı içeriğini inceleyebilir.
+Paket, sıradan bir `.zip` dosyasıdır. Her türlü aktarımda bozulmadan kalır ve herhangi bir zip açma aracı içeriğini inceleyebilir.
 
-İndirme, ait olduğu kişinin adını taşır: `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`, örneğin `LollyTools-Ada-Lovelace-2026-06-26-1.zip`; böylece yedeklerle dolu bir Downloads klasörü okunabilir kalır. Ad ve soyad profilden gelir ve ayarlı değilse dışarıda bırakılır: profil yoksa `LollyTools-2026-06-26-1.zip`, yalnızca ad varsa `LollyTools-Ada-2026-06-26-1.zip` olur. Her ad dosya adına uygun bir belirtece indirgenir (Unicode harfler ve rakamlar korunur, boşluklar ve noktalama atılır, en fazla 32 karakter). `<n>` gün başına, cihaz başına bir dizidir; bu yüzden bir günde tekrarlanan dışa aktarmalar çakışmaz ve sıralı kalır. `data-transfer.ts` içindeki `backupFilename()` adı kurar ve zip'in içeriği adı ne olursa olsun aynıdır.
+İndirilen dosya sahibine göre adlandırılır: `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`, örneğin `LollyTools-Ada-Lovelace-2026-06-26-1.zip`. Ad ve soyad profilden alınır ve belirtilmemişse dışarıda bırakılır: profil yoksa `LollyTools-2026-06-26-1.zip`, yalnızca ad varsa `LollyTools-Ada-2026-06-26-1.zip` olur. Her ad, dosya adına uygun bir token'a dönüşür (Unicode harfler ve rakamlar korunur, boşluklar ve noktalama işaretleri kaldırılır, en fazla 32 karakter). `<n>`, gün ve cihaz başına bir sıra numarasıdır; böylece aynı gün yinelenen dışa aktarmalar çakışmaz ve sıralarını korur. Adı, `data-transfer.ts` içindeki `backupFilename()` oluşturur. Ad, zip'in içeriğini değiştirmez.
 
 | Yol | Gerekli | İçerik |
 |---|---|---|
-| `manifest.json` | evet | Biçim kimliği, sürümler, sayılar ve parça başına bütünlük. Bir okuyucunun baktığı ilk şey. |
-| `profile.json` | ayarlıysa | Kullanıcının tüm `me` kaydı: ad, iletişim, profil fotoğrafı başvurusu ve bayrakları, ayrıca klasörler, Trash, proje taslakları, kullanıcı şablonları ve kullanıcı yapımı araçlar, favoriler, gizli araçlar, dil ve emoji seçimi. `host.profile` ile okunur. |
-| `sessions.json` | evet | Her kayıtlı oturum: yuva, araç kimliği ve sürümü, etiket, küçük resim (veri URL'si) ve tam girdi verisi. `host.state` ile okunur. |
-| `assets.json` | evet | Yüklenen her varlığın (görseller, yazı tipleri, marka token'ları, logolar, indirmelerin kayıtlı kopyaları) meta verisi; her biri `assets/blobs/` altındaki baytlarına işaret eder. |
-| `assets/blobs/<n>.<ext>` | varlık başına | Ham varlık baytları; çoğu zaten sıkıştırılmış biçimler olduğu için sıkıştırılmamış saklanır. Uzantı kozmetiktir; `assets.json` içindeki MIME türü yetkilidir. |
-| `assets/blobs/<n>.c2pa` | varsa | Tam ikili baytlar olarak çıkarılmış Content Credentials; varlık kaydındaki `_credentialFile` tarafından başvurulur. Bunlar cihaz imzalama anahtarları değildir. |
-| `design-systems.json` | varsa | Bu kurulumda yapılan veya eklenen tasarım sistemleri, `{ active, records }` olarak. Bkz. [Import rules](#import-rules). |
-| `file-history.json` | isteğe bağlı | Sürümlü varlık anlık görüntüleri, tamamlanmış dosya işlemi raporları ve eksiksiz toplu iş bildirimleri; kendi sürümüyle. Kabuğun dahili `fileHistory` yedek bağdaştırıcısı tarafından sağlanır. |
-| `revision-history.json` | isteğe bağlı, elle yedekler | Kararlı yaratım kimlikleri, tutulan kontrol noktaları, küçük resimler ve devam eden kurtarma taslakları. Desteklenen yerde `host.state.history.backup` tarafından sağlanır. |
-| `file-history/versions/` | anlık görüntü başına | Önceki varlık baytları ve çıkarılan kimlik bilgileri; mevcut varlık hâlâ var olsa da olmasa da. |
-| `file-history/results/` | tamamlanan işlem başına | Tam çıktı baytları. Dönüştürme için seçilen hiçbir özgün dosya tutulmaz veya dahil edilmez. |
+| `manifest.json` | evet | Biçim kimliği, sürümler, sayılar ve parça başına bütünlük. Okuyucu önce bu dosyayı okur. |
+| `profile.json` | ayarlandığında | Kullanıcının `me` kaydı: ad, iletişim, portre referansı ve bayraklar; ayrıca klasörler, Trash, proje planları, kullanıcı şablonları ve kullanıcının oluşturduğu araçlar, favoriler, gizli araçlar, dil ve emoji seçimi. `host.profile` üzerinden okunur. |
+| `sessions.json` | evet | Kaydedilen her oturum: yuva, araç kimliği ve sürümü, etiket, küçük resim (veri URL'si) ve tüm girdi verileri. `host.state` üzerinden okunur. |
+| `assets.json` | evet | Yüklenen her varlığın meta verileri (görseller, yazı tipleri, marka token'ları, logolar, indirmelerin kaydedilmiş kopyaları); her biri `assets/blobs/` altındaki baytlarına işaret eder. |
+| `assets/blobs/<n>.<ext>` | varlık başına | Çoğu zaten sıkıştırılmış biçimde olduğu için sıkıştırılmadan saklanan ham varlık baytları. Uzantı yalnızca görünüm içindir; `assets.json` içindeki MIME türü belirleyicidir. |
+| `assets/blobs/<n>.c2pa` | varsa | Varlık kaydındaki `_credentialFile` ile referans verilen, ikili baytları birebir korunmuş çıkarılmış Content Credentials. Bunlar cihazın imzalama anahtarları değildir. |
+| `design-systems.json` | varsa | Bu kurulumda oluşturulan veya eklenen tasarım sistemleri, `{ active, records }` olarak. Bkz. [İçe aktarma kuralları](#import-rules). |
+| `file-history.json` | isteğe bağlı | Kendi sürümü olan, sürümlenmiş varlık anlık görüntüleri, tamamlanmış dosya işlemi raporları ve eksiksiz toplu iş bildirimleri. Kabuğun dahili `fileHistory` yedekleme bağdaştırıcısı tarafından sağlanır. |
+| `revision-history.json` | isteğe bağlı, elle alınan yedekler | Kalıcı çalışma kimlikleri, saklanan kontrol noktaları, küçük resimler ve sürekli güncellenen kurtarma taslakları. Desteklendiğinde `host.state.history.backup` tarafından sağlanır. |
+| `file-history/versions/` | anlık görüntü başına | Geçerli varlık hâlâ mevcut olsa da olmasa da önceki varlık baytları ve çıkarılmış kimlik bilgileri. |
+| `file-history/results/` | tamamlanmış işlem başına | Çıktı baytlarının birebir kopyası. Dönüştürme için seçilen hiçbir özgün dosya saklanmaz veya dahil edilmez. |
 | `prefs.json` | evet | Kullanıcıya ait yerel tercihler: `theme`, `sidebarWidth` ve `ct-metrics` etkinlik sayacı. |
-| `lolly.txt` | evet | Lolly olmadan zip'i açan herkes için paketin okunabilir bir özeti (sayılar, profil, dosya adı). Her dışa aktarmada yeniden üretilir ve içe aktarmada tanınır; bu yüzden asla atlanmış bir parça sayılmaz. Bütünlük haritasından sonra yazılır; bu yüzden harita bu dosyayı kapsamaz. |
+| `lolly.txt` | evet | Zip'i Lolly olmadan açan herkes için paketin okunabilir özeti (sayılar, profil, dosya adı). Her dışa aktarmada yeniden oluşturulur ve içe aktarmada tanınır; bu yüzden hiçbir zaman atlanan parça sayılmaz. Bütünlük haritasından sonra yazılır; bu yüzden harita bu dosyayı kapsamaz. |
 
 ::: details Dışa aktarma zip'i nasıl yazar
-Dışa aktarma zip'i bir seferde bir parça yazar (`shells/web/src/lib/zip-stream.ts`). Yüklemeler, kayıtlı sonuçlar ve kayıtlı varlık sürümleri hiçbir zaman bütün olarak değil, 4 MiB'lik dilimler halinde okunur ve kayıtlı sonuçlar ile sürümler önce kaydedilen SHA-256 değerlerine karşı denetlenir. Sonra her dosya sağlama toplamı ve bütünlük özeti için okunur ve zip ona olduğu yerde başvurur.
+Dışa aktarma zip'i parça parça yazar (`shells/web/src/lib/zip-stream.ts`). Yüklenen dosyalar, kayıtlı sonuçlar ve kayıtlı varlık sürümleri 4 MiB dilimler halinde okunur, asla bütün olarak okunmaz. Kayıtlı sonuçlar ve sürümler önce kayıtlı SHA-256 özetleriyle denetlenir. Ardından her dosya, sağlama toplamı ve bütünlük özeti için okunur ve zip dosyaya bulunduğu yerde referans verir.
 
-Hiçbir şey yeniden kodlanmaz; bu yüzden Content Credentials taşıyan bir dosya, imzasının kapsadığı tam baytları korur ve her parça tam baytlarını ve özetini korur. Aynı parçalar ve zaman için zip, 16 MiB'ı aşan bir geçmiş dosyasının parçalar halinde sıkıştırılması dışında, önceki bellek içi yazıcınınkiyle aynıdır. `tests/backup-streaming.test.ts` bunu kayıtlı başvuru özetlerine karşı denetler.
+Hiçbir şey yeniden kodlanmaz. Her parça baytlarını ve özetini birebir korur; böylece Content Credentials taşıyan bir dosya, imzasının kapsadığı baytları korur. Aynı parçalar ve zaman için zip, önceki bellek içi yazıcının ürettiğiyle aynıdır; tek fark, 16 MiB üzerindeki bir geçmiş dosyasının parçalar halinde sıkıştırılmasıdır. `tests/backup-streaming.test.ts`, bunu kayıtlı referans özetleriyle denetler.
 
-192 MiB'lık sentetik bir kitaplıkta, Node'da ölçüldüğünde, yedeği bitirmek kitaplığın üstüne yaklaşık 125 ila 150 MiB, bellek içi yazıcı için ise yaklaşık 850 MiB tuttu (`node scripts/bench-backup-finalise.ts`). İçe aktarma hâlâ tüm zip'i belleğe okur.
+Node'da ölçülen 192 MiB'lık sentetik bir kitaplıkta, yedeği tamamlamak kitaplığın üzerine yaklaşık 125 ila 150 MiB gerektirdi; bellek içi yazıcı için bu yaklaşık 850 MiB idi (`node scripts/bench-backup-finalise.ts`). İçe aktarma hâlâ zip'in tamamını belleğe okur.
 :::
 
+<!--i:eti-file-->
 ## `manifest.json`
 
 ```json
@@ -68,151 +73,160 @@ Hiçbir şey yeniden kodlanmaz; bu yüzden Content Credentials taşıyan bir dos
 }
 ```
 
-| Alan | Anlam |
+| Alan | Anlamı |
 |---|---|
-| `format` | Her zaman `lolly-backup`. Onsuz bir dosya "not a Lolly backup" olarak reddedilir. |
-| `formatVersion` | Bu paketin **yazıldığı** düzen. Parça kümesinde veya şekillerde herhangi bir değişiklikte artırılır. Okuyucular bu alanı **kapılamaz**. |
-| `minReader` | Bu paketi **güvenle** içe aktarabilen en düşük okuyucu sürümü. Okuyucuların kapıladığı alan budur. |
-| `app` | Üreten uygulama kimliği, tanılama için. |
+| `format` | Her zaman `lolly-backup`. Bunu içermeyen dosya, "Lolly yedeği değil" diye reddedilir. |
+| `formatVersion` | Bu paketin **yazıldığı** düzen. Parça kümesi veya yapılarındaki her değişiklikte artırılır. Okuyucular kabul kararını bu alana göre **vermez**. |
+| `minReader` | Bu paketi **güvenle** içe aktarabilecek en düşük okuyucu sürümü. Okuyucuların kabul kararını verdiği alan budur. |
+| `app` | Tanılama için, üreten uygulamanın kimliği. |
 | `exportedAt` | Paketin oluşturulduğu ISO zaman damgası. |
-| `counts` | Yazıcının içine koyduğu, gösterim ve akıl sağlığı denetimleri için. |
+| `counts` | Gösterim ve tutarlılık denetimleri için yazıcının ekledikleri. |
 | `integrity` | İsteğe bağlı. `manifest.json` dışındaki her parçayı, **sıkıştırılmamış** baytlarının SRI tarzı `sha256-<base64>` özetine eşler. |
 
+<!--i:eti-tag-->
 ## Sürüm politikası
 
-İki sürüm numarası, biçimin eski kurulumları açmaz bırakmadan büyümesine izin verir.
+İki sürüm numarası, eski kurulumları geride bırakmadan biçimin gelişmesini sağlar.
 
-![Paket biçiminde bir değişiklik ya eklemelidir, eski okuyucuların yok sayabileceği biçimde, ya da kırıcıdır, yanlış bir içe aktarmanın bozulmaya yol açtığı biçimde. Eklemeli olan formatVersion değerini artırır ve minReader değerini korur; kırıcı olan formatVersion değerini artırır ve minReader değerini yükseltir. Bir okuyucu, minReader kendi sürümünü aşmadığında içe aktarır.](/info/diagrams/concepts/backup-version-gate.svg)
+![Paket biçimindeki bir değişiklik ya eski okuyucuların yok sayabileceği eklemeli bir değişikliktir ya da yanlış içe aktarmanın veriyi bozduğu, uyumluluğu bozan bir değişikliktir. Eklemeli değişiklik formatVersion'ı artırır ve minReader'ı korur; uyumluluğu bozan değişiklik formatVersion'ı ve minReader'ı artırır. Okuyucu, minReader en fazla kendi sürümü kadarsa içe aktarır.](/info/diagrams/concepts/backup-version-gate.svg)
 
-- Bir okuyucu, `manifest.minReader` kendi okuyucu sürümünü aşmadığında bir paketi içe aktarır. Yalnızca paket daha yeni bir okuyucu talep ettiğinde "needs a newer version of the app" diyerek reddeder.
-- Yeni bir isteğe bağlı parça veya yeni bir isteğe bağlı bildirim alanı gibi **eklemeli** bir değişiklik `formatVersion` değerini artırır ve `minReader` değerine dokunmaz. Eski uygulamalar tanıdıkları her parçayı yine içe aktarır ve tanımadıkları parçalar sessizce bırakılmaz, atlanmış olarak bildirilir.
-- Bir parçanın yanlış içe aktarılmasının veriyi bozduğu ya da isteğe bağlı bir parçanın zorunlu hale geldiği **kırıcı** bir değişiklik `minReader` değerini yükseltir. Eski uygulamalar o zaman işleyemeyecekleri bir şeyi içe aktarmak yerine temiz biçimde reddeder.
-- Gelecekteki bir paket `formatVersion` ayarlayıp `minReader` değerini dışarıda bırakırsa okuyucular `formatVersion` üzerinden kapılamaya döner ve değişikliği kırıcı sayar.
+- Bir okuyucu, `manifest.minReader` en fazla kendi okuyucu sürümü kadarsa paketi içe aktarır. Yalnızca paket daha yeni bir okuyucu gerektirdiğinde "uygulamanın daha yeni bir sürümü gerekiyor" diyerek reddeder.
+- Yeni bir isteğe bağlı parça veya yeni bir isteğe bağlı bildirim alanı gibi **eklemeli** değişiklik, `formatVersion` değerini artırır ve `minReader` değerini olduğu gibi bırakır. Eski uygulamalar tanıdıkları her parçayı yine içe aktarır; tanımadıkları parçalar sessizce atılmaz, atlandı olarak bildirilir.
+- Bir parçanın yanlış içe aktarılmasının veriyi bozduğu veya isteğe bağlı bir parçanın zorunlu hale geldiği **uyumluluğu bozan** değişiklik, `minReader` değerini artırır. Eski uygulamalar bu durumda işleyemeyecekleri bir şeyi içe aktarmak yerine sorunsuzca reddeder. Eski uygulamalar bu durumda paketi sorunsuzca reddeder.
+- Gelecekteki bir paket `formatVersion` değerini ayarlayıp `minReader` değerini dışarıda bırakırsa okuyucular kabul kararını `formatVersion` üzerinden vermeye döner ve değişikliği uyumluluğu bozan olarak değerlendirir.
 
-> **Yazarlar için pratik kural:** mevcut her okuyucu eklemeni yok sayarak yine doğru şeyi yapacaksa değişiklik eklemelidir: `formatVersion` değerini artır ve `minReader` değerini bırak. Aksi hâlde `minReader` değerini yükselt.
+::: note Yazarlar için pratik kural
+Mevcut okuyucuların tümü eklediğin şeyi yok sayarak hâlâ doğru davranacaksa değişiklik eklemelidir: `formatVersion` değerini artır ve `minReader` değerini olduğu gibi bırak. Aksi halde `minReader` değerini artır.
+:::
 
+<!--i:eti-shield-check-->
 ## Bütünlük
 
-`manifest.integrity` mevcut olduğunda bir okuyucu, **herhangi bir şey yazmadan önce** listelenen her parçanın SHA-256 değerini denetler. Bir uyuşmazlık ("failed its integrity check") veya eksik bir parça ("incomplete") tüm içe aktarmayı durdurur; bu yüzden kısmi geri yükleme yoktur. Bu, bir dosya aktarımının yapabileceği hasarı yakalar: kesilmiş bir AirDrop, eki yeniden kodlayan bir e-posta ağ geçidi, kötü bir USB sektörü.
+`manifest.integrity` varsa okuyucu, **herhangi bir şey yazmadan önce** listelenen her parçanın SHA-256 özetini denetler. Bir uyumsuzluk ("bütünlük denetimi başarısız") veya eksik parça ("eksik") içe aktarmayı durdurur; böylece kısmi geri yükleme olmaz. Bu, aktarım hasarını yakalar: yarıda kesilen bir AirDrop, eki yeniden kodlayan bir e-posta ağ geçidi, bozuk bir USB sektörü.
 
-Bütünlük elinden gelenin en iyisidir. Yalnızca Web Crypto'nun bulunduğu yerde (her güvenli tarayıcı bağlamı ve modern Node) yazılır ve yalnızca hem harita hem Web Crypto mevcut olduğunda denetlenir. Haritası olmayan bir paket, örneğin bütünlükten önceki biri, değişmeden içe aktarılır: "cannot verify" asla "corrupt" sayılmaz.
+Bütünlük mümkün olduğu ölçüde sağlanır. Yalnızca Web Crypto'nun bulunduğu yerlerde (her güvenli tarayıcı bağlamı ve modern Node) yazılır ve yalnızca hem harita hem Web Crypto varsa denetlenir. Bütünlük özelliği eklenmeden önce oluşturulmuş bir paket gibi haritası olmayan bir paket, değişiklik olmadan içe aktarılır: "doğrulanamıyor" hiçbir zaman "bozuk" sayılmaz.
 
-Bildirim ne kendisini ne de yeniden üretilen `lolly.txt` dosyasını listeler. Özetler, bildirimin kefil olduğu parçaları kapsar.
+Bildirim ne kendisini ne de yeniden oluşturulan `lolly.txt` dosyasını listeler.
 
+<!--i:eti-download-->
 ## İçe aktarma kuralları
 
-Bir içe aktarma iki moddan birinde çalışır.
+İçe aktarma iki moddan birinde çalışır.
 
-- **Merge**, **Import data…** işleminin ve eşitlemenin ilk katılımı olan **Bring it to this device** işleminin yaptığıdır. Hedefteki veri kalır ve pakette olmayan hiçbir şeye dokunulmaz: hedefin sahip olduğu ve paketin sahip olmadığı bir oturum içe aktarmadan sağ çıkar.
-- **Replace**, cihaz eşitlemesinin cihazları uyumlu tutmak için kullandığıdır: eşitlenen kopyanın profil kaydını, tercihlerini, oturumlarını, görsellerini ve etkin tasarım sistemi seçimini alır ve yalnızca son eşitlemeden beri başka bir cihazın sildiği öğeleri kaldırır. Daha önceki bir kopyayı geri yüklemek daha da ileri gider ve önce cihazı kaydettikten sonra cihazı o kopyayla eşleştirir, kopyanın tutmadığı her şeyi kaldırır. Bir kişinin ne gördüğünü [Sync your devices](/info/sync.html) kapsar.
+- **Merge**, **Import data…** ve eşitlemeye ilk katılımdaki **Bring it to this device** işlemlerinin yaptığıdır. Hedefteki veriler kalır ve paketin dışındaki hiçbir şeye dokunulmaz.
+- **Replace**, cihaz eşitlemesinin cihazları aynı durumda tutmak için kullandığı moddur. Eşitlenen kopyanın profil kaydını, tercihlerini, oturumlarını, görsellerini ve etkin tasarım sistemi seçimini alır. Yalnızca son eşitlemeden bu yana başka bir cihazın sildiği öğeleri kaldırır. Önceki bir kopyayı geri yüklemek önce cihazı kaydeder, ardından cihazı o kopyayla eşleştirir ve kopyanın içermediği her şeyi kaldırır. [Cihazlarını eşitle](/info/sync.html), kullanıcının gördüklerini açıklar.
 
-Bir birleştirmede yalnızca hedefte olan her şey korunur ve paketteki her veri türü hedefle şöyle buluşur:
+Birleştirme her veri türünü şöyle işler:
 
-| Veri | Hedefte zaten var | Yalnızca pakette |
+| Veri | Hedefte zaten varsa | Yalnızca pakette varsa |
 |---|---|---|
-| Oturumlar (yuvaya göre) ve yüklenen görseller (kimliğe göre) | Daha yakın zamanda kaydedilen kopya korunur; böylece eski bir yedek yeni işin üzerine asla yazmaz. Eşit veya bilinmeyen zamanlar hedefin kopyasını korur. | Eklenir |
-| Klasörler | Hedefin adı ve üst klasörü korunur ve klasör, eksik olduğu paket üyelerini kazanır. Hedefte bir klasöre dosyalanmış oturum orada dosyalı kalır. | Eklenir |
+| Oturumlar (yuvaya göre) ve yüklenen görseller (kimliğe göre) | Daha yakın zamanda kaydedilmiş kopya korunur; böylece eski bir yedek daha yeni çalışmanın üzerine asla yazmaz. Zamanlar eşitse veya bilinmiyorsa hedefin kopyası korunur. | Eklenir |
+| Klasörler | Hedefin adı ve üst klasörü korunur; klasöre pakette bulunan ve kendisinde eksik olan üyeler eklenir. Hedefte bir klasöre yerleştirilmiş oturum orada kalır. | Eklenir |
 | Favoriler (araçlar, katalog varlıkları ve Projects öğeleri) | Birleştirilir | Eklenir |
 | Şablonlar, Projects şablonları ve kullanıcı araçları (kimliğe göre) | Hedefin kaydı korunur. | Eklenir |
-| Trash girdileri | Hedefin girdisi korunur. | Eklenir; böylece iki kurulumdan birinde geri yüklenebilecek bir öğe yine geri yüklenebilir. Klasörü hedefte yeniden kullanımda olan ya da Trash yuvasını hedefin zaten kullandığı bir girdi dışarıda bırakılır. |
-| Diğer profil alanları (ad, iletişim ayrıntıları, dil, özellik bayrakları, gizli araçlar ve diğer ayarlar) | Hedefin değeri korunur. | Hedefin alanı boşsa alınır |
+| Trash girdileri | Hedefin girdisi korunur. | Eklenir; böylece iki kurulumdan herhangi birinde geri yüklenebilen bir öğe yine geri yüklenebilir. Klasörü hedefte yeniden kullanımda olan veya Trash yuvasını hedefin zaten kullandığı bir girdi dışarıda bırakılır. |
+| Diğer profil alanları (ad, iletişim bilgileri, dil, özellik bayrakları, gizli araçlar ve diğer ayarlar) | Hedefin değeri korunur. | Hedefin alanı boşsa alınır |
 | Tercihler (`prefs.json`) | Hedefin değeri korunur. | Hedefte yoksa yazılır |
 | Tasarım sistemleri (kimliğe göre) | Paketin kaydı hedefinkinin yerini alır. | Eklenir. Paketin etkin seçimi yalnızca hedefin kendi tasarım sistemi yoksa uygulanır. |
-| Yaratım geçmişi | Daha yakın zamanda kaydedilen kopya güncel kalır ve diğeri korumalı bir taslak olarak tutulur. | Eklenir |
+| Çalışma geçmişi | Daha yakın zamanda kaydedilen kopya güncel kalır, diğeri korumalı taslak olarak saklanır. | Eklenir |
 
-**Kayıtlı oturumlar görsellerine otomatik olarak yeniden bağlanır.** Varlık başvuruları kimlikle tutulur ve köprü, görseller geri yüklendikten sonra bunları yeniden çözer; `blob:` URL'leri bir yenilemeden sağ çıkmadığı için zaten yapması gerekir.
+**Kayıtlı oturumlar görsellerine otomatik olarak yeniden bağlanır.** Varlık referansları kimliğe göre tutulur. Köprü, görseller geri yüklendikten sonra bunları yeniden çözümler; çünkü `blob:` URL'leri yeniden yüklemede korunmaz.
 
-**Geçmiş kayıtları yazıldıktan sonra asla değişmez.** Varlık sürümlerinin ve işlem kimliklerinin tekrarlanan içe aktarması hiçbir şey eklemez ve zaten farklı baytları veya geçmişi adlandıran bir kimlik, üzerine yazılmak yerine reddedilir. Aynı güncel varlığı yeniden içe aktarmak sürümünü korur ve değişmiş bir güncel varlık farklı bir sürüm taşımalıdır.
+**Geçmiş kayıtları yazıldıktan sonra asla değişmez.** Varlık sürümlerini ve işlem kimliklerini tekrar içe aktarmak hiçbir şey eklemez; zaten farklı baytları veya geçmişi tanımlayan bir kimliğin üzerine yazılmaz, kimlik reddedilir. Aynı geçerli varlığı yeniden içe aktarmak sürümünü korur; değiştirilmiş bir geçerli varlık ise farklı bir sürüm taşımalıdır.
 
-**Yaratım geçmişinin birkaç kuralı daha vardır.** Yuvası hedefte farklı bir yaratım için kullanılan bir yaratım ayrı bir yaratım olarak eklenir ve hedefin Trash'indeki bir yaratım orada kalır. Hedefte farklı içeriği adlandıran bir kontrol noktası kimliği hedefinkini korur. Kendi denetimlerinde başarısız olan bir arşiv, herhangi bir profil, oturum, varlık veya tercih değişmeden önce içe aktarmayı durdurur ve aynı içe aktarmanın tekrarı depolama eklemez.
+**Çalışma geçmişinin birkaç kuralı daha vardır.** Hedefin yuvasını başka bir çalışma için kullandığı çalışma, ayrı bir çalışma olarak eklenir; hedefin Trash bölümündeki bir çalışma ise orada kalır. Hedefte farklı içeriği tanımlayan bir kontrol noktası kimliği varsa hedefteki korunur. Kendi denetimlerinden geçemeyen bir arşiv, profil, oturum, varlık veya tercihlerde herhangi bir değişiklik yapılmadan içe aktarmayı durdurur ve aynı içeriği tekrar içe aktarmak ek depolama alanı kullanmaz.
 
-**Özet ne olduğunu bildirir.** Her içe aktarma `profile`, `sessions`, `userAssets`, `prefs`, `skipped` ve `failedAssets` döndürür.
+**Özet, olanları bildirir.** Her içe aktarma `profile`, `sessions`, `userAssets`, `prefs`, `skipped` ve `failedAssets` döndürür.
 
 - `failedAssets`, örneğin cihaz depolaması dolu olduğu için geri yüklenemeyen yüklenmiş varlıkları sayar.
-- `skipped`, bu derlemenin tanımadığı daha yeni bir yazıcıdan gelen parçaları sayar. Uygulama bunu gösterir ("… · N newer items skipped"); böylece bir geri yükleme geride bıraktığını belirtir.
-- Dosya geçmişiyle özet `assetVersions`, `fileOperations`, `fileBatches` ve `failedHistory` ekler. Depolama tükenmesi veya değişmez kimlik çakışması kısmi bir geri yüklemeye yol açabilir ve uygulama kişiye kaynak yedeği saklamasını söyler.
-- Yaratım geçmişiyle yalnızca bu içe aktarmanın eklediklerini sayan `revisions` ve `recoveryDrafts` ile her yaratımın nasıl birleştirildiğini gösteren `added`, `kept`, `replaced`, `copies` ve `hidden` ekler. `skippedCheckpoints`, kimliği hedefte farklı içeriği adlandıran kontrol noktalarını sayar ve `historyLeftOut`, cihazın geçmiş alanına sığmayan eski kontrol noktalarını ve taslakları sayar.
-- Bir replace içe aktarması `removed` ve `failedRemovals` ekler.
+- `skipped`, bu derlemenin tanımadığı, daha yeni bir yazıcıdan gelen parçaları sayar. Uygulama sayıyı gösterir ("… · N daha yeni öğe atlandı").
+- Dosya geçmişiyle birlikte özet, `assetVersions`, `fileOperations`, `fileBatches` ve `failedHistory` ekler. Depolama alanının tükenmesi veya değişmez kimlik çakışması kısmi geri yüklemeye neden olabilir; uygulama bu durumda kişiye kaynak yedeği saklamasını söyler.
+- Çalışma geçmişiyle birlikte, yalnızca bu içe aktarmanın eklediklerini sayan `revisions` ve `recoveryDrafts` ile her çalışmanın nasıl birleştirildiğini gösteren `added`, `kept`, `replaced`, `copies` ve `hidden` ekler. `skippedCheckpoints`, kimliği hedefte farklı içeriği tanımlayan kontrol noktalarını sayar; `historyLeftOut` ise cihazın geçmiş alanına sığmayan eski kontrol noktalarını ve taslakları sayar.
+- Yerine koyma modunda içe aktarma, `removed` ve `failedRemovals` ekler.
 
-Geri yükleme; profil, oturum, varlık ve geçmiş depoları arasında tek bir işlem değildir. Bulut eşitlemesi, kısmi veya desteklenmeyen bir geri yüklemeden sonra uygulanan düzeltmesini **ilerletmez**; böylece kopya yeniden denemek için kullanılabilir kalır.
+Geri yükleme; profil, oturum, varlık ve geçmiş depolarını kapsayan tek bir işlem değildir. Bulut eşitlemesi, kısmi veya desteklenmeyen bir geri yüklemenin ardından uyguladığı revizyonu **ilerletmez**, böylece kopya yeniden denemek için kullanılabilir kalır.
 
+<!--i:eti-unlink-->
 ## Neler taşınmaz
 
-- **Katalog önbellekleri** (indirilen varlık meta verileri ve blob'lar, araç dizini); hedef bunları ücretsiz yeniden eşitler.
-- **Katalog araçları ve katalog varlıkları**, kapsam dışıdır ve hedefte var oldukları varsayılır. Kullanıcının eklediği marka token'ları, yazı tipleri ve logolar kullanıcı varlıklarıdır; bu yüzden taşınırlar.
-- **`blob:` ve nesne URL'leri**, köprünün yüklemede yeniden ürettiği.
-- **Dönüştürme özgünleri, canlı yürütme kiralamaları ve makineye özgü erişim veya imza sırları.** Bunlar taşınabilir geçmiş değildir. Kayıtlı bir sonuç bir kopyadır, özgün kaynağın yedeklendiğinin sözü değildir.
-- **Dışa aktarma dizi sayacı**, `localStorage` içindeki gün başına indirme adlandırma sayacı (`lolly-export-seq`). `PREF_KEYS` dışında tutulur; bu yüzden bir pakette asla gitmez.
+- **Katalog önbellekleri** (indirilen varlık meta verileri ve blob'lar, araç dizini), hedef bunları yeniden eşitler.
+- **Katalog araçları ve katalog varlıkları**, hedefte bulundukları varsayılır. Kullanıcının eklediği marka token'ları, yazı tipleri ve logolar kullanıcı varlıklarıdır ve taşınır.
+- **`blob:` ve nesne URL'leri**, köprü bunları yükleme sırasında yeniden oluşturur.
+- **Dönüştürme işlemlerinin özgün dosyaları, etkin yürütme kiraları ve makineye özgü erişim veya imzalama sırları.** Bunlar taşınabilir geçmiş değildir. Kaydedilmiş bir sonuç bir kopyadır. Özgün kaynağın yedeklendiği anlamına gelmez.
+- **Dışa aktarma sıra sayacı**, `localStorage` içindeki günlük indirme adlandırma sayacı (`lolly-export-seq`). `PREF_KEYS` dışında tutulur, bu yüzden bir paket içinde asla taşınmaz.
 
-Depolama göstergesi aynı ayrımı gösterir. Saved sessions, My images ve File results & versions bir pakete girer. Altlarındaki varlık önbelleği, araç önizlemeleri ve çevrimdışı sabitlemelerin hepsi yeniden kurulabilir; bu yüzden geride kalırlar.
+Depolama göstergesi de aynı ayrımı gösterir. Saved sessions, My images ve File results & versions bir pakete girer. Varlık önbelleği, araç önizlemeleri ve çevrimdışı sabitlenenler yeniden oluşturulabilir ve geride kalır.
 
-![Bu cihazın verisini adlandırılmış kategorilere ayıran depolama göstergesi; Saved sessions ve My images, Asset cache'ten ayrı izlenir; burada her kategorinin hâlâ boş olduğu yeni bir kurulumda](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
+![Bu cihazın verilerini adlandırılmış kategorilere ayıran depolama göstergesi; Saved sessions ve My images, Asset cache'den ayrı izleniyor. Burada her kategorinin hâlâ boş olduğu yeni bir kurulum gösteriliyor](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
-## Lolly Work ile kuruluş verisi
+<!--i:eti-building-->
+## Lolly Work ile kuruluş verileri
 
-Bu paket cihazın kişisel kitaplığını yedekler. Bir **Lolly Work** örneğinin yedeği değildir: kuruluş hesapları, erişim politikaları, paylaşılan projeler, katalog sürümleri, onaylar, render işleri ve denetim kayıtları o hizmet tarafından tutulur. Paylaşılan işe erişimi geri kazanmak için yeniden bağlan ve giriş yap; kişisel bir paketi içe aktarmak o erişimi vermez.
+Bu paket, cihazın kişisel kitaplığını yedekler. Bir paket, bir **Lolly Work** kurulumunun yedeği değildir. Kuruluş hesapları, erişim politikaları, paylaşılan projeler, katalog sürümleri, onaylar, render işleri ve denetim kayıtları o hizmette tutulur. Paylaşılan işlere yeniden erişmek için tekrar bağlan ve oturum aç. Kişisel bir paketi içeri aktarmak bu erişimi sağlamaz.
 
-İşletmeler sunucu verisini Lolly Work'ün kendi kılavuzlarıyla yedekler, saklar ve siler: [Backup and restore](/info/work-operations.html#backup-and-restore) ve [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Bir cihazı temizlemek veya dışa aktarmak bu sunucu işlemlerinden hiçbirini yapmaz.
+İşletmenler, sunucu verilerini Lolly Work'ün kendi kılavuzlarıyla yedekler, saklar ve siler: [Yedekleme ve geri yükleme](/info/work-operations.html#backup-and-restore) ve [Lolly Work depolama ve veri yaşam döngüsü](/info/work-data-lifecycle.html). Bir cihazı temizlemek veya dışa aktarmak bu sunucu işlemlerinin hiçbirini yapmaz.
 
+<!--i:eti-monitor-->
 ## Kabuklar arasında
 
-`data-transfer.ts` yalnızca yetenek köprüsü (`host.profile`, `host.state`, `host.assets`) ve paylaşılan `localStorage` tercihleri aracılığıyla okur ve yazar. Aynı modül ortak zarfı web'de ve masaüstü ile mobil uygulamalarda IndexedDB veya dosya sistemi depolaması üzerinden okur ve yazar. İsteğe bağlı geçmiş parçaları yalnızca bağdaştırıcıları mevcut olduğunda görünür ve desteklenmeyen bir parça içe aktarmada atlanmış olarak bildirilir. Arayüzsüz paket ortak parçaları bellek içi bir köprüye karşı sınar ve geçmiş işlemlerinin gerçek tarayıcı testleri de vardır.
+`data-transfer.ts` yalnızca yetenek köprüsü (`host.profile`, `host.state`, `host.assets`) ve paylaşılan `localStorage` tercihleri üzerinden okur ve yazar. Aynı modül; web'de, masaüstü ve mobil uygulamalarda ortak zarfı IndexedDB veya dosya sistemi depolaması üzerinden okur ve yazar. İsteğe bağlı geçmiş bölümleri yalnızca adaptörleri kullanılabildiğinde görünür. İçeri aktarma, desteklenmeyen bir bölümü atlanmış olarak bildirir. Arayüzsüz test paketi, ortak bölümleri bellek içi bir köprüyle sınar ve geçmiş işlemlerinin gerçek tarayıcı testleri de vardır.
 
-İki kabuk, farklı nedenlerle bu garantinin dışında kalır:
+İki kabuk bu güvencenin dışındadır:
 
-- **Tek seferlik CLI**'nin taşıyacak bir şeyi yoktur: durumu bellektedir ve bir çağrı sürer.
-- **TUI** durumu `~/.lolly` içinde tutar (oturumlar, klasörler, profil) ve Profile görünümü onu yedekleyebilir, ancak kendi daha basit arşivini yazar: oturum başına `saved-state/<slot>.json` artı `profile.json` ve `folders.json`; bildirim, `formatVersion` veya `minReader` ve bütünlük haritası yoktur. Bu biçim onu içe aktaramaz (bir okuyucu onu "not a Lolly backup" olarak reddeder) ve adı kafa karıştırıcı derecede benzerdir (`lolly-backup-<stamp>.zip`). İkisini birleştirmek bilinen bir eksiktir.
+- **Tek seferlik CLI** taşıyacak bir şey içermez: durumu bellektedir ve tek bir çağrı boyunca sürer.
+- **TUI**, durumu `~/.lolly` içinde tutar (oturumlar, klasörler, profil). Profile görünümü kendine ait daha basit bir yedek arşivi yazar: oturum başına `saved-state/<slot>.json`, ayrıca `profile.json` ve `folders.json`; bildirim, `formatVersion`, `minReader` veya bütünlük haritası yoktur. Bu biçimin okuyucusu, adlar benzer olsa da (`lolly-backup-<stamp>.zip`) o arşivi "Lolly yedeği değil" diye reddeder. İkisini birleştirmek bilinen bir eksikliktir.
 
+<!--i:eti-clock-->
 ## Henüz taşınabilir değil
 
-Zarf bir bildirim artı adlandırılmış parçalardır; bu yüzden yeni taşınabilir veri türleri sonradan eklemeli parçalar olarak katılabilir (yeni bir `formatVersion`, aynı `minReader`) ve bugünkü okuyucular tanımadıklarını atlar. Tasarım sistemleri zaten bu şekilde, `design-systems.json` artı kullanıcı varlıkları olarak taşınır.
+Yeni taşınabilir veri türleri daha sonra ek bölümler olarak katılabilir (yeni bir `formatVersion`, aynı `minReader`). Tasarım sistemleri, `design-systems.json` ve kullanıcı varlıkları olarak zaten bu şekilde taşınır.
 
-Henüz taşınmayan veri için iki ad ayrılmıştır:
+Henüz taşınmayan veriler için iki ad ayrılmıştır:
 
-- **`tokens.json`**, gruplarıyla, kümeleriyle ve temalarıyla tam bir [W3C DTCG](https://tr.designtokens.org/format/) tasarım token'ları belgesi, [Penpot'un içe ve dışa aktardığı](https://help.penpot.app/user-guide/design-systems/design-tokens/) biçimi taşırdı. Bir kullanıcının kendi marka token'ları zaten `assets.json` içindeki `user/tokens/brand` varlığı olarak ve bir tasarım sisteminin token'ları kaydıyla taşınır.
-- **`penpot/`**, içe alınmış bir Penpot dosyası veya Lolly ile ilgili alt kümesi için ayrılmıştır; bir araç olarak sunulur.
+- **`tokens.json`**, grupları, kümeleri ve temalarıyla bir [W3C DTCG](https://tr.designtokens.org/format/) tasarım token'ları belgesi taşıyacaktır; bu, [Penpot'un içeri ve dışa aktardığı](https://help.penpot.app/user-guide/design-systems/design-tokens/) biçimdir. Kullanıcının kendi marka token'ları zaten `assets.json` içindeki `user/tokens/brand` varlığı olarak, bir tasarım sisteminin token'ları da o sistemin kaydıyla taşınır.
+- **`penpot/`**, araç olarak sunulan, içeri alınmış bir Penpot dosyası veya onun Lolly ile ilgili alt kümesi için ayrılmıştır.
 
-Bugünkü okuyucular iki adı da henüz bilmez. Yukarıdaki parçaların dışındaki her şey gibi, her biri onlar için bilinmeyen bir parçadır: dokunulmadan bırakılır ve `skipped` içinde sayılır.
+<!--i:eti-history-->
+## Geçmiş bölümleri
 
-## Geçmiş parçaları
+İki geçmiş bölümü isteğe bağlıdır ve kendi sürümleri vardır.
 
-İki geçmiş parçası isteğe bağlıdır ve kendi sürümleri vardır. Çoğu okuyucu bu bölümü atlayabilir.
+::: details Oluşturma geçmişi (v3)
+Oluşturma geçmişi olan bir web kurulumundan elle alınan yedekler, kendine ait `{ version: 1, documents, revisions, recoveries }` şemasıyla `revision-history.json` içerir. Saklanan kimlikleri, kanonik girdi anlık görüntülerini, sürüm damgalarını, raster önizlemeleri ve ayrı yazıcı taslaklarını taşır. Geçmiş adaptörü, geçerli oturumları ve bunların en güncel revizyonlarını tek bir okuma işleminde yakalar ve `sessions.json`, eski okuyucular için aynı geçerli anlık görüntüleri kullanır.
 
-::: details Yaratım geçmişi (v3)
-Yaratım geçmişi olan bir web kurulumundan elle yapılan yedekler, kendi `{ version: 1, documents, revisions, recoveries }` şemasıyla `revision-history.json` içerir. Tutulan kimlikleri, kurallı girdi anlık görüntülerini, sürüm damgalarını, raster önizlemeleri ve ayrı yazar taslaklarını taşır. Geçmiş bağdaştırıcısı güncel oturumları ve başlarını tek bir okuma işleminde yakalar ve `sessions.json` eski okuyucular için aynı güncel anlık görüntüleri kullanır.
+Geri yükleme, arşivi tek bir işlemde kalıcı olarak kaydetmeden önce yükün SHA-256 değerini ve bayt sayılarını, benzersiz kimlikleri, belge ve en güncel revizyon ilişkilerini, soy zincirini, zaman damgalarını, önizleme türlerini ve sınırları denetler. Sıkıştırılmış üst revizyon başvuruları eksik olabilir. Mevcut güncel iş asla sessizce değiştirilmez: bir çalışma her iki tarafta da varsa güncel tutulmayan taraf korumalı bir taslağa dönüşür.
 
-Geri yükleme, arşivi tek bir işlemde uygulamadan önce yük SHA-256 değerini ve bayt sayılarını, benzersiz kimlikleri, belge ve baş ilişkilerini, soy ağacını, zaman damgalarını, önizleme türlerini ve sınırları denetler. Sıkıştırılmış üst başvuruları eksik olabilir. Mevcut güncel iş sessizce asla değiştirilmez: bir yaratım iki tarafta da olduğunda güncel tutulmayan taraf korumalı bir taslak olur.
+Arşivin aktarım sınırı 384 MiB'dir. Depolama sınırları, saklanan kontrol noktaları kırpılmadan uygulanır. Dışa aktarma, `revision-history.json` ve `sessions.json` dosyalarını parçalar hâlinde, tek bir `JSON.stringify` çağrısının ürettiği baytlarla yazar; böylece dosya metninin tamamı hiçbir zaman bellekte tutulmaz. Sınırı aşacak bir geçmiş dosyası, aştığı anda çıkarılır ve sonrasında yalnızca boyutu sayılır. Ardından arşiv, en eski otomatik kontrol noktaları olmadan yeniden oluşturulur ve dışa aktarma özeti bunları `checkpointsLeftOut` olarak sayar veya arşiv reddedilir.
 
-Arşivin 384 MiB aktarım sınırı açıkça denetlenir ve kontrol noktaları kesilmeden depolama sınırları uygulanır. Dışa aktarma `revision-history.json` ve `sessions.json` dosyalarını tek bir `JSON.stringify` ile aynı baytlarla parçalar halinde yazar; böylece dosya metni asla bütün olarak tutulmaz. Sınırı aşacak bir geçmiş dosyası aştığı anda bırakılır ve oradan itibaren yalnızca sayılır. Arşiv sonra en eski otomatik kontrol noktaları olmadan yeniden yapılır ve dışa aktarma özeti bunları `checkpointsLeftOut` olarak sayar ya da arşiv bütünüyle reddedilir.
+Bu yeteneği olmayan bir kabuk, normal oturumları geri yükler ve geçmiş bölümünü atlanmış olarak bildirir. Yerel dosya sistemi geçmişi, adaptörü kalıcı geçmiş işlemleri sağlayana kadar desteklenmez. Özel bir işbirliğindeki konukların kalıcı geçmişi veya kurtarma arşivi yoktur.
 
-Bu yeteneği olmayan bir kabuk sıradan oturumları geri yükler ve geçmiş parçasını atlanmış olarak bildirir. Yerel dosya sistemi geçmişi, bağdaştırıcısı dayanıklı geçmiş işlemleri sağlayana kadar desteklenmez. Özel bir collab içindeki konukların dayanıklı geçmişi veya kurtarma arşivi yoktur.
+Kişisel anlık görüntü eşitlemesi, oluşturma geçmişini dışarıda bırakır. Geçmişi olan yerel bir belgeye anlık görüntü uygulamak, önceki çalışma durumunu ayrı bir kurtarma taslağı olarak saklar ve açık düzenleyicilerin yazma token'larını geçersiz kılar. Değişmez kontrol noktaları cihazda kalır. Bu, anlık görüntü değiştirilirken yerel geçmişi korur. Eşzamanlı cihaz geçmişlerini birleştirmez.
 
-Kişisel anlık görüntü eşitlemesi yaratım geçmişini dışarıda bırakır. Bir anlık görüntüyü geçmişi olan yerel bir belgeye uygulamak, önceki çalışma durumunu ayrı bir kurtarma taslağı olarak korur ve açık bir düzenleyicinin yazma belirtecini geçersiz kılar. Değişmez kontrol noktaları cihazda kalır. Bu, bir anlık görüntü değişimi sırasında yerel geçmişi korur; eşzamanlı cihaz geçmişlerini birleştirmez.
-
-Tarihsel varlık başvuruları korunur; render ise varlıkları hedefin mevcut kitaplığı üzerinden çözmeye devam eder. Bu arşiv henüz tam eski varlık baytlarını veya eski araç render'larını garanti etmez. Varlık sürümü ve dosya sonucu baytları kendi yedek parçalarında gider.
+Geçmiş varlık başvuruları saklanır, ancak render işlemi varlıkları yine hedefin mevcut kitaplığı üzerinden çözümler. Bu arşiv, eski varlık baytlarının veya eski araç render'larının birebir aynı olmasını henüz garanti etmez. Varlık sürümlerinin ve dosya sonuçlarının baytları kendi yedek bölümlerinde taşınır.
 :::
 
-::: details Kayıtlı sürümler ve dosya sonuçları (v2)
-İsteğe bağlı geçmiş parçası `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }` tutar ve okuyucular toplu işleri olmayan önceki history-v1 biçimini de kabul eder. Her anlık görüntü kararlı varlık kimliğini ve tam sürümü, kayıt zamanını, bayt uzunluğunu ve onaltılı SHA-256 değerini ve `_file` ve isteğe bağlı `_credentialFile` değerleri ikili parçalara işaret eden bir varlık kaydını verir. İşlemler özgün dosya bilgilerini, isteği, raporu, zaman damgalarını ve isteğe bağlı sonuç `_file` değerini taşır. Depolama arka ucu adları, OPFS tutamakları ve yürütme kiralamaları taşınmaz. Yalnızca history v1 bilen okuyucular, toplu iş üyeliğini sessizce düşürmek yerine içe aktarmadan önce yeni geçmiş sürümünü reddeder.
+::: details Kaydedilmiş sürümler ve dosya sonuçları (v2)
+İsteğe bağlı geçmiş bölümü `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }` içerir ve okuyucular, toplu işlemler içermeyen önceki history-v1 yapısını da kabul eder. Her anlık görüntü; sabit varlık kimliğini ve tam sürümü, kaydedilme zamanını, bayt uzunluğunu ve onaltılık SHA-256 değerini, ayrıca `_file` ve isteğe bağlı `_credentialFile` alanları ikili bölümlere işaret eden bir varlık kaydını verir. İşlemler; özgün dosya bilgilerini, isteği, raporu, zaman damgalarını ve isteğe bağlı sonuç `_file` alanını taşır. Depolama arka ucu adları, OPFS tanıtıcıları ve yürütme kiraları taşınmaz. Yalnızca geçmiş v1'i tanıyan okuyucular, içeri aktarmadan önce yeni geçmiş sürümünü reddeder; böylece toplu işlem üyeliği asla sessizce düşürülmez.
 
-Toplu iş bildirimleri, hiç okunmayan dosyalar, iptal edilen üyeler, sonuç alanı ayırma hataları ve yarıda kalan iş dahil, işlemeden önce seçilen her kaynağı kaydeder. Her üyenin kararlı bir işlem kimliği, kaynak başvurusu ve bilgileri, istenen çıktı adı ve son raporu vardır. Okunmamış bir kaynağın uydurulmuş bir özeti değil, bildirilmiş bilgileri vardır. İçe aktarma, üye kimliğini ve taşınan herhangi bir işlem raporuyla tutarlılığı doğrular. Tekil sonuçlar kaldırıldığında bile toplu iş raporları kullanılabilir kalır, ancak bir makbuz çıktı baytlarının hâlâ saklandığı anlamına gelmez.
+Toplu işlem bildirimleri; hiç okunmayan dosyalar, iptal edilen üyeler, sonuç alanı ayırma hataları ve kesintiye uğrayan işler dahil, seçilen her kaynağı işlenmeden önce kaydeder. Her üyenin sabit bir işlem kimliği, kaynak başvurusu ve bilgileri, istenen çıktı adı ve son raporu vardır. Okunmamış bir kaynağın uydurulmuş bir özeti değil, beyan edilmiş bilgileri vardır. İçeri aktarma, üye kimliğini ve taşınan işlem raporlarıyla tutarlılığını doğrular. Tek tek sonuçlar kaldırıldığında Lolly Batch raporları kullanılabilir kalır, ancak bir alındı, çıktı baytlarının hâlâ saklandığı anlamına gelmez.
 
-- **Önce doğrulama.** Bilinen her geçmiş kaydı, raporu ve başvurulan dosya, herhangi bir profil veya varlık içe aktarması yazmadan önce doğrulanır. Eksik baytlar ve eşleşmeyen SHA-256 değerleri, zarfta bütünlük haritası olmasa bile başarısız olur. Çıkarılan kimlik bilgileri bayt dizisi olarak kalır; onları sayısal anahtarlı nesneler olarak serileştiren eski yazıcılardan içe aktarmalar dahil.
-- **Çalışan iş.** Çalışan işlemler yedekte açıklayıcı bir hata raporu ve sonuçsuz kesintiye uğramış kayıtlar olur. Geri yükleme arka plan işini asla yeniden başlatmaz veya etkin bir kiralamayı içe aktarmaz. Yeniden denemek özgün dosyayı yeniden seçmek demektir; varsa kayıtlı SHA-256 değerine karşı denetlenir.
-- **Depolama.** Geri yüklenen sonuçlar baytlarını ve meta verilerini IndexedDB içinde birlikte işler. Sıradan yeni sonuçlar mümkünse OPFS, yedek olarak IndexedDB kullanır. Mevcut canlı bir işlem içe aktarmayla asla değiştirilmez.
-- **Yedek sınırları.** Dışa aktarma bu baytları arşive akıtır; ancak geri yükleme bir yedeğin tamamını hâlâ bellekte açar; bu yüzden sınırlar kalır: **256 MiB geçmiş yükü**, **4 MiB geçmiş meta verisi**, en fazla **100 işlem**, **100 toplu iş** ve **2.000 anlık görüntü**. Dışa aktarma aşırı büyük veya eksik geçmişi açıkça reddeder ve asla sessizce dışarıda bırakmaz. Eski yerel kopyaları kaldırmadan önce önemli sürümleri ve sonuçları tek tek indir. Bu sınırlar telefonlar için ölçülmüş bir tepe bellek garantisi değildir.
-- **Yerel bütçeler.** Yerel sonuç geçmişinin 512 MiB bütçesi ve 100 kayıtlık üst sınırı vardır. Varlık anlık görüntülerinin ayrı bir 512 MiB bütçesi ve varlık başına en fazla 20 tarihsel sürümü vardır ve çıkarılan kimlik bilgisi baytları bu bütçeye sayılır. Geri yükleme bu sınırlara uyar ve mevcut kullanıcı verisini asla sessizce çıkarmaz.
-- **Toplu iş meta verisi.** Yerel toplu iş meta verisinin ayrı bir 4 MiB bütçesi, en fazla 100 bildirimi ve toplu iş başına 20 üyesi vardır. Bekleyen üyeler, üye başına 32 KiB rapor üst sınırıyla meta veri kapasitesi ayırır. Bu mantıksal bir bütçedir, bir tarayıcı disk alanı garantisi değildir: gerçek bir kota hatası gösterilir ve bellek içi rapor indirilebilir kalır. Bir toplu iş üyesini yeniden denemek eski raporun üzerine yazmadan yeni bir toplu iş oluşturur. Bir toplu iş kaydını kaldırmak tekil sonuç baytlarını veya kitaplık varlıklarını kaldırmaz.
-- **Kitaplıktaki sonuçlar.** Dönüştürülmüş sonuçlar normalleştirme veya yeniden kodlama olmadan, kaynak ve çıktı karmaları ile işlem ilişkisi eklenerek kitaplığa eklenebilir. Tekrarlanan eklemeler değişmemiş bir kopyayı yeniden kullanır ve düzenlenmiş bir kopyanın üzerine asla yazılmaz. Raster görseller, geçerli kitaplık varlık kimliğini kullanan yeni bir Design belgesi başlatabilir; tam sürüm sabitlemelerini Design'ın çalışma zamanı ve URL yolu boyunca zorlamak ayrı bir iştir. SVG, HTML, PDF ve ZIP sonuçları güvenilir etkileşimli veya vektör içeriğe yükseltilmeden opak dosya varlıkları olarak tutulur.
-- **İnsanların bunu gördüğü yer.** **Convert → Recent file operations** geçmiş kullanımını, raporları, indirmeleri ve silinmiş kitaplık varlıklarının eski sürümlerini de bulan sürüm yöneticisini gösterir. Bir anlık görüntüyü geri yüklemek yeni bir güncel sürüm oluşturur ve seçilen anlık görüntüyü korur. **Settings → Preferences → Storage** sonuçları ve sürümleri atılabilir önbelleklerden ayrı sayar.
-- **Temizlik.** Açık geçici dosya temizliği yalnızca işleme ait, başvurulmayan baytları kaldırır. Güncel kayıtlar dosyalarını korur ve yakın tarihli OPFS dosyalarının bir saatlik tolerans süresi vardır. Kayıtlı sonuçlar ve varlık anlık görüntüleri otomatik temizlenmez.
+- **Önce doğrulama.** Bilinen her geçmiş kaydı, rapor ve başvurulan dosya, profil veya varlık içeri aktarması herhangi bir veri yazmadan önce doğrulanır. Zarfta bütünlük haritası olmasa bile eksik baytlar ve uyuşmayan SHA-256 hata verir. Çıkarılan kimlik bilgileri, bunları sayısal anahtarlı nesneler olarak serileştiren eski yazıcılardan gelen içeri aktarmalar dahil, bayt dizisi olarak kalır.
+- **Çalışan işler.** Çalışan işlemler, yedekte hata raporu olan ve sonucu olmayan kesintiye uğramış kayıtlara dönüşür. Geri yükleme asla arka plan işlerini yeniden başlatmaz veya etkin bir kirayı içeri aktarmaz. Yeniden denemek, özgün dosyayı yeniden seçmek demektir; varsa kayıtlı SHA-256 değeriyle denetlenir.
+- **Depolama.** Geri yüklenen sonuçlar, baytlarını ve meta verilerini IndexedDB'ye birlikte kaydeder. Normal yeni sonuçlar, kullanılabildiğinde OPFS'yi, yedek seçenek olarak IndexedDB'yi kullanır. Mevcut etkin bir işlem, içeri aktarmayla asla değiştirilmez.
+- **Yedek sınırları.** Dışa aktarma bu baytları akış hâlinde arşive yazar, ancak geri yükleme hâlâ tüm yedeği bellekte açar, bu yüzden sınırlar geçerlidir: **256 MiB geçmiş yükü**, **4 MiB geçmiş meta verisi**, en fazla **100 işlem**, **100 toplu işlem** ve **2.000 anlık görüntü**. Dışa aktarma, fazla büyük veya eksik geçmişi açıkça reddeder ve asla sessizce dışarıda bırakmaz. Eski yerel kopyaları kaldırmadan önce önemli sürümleri ve sonuçları tek tek indir. Bu sınırlar, telefonlar için ölçülmüş bir tepe bellek kullanımı garantisi değildir.
+- **Yerel bütçeler.** Yerel sonuç geçmişinin 512 MiB bütçesi ve 100 kayıt sınırı vardır. Varlık anlık görüntülerinin ayrı bir 512 MiB bütçesi ve varlık başına en fazla 20 geçmiş sürüm sınırı vardır; çıkarılan kimlik bilgisi baytları da bu bütçeye dahildir. Geri yükleme bu sınırlara uyar ve mevcut kullanıcı verilerini asla sessizce çıkarmaz.
+- **Toplu işlem meta verileri.** Yerel toplu işlem meta verilerinin ayrı bir 4 MiB bütçesi, en fazla 100 bildirim ve toplu işlem başına 20 üye sınırı vardır. Bekleyen üyeler, üye başına 32 KiB rapor üst sınırıyla meta veri kapasitesi ayırır. Bu, tarayıcı disk alanı garantisi değil, mantıksal bir bütçedir: gerçek bir kota hatası gösterilir ve bellekteki rapor indirilebilir kalır. Bir toplu işlem üyesini yeniden denemek, eski raporun üzerine yazmadan yeni bir toplu işlem oluşturur. Bir toplu işlem kaydını kaldırmak, tek tek sonuç baytlarını veya kitaplık varlıklarını kaldırmaz.
+- **Kitaplıktaki sonuçlar.** Dönüştürülen sonuçlar; kaynak ve çıktı özetleri ve işlem ilişkisi eklenerek, normalleştirme veya yeniden kodlama yapılmadan kitaplığa eklenebilir. Tekrarlanan eklemeler, değişmemiş kopyayı yeniden kullanır ve düzenlenmiş bir kopyanın üzerine asla yazılmaz. Raster görseller, geçerli kitaplık varlık kimliğini kullanan yeni bir Lolly Design belgesi başlatabilir. Lolly Design'ın çalışma zamanı ve URL yolu boyunca tam sürüm sabitlemelerini uygulamak ayrı bir iştir. SVG, HTML, PDF ve ZIP sonuçları, güvenilir etkileşimli veya vektör içerik statüsüne yükseltilmeden, içeriği yorumlanmayan dosya varlıkları olarak tutulur.
+- **Bunların görüldüğü yerler.** **Convert → Recent file operations**, geçmiş kullanımını, raporları, indirmeleri ve silinmiş kitaplık varlıklarının önceki sürümlerini de bulan sürüm yöneticisini gösterir. Bir anlık görüntüyü geri yüklemek, yeni bir geçerli sürüm oluşturur ve seçilen anlık görüntüyü saklar. **Settings → Preferences → Storage**, sonuçları ve sürümleri silinebilir önbelleklerden ayrı sayar.
+- **Temizleme.** Açıkça başlatılan geçici dosya temizliği, yalnızca işlemlere ait ve başvurulmayan baytları kaldırır. Geçerli kayıtlar dosyalarını korur ve yeni OPFS dosyaları için bir saatlik bekleme süresi vardır. Kaydedilmiş sonuçlar ve varlık anlık görüntüleri otomatik olarak temizlenmez.
 
-Eski okuyucular v2 zarfını (`minReader: 1`) yine kabul eder ve bildikleri parçaları geri yükler, desteklenmeyen geçmiş parçalarını atlanmış sayar. Tam geçmiş kurtarma, `fileHistory` bağdaştırıcısı olan bir kabuk gerektirir; bu, araca dönük yeni bir `HostV1` yeteneği değil, kabuğun içinde bir dikiş yeridir. Gerçek iki cihazlı geri yükleme yerel Chromium kapısı tarafından kapsanır; kurulu masaüstü, iOS ve Android uygulamalarında kurtarma ise ayrıca kabul edilecektir.
+Eski okuyucular v2 zarfını (`minReader: 1`) kabul etmeye ve bildikleri bölümleri geri yüklemeye devam eder; desteklenmeyen geçmiş bölümlerini atlanmış olarak sayar. Geçmişi tamamen kurtarmak için `fileHistory` adaptörü olan bir kabuk gerekir; bu, araçlara sunulan bir `HostV1` yeteneği değil, kabuğun içindeki bir bağlantı noktasıdır. Gerçek iki cihazlı geri yükleme, yerel Chromium kabul denetiminin kapsamındadır. Yüklü masaüstü, iOS ve Android uygulamalarında kurtarmanın kabulü hâlâ ayrıca yapılmalıdır.
 :::
 
-## Referans
+<!--i:eti-code-->
+## Başvuru
 
 - Modül: `shells/web/src/data-transfer.ts` (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION`; `backupFilename()` adlandırıcısı dahilidir).
-- Sözleşme testi: `tests/data-transfer.test.ts`; gidiş dönüş, birleştirme, bütünlük, ileriye dönük uyumluluk ve okuyucu kapısını kapsar.
-- Geçmiş sözleşme testleri: `tests/file-history-backup.test.ts`, `tests/file-batch-history.test.ts` ve `tests/file-result-library.test.ts`. Tarayıcı kabulü: `tests/file-history.browser.test.ts`, `tests/file-batch-history.browser.test.ts` ve `tests/file-result-reuse.browser.test.ts`.
-- Kullanılan köprü yüzeyi: `host.profile`, `host.state` ve `host.assets`; bkz. [Host API](/info/host-api.html).
+- Sözleşme testi: `tests/data-transfer.test.ts`; gidiş dönüş, birleştirme, bütünlük, ileriye dönük uyumluluk ve okuyucu denetimini kapsar.
+- Geçmiş sözleşme testleri: `tests/file-history-backup.test.ts`, `tests/file-batch-history.test.ts` ve `tests/file-result-library.test.ts`. Tarayıcı kabul testleri: `tests/file-history.browser.test.ts`, `tests/file-batch-history.browser.test.ts` ve `tests/file-result-reuse.browser.test.ts`.
+- Kullanılan köprü arayüzü: `host.profile`, `host.state` ve `host.assets`; bkz. [Host API](/info/host-api.html).

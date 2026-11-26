@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "tool": {
+    "id": "color-palette",
+    "version": "2.3.5",
+    "digest": "36e98f9fe8503049857aee25cf468de8472387300433a6d94fbd2459dcace2f8"
+  },
+  "verdict": "browser",
+  "measured": {
+    "date": "2026-11-20",
+    "profile": "lolly-demo",
+    "webShell": "b7977cd6fa",
+    "renderers": {
+      "resvg": "2.6.2",
+      "engine": "1.348.0",
+      "chromium": "153.0.8010.12"
+    },
+    "bands": {
+      "threshold": 24,
+      "fillThreshold": 72,
+      "regionShare": 0.005,
+      "inkShare": 0.25,
+      "inkShift": 1.5,
+      "gradientLevels": 2
+    }
+  },
+  "cases": [
+    {
+      "name": "color-palette-default",
+      "args": [],
+      "result": "outside",
+      "detail": "\"Seed #033633 · Triad · 7-step OKLab ramp\" ink 0.5% shift 1.75 px"
+    },
+    {
+      "name": "color-palette-tetrad-grid-deutan",
+      "args": [
+        "--seed=#166534",
+        "--harmony=tetrad-4",
+        "--grid=true",
+        "--vision=deutan"
+      ],
+      "result": "outside",
+      "detail": "rect#44 0.71% over 24; rect#47 0.58% over 24"
+    },
+    {
+      "name": "color-palette-contrast-mm300",
+      "args": [
+        "--seed=#2563eb",
+        "--mode=contrast",
+        "--bg=#ffffff",
+        "--unit=mm",
+        "--width=160",
+        "--height=100",
+        "--dpi=300"
+      ],
+      "result": "outside",
+      "detail": "rect#1 0.60% over 24; rect#6 0.86% over 24; rect#7 0.87% over 24; rect#8 0.88% over 24; rect#9 1.05% over 24; rect#12 0.70% over 24; rect#13 0.72% over 24; rect#14 1.19% over 24; rect#15 1.65% over 24; rect#16 1.63% over 24; rect#17 0.64% over 24; rect#20 0.86% over 24; rect#21 0.86% over 24; rect#22 0.86% over 24; rect#23 1.32% over 24; rect#24 1.32% over 24; rect#25 0.61% over 24; rect#32 0.84% over 24"
+    },
+    {
+      "name": "color-palette-3200",
+      "args": [
+        "--width=3200",
+        "--height=2000"
+      ],
+      "result": "inside"
+    }
+  ]
+}

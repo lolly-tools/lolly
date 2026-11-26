@@ -10,6 +10,7 @@
 
 import Ajv from 'ajv/dist/2020.js';
 import { assetOpenErrors, type AssetOpenIntentV1 } from '@lolly-tools/core/asset-open-v1';
+import { renditionOfErrors } from '@lolly-tools/core/rendition-v1';
 import type { Ajv2020, ErrorObject, ValidateFunction } from 'ajv/dist/2020.js';
 import toolSchema from '../../schemas/tool.schema.json' with { type: 'json' };
 import assetSchema from '../../schemas/asset.schema.json' with { type: 'json' };
@@ -68,6 +69,7 @@ export function validateManifest(manifest: unknown): ValidationResult {
     if (input.tokenBindingsField && (input.type !== 'blocks' || !input.fields?.some(field => field.id === input.tokenBindingsField && (field.type ?? 'text') === 'text'))) errors.push({ path: `/inputs/${index}/tokenBindingsField`, message: 'must name a declared text sub-field of this blocks input' });
   }
   if (ok) errors.push(...assetOpenErrors(manifest as { id: string; openWith?: AssetOpenIntentV1[]; inputs?: { id: string; type: string; multiple?: boolean }[] }));
+  if (ok) errors.push(...renditionOfErrors(manifest as { renditionOf?: { input: string }; inputs?: { id: string; type: string }[] }));
   return {
     valid: errors.length === 0,
     errors,

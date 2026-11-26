@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createRuntime } from '../engine/src/runtime.ts';
-import { createNodeHookExecutor, NodeHookIsolationError } from '../packages/node-shell/src/hook-worker.ts';
+import { createNodeHookExecutor, NodeHookIsolationError, NODE_WORKER_HOOK_BUDGET_MS } from '../packages/node-shell/src/hook-worker.ts';
 
 let seq = 0;
 function toolWith(hooksSource: string, hooks: Record<string, boolean> = { onInit: true }): any {
@@ -109,6 +109,41 @@ test('strict Node hooks omit capture when the transport has no isolated public r
   assert.match(runtime.getHydrated(), /undefined/);
   assert.equal(captures, 0);
   runtime.destroy();
+});
+
+test('a hook that waits on a slow host call keeps its thread and delivers its result', async () => {
+  // The audiogram's first step asks the host to render and analyse a whole tune,
+  // which takes longer than the hook's own budget. That wait is the host working.
+  const budgets = NODE_WORKER_HOOK_BUDGET_MS as Record<string, number>;
+  const before = budgets.onInit ?? 5000;
+  budgets.onInit = 150;
+  try {
+    const h = host({ assets: { get: async (id: string) => { await new Promise((r) => setTimeout(r, 500)); return { id, url: `asset:${id}` }; }, query: async () => [], pick: async () => null, isAvailable: async () => true } });
+    const hooks = await createNodeHookExecutor({ strict: true })(toolWith(`
+      async function onInit({ host }) { return { note: (await host.assets.get('slow')).url }; }
+    `), h);
+    try {
+      assert.deepEqual(await hooks.onInit?.({ model: [] } as never), { note: 'asset:slow' });
+    } finally {
+      (hooks as { dispose?: () => void }).dispose?.();
+    }
+  } finally {
+    budgets.onInit = before;
+  }
+});
+
+test('a hook that runs past its budget without asking the host for anything still loses its thread', async () => {
+  const budgets = NODE_WORKER_HOOK_BUDGET_MS as Record<string, number>;
+  const before = budgets.onInit ?? 5000;
+  budgets.onInit = 150;
+  try {
+    const hooks = await createNodeHookExecutor({ strict: true })(toolWith(`
+      async function onInit() { await new Promise((r) => setTimeout(r, 2000)); return { note: 'late' }; }
+    `), host());
+    await assert.rejects(Promise.resolve(hooks.onInit?.({ model: [] } as never)), /exceeded its 150ms isolated execution budget/);
+  } finally {
+    budgets.onInit = before;
+  }
 });
 
 test('an init timeout terminates the worker so the owning process can exit', async () => {

@@ -14,6 +14,39 @@ const measurement = (text: string, pattern: RegExp): number | null | undefined =
   if (raw === undefined) return undefined;
   const n = Number(raw); return Number.isFinite(n) ? n : null;
 };
+/**
+ * One `ashowinfo` frame line, found by its own fields and not by the `[Parsed_ashowinfo_0 @ …]`
+ * prefix. ffmpeg runs the audio filters on their own thread, and the muxer thread writes
+ * its "Output #0" summary in pieces while they run. A frame line logged between two of
+ * those pieces is printed with no prefix, straight after whatever piece came before (even
+ * `24 tbn`, hence no boundary before `n:`), so a pattern that needs the prefix misses that
+ * frame and the whole duration reads as undetermined. Each frame's own fields are written
+ * in one piece, so they stay together.
+ *
+ * Without the prefix, text the file carries could look like a frame line, so none is
+ * read: the input summary (the file's title, chapters and stream tags) is cut off by
+ * afterInputSummary, and the decode copies no metadata or chapters into the output
+ * summary (FRAME_LOG_ARGS). Frames must still arrive numbered 0, 1, 2…, or the duration
+ * stays undetermined.
+ */
+const ASHOWINFO_FRAME = /n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?rate:(\d+)\s+nb_samples:(\d+)/g;
+/** Output options that keep the file's own metadata and chapter titles out of the output summary. */
+export const FRAME_LOG_ARGS = ['-map_metadata', '-1', '-map_chapters', '-1'] as const;
+/**
+ * The ffmpeg log from the first line that starts "Stream mapping:", which follows the input
+ * summary (the file's title, chapters and stream tags) and precedes every frame line.
+ * The FIRST one, never a later one: a file can print text that includes that line, in a
+ * stream tag or in a demuxer warning during the decode, and a cut at a later copy could
+ * drop real frames and keep made-up ones. Text a file prints after the cut and that looks
+ * like a frame line breaks the frame order, so the measure stays undetermined, never a
+ * wrong number. The whole log when there is no such line.
+ */
+export const afterInputSummary = (log: string): string => {
+  if (log.startsWith('Stream mapping:')) return log;
+  const at = log.indexOf('\nStream mapping:');
+  return at < 0 ? log : log.slice(at + 1);
+};
+
 export async function inspectMotionBytes(bytes: Uint8Array, target: MotionTarget = {}, binaries = { probe: 'ffprobe', decode: 'ffmpeg' }, options: { signal?: AbortSignal; timeoutMs?: number; strict?: boolean } = {}): Promise<MotionReport> {
   options.signal?.throwIfAborted();
   if (!bytes.length || bytes.length > 256 * 1024 * 1024) throw new Error('Motion inspection accepts 1 byte to 256 MiB.');
@@ -35,18 +68,20 @@ export async function inspectMotionBytes(bytes: Uint8Array, target: MotionTarget
       return motionReport(facts, target, [{ id: 'container', status: 'not-run', reason: `ffprobe unavailable or could not read this file: ${(error as Error).message}` }]);
     }
     if (!facts.seconds || facts.seconds > 3600) return motionReport(facts, target, [{ id: 'decoded-analysis', status: 'not-run', reason: 'Decoding requires a known duration of at most one hour.' }]);
-    const args = ['-hide_banner', '-nostdin', ...(options.strict ? ['-xerror', '-err_detect', 'explode', '-abort_on', 'empty_output_stream'] : []), '-protocol_whitelist', 'file,pipe', '-i', path];
+    const args = ['-hide_banner', '-nostdin', '-nostats', ...(options.strict ? ['-xerror', '-err_detect', 'explode', '-abort_on', 'empty_output_stream'] : []), '-protocol_whitelist', 'file,pipe', '-i', path, ...FRAME_LOG_ARGS];
     if (facts.width) args.push('-vf', 'blackdetect=d=0.5:pix_th=0.03,freezedetect=n=-50dB:d=1');
     if (facts.audio) args.push('-af', `${options.strict ? 'ashowinfo,' : ''}ebur128=peak=true,silencedetect=n=-50dB:d=1`);
     args.push('-f', 'null', '-');
     try {
-      const { stderr } = await run(binaries.decode, args, { signal: options.signal, timeout: options.timeoutMs ?? 300_000, maxBuffer: 16 * 1024 * 1024 });
+      const { stderr: whole } = await run(binaries.decode, args, { signal: options.signal, timeout: options.timeoutMs ?? 300_000, maxBuffer: 16 * 1024 * 1024 });
+      // Every measure below is read from the filters' part of the log, never from the file's own text.
+      const stderr = afterInputSummary(whole);
       if (facts.audio) {
         facts.loudness = measurement(stderr, /Integrated loudness:\s+I:\s+([-\w.]+)/g);
         facts.truePeak = measurement(stderr, /True peak:\s+Peak:\s+([-\w.]+)/g);
       }
       if (options.strict && facts.audio) {
-        const audioFrames = [...stderr.matchAll(/\[Parsed_ashowinfo_[^\]]+\]\s+n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?rate:(\d+)\s+nb_samples:(\d+)/g)];
+        const audioFrames = [...stderr.matchAll(ASHOWINFO_FRAME)];
         let seconds = 0, timestampError = 0;
         const consistent = audioFrames.length > 0 && audioFrames.every((frame, index) => {
           const time = Number(frame[2]), rate = Number(frame[3]), count = Number(frame[4]);

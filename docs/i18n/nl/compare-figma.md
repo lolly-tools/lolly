@@ -2,26 +2,30 @@
 
 _Laatst gecontroleerd: 28 september 2026._
 
-Als je ontwerpers in Figma werken, zegt deze pagina hoe Lolly ernaast staat: wat Figma doet dat Lolly niet doet, en waar Lolly het herhaalwerk overneemt.
+Als je ontwerpers in Figma werken, vertelt deze pagina wat Figma doet dat Lolly niet doet en waar Lolly het herhaalwerk overneemt.
 
+<!--i:eti-award-->
 ## Wat Figma beter doet
 
-[Figma Design](https://www.figma.com/design/) brengt interfaceontwerp, componenten, interactieve prototypes en overdracht aan ontwikkelaars samen. De gevestigde praktijk en het ecosysteem van productontwerp tellen mee wanneer een team een hele applicatie moet ontwerpen en specificeren, en het live bewerken draait op een schaal die de werkcollabs van Lolly niet hebben bereikt.
+[Figma Design](https://www.figma.com/design/) combineert interfaceontwerp, componenten, interactieve prototypes en overdracht aan ontwikkelaars. De gevestigde praktijk en het ecosysteem voor productontwerp zijn van belang wanneer een team een hele toepassing ontwerpt en specificeert. Live bewerken draait er op een schaal die de werksamenwerkingen van Lolly nog niet hebben bereikt.
 
+<!--i:eti-blend-->
 ## Waar ze overlappen
 
-Met beide rangschik je tekst, vormen en afbeeldingen op een canvas en werk je met andere mensen. Figma dekt ook merkproductie op basis van sjablonen: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) maakt assets uit sjablonen en vult ze uit CSV- of XLSX-bestanden. Lolly's [Een ontwerp importeren](/info/design-import.html) opent Figma-bestanden als bewerkbare lay-outs, zodat de twee werk kunnen delen.
+Beide laten je typografie, vormen en afbeeldingen op een canvas rangschikken en met anderen samenwerken. Figma biedt ook merkproductie op basis van sjablonen: [Figma Buzz](https://help.figma.com/hc/en-us/articles/31271566667543-Guide-to-Figma-Buzz) maakt assets uit sjablonen en vult ze vanuit CSV- of XLSX-bestanden. Lolly's [Een ontwerp importeren](/info/design-import.html) opent Figma-bestanden als bewerkbare lay-outs, zodat de twee werk kunnen uitwisselen.
 
-## Hoe Lolly de overlappende klus doet
+<!--i:eti-lolly-->
+## Hoe Lolly het overlappende werk doet
 
-Lolly maakt van een ontwerp een [herbruikbare tool met regels](/info/create-a-tool.html). De tool draait in de browser of de CLI en neemt zijn inputs uit een link, een script of een batchraster, zodat één sjabloon past bij een persoon die één bestand bewerkt en een team dat er veel maakt.
+Lolly maakt van een ontwerp een [herbruikbare tool met regels](/info/create-a-tool.html). De tool draait in de browser of de CLI. Hij neemt invoer aan uit een link, een script of een batchraster. Eén sjabloon dient zowel iemand die één bestand bewerkt als een team dat er veel maakt.
 
-![Het open canvas van Design, met Import a design in het Lolly-menu van de werkbalk](/info/shots/design.svg)
+![Het open canvas van Lolly Design, met Import a design in het Lolly-menu van de toolbalk](/info/shots/design.svg)
 
-Een [privécollab](/info/collaborate.html) koppelt twee apparaten rechtstreeks, zonder account en zonder internet op een gedeeld netwerk. Zelfstandig Lolly rendert offline. Content Credentials staan standaard aan voor ondersteunde exports, en je kunt ze uitzetten.
+Een [privésamenwerking](/info/collaborate.html) koppelt twee apparaten rechtstreeks, zonder account en zonder dat internet nodig is op een gedeeld netwerk. Bij zelfstandig gebruik rendert Lolly offline. Content Credentials staan standaard aan voor ondersteunde exports en je kunt ze uitzetten.
 
+<!--i:eti-building-->
 ## Met een organisatie
 
-Lolly Work voegt geauthenticeerde werkcollabs toe met gedeelde bewerkingen, live cursors en opgeslagen teamsessies, plus single sign-on, gedeelde catalogi, projectrechten, goedkeuringen en serverrendering. [Wat waar draait](/info/compare.html#what-runs-where) zet de twee delen naast elkaar.
+Lolly Work voegt geauthenticeerde werksamenwerkingen toe met gedeelde bewerkingen, live cursors en opgeslagen teamsessies, plus single sign-on, gedeelde catalogi, projectrechten, goedkeuringen en renderen op de server. [Wat waar draait](/info/compare.html#what-runs-where) zet de twee delen naast elkaar.
 
-Figma is een handelsmerk van zijn eigenaar. Deze pagina beschrijft waar de twee producten overlappen en is niet verbonden aan Figma.
+Figma is een handelsmerk van zijn eigenaar. Deze pagina beschrijft waar de twee producten overlappen en heeft geen banden met Figma.

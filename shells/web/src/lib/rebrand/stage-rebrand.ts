@@ -170,7 +170,7 @@ export function themeTileInput(
     ? {
       census: input.census,
       source: input.source,
-      system: { colors: system.colors, master: system.master, ...(system.darkColors ? { darkColors: system.darkColors } : {}) },
+      system: { colors: system.colors, master: system.master, ...(system.darkColors ? { darkColors: system.darkColors } : {}), ...(system.themeAccents?.length ? { themeAccents: system.themeAccents } : {}) },
       ...(look ? { look } : {}),
       ...(locked ? { locked: true } : {}),
     }

@@ -351,13 +351,14 @@ test('chromeBrandCss appends attribute-gated high-contrast accents, per theme', 
   );
   assert.ok(css.includes('html[data-a11y-contrast="high"][data-theme="dark"] {'));
   assert.ok(css.includes('html[data-a11y-contrast="high"][data-theme="brand"] {'));
-  // Gated blocks carry the pair and, where the fill can be found, the ring -
-  // nothing else. The light accent already clears the bar, so its block states
-  // no pair: only the ring that follows the light accent.
+  // Gated blocks carry the pair, where the fill can be found the ring, and the
+  // accent for words - nothing else. The light accent already clears the bar,
+  // so its block states no pair: only the ring that follows the light accent
+  // and the accent for words.
   const decls = (theme: string): string[] => [...(hcBlocks(css).get(theme) ?? '').matchAll(/--([\w-]+):/g)].map(d => d[1]!);
-  assert.deepEqual(decls('light'), ['ring']);
-  assert.deepEqual(decls('dark'), ['primary', 'primary-foreground', 'ring']);
-  assert.deepEqual(decls('brand'), ['primary', 'primary-foreground', 'ring']);
+  assert.deepEqual(decls('light'), ['ring', 'primary-text']);
+  assert.deepEqual(decls('dark'), ['primary', 'primary-foreground', 'ring', 'primary-text']);
+  assert.deepEqual(decls('brand'), ['primary', 'primary-foreground', 'ring', 'primary-text']);
   // A brand whose light accent ALSO fails gets the "neither dark nor brand"
   // block - spelled that way so it cannot leak into the two themes that carry
   // their own (same reasoning as tokens.css's high-contrast blocks).
@@ -396,8 +397,9 @@ test('high contrast keeps a brand that already clears the bar in its own colour'
     assert.match(block, /--primary-foreground: 0 0% 0%;/, `${theme}: the ungated block's computed ink stands`);
   }
   // Light states no pair: tokens.css leaves the light accent alone. Its block
-  // holds only the ring that follows the starter's ink.
-  assert.doesNotMatch(starter.get('light') ?? '', /--primary/);
+  // holds only the ring that follows the starter's ink, and the ink as words.
+  assert.doesNotMatch(starter.get('light') ?? '', /--primary(?:-foreground)?:/);
+  assert.match(starter.get('light') ?? '', /--primary-text: 0 0% 11\.4%;/);
   assert.match(starter.get('light') ?? '', /--ring: 0 0% 11\.4%;/);
 
   // A chromatic brand that passes keeps its hue too, not just a neutral one.
@@ -455,11 +457,13 @@ test('the ungated chrome CSS is pinned, with computed accent inks', () => {
     '  --primary: 170.5 61.3% 12.2%;',
     '  --ring: 170.5 61.3% 12.2%;',
     '  --primary-foreground: 0 0% 100%;',
+    '  --primary-text: 170.5 61.3% 12.2%;',
     '}',
     '[data-theme="dark"] {',
     '  --primary: 151.3 59% 45.9%;',
     '  --ring: 151.3 59% 45.9%;',
     '  --primary-foreground: 0 0% 0%;',
+    '  --primary-text: 151.3 59% 45.9%;',
     '}',
     brandThemeCss('#0c322c', '#30ba78'),
     lollyMarkCss('#0c322c', '#30ba78'),
@@ -820,6 +824,8 @@ test("the blank brand's noir is byte-identical: the brand theme never reads Loll
   // Captured from origin/main before the tone moved to Opal (the theme at 05f7a9eff,
   // the chrome at 88ccf581c, which added #287's High contrast ring). The blank
   // starter (#1d1d1d light, #ffffff dark, chroma 0) keeps its rose-grey noir.
+  // Since the accent for words, each block also states --primary-text, which
+  // for the starter is its own ink and paper: both already read.
   const noirTheme = [
     "[data-theme=\"brand\"] {\n",
     "  color-scheme: dark;\n",
@@ -832,6 +838,7 @@ test("the blank brand's noir is byte-identical: the brand theme never reads Loll
     "  --popover-foreground: 0 6.2% 93.7%;\n",
     "  --primary: 0 0% 100%;\n",
     "  --primary-foreground: 0 0% 0%;\n",
+    "  --primary-text: 0 0% 100%;\n",
     "  --secondary: 342.9 5% 27.6%;\n",
     "  --secondary-foreground: 0 6.2% 93.7%;\n",
     "  --muted: 342.9 5.2% 26.5%;\n",
@@ -854,11 +861,13 @@ test("the blank brand's noir is byte-identical: the brand theme never reads Loll
     "  --primary: 0 0% 11.4%;\n",
     "  --ring: 0 0% 11.4%;\n",
     "  --primary-foreground: 0 0% 100%;\n",
+    "  --primary-text: 0 0% 11.4%;\n",
     "}\n",
     "[data-theme=\"dark\"] {\n",
     "  --primary: 0 0% 100%;\n",
     "  --ring: 0 0% 100%;\n",
     "  --primary-foreground: 0 0% 0%;\n",
+    "  --primary-text: 0 0% 100%;\n",
     "}\n",
     "[data-theme=\"brand\"] {\n",
     "  color-scheme: dark;\n",
@@ -871,6 +880,7 @@ test("the blank brand's noir is byte-identical: the brand theme never reads Loll
     "  --popover-foreground: 0 6.2% 93.7%;\n",
     "  --primary: 0 0% 100%;\n",
     "  --primary-foreground: 0 0% 0%;\n",
+    "  --primary-text: 0 0% 100%;\n",
     "  --secondary: 342.9 5% 27.6%;\n",
     "  --secondary-foreground: 0 6.2% 93.7%;\n",
     "  --muted: 342.9 5.2% 26.5%;\n",
@@ -889,16 +899,19 @@ test("the blank brand's noir is byte-identical: the brand theme never reads Loll
     "}\n",
     "html[data-a11y-contrast=\"high\"]:not([data-theme=\"dark\"]):not([data-theme=\"brand\"]) {\n",
     "  --ring: 0 0% 11.4%;\n",
+    "  --primary-text: 0 0% 11.4%;\n",
     "}\n",
     "html[data-a11y-contrast=\"high\"][data-theme=\"dark\"] {\n",
     "  --primary: 0 0% 100%;\n",
     "  --primary-foreground: 0 0% 0%;\n",
     "  --ring: 0 0% 100%;\n",
+    "  --primary-text: 0 0% 100%;\n",
     "}\n",
     "html[data-a11y-contrast=\"high\"][data-theme=\"brand\"] {\n",
     "  --primary: 0 0% 100%;\n",
     "  --primary-foreground: 0 0% 0%;\n",
     "  --ring: 0 0% 100%;\n",
+    "  --primary-text: 0 0% 100%;\n",
     "}",
   ].join('');
   assert.equal(brandThemeCss('#1d1d1d', '#ffffff'), noirTheme);
@@ -1205,4 +1218,103 @@ test('chromeTokens leaves a design system without colourways exactly as it was',
   await chromeTokens(surface)!.resolve('{color.semantic.primary}', { theme: 'dark' });
   assert.deepEqual(calls, [{ theme: 'dark' }], 'no selection is added when nothing declares a kind');
   assert.equal(chromeTokens(undefined), undefined);
+});
+
+// ── Accent text: the brand colour as words (--primary-text) ──────────────────
+
+const { accentText, accentTextSurfaces, accentTextGrounds, ACCENT_WASH_ALPHA, STATIC_PRIMARY, STATIC_HC_PRIMARY } = await import('./brand-vars.ts');
+
+/** The lowest WCAG 2 ratio (or APCA |Lc| with `high`) of `ink` on `grounds`. */
+function worst(ink: string, grounds: readonly string[], high = false): number {
+  return Math.min(...grounds.map((g) => (high ? apcaLcAbs(ink, g) : contrastRatio(ink, g))));
+}
+
+test('accentText keeps a primary that reads and walks one that does not, holding its hue', () => {
+  // SUSE Pine already reads on the light surfaces: words keep the fill.
+  assert.equal(accentText('#0c322c', accentTextSurfaces('light', '#0c322c')), '#0c322c');
+  // SUSE Jungle is a fill at 2.5:1 on white. As words it is walked darker,
+  // staying green, to the first lightness that reads on every ground.
+  const grounds = accentTextSurfaces('light', '#30ba78');
+  const words = accentText('#30ba78', grounds)!;
+  assert.ok(worst(words, grounds) >= 4.5, `${words} reads ${worst(words, grounds).toFixed(2)}:1`);
+  assert.ok(worst(words, grounds) < 4.7, 'the smallest move that reads, not a darker one');
+  // Held, up to the few degrees sRGB gamut mapping moves a darker green.
+  assert.ok(Math.abs(hexToOklch(words)!.h - hexToOklch('#30ba78')!.h) < 6, 'the hue is held');
+  // The grounds include the accent's own wash over each resting surface.
+  assert.equal(grounds.length, 4 + 1 + 4);
+  assert.equal(ACCENT_WASH_ALPHA, 0.18);
+  assert.equal(accentText('not-a-colour', grounds), null);
+  assert.equal(accentText('#30ba78', []), null);
+});
+
+test("tokens.css carries the accent for words accentText computes from each theme's own primary", () => {
+  for (const theme of ['light', 'dark', 'brand'] as const) {
+    const fill = hslTripleToHex(STATIC[theme]().get('primary')!)!;
+    assert.ok(near(fill, STATIC_PRIMARY[theme]), `STATIC_PRIMARY.${theme} is tokens.css's --primary`);
+    // The fill High contrast leaves in force: its own block's, else the base one.
+    const hcFill = hslTripleToHex(HIGH(theme).get('primary') ?? STATIC[theme]().get('primary')!)!;
+    assert.ok(near(hcFill, STATIC_HC_PRIMARY[theme]), `STATIC_HC_PRIMARY.${theme} is the fill tokens.css keeps under High contrast`);
+    for (const high of [false, true]) {
+      const block = high ? HIGH(theme) : STATIC[theme]();
+      const text = block.get('primary-text');
+      assert.ok(text, `${theme}${high ? ' high' : ''} declares --primary-text`);
+      // High contrast walks the theme's own primary against washes of the fill
+      // in force there (the lifted one in dark and brand).
+      const wash = high ? STATIC_HC_PRIMARY[theme] : STATIC_PRIMARY[theme];
+      const expected = accentText(STATIC_PRIMARY[theme], accentTextSurfaces(theme, wash, high), high);
+      assert.ok(near(hslTripleToHex(text!), expected), `${theme}${high ? ' high' : ''}: tokens.css ${text} vs accentText ${expected}`);
+    }
+  }
+});
+
+test('every --primary-text the chrome sheet emits reads on the surfaces of its theme, at every hue', () => {
+  for (let h = 0; h < 360; h += 30) {
+    for (const l of [0.45, 0.62, 0.78]) {
+      const lp = oklchToHex({ l, c: 0.15, h });
+      const dp = oklchToHex({ l: Math.max(l, 0.62), c: 0.15, h });
+      const css = chromeBrandCss({ primary: lp, onPrimary: null }, { primary: dp, onPrimary: null });
+      // The first block of each selector that states an accent for words (the
+      // light selector also opens the Lolly mark's block).
+      const text = (sel: string): string => hslTripleToHex(sheetBlocks(css).find(([s, d]) => s === sel && d.has('primary-text'))![1].get('primary-text')!)!;
+      const lightText = text(':root, [data-theme="light"]');
+      assert.ok(worst(lightText, accentTextSurfaces('light', lp)) >= 4.5 - 0.02, `light ${lp}: ${lightText}`);
+      const darkText = text('[data-theme="dark"]');
+      assert.ok(worst(darkText, accentTextSurfaces('dark', dp)) >= 4.5 - 0.02, `dark ${dp}: ${darkText}`);
+      const brandText = text('[data-theme="brand"]');
+      const built = brandSurfaceHexes(lp, ['background', 'card', 'popover', 'muted']);
+      const brandGrounds = accentTextGrounds(built, brandSurfaceHexes(lp, ['accent']), dp);
+      assert.ok(worst(brandText, brandGrounds) >= 4.5 - 0.02, `brand ${lp}/${dp}: ${brandText}`);
+      // High contrast: Lc 75 on that theme's High contrast surfaces and on a
+      // wash of the fill in force there (the block's repaired --primary, else
+      // the theme's own).
+      const hc = hcBlocks(css);
+      const hcDecl = (theme: string, name: string): string | undefined => declsOf(hc.get(theme)!).get(name);
+      const hcText = (theme: string): string => hslTripleToHex(hcDecl(theme, 'primary-text')!)!;
+      const hcFill = (theme: string, own: string): string => { const t = hcDecl(theme, 'primary'); return t ? hslTripleToHex(t)! : own; };
+      assert.ok(worst(hcText('light'), accentTextSurfaces('light', hcFill('light', lp), true), true) >= 75 - 0.2, `high light ${lp}`);
+      assert.ok(worst(hcText('dark'), accentTextSurfaces('dark', hcFill('dark', dp), true), true) >= 75 - 0.2, `high dark ${dp}`);
+      const hcBrandGrounds = accentTextGrounds(built, brandSurfaceHexes(lp, ['accent']), hcFill('brand', dp));
+      assert.ok(worst(hcText('brand'), hcBrandGrounds, true) >= 75 - 0.2, `high brand ${lp}/${dp}`);
+    }
+  }
+});
+
+test("a pack's chrome carries an accent for words that reads on the pack's own surfaces", async () => {
+  // lolly-start's newsprint room with SUSE's primaries, and the Opal fixture
+  // with its own: the pack surfaces are not Lolly's, so the walk uses them.
+  const cases = [
+    { chrome: newsprint(), light: { primary: '#30ba78', onPrimary: null }, dark: { primary: '#30ba78', onPrimary: null } },
+    await opal(),
+  ];
+  for (const { chrome, light, dark } of cases) {
+    const blocks = new Map(sheetBlocks(chromeBrandCss(light, dark, chrome)));
+    for (const theme of ['light', 'dark'] as const) {
+      const room = chrome[theme];
+      if (!room) continue;
+      const fill = (theme === 'light' ? light.primary : dark.primary) ?? STATIC_PRIMARY[theme];
+      const grounds = accentTextGrounds([room.page, room.raised, room.overlay, room.muted], [room.hover], fill);
+      const text = hslTripleToHex(blocks.get(CHROME_SEL[theme])!.get('primary-text')!)!;
+      assert.ok(worst(text, grounds) >= 4.5 - 0.02, `${theme}: ${text} reads ${worst(text, grounds).toFixed(2)}:1 on the pack's room`);
+    }
+  }
 });

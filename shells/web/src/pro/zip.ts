@@ -73,7 +73,7 @@ export interface ZipMeta {
 
 // Already-compressed payloads gain nothing from deflate and cost CPU, so store
 // them (level 0). Text-ish formats compress well, so deflate them (level 6).
-const STORE_EXT = new Set(['png', 'jpg', 'jpeg', 'webp', 'avif', 'gif', 'pdf', 'webm', 'mp4']);
+const STORE_EXT = new Set(['png', 'jpg', 'jpeg', 'webp', 'avif', 'gif', 'pdf', 'webm', 'mp4', 'm4a', 'mp3']);
 
 function extOf(name: string): string {
   const i = name.lastIndexOf('.');
@@ -91,6 +91,7 @@ const ICONS: Record<string, string> = {
   webm: '🎬',
   gif: '🎨',
   svg: '📐',
+  m4a: '🎵', wav: '🎵', mp3: '🎵',
 };
 // Some formats share an extension (pdf-cmyk ships as .pdf, eps-cmyk as .eps), so
 // the render format wins when it's known and distinctive.

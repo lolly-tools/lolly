@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `bedit.<module>.<fn>`. Extracted verbatim
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
+import { closeButtonHtml } from '../close-button.ts';
 import { RAMP_STEPS_MAX, RAMP_STEPS_MIN, SCHEME_KINDS, colorToHex, colorToHexString, deserializeCurve, generateAnalogous, generateSchemeAccents, parseColor as parseCssColor } from '@lolly/engine';
 import { nameColor } from '../color-namer.ts';
 import { palettePreviewSvgs } from '../palette-preview.ts';
@@ -284,10 +285,34 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
       <div class="be-split-scroll" data-be-split-scroll>
       <div class="be-panel be-palette">
         <div class="be-palette-heading"><h2>${t('Colours')}</h2><span class="be-save-state" data-be-save-state role="status" hidden></span></div>
+        ${/* What the system calls its colours and how Lolly reads each one (plans/352),
+              beside the In context preview so a change is seen as it is made. The
+              wing starts open on a system with words of its own. Roles are an
+              assignment layer over the swatches that already exist: a design system
+              of three loose colours and no roles is valid. */''}
+        <details class="be-wing be-roles" data-be-roles-fold>
+          <summary class="be-wing-head"><span class="be-wing-title">${t('Colour roles')}</span><span class="be-wing-sub">${t('What each colour is called and how Lolly reads each one')}</span></summary>
+          <div class="be-wing-body">
+            <div class="be-leads" data-be-leads></div>
+            <div data-be-role-table></div>
+            ${/* Under 1100px the preview is far down the page, so this button goes there. */''}
+            <button type="button" class="be-btn be-btn--sm be-roles-preview" data-be-roles-preview>${t('See this in context')}</button>
+            <details class="be-subst-details be-roles-all">
+              <summary><span class="be-subst-details-label">${t('Every colour a tool reads')}</span></summary>
+              <div class="be-roles-all-body">
+                <div class="be-leads-head">
+                  <span class="be-useas-label">${t('Showing')}</span>
+                  ${segHtml('lead-mode-strip', [{ id: 'light', label: t('Light') }, { id: 'dark', label: t('Dark') }], bedit.currentTheme === 'dark' ? 'dark' : 'light', t('Mode'), { attr: 'data-be-lead-mode' })}
+                </div>
+                <div data-be-roles></div>
+              </div>
+            </details>
+          </div>
+        </details>
         ${/* The first decision leads the room (plan 346 change 7): which colour
-              plays each role. One chip per role; the full strip, with every slot
-              and its contrast, stays in the Colour roles wing for experts. Export
-              lives in the bar and the Tokens room, so the head carries none. */''}
+              plays each role. One chip per role, shown while the wing above is shut:
+              open, the table says the same and more. Export lives in the bar and the
+              Tokens room, so the head carries none. */''}
         <div class="be-rolechips-mount" data-be-rolechips></div>
         ${/* Paste, sample or drop (plan 346 change 18): a visible field at the top
               of the room rather than a disclosure. Dashed, because it is a drop
@@ -315,7 +340,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
             </span>
             <button type="button" class="be-btn" data-be-added-primary>${t('Use as primary?')}</button>
             <button type="button" class="be-btn" data-be-added-tune>${t('Fine-tune')}</button>
-            <button type="button" class="be-suggest-dismiss" data-be-added-dismiss aria-label="${escapeText(t('Dismiss'))}">&#x2715;</button>
+            ${closeButtonHtml({ size: 'sm', className: 'be-suggest-dismiss', label: t('Dismiss'), attrs: { 'data-be-added-dismiss': true } })}
           </div>
         </section>
         <div class="be-logo-colours" data-be-logo-colours="color" hidden></div>
@@ -348,17 +373,13 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
       ${/* ── Level 0: the one control. Adding a colour writes exactly one token
              (plan 97 section 7.1) - nothing is derived, suggested-into, or demanded. */''}
       <section class="be-context" aria-label="${escapeText(t('Palette previews'))}">
-        <div class="be-context-head"><h2>${t('In context')}</h2><span data-be-preview-source>${t('Palette')}</span></div>
+        <div class="be-context-head"><h2>${t('In context')}</h2>
+          ${segHtml('lead-mode', [{ id: 'light', label: t('Light') }, { id: 'dark', label: t('Dark') }], bedit.currentTheme === 'dark' ? 'dark' : 'light', t('Mode'), { attr: 'data-be-lead-mode' })}
+          <span data-be-preview-source>${t('Palette')}</span>
+        </div>
         <div class="be-previews" data-be-previews></div>
         ${segHtml('preview-scene', [{ id: '0', label: t('Poster') }, { id: '1', label: t('Chart') }, { id: '2', label: t('UI card') }], '0', t('Preview scene'), { attr: 'data-scene', groupAttr: 'data-be-scenes' })}
       </section>
-
-      ${/* Roles are an assignment layer over the swatches that already exist -
-            a design system of three loose colours with no roles is valid. */''}
-      <details class="be-wing be-roles"><summary class="be-wing-head"><span class="be-wing-title">${t("Colour roles")}</span><span class="be-wing-sub">${t("Choose what tools use")}</span></summary><div class="be-wing-body">
-        <div class="be-leads" data-be-leads></div>
-        <div data-be-roles></div>
-      </div></details>
 
       ${/* ── Level 2: the expert wings. Folded by default, no persistence - the
              same discipline the palette's own sections keep. */''}
@@ -460,7 +481,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
               <span class="be-curve-title" data-be-curve-title></span>
               <div class="be-curve-head-actions">
                 <button type="button" class="be-btn be-btn--sm be-curve-rebuild" data-be-curve-rebuild>${t('Rebuild from colour')}</button>
-                <button type="button" class="be-curve-close" data-be-curve-close aria-label="${escapeText(t('Close the curve editor'))}" title="${escapeText(t('Close'))}">✕</button>
+                ${closeButtonHtml({ className: 'be-curve-close', label: t('Close the curve editor'), attrs: { 'data-be-curve-close': true, title: t('Close') } })}
               </div>
             </div>
             <p class="be-curve-hint">${t('Drag a point to reshape this ramp. Lightness, chroma and hue each have their own curve - switch with L / C / H. The shades below rebake live; the number of shades follows the slider above.')}</p>
@@ -590,7 +611,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
       <section class="be-panel be-typestage" data-be-typestage hidden aria-labelledby="be-typestage-title">
         <div class="be-typestage-head">
           <h3 class="be-typestage-title" id="be-typestage-title" data-be-typestage-title></h3>
-          <button type="button" class="be-typestage-x" data-be-typestage-close aria-label="${escapeText(t('Close without choosing'))}">${icon('close', { size: 14 })}</button>
+          ${closeButtonHtml({ size: 'sm', className: 'be-typestage-x', label: t('Close without choosing'), attrs: { 'data-be-typestage-close': true } })}
         </div>
         <form class="be-typestage-search" data-be-typestage-search>
           <label class="visually-hidden" for="be-typestage-q">${t('Font name')}</label>
@@ -685,7 +706,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
         <button type="button" class="be-bulkbar-btn" data-be-bulk-dup>${t('Duplicate')}</button>
         <button type="button" class="be-bulkbar-btn" data-be-bulk-copy>${t('Copy values')}</button>
         <button type="button" class="be-bulkbar-del" data-be-bulk-del>${t('Delete')}</button>
-        <button type="button" class="be-bulkbar-x" data-be-bulk-cancel aria-label="${escapeText(t('Cancel selection'))}">✕</button>
+        ${closeButtonHtml({ size: 'sm', inherit: true, className: 'be-bulkbar-x', label: t('Cancel selection'), attrs: { 'data-be-bulk-cancel': true } })}
       </div>
       <div class="be-editor" data-be-editor hidden>
         <div class="be-editor-card" role="dialog" aria-label="${escapeText(t('Edit swatch'))}">

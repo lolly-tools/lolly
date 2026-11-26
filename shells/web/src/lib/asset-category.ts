@@ -25,7 +25,7 @@ export interface LibGroup {
   /** Set on the groups audio belongs in; the rest are for pictures. `other` takes either. */
   audio?: true;
   /** Set on a group an asset belongs to by what it is: the group is never offered as a
-   *  place to move an asset, and an override never moves an asset into or out of the group. */
+   *  place to move an asset, and an override never moves an asset into the group. */
   fixed?: true;
 }
 
@@ -42,6 +42,11 @@ export const LIB_GROUPS: LibGroup[] = [
   { key: 'photos',        label: 'Photos' },
   { key: 'headshots',     label: 'Headshots' },
   { key: 'icons',         label: 'Icons' },
+  // Lolly's own icon set, a family with a name of its own, so it never reads as the
+  // Icons of a design system it sits beside. The rows and their ids stay as they are.
+  // The string scan reads only literals, so the title is written out as the view draws
+  // it: t('Lolly etiquette icons'). Until a translation run reaches it, t() shows the English.
+  { key: 'etiquette-icons', label: 'Lolly etiquette icons', fixed: true },
   { key: 'illustrations', label: 'Illustrations' },
   // A design system's written guidance: its brand skills (plan 323).
   { key: 'guidelines',    label: 'Guidelines' },
@@ -55,13 +60,13 @@ export const LIB_GROUPS: LibGroup[] = [
 
 // Audio is grouped by what it is FOR, the split an editor's sound panel uses. Tags
 // decide first; then the format, because a computed song (ZzFXM, a tracker module,
-// a MIDI import, a rondocode song) is music whatever it is tagged. Audio whose role
+// a MIDI import, a rondocode song, a saved station tune) is music whatever it is tagged. Audio whose role
 // nothing states (a plain recording, a sound pulled out of a video) is Other audio,
 // never guessed into Music.
 const VOICE_TAGS = ['voice', 'voiceover', 'tts', 'speech', 'narration', 'podcast', 'recording', 'dictation', 'interview'];
 const SFX_TAGS = ['sfx', 'sound-effect', 'sound-effects', 'effect', 'foley', 'ui-sound', 'whoosh'];
 const MUSIC_TAGS = ['music', 'song', 'loop', 'module', 'tracker', 'midi', 'rondocode', 'soundtrack', 'bed', 'jingle'];
-const MUSIC_FORMATS = new Set(['zzfxm', 'rondo', 'mid', 'midi', 'mod', 'xm', 'it', 's3m', 'stm', 'mtm']);
+const MUSIC_FORMATS = new Set(['zzfxm', 'rondo', 'lofi', 'mid', 'midi', 'mod', 'xm', 'it', 's3m', 'stm', 'mtm']);
 
 /** Whether an asset is audio: its type says so, or its tags do. */
 export function isAudioAsset(ref: AssetRef | undefined): boolean {
@@ -108,6 +113,7 @@ export function libCategory(ref: AssetRef | undefined, overrides?: Record<string
   if (t.has('headshot'))     return 'headshots';  // headshots collapse separately from photos
   if (t.has('illustration')) return 'illustrations';
   if (t.has('photo'))        return 'photos';
+  if (t.has('etiquette'))    return 'etiquette-icons';
   if (t.has('themable'))     return 'icons';
   // An upload carries no library tags, and a raster image is a photo far more often
   // than anything else; Recategorise moves the exceptions.

@@ -87,7 +87,7 @@ import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import {
   createRuntime, buildInputModel, expandQuery, hasEncryptedState,
-  isUnit, normalizeLang, parseDimension, parseToolUrl, parseUrlState, preflight,
+  isUnit, normalizeLang, parseDimension, parseSpots, parseToolUrl, parseUrlState, preflight,
   c2paDefaultOn, imprintDefaultOn, isImprintFormat,
   computeCost, parseRateCard, isRateCardError, validateRateCard,
 } from '@lolly/engine';
@@ -100,11 +100,12 @@ import type { MoneyContext, SerializedCost, SerializedWorkingRow } from '@lolly-
 import { matchedExportFormat } from '@lolly-tools/node-shell/raster';
 import { cleanControlChars } from '@lolly-tools/node-shell/verdict-report';
 import {
-  decryptLinkQuery, explicitInputValues, formatFromOutput, loadToolOrThrow,
+  decryptLinkQuery, designSystemForRun, explicitInputValues, formatFromOutput, loadToolOrThrow,
   quietVirtualConsole, readProfile, readToolFile, resolveJpegSynonym, shadowedInputs,
   unknownFlags,
 } from './run.ts';
 import { createCliBridge } from './bridge.ts';
+import { settleThemeChoices } from './token-axes-report.ts';
 import { isOn } from './args.ts';
 import { useColor } from './output.ts';
 import { EXIT } from './exit-codes.ts';
@@ -248,6 +249,12 @@ async function run(rest: string[], flags: Record<string, string>): Promise<numbe
     toolId = ref.toolId;
   }
   for (const f of OWN_FLAGS) delete params[f];
+  // `--file=<tokens.json>`: the design system a Design export separates with, read the way
+  // `lolly run design --file` reads it (designSystemForRun), so the plates and ink this
+  // reports come from that system's palette. Off the RAW `flags`, like `--rate-card`: a
+  // file on this computer is the person's own choice, and a pasted link cannot pick one.
+  const fileFlag = flags.file;
+  delete params.file;
 
   // jsdom: `createRuntime` runs the tool's `onInit`, which may touch `document`.
   // Nothing is rendered into it - this is the same setup the `--share` path uses.
@@ -261,7 +268,7 @@ async function run(rest: string[], flags: Record<string, string>): Promise<numbe
 
   const tool = await loadToolOrThrow(toolId, readToolFile, { lang: normalizeLang(params.lang) ?? undefined });
   const profile = await readProfile(params['user-profile']);
-  const host = await createCliBridge({ dom, profile, networkAllowlist: tool.manifest.network?.allowlist });
+  const { runDesignSystem } = await designSystemForRun(tool.manifest.id, fileFlag, undefined);
 
   // Collector-side caveats. They go BOTH to stderr (so an interactive reader sees
   // them beside the report) and into the artifact as `info` findings, because
@@ -289,6 +296,12 @@ async function run(rest: string[], flags: Record<string, string>): Promise<numbe
     });
   }
 
+  // `--spots` takes one value, as it does on a render, so a typo is not preflighted as "off".
+  if (params.spots !== undefined && parseSpots(String(params.spots)) === null) {
+    throw new UsageError(`--spots takes one value: --spots=process prints every spot ink in process. "${clean(String(params.spots))}" is not that value.`);
+  }
+  const spotsFlag = parseSpots(params.spots === undefined ? null : String(params.spots)) === 'process';
+
   const unknown = unknownFlags(params, tool.manifest);
   if (unknown.length) {
     const list = unknown.map(k => `--${k}`).join(', ');
@@ -314,6 +327,13 @@ async function run(rest: string[], flags: Record<string, string>): Promise<numbe
   const query = await expandQuery(rawQuery);
   const state = parseUrlState(query, tool.manifest);
   const { values, width, height, unit, dpi, password, c2pa, bleed, imprint, durable, cuts, hdr } = state;
+  // Built after the query is parsed, as `lolly run` builds it, so the bridge reads the
+  // link's `_themes` choice: the palette counted below is the one the export separates.
+  const host = await createCliBridge({
+    dom, profile, networkAllowlist: tool.manifest.network?.allowlist,
+    tokenSelection: state.tokenSelection,
+    ...(runDesignSystem ? { tokensDocument: runDesignSystem } : {}),
+  });
   // `--input.<id>=<value>` - the explicit input namespace (contract B7), applied here
   // exactly as `runToolCli` applies it, and for the same reason: preflighting a job the
   // render would not produce is worse than not preflighting at all. It is the permanent,
@@ -331,7 +351,10 @@ async function run(rest: string[], flags: Record<string, string>): Promise<numbe
   let modelPhase: 'declared' | 'post-init' = 'post-init';
   let runtimeModel: Array<{ id: string; value: unknown }> = [];
   try {
-    const runtime = await createRuntime(tool, host, values);
+    const runtime = await createRuntime(tool, host, values, { tokenSelection: state.tokenSelection });
+    // A choice the tool's `tokenAxes` ignores is said, and the bridge follows the runtime's
+    // selection, exactly as on a render.
+    settleThemeChoices(host, runtime, state.tokenSelection, tool.manifest.name);
     runtimeModel = runtime.getModel() as Array<{ id: string; value: unknown }>;
     model = runtime.getModel() as unknown as readonly PreflightInput[];
   } catch (e) {
@@ -391,6 +414,8 @@ async function run(rest: string[], flags: Record<string, string>): Promise<numbe
       durable,
       hdr: Boolean(hdr),
       ...(flags.output ? { filename: flags.output } : {}),
+      // `--spots=process` or a link's `_spots=process`, read the way the render reads the flag.
+      ...(spotsFlag || state.spots === 'process' ? { spotsAsProcess: true } : {}),
     },
     palette,
     // The CLI has no mounted artwork. Saying so is a NAMED GAP in the report, not

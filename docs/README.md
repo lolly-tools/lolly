@@ -47,6 +47,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Colourways | [colourways.md](colourways.md) |
 | Working with partners | [partners.md](partners.md) |
 | Lolly 3D Studio | [3d-studio.md](3d-studio.md) |
+| Lolly Chart | [chart.md](chart.md) |
 | Find and recover your work | [find-your-work.md](find-your-work.md) |
 | Sync your devices | [sync.md](sync.md) |
 | Lolly Search | [search.md](search.md) |
@@ -59,6 +60,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Lolly Darkroom | [darkroom.md](darkroom.md) |
 | Rebrand a deck | [rebrand.md](rebrand.md) |
 | Formats | [formats.md](formats.md) |
+| Fallback fonts | [fallback-fonts.md](fallback-fonts.md) |
 | Text in Lolly Design | [text-composition.md](text-composition.md) |
 | Wide colour and HDR editing | [hdr-editing.md](hdr-editing.md) |
 | The sequence editor | [sequence-editor.md](sequence-editor.md) |
@@ -67,6 +69,9 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Agenda screens and programmes | [agenda.md](agenda.md) |
 | Animating: keyframes, depth and a camera | [animating.md](animating.md) |
 | Lolly Rondocode songs | [rondocode.md](rondocode.md) |
+| Free background music generator | [background-music.md](background-music.md) |
+| Music generator | [music-generator.md](music-generator.md) |
+| Generated music | [generated-music.md](generated-music.md) |
 | Working together | [collaborate.md](collaborate.md) |
 | Shared project assets | [project-asset-transfers.md](project-asset-transfers.md) |
 | Utilities | [utilities.md](utilities.md) |
@@ -162,6 +167,14 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Sign-in and sessions | [work/identity.md](work/identity.md) |
 | Account data controls | [work/account-lifecycle.md](work/account-lifecycle.md) |
 | Invite people and handle requests | [work/invitations.md](work/invitations.md) |
+| Run a partner programme | [work/run-a-partner-programme.md](work/run-a-partner-programme.md) |
+| Co-branding and partner kits | [work/partner-co-branding.md](work/partner-co-branding.md) |
+| Partner templates | [work/partner-templates.md](work/partner-templates.md) |
+| Partner approvals | [work/partner-approvals.md](work/partner-approvals.md) |
+| Shared assets and licences | [work/partner-shared-assets.md](work/partner-shared-assets.md) |
+| Partners' agents | [work/partner-agents.md](work/partner-agents.md) |
+| People and the partnership | [work/partner-people.md](work/partner-people.md) |
+| Partner programmes | [work/partner-programmes.md](work/partner-programmes.md) |
 | Design-system administration | [work/design-system-administration.md](work/design-system-administration.md) |
 | Roles and grants | [work/permissions.md](work/permissions.md) |
 | Policy and governance | [work/governance.md](work/governance.md) |
@@ -198,40 +211,42 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 
 | Guide | Source |
 | --- | --- |
-| Read verified catalog resources | [catalog-resource-reading.md](catalog-resource-reading.md) |
-| Configure connector origins | [connector-origins.md](connector-origins.md) |
-| Choose a deployment | [deployment.md](deployment.md) |
-| Run on Kubernetes | [build-kubernetes.md](build-kubernetes.md) |
-| Delivery deployment | [deploy-delivery.md](deploy-delivery.md) |
-| Sovereign creative production | [sovereign-production.md](sovereign-production.md) |
 | Deploy | [operate.md](operate.md) |
+| Run on Kubernetes | [build-kubernetes.md](build-kubernetes.md) |
+| Install on Kubernetes | [work/platform-deployment.md](work/platform-deployment.md) |
+| Choose a deployment | [deployment.md](deployment.md) |
+| Sovereign creative production | [sovereign-production.md](sovereign-production.md) |
 | Run Lolly Work | [work/self-host.md](work/self-host.md) |
-| Release 1.1.3 | [work/release-1-1-3.md](work/release-1-1-3.md) |
-| Release 1.1.2 | [work/release-1-1-2.md](work/release-1-1-2.md) |
-| Past releases | [work/past-releases.md](work/past-releases.md) |
 | Lolly Work architecture | [work/overview.md](work/overview.md) |
 | Install Lolly Work | [work/install.md](work/install.md) |
 | Install the ready-made package | [work/ready-made-package.md](work/ready-made-package.md) |
-| Install on Kubernetes | [work/platform-deployment.md](work/platform-deployment.md) |
 | Official installation routes | [work/official-installations.md](work/official-installations.md) |
-| Set up enterprise identity | [work/enterprise-identity.md](work/enterprise-identity.md) |
-| Sign-in provider recipes | [work/identity-providers.md](work/identity-providers.md) |
-| Configure your first Lolly Work instance | [work/customer-setup.md](work/customer-setup.md) |
 | How a Lolly Work deployment fits together | [work/deployment.md](work/deployment.md) |
 | Run Lolly Work on UpCloud or Evroc | [work/cloud-deployment.md](work/cloud-deployment.md) |
 | Put a CDN in front of Lolly Work | [work/edge-cdn.md](work/edge-cdn.md) |
 | Run Lolly Work on AWS or MulgaDC Spinifex | [work/aws-compatible.md](work/aws-compatible.md) |
 | WebAssembly and Kubewarden choices | [work/wasm-deployment.md](work/wasm-deployment.md) |
+| How Lolly uses Kubewarden | [work/kubewarden.md](work/kubewarden.md) |
 | Admission policy with Kubewarden | [work/admission-policy.md](work/admission-policy.md) |
+| Configure connector origins | [connector-origins.md](connector-origins.md) |
+| Set up enterprise identity | [work/enterprise-identity.md](work/enterprise-identity.md) |
+| Sign-in provider recipes | [work/identity-providers.md](work/identity-providers.md) |
+| Configure your first Lolly Work instance | [work/customer-setup.md](work/customer-setup.md) |
 | Lolly Work instance configuration | [work/configuration.md](work/configuration.md) |
 | Configure Lolly Work export signing | [work/c2pa.md](work/c2pa.md) |
 | Keep Lolly Work running | [work/operations.md](work/operations.md) |
 | Metrics and alerts | [work/metrics.md](work/metrics.md) |
-| Build a verified instance pack | [work/instance-pack-production.md](work/instance-pack-production.md) |
 | Check a deployment before production | [work/production-readiness.md](work/production-readiness.md) |
-| Shell deployment workflow | [work/shell-deployment-workflow.md](work/shell-deployment-workflow.md) |
 | Telemetry and dashboards | [work/telemetry.md](work/telemetry.md) |
 | Audit log | [work/audit.md](work/audit.md) |
+| Read verified catalog resources | [catalog-resource-reading.md](catalog-resource-reading.md) |
+| Delivery deployment | [deploy-delivery.md](deploy-delivery.md) |
+| Release 1.2.0 | [work/release-1-2-0.md](work/release-1-2-0.md) |
+| Release 1.1.3 | [work/release-1-1-3.md](work/release-1-1-3.md) |
+| Release 1.1.2 | [work/release-1-1-2.md](work/release-1-1-2.md) |
+| Past releases | [work/past-releases.md](work/past-releases.md) |
+| Build a verified instance pack | [work/instance-pack-production.md](work/instance-pack-production.md) |
+| Shell deployment workflow | [work/shell-deployment-workflow.md](work/shell-deployment-workflow.md) |
 
 ## Trust
 
@@ -254,6 +269,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Verify It Yourself | [verify-yourself.md](verify-yourself.md) |
 | Privacy Policy | [privacy.md](privacy.md) |
 | Inclusive Design | [inclusive-design.md](inclusive-design.md) |
+| Lolly without AI | [without-ai.md](without-ai.md) |
 | Our AI Stance | [ai-stance.md](ai-stance.md) |
 | Generated once, rendered the same | [ai-features.md](ai-features.md) |
 | AI marking and the EU AI Act | [eu-ai-act.md](eu-ai-act.md) |

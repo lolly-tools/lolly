@@ -1,86 +1,97 @@
 # Comment Lolly se compare
 
-Lolly est deux parties d'un même projet open source. **Lolly** est le moteur, les applications et les outils pour créer, modifier, convertir et exporter sur ton appareil, sans compte. **Lolly Work** est le serveur d'organisation, exploité sur ta propre infrastructure, pour la connexion, les projets partagés, les approbations et le rendu serveur. Les deux sont sous MPL-2.0. Cette page compare la paire aux autres façons de concevoir, d'encadrer et de produire des fichiers.
+Lolly crée des fichiers conformes à la marque sur ton propre appareil, sans compte. **Lolly Work** est le serveur pour les équipes : authentification, projets partagés, approbations et rendu serveur, sur des machines exploitées par ton organisation. Les deux sont open source sous MPL-2.0.
 
+La plupart des équipes gardent les outils qu'elles ont. Une application de design fournit les designs, un DAM reste la source de référence, et Lolly transforme les entrées approuvées en fichiers terminés. [Utiliser Lolly avec ton DAM existant](/info/use-with-dam.html) décrit cette combinaison. L'idée derrière cette combinaison est la [souveraineté du contenu](/info/content-sovereignty.html).
+
+<!--i:eti-gauge-->
 ## Les outils d'aujourd'hui
 
-Chaque anneau note à quel point une classe de produit offre complètement une capacité, chaque classe étant notée sur son meilleur représentant. La colonne Lolly couvre Lolly et Lolly Work ensemble, et chaque ligne dit quelle partie fournit quoi. Ouvre le nom d'une ligne pour le raisonnement derrière sa note. Les colonnes sont triées par la ligne Overall completeness en haut : la moyenne des lignes notées, la ligne de dépense exclue.
+Chaque anneau montre dans quelle mesure une catégorie de produits répond à un besoin. Appuie sur un **?** à côté d'une ligne pour voir les éléments qui étayent le score, et sur le **?** à côté de la légende pour comprendre le calcul des scores.
 
 ::: figure positioning-comparison
-Comparaison des capacités : recherche sur les concurrents et notes d'août 2026 ; couverture de Lolly + Lolly Work relue le 28 septembre 2026. Notation : 0 absent, 25 contournement, 50 réel mais restreint ou partiel, 75 solide avec réserves, 100 compétence centrale.
+Comparaison des capacités. Étude des concurrents à partir des documents des éditeurs, d'août au 21 novembre 2026. Lolly et Lolly Work évalués le 21 novembre 2026. Barème : 0 absent, 25 contournement, 50 réel mais à accès restreint ou partiel, 75 solide avec réserves, 100 compétence centrale.
 :::
 
-::: details Notes sur la notation
-Les fonctions disponibles et la maturité de production sont deux choses distinctes. Lolly est publié : la version 1.0 est sortie en open source le 30 août 2026, sa sécurité n'a pas encore fait l'objet d'un audit indépendant et ses preuves d'adoption ont quelques mois ([Adoption & Governance](/info/adoption-governance.html#status) donne l'état actuel). Disposer de l'authentification unique, des approbations ou du rendu serveur n'établit pas un historique en production, et la note de maturité en tient compte. Les notes des concurrents gardent leur revue datée d'août.
-
-Une règle gouverne le tableau. La note maximale (100), sur les lignes qui touchent ton contenu ou ton identité, exige une capacité utilisable sans compte et sans précondition cloud ; les lignes sur le produit lui-même, comme la maturité et la facilité d'usage, en sont exemptées. Cette règle coûte à Adobe sur les Content Credentials : l'implémentation livrée la plus large (Photoshop, Lightroom, Premiere, Firefly) signe en local et dans le cloud, mais jamais sans compte et identité Adobe, donc 75. Elle plafonne les API de rendu sur la génération en masse et l'automatisation pour la même raison.
-
-Canva est noté sur son meilleur membre de la famille pour chaque ligne, puisqu'il possède Affinity et Cavalry (tous deux offerts en octobre 2025). Le rendu hors ligne et sur l'appareil reçoit 75 grâce à Affinity, une suite de bureau qui exige encore un compte vérifié et porte de la télémétrie, la déduction qu'Adobe subit aussi ; le mode hors ligne propre de Canva ne modifie que des designs déjà synchronisés, sur un appareil, pour une durée limitée. Autofill reçoit 50 : il est réel mais réservé à Enterprise et asynchrone, et il ne remplit que du texte et des images. La génération en masse de Figma est passée de 25 à 50 quand Buzz a livré le remplissage par tableur (une bêta gratuite, août 2026).
-
-La note de 75 de Lolly sur les Content Credentials couvre la signature sur l'appareil et la signature serveur de Lolly Work avec une identité d'organisation configurée ; un vérificateur doit quand même faire confiance au signataire ([Content Credentials Identity](/info/content-credentials-identity.html)). Le 50 de Penpot vient du plugin d'export propre de Lolly pour Penpot : la même signature du moteur, facultative et déclarée comme celle de Lolly. Penpot reçoit 90 sur le rendu sur l'appareil : un canevas de navigateur avec une cible d'enregistrement sur son serveur, qui peut être auto-hébergé. Cloudinary a sa propre colonne pour sa bibliothèque de ressources, son API de transformation et son CDN ; la revue d'août a noté sa signature de livraison à 50.
-
-La collaboration en direct de Lolly comprend des collabs privées directes entre deux appareils et des collabs de travail authentifiées via Lolly Work, avec modifications partagées, curseurs et sessions d'équipe enregistrées. La note Partial reflète le déploiement de travail actuel à nœud unique et son court historique d'exploitation, pas une absence d'édition en équipe. Les estimations de prix sont de l'arithmétique datée sur prix catalogue pour donner une échelle, pas un achat.
+::: details Sources des scores qui ont changé en novembre 2026
+- Canva : [journal des modifications de l'API](https://www.canva.dev/docs/apps/rest-apis/changelog/), [applications de service](https://www.canva.dev/blog/developers/canva-service-accounts/), [aide de Brand Controls](https://www.canva.com/help/brand-control/)
+- Adobe : [journal des modifications de l'API InDesign](https://developer.adobe.com/firefly-services/docs/indesign-apis/getting-started/changelog/), [tarifs d'Adobe Express](https://www.adobe.com/express/pricing)
+- Figma : [crédits d'agents et d'IA](https://help.figma.com/hc/en-us/articles/42614902212887), [serveur MCP](https://developers.figma.com/docs/figma-mcp-server/)
+- Frontify et Bynder : [note de version Frontify d'octobre 2026](https://news.frontify.com/163371-what-s-new-in-october-2026), [Frontify MCP](https://help.frontify.com/en/articles/14787214-frontify-mcp-beta)
+- Bannerbear et Placid : [tarifs de Bannerbear](https://www.bannerbear.com/pricing/), [journal des modifications de Bannerbear](https://www.bannerbear.com/changelog/), [tarifs de Placid](https://placid.app/pricing)
+- Penpot : [tarifs de l'auto-hébergement](https://penpot.app/pricing/self-host), [versions](https://github.com/penpot/penpot/releases)
+- Cloudinary : [provenance du contenu](https://cloudinary.com/documentation/content_provenance_and_authenticity), [tarifs](https://cloudinary.com/pricing)
 :::
 
+Les fonctionnalités et l'expérience acquise figurent sur des lignes distinctes. La première version publique de Lolly était la 1.0.1, le 30 août 2026, sa sécurité n'a pas encore fait l'objet d'un audit indépendant et les preuves de son adoption datent de quelques mois. [Adoption & gouvernance](/info/adoption-governance.html#status) présente l'état actuel.
+
+<!--i:eti-hammer-->
 ## Quand choisir Lolly
 
 ::: cols
 ## Choisis Lolly quand
 
-- Le même type de fichier est nécessaire encore et encore : tuiles d'événements, badges, certificats, alertes, cartes sociales
-- Beaucoup de fichiers viennent d'un seul modèle et d'un tableau de valeurs, dans [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) ou la CLI
-- Les couleurs, la typographie et les ressources doivent rester dans le design system, même sur un canevas ouvert
-- Un design Figma, Penpot, Illustrator, InDesign ou PDF terminé doit devenir modifiable et répétable ([Import a design](/info/design-import.html))
+- Le même type de fichier est nécessaire encore et encore : visuels d'événement, badges, certificats, alertes, cartes pour les réseaux sociaux
+- De nombreux fichiers sont produits à partir d'un modèle et d'un tableau de valeurs, dans [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) ou la CLI
+- Les couleurs, la typographie et les ressources doivent rester dans le design system, même sur un canevas libre
+- Un design terminé dans Figma, Penpot, Illustrator, InDesign, Affinity ou en PDF doit devenir modifiable et reproductible ([Importer un design](/info/design-import.html))
 - Les fichiers doivent être créés sur tes propres appareils ou serveurs
 
 ## Choisis autre chose quand
 
-- Le travail est de la retouche photo détaillée ou de l'illustration
-- Tu conçois et prototypes l'interface d'une application
-- Tu as besoin d'une grande bibliothèque d'images et de modèles prête dès le premier jour
-- Tu as besoin d'un service géré avec un long historique à grande échelle
+- Le travail consiste en de la retouche photo détaillée ou de l'illustration
+- Tu conçois et prototypes une interface d'application
+- Tu as besoin d'une vaste bibliothèque d'images et de modèles prête dès le premier jour
+- Tu as besoin d'un service géré qui a fait ses preuves à grande échelle depuis longtemps
 :::
 
-Les designs importés et les design tokens partagés permettent à une équipe de combiner Lolly avec des applications spécialisées, tandis que Lolly Work encadre les ressources partagées, la revue et la livraison.
+Les designs importés et les design tokens partagés permettent à une équipe de combiner Lolly avec des applications spécialisées, tandis que Lolly Work encadre les ressources partagées, la révision et la livraison.
 
-Un deck de diapositives entier montre le plafond : dans **Markdown Slides**, un deck est déclaré sous forme de données, mis en page en direct et exporté sous forme de fichier PowerPoint natif et modifiable.
+Pour les équipes disposant d'un DAM soigneusement organisé, commence par conserver cette bibliothèque et ses administrateurs. [L'expérience de SUSE avec Brandfolder](/info/suse-brandfolder.html) relate comment l'intégration a soutenu l'adoption et la gestion du changement des processus d'approbation. Les éditeurs de DAM et les partenaires d'intégration peuvent évaluer la même organisation via [le flux de travail partenaire](/info/dam-partners.html).
 
-![Markdown Slides en vue partagée : les diapositives du deck listées comme blocs à gauche, le deck mis en page à droite](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Dans **Lolly Markdown Slides**, un deck entier est écrit sous forme de données, mis en page en direct et exporté en fichier PowerPoint natif et modifiable.
 
-## Les règles vivent dans l'outil
+![Lolly Markdown Slides dans la vue divisée : les diapositives du deck listées sous forme de blocs à gauche, le rendu du deck mis en page à droite](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
-Lolly place les règles de marque réutilisables dans l'outil : couleurs, polices, marges de fond perdu, espacements et entrées autorisées. Le modèle fixe les parties qu'un destinataire ne doit pas changer. Lolly Work ajoute autour de ce modèle l'accès par groupe et les politiques d'entrées, avec des chaînes d'approbation pour les soumissions au catalogue et la livraison.
+<!--i:eti-shield-check-->
+## Les règles sont dans l'outil
 
-Vérifier un outil une fois facilite la production répétable, car chaque sortie hérite de ses règles de mise en page. Les textes, les images importées et les droits d'usage peuvent quand même demander des vérifications, et Lolly Work fournit des catalogues partagés et des étapes d'approbation pour cela. Pour l'équipe créative, l'outil est un garde-fou : tu apportes toujours les données, le texte et l'image, et l'outil garde chaque résultat aux couleurs de la marque.
+Lolly place les règles de marque réutilisables dans l'outil : couleurs, polices, marges de fond perdu, espacement et entrées autorisées. Le modèle fixe les parties qu'un destinataire ne doit pas changer. Lolly Work ajoute des politiques d'accès par groupe et de saisie autour de ce modèle, avec des chaînes d'approbation pour les soumissions au catalogue et la livraison.
 
-![Tout le travail de celui qui produit : saisir les mots. La typographie, la couleur et les espacements ont été fixés quand l'outil a été créé](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+Vérifier un outil une fois facilite la production reproductible, car chaque sortie hérite de ses règles de mise en page. Le texte, les images importées et les droits d'utilisation peuvent encore demander une vérification, et Lolly Work fournit des catalogues partagés et des étapes d'approbation pour cela. Pour l'équipe créative, l'outil est un garde-fou : tu apportes toujours les données, le texte et l'image, et l'outil garde chaque résultat conforme à la marque.
 
-Trois autres choses distinguent cette approche :
+![Tout le travail de la personne qui produit : saisir les mots. La typographie, la couleur et l'espacement ont été fixés lors de la création de l'outil](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
-- **Le fichier final, à partir d'entrées.** Des entrées en entrée, un fichier terminé en sortie, sans « maintenant enregistre-le depuis ton outil de design et retouche-le ».
-- **Les outils composent des outils.** Un outil peut incorporer le rendu d'un autre outil dans un seul fichier terminé, sans couplage de code entre eux.
-- **Ouvert jusqu'au bout.** Le moteur est open source, et les outils, les ressources et les design tokens sont des fichiers que tu peux garder sous contrôle de version ou gérer dans Lolly Work, pas des lignes dans la base de données de quelqu'un d'autre.
+Trois autres différences :
 
-Un design audacieux survit aux garde-fous. Cette carte de ville de qualité affiche est faite de vrais tracés vectoriels de routes et d'eau, à partir d'une liste déroulante et de deux champs de couleur qui ne peuvent pas être dirigés hors du design system :
+- **Le fichier final, à partir des entrées.** Des entrées au départ, un fichier terminé à l'arrivée, sans « maintenant, enregistre-le depuis ton outil de design et retouche-le ».
+- **Les outils composent avec d'autres outils.** Un outil peut incorporer le rendu d'un autre outil dans un seul fichier terminé, sans couplage de code entre eux.
+- **Open source.** Le moteur est open source, et les outils, ressources et design tokens sont des fichiers que tu peux conserver sous gestion de versions ou gérer dans Lolly Work, pas des lignes dans la base de données de quelqu'un d'autre.
 
-![Les anneaux de canaux et le réseau routier d'Amsterdam dessinés de bord à bord dans l'encre propre du design system, chaque trait placé par le modèle plutôt qu'à la main](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
+Un design audacieux reste possible avec des garde-fous. Cette carte urbaine de qualité affiche est faite de véritables tracés vectoriels de routes et de voies d'eau, à partir d'une liste déroulante et de deux champs de couleur qui ne peuvent pas sortir du design system :
 
+![Les anneaux de canaux et le réseau routier d'Amsterdam dessinés bord à bord avec l'encre propre au design system, chaque trait placé par le modèle plutôt qu'à la main](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
+
+<!--i:eti-stamp-->
 ## Innover de façon probabiliste, passer à l'échelle de façon déterministe
 
-La plupart des discours sur la « création par IA » placent le modèle du mauvais côté d'une vieille frontière. Les scribes et les enlumineurs ont fixé où elle passe. Tu travailles librement sur l'esquisse, où tout peut être essayé et rien n'est engagé. Puis tu vas à la presse d'imprimerie, qui engage. L'art était dans les esquisses, et la presse était le moyen de le faire voyager, et l'œuvre imprimée pouvait être crue parce que la presse tenait sa promesse à chaque tirage.
+La plupart des discours sur la « création par IA » placent le modèle du mauvais côté d'une frontière ancienne. Les scribes et les enlumineurs en ont fixé le tracé. Tu travailles librement sur l'esquisse, où tout peut être essayé et rien n'est définitif. Puis tu passes à la presse à imprimer, qui fixe le résultat. L'art se trouvait dans les esquisses, et la presse permettait de le diffuser, et l'œuvre imprimée était digne de confiance parce que la presse tenait sa promesse à chaque tirage.
 
-Lolly est la presse. Apporte ce que tu veux aux idées, un modèle, un designer ou un dessin au crayon, mais dès qu'une idée doit devenir beaucoup de fichiers, elle passe par quelque chose qui rend de la même façon à chaque fois, à partir d'entrées que n'importe qui peut relire. La comparaison ci-dessus porte en réalité sur qui rend cette étape engagée répétable.
+Lolly est la presse. Apporte ce que tu veux aux idées, un modèle, un designer ou un croquis, mais dès qu'une idée doit devenir de nombreux fichiers, elle passe par un système qui produit le même rendu à chaque fois, à partir d'entrées que chacun peut relire. La comparaison ci-dessus porte en réalité sur qui rend cette étape définitive reproductible.
 
 > Fais confiance au processus créatif, passe à l'échelle avec rigueur.
 
+<!--i:eti-tag-->
 ## Gratuit pour toujours
 
-**Si cela se rend sur ton appareil, c'est gratuit pour toujours.** Le moteur, les shells, les outils et les formats sont open source, et une version publiée ne peut pas être reprise. Lolly Work est open source aussi. Une organisation paie l'infrastructure et l'exploitation qu'elle choisit, sans frais de licence logicielle par poste ni par rendu pour l'auto-hébergement. [Questions & answers](/info/faq.html) raconte l'histoire derrière cette promesse.
+**Si le rendu se fait sur ton appareil, c'est gratuit pour toujours.** Le moteur, les interfaces hôtes, les outils et les formats sont open source, et une version publiée ne peut pas être reprise. Lolly Work est aussi open source. Une organisation paie l'infrastructure et l'exploitation qu'elle choisit, sans frais de licence logicielle par utilisateur ou par rendu en auto-hébergement. [Questions & réponses](/info/faq.html) raconte l'histoire derrière cette promesse.
 
-## Où vit ton contenu
+<!--i:eti-map-pin-->
+## Où réside ton contenu
 
-Le travail créatif de Lolly peut tourner sur du matériel que tu possèdes, et ses design tokens, polices, logos et outils sont des fichiers que tu peux garder. Avec Lolly Work, les projets partagés, les ressources, la politique et les enregistrements d'audit vivent dans un stockage que ton organisation configure. [Trust](/info/trust.html) explique pourquoi c'est important, et la [Privacy Policy](/info/privacy.html) et [Verify It Yourself](/info/verify-yourself.html) te laissent vérifier l'affirmation plutôt que nous croire sur parole.
+Le travail créatif de Lolly peut s'exécuter sur du matériel qui t'appartient, et ses design tokens, polices, logos et outils sont des fichiers que tu peux conserver. Avec Lolly Work, les projets partagés, les ressources, les politiques et les enregistrements d'audit résident dans un stockage configuré par ton organisation. [Confiance](/info/trust.html) explique pourquoi cela compte, et la [Politique de confidentialité](/info/privacy.html) et [Vérifie par toi-même](/info/verify-yourself.html) te permettent de vérifier cette affirmation plutôt que de nous croire sur parole.
 
+<!--i:eti-grid-->
 ## Outil par outil
 
-[Lolly compared, tool by tool](/info/compare.html) compare Lolly à Canva, Adobe, Figma, Penpot, aux portails de marque, aux API de rendu et aux convertisseurs en ligne, une page chacun, et expose [what runs where](/info/compare.html#what-runs-where).
+[Lolly comparé, outil par outil](/info/compare.html) compare Lolly à Canva, Adobe, Figma, Penpot, aux portails de marque, aux API de rendu et aux convertisseurs en ligne, avec une page pour chacun, et précise [ce qui s'exécute où](/info/compare.html#what-runs-where).

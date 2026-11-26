@@ -55,7 +55,7 @@ handoff with one named owner.
 - **Etiquette, in two tones.** 89 of Lolly's own Etiquette icons
   (`lolly/icons/*`) in the two-colour form SUSE's icons use: a Spearmint base and
   a Green Apple accent, fill-only, tagged `themable` so the asset view and the
-  pickers offer every Opal pairing in `lolly/palette/opal-icon-themes`. They are
+  pickers offer one pairing per colourway of the design system. They are
   generated, never hand-edited: `scripts/data/etiquette-icons.json` sorts each
   registry drawing's strokes into base and accent, and
   `node scripts/build-etiquette-icons.ts` outlines the strokes with the engine,
@@ -70,19 +70,35 @@ handoff with one named owner.
   `lolly-start` ships, unchanged and under the same ids. Their checksums, and any
   credentials embedded in the files, are the starter's own. The renditions of
   the lorikeet photograph travel with it.
-- **Palette documents derived from Opal**: `lolly/palette/opal-photo-treatments`
-  and `lolly/palette/opal-icon-themes`, made with the same engine functions
-  `scripts/ingest-brand.ts` uses (`engine/src/brand-treatments.ts`).
+- **No colour palette documents.** The icon colours and photo washes come from
+  the design system's six colourways (`colourwayIconThemes` and
+  `colourwayPhotoTreatments` in `engine/src/brand-treatments.ts`), so the pack
+  ships no `icon-themes` or `photo-treatments` palette.
 - **Emoji: Fluent Emoji Flat at Full palette influence.** The tokens carry
   the pack's emoji style in `$extensions['com.suse.lolly'].emoji`, which
   `brandEmojiStyle` (`engine/src/emoji-default.ts`) reads: the Fluent Emoji Flat
   2026.8.24 set, with the Palette influence control's "Full" setting (`snap`),
   so every paint moves to its nearest Opal colour while skin tones, flags and
   custom symbols keep their own. A link's choice or a saved session's own style
-  still comes first. The style pins the first 64 colours the token bridge lists
-  for Lolly Demo, the emoji palette's limit; the ones left over are a role that repeats
-  Avocado and the chrome slots, which repeat named colours apart from Honey
-  deep and the dark hover. Rewrite the block after a colour change.
+  still comes first. The style pins the first 64 colours the token bridge listed
+  for Lolly Demo before it declared its colour roles, the emoji palette's limit.
+  Since then the bridge lists the colours on Partner and Paper among the first 64,
+  which repeat Sugar and Void, so a short `emojifx` link resolves a palette with
+  other token ids and the same colours. The colours left over are roles that repeat
+  Meringue, Arvo and Avocado, the chrome slots, which repeat named colours apart
+  from Honey deep and the dark hover, and the colourway's own copies. Rewrite the
+  block after a colour change.
+- **Colour roles in its own words.** The `brandSystem` record declares four
+  colour roles, each one the slot it fills, so no slot became an alias and no
+  colour a tool reads moved: Lead (`primary`) and Partner (`secondary`), from the
+  Colourways part of the Lolly brand standards (`/brand`), and Paper (`surface`)
+  and Ink (`text`), from the brand skill ("Liquorice #09141a is the ink and Sugar
+  #ffffff is the paper"). Lolly reads them as the lead colour, the partner colour,
+  the background and the text. The colours that sit on Partner and Paper are
+  worked out by Lolly and marked as derived, and Paper and Ink hold a copy of
+  each look's colour in every colourway, so a colourway can give either one a
+  colour of its own. `tests/shipped-colour-roles.test.ts` shows that renders stay
+  the same.
 - **Four house rules.** The tokens carry a `brandSystem` in
   `$extensions['com.suse.lolly']` whose rules Design checks layer by layer
   (`engine/src/design-house-rules.ts`): the export panel's Before you export
@@ -213,11 +229,21 @@ profile.
   lightness at full weight), with no black in bright colours and the ink total
   under 300%, or 280% for the darks.
 - CMYK cannot reach Jacaranda (chroma 37 of 59), Green Apple (56 of 60), Swell,
-  Pandanus, Reef and Sky. Void and the Liquorice tints are rich blacks at the
-  press's deepest, about L 11.
+  Pandanus, Reef and Sky. Liquorice raised and Liquorice panel are rich blacks
+  at the press's deepest, about L 11.
+- Black is process black. Void and Liquorice print at 100% K (0/0/0/100) and
+  Basalt at 92% K (0/0/0/92), on the K plate only, so text in the ink colour
+  and the quiet text grey stays sharp when the plates slip. 92% K is the
+  whole-percent K tint nearest Basalt's old four-ink build (68/48/37/71) in
+  lightness under FOGRA39: L 25.8 against L 25.5. Void and Liquorice lose some
+  depth in a large solid area, because 100% K alone is about L 17.5.
+- Void has no spot ink, so black in a Print PDF prints on the K plate and
+  never on a plate of its own. Liquorice and Basalt keep their spot inks: with
+  the spot plates kept, their text prints on one named plate, and a RIP that
+  flattens the spot inks prints it on K.
 
-Every colour except the paper whites (Sugar and Daylight) also names a spot ink
-in `com.suse.lolly.spot`, for printing a colour at full strength: the nearest
+Every colour except the paper whites (Sugar and Daylight) and Void also names a
+spot ink in `com.suse.lolly.spot`, for printing a colour at full strength: the nearest
 colour in the [freieFarbe HLC Colour Atlas XL](https://freiefarbe.de/en/thema-farbe/hlc-colour-atlas/)
 (13,283 colours, CC BY-ND 4.0, freieFarbe e.V.). HLC is an open colour system
 defined in CIELAB (D50, 2° observer) and the basis of DIN SPEC 16699, "Open

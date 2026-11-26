@@ -24,6 +24,9 @@
  *   caps          → lib/capabilities-data.ts
  */
 
+import { hasPicture } from '../components/preview-image.ts';
+import type { SessionPreviewRef } from '../bridge/preview-store.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { bindDisclosureUrl, updateRouteParams } from '../lib/url-state.ts';
 import '../styles/parts/platform.css'; // shared dashboard chrome (.plat-* / .cap-*)
 import '../styles/parts/dashboard.css'; // this view's layout + signature pieces
@@ -235,8 +238,7 @@ async function capabilitiesSection(): Promise<string> {
                aria-controls="dash-cap-results"
                placeholder="${escape(t('Search {n} capabilities - try “cmyk”, “figma”, “offline”', { n: totalCards }))}"
                aria-label="${escape(t('Search capabilities'))}">
-        <button type="button" class="dash-cap-search-clear" data-cap-search-clear hidden
-                aria-label="${escape(t('Clear search'))}">✕</button>
+        ${closeButtonHtml({ size: 'sm', className: 'dash-cap-search-clear', label: t('Clear search'), attrs: { 'data-cap-search-clear': true, hidden: true } })}
       </div>
       <p class="dash-cap-count" id="dash-cap-results" data-cap-count role="status" aria-live="polite" hidden></p>`;
   // Shown only when a query matches nothing - an accordion of collapsed, empty
@@ -254,7 +256,7 @@ async function capabilitiesSection(): Promise<string> {
           <header class="dash-cap-modal-head">
             <span class="dash-cap-modal-icon" data-cap-modal-icon aria-hidden="true"></span>
             <h3 class="dash-cap-modal-title" data-cap-modal-title></h3>
-            <button type="button" class="dash-cap-modal-close" data-cap-modal-close aria-label="${escape(t('Close'))}">✕</button>
+            ${closeButtonHtml({ className: 'dash-cap-modal-close', attrs: { 'data-cap-modal-close': true } })}
           </header>
           <div class="dash-cap-modal-panes">
             <figure class="dash-cap-modal-shot" data-cap-modal-shot hidden>
@@ -283,7 +285,7 @@ type DashHost = HostV1 & {
     _blobCacheSize?: () => Promise<number>;
     _userAssetsSize?: () => Promise<number>;
   };
-  previews?: { size?: () => Promise<number>; list?: () => Promise<Array<{ thumb?: { length?: number } }>> };
+  previews?: { size?: () => Promise<number>; list?: () => Promise<Array<{ size?: number }>> };
 };
 
 interface StorageSlice { label: string; bytes: number; key: string; }
@@ -461,7 +463,7 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
               <div class="dash-activity">${renderActivity(metrics, tools as Array<{ id: string } & Record<string, unknown>>)}</div>
             </section>
             <section class="plat-section dash-section dash-card dash-yours" id="dash-yours" hidden>
-              ${sectionHead(t('Yours'), 'dash-yours-h', t('Your starred tools, ready to pick up where you left off. Recent creations and exports stay below.'))}
+              ${sectionHead(t('Yours'), 'dash-yours-h')}
               <div class="dash-yours-tools" data-yours-tools></div>
             </section>
             <section class="plat-section dash-section dash-card dash-recent" id="dash-recent" data-flag="${escape(dashFlag('dash-recent'))}" hidden>
@@ -715,17 +717,17 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
     })
     .catch(() => { /* no profile store - the Dashboard stays useful without this convenience */ });
 
-  // Recent creations: reuse the session preview thumbnails the
-  // Projects/gallery tiles already cache (host.state.list().thumb); no
-  // re-render. Tool sessions only (they reopen cleanly via ?slot=), newest
-  // first, into the interactive swipe stack.
-  (host.state.list() as Promise<Array<{ slot: string; toolId?: string; label?: string; thumb?: string | null; updatedAt?: string }>>)
+  // Recent creations: the stored pictures the Projects/gallery tiles show
+  // (host.state.list() rows carry a reference; components/preview-image.ts reads
+  // only the cards it shows); no re-render. Tool sessions only (they reopen cleanly
+  // via ?slot=), newest first, into the interactive swipe stack.
+  (host.state.list() as Promise<Array<{ slot: string; toolId?: string; label?: string; thumb?: string | null; preview?: SessionPreviewRef; updatedAt?: string }>>)
     .then((rows) => {
       const recent = rows
-        .filter((r) => r.thumb && r.toolId)
+        .filter((r) => hasPicture(r) && r.toolId)
         .sort((a, b) => +new Date(b.updatedAt || 0) - +new Date(a.updatedAt || 0))
         .slice(0, 12)
-        .map((r) => ({ thumb: r.thumb!, label: r.label || r.toolId!, href: `#/tool/${r.toolId}?slot=${encodeURIComponent(r.slot)}` }));
+        .map((r) => ({ picture: { preview: r.preview, thumb: r.thumb, slot: r.slot, toolId: r.toolId }, label: r.label || r.toolId!, href: `#/tool/${r.toolId}?slot=${encodeURIComponent(r.slot)}` }));
       const sec = viewEl.querySelector<HTMLElement>('#dash-recent');
       const stackMount = viewEl.querySelector<HTMLElement>('[data-recent-stack]');
       if (isCurrent(stackMount) && sec && recent.length >= 2) {
@@ -741,9 +743,9 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
   import('../lib/export-history.ts')
     .then(({ listExports }) => listExports(12))
     .then((exports) => {
-      const entries = exports.filter((e) => e.thumb);
+      const entries = exports.filter((e) => hasPicture(e));
       const items = entries
-        .map((e) => ({ thumb: e.thumb!, label: e.filename || e.label, href: `#/tool/${e.toolId}${e.query ? '?' + e.query : ''}` }));
+        .map((e) => ({ picture: { preview: e.preview, thumb: e.thumb }, label: e.filename || e.label, href: `#/tool/${e.toolId}${e.query ? '?' + e.query : ''}` }));
       const sec = viewEl.querySelector<HTMLElement>('#dash-exports');
       const stackMount = viewEl.querySelector<HTMLElement>('[data-exports-stack]');
       if (isCurrent(stackMount) && sec && items.length) {

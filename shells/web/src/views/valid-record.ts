@@ -112,8 +112,15 @@ export function approvedPanelHtml(report: VerifyReport): string {
     signer ? row(t('Signed by'), plain(signer)) : '',
     row(t('Decided'), plain(decidedWords(record.decidedAt))),
     row(t('Request'), `<span class="valid-record-code">${escapeText(record.approvalId)}</span>`),
-    row(t('Reviewed file'), `<span class="valid-record-code" title="${escapeText(record.reviewedSha256)}">${escapeText(shortDigest(record.reviewedSha256))}</span>`
-      + ` <button type="button" class="valid-clean-link" data-record-copy="${escapeText(record.reviewedSha256)}">${t('Copy digest')}</button>`),
+    record.covers === 'template'
+      // A template's approval gives the template and the example the reviewer saw. The
+      // example is a different file, so its digest is never shown as this file's.
+      ? row(t('Covers'), `<span title="${escapeText(record.exampleSha256)}">${t('Approved as a template: {template} v{version} ({format}). Example file sha256 {digest}', {
+        template: record.templateId, version: record.templateVersion, format: String(report.format ?? '').toUpperCase(),
+        digest: `${record.exampleSha256.replace(/^sha256:/, '').slice(0, 12)}…`,
+      })}</span> <button type="button" class="valid-clean-link" data-record-copy="${escapeText(record.exampleSha256)}">${t('Copy digest')}</button>`)
+      : row(t('Reviewed file'), `<span class="valid-record-code" title="${escapeText(record.reviewedSha256)}">${escapeText(shortDigest(record.reviewedSha256))}</span>`
+        + ` <button type="button" class="valid-clean-link" data-record-copy="${escapeText(record.reviewedSha256)}">${t('Copy digest')}</button>`),
     row(t('This file'), plain(intact ? tRaw('Unchanged since the signer recorded this approval.')
       : check === 'changed' ? tRaw('Does not match the signed record.')
       : check === 'lapsed' ? tRaw('Still matches its credential.')

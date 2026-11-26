@@ -592,7 +592,7 @@ function _qbFrameWrap(body, W, H, frame, text, color, bg, esc) {
   }
   if (text) {
     out += '<text x="' + _qbN(oW / 2) + '" y="' + _qbN(ty) + '" text-anchor="middle" dominant-baseline="middle"'
-      + ' font-family="sans-serif" font-size="46" font-weight="700" fill="' + color + '">' + esc(text) + '</text>';
+      + ' font-family="' + _QB_FONT + '" font-size="46" font-weight="700" fill="' + color + '">' + esc(text) + '</text>';
   }
   return { w: oW, h: oH, content: out };
 }
@@ -718,8 +718,8 @@ function _esc(s) {
 function _errorSvg(note) {
   return '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" viewBox="0 0 600 600">'
     + '<rect x="0" y="0" width="600" height="600" fill="#fff5f5"/>'
-    + '<text x="300" y="286" text-anchor="middle" font-family="sans-serif" font-size="28" font-weight="700" fill="#bd3314">QR code unavailable</text>'
-    + '<text x="300" y="326" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#111111">' + _esc(note) + '</text>'
+    + '<text x="300" y="286" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="28" font-weight="700" fill="#bd3314">QR code unavailable</text>'
+    + '<text x="300" y="326" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="20" fill="#111111">' + _esc(note) + '</text>'
     + '</svg>';
 }
 
@@ -748,7 +748,7 @@ function _emptySvg(note, fg, bg) {
   return '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" viewBox="0 0 600 600" data-qr-empty="">'
     + '<rect x="0" y="0" width="600" height="600" fill="' + bg + '"/>'
     + '<g opacity="0.16">' + eye(0, 0) + eye(18, 0) + eye(0, 18) + '</g>'
-    + '<text text-anchor="middle" font-size="26" font-weight="600" fill="' + fg + '" style="font-family: var(--font-brand, sans-serif)">' + text + '</text>'
+    + '<text text-anchor="middle" font-size="26" font-weight="600" fill="' + fg + '" font-family="' + _QB_FONT + '">' + text + '</text>'
     + '</svg>';
 }
 
@@ -1360,8 +1360,6 @@ function _r(n) {
   return String(Math.round(n * 100) / 100);
 }
 
-var MONO_STACK = 'ui-monospace, Menlo, Consolas, monospace';
-
 // The panel is 600 units wide with a 40-unit margin each side, and its note is
 // set at 17: about 61 characters of sans-serif fit on a line. Wrap at 56 so the
 // estimate has room to be wrong.
@@ -1397,20 +1395,20 @@ function errorSvg(note, hint) {
   var body = '';
   var y = 140;
   for (var i = 0; i < lines.length; i++) {
-    body += '<text x="300" y="' + (y + i * PANEL_LINE) + '" text-anchor="middle" font-family="sans-serif" '
+    body += '<text x="300" y="' + (y + i * PANEL_LINE) + '" text-anchor="middle" font-family="' + _QB_FONT + '" '
       + 'font-size="17" fill="#111111">' + _esc(lines[i]) + '</text>';
   }
   var last = y + (lines.length - 1) * PANEL_LINE;
   if (hint) {
     last += 36;
-    body += '<text x="300" y="' + last + '" text-anchor="middle" font-family="' + MONO_STACK
+    body += '<text x="300" y="' + last + '" text-anchor="middle" font-family="' + _QB_MONO
       + '" font-size="17" fill="#111111">' + _esc(hint) + '</text>';
   }
   var h = Math.max(260, last + 60);
   return '<svg class="bc-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + PANEL_W + ' ' + h + '" '
     + 'preserveAspectRatio="xMidYMid meet" role="img" aria-label="Barcode unavailable">'
     + '<rect x="0" y="0" width="' + PANEL_W + '" height="' + h + '" rx="12" fill="#fff5f5"/>'
-    + '<text x="300" y="96" text-anchor="middle" font-family="sans-serif" font-size="26" font-weight="700" fill="#bd3314">Barcode unavailable</text>'
+    + '<text x="300" y="96" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="26" font-weight="700" fill="#bd3314">Barcode unavailable</text>'
     + body
     + '</svg>';
 }
@@ -1486,7 +1484,7 @@ function buildSvg(enc, opts) {
     + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="' + _esc(opts.summary) + '">'
     + '<rect x="' + _r(x0) + '" y="0" width="' + _r(width) + '" height="' + _r(height) + '" fill="' + opts.background + '"/>'
     + '<g fill="' + opts.color + '" shape-rendering="crispEdges">' + bars + '</g>'
-    + (texts ? '<g fill="' + opts.color + '" font-family="' + MONO_STACK + '" font-size="' + _r(fontPx) + '">' + texts + '</g>' : '')
+    + (texts ? '<g fill="' + opts.color + '" font-family="' + _QB_MONO + '" font-size="' + _r(fontPx) + '">' + texts + '</g>' : '')
     + '</svg>';
 }
 
@@ -1697,20 +1695,20 @@ var computeBwip = (function () {
     var body = '';
     var y = 140;
     for (var i = 0; i < lines.length; i++) {
-      body += '<text x="300" y="' + (y + i * 26) + '" text-anchor="middle" font-family="sans-serif" '
+      body += '<text x="300" y="' + (y + i * 26) + '" text-anchor="middle" font-family="' + _QB_FONT + '" '
         + 'font-size="17" fill="#111111">' + _esc(lines[i]) + '</text>';
     }
     var last = y + (lines.length - 1) * 26;
     if (hint) {
       last += 36;
-      body += '<text x="300" y="' + last + '" text-anchor="middle" font-family="ui-monospace, Menlo, Consolas, monospace" '
+      body += '<text x="300" y="' + last + '" text-anchor="middle" font-family="' + _QB_MONO + '" '
         + 'font-size="17" fill="#111111">' + _esc(hint) + '</text>';
     }
     var h = Math.max(260, last + 60);
     return '<svg class="bc-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 ' + h + '" '
       + 'preserveAspectRatio="xMidYMid meet" role="img" aria-label="Code unavailable">'
       + '<rect x="0" y="0" width="600" height="' + h + '" rx="12" fill="#fff5f5"/>'
-      + '<text x="300" y="96" text-anchor="middle" font-family="sans-serif" font-size="26" font-weight="700" fill="#bd3314">Code unavailable</text>'
+      + '<text x="300" y="96" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="26" font-weight="700" fill="#bd3314">Code unavailable</text>'
       + body
       + '</svg>';
   }
@@ -2021,8 +2019,52 @@ async function _qbLogoUrl(val, host) {
   return url;
 }
 
+// The design system's faces for every word this tool writes (the call to action,
+// a barcode's digits, the error panels), set by _run before any SVG is built.
+var _QB_FONT = 'SUSE, sans-serif';
+var _QB_MONO = "'SUSE Mono', monospace";
+
+// === lolly:shared brandFonts - generated from community/_shared/brand-fonts.js; edit there and run npm run sync:shared ===
+// The design system's text face (font.brand) and mono face (font.mono) as
+// font-family lists, for an SVG attribute, an inline style or a canvas font.
+// A tool never names a face of its own. A headless SVG has no stylesheet, so
+// the CLI, the TUI and the MCP server read the attribute to outline the text,
+// and the page draws the same family. A design system that declares no such
+// face gets the shell's own default, SUSE or SUSE Mono, as --font-brand and
+// --font-mono do. Family names pass the shell's brand-vars.ts rule; a name
+// with a space or a digit is quoted.
+var BF_FAMILY = /^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}$/;
+var BF_GENERIC = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-(sans-serif|serif|monospace|rounded)|emoji|math|fangsong)$/i;
+function bfFamilyList(value, fallback, generic) {
+  var names = [];
+  var list = Array.isArray(value) ? value : (typeof value === 'string' && value.charAt(0) !== '{' ? value.split(',') : []);
+  for (var i = 0; i < list.length; i++) {
+    var n = String(list[i]).trim().replace(/^['"]+|['"]+$/g, '').trim();
+    if (!BF_FAMILY.test(n) || BF_GENERIC.test(n)) continue;
+    var dup = false;
+    for (var j = 0; j < names.length; j++) if (names[j].toLowerCase() === n.toLowerCase()) dup = true;
+    if (!dup) names.push(n);
+  }
+  if (!names.length) names.push(fallback);
+  return names.map(function (f) { return /^[A-Za-z_-][A-Za-z0-9_-]*$/.test(f) ? f : "'" + f + "'"; }).join(', ') + ', ' + generic;
+}
+async function brandFonts(host) {
+  var out = { brand: bfFamilyList(null, 'SUSE', 'sans-serif'), mono: bfFamilyList(null, 'SUSE Mono', 'monospace') };
+  if (!host || !host.tokens || !host.tokens.resolve) return out;
+  try { out.brand = bfFamilyList(await host.tokens.resolve('{font.brand}'), 'SUSE', 'sans-serif'); } catch (e) { /* the shell's default face stands */ }
+  try { out.mono = bfFamilyList(await host.tokens.resolve('{font.mono}'), 'SUSE Mono', 'monospace'); } catch (e) { /* the shell's default face stands */ }
+  return out;
+}
+// === /lolly:shared brandFonts ===
+
 async function _run(model, host) {
   var args = Object.fromEntries(model.map(function(i) { return [i.id, i.value]; }));
+  var fonts = await brandFonts(host);
+  _QB_FONT = fonts.brand;
+  _QB_MONO = fonts.mono;
+  // In the args so every memo key changes with the design system's faces.
+  args._fontBrand = fonts.brand;
+  args._fontMono = fonts.mono;
   if (BARCODE_KINDS.indexOf(args.payload) >= 0) {
     args.symbology = args.payload;   // computeBarcode reads args.symbology (folded barcode, plans/147 T7a)
     return computeBarcode(args);

@@ -411,7 +411,14 @@ type ExportStage = HTMLDivElement & { _lottieCleanup?: () => void };
  *        in `unit` (px/mm/cm/in/pt); blank falls back to the tool's native size.
  *        `dpi` sets raster resolution for physical units.
  */
-export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', dpi, composeStack, watermark, embedMeta, thumbnail, previewPage, previewTimeMs, thumbAssets, strongPassword, c2pa, imprint, madeWith, settleMs, signal, observeInputs }: RenderRowOpts = {}): Promise<RenderRowResult> {
+/** Render one row to a file. A render that is not a preview counts as busy
+ *  (lib/render-busy.ts), so idle preview work waits until the render ends. */
+export async function renderRowToBlob(row: BatchRow, host: HostV1, opts: RenderRowOpts = {}): Promise<RenderRowResult> {
+  const end = opts.thumbnail ? null : (await import('../lib/render-busy.ts')).beginRender();
+  try { return await renderRowToBlobOnce(row, host, opts); } finally { end?.(); }
+}
+
+async function renderRowToBlobOnce(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', dpi, composeStack, watermark, embedMeta, thumbnail, previewPage, previewTimeMs, thumbAssets, strongPassword, c2pa, imprint, madeWith, settleMs, signal, observeInputs }: RenderRowOpts = {}): Promise<RenderRowResult> {
   const tool = await getTool(row.toolId, row.artifactDigest);
   if (!isExportable(tool.manifest)) {
     throw new Error(`"${tool.manifest.name}" is render-only and cannot be exported.`);
@@ -467,7 +474,9 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
     posterClock = previewTimeMs !== undefined && Number.isFinite(previewTimeMs)
       ? (await import('../bridge/sequence-dom.ts')).createSequenceTime(canvas) : null;
     posterClock?.apply(Math.max(0, previewTimeMs ?? 0));
-    const fmt = chooseFormat(tool.manifest, format);
+    // A gallery cover for a tool with no still export (galleryArt: "render") is a PNG of its
+    // first page. Only a preview asks for that, so the tool's export list stays as it is.
+    const fmt = previewPage && format === 'png' && tool.manifest.galleryArt === 'render' ? format : chooseFormat(tool.manifest, format);
     // A "reopen in Lolly" link: this tool's short URL carrying the exact inputs +
     // export settings used for THIS render, so a zip recipient can return to
     // lolly.tools and recreate (or tweak) the file. Serialised from the live model so
@@ -590,6 +599,9 @@ export async function mountDocumentExport(tool: LoadedTool, host: HostV1, source
   // The export panel's Design system card (plans/319) is the source runtime's switch:
   // an unticked card must leave the record out of the document export too.
   runtime.setMadeWith(source.madeWith());
+  // And the partner it records (Lolly Work plans/82 M3), so the files hold what the
+  // card said.
+  runtime.setPartner(source.partner());
   let ownedStage: ExportStage | undefined;
   try {
     const { stage, canvas } = await mountToolCanvas(tool.styles, runtime.getHydrated(), {
@@ -645,7 +657,13 @@ export async function mountTemplateMotion(host: HostV1, toolId: string, values: 
  * SVG, doesn't choke resvg. Falls back to a single whole-canvas export for a tool that
  * declares no page boxes.
  */
-export async function renderToolPages(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', thumbnail, thumbAssets, signal }: RenderRowOpts = {}): Promise<RenderPagesResult> {
+/** Render every page of a paged tool. Counts as busy unless it is a preview. */
+export async function renderToolPages(row: BatchRow, host: HostV1, opts: RenderRowOpts = {}): Promise<RenderPagesResult> {
+  const end = opts.thumbnail ? null : (await import('../lib/render-busy.ts')).beginRender();
+  try { return await renderToolPagesOnce(row, host, opts); } finally { end?.(); }
+}
+
+async function renderToolPagesOnce(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', thumbnail, thumbAssets, signal }: RenderRowOpts = {}): Promise<RenderPagesResult> {
   const tool = await getTool(row.toolId, row.artifactDigest);
   if (!isExportable(tool.manifest)) {
     throw new Error(`"${tool.manifest.name}" is render-only and cannot be exported.`);

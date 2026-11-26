@@ -67,12 +67,31 @@ test('a soft keyboard lifts the bottom by exactly its occlusion', () => {
   assert.deepEqual(insets, { top: 0, left: 0, right: 0, bottom: 336 });
 });
 
-test('a soft keyboard leaves top/left/right alone (it only eats the bottom)', () => {
+test('a soft keyboard hands its pan back as the top inset, and leaves the sides alone', () => {
   // iOS also pans the visual viewport to reveal the focused field, so offsetTop
-  // is nonzero while the keyboard is up: the occlusion is what is left BELOW
-  // the visible area, and the horizontal insets stay zero regardless.
+  // is nonzero while the keyboard is up. The occlusion is what is left BELOW
+  // the visible area. The pan is the top inset: position:fixed stays with the
+  // layout viewport, so without the inset a top-pinned surface sits that far
+  // under the status bar for as long as the keyboard is up.
   const insets = computeViewportInsets({ ...idle, vvHeight: 500, offsetTop: 44 });
-  assert.deepEqual(insets, { top: 0, left: 0, right: 0, bottom: 844 - 500 - 44 });
+  assert.deepEqual(insets, { top: 44, left: 0, right: 0, bottom: 844 - 500 - 44 });
+});
+
+test('the measured iPhone 17 keyboard: 13px of pan, 370px of keyboard', () => {
+  // Read from the iOS 27.0 simulator with the QR Code tool's URL field in
+  // focus: the layout viewport gave up 13px, the page panned by the same 13px
+  // and the tool sheet's top edge sat 13px under the status bar.
+  const insets = computeViewportInsets({
+    scale: 1, innerHeight: 861, clientWidth: 402, clientHeight: 874, vvWidth: 402, vvHeight: 478, offsetTop: 13, offsetLeft: 0,
+  });
+  assert.deepEqual(insets, { top: 13, left: 0, right: 0, bottom: 370 });
+});
+
+test('a pan with no keyboard is not followed', () => {
+  // A retracting toolbar can report a small offset too. Nothing is occluded
+  // there, so the top stays native, as the bottom does.
+  const insets = computeViewportInsets({ ...idle, vvHeight: 844 - 90, offsetTop: 20 });
+  assert.deepEqual(insets, { top: 0, left: 0, right: 0, bottom: 0 });
 });
 
 test('the threshold is the boundary: below stays 0, at it lifts', () => {

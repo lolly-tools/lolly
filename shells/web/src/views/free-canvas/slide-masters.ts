@@ -33,6 +33,7 @@
  */
 import {
   applyArchetype as relayoutToArchetype,
+  composeDesignSlides,
   masterAtSize,
   resetFrame as relayoutToMaster,
   seedFrame,
@@ -48,6 +49,7 @@ import { findArchetype } from '@lolly-tools/core';
 import type { Box } from '../free-canvas-math.ts';
 import { num } from '../free-canvas-math.ts';
 import { t } from '../../i18n.ts';
+import { markdownComposeSpec } from '../../lib/markdown-slides.ts';
 import {
   MASTER_ASSET_TAGS,
   isMasterAssets,
@@ -60,6 +62,7 @@ import {
 } from '../../lib/rebrand/design-system.ts';
 import { buildLayoutChooser, layoutTiles } from '../../lib/slide-structures-ui.ts';
 import { archetypeThumbSvg } from './archetype-thumb.ts';
+import { mountEditorPanel, placeEditorPanel } from '../free-canvas-popover.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 /**
@@ -399,6 +402,49 @@ export async function newSlideFromArchetype(fc: FcCtx, archetypeId: ArchetypeRef
   return frameId;
 }
 
+/**
+ * A Markdown deck as slides at the end of the artboard row (lib/markdown-slides.ts).
+ *
+ * Each slide takes a layout of the active design system's master by what it holds, and
+ * the engine's composer lays it out, the way New slide from layout would. The slides
+ * take the page size the document already uses. One commit, so one undo step takes the
+ * whole deck back out. Returns null when the design system ships no master; a deck the
+ * composer refuses throws, and the caller reports the reason.
+ */
+export async function slidesFromMarkdown(fc: FcCtx, markdown: string): Promise<{ slides: number; notes: string[] } | null> {
+  const { cfg, frameCfg } = fc;
+  if (!frameCfg) return null;
+  const loaded = await loadMaster(fc);
+  if (!loaded || fc.disposed) return null;
+  const boxes = fc.select.getBoxes();
+  const size = slideSize(fc, boxes);
+  // Artboard ids of this import, clear of every id on the canvas.
+  const taken = boxes.map((b) => String(b?.[cfg.idField] ?? ''));
+  let run = 1;
+  while (taken.some((id) => id.startsWith(`md${run}-`))) run += 1;
+  const { spec, notes } = markdownComposeSpec(markdown, loaded.master, { width: size.w, height: size.h }, (i) => `md${run}-${i + 1}`);
+  if (!spec.slides.length) return { slides: 0, notes };
+  const { document } = composeDesignSlides(spec, {
+    master: loaded.master, masterOrigin: 'catalog', resolveToken: resolverFor(loaded), logos: loaded.logos,
+  });
+  // The composer sets the deck out from the origin; the deck goes after what is here.
+  const dx = nextSlideX(fc, boxes, size.w);
+  let out = boxes;
+  let first = '';
+  for (const raw of document.boxes) {
+    const row = { ...(raw as DesignBoxRowV1), [cfg.xField]: num((raw as DesignBoxRowV1)[cfg.xField]) + dx };
+    const isFrame = String(row[cfg.kindField]) === frameCfg.frameKind;
+    if (!isFrame) { out = [...out, toBox(fc, row, false)]; continue; }
+    const made = fc.document.withNewFrameOrder(out, toBox(fc, row, true));
+    out = [...made.boxes, made.box];
+    first ||= String(row[cfg.idField] ?? '');
+  }
+  if (first) fc.selection = new Set([first]);
+  fc.select.commit(out);
+  fc.chromeSync.renderChrome();
+  return { slides: spec.slides.length, notes };
+}
+
 /** An archetype id read off a box, when the master carries it: one of the twelve or a library layout. */
 function archetypeIdOf(master: SlideMasterV1, value: string): ArchetypeRefV1 | undefined {
   return value ? findArchetype(master, value)?.id : undefined;
@@ -695,8 +741,10 @@ function placeChooser(fc: FcCtx, panel: HTMLElement, at: AnchorPoint): void {
   const dock = pxProp(stageEl, '--design-actions-h') + pxProp(stageEl, '--design-viewport-inset');
   const bar = pxProp(stageEl, '--stage-reserve-top');
   const room = Math.max(0, sr.height - dock);
-  panel.style.left = `${Math.max(6, Math.min(at.left - sr.left, sr.width - panel.offsetWidth - 8))}px`;
-  panel.style.top = `${Math.max(bar + 6, Math.min(at.bottom - sr.top + 8, room - panel.offsetHeight - 8))}px`;
+  placeEditorPanel(panel, stageEl, {
+    left: Math.max(6, Math.min(at.left - sr.left, sr.width - panel.offsetWidth - 8)),
+    top: Math.max(bar + 6, Math.min(at.bottom - sr.top + 8, room - panel.offsetHeight - 8)),
+  });
 }
 
 /** Close the panel, then do the thing the tile stands for. */
@@ -757,7 +805,7 @@ export function openArchetypePanel(
   const body = el('div', 'fc-arch-body');
   panel.append(body);
   panel.addEventListener('pointerdown', (e) => e.stopPropagation());
-  stageEl.appendChild(panel);
+  mountEditorPanel(panel, null, stageEl);
   fc.morePanel = panel;
   placeChooser(fc, panel, at);
 
@@ -830,6 +878,7 @@ export function slideMastersOps(fc: FcCtx) {
     masterStatus: bindOp(fc, masterStatus),
     archetypeChoices: bindOp(fc, archetypeChoices),
     newSlideFromArchetype: bindOp(fc, newSlideFromArchetype),
+    slidesFromMarkdown: bindOp(fc, slidesFromMarkdown),
     applyArchetypeToFrame: bindOp(fc, applyArchetypeToFrame),
     resetFrameToMaster: bindOp(fc, resetFrameToMaster),
     frameIsSeeded: bindOp(fc, frameIsSeeded),

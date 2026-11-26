@@ -122,6 +122,18 @@ export function canVectoriseText(_style: FontStyleSlice, fontUrl: string | null,
 }
 
 /**
+ * `text-anchor` as a side of the run. `start` and `end` follow the text's direction, so
+ * in right-to-left text `start` is the right edge: a caller placing an outlined run
+ * from its left edge reads `end` for it, and `start` for `end`.
+ */
+export function physicalTextAnchor(anchor: string | null | undefined, direction: string | null | undefined): 'start' | 'middle' | 'end' {
+  const a = (anchor ?? 'start').trim().toLowerCase();
+  if (a === 'middle') return 'middle';
+  const rtl = (direction ?? '').trim().toLowerCase() === 'rtl';
+  return (a === 'end') === rtl ? 'start' : 'end';
+}
+
+/**
  * Parse a computed CSS `font-feature-settings` value into HarfBuzz feature strings
  * (as host.text.toPath's `features` opt expects). "normal"/"" → []. Examples:
  *   `"liga" 0, "salt" 1`  → ['liga=0', 'salt=1']

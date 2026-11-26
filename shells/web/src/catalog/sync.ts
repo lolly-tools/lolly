@@ -21,7 +21,7 @@
 
 import { AssetChecksumError } from '../bridge/assets.ts';
 import { duringAssetSync } from '../lib/asset-sync.ts';
-import { assertToolIndexIntegrity, catalogVerificationRequired, catalogVerificationAvailable, getCatalogSnapshot, noteCatalogIntegrityFailure } from './integrity.ts';
+import { assertToolIndexIntegrity, catalogVerificationRequired, catalogVerificationAvailable, getCatalogSnapshot, isCatalogTrustFailure, noteCatalogIntegrityFailure, noteInstanceCatalogSetAside } from './integrity.ts';
 import { currentLang, t } from '../i18n.ts';
 import { pinnedAssetIds, refreshPinnedToolFiles } from '../lib/offline-pins.ts';
 import { setBrandTrustedSites } from '../lib/trusted-sites.ts';
@@ -32,10 +32,12 @@ import { runBackgroundTasks } from '../lib/background-tasks.ts';
 // they are the only two edges to a ~7.9 KB module that also drags the upscale/matte
 // model tables along. Both call sites are async, so the import is invisible.
 const offlineManager = () => import('../lib/offline-manager.ts');
-import { adoptBootFetch, getInstanceBase, initInstanceBase, instanceFetch, instancePath, usesBrowserCors } from '../lib/instance.ts';
+import { adoptBootFetch, getInstanceBase, initInstanceBase, instanceFetch, instancePath, suspendInstanceBase, usesBrowserCors } from '../lib/instance.ts';
 import { CatalogRefusedError, catalogRefused, catalogRefusedBefore, isAccessRefused, noteCatalogAllowed, noteCatalogRefused } from '../lib/catalog-access.ts';
 import type { RenditionSpec } from '../../../../packages/core/src/delivery-v1.ts';
 import type { CompanionHost } from '../lib/design-system/companions.ts';
+import { readCompanionAssets } from '../lib/design-system/asset-scope.ts';
+import { viewingAs } from '../org/view-as.ts';
 
 /** One resolvable file for a catalog asset (an entry in an asset's `formats`).
  *  Structurally matches the bridge's AssetFormat so it flows into
@@ -153,7 +155,7 @@ declare global {
 interface SyncHost {
   log(level: string, msg: string, data?: Record<string, unknown>): void;
   assets: {
-    _syncFromIndex(assets: AssetMetaRecord[], source?: { origin: string; tokensHead?: string | null }): Promise<unknown>;
+    _syncFromIndex(assets: AssetMetaRecord[], source?: { origin: string; tokensHead?: string | null; companions?: unknown }): Promise<unknown>;
     _pruneStale(assets: AssetMetaRecord[], sessionRefs: Set<string>, keepIds?: Set<string>, deferredProviders?: readonly string[]): Promise<{ blobs: number; meta: number }>;
     _hasBlob(key: string): Promise<boolean>;
     _cacheBlob(key: string, blob: Blob): Promise<unknown>;
@@ -334,6 +336,16 @@ export async function syncCatalog(
       // Never paint an unverified localStorage fallback after rejecting a signed pair.
       delete window.__toolIndex;
       delete window.__toolIndexSlim;
+      // A remote instance signed by a key this build does not trust used to leave the
+      // app with no tools at all. Nothing of that instance's is used: the instance is
+      // set aside for this page load and the bundled catalog, which this build's own
+      // key signed, goes through the same verification. A second refusal ends below.
+      if (isCatalogTrustFailure(e) && getInstanceBase()) {
+        const setAside = suspendInstanceBase();
+        host.log('warn', 'Instance catalog not trusted; using the bundled catalog', { instance: setAside, error: String(e) });
+        noteInstanceCatalogSetAside(setAside);
+        return syncCatalog(host, onAssetsReady, maintenanceGate, signInRequired);
+      }
       noteCatalogIntegrityFailure(e);
       host.log('warn', 'Catalog verification failed', { error: String(e) });
       return;
@@ -663,7 +675,8 @@ async function syncAssets(host: SyncHost, onAssetsReady?: () => unknown, mainten
   try { localStorage.setItem(BRAND_TRUST_MIRROR, JSON.stringify(brandTrust)); } catch { /* storage off */ }
 
   // Write metadata into IndexedDB so host.assets.get(id) can resolve whatever asset.
-  await host.assets._syncFromIndex(index.assets, { origin, ...('brandTokens' in index ? { tokensHead: index.brandTokens } : {}) });
+  const companionAssets = readCompanionAssets(index.companionDesignSystems);
+  await host.assets._syncFromIndex(index.assets, { origin, ...('brandTokens' in index ? { tokensHead: index.brandTokens } : {}), ...(companionAssets.length ? { companions: companionAssets } : {}) });
   await onAssetsReady?.();
   // The companions come from this app's own catalog only: an instance a person
   // connected to gives its own design systems through its pack. They are seeded
@@ -749,7 +762,9 @@ async function offlineScopeFilter(): Promise<((a: AssetMetaRecord) => boolean) |
 }
 
 export async function syncCorePrefetch(host: SyncHost): Promise<void> {
-  if (catalogRefused()) return;
+  // Not while viewing as a partner: it would refresh this browser's pinned tool files and
+  // offline parts from the partner's view.
+  if (catalogRefused() || viewingAs()) return;
   try {
     // Reuse the index syncAssets already fetched this boot. Only fall back to a
     // network fetch if it ran a 304 (unchanged) and never stashed one.

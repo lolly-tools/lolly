@@ -525,12 +525,17 @@
     "ExportOpts": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "ad6efc5528b7256a8e7737a7f5f454956fad90867b5a3545c1e0f969d810fa19"
+      "sha256": "6c665dfcaaf24292a1d0e7c03289c28d0b5ab6a2deabb34b68923f8c80c36338"
     },
     "ExportMeta": {
       "module": "export.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "6d7d767f757af45a8f690e8d8035bd50a2041fac2e529643b8848b5b48b8cf29"
+      "sha256": "db1ecca8d88e3b3d243685b7ef40cfa2b421253e36f46da8d6ea9a1303fe0c5f"
+    },
+    "ExportPartner": {
+      "module": "export.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "739ecaafa2fe393a6c2a1b6122cdfd1a3df6b5649d6d354c8b97fcc07537e978"
     },
     "ExportBrandSkill": {
       "module": "export.ts",
@@ -1012,10 +1017,15 @@
       "kind": "InterfaceDeclaration",
       "sha256": "a5028a82294f26ffe83b7cdfd7809718c9d6d3fe763b6a12f3fa7ad0177cd43e"
     },
+    "PdfStampPath": {
+      "module": "pdf.ts",
+      "kind": "InterfaceDeclaration",
+      "sha256": "6a48b4fc888a39a280bf866e97b92e81f61acdc519eea980afec4128d6e54ae1"
+    },
     "PdfStampOpts": {
       "module": "pdf.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "f75684ac38115e30db3ff8ded6e0dac351d056318d08f2b736a29d29eb41723b"
+      "sha256": "cfa997b0828e01c5362793dfd79cd24e97733c422c9d9028492ff49d9590f404"
     },
     "PdfStampResult": {
       "module": "pdf.ts",
@@ -1190,7 +1200,7 @@
     "Profile": {
       "module": "profile.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "1e3d3db5aa78c65e1fcfc9b250a4297f3fa8aefdfdc20a6a0f04a58ee1b8ab44"
+      "sha256": "0ca983fbf060fb65a1b694e00901fa97d14f3beb094ad9a196ce42ad5bfd0d11"
     },
     "RasterAPI": {
       "module": "raster.ts",
@@ -1325,7 +1335,7 @@
     "TextToPathOpts": {
       "module": "text.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "bb406b3f5cd8fc31671cf1d629e4379633800391a3ff0823809fa65b13a45a49"
+      "sha256": "b63a980bdb965fd94be7b35c299dbaa3b03c51931e519d5734d47a11b8b48f63"
     },
     "TextPathCluster": {
       "module": "text.ts",
@@ -1390,7 +1400,7 @@
     "TokenInspection": {
       "module": "tokens.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "f779a58f20aea406cb2400ff997e552efb06c4e4c31baf06258fa97f961595ee"
+      "sha256": "f966188f78b42be1495f61e0c63c9ba423139e9095d23f4053c264eb1446436d"
     },
     "TokensAPI": {
       "module": "tokens.ts",

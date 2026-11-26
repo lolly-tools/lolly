@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { installToolByteVerification } from './catalog/tool-bytes.ts';
+import { installVerifiedToolElements } from './catalog/tool-elements.ts';
 import { installVerifiedPreviews } from './lib/preview-media.ts';
 import { installStaleShellRecovery, looksLikeChunkError } from './lib/stale-shell.ts';
 /**
@@ -17,6 +18,7 @@ import { clearSiteToolSources } from './lib/site-tools-context.ts';
 import { mountIOSTextScale } from './lib/ios-text-scale.ts';
 import { overlayAbsorbsPopstate } from './lib/overlay-back.ts';
 import { createBridge } from './bridge/index.ts';
+import { noteCatalogSync } from './bridge/fallback-font-source.ts';
 import { setSceneManifestLoader, SCENE_TOOL_ID } from './bridge/scene-manifest.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
 import { prepareAssetCatalogFetch, syncCatalog, syncCorePrefetch, defaultFavouriteAssetIds, toolIndexChanged, localizeToolIndex, loadSlimToolIndex } from './catalog/sync.ts';
@@ -27,7 +29,7 @@ import { showGalleryWelcome } from './views/gallery-welcome.ts';
 import { openDropFilePicker } from './lib/drop-file-picker.ts';
 import { expectWelcomeDecision, isWelcomeDismissed, settleWelcomeDecision, welcomeSettled } from './lib/welcome-gate.ts';
 import { initTheme, applyTheme, urlThemeOverride } from './theme.ts';
-import { hydrateA11yPrefs, currentA11yPrefs, setA11yPref } from './lib/a11y-prefs.ts';
+import { hydrateA11yPrefs, currentA11yPrefs, setA11yPref, prefersReducedMotion } from './lib/a11y-prefs.ts';
 import { hydrateHand } from './lib/hand-pref.ts';
 import { startLayoutPosture } from './lib/layout-posture.ts';
 import { startFoldSegments } from './lib/fold-segment.ts';
@@ -37,7 +39,7 @@ import { applyIframeModeAttr, forwardDeckKeys, isIframeMode } from './lib/iframe
 import { hydrateChromeFollow } from './lib/chrome-follow.ts';
 import { computeViewportInsets } from './lib/viewport-insets.ts';
 import { initI18n, loadedLang } from './i18n.ts';
-import { hydrateSfxMuted, hydrateSfxVolume, installGlobalSfx, playSfx } from './lib/sfx.ts';
+import { hydrateSfxMuted, hydrateSfxShape, hydrateSfxVolume, installGlobalSfx, playSfx } from './lib/sfx.ts';
 import { hydrateFeatureFlags, flagEnabledSync, isFlagOnSync, applyPerfUi, perfUiOn, PERFORMANCE_UI_FLAG } from './feature-flags.ts';
 import { perfUiAutoPending } from './lib/perf-ui-auto-state.ts';
 // The collab + nearby WIRING is installed after first paint (see installCollabWiring
@@ -51,15 +53,17 @@ import { initSpotlightBoot } from './components/spotlight-boot.ts';
 import { ensureJelly, jellyEnabled } from './lib/jelly.ts';
 import { applyCaptureNeutral, ROUTE_MOUNTING_ATTR } from './lib/capture-neutral.ts';
 import { wireViewPrewarmIntent } from './lib/view-prewarm-intent.ts';
-import { peekNeuroDemo } from './lib/neuro-demo-peek.ts';
+import { peekNeuroDemo, peekLofiLinked, peekNeuroShared } from './lib/neuro-demo-peek.ts';
 import { syncJellyNavToggle, UTILITIES_FLAG_ID, type ViewToggleKey } from './components/view-toggle.ts';
 import { installGlobalReveal } from './lib/reveal.ts';
-import { installFoldSettle } from './lib/disclosure-motion.ts';
+import { installDetailsFold, installFoldSettle } from './lib/disclosure-motion.ts';
 import { isTauriShell } from './lib/instance-choice.ts';
+import { settlePageScroll } from './lib/page-scroll-settle.ts';
 // The memoised instance-base load. Boot has no wiring of its own to do here (every
 // syncing entry point awaits the same promise itself) - it needs the handle only to
 // hold the control-plane probe back until the base it fetches through is known.
-import { initInstanceBase } from './lib/instance.ts';
+import { initInstanceBase, instanceFetch } from './lib/instance.ts';
+import { mountViewAsBanner, stopViewAs, viewingAs } from './org/view-as.ts';
 // components/models-welcome.ts is NOT imported here: it is Tauri-only, yet its static
 // graph (lib/offline-manager.ts + the four model-catalog modules) rode the WEB boot
 // bundle - the exact regression scripts/check-bundle-budget.ts:74-76 records as fixed
@@ -69,7 +73,7 @@ import { initInstanceBase } from './lib/instance.ts';
 // every public one - answers dormant from a negative cache or one 404 and never loads
 // the 47 KB of gate/policy/injectable code behind it (plans/155 WP-3). Governance
 // comes from its own registry leaf for the same reason.
-import { initOrgProbeFirst } from './org/probe.ts';
+import { cleanAnswerRemembered, initOrgProbeFirst, onGateShown } from './org/probe.ts';
 import { setApprovalPdfPreview } from './lib/approval-request.ts';
 import { initSyncAutoPush, maybeApplyNewerAtBoot } from './lib/sync-service.ts';
 import type { BackupDeps } from './lib/sync-engine.ts';
@@ -77,11 +81,15 @@ import { initSelectPreview } from './select-preview.ts';
 import { installDepthSeam } from './lib/depth-seam.ts';
 import { recordTool, recordBatch, bumpMetric, recordFormat } from './metrics.ts';
 import { announce } from './a11y.ts';
-import { beginViewFade } from './view-fade.ts';
+import { afterNextPaint, beginViewFade, reclaimViewFade, TOOL_OPEN_BEAT_MS, viewSettled } from './view-fade.ts';
 import { beginViewLoading, type ViewLoading } from './components/view-loading.ts';
-import { noteLeavingHref, takeLeavingHref, recordLeave, noteMountedView } from './lib/back-nav.ts';
+import { installDropHold, viewFailed, viewLoading, viewReady, type DropNote } from './lib/drop-early.ts';
+import { noteLeavingHref, takeLeavingHref, recordLeave, noteMountedView, rememberViewOnLeave } from './lib/back-nav.ts';
 import { startWebGpuCheck, webGpuChecked } from './lib/webgpu/device.ts';
 import { STARTUP_PENDING_ATTRIBUTE } from './lib/startup-motion.ts';
+import { takeViewInput } from './lib/view-input.ts';
+import { createLateGate } from './lib/late-gate.ts';
+import { handOverBootSet } from './lib/sw-boot-set.ts';
 
 // The collab + nearby wiring, installed once the critical load is done rather than at
 // module scope. All five are REGISTRATIONS - a Share-dialog row, the opener that row
@@ -103,6 +111,26 @@ function installCollabWiring(): void {
     .then(m => { m.installNearbyBoot(); return import('./collab/nearby-accept.ts'); })
     .then(m => m.installNearbyAccept());
 }
+// A file dropped while Lolly is still loading is kept, not opened by the browser, and
+// given to the page under it once that page is ready (lib/drop-early.ts). Installed
+// first, so it takes over from index.html's boot script with no gap. A drop nothing on
+// the page took opens the front door's chooser, once boot has the host (it waits in
+// `unclaimedDrop` until then); a framed tool shows a note instead.
+let openFrontDoor: ((files: File[]) => void) | null = null;
+let unclaimedDrop: File[] | null = null;
+let dropNotes: Promise<typeof import('./lib/drop-hold-note.ts')> | undefined;
+const dropNote = (note: DropNote): void => {
+  dropNotes ??= import('./lib/drop-hold-note.ts');
+  void dropNotes.then(m => m.showDropHoldNote(note));
+};
+installDropHold({
+  tell: dropNote,
+  unclaimed: files => {
+    if (isIframeMode()) dropNote({ kind: 'unclaimed', files: files.map(file => file.name) });
+    else if (openFrontDoor) openFrontDoor(files);
+    else unclaimedDrop = files;
+  },
+});
 // A tool shown with `?iframe` inside another page keeps nothing and joins nothing
 // (lib/iframe-mode.ts): no collab or nearby listeners in a frame.
 applyIframeModeAttr();
@@ -121,7 +149,7 @@ onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/tooltips.ts'
 type WebHost = Awaited<ReturnType<typeof createBridge>>;
 
 /** Route names the shell can be in. */
-type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'rebrand' | 'compare' | 'start' | 'multi' | 'components' | 'document-model' | 'lab' | 'pdf' | 'extract' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply' | 'team' | 'open';
+type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'rebrand' | 'compare' | 'music' | 'start' | 'multi' | 'components' | 'document-model' | 'lab' | 'pdf' | 'extract' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply' | 'team' | 'open';
 
 /** A parsed route: a discriminated union on `name`. */
 type Route =
@@ -133,6 +161,7 @@ type Route =
   | { name: 'prepare' }
   | { name: 'rebrand'; params?: string }
   | { name: 'compare'; params?: string }
+  | { name: 'music'; params?: string }
   | { name: 'data'; params?: string }
   | { name: 'pro'; params?: string }
   | { name: 'learning'; params?: string }
@@ -256,6 +285,7 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   verify: { label: 'Verify', viewClasses: ['verify-view'], footer: 'none' },
   convert: { label: 'Convert', viewClasses: ['convert-view'], footer: 'none' },
   compare: { label: 'Compare', viewClasses: ['compare-view'], footer: 'none' },
+  music: { label: 'Music generator', viewClasses: ['music-view'], footer: 'none' },
   prepare: { label: 'Prepare for sharing', viewClasses: ['prepare-view'], footer: 'none' },
   // Rebrand (plan 274): keyed on params, so a dropped .lolly that names a different
   // project (`?project=<id>`) re-mounts rather than deduping onto the open one.
@@ -395,6 +425,7 @@ function webGpuFailed(): boolean { return webGpuStop !== null; }
 
 function showWebGpuCard(): void {
   if (!webGpuStop) return;
+  viewFailed();
   const { error } = webGpuStop;
   void import('./lib/boot-error.ts').then(({ showBootError }) => showBootError(error))
     .catch(() => showReloadCard(error instanceof Error ? error.message : String(error)));
@@ -441,8 +472,26 @@ function stopForWebGpu(error: unknown): void {
   showWebGpuCard();
 }
 
+/** The sign-in gate when it arrives after the first paint (lib/late-gate.ts). */
+const lateGate = createLateGate({
+  view: () => document.getElementById('view') as ViewElement | null,
+  reset: () => { routeLoading?.close(); routeLoading = null; mountedRouteSig = ''; viewFailed(); },
+  settleChrome: () => applySearchBarRoute('none', parseRoute().name),
+  viewClasses: () => VIEW_CLASS_OWNERS.keys(),
+  snapshots: () => document.querySelectorAll('body > .view-fade'),
+});
+
+/**
+ * While boot has painted before the control-plane probe answered (plan 371), the pending
+ * answer: only the browse routes in {@link ROUTES_BEFORE_PROBE} mount before it, so no
+ * tool, project or settings view opens ahead of a gate or of a control plane's policy.
+ */
+let probeAnswerPending: Promise<unknown> | null = null;
+const ROUTES_BEFORE_PROBE: ReadonlySet<RouteName> = new Set<RouteName>(['gallery', 'utilities', 'docs']);
+
 async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<void> {
   if (webGpuStop) { showWebGpuCard(); return; }
+  if (lateGate.stopped()) return;
   const route = parseRoute();
   const appearance = urlThemeOverride();
   applyTheme(appearance ?? localStorage.getItem('theme') ?? 'light', false, false);
@@ -455,6 +504,8 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // falls back to the outgoing view's mount-time URL.
   const leftHref = takeLeavingHref();
   if (!opts.force && routeSig === mountedRouteSig) return;
+  // A tool open measures its exit beat from here, about the moment of the click.
+  const navStart = performance.now();
   const outgoing = document.getElementById('view') as ViewElement | null;
   if (!opts.force && mountedRouteSig && route.name === 'tool' && outgoing?._applyWorkspace) {
     const previous = JSON.parse(mountedRouteSig) as Array<string | null>;
@@ -476,6 +527,18 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   mountedRouteSig = routeSig;
   routeLoading?.close();
   if (routeSig !== prevSig && !isIframeMode()) recordFeaturedRoute(route);
+  // Opening a tool from another view: the tool view's chunks start downloading now rather
+  // than after the teardown, and the pressed card paints first (view-fade.ts): everything
+  // below up to the first await can run in the task of the click, and on a slow phone it
+  // held the first frame back far enough that the pressed state was never seen. Reduced
+  // motion keeps the immediate swap it always had; the wait would cost it a frame.
+  if (route.name === 'tool' && _lastRouteName && _lastRouteName !== 'tool') {
+    void import('./views/tool.ts').catch(() => { /* the mount's own import reports it */ });
+    if (!prefersReducedMotion()) {
+      await afterNextPaint();
+      if (navigation !== navigationSeq) return;
+    }
+  }
 
   // Remember the view being left so the next view's back pill can name it and
   // return there (lib/back-nav.ts). Only on a genuine view change: the routes
@@ -489,6 +552,10 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   };
   const leftHandoff = !!prevSig && ROUTES[(JSON.parse(prevSig) as string[])[0] as RouteName]?.handoff === true;
   if (prevSig && viewIdent(routeSig) !== viewIdent(prevSig) && !leftHandoff) recordLeave(leftHref);
+  // File drops are held until this view has mounted; one made for another view is not
+  // opened here (lib/drop-early.ts).
+  const dropView = viewIdent(routeSig);
+  viewLoading(dropView);
 
   const view = document.getElementById('view') as ViewElement;
   // Tell the search bar whether this navigation redraws the route already showing: a
@@ -504,6 +571,9 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   try { view._cleanup?.(); } catch (e) { console.error('[nav] outgoing view cleanup threw:', e); }
   delete view._cleanup;
   delete view._beforeLeave;
+  // A promise the outgoing view never handed over (its mount was superseded) must not
+  // hold back the announcement of the next view.
+  takeViewInput(view);
 
   // The Projects "+ New tool" / resume flow arms one-shot sessionStorage markers
   // (lolly:fileInto, lolly:returnTo) that the tool view READS on mount (it can't
@@ -545,9 +615,16 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // leaves it in place until the incoming view replaces it, as a cold deep link does,
   // so the loading card's own check sees it and one loader shows, not two.
   const holdingLoader = view.querySelector(':scope > p.loading') !== null;
-  const fade = (prevRouteName && route.name !== prevRouteName && !returning && !holdingLoader)
-    ? beginViewFade(view)
-    : null;
+  // Opening a tool holds the snapshot (view-fade.ts, plan 371 M2b): a still picture for a
+  // short beat, then the plain ground and the loading card until the tool has rendered,
+  // then a short fade. A Back to the view a still-mounting tool was opened from takes
+  // that snapshot back, so the view shows at once while it mounts again underneath.
+  const reclaimed = holdingLoader ? null : reclaimViewFade(routeSig);
+  const holdTool = route.name === 'tool';
+  const fade = reclaimed?.fade ?? ((prevRouteName && route.name !== prevRouteName && !returning && !holdingLoader)
+    ? beginViewFade(view, holdTool ? { hold: true, source: prevSig } : {})
+    : null);
+  const heldFade = holdTool && !reclaimed ? fade : null;
 
   // Scoping classes, from ROUTES: every class any route declares is toggled on
   // EVERY navigation, so the outgoing view's class comes off as the incoming
@@ -586,8 +663,21 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   const browsingBoot = !prevRouteName && (route.name === 'gallery' || route.name === 'utilities');
   // A framed tool (`?iframe`) shows no loading dialog: a modal takes the keyboard from
   // the page around it, which is a presenting deck's arrow keys.
-  const loading = scriptedExport || browsingBoot || isIframeMode() ? null : beginViewLoading();
+  const loading = scriptedExport || browsingBoot || isIframeMode() ? null
+    : beginViewLoading(heldFade ? Infinity : undefined, { plain: !!heldFade });
   routeLoading = loading;
+  // A held tool open: after the beat the view it left goes from the screen and the card
+  // shows in the same moment, so the screen is never empty; a tool ready sooner skips
+  // both. Escape until then goes back to that view, as Back does.
+  const escapeBack = (e: KeyboardEvent): void => {
+    if (e.key !== 'Escape' || e.defaultPrevented) return;
+    e.preventDefault();
+    history.back();
+  };
+  if (heldFade) {
+    heldFade.leaveAt(navStart + TOOL_OPEN_BEAT_MS, () => loading?.show());
+    document.addEventListener('keydown', escapeBack, true);
+  }
   // The same span as the card, on every route: set until this mount settles. Only the
   // current navigation clears it, so a superseded mount finishing late cannot mark the
   // newer one as mounted.
@@ -596,6 +686,15 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // The WebGPU startup check runs alongside boot (see boot()). A route that can run a
   // tool or a GPU operation waits for it here, under the loading card, and never mounts
   // if it fails; the gallery, utilities and docs paint without waiting.
+  // Boot painted before the probe answered: a route other than the browse routes waits
+  // for the answer here, under the loading card, and never mounts over a gate.
+  if (probeAnswerPending && !ROUTES_BEFORE_PROBE.has(route.name)) {
+    await probeAnswerPending;
+    if (navigation !== navigationSeq) { fade?.commit(); return; }
+  }
+  // Checked whether or not this navigation waited above: one that started before the
+  // answer and was paused elsewhere (the tool-open paint wait) finds the wait already gone.
+  if (lateGate.stopped()) { fade?.commit(); lateGate.replace(); return; }
   if (!ROUTES[route.name].beforeWebGpu) {
     try { await webGpuChecked(); } catch (error) { fade?.commit(); stopForWebGpu(error); return; }
     // A newer navigation started while this one waited, and owns the view now. Not
@@ -647,6 +746,12 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     case 'compare': {
       const { mountCompare } = await navigationModule(import('./views/compare.ts'), navigation);
       mountCompare(view, host, route.params);
+      break;
+    }
+    // #/music - the music generator: Lolly Sings as a track editor (views/music-studio.ts).
+    case 'music': {
+      const { mountMusicStudio } = await navigationModule(import('./views/music-studio.ts'), navigation);
+      mountMusicStudio(view, host, route.params);
       break;
     }
     case 'prepare': {
@@ -897,7 +1002,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     }
   }
   } catch (err) {
-    if (err instanceof NavigationSuperseded || navigation !== navigationSeq) { fade?.commit(); return; }
+    if (err instanceof NavigationSuperseded || navigation !== navigationSeq) { fade?.commit(); if (lateGate.stopped()) lateGate.replace(); return; }
     // Fade the outgoing snapshot out either way, so it can't linger over the
     // reload card (or the fresh shell after a stale-chunk reload).
     fade?.commit();
@@ -905,27 +1010,33 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     // and whatever the mount had installed before it threw is torn down too. A GPU
     // operation's own failure is not that, and takes the path below.
     if (webGpuFailed()) { replaceViewWithWebGpuCard(); return; }
+    if (lateGate.stopped()) { lateGate.replace(); return; }
     console.error('View mount failed:', err);
     if (import.meta.env.PROD && looksLikeChunkError(err)) { recoverFromStaleShell(); return; }
     showReloadCard('This view didn’t finish loading. Reload to try again.');
     return;
   } finally {
+    document.removeEventListener('keydown', escapeBack, true);
     loading?.close();
     if (routeLoading === loading) routeLoading = null;
     if (navigation === navigationSeq) view.removeAttribute(ROUTE_MOUNTING_ATTR);
   }
 
-  if (navigation !== navigationSeq) { fade?.commit(); return; }
+  // A superseded mount that settles after a sign-in gate arrived is torn down as well.
+  if (navigation !== navigationSeq) { fade?.commit(); if (lateGate.stopped()) lateGate.replace(); return; }
 
   // The startup check failed while this view was still mounting. stopForWebGpu ran
   // before the mount had painted or installed its cleanup, so the mount has just
   // painted over the card: stop it and put the card back.
   if (webGpuFailed()) { fade?.commit(); replaceViewWithWebGpuCard(); return; }
+  // A sign-in gate arrived while this view was still mounting: the same, for the gate.
+  if (lateGate.stopped()) { fade?.commit(); lateGate.replace(); return; }
 
   // The mount settled: its document.title is set and any URL canonicalisation
   // (the tool view's /t/<id> rewrite) is done - snapshot it as the candidate
   // "previous view" for the next navigation's back pill.
   noteMountedView(route.name);
+  viewReady(dropView);
 
   // Reconcile the persistent jelly tab pill (view-toggle.ts): listing views
   // show it (the pill slides to the active tab), everything else hides it.
@@ -953,10 +1064,33 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     view.scrollTop = 0;
   }
 
+  // The iPhone's web view can be left resting out of place after a navigation,
+  // with nothing in the page to show for the fault; the native side checks.
+  settlePageScroll(route.name);
+
+  // A view put back by a Back: give it the scroll position the snapshot showed, and let
+  // its pictures in view load before the snapshot goes, so nothing is drawn twice.
+  if (reclaimed) {
+    await viewSettled(view, reclaimed.place);
+    if (navigation !== navigationSeq) { fade?.commit(); return; }
+  }
+
   // The incoming view is mounted and scrolled to top - fade the outgoing snapshot
   // out over it. A no-op when there was no fade (same-view refresh, reduced motion).
   fade?.commit();
 
+  // Say "loaded" when the view takes input. A tool view that opens a saved document keeps
+  // its modal "Opening…" card up until the runtime settles (lib/view-input.ts), so the
+  // announcement and the focus move wait for that card. Announced before the card went,
+  // a person or a script typed into a page the card still blocked, and the keystrokes
+  // were lost. Not awaited, so a caller that awaits navigate() is not held behind the card.
+  const usable = takeViewInput(view);
+  if (!usable) arriveAt(route, view);
+  else void usable.then((ready) => { if (ready && navigation === navigationSeq) arriveAt(route, view); });
+}
+
+/** Tell assistive tech the view has changed and move focus into the view. */
+function arriveAt(route: Route, view: HTMLElement): void {
   announceRoute(route);
   const af = document.activeElement;
   // A framed tool (`?iframe`) never takes focus on its own: the page around it owns the
@@ -1053,36 +1187,36 @@ function trackVisualViewport(): void {
 /**
  * Mobile-app platform fit (plans/132, device-verified fixes 2026-08-22).
  * Tauri MOBILE webviews only - the browser PWA and the desktop shells are
- * untouched. Three corrections, each earned on a real phone:
+ * untouched. Two corrections, each earned on a real phone, both iOS:
  *
- * 1) Page pinch-zoom is disabled (Andy: it breaks the fixed chrome; zooming
- *    belongs to the surfaces that own it - the catalog preview and the canvas
- *    gestures). WKWebView honours user-scalable=no; Safari-the-browser ignores
- *    it for accessibility, but this is an app, whose text-size story is (3).
- * 2) env(safe-area-inset-*) fallback: the iOS 27 beta's WKWebView resolves the
+ * 1) env(safe-area-inset-*) fallback: the iOS 27 beta's WKWebView resolves the
  *    envs to 0 while drawing full-bleed, which put the back pill on top of the
  *    status clock. Probe env() through a live element; when it reads 0 on a
  *    notched iPhone, feed tokens.css's --safe-*-fb from the screen class
  *    (erring a few px generous - chrome sits a hair lower, never under glass).
- * 3) OS text size: iOS Dynamic Type does not reach web content, so probe the
+ * 2) OS text size: iOS Dynamic Type does not reach web content, so probe the
  *    `-apple-system-body` font continuously and feed its full ratio (smaller
  *    and larger settings) into the existing --a11y-fs type/icon/control tokens.
  *    The in-app Large text preference composes with that live OS value.
+ *
+ * Page pinch-zoom is no longer turned off here. This used to rewrite the
+ * viewport to user-scalable=no, because zooming strands the fixed chrome, but
+ * that fails WCAG 1.4.4 (Resize text) and docs/inclusive-design.md's promise.
+ * The app now zooms as the web app does in a phone's browser: the fixed chrome
+ * follows the visual viewport through --vv-* (trackVisualViewport above), and
+ * each surface with a pinch of its own keeps the gesture on its own element
+ * (touch-action and preventDefault on the tool stage, Design's selection,
+ * the timeline, the headshot cropper and the docs lightbox). Android's WebView
+ * pinches only with its built-in zoom on, which MainActivity.kt turns on.
  */
 function initMobilePlatformFit(): void {
   if (!('__TAURI_INTERNALS__' in window)) return;
+  // iPad can have a fine primary pointer when a trackpad is attached, so this
+  // reads the device, not the pointer.
   const ios = /iP(hone|ad|od)/.test(navigator.userAgent)
     || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  // iPad can have a fine primary pointer when a trackpad is attached.
-  if (!ios && !matchMedia('(pointer: coarse)').matches) return;
-  const root = document.documentElement;
-
-  document.querySelector('meta[name="viewport"]')?.setAttribute(
-    'content',
-    'width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no',
-  );
-
   if (!ios) return;
+  const root = document.documentElement;
 
   const probe = document.createElement('div');
   probe.style.cssText =
@@ -1160,7 +1294,7 @@ function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGa
   const welcomeRoute = parseRoute().name;
   const catalogHost = catalogHostOf(host);
   const welcomeFirst = coldGallery && welcomeRoute === 'gallery'
-    ? () => showGalleryWelcome(catalogHost, () => parseRoute().name === 'gallery' && !webGpuStop).catch(console.error) : undefined;
+    ? () => showGalleryWelcome(catalogHost, () => parseRoute().name === 'gallery' && !webGpuStop && !lateGate.stopped()).catch(console.error) : undefined;
   return syncCatalog(catalogHost, welcomeFirst, welcomeSettled, signInRequired, preparedAssets)
     .then(async () => { try { await mergeInstalledToolsIntoIndex(); } catch { /* no installed tools / no index yet */ } });
 }
@@ -1169,8 +1303,31 @@ async function boot(): Promise<void> {
   // Capture export intent before mounting can rewrite the address.
   const bootRoute = parseRoute();
   const scriptedExport = new URLSearchParams('params' in bootRoute ? bootRoute.params ?? '' : '').has('export');
+  // The gallery's code is a graph of about 58 chunks that the first navigate() used to
+  // request only after every await below (713 ms of a 2,063 ms cold phone boot, plan
+  // 371). Start it now for a route that shows the gallery; navigate()'s own import
+  // reuses this one. Not awaited, and still a lazy chunk: nothing joins the boot chunk.
+  if (bootRoute.name === 'gallery' || bootRoute.name === 'utilities') void import('./views/gallery.ts').catch(() => {});
+  mountViewAsBanner(document, () => stopViewAs(instanceFetch));
   installToolByteVerification();
+  // The tool view reads a tool's files without getTool(), so the element guard is set here too.
+  installVerifiedToolElements();
   installVerifiedPreviews();
+  // The view this tab leaves the app from, for the static docs' way back (lib/back-nav.ts).
+  rememberViewOnLeave();
+  // "Skip to content" (index.html) is a #view fragment link, and in this app the hash is
+  // the route: followed as a link it opened Home. It moves focus instead, to the content
+  // a view marks with data-skip-target (the docs article), else to the view itself.
+  document.addEventListener('click', (e) => {
+    const link = (e.target as Element | null)?.closest?.('a.skip-link');
+    if (!link) return;
+    e.preventDefault();
+    const view = document.getElementById('view');
+    const target = view?.querySelector<HTMLElement>('[data-skip-target]') ?? view;
+    if (!target) return;
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+    target.focus();
+  });
   // WebGPU is a hard requirement (plan 295), checked alongside boot rather than before
   // it: a cold software adapter can take seconds, and the gallery must not wait for one
   // to paint. navigate() holds every route that can run a tool until the check passes;
@@ -1489,9 +1646,11 @@ async function boot(): Promise<void> {
   // then install the one set of app-wide, delegated cue listeners (idempotent).
   hydrateSfxMuted((profile as { sfxMuted?: boolean }).sfxMuted);
   hydrateSfxVolume((profile as { sfxVolume?: number }).sfxVolume);
+  hydrateSfxShape((profile as { sfxShape?: number }).sfxShape);
   installGlobalSfx();
   installGlobalReveal();
   installFoldSettle();
+  installDetailsFold();
   // Jelly effects are opt-in (JELLY_FLAG.default is false, feature-flags.ts), so
   // the mirror below bakes the OFF default and a user's toggle is the only thing
   // that arms the bundle. There is no brand-lock reconcile any more.
@@ -1549,21 +1708,47 @@ async function boot(): Promise<void> {
   // dock. Those users pay nothing at boot now and load the modules on first use, from
   // the Sound control's own imports (plans/155 Task 3.3).
   const neuroDemo = peekNeuroDemo();
+  // A shared Lofi tune (#/?lofi=warm.123456) opens the player on that tune, so it counts
+  // as Neurospicy state even for someone who has never turned the mode on.
+  const lofiLinked = peekLofiLinked();
+  // A shared track or moment (#/?listen=radio/…, ns.at=12, ns.viz=…) does the same.
+  const neuroShared = peekNeuroShared();
   const neuroState = (profile as { neurospicy?: unknown }).neurospicy !== undefined
     || (profile as { atmosphere?: unknown }).atmosphere !== undefined;
-  if ((neuroState || neuroDemo) && !isIframeMode()) {
-    void Promise.all([import('./lib/neurospicy.ts'), import('./lib/atmosphere.ts')]).then(([neuro, atmo]) => {
+  if ((neuroState || neuroDemo || lofiLinked || neuroShared) && !isIframeMode()) {
+    void Promise.all([import('./lib/neurospicy.ts'), import('./lib/atmosphere.ts')]).then(async ([neuro, atmo]) => {
       neuro.hydrateNeurospicy((profile as { neurospicy?: unknown }).neurospicy);
       atmo.hydrateAtmosphere((profile as { atmosphere?: unknown }).atmosphere);
+      // The runtime host is the full WebHost, whose profile can also be written.
+      const neuroHost = host as unknown as Parameters<typeof neuro.armNeurospicy>[0];
       if (neuroDemo) void import('./lib/neuro-demo.ts').then(d => d.applyNeuroDemo(host as unknown as Parameters<typeof d.applyNeuroDemo>[0], neuroDemo));
+      // A shared moment: where the tune had got to, and the sharer's visualiser look.
+      const shared = (lofiLinked || neuroShared) && flagEnabledSync('neurospicy')
+        ? (await import('./lib/neuro-share.ts')).readNeuroShare(window.location) : null;
+      if (lofiLinked && flagEnabledSync('neurospicy')) {
+        const lofi = await import('./lib/neurospicy-lofi.ts');
+        const link = lofi.readLofiLink(window.location);
+        if (link) await neuro.openLofiLink(neuroHost, link, shared?.moment.bar ?? 0);
+        // Take the tune out of the address, so a reload does not queue it again.
+        history.replaceState(history.state, '', lofi.withoutLofiLink(window.location));
+      }
+      if (shared?.listen) await neuro.openListenLink(neuroHost, shared.listen, shared.moment.seconds);
+      if (neuroShared && flagEnabledSync('neurospicy')) {
+        const share = await import('./lib/neuro-share.ts');
+        history.replaceState(history.state, '', share.withoutNeuroShare(window.location));
+      }
       if (flagEnabledSync('neurospicy')) {
-        neuro.armNeurospicy(host as unknown as Parameters<typeof neuro.armNeurospicy>[0]);
+        neuro.armNeurospicy(neuroHost);
         atmo.armAtmosphere(host as unknown as Parameters<typeof atmo.armAtmosphere>[0]);
         // Show the bottom-right dock if the mode was left on. The dock (and the music
         // player inside it) is dynamic-imported and only when the mode is actually enabled.
         if (neuro.getNeurospicy().enabled) {
           void import('./components/neuro-dock.ts')
-            .then(m => m.syncNeuroDock(host as unknown as Parameters<typeof m.syncNeuroDock>[0]));
+            .then(m => {
+              m.syncNeuroDock(neuroHost);
+              // Someone shared a moment: open the player large, looking as the sharer saw the picture.
+              if (shared) m.showSharedMoment(neuroHost, shared.moment.viz);
+            });
         }
       }
     });
@@ -1622,7 +1807,7 @@ async function boot(): Promise<void> {
   // inside the sheet, which re-checks it) so the module - and lib/offline-manager.ts
   // + the model-catalog chain behind it - is imported on Tauri alone and never joins
   // the web shell's boot graph (plans/155 Task 3.3).
-  if (isTauriShell()) {
+  if (isTauriShell() && !viewingAs()) {
     void import('./components/models-welcome.ts').then(m => m.maybeShowModelsWelcome());
   }
 
@@ -1631,6 +1816,8 @@ async function boot(): Promise<void> {
   // existence check. Part of catalogReady so the first gallery paint already includes them.
   //
   const catalogReady = earlyCatalog ?? startBootCatalog(host, coldGallery, signInRequired);
+  // A first visit can paint a tool before its catalog arrives; the fallback fonts wait for the sync.
+  noteCatalogSync(catalogReady);
   // Core-asset warming: 32 fetches / ~787 KB, fire-and-forget, and nothing on screen
   // waits for any of it. Firing at catalog-land put it in direct competition with the
   // first viewport's preview art, so it waits for load + idle now (plans/155 Task 3.6,
@@ -1659,6 +1846,7 @@ async function boot(): Promise<void> {
   };
   catalogReady.then(() => afterWelcomeIdle(checkHosted));
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkHosted(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') settlePageScroll('foreground'); });
   // The Neurospicy dock mounts ABOVE, before this sync starts - on a cold install its
   // track list would be built from a not-yet-synced catalog. Rebuild it once assets land.
   // Same `neuroState` gate as that mount (Task 3.3): with the module never loaded there
@@ -1732,14 +1920,46 @@ async function boot(): Promise<void> {
   // NOT the answer: the panel reads the registry once, at mount, with no change
   // notification, so anyone opening a tool before that callback fired got no Send
   // section at all.
-  const org = await orgPromise;
+  //
+  // A deployment whose last probe answer here was "no control plane" lets the browse
+  // routes (gallery, utilities, docs) paint before the next answer (plan 371, decided
+  // 2026-11-20; org/probe.ts, "THE LAST ANSWER"). Every other route, a tool and its Send
+  // section included, waits for the answer in navigate(). The probe still runs: a gate it
+  // now reports is drawn in place of whatever painted, in the same task, and no route
+  // mounts again (lib/late-gate.ts). With no record, or any other record, boot waits here
+  // exactly as before. The record is keyed by the instance base, so it is read once the
+  // base has loaded (memoised; on web that happened long ago). A probe that finished
+  // before this line has already written its own answer, so a gate is never missed here.
+  await initInstanceBase();
+  const paintBeforeProbe = cleanAnswerRemembered();
+  if (paintBeforeProbe) {
+    onGateShown(gate => lateGate.stop(gate));
+    probeAnswerPending = orgPromise.then(late => { if (late?.gate) lateGate.stop(null); probeAnswerPending = null; });
+  }
+  const org = paintBeforeProbe ? null : await orgPromise;
   if (org?.gate) { settleWelcomeDecision(); return; }
-  if (window.top === window && typeof (document as Document & { modelContext?: { registerTool?: unknown } }).modelContext?.registerTool === 'function') {
-    void import('./lib/site-tools-discovery.ts').then(module => module.installSiteTools(host)).catch(error => console.warn('[lolly:site-tools]', error));
-  }
-  if (org?.config?.branding?.revision) {
-    void import('./lib/design-system/brand-refresh.ts').then(module => module.mountBrandRefresh(host, catalogHostOf(host), org.config!.branding!.revision, () => parseRoute().name)).catch(console.error);
-  }
+  // What waits for the gate decision: now on the waiting path, on the answer otherwise.
+  const orgDecided = paintBeforeProbe ? orgPromise : Promise.resolve(org);
+  // Pictures written before the one preview store (plan 373) move into it a few
+  // records per idle slice: after the first mount, the welcome and the page load, and
+  // never under a sign-in gate. Nothing waits on the move, and a record reads the old
+  // way until it has moved (lib/preview-idle.ts says when the move holds back).
+  void orgDecided.then(decided => {
+    if (decided?.gate || scriptedExport || isIframeMode()) return;
+    afterWelcomeIdle(() => {
+      if (!lateGate.stopped()) void import('./lib/preview-idle.ts').then(m => m.startPreviewMigration()).catch(() => {});
+    });
+  });
+  void orgDecided.then(decided => {
+    if (decided?.gate) return;
+    if (window.top === window && typeof (document as Document & { modelContext?: { registerTool?: unknown } }).modelContext?.registerTool === 'function') {
+      void import('./lib/site-tools-discovery.ts').then(module => module.installSiteTools(host)).catch(error => console.warn('[lolly:site-tools]', error));
+    }
+    const revision = decided?.config?.branding?.revision;
+    if (revision) {
+      void import('./lib/design-system/brand-refresh.ts').then(module => module.mountBrandRefresh(host, catalogHostOf(host), revision, () => parseRoute().name)).catch(console.error);
+    }
+  });
 
   // The footer's "Open" button (components/footer-nav.ts) is an action, not a route: it
   // opens the OS file picker that feeds the SAME chooser a dropped file gets, so a
@@ -1756,9 +1976,14 @@ async function boot(): Promise<void> {
   // change the address and leave the old view on screen.
   let markRoutesListening = (): void => {};
   const routesListening = new Promise<void>((resolve) => { markRoutesListening = resolve; });
+  // The chooser also waits for the gate decision, and never opens over a gate: a file
+  // picked while a late gate arrived goes nowhere.
+  const chooserReady = routesListening.then(() => orgDecided).then(decided =>
+    (decided?.gate || lateGate.stopped() ? new Promise<never>(() => {}) : undefined));
   document.addEventListener('click', (e) => {
     if (!(e.target instanceof Element) || !e.target.closest('[data-open-file]')) return;
-    openDropFilePicker(host as unknown as Parameters<typeof openDropFilePicker>[0], { ready: routesListening });
+    if (lateGate.stopped()) return;
+    openDropFilePicker(host as unknown as Parameters<typeof openDropFilePicker>[0], { ready: chooserReady });
   }, true);
 
   const routeName = parseRoute().name;
@@ -1838,6 +2063,17 @@ async function boot(): Promise<void> {
     await firstNavigate();
   }
 
+  // A late answer that found a control plane with no gate has applied its policies by
+  // now (org/index.ts), and the listing views read some of them as they mount, so a
+  // listing view mounts again; if the instance's home view moved the address, this is
+  // where it opens. A view that can hold work keeps what it has until it is next opened.
+  if (paintBeforeProbe) {
+    void orgPromise.then(late => {
+      if (!late || late.gate) return;
+      if (_lastRouteName === 'gallery' || _lastRouteName === 'utilities' || _lastRouteName === 'dashboard') refreshMountedView();
+    });
+  }
+
   // The locale catalog is the second thing that can land after the first paint, and
   // it gets the same treatment as the first (Task 3.7): re-overlay the tool index's
   // translated names - localizeToolIndex is idempotent and stashes the pristine
@@ -1862,7 +2098,9 @@ async function boot(): Promise<void> {
   // snapshot a sibling device left newer. Never blocks boot.
   const syncDeps = (): BackupDeps => ({ host: host as unknown as BackupDeps['host'], storage: localStorage });
   initSyncAutoPush(syncDeps);
-  void maybeApplyNewerAtBoot(syncDeps());
+  // The newer-snapshot prompt and the file intake below waited for the gate decision when
+  // boot did, and they still do: neither opens over a gate.
+  void orgDecided.then(decided => { if (!decided?.gate) void maybeApplyNewerAtBoot(syncDeps()); });
 
   // Android share-target (ACTION_SEND → Lolly): poll the native stash and route
   // shared files through the universal drop chooser. Placed after the first
@@ -1871,22 +2109,28 @@ async function boot(): Promise<void> {
   // body-mounted). A feature-detected no-op everywhere but the Android WebView.
   // drop-router (the sniff + chooser module) is itself dynamic-imported off the boot
   // path now; its heavy import/ingest dependencies are also lazy.
-  void import('./lib/drop-router.ts').then((m) => {
-    m.initShareTargetIngest(host as unknown as Parameters<typeof m.initShareTargetIngest>[0]);
+  void orgDecided.then(decided => (decided?.gate ? null : import('./lib/drop-router.ts'))).then((m) => {
+    if (!m) return null;
+    const pickerHost = host as unknown as Parameters<typeof m.openDropChooser>[1];
+    // A file dropped while Lolly loaded that nothing on the page took (see installDropHold).
+    openFrontDoor = files => { void m.openDropChooser(files, pickerHost); };
+    if (unclaimedDrop) openFrontDoor(unclaimedDrop);
+    unclaimedDrop = null;
+    m.initShareTargetIngest(pickerHost);
     // App Links (plan 171): a tapped https://lolly.tools/t/… link that opened the
     // Android app resolves to its in-app route. Feature-detected no-op elsewhere.
-    m.initDeepLinkIntake(host as unknown as Parameters<typeof m.initDeepLinkIntake>[0]);
+    m.initDeepLinkIntake(pickerHost);
     // The installed PWA's own two doors (plan 202 WP4.3), both probes:
     //   share target - the service worker parked the shared files and redirected
     //     here; this drains that stash into the drop chooser.
     //   file handlers - the OS "Open with" launch delivers its files on
     //     launchQueue, which only Chromium-family browsers define. Same chooser,
     //     so a .lolly opened from Finder asks the same question a dropped one does.
-    void m.initShareTargetFileIntake(host as unknown as Parameters<typeof m.initShareTargetFileIntake>[0]);
+    void m.initShareTargetFileIntake(pickerHost);
     const launchQueue = (window as Window & { launchQueue?: LaunchQueue }).launchQueue;
     if (typeof launchQueue?.setConsumer === 'function') {
       launchQueue.setConsumer((params) => {
-        void m.openLaunchedFiles(params, host as unknown as Parameters<typeof m.openLaunchedFiles>[1]);
+        void m.openLaunchedFiles(params, pickerHost);
       });
     }
     // Desktop integration poll loop (plans/174): drains the native event queue -
@@ -2108,6 +2352,7 @@ function parseRoute(): Route {
     if (parts[0] === 'verify' || parts[0] === 'valid' || parts[0] === 'v') return { name: 'verify', params: query || '' };
     if (parts[0] === 'convert') return { name: 'convert', params: query || '' }; // on-device file converter
     if (parts[0] === 'compare') return { name: 'compare', params: query || '' };
+    if (parts[0] === 'music') return { name: 'music', params: query || '' }; // the music generator
     if (parts[0] === 'prepare') return { name: 'prepare' };
     if (parts[0] === 'rebrand') return { name: 'rebrand', params: query || '' }; // renovate a deck (plan 274)
     if (parts[0] === 'data') return { name: 'data', params: query || '' }; // on-device spreadsheet viewer/editor
@@ -2308,7 +2553,10 @@ function parseRoute(): Route {
 
 // Only register the service worker in production builds. In dev it would cache
 // /tools/ files, so a slow reload could serve a stale edit instead of the file
-// just changed on disk.
+// just changed on disk. For the same reason dev also removes a worker left on
+// this origin by a production build or a preview served on the same port:
+// otherwise that worker keeps answering the dev server's requests with the
+// files its own build cached, so the app runs code that is not on disk.
 //
 // On window.load, not at module top level (plans/155 Task 3.5): registering here
 // used to start the SW install - and with it the whole precache - while the boot
@@ -2316,14 +2564,21 @@ function parseRoute(): Route {
 // bandwidth from the paint it exists to make faster next time. Nothing about the
 // FIRST load depends on the SW being registered early.
 if ('serviceWorker' in navigator) {
-  if (isTauriShell()) {
+  if (isTauriShell() || !import.meta.env.PROD) {
     // Native bundles already serve their files offline. A persisted PWA worker
-    // can intercept the next WebView2 launch with a stale protocol handler.
+    // can intercept the next WebView2 launch with a stale protocol handler. In
+    // dev, see above.
     void navigator.serviceWorker.getRegistrations()
       .then(registrations => Promise.all(registrations.map(registration => registration.unregister())))
       .catch(() => {});
-  } else if (import.meta.env.PROD) {
-    onWindowLoad(() => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
+  } else {
+    // Once the worker controls this page, it is handed the build files the page already
+    // loaded, so the next visit finds them in its cache (lib/sw-boot-set.ts, plan 371).
+    onWindowLoad(() => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => handOverBootSet(navigator.serviceWorker, document, () => performance.getEntriesByType('resource'), location.origin))
+        .catch(() => {});
+    });
   }
 }
 
@@ -2340,6 +2595,7 @@ const CHUNK_RELOAD_KEY = 'lolly-chunk-reload-at';
 // A visible, always-actionable fallback - the last-resort alternative to a blank
 // container. Mirrors boot()'s error card (className 'error', a .btn Reload).
 function showReloadCard(message?: string): void {
+  viewFailed();
   const view = document.getElementById('view');
   if (!view) return;
   view.textContent = '';
@@ -2381,6 +2637,7 @@ if (import.meta.env.PROD) {
 
 boot().catch(err => {
   console.error('Boot failed:', err);
+  viewFailed();
   // A stale-shell chunk failure during boot recovers the same way navigation does - 
   // reload onto the fresh shell (or a visible Reload card), never a dead screen.
   if (import.meta.env.PROD && looksLikeChunkError(err)) { recoverFromStaleShell(); return; }

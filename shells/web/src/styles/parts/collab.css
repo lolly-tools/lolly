@@ -300,7 +300,7 @@ html[data-a11y-motion="reduce"] .collab-tile-dot { animation: none; }
   position: fixed; top: calc(var(--chrome-h) + var(--sp-3) + var(--vv-top, 0px));
   bottom: calc(var(--sp-3) + var(--safe-bottom, 0px) + var(--vv-bottom, 0px)); inset-inline: var(--sp-3); width: auto;
 }
-body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([hidden])) :is(.fc-insp.is-compact-sheet, .design-compact-actions, .fc-nav) { visibility: hidden; }
+body:has(.tool-stage[data-design-layout="compact"] .collab-comments-panel:not([hidden])) :is(.fc-insp.is-compact-sheet, .design-compact-actions, .fc-nav, .design-phone-panel, .tool-layout.is-editor > .sheet-grip) { visibility: hidden; }
 .collab-comment-typing { order: 4; min-height: 1.5em; margin: 0; color: var(--ui-color-text-muted); font-size: var(--fs-sm); }
 .collab-comment-list { display: grid; align-content: start; gap: var(--sp-2); overflow: auto; overscroll-behavior: contain; min-height: 0; flex: 1; }
 .collab-comment-list[hidden], .collab-comment-head button[hidden] { display: none; }

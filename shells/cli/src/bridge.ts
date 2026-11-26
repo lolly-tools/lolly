@@ -21,9 +21,10 @@ import { fetchPublicBytes, MAX_PUBLIC_ASSET_BYTES, PUBLIC_IMAGE_TYPES } from '@l
 // exactly the split the web shell's lib/zip.ts sits on.
 import { zipSync } from 'fflate';
 import { buildCmykPaletteMap, parseDimension, toCssLength, toCssPx, toPixels, canvasSizeOf, loadTool, createRuntime, emitEmf, emitEps, emitDxf, emitWmf, gzip, svgToPenpotDoc, imageToPenpotDoc, buildPenpotEntries, markToolComponents, imageDimensions, penpotUuid, PENPOT_MIME, parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED, assertComposeStack, parseThemedAssetId, applyIconTheme, parseIconThemesDoc, parseTreatedAssetId, parsePhotoTreatmentsDoc, wrapRasterWithTreatment, inspectTokenDocument, tokenSelectionKey, createTokenSet, colorToHex, isAlias, makeColorApi, makeGeomApi, makeConnectorsApi, isZzfxmRef, parseZzfxmRef, formatZzfxmRef, embedC2pa, C2PA_FORMATS, exportActionSteps, ENGINE_VERSION, collectIngredients, applyPinnedAssets, DESIGN_VERSION_LATEST, pickHeadAssetId, readVersionIndex, resolveDesignVersion, versionAssetId, readDesignSystemIdentity, readRecordedBrandPage, withoutRecordedBrandPage, SHIPPED_DESIGN_SYSTEM_ID, injectSvgMeta } from '@lolly/engine';
-import type { SeparateRgb } from '@lolly/engine';
+import type { CmykPaletteOptions, SeparateRgb } from '@lolly/engine';
 import { pressSeparationFor } from '@lolly-tools/node-shell/press-separation-node';
 import { isRasterPhotoLook, parseLutText, photoLookCacheKey, photoLookThemeKey, resolvePhotoLook, type GradeLut, type PhotoTreatment } from '@lolly/engine';
+import { colourwaySurfaceIconThemes, colourwayPhotoTreatments } from '@lolly/engine';
 import type {
   HostV1, Profile, AssetsAPI, AssetRef, AssetQuery, ExportOpts,
   StateEntry, ComposeSpec, ExportFormat, TokenSet, TokenResolveOptions, C2paSignOpts, DesignSystemSummary,
@@ -101,7 +102,8 @@ import {
 // stance as images.ts: the import is free, the native module loads lazily, and both
 // factories return null on a lean install so the capability stays honestly absent.
 import { createNodePdfRedact } from '@lolly-tools/node-shell/pdf-redact';
-import { createNodeRasterAPI } from '@lolly-tools/node-shell/canvas';
+import { createNodeRasterAPI, pixelWorkCount } from '@lolly-tools/node-shell/canvas';
+import { acceptRefusals, admitForResvg, dedupeRefusals, earlyStop, readLayout, ResvgRefusedError, routeRefusals, type ResvgRefusal, type SvgPlacement, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
 import type { DecodeLimits } from '@lolly-tools/node-shell/canvas';
 // host.speech (Kokoro TTS + Whisper transcription). RELATIVE for the same MCP-bundle
 // reason; it resolves transformers.js lazily and returns null when the runtime is
@@ -120,6 +122,8 @@ import { activeNodeDesignSystem, readActiveDesignSystemTokens } from '@lolly-too
 // Text-as-paths on the svg branch (contract section 6a). Local to this shell: it resolves
 // fonts through host.text's headless registry, not the web shell's fetching one.
 import { familyStack, numericWeight, outlineSvgText } from './svg-outline.ts';
+import { nodeFillChain } from '@lolly-tools/node-shell/fallback-fonts-node';
+import { fillNotice, type FillUse } from '@lolly-tools/node-shell/fallback-fonts';
 import { unavailableHere } from './exit-codes.ts';
 import { cliAudioFailureReporter, cliAudioRunReporter } from './song-report.ts';
 const REPO_ROOT = repoRoot();
@@ -136,16 +140,28 @@ const REPO_ROOT = repoRoot();
  * run in whatever font is on disk would bake a design nobody picked into a file
  * that then looks authoritative.
  */
-function cliResolveFont(host: HostV1): (style: FontStyleSlice, text: string) => Promise<SvgIrFont | null> {
-  return async (style) => {
+function cliResolveFont(host: HostV1, onFill?: (uses: FillUse[]) => void): (style: FontStyleSlice, text: string, at?: Element) => Promise<SvgIrFont | null> {
+  return async (style, runText, at) => {
     const text = host.text;
     if (!text?.fontUrl) return null;
     const weight = numericWeight(style.fontWeight ?? null);
     const italic = /italic|oblique/i.test(style.fontStyle ?? '');
-    for (const family of familyStack(style.fontFamily ?? null)) {
-      if (/^(sans-serif|serif|monospace|cursive|fantasy|system-ui)$/i.test(family)) continue;
-      const font = await text.fontUrl(family, { weight, italic });
-      if (font) return font;
+    const families = familyStack(style.fontFamily ?? null).filter((family) => !/^(sans-serif|serif|monospace|cursive|fantasy|system-ui)$/i.test(family));
+    for (let i = 0; i < families.length; i++) {
+      const font = await text.fontUrl(families[i]!, { weight, italic });
+      if (!font) continue;
+      // Characters the family cannot draw take the later families of the stack, then a
+      // fallback font for the script, so these formats can outline them too.
+      if (!text.characters) return font;
+      const later = async function* () { for (const fam of families.slice(i + 1)) { const f = await text.fontUrl!(fam, { weight, italic }); if (f) yield { fontUrl: f.url, ...(f.variations ? { variations: f.variations } : {}) }; } };
+      const laterFaces: Array<{ fontUrl: string; variations?: string[] }> = [];
+      if (!/^\p{ASCII}*$/u.test(runText)) for await (const f of later()) laterFaces.push(f);
+      // The run's element and its document choose between the Chinese, Japanese and Korean fonts.
+      const place = { at: at ?? null, document: at?.ownerDocument?.body ?? at?.ownerDocument?.documentElement ?? null };
+      const fill = await nodeFillChain((url) => text.characters!(url), [{ fontUrl: font.url, ...(font.variations ? { variations: font.variations } : {}) }], laterFaces, runText, { weight, italic, place });
+      if (!fill) return font;
+      onFill?.(fill.uses);
+      return { ...font, fallbacks: fill.fallbacks };
     }
     return null;
   };
@@ -226,6 +242,20 @@ function urlAssetKind(mime: string, id: string): { type: 'vector' | 'raster' | '
 /** Options `host.export.render` reads beyond ExportOpts: the engine-hydrated
  *  data/text payload and the physical-unit qualifier threaded to the emitters. */
 interface CliExportRenderOpts extends ExportOpts {
+  /** Told the resolved DRAFT mark decision (the runtime's `watermark`) at the start of
+   *  every export, so the browser-free PNG route can refuse a page the browser marks. */
+  onDraftMark?: (on: boolean) => void;
+  /** The tool's stylesheet, which the browser-free raster formats read for the drawing's layout. */
+  toolStyles?: string | null;
+  /** Whether the tool may take the browser-free raster route (resvg-admission.ts `toolAdmission`).
+   *  A caller that says nothing gets no route. */
+  resvgTool?: ToolRouteFact;
+  /** `--allow-browser-free`: draw a picture whose every refusal only may differ (resvg-admission.ts `acceptRefusals`). */
+  allowBrowserFree?: boolean;
+  /** The tool is a paged document (`render.paged`), whose pages the browser-free route does not draw. */
+  resvgPaged?: boolean;
+  /** Told what was accepted when such a picture is drawn, so the caller can warn and keep a record. */
+  onBrowserFreeAccepted?: (accepted: ResvgRefusal[]) => void;
   c2pa?: boolean;
   durable?: boolean;
   dataText?: string;
@@ -247,6 +277,9 @@ interface CliExportRenderOpts extends ExportOpts {
   /** Reported once per run that could not be outlined, so the runner can warn (and
    *  refuse under --strict) instead of the bridge writing to stderr itself. */
   onTextFallback?: (run: { text: string; reason: string }) => void;
+  /** Said once per export when fallback fonts drew text the design system's fonts do not
+   *  cover (fallback-fonts.ts `fillNotice`), so the runner can print it as a note. */
+  onFillNotice?: (notice: string) => void;
 }
 
 /** Element type of parseIconThemesDoc's result - derived so no engine-internal
@@ -470,29 +503,33 @@ export async function createCliBridge(
     },
   };
 
-  // Colour pairings for themable two-colour icons, from the catalog's palette
-  // asset tagged "icon-themes". The in-flight promise is cached so N themed
-  // refs resolving in parallel share one read per CLI invocation.
+  // Every colour pairing a themable icon's id can name: the run's design system's
+  // colourway pairings, each with its dark-ground pairing (engine brand-treatments.ts
+  // colourwaySurfaceIconThemes), then any palette asset tagged "icon-themes" a catalog
+  // still ships. The in-flight promise is
+  // cached so N themed refs resolving in parallel share one read per CLI invocation.
   let iconThemesCache: Promise<IconThemeDef[]> | null = null;
   function iconThemes(): Promise<IconThemeDef[]> {
     iconThemesCache ??= (async () => {
+      let ours: IconThemeDef[] = [];
+      try { ours = colourwaySurfaceIconThemes(await tokensDoc()) as IconThemeDef[]; } catch { ours = []; }
       const pal = [...assetById.values()].find(a => a.type === 'palette' && a.tags?.includes('icon-themes'));
-      if (!pal) return [];
-      const doc = JSON.parse(await readFile(assetFilePath(pal.formats[0]!.url), 'utf8'));
-      return parseIconThemesDoc(doc);
+      const theirs = (pal ? parseIconThemesDoc(JSON.parse(await readFile(assetFilePath(pal.formats[0]!.url), 'utf8'))) : []) as IconThemeDef[];
+      return [...ours, ...theirs.filter(t => !ours.some(o => o.id === t.id))];
     })().catch(() => []); // unavailable ≠ broken: icons just stay default
     return iconThemesCache;
   }
 
-  // Colour treatments for raster photos, from the catalog's palette asset tagged
-  // "photo-treatments" - the raster analogue of iconThemes() above.
+  // Every photo treatment an id can name: the colourway washes, then the catalog's
+  // palette asset tagged "photo-treatments" - the raster analogue of iconThemes() above.
   let photoTreatmentsCache: Promise<ReturnType<typeof parsePhotoTreatmentsDoc>> | null = null;
   function photoTreatments(): Promise<ReturnType<typeof parsePhotoTreatmentsDoc>> {
     photoTreatmentsCache ??= (async () => {
+      let ours: ReturnType<typeof parsePhotoTreatmentsDoc> = [];
+      try { ours = colourwayPhotoTreatments(await tokensDoc()); } catch { ours = []; }
       const pal = [...assetById.values()].find(a => a.type === 'palette' && a.tags?.includes('photo-treatments'));
-      if (!pal) return [];
-      const doc = JSON.parse(await readFile(assetFilePath(pal.formats[0]!.url), 'utf8'));
-      return parsePhotoTreatmentsDoc(doc);
+      const theirs = pal ? parsePhotoTreatmentsDoc(JSON.parse(await readFile(assetFilePath(pal.formats[0]!.url), 'utf8'))) : [];
+      return [...ours, ...theirs.filter(t => !ours.some(o => o.id === t.id))];
     })().catch(() => []); // unavailable ≠ broken: photos just stay untreated
     return photoTreatmentsCache;
   }
@@ -1159,9 +1196,9 @@ export async function createCliBridge(
 const rootSvgOf = drawnRootSvg;
 /**
  * What a Design page drawn from the operations hands back to run.ts, which stamps the
- * credential (plan 326): the route that drew it, through `onExportRoute`, and each
- * credentialed picture's manifest, into `ingredientSink`. Both survive the runtime's
- * copies of the options because they are references.
+ * credential (plan 326): the route that drew it, through `onExportRoute`, and the manifest
+ * of each credentialed picture the document places, on any page, into `ingredientSink`.
+ * Both survive the runtime's copies of the options because they are references.
  */
 async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-tools/core/host-v1').IngredientCredential[]): Promise<void> {
   const o = opts as { ingredientSink?: import('@lolly-tools/core/host-v1').IngredientCredential[]; onExportRoute?: (record: import('../../../engine/src/design-export-route.ts').DesignExportRouteRecord) => void };
@@ -1174,6 +1211,41 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
 
   host.export = {
     async render(node: Element, format: string, opts: CliExportRenderOpts = {}): Promise<Blob> {
+      // What fallback fonts drew in this export's outlined text, said once as a note.
+      const fillUses: FillUse[] = [];
+      const collectFill = (uses: FillUse[]): void => { fillUses.push(...uses); };
+      const reportFill = (): void => { const filled = fillNotice(fillUses); if (filled) opts.onFillNotice?.(filled); };
+      // The browser-free raster formats (BMP, JPEG XL, EXR, HDR) draw what the PNG route
+      // draws: the text outlined as the SVG export outlines it, the drawing placed as the
+      // page places it, and only an SVG that resvg-admission.ts admits. A refusal is
+      // thrown by type, and run.ts hands the job to the browser tier.
+      const resvgSource = async (svg: Element, format: string, width: number, height: number): Promise<{ svg: string; placement: SvgPlacement }> => {
+        const { placement, refusals: layout } = readLayout(node, svg, width, height, opts.toolStyles);
+        const early = [
+          ...routeRefusals({ tool: opts.resvgTool ?? { id: 'unnamed', browserFree: false, untrusted: false }, paged: !!opts.resvgPaged, draftMark: !!opts.watermark, canvasPixels: pixelWorkCount(node.ownerDocument, host.raster) > 0 }),
+          ...layout,
+        ];
+        // With no browser tier to take the job, every reason is read, so the failure offers
+        // --allow-browser-free only where the flag would draw the picture.
+        const thorough = !opts.allowBrowserFree && early.length > 0 && !(await import('@lolly-tools/node-shell/design-still')).browserTierState().available;
+        if (earlyStop(early, { accept: opts.allowBrowserFree, thorough })) throw new ResvgRefusedError(early, format);
+        let fallbackFaces = false;
+        if (opts.text !== 'live') {
+          const res = await outlineSvgText(svg, host, {
+            getComputedStyle: w.getComputedStyle ? (el: Element) => { try { return w.getComputedStyle(el); } catch { return null; } } : null,
+          });
+          for (const f of res.fallbacks) opts.onTextFallback?.(f);
+          const filled = fillNotice(res.filled);
+          if (filled) { fallbackFaces = true; opts.onFillNotice?.(filled); }
+        }
+        const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
+        const admitted = await admitForResvg(raw, width, height, { fallbackFaces }, placement);
+        const all = acceptRefusals(dedupeRefusals([...early, ...admitted.refusals]), opts.allowBrowserFree);
+        if ('refused' in all) throw new ResvgRefusedError(all.refused, format);
+        if (all.accepted.length) opts.onBrowserFreeAccepted?.(all.accepted);
+        return { svg: admitted.svg, placement };
+      };
+      opts.onDraftMark?.(!!opts.watermark);
       const unavailable = node.matches('[data-export-error]') ? node : node.querySelector('[data-export-error]');
       // HTML is the runnable template, not a captured result.
       if (format !== 'html' && unavailable) throw new Error(unavailable.getAttribute('data-export-error') || 'The tool is not ready to export.');
@@ -1238,14 +1310,28 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
       if ((format === 'svg' || format === 'svgz') && opts.sourceDocument?.toolId === 'design') {
         // The snapshot precedes the story-composition hook; the browser owns that page.
         if (String(opts.sourceDocument.values.textDocument ?? '').trim()) throw new Error(`This Design page needs a browser engine for ${format.toUpperCase()} because the document composes text stories`);
-        const { designOpsSvgNode } = await import('@lolly-tools/node-shell/design-ops-svg');
-        const page = await designOpsSvgNode(node, opts, host, { repoRoot: REPO_ROOT });
-        if (page && 'svg' in page) {
-          await noteDesignOps(opts, page.ingredients);
-          const bytes = new TextEncoder().encode(page.svg);
-          return new Blob([format === 'svgz' ? gzip(bytes) as BlobPart : bytes], { type: 'image/svg+xml' });
+        // A caller that draws the operations itself (the lolly-render route in
+        // design-still.ts) takes the compiled page through the sink; the SVG is not written.
+        const drawingSink = (opts as { drawingSink?: unknown }).drawingSink;
+        if (typeof drawingSink === 'function') {
+          const { designOpsDrawingNode } = await import('@lolly-tools/node-shell/design-ops-svg');
+          const compiled = await designOpsDrawingNode(node, opts, host, { repoRoot: REPO_ROOT });
+          if (compiled && 'drawing' in compiled) {
+            await noteDesignOps(opts, compiled.ingredients);
+            drawingSink(compiled.drawing);
+            return new Blob([], { type: 'image/svg+xml' });
+          }
+          if (compiled) designOpsReason = compiled.reason;
+        } else {
+          const { designOpsSvgNode } = await import('@lolly-tools/node-shell/design-ops-svg');
+          const page = await designOpsSvgNode(node, opts, host, { repoRoot: REPO_ROOT });
+          if (page && 'svg' in page) {
+            await noteDesignOps(opts, page.ingredients);
+            const bytes = new TextEncoder().encode(page.svg);
+            return new Blob([format === 'svgz' ? gzip(bytes) as BlobPart : bytes], { type: 'image/svg+xml' });
+          }
+          if (page) designOpsReason = page.reason;
         }
-        if (page) designOpsReason = page.reason;
       }
       if (format === 'svg' || format === 'svgz') {
         const svg = rootSvgOf(node);
@@ -1278,6 +1364,8 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
             getComputedStyle: w.getComputedStyle ? (el: Element) => { try { return w.getComputedStyle(el); } catch { return null; } } : null,
           });
           for (const f of res.fallbacks) opts.onTextFallback?.(f);
+          const filled = fillNotice(res.filled);
+          if (filled) opts.onFillNotice?.(filled);
         }
         const raw = w.XMLSerializer
           ? new w.XMLSerializer().serializeToString(svg)
@@ -1301,9 +1389,12 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // can't express (tracking, features, stroke, skew) are outlined via
         // host.text (createNodeTextAPI above), where an unresolvable family still
         // throws. `--text=outline` forces the old always-text-as-paths output.
+        // An outlined run no font can draw goes in as a picture, which needs a text
+        // renderer: the walk stops with NEEDS_BROWSER and the browser tier draws the file.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('EMF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host), background: opts.background, textMode: opts.text === 'outline' ? 'outline' : 'live' });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, textMode: opts.text === 'outline' ? 'outline' : 'live', uncoveredText: 'picture' });
+        reportFill();
         const bytes = emitEmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         // application/x-msmetafile, not RFC 7903 image/emf - Google Drive only
         // opens metafiles in Google Drawings/Slides under the legacy type.
@@ -1385,12 +1476,15 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // FINISH_MASK_CMYK here exactly as it does in the browser.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('EPS export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host), background: opts.background, label: 'EPS' });
+        // A run no font can draw goes in as a picture, which needs a text renderer: the
+        // walk stops with NEEDS_BROWSER and the browser tier draws the file.
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'EPS', uncoveredText: 'picture' });
+        reportFill();
         const separate = format === 'eps-cmyk' ? (await pressSeparationFor(opts.colorProfile)).separate : undefined;
         const text = emitEps(ir, {
           width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi,
           cmyk: format === 'eps-cmyk',
-          ...(separate ? { cmykPalette: await brandCmykPalette(host, separate), separate } : {}),
+          ...(separate ? { cmykPalette: await brandCmykPalette(host, separate, { spotsAsProcess: opts.spotsAsProcess === true }), separate } : {}),
           meta: opts.meta as { title?: string } | undefined,
         });
         return new Blob([text], { type: 'application/postscript' });
@@ -1401,7 +1495,8 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // what is fundamentally text). Text is outlined upstream (host.text present).
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('DXF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host), background: opts.background, label: 'DXF' });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'DXF', uncoveredText: 'refuse' });
+        reportFill();
         const { text } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([text], { type: 'image/vnd.dxf' });
       }
@@ -1413,7 +1508,8 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // no comment record to carry a source URL.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('WMF export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host), background: opts.background, label: 'WMF' });
+        const ir = await svgDomToIr(svg, { host, resolveFont: cliResolveFont(host, collectFill), background: opts.background, label: 'WMF', uncoveredText: 'picture' });
+        reportFill();
         const bytes = emitWmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         // Same legacy metafile type as EMF above - Drive's Drawings import
         // matches application/x-msmetafile for WMF too.
@@ -1432,7 +1528,6 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         //   2. no `hdr=` → the raster is 8-bit sRGB and float would be padding.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('EXR/HDR export needs the template\'s root drawable to be a vector image (HTML-layout tools have no browser-free raster here - use the desktop app or the web shell)');
-        const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         // Lazy: pulls in resvg (a native module) and the engine's EXR/Radiance writers
         // only when a pro format is actually asked for.
         const { renderDeepRaster, deepFormatMime } = await import('@lolly-tools/node-shell/raster');
@@ -1443,10 +1538,15 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
           const d = parseDimension(v);
           return d ? Math.max(1, Math.round(toPixels(d, dpi))) : fallback;
         };
+        const width = px(opts.width, parseFloat(svg.getAttribute('width') as string) || 1280);
+        const height = px(opts.height, parseFloat(svg.getAttribute('height') as string) || 720);
+        // A float format with no `hdr=` refuses before anything is drawn (renderDeepRaster).
+        const source = opts.hdr ? await resvgSource(svg, format, width, height) : { svg: '', placement: undefined };
         const { bytes, mime } = await renderDeepRaster({
-          svg: raw,
-          width: px(opts.width, parseFloat(svg.getAttribute('width') as string) || 1280),
-          height: px(opts.height, parseFloat(svg.getAttribute('height') as string) || 720),
+          svg: source.svg,
+          width,
+          height,
+          ...(source.placement ? { placement: source.placement } : {}),
           format,
           hdr: opts.hdr ?? null,
           depth: opts.depth,
@@ -1460,7 +1560,6 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         if (opts.durable) throw new Error('JPEG XL neural watermarking needs the browser engine.');
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('JPEG XL HTML rendering needs a browser engine.');
-        const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         const { rasterizeSvgToRgba } = await import('@lolly-tools/node-shell/raster');
         const { runJxl } = await import('@lolly-tools/node-shell/jxl');
         const { jxlWithXmp } = await import('../../../engine/src/jxl-container.ts');
@@ -1472,7 +1571,8 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         const width = px(opts.width, parseFloat(svg.getAttribute('width') as string) || 1280);
         const height = px(opts.height, parseFloat(svg.getAttribute('height') as string) || 720);
         if (width * height > 8_000_000 || width > 16384 || height > 16384) throw new Error('JPEG XL encoding is limited to 8 megapixels.');
-        const frame = await rasterizeSvgToRgba(raw, width, height);
+        const source = await resvgSource(svg, format, width, height);
+        const frame = await rasterizeSvgToRgba(source.svg, width, height, { placement: source.placement });
         const pixels = opts.imprint !== false && canCarryWatermark(width, height)
           ? embedWatermark(frame.data, { width, height, ...(format === 'jxl-lossless' ? { strength: LOSSLESS_STRENGTH } : {}) }) : frame.data;
         const result = await runJxl({ operation: 'encode', bytes: pixels, width, height, options: { quality: opts.quality, lossless: format === 'jxl-lossless' } });
@@ -1487,19 +1587,16 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // resolves opts.imprint to false and it is skipped.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('BMP export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         const { rasterizeSvgToBmp } = await import('@lolly-tools/node-shell/raster');
         const dpi = opts.dpi ?? 300;
         const px = (v: string | number | undefined, fallback: number): number => {
           const d = parseDimension(v);
           return d ? Math.max(1, Math.round(toPixels(d, dpi))) : fallback;
         };
-        const bytes = await rasterizeSvgToBmp(
-          raw,
-          px(opts.width, parseFloat(svg.getAttribute('width') as string) || 1280),
-          px(opts.height, parseFloat(svg.getAttribute('height') as string) || 720),
-          { imprint: opts.imprint !== false },
-        );
+        const width = px(opts.width, parseFloat(svg.getAttribute('width') as string) || 1280);
+        const height = px(opts.height, parseFloat(svg.getAttribute('height') as string) || 720);
+        const source = await resvgSource(svg, format, width, height);
+        const bytes = await rasterizeSvgToBmp(source.svg, width, height, { imprint: opts.imprint !== false, placement: source.placement });
         return new Blob([bytes as BlobPart], { type: 'image/bmp' });
       }
       // The remedy list is NODE_FORMATS itself, not a hand-kept copy of it: the two
@@ -1883,16 +1980,19 @@ function mimeFor(format: string): string {
  * `host.tokens.colors()` yields an empty map, which is byte-identical to the
  * previous behaviour (every colour falls through to the generic conversion).
  */
-async function brandCmykPalette(host: HostV1, separate?: SeparateRgb): Promise<Map<string, { cmyk: [number, number, number, number] }>> {
+async function brandCmykPalette(host: HostV1, separate?: SeparateRgb, options: CmykPaletteOptions = {}): Promise<Map<string, { cmyk: [number, number, number, number] }>> {
   try {
     const colors = await host.tokens?.colors?.();
     if (!Array.isArray(colors) || colors.length === 0) return new Map();
+    // `options.spotsAsProcess` (engine 1.324) leaves EPS bytes as they were: EPS has no
+    // named plates, so an ink was already its process build here. Passed through so
+    // the choice means one thing in every CMYK sink.
     return buildCmykPaletteMap(colors.map(c => ({
       hex: c.value,
       ...(Array.isArray(c.cmyk) ? { cmyk: c.cmyk } : {}),
       label: c.name,
       spot: c.spot ?? null,
-    })), separate);
+    })), separate, options);
   } catch {
     return new Map();
   }

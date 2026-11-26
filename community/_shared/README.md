@@ -39,6 +39,19 @@ ranks bounded recipes and inherits the slide master's type scale. The web tool
 checks actual font fit on the active slide and checks every slide before export.
 The bundle drift test also runs when the private SUSE pack is absent.
 
+`tool-surface.js` resolves tint, lead, ink and surface treatments from the
+document's selected tokens and the tool's colour inputs. Merge its `surface*`
+extras into the hook result; never return the resolved colours under input ids,
+because doing so would break their token links. Aliases let tools keep their
+existing input ids. Spacing uses text volume and excludes uploaded image bytes.
+
+`content-presentation.js` is copied into each consumer's `presentation.js`.
+The template marks reading-order groups with `data-reveal`, value bars with
+`data-meter`, and constrained text containers with `data-content-fit`. A canvas
+marked `data-content-clock` carries deterministic export frames and the finished
+still pose. Reduced motion calms the live preview; an explicit motion export
+keeps the authored animation. The same controller supports portable HTML.
+
 ## Rules
 
 - Shipped `hooks.js` stay self-contained: the sync copies bytes; nothing here

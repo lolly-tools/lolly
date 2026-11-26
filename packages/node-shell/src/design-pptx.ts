@@ -36,6 +36,7 @@ import {
   type PptxPhType,
   type PptxPic,
   type PptxPlaceholder,
+  type PptxRect,
   type PptxRun,
   type PptxShape,
   type PptxSlide,
@@ -55,7 +56,7 @@ import type {
   SlideMasterV1,
 } from '@lolly-tools/core';
 import { findArchetype, roleFontSize } from '@lolly-tools/core';
-import { hasDesignMarkup, parseDesignText, THEME_SLOT_TOKENS as ENGINE_THEME_SLOT_TOKENS } from '@lolly/engine';
+import { hasDesignMarkup, parseDesignText, THEME_SLOT_TOKENS as ENGINE_THEME_SLOT_TOKENS, themeSlotTokensFor } from '@lolly/engine';
 import { imageDimensions, neutralSlideMaster, slotOrdinalOf, withSlideLayoutComponents } from '@lolly/engine';
 import { bgIsDark } from '@lolly/engine';
 import { decodeAuthoredPaths } from '../../../engine/src/geom/authored-url.ts';
@@ -127,6 +128,12 @@ export interface DesignPptxOptsV1 {
    * the engine's defaults, as they always did.
    */
   tokenColors?: ReadonlyArray<{ path: string; value: string }>;
+  /**
+   * The token each theme accent reads when the design system declares colour roles, in
+   * the brand's order (`colourRoleThemeAccents`). Without them the accents read
+   * `THEME_SLOT_TOKENS`, so a document with no roles writes the theme it always wrote.
+   */
+  themeAccents?: readonly string[];
 }
 
 /** The ten DrawingML colour slots this lowering maps. `hlink` and `folHlink` are
@@ -307,11 +314,12 @@ class Palette {
   private readonly tokens?: DesignTokenResolver;
   private readonly cssVars?: DeckColorResolver;
 
-  constructor(tokens?: DesignTokenResolver, cssVars?: DeckColorResolver) {
+  constructor(tokens?: DesignTokenResolver, cssVars?: DeckColorResolver, accents?: readonly string[]) {
     this.tokens = tokens;
     this.cssVars = cssVars;
+    const table = themeSlotTokensFor(accents);
     for (const slot of SCHEME_SLOTS) {
-      const path = THEME_SLOT_TOKENS[slot];
+      const path = table[slot];
       if (!path) continue;
       const raw = tokens?.(path);
       const hit = raw ? deckColor(raw, cssVars) : null;
@@ -1055,7 +1063,7 @@ async function lowerLayer(
     return;
   }
   const shapeKind = str(row, 'shape'), radiusPx = shapeKind === 'rounded' ? num(row, 'radius') : 0;
-  const radius = shapeKind === 'rounded' ? { radius: emu(radiusPx) } : {};
+  const radius = outlineOf(shapeKind, radiusPx, box);
   // A linear gradient (plan 291 M4). CSS paints the flat fill under the gradient, so a
   // box with both is two rectangles, the fill first; the outline rides the top one. The
   // mirror folds into the gradient's angle and the opacity into its stops.
@@ -1090,6 +1098,19 @@ async function lowerLayer(
     ...radius,
   };
   sink.shapes.push(rect);
+}
+
+/**
+ * The outline a box row draws, as PowerPoint's own preset, the same preset the deck model
+ * writes. A circle or an ellipse is the ellipse preset. A pill rounds by half its short side,
+ * which is the full rounded rectangle. A rounded box keeps its own radius. Every other
+ * shape is the plain rectangle. All of them stay native shapes the reader can edit.
+ */
+function outlineOf(shapeKind: string, radiusPx: number, box: { cx: number; cy: number }): Pick<PptxRect, 'radius' | 'geom'> {
+  if (shapeKind === 'circle' || shapeKind === 'ellipse') return { geom: 'ellipse' };
+  if (shapeKind === 'pill') return { radius: Math.round(Math.min(box.cx, box.cy) / 2) };
+  if (shapeKind === 'rounded') return { radius: emu(radiusPx) };
+  return {};
 }
 
 /** A dashed or dotted outline is written solid, since this lowering writes solid lines only, and the notes name it. */
@@ -1323,7 +1344,7 @@ export async function designFramesToPptx(opts: DesignPptxOptsV1): Promise<Design
     h: Math.max(1, Math.round(first ? num(first, 'h', opts.size?.h ?? 720) : opts.size?.h ?? 720)),
   };
 
-  const palette = new Palette(opts.tokens, opts.cssVars);
+  const palette = new Palette(opts.tokens, opts.cssVars, opts.themeAccents);
   const ctx: LowerCtx = {
     palette,
     fonts: opts.fonts,

@@ -20,9 +20,10 @@ import { fold } from '../../lib/search/match.ts';
 import { hexToOklch, parseHex } from '../../../../../engine/src/brand-derive.ts';
 import { rgbToCmyk } from '../../../../../engine/src/color.ts';
 import { categoryGlyph } from '../../lib/category-icons.ts';
+import { icon } from '../../lib/icons.ts';
 import type { PaletteEntry } from '../../palette.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { ASSET_PAGE_SIZE, CAT_ICONS, CHEVRON, TYPE_FILTERS, emojiPackMeta, isThemable, showMoreHtml } from './shared.ts';
+import { ASSET_PAGE_SIZE, CAT_ICONS, CHEVRON, TYPE_FILTERS, emojiPackMeta, groundSwitchHtml, isThemable, showMoreHtml } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 import { matchesAssetSource } from '../../lib/asset-source-tree.ts';
 import { providerBrowserHtml, providerGroups } from '../assets-provider.ts';
@@ -48,7 +49,9 @@ export const typeBucketEmpty = (cat: CatCtx): boolean => cat.typeFilter !== 'all
 export const playableHere = (cat: CatCtx, a: AssetRef): boolean =>
   (cat.modulesPlayable !== false || !isModuleFormat(a.format))
   // A rondocode song renders in QuickJS inside a Worker; without both there is nothing to play.
-  && (a.format !== 'rondo' || (typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined'));
+  && (a.format !== 'rondo' || (typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined'))
+  // A saved station tune is composed and rendered with Web Audio.
+  && (a.format !== 'lofi' || typeof OfflineAudioContext !== 'undefined');
 // The search index, memoised across keystrokes and dropped whenever the asset
 // set or the category overrides change (see setOverrides and the reload path).
 // Built on FIRST SEARCH, never merely on render - indexing every asset for a
@@ -193,6 +196,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
     parts.push(cat.tiles.groupSection(group.key, `${group.source} · ${group.label}`, items.length,
       () => assetGridHtml(cat, group.key, items)));
   }
+  const groundSwitch = groundSwitchHtml();
   for (const g of LIB_GROUPS) {
     const items = buckets.get(g.key) && sortAssets(buckets.get(g.key)!, cat.catSort, cat.catSortRev);
     if (!items?.length) continue;
@@ -203,7 +207,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
     const themableGroup = cat.iconThemes.length > 0 && items.some(isThemable);
     const treatableGroup = !themableGroup && cat.photoTreatments.length > 0 && items.some(a => a.type === 'raster');
     const colourRow = themableGroup
-      ? `<div class="cat-dl-section cat-group-colours"><span class="cat-dl-label">${t('Colours')}</span>${cat.thumbs.iconSwatchRow(cat.catIconTheme)}</div>`
+      ? `<div class="cat-dl-section cat-group-colours"><span class="cat-dl-label">${t('Colours')}</span><div class="cat-group-colours-row">${cat.thumbs.iconSwatchRow(cat.catIconTheme)}${groundSwitch}</div></div>`
       : treatableGroup
         ? `<div class="cat-dl-section cat-group-colours"><span class="cat-dl-label">${t('Colour')}</span>${cat.thumbs.treatmentSwatchRow(cat.catPhotoTreatment)}</div>`
         : '';
@@ -258,10 +262,14 @@ export function assetsSectionHtml(cat: CatCtx): string {
   const shownFilters = TYPE_FILTERS.filter(f => f.key === 'all' || cat.allAssets.some(a => matchesTypeRule(a, f.key as TypeFilter)));
   const filterSeg = `
       <div class="cat-typefilter" role="group" aria-label="${escapeText(t('Filter by file type'))}">
-        ${shownFilters.map(f => `<button type="button" class="cat-typefilter-opt${cat.typeFilter === f.key ? ' is-on' : ''}" data-typefilter="${f.key}"${f.sfx ? ` data-sfx="${f.sfx}"` : ''} data-voice="${escapeText(t(f.label))}" aria-pressed="${cat.typeFilter === f.key}" aria-label="${escapeText(t(f.label))}" title="${escapeText(t(f.label))}">${f.icon}<span class="cat-btn-label">${t(f.label)}</span></button>`).join('')}
+        ${shownFilters.map(f => `<button type="button" class="cat-typefilter-opt${cat.typeFilter === f.key ? ' is-on' : ''}" data-typefilter="${f.key}"${f.sfx ? ` data-sfx="${f.sfx}"` : ''} aria-pressed="${cat.typeFilter === f.key}" aria-label="${escapeText(t(f.label))}" title="${escapeText(t(f.label))}">${f.icon}<span class="cat-btn-label">${t(f.label)}</span></button>`).join('')}
       </div>`;
   const collapseLabel = anyExpanded ? t('Collapse all') : t('Expand all');
   const showHiddenLabel = cat.showHidden ? t('Hide hidden') : t('Show hidden ({n})', { n: hiddenItems.length });
+  // A catalog holding two design systems lists the active one's material. This is the one
+  // plain way to see everything, and it stays reachable while searching. A catalog with
+  // one system has no scope, so the toolbar has no extra button.
+  const allSystemsLabel = t('All design systems');
   // Reserve the counter's width for the widest string it can ever show, so switching filters
   // (which only ever shrink the number) never re-widths the centred toolbar pill and shifts the
   // filter buttons. Floor the digit count at 4 - a few thousand assets - so the reservation
@@ -276,6 +284,8 @@ export function assetsSectionHtml(cat: CatCtx): string {
         <span class="cat-count" style="min-width:${countCh}ch">${cat.query
           ? (tn('1 asset found', '{n} assets found', { n: visible.length }))
           : (tn('1 asset', '{n} assets', { n: visible.length }))}</span>
+        ${cat.scope ? `<button type="button" class="cat-showhidden cat-allsystems${cat.allSystems ? ' is-on' : ''}" aria-pressed="${cat.allSystems}" aria-label="${escapeText(allSystemsLabel)}" title="${escapeText(allSystemsLabel)}">${icon('layersStack', { size: 15 })}<span class="cat-btn-label">${allSystemsLabel}</span></button>` : ''}
+        ${groundSwitchHtml()}
         ${cat.query ? '' : `<button type="button" class="cat-showhidden cat-collapse-all" aria-label="${escapeText(collapseLabel)}" title="${escapeText(collapseLabel)}">${anyExpanded ? CAT_ICONS.collapse : CAT_ICONS.expand}<span class="cat-btn-label">${collapseLabel}</span></button>`}
         ${hiddenItems.length && !cat.query ? `<button type="button" class="cat-showhidden${cat.showHidden ? ' is-on' : ''}" aria-pressed="${cat.showHidden}" aria-label="${escapeText(showHiddenLabel)}" title="${escapeText(showHiddenLabel)}">${cat.showHidden ? CAT_ICONS.eyeOff : CAT_ICONS.eye}<span class="cat-btn-label">${showHiddenLabel}</span></button>` : ''}
       </div>`;

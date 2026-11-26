@@ -163,6 +163,19 @@ export const STRIP_UPLOAD_META_FLAG: FeatureFlag = {
   info: 'Removes EXIF, location (GPS) and other embedded metadata from images you upload. Content Credentials (C2PA provenance) are always preserved - a signed or AI-generated image keeps its credential either way. A credit another person embedded goes with the rest of the metadata, so record it on the asset if the work is theirs.',
 };
 
+// ON by default: the icon colours and photo washes Assets and the asset picker offer come
+// from the design system's colourways (bridge/assets.ts _iconThemes, _photoTreatments). A
+// brand that would rather its icons and photos were only ever shown in their own colours
+// turns it off: the colour strips go, and a piece that already carries a colourway look
+// keeps its colours. A control plane can force it fleet-wide and hide the toggle
+// (GOVERNED_FLAG_IDS below, mirrored in lolly-work policy/feature-flags.ts).
+export const COLOURWAY_ASSET_TREATMENTS_FLAG: FeatureFlag = {
+  id: 'colourway-asset-treatments',
+  label: 'Colourway asset treatments',
+  default: true,
+  info: 'Offers each colourway of the design system as a colour choice for two-colour icons and for photos, in Assets and the asset picker. Turn it off to show icons and photos only in their own colours. Anything already made with a colourway keeps its colours.',
+};
+
 // Course authoring and packaging are opt-in on each device.
 export const LEARNING_FLAG: FeatureFlag = {
   id: 'training-courses',
@@ -358,7 +371,7 @@ export const NEARBY_DISCOVERY_FLAG: FeatureFlag = {
 // toggle with it (plan 100 section 6.3/section 11.24). The `builtinDefault` recorded server-side must
 // keep matching each flag's `default` here, or an instance that chose "inherit" would be
 // told the wrong thing; the two moved together on 2026-08-10 for `private-collab`.
-export const GOVERNED_FLAG_IDS: readonly string[] = [NEUROSPICY_FLAG.id, JELLY_FLAG.id, WOBBLY_FLAG.id, WOBBLY_MESH_FLAG.id, STRIP_UPLOAD_META_FLAG.id, PREFLIGHT_FLAG.id, PRIVATE_COLLAB_FLAG.id, NEARBY_DISCOVERY_FLAG.id];
+export const GOVERNED_FLAG_IDS: readonly string[] = [NEUROSPICY_FLAG.id, JELLY_FLAG.id, WOBBLY_FLAG.id, WOBBLY_MESH_FLAG.id, STRIP_UPLOAD_META_FLAG.id, PREFLIGHT_FLAG.id, PRIVATE_COLLAB_FLAG.id, NEARBY_DISCOVERY_FLAG.id, COLOURWAY_ASSET_TREATMENTS_FLAG.id];
 
 /** Whether the control plane has hidden a flag's user-facing toggle (a staged
  *  surprise, or a policy the deployment owns). Dormant ⇒ false. The resolved

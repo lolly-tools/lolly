@@ -1,35 +1,37 @@
-# Lolly 架构
+# Lolly 架構
 
-![Lolly 图标 - 一支绿白相间的大棒棒糖](/info/icon.svg)
+![Lolly 圖示 - 大型綠白棒棒糖](/info/icon.svg)
 
-本页面向修改 Lolly 代码的人：引擎、外壳和工具包如何组合在一起，它们各自在仓库中的位置，以及约束每一次更改的承诺。如果你想知道 Lolly 做什么、谁在使用它，请先阅读 [Lolly 如何工作](/info/how-lolly-works.html)。
+本頁寫給修改 Lolly 程式碼的人：引擎、外殼與工具套件如何搭配，各自位於儲存庫的何處，以及每項變更都必須遵守的承諾。若要了解 Lolly 的用途與使用者，請先閱讀 [Lolly 如何運作](/info/how-lolly-works.html)。
 
-有两份配套文档讲得更深。[`engine/README.md`](../engine/README.md) 是引擎逐个模块的地图，由代码生成。[威胁模型与信任边界](/info/threat-model.html)把同样的架构当作信任边界来解读，凡是有关引擎把什么视为不受信任的问题，都以它为准。
+[`engine/README.md`](https://github.com/lolly-tools/lolly/blob/main/engine/README.md) 逐一介紹引擎模組，由程式碼產生。[威脅模型與信任邊界](/info/threat-model.html)從信任邊界的角度解讀同一套架構，並說明引擎將哪些內容視為不可信。
 
-## 总体图景
+<!--i:eti-layers-->
+## 整體概觀
 
-工具是顶层的数据。中间的引擎对任何平台一无所知。底部的外壳实现同一份契约，目录提供内容。
+頂層的工具是資料。中間的引擎不依賴任何平台。底層的外殼實作同一份契約，目錄則提供內容。
 
-![工具向共享引擎提供清单、模板和钩子。网页、Tauri 和终端外壳实现 HostV1 能力桥接，并从目录读取工具和素材。](/info/diagrams/concepts/platform-layers.svg)
+![工具向共用引擎提供 manifest、範本與掛鉤。Web、Tauri 與終端機外殼實作 HostV1 能力橋接介面，並從目錄讀取工具與素材。](/info/diagrams/concepts/platform-layers.svg)
 
-如果能用纯数据和 Handlebars 描述，它就属于**引擎**。如果它涉及 DOM、文件系统、网络或任何浏览器或操作系统 API，它就属于**宿主**，也就是桥接中外壳的一侧。引擎是开源的，任何了解特定品牌或平台的内容都不会进入引擎。
+凡是能以純資料與 Handlebars 描述的內容，都屬於**引擎**。凡是接觸 DOM、檔案系統、網路或任何瀏覽器或作業系統 API 的內容，都屬於**主機**，也就是橋接介面中外殼的一側。引擎是開源的。任何涉及特定品牌的內容都不會放進引擎。
 
-## 仓库布局
+<!--i:eti-folder-shared-->
+## 儲存庫結構
 
-Lolly 是一个仓库。下面的每个目录都是其中的普通目录，只有 `brands/suse` 例外，它是一个**私有**的 git 子模块，存放 SUSE 工具包和目录，公开克隆不会获取它。构建读取哪些包由内容配置文件（`profiles.json`）决定，按进程解析，而不是全局切换。[构建指南](/info/build-guide.html)给出了克隆命令，以及如何提交私有包内的更改。
+Lolly 使用單一儲存庫。以下每個目錄都是一般目錄，只有 `brands/suse` 例外：它是含有 SUSE 工具套件與目錄的**私人** git 子模組，複製公開儲存庫時不會取得。內容設定檔（`profiles.json`）設定建置版本讀取哪些套件。每個程序各自解析自己的設定檔，沒有全域切換。[建置指南](/info/build-guide.html)提供複製指令，以及如何在私人套件內提交變更。
 
-| 目录 | 存放内容 |
+| 目錄 | 內容 |
 |---|---|
-| `engine/` | 与平台无关的核心：加载器、运行时、输入项、模板、URL 模式、单位和各格式模块 |
-| `shells/` | 网页应用、Tauri 桌面和移动应用、CLI、TUI 和浏览器扩展 |
-| `packages/` | 工具作者 SDK（`@lolly-tools/core`）、共享的 Node 外壳组件和文档渲染器等 |
-| `community/` | 与品牌无关的工具，以及共享的 emoji 包 |
-| `brands/` | 品牌包：`lolly-demo`（Lolly Demo，即 lolly.tools 运行的设计系统）、`lolly-start`（空白起步包）和私有的 `suse` |
-| `services/` | 可选的 MCP、证书和 Penpot 服务，以及它们共享的服务器代码 |
-| `schemas/` | 工具清单、素材条目和素材引用的 JSON Schema |
-| `scripts/`、`tests/`、`docs/`、`api/` | 构建和目录脚本、引擎测试套件、这些文档，以及生成的无服务器打包文件 |
+| `engine/` | 與平台無關的核心：載入器、執行環境、輸入、範本、URL 模式、單位與格式模組 |
+| `shells/` | 網頁應用程式、Tauri 桌面與行動應用程式、CLI、TUI 與瀏覽器擴充功能 |
+| `packages/` | 工具作者 SDK（`@lolly-tools/core`）、共用的 Node 外殼元件與文件渲染器等 |
+| `community/` | 與品牌無關的工具，以及共用的 emoji 套件 |
+| `brands/` | 品牌套件：`lolly-demo`（Lolly Demo，lolly.tools 使用的設計系統）、`lolly-start`（空白起始套件）與私人的 `suse` |
+| `services/` | 選用的 MCP、憑證與 Penpot 服務，以及它們共用的伺服器程式碼 |
+| `schemas/` | 工具 manifest、素材項目與素材參照的 JSON Schema |
+| `scripts/`, `tests/`, `docs/`, `api/` | 建置與目錄指令碼、引擎測試套件、這些文件與產生的 serverless 套件 |
 
-::: details 你最先接触的引擎和外壳文件
+::: details 最先接觸的引擎與外殼檔案
 ```
 engine/src/
   index.ts          public surface: loader, runtime, template, inputs, url-mode
@@ -55,127 +57,134 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 ```
 :::
 
-仓库根目录没有 `tools/` 或 `catalog/` 目录。`packages/node-shell/src/content-roots.ts` 会在被问到时，根据 `profiles.json` 回答“工具 `<id>` 在哪里”和“目录在哪里”。只有在构建输出中才会写入真正的 `tools/` 和 `catalog/` 目录对，例如 `dist/`、RPM 载荷或容器镜像，因为浏览器是通过 HTTP 获取这两个路径的。
+::: note 儲存庫根目錄沒有 `tools/` 或 `catalog/` 目錄
+`packages/node-shell/src/content-roots.ts` 根據 `profiles.json` 回答「工具 `<id>` 放在哪裡」與「目錄在哪裡」。只有建置輸出才會寫入實際的 `tools/` 與 `catalog/` 目錄組合，例如 `dist/`、RPM 套件內容或容器映像檔，因為瀏覽器會透過 HTTP 擷取這兩個路徑。
+:::
 
-## Lolly 在哪里运行
+<!--i:eti-monitor-->
+## Lolly 在哪裡執行
 
-每个界面都使用同一个引擎和同样的工具文件。
+每個介面都使用相同的引擎與工具檔案。
 
-- **网页应用。** 一个渐进式网页应用，在其 service worker 缓存了工具和素材后可离线使用。它不需要账号；状态保存在每台设备的 IndexedDB 中。一个响应式布局同时适用于桌面和手机：在手机上控制项变成一张面板，导出控制项从一个浮动按钮中打开。
-- **桌面和移动应用。** 同一个网页应用的 Tauri 打包，带有原生文件对话框、文件系统状态和完整的离线使用。
-- **CLI。** `lolly <tool-id> --input=value --output=file.png` 在无界面 DOM 中加载同一个引擎并写出文件。它是通过另一种传输方式实现的 URL 模式，而不是单独的实现。参见 [CLI](/info/cli.html)。
-- **TUI。** 一个全屏、以键盘为先的终端应用，复用 CLI 的桥接，把已保存的会话保存在磁盘上（安装桌面应用时在其自己的文件夹中，否则在 `~/.lolly` 下），并且只有在某种格式需要时才启动受限范围的无界面浏览器。参见 [TUI](/info/tui.html)。
+- **網頁應用程式。** 漸進式網頁應用程式。service worker 快取工具與素材後，即可離線運作。不需要帳號，狀態儲存在每部裝置的 IndexedDB 中。同一個響應式版面適用於桌面與手機。在手機上，控制項會變成面板，匯出控制項則從浮動膠囊開啟。
+- **桌面與行動應用程式。** 以 Tauri 封裝的同一個網頁應用程式，提供原生檔案對話框、儲存在檔案系統中的狀態與完整離線使用。
+- **CLI。** `lolly <tool-id> --input=value --output=file.png` 在無頭 DOM 中載入同一個引擎並寫出檔案。它是透過不同傳輸方式運作的 URL 模式。請見 [CLI](/info/cli.html)。
+- **TUI。** 以鍵盤操作為主的全螢幕終端機應用程式。它重用 CLI 的橋接介面，並將已儲存的工作階段保留在磁碟上：若已安裝桌面應用程式，就存放在其資料夾中，否則存放在 `~/.lolly` 下。只有格式需要時，才會啟動限定作用範圍的無頭瀏覽器。請見 [TUI](/info/tui.html)。
 
-![桌面分栏视图：左侧是由清单生成的控制项，右侧是实时画布](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
+![桌面分割檢視：左側是根據 manifest 產生的控制項，右側是即時畫布](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
-同一个工具在手机宽度下不需要第二套布局：控制项变成顶部的面板，预览占据屏幕。
+在手機寬度下，控制項面板位於頂端，預覽則填滿螢幕。
 
-![430px 宽屏幕上的音频图：上方是控制项面板，下方是完成的方形作品，以及浮动的导出按钮](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![430px 寬螢幕上的音訊波形影片：上方是控制項面板，下方是完成的正方形圖稿，以及浮動匯出膠囊](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-网页应用还附带 **Batch**（`#/batch`，`shells/web/src/pro/`），一个电子表格式的网格，可以跨一个或多个工具一次渲染多行；[批量生成与多重编辑](/info/batch.html#make-many-versions-of-one-design)介绍了 Batch。**Settings → Capabilities** 梳理了平台声明自己能做的一切。
+網頁應用程式也附有 **Batch**（`#/batch`、`shells/web/src/pro/`），以試算表形式的格線，一次透過一個或多個工具渲染許多列。請見 [Batch 與 Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design)。**Settings → Capabilities** 列出平台宣告能做到的一切。
 
-![全新安装后的 Batch：一个空行在等待工具，电子表格界面和它的 Render 按钮在任何数据到来之前就已就位](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
+![全新安裝的 Batch：一個空白列等待選擇工具，在任何資料進來之前，試算表介面與 Render 按鈕就已就緒](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-## 架构承诺
+<!--i:eti-lock-->
+## 架構承諾
 
-这些决定已经敲定。更改其中任何一条都是一项重大工程，因为它们塑造了代码库中的所有其他决定。
+這些決策已經確定。程式碼庫中的其他每項決策都依賴它們，因此更改其中任何一項都是大工程。
 
-### 1. 声明式工具,辅以命令式逃生舱
+### 1. 宣告式工具，保留命令式擴充途徑
 
-工具由清单（`tool.json`）、模板（`template.html`）和可选的 `hooks.js` 组成。**清单声明输入项**，而不是模板：输入项不是从 Handlebars 标记推断出来的。大多数工具只有清单和模板，这正是非开发者也能创作它们的原因。
+工具由 manifest（`tool.json`）、範本（`template.html`）與選用的 `hooks.js` 組成。**manifest 宣告輸入**。絕不會從範本的 Handlebars token 推斷輸入。大多數工具只有 manifest 與範本，因此非開發者也能編寫。
 
-![Street Map 的控制项堆栈：城市下拉菜单、主题选择、粗细滑块和颜色触发器，每一个都来自清单中的一行](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&dark=1&filename=ov2-street-map-controls)
+![Street Map 的控制項堆疊：城市下拉選單、主題選擇器、粗細滑桿與色彩觸發器，每一項都來自 manifest 中的一行](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&dark=1&filename=ov2-street-map-controls)
 
-需要计算值的工具，例如二维码编码或图表整形，会添加钩子：运行时在注入能力桥接后调用的具名生命周期函数。钩子是一份可移植性契约，而不是安全沙盒，并且它们在时间预算内运行。钩子经证明不使用页面全局对象的工具带有 `isolate: true`，在 Worker 中运行。[工具钩子](/info/tool-hooks.html)介绍了生命周期和预算，[威胁模型](/info/threat-model.html)说明了页内执行器能包含和不能包含什么。
+需要計算值的工具，例如 QR 編碼或圖表成形，會加入掛鉤：由執行環境呼叫並注入能力橋接介面的具名生命週期函式。掛鉤是可攜性契約，不是安全沙箱。它們在時間預算內執行。若工具的掛鉤經證實不依賴頁面全域物件，就會標上 `isolate: true` 並在 Worker 中執行。[工具掛鉤](/info/tool-hooks.html)說明生命週期與預算。[威脅模型](/info/threat-model.html)說明頁面內執行器能限制與無法限制的範圍。
 
-### 2. 工具和资产是数据,而不是打包代码
+### 2. 工具與素材是資料，不是打包的程式碼
 
-网页和 Tauri 应用在启动时获取工具和素材目录，缓存它们，并使用现有的内容工作，所以新工具或新素材无需发布应用。素材字节有 SHA-256 校验和，素材的 `id` 和 `version` 驱动缓存失效。
+網頁與 Tauri 應用程式在啟動時擷取工具與素材目錄，將其快取，並使用快取中的內容運作。新增工具或素材不需要發布應用程式。素材的位元組以 SHA-256 校驗。素材的 `id` 與 `version` 決定快取何時失效。
 
-### 3. 能力桥接是工具能看到的唯一 API
+### 3. 能力橋接介面是工具唯一能使用的 API
 
-工具绝不在模板之外接触 DOM，绝不直接调用 `fetch`，也绝不读取文件系统。它们调用带版本的 `host.*` 方法。契约的规范定义位于 `packages/core/src/host-v1.ts`，即工具作者 SDK `@lolly-tools/core`，所以第三方可以在不依赖引擎的情况下基于它构建；`engine/src/bridge/host-v1.ts` 重新导出其类型。
+工具絕不接觸其範本以外的 DOM，絕不直接呼叫 `fetch`，也絕不讀取檔案系統。它們呼叫有版本的 `host.*` 方法。契約定義在工具作者 SDK `@lolly-tools/core` 中的 `packages/core/src/host-v1.ts`。第三方可依據 SDK 建置，不必依賴引擎。`engine/src/bridge/host-v1.ts` 會重新匯出其型別。
 
-| 必需的 API | 作用 |
+| 必要 API | 作用 |
 |---|---|
-| `host.profile` | 用户的详细信息；通过 `bindToProfile` 预填输入项 |
-| `host.assets` | 目录查询、素材解析和宿主的选择器 |
-| `host.state` | 保存和加载输入槽位：网页上用 IndexedDB，Tauri 中用文件系统，CLI 中用内存 |
-| `host.clipboard` | 将文本或图片写入剪贴板，带有平台回退 |
-| `host.export` | 栅格化或序列化渲染目标，以及设备端文件转换路径 |
-| `host.log` | 向宿主输出分级日志 |
+| `host.profile` | 使用者的個人資料；透過 `bindToProfile` 預填輸入 |
+| `host.assets` | 目錄查詢、素材解析與主機的選擇器 |
+| `host.state` | 儲存與載入輸入槽位：網頁使用 IndexedDB，Tauri 使用檔案系統，CLI 使用記憶體 |
+| `host.clipboard` | 將文字或圖片寫入剪貼簿，並提供平台備用方式 |
+| `host.export` | 將渲染目標點陣化或序列化，以及裝置上的檔案轉換路徑 |
+| `host.log` | 向主機寫入分級記錄 |
 
-其他每个 API 都是可选且可累加的：`tokens`、`text`、`color`、`geom`、`pdf`、`compose`、`media`、`recorder` 等等。工具的清单在 `requires` 下列出其钩子不经检查就调用的可选 API，缺少其中任何一个的宿主会拒绝挂载该工具；钩子对其余的进行特性检测。少数 API（例如 `recorder`）还需要工具声明的设备能力。`packages/core/src/host-v1/apis.ts` 列出了全部，[Host API](/info/host-api.html) 记录了每一个。添加方法属于次版本；删除或更改方法属于主版本，v2 发布后 v1 仍可继续使用。
+其他每個 API 都是選用的擴充：`tokens`、`text`、`color`、`geom`、`pdf`、`compose`、`media`、`recorder` 等等。manifest 的 `requires` 列出其掛鉤會直接呼叫、不先檢查的選用 API。主機缺少其中任何一項，就會拒絕掛載工具。其餘 API 則由掛鉤偵測是否可用。少數 API，例如 `recorder`，也需要工具宣告的裝置能力。`packages/core/src/host-v1/apis.ts` 列出全部 API，[Host API](/info/host-api.html) 則逐一說明。新增方法會升次版本。移除或更改方法會升主版本，而且 v2 發布時 v1 仍會繼續運作。
 
-### 4. 素材 ID 永远不变
+### 4. 素材 id 永久不變
 
-`lolly/logo/primary` 是一份契约。一旦发布，ID 就永远不变，也绝不复用。字节发生变化时会提升素材条目中的 `version`，替代品会设置 `deprecated: true` 以及可选的 `replacedBy`，所以现有的引用始终可以解析。这正是已保存的会话和分享链接能多年持续可用的原因。
+`lolly/logo/primary` 是一份契約。id 一旦發布，就絕不更改，也絕不重複使用。位元組有變更，就會提升素材項目中的 `version`。替換素材時會設定 `deprecated: true`，並可選擇設定 `replacedBy`。現有參照永遠能解析，因此已儲存的工作階段與分享連結可以持續運作多年。
 
-### 5. URL 模式是一等公民
+### 5. URL 模式是一級功能
 
-每个输入项都可以表示为 URL 参数，所以链接就是一个成品文件：
+每個輸入都能以 URL 參數表達，因此連結就是完成的檔案：
 
 ```
 https://lolly.tools/t/qr-code?url=https://example.com&ecl=H
 ```
 
-![仅凭这个链接本身，里面没有其他任何东西，就是成品文件](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Fexample.com%26ecl%3DH%26full&width=760&height=760&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-url-mode-qr)
+![單憑這個連結，沒有其他內容，就是完成的檔案](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Fexample.com%26ecl%3DH%26full&width=760&height=760&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-url-mode-qr)
 
-改变一个参数，就得到另一个文件。整个调色板就是一个种子颜色、一种和谐关系和一个步数：
+更改一個參數，就會得到不同的檔案。這個色盤由一個種子色、一種調和方式與一個階數組成：
 
-![四种色相下的九个色阶，皆由链接中携带的同一个种子颜色生长而来](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3De0521a%26harmony%3Dtetrad-4%26steps%3D9%26full&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-url-palette)
+![四種色相各有九階，全部由連結中攜帶的單一種子色產生](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3De0521a%26harmony%3Dtetrad-4%26steps%3D9%26full&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-url-palette)
 
-CLI 根据其参数构建同样的 URL 状态并运行同一条管线，所以 CLI 不会与应用产生偏差。`engine/src/url-mode.ts` 负责解析和序列化；一组保留名称（`format`、`width`、`dpi`、`c2pa`、`z` 等）绝不会传给工具，[保留的 URL 参数](/info/url-parameters.html)列出了全部。素材输入项通过 `id` 传递，并在模板填充之前通过 `host.assets.get()` 解析。
+CLI 從引數建立相同的 URL 狀態，並執行相同的處理流程，因此 CLI 的行為不會偏離應用程式。`engine/src/url-mode.ts` 解析與序列化 URL 狀態。保留名稱（`format`、`width`、`dpi`、`c2pa`、`z` 等）絕不會傳給工具。[保留的 URL 參數](/info/url-parameters.html)列出所有名稱。素材輸入以 `id` 傳遞，並在填入範本前透過 `host.assets.get()` 解析。
 
-### 6. 存储经由桥接
+### 6. 儲存透過橋接介面
 
-网页应用使用 IndexedDB，Tauri 使用文件系统，CLI 使用内存。工具只能看到 `host.state.save(slot, data)` 和 `host.state.load(slot)`，看不到 `localStorage`。人们可以为每个工具保存多个命名会话，无需账号。因为桥接是唯一的接缝，所以这些状态也是可迁移的：`shells/web/src/data-transfer.ts` 会把它们读出到一个 `lolly-backup` 文件中，可以导入到任何其他安装（[数据迁移](/info/data-transfer.html)），[同步](/info/sync.html)则把同样的包发送到此人选择的存储。
+網頁應用程式使用 IndexedDB，Tauri 使用檔案系統，CLI 使用記憶體。工具只能使用 `host.state.save(slot, data)` 與 `host.state.load(slot)`，絕不使用 `localStorage`。使用者不需要帳號，就能為每個工具保留數個具名工作階段。因為橋接介面是唯一的銜接點，狀態也能攜帶。`shells/web/src/data-transfer.ts` 將狀態匯出為單一 `lolly-backup` 檔案，可匯入任何其他安裝實例（[資料移轉](/info/data-transfer.html)）。[同步](/info/sync.html)將相同的套件傳送到使用者選擇的儲存空間。
 
-### 7. 成熟度标签按设计说明工具是什么
+### 7. 成熟度標籤說明工具的狀態
 
-每个工具都声明 `status: official | community | experimental`。图库按状态排序，实验性工具默认在其导出内容上加水印：除非调用方传入 `watermark: false`，否则运行时会开启水印，设备端工具则不受影响。团队在目录之外加的任何流程，都建立在这之上。
+每個工具都宣告 `status: official | community | experimental`。工具庫依狀態排序。實驗性工具預設在匯出中加上浮水印：除非呼叫端傳入 `watermark: false`，否則執行環境會開啟浮水印。在裝置上處理檔案的工具不受此限。團隊自己的目錄流程以這些標籤為基礎。
 
-### 8. 输入项在清单中带类型
+### 8. 輸入的型別在 manifest 中宣告
 
-输入项声明一个 `type`：`text`、`longtext`、`number`、`boolean`、`color`、`select`、`asset`、`date`、`time`、`datetime-local`、`url`、`blocks`、`vector`、`table` 或 `file`。宿主为每种类型渲染一个控制项，所以工具无需编写控制项代码，任何输入项都可以带有 `bindToProfile`。其中三种分量最重：
+輸入會宣告 `type`：`text`、`longtext`、`number`、`boolean`、`color`、`select`、`asset`、`date`、`time`、`datetime-local`、`url`、`blocks`、`vector`、`table` 或 `file`。主機為每個型別渲染控制項，因此工具不必編寫控制項程式碼。任何輸入都能帶有 `bindToProfile`。其中三種型別最重要：
 
-- **`asset`**，带有 `filter` 和 `allowUpload`，是通往素材系统的桥梁。`allowUpload: false` 把一个槽位限制为库中的素材，用户上传与库共用 `AssetRef` 形状。
-- **`blocks`** 是在侧面板中编辑的重复字段组，Meeting Planner、Wayfinding、Diagrams 等工具都在使用。点击渲染出的块会聚焦到它的行。
-- **`file`** 在内存中保存用户自己的文件，供 Strip Hidden Data 和 Compress 之类的设备端实用工具使用，**`vector`** 则把一组固定的数字归为一个控制项。
+- **`asset`** 搭配 `filter` 與 `allowUpload`，是通往素材系統的橋接介面。`allowUpload: false` 將槽位限制為只能使用資料庫素材。使用者上傳的內容與資料庫共用 `AssetRef` 結構。
+- **`blocks`** 是在側邊面板中編輯的重複欄位群組，供 Meeting Planner、Wayfinding、Diagrams 等工具使用。點擊渲染出的區塊，對應的列就會取得焦點。
+- **`file`** 將使用者自己的檔案保存在記憶體中，供 Lolly Strip Hidden Data 與 Compress 等裝置上執行的 Utility 使用，而 **`vector`** 將一組固定的數字組成單一控制項。
 
-### 9. 模板没有逻辑
+### 9. 範本不含邏輯
 
-模板是 Handlebars，选它是为了让非开发者也能编写：`{{x}}` 会转义，`{{{x}}}` 是显式选择加入。逻辑位于 `hooks.js` 中，在那里它是明确且可审阅的。许多模板对钩子计算出的标记使用 `{{{`，所以每个钩子都必须对交出的内容进行转义。辅助函数有 `default`、`upper`、`lower`、`eq`、`markdown`、`asset`、`framing` 和 `media`，以及用于配套 `.ics`、`.vcf` 和 `.csv` 模板的 `icsStamp`、`rfcText`、`csvCell` 和 `arrow`。[模板与渲染](/info/tool-rendering.html)介绍了它们。
+範本使用 Handlebars，因此非開發者也能編寫。`{{x}}` 會跳脫內容，而 `{{{x}}}` 則是明確選擇不跳脫。邏輯放在 `hooks.js` 中，便於審閱。許多範本使用 `{{{` 放入掛鉤計算出的標記，因此每個掛鉤都必須跳脫它交出的內容。輔助函式有 `default`、`upper`、`lower`、`eq`、`markdown`、`asset`、`framing` 與 `media`，以及供配套的 `.ics`、`.vcf` 與 `.csv` 範本使用的 `icsStamp`、`rfcText`、`csvCell` 與 `arrow`。[範本與渲染](/info/tool-rendering.html)說明了這些函式。
 
-### 10. 工具可以组合其他工具
+### 10. 工具可以組合其他工具
 
-一个工具可以嵌入另一个工具的渲染结果，而无需工具之间互相导入；由引擎解析这种组合。清单可以声明 `composes: [{ id, tool, inputs }]`，并用 `{{asset <id>}}` 放置子项，可移植的嵌入 URL（`https://lolly.tools/tool/<id>.svg?…`）会在本地渲染子项，Design 就是这样放置实时二维码或图表的。SVG 子项在 SVG 或 PDF 父项中保持矢量。子项是中间产物，绝不加水印或盖章，无法渲染子项的外壳会让该槽位留空，而父项仍会渲染。[组合与品牌叠加](/info/tool-composition.html)有详细说明。
+工具可以嵌入另一個工具的渲染結果，不需要在工具之間匯入程式碼。引擎負責解析組合。manifest 可以宣告 `composes: [{ id, tool, inputs }]`，並用 `{{asset <id>}}` 放置子項。可攜式嵌入 URL（`https://lolly.tools/tool/<id>.svg?…`）會在本機渲染子項；Lolly Design 就是這樣放入即時 QR code 或圖表。SVG 子項在 SVG 或 PDF 父項中仍保持為向量。子項是中間產物，絕不會加上浮水印或印記。外殼若無法渲染子項，就會讓槽位保持空白，父項仍會渲染。[組合與品牌覆蓋設定](/info/tool-composition.html)提供詳細說明。
 
-## 我们选择不做什么
+<!--i:eti-scissors-->
+## 我們選擇不做的事
 
-- **模板中没有任意 JavaScript。** 逻辑位于 `hooks.js` 中。
-- **没有强制的素材服务器。** 人们在应用中把自己的文件添加到 Assets，并以会话的形式传递作品：分享链接承载输入项和设置，上传内容也要一起传递时则用 `.lolly` 文件。共享会话可以成为工具选择器中的模板。想要受管控目录的组织可以使用 Lolly Work 的目录、审批和政策，或者在 git 中管理品牌包并在那里审阅更改。
-- **没有强制的访问控制。** 开放的应用默认是公开的，成熟度标签和水印承担品牌风险。当团队需要时，组织登录、角色和政策来自 Lolly Work。
-- **没有中央数据库。** 用户状态保存在每台设备上，可选的同步把它复制到此人选择的存储，绝不会复制到 Lolly 的数据库。
-- **工具与引擎之间没有共享代码路径。** 引擎和社区工具是开源的，而像私有的 `brands/suse/` 这样的品牌包按自己的条款携带自己的工具和目录。没有任何工具从 `engine/` 导入，所以这种划分保持清晰。
+- **範本中不允許任意 JavaScript。** 邏輯放在 `hooks.js` 中。
+- **不強制使用素材伺服器。** 使用者在應用程式的 Assets 中加入自己的檔案，並以工作階段交接作品：輸入與設定用分享連結，需要連同上傳內容一起交接時則用 `.lolly` 檔案。共用的工作階段可以成為工具選擇器中的範本。想要受管理目錄的組織可以使用 Lolly Work 的目錄、核准與政策，或在 git 中管理品牌套件並審閱變更。
+- **不強制存取控制。** 開放的應用程式預設為公開。成熟度標籤與浮水印承擔品牌風險。團隊需要組織登入、角色與政策時，由 Lolly Work 提供。
+- **沒有中央資料庫。** 使用者狀態保留在每部裝置上，選用的同步會將其複製到使用者選擇的儲存空間，絕不會放進 Lolly 資料庫。
+- **工具與引擎不共用程式碼路徑。** 引擎與社群工具是開源的。像私人 `brands/suse/` 這樣的品牌套件，依其自己的條款帶有自己的工具與目錄。沒有工具會從 `engine/` 匯入，因此兩者始終明確分開。
 
-## 一次渲染的完整生命周期
+<!--i:eti-refresh-->
+## 一次渲染的生命週期
 
-有人打开 `https://lolly.tools/t/qr-code?url=https://example.com&ecl=H`：
+有人開啟 `https://lolly.tools/t/qr-code?url=https://example.com&ecl=H`：
 
-1. **启动。** 网页应用打开 IndexedDB，构建能力桥接，并同步工具和素材目录，离线时则从缓存加载。
-2. **路由。** 路径选中 `qr-code` 的工具视图，以查询参数作为其初始值。
-3. **加载。** `loadTool` 获取 `tool.json`，按模式定义验证，并获取模板、样式和钩子。
-4. **解析链接。** `parseUrlState` 把参数变成输入值。诸如 `?logo=lolly/logo/primary` 的素材引用会变成未解析的 `{ id }`。
-5. **启动运行时。** `createRuntime(tool, host, initialValues)` 根据个人资料数据、默认值和链接构建输入模型，解析素材引用，加载钩子并调用 `onInit`。
-6. **渲染。** 外壳订阅运行时，根据模型绘制控制项，并把填好的模板写入 `#tool-canvas`。
-7. **交互。** 输入会调用 `runtime.setInput`，它应用约束，调用 `onInput`，再次填充模板并重绘。
-8. **导出。** **Download** 调用 `runtime.export(node, format)`，外壳的 `host.export` 生成文件：栅格图、由 DOM 遍历器生成的矢量图、PDF、文档，或 `schemas/tool.schema.json` 中的其他格式之一。物理单位按格式转换，元数据和 Content Credentials 会嵌入到格式能容纳的地方。实验性工具的水印由宿主而不是工具添加。[模板与渲染](/info/tool-rendering.html)和[导出文件](/info/exporting.html)介绍了导出这一步。
+1. **啟動。** 網頁應用程式開啟 IndexedDB，建立能力橋接介面並同步工具與素材目錄，離線時則從快取載入。
+2. **路由。** 路徑選取 `qr-code` 的工具檢視，並以查詢參數作為初始值。
+3. **載入。** `loadTool` 擷取 `tool.json`，依結構描述驗證它，並擷取範本、樣式與掛鉤。
+4. **解析連結。** `parseUrlState` 將參數轉成輸入值。像 `?logo=lolly/logo/primary` 這樣的素材參照會變成尚未解析的 `{ id }`。
+5. **啟動執行環境。** `createRuntime(tool, host, initialValues)` 根據個人資料、預設值與連結建立輸入模型，解析素材參照，載入掛鉤並呼叫 `onInit`。
+6. **渲染。** 外殼訂閱執行環境，根據模型繪製控制項，並將填好的範本寫入 `#tool-canvas`。
+7. **互動。** 輸入文字會呼叫 `runtime.setInput`，套用限制、呼叫 `onInput`、再次填入範本並重新繪製。
+8. **匯出。** **Download** 呼叫 `runtime.export(node, format)`，外殼的 `host.export` 產生檔案：點陣圖、DOM walker 產生的向量、PDF、文件，或 `schemas/tool.schema.json` 中的其他格式。實體單位依格式轉換。在格式支援的情況下，會嵌入中繼資料與 Content Credentials。實驗性工具的浮水印由主機提供，不是工具。[範本與渲染](/info/tool-rendering.html)與[匯出檔案](/info/exporting.html)說明匯出步驟。
 
-![?options 打开的导出面板：文件名和格式对、输出尺寸，以及写出文件的控制项](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
+![?options 開啟的匯出面板：檔名與格式組合、輸出大小，以及寫出檔案的控制項](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
-同样的生命周期在 Tauri 中运行，也在带无界面 DOM 的 CLI 中运行，输出写入文件或标准输出。
+Tauri 執行相同的生命週期，CLI 則在無頭 DOM 中執行，並將結果輸出到檔案或 stdout。
 
-## 许可协议
+<!--i:eti-stamp-->
+## 授權
 
-代码（包括 `engine/`、`shells/`、`services/`、`schemas/` 和文档生成器）采用 MPL-2.0，位于一个公共仓库 [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly) 中。文档正文采用 CC BY-SA 4.0。品牌包在各自的 `NOTICE.md` 中带有自己的条款：社区工具采用 MPL-2.0，私有的 SUSE 包是 SUSE 专有的。[关于](/info/about.html)有完整的许可说明。
+程式碼，包括 `engine/`、`shells/`、`services/`、`schemas/` 與文件產生器，皆採 MPL-2.0 授權，位於單一公開儲存庫 [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)。文件文字採 CC BY-SA 4.0 授權。品牌套件在各自的 `NOTICE.md` 中列有自己的條款：社群工具採 MPL-2.0 授權，私人 SUSE 套件則為 SUSE 專有。[關於](/info/about.html)提供完整授權說明。

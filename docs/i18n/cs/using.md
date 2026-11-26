@@ -1,213 +1,236 @@
 # Používání Lolly
 
-Máš otevřenou Lolly a chceš něco vytvořit, uložit a poslat dál. Tato stránka provádí touto smyčkou: otevři nástroj, změň, co ti dovolí měnit, ulož výsledek a sdílej ho jako odkaz nebo soubor.
+Otevři nástroj, uprav, co ti dovolí upravit, ulož výsledek a sdílej ho odkazem nebo jako soubor.
 
-Vše tady běží na tvém zařízení, bez účtu, a funguje dál offline, jakmile jsou stažené nástroje a assety, které potřebuješ. Aplikace ke spuštění potřebuje prohlížeč nebo aplikaci s WebGPU; [Podporovaná prostředí](/info/supported-environments.html) uvádějí otestovaná.
+Všechno běží na tvém zařízení bez účtu a po stažení potřebných nástrojů a assetů funguje i offline. Ke spuštění je potřeba prohlížeč nebo aplikace s WebGPU. Otestované možnosti uvádějí [Podporovaná prostředí](/info/supported-environments.html).
 
+**Celý postup** ve čtyřech krocích:
+
+::: steps
+- <!--i:eti-home--> **[Otevři nástroj](#find-your-way-around)** Klikni na kartu na domovské obrazovce. Vedle živého náhledu najdeš ovládací prvky.
+- <!--i:eti-sliders--> **[Změň vstupy](#change-what-the-tool-lets-you-change)** Jen ty, které autor nechal přístupné. Kliknutím na návrh najdeš jeho ovládací prvek.
+- <!--i:eti-folder-plus--> **[Ulož svou práci](#saving-continuing)** **Save** ji uchová v My library a Projects ji znovu otevře.
+- <!--i:eti-link--> **[Sdílej návrh](#sharing-your-work)** Odkaz se všemi vstupy nebo jeden soubor `.lolly`.
+:::
+
+<!--i:eti-home-->
 ## Zorientuj se
 
 ::: figure using-app-map
-Domovská obrazovka: čtyři karty nahoře a lišta dole. Otevřený nástroj ukazuje své ovládací prvky vedle živého náhledu.
+Domovská obrazovka má nahoře čtyři karty a dole lištu. V otevřeném nástroji jsou ovládací prvky vedle živého náhledu.
 :::
 
-Nahoře na domovské obrazovce jsou čtyři karty: **Tools**, **Utilities**, **Assets** a **Projects**. Tools jsou to, čím tvoříš, Utilities jsou dílny pro úkoly jako převod, kontrola nebo vyčištění souboru, Assets je tvá knihovna a Projects drží, co jsi uložil.
+V horní části domovské obrazovky jsou čtyři karty: **Tools**, **Utilities**, **Assets** a **Projects**. Tools slouží k tvorbě. Utilities převádějí, kontrolují nebo čistí soubory. Assets je tvá knihovna. Projects uchovává uloženou práci.
 
-Lišta dole obsahuje **Open**, **Settings**, vyhledávací pole, **Verify** a **What?**. Zobrazuje se na Tools, Utilities, Assets, Projects, Settings a v průvodcích, které čteš v aplikaci, a ustoupí, jakmile je nástroj otevřený. [Hledání](/info/search.html) z toho pole dosáhne na tvé nástroje, uloženou práci, assety a nastavení. [Ask Lolly](/info/ask.html) odpoví na napsanou otázku odpovídající částí těchto průvodců.
+Na dolní liště najdeš **Open**, **Settings**, vyhledávací pole, zkratku **Verify** do Lolly Verify a **Docs**, které otevře tyto průvodce. Lišta je vidět v Tools, Utilities, Assets, Projects, Settings a průvodcích v aplikaci a po otevření nástroje se skryje. [Lolly Search](/info/search.html) z tohoto pole vyhledává nástroje, uloženou práci, assety a nastavení. [Ask Lolly](/info/ask.html) na napsanou otázku odpoví odpovídající sekcí těchto průvodců.
 
-Kliknutím na kartu začneš něco nového v tom nástroji. Uložená práce se místo toho znovu otevírá z **Projects**.
+Klikni na kartu a začni v daném nástroji novou práci. Uloženou práci znovu otevřeš z **Projects**. Při první návštěvě nabízí uvítací pruh nahoře v galerii jednu akci pro začátek: **Start making** v Lolly Demo nebo **Make it yours** pro nastavení vlastního designového systému.
 
-![Karta galerie s ukázkovou navigací a akcí Nový](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
+![Karta v galerii s ukázkovou navigací a akcí New](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
-Každý nástroj je rozdělené zobrazení: na jedné straně **ovládací prvky**, na druhé živý **náhled**. Změníš prvek a náhled hned následuje a to, co vidíš, se exportuje.
+Každý nástroj má rozdělené zobrazení: na jedné straně jsou **ovládací prvky** a na druhé živý **náhled**. Při změně ovládacího prvku se náhled aktualizuje a export odpovídá tomu, co vidíš.
 
-![Rozdělené zobrazení nástroje - sada ovládacích prvků vlevo a živě vykreslovaný skupinový sloupcový graf vpravo](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
+![Rozdělené zobrazení nástroje - vlevo sloupec ovládacích prvků a vpravo živý skupinový sloupcový graf, který nástroj vykresluje](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-**Design** je výjimka. Otevře se jako volné plátno z polí, která přetahuješ, měníš jim velikost a píšeš do nich, s vlastní horní lištou, časovou osou a ovládáním prezentace. Jeho průvodcem je [Design: volné plátno](/info/design.html).
+**Lolly Design** tvoří výjimku: volné plátno s poli, která přetahuješ, měníš jejich velikost a píšeš do nich, s vlastní horní lištou, časovou osou a ovládáním sady snímků. Provede tě jím [Lolly Design: volné plátno](/info/design.html).
 
+<!--i:eti-sliders-->
 ## Změň, co ti nástroj dovolí měnit
 
-Nástroj ukazuje jen vstupy, které se mají měnit. Jeho autor už pevně určil barvy, rozvržení, písmo a logiku, takže cokoli vytvoříš, drží jeho pravidla. Vstupy zahrnují text, posuvníky, výběry barev, rozbalovací nabídky, data, výběry obrázků a opakující se skupiny řádků a některé jsou ve sbalitelných sekcích.
+Nástroj zobrazuje jen vstupy určené ke změnám. Autor pevně nastavil barvy, rozvržení, písmo a logiku, takže se tvá práce drží jeho pravidel. Vstupy zahrnují text, posuvníky, výběry barev, rozbalovací nabídky, data, výběry obrázků a opakující se skupiny řádků. Některé najdeš ve sbalitelných sekcích.
 
-![Sloupec ovládacích prvků nástroje - textové pole, spouštěče barev a posuvník a nic dalšího, co se autor rozhodl zamknout](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
+![Sloupec ovládacích prvků nástroje - textové pole, spouštěče výběru barev a posuvník, bez dalších prvků, které autor zamkl](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
 
-**Klikni na návrh a najdi jeho ovládání.** Klikni na libovolný prvek v náhledu a odpovídající ovládací prvek získá fokus a posune se do zobrazení. V opakující se skupině řádků se rozbalí přesně ten řádek, na který jsi klikl.
+**Kliknutím na návrh najdeš jeho ovládací prvek.** Když klikneš na prvek v náhledu, jeho ovládací prvek se posune do zobrazení a získá fokus. V opakující se skupině řádků se otevře řádek, na který jsi klikl.
 
-**Clear changes** nad ovládacími prvky vrátí každý vstup na výchozí hodnotu.
+**Clear changes** nad ovládacími prvky obnoví výchozí hodnotu všech vstupů.
 
-**Volby designového systému.** Když tvůj designový systém nabízí více než jeden colourway, světlý a tmavý vzhled nebo jinou volbu motivu, drží je sekce **Design system** pod ovládacími prvky. Volba se objeví, jen když mění tento nástroj, takže souborová utilita nezobrazí sekci vůbec. Každý colourway je tečka ve svých barvách, světlý a tmavý jsou dvě tlačítka a jakákoli jiná volba je seznam.
+**Volby designového systému.** Pokud tvůj designový systém nabízí několik colourways, světlý a tmavý vzhled nebo jinou volbu motivu, najdeš je v sekci **Design system** pod ovládacími prvky. Volba se zobrazí jen tehdy, pokud daný nástroj mění, takže souborová utilita tuto sekci nemá. Každý colourway zastupuje tečka v jeho barvách, světlý a tmavý vzhled dvě tlačítka a ostatní volby seznam.
 
-Volba patří tomuto dílu. Putuje v odkazu a v uložené relaci, následuje ji každá barva propojená s designovým systémem a vlastní barvy aplikace zůstávají, jak jsou. Design ukazuje stejné volby na kartě **Canvas** v Inspektoru. Nástroj, jehož barvy jsou jeho obsahem, může zůstat na kanonickém colourway a pak nenabízí žádné tečky colourway. [Lolly Demo v praxi](/info/lolly-demo-in-use.html#colourways-on-real-work) ukazuje colourways na skutečné práci.
+Volba patří k tomuto dílu. Přenáší se v odkazu i uložené relaci. Řídí se jí všechny barvy propojené s designovým systémem, zatímco vlastní barvy aplikace zůstávají stejné. V Lolly Design najdeš stejné volby v Inspectoru na kartě **Canvas**. Nástroj, jehož obsahem jsou barvy, může zůstat u kanonického colourway a pak tečky colourways nezobrazuje. [Lolly Demo v praxi](/info/lolly-demo-in-use.html#colourways-on-real-work) předvádí colourways na skutečné práci. Chceš-li stejný colourway používat v aplikaci i pro každé nové dílo, vyber ho v **Settings → Appearance** ([Nastav si vlastní colourway](/info/colourways.html#make-a-colourway-your-own)).
 
 ### Zvětšování a posouvání náhledu
 
-Náhled vždy zobrazuje přesně to, co se exportuje.
+- **Zvětšení:** podrž Cmd/Ctrl a otáčej kolečkem nebo použij štípnutí na trackpadu, se středem na ukazateli. Na klávesnici `0` nebo `Shift+1` přizpůsobí vše, `1` nebo `Shift+0` nastaví 100 % a `Shift+2` přizpůsobí výběr. `+` / `−` mění zvětšení kolem ukazatele, pokud je nad scénou, jinak kolem středu.
+- **Posun:** drž **Space** a táhni nebo táhni prostředním tlačítkem myši. Běžným kliknutím můžeš dál vybírat části návrhu.
+- **Dotyk:** štípnutí mění zvětšení, tažení posouvá a dvojité klepnutí přizpůsobí zobrazení.
+- **HUD zvětšení:** podržením spirály Lolly v rohu rozbalíš `−`, **Fit** a `+`. Krátkým klepnutím na spirálu se stále otevírá nabídka profilu.
 
-- **Zvětšení:** Cmd/Ctrl a kolečko nebo štípnutí na trackpadu, vystředěné na ukazatel. Na klávesnici `0` nebo `Shift+1` přizpůsobí vše, `1` nebo `Shift+0` nastaví 100 % a `Shift+2` přizpůsobí výběr. `+` / `−` mění zvětšení kolem ukazatele, pokud je nad scénou, jinak kolem středu.
-- **Posun:** podrž **Space** a táhni, nebo táhni prostředním tlačítkem myši. Obyčejná kliknutí zůstávají volná pro klikání na části návrhu.
-- **Dotyk:** štípnutím zvětšuješ, tažením posouváš a dvojitým klepnutím přizpůsobíš.
-- **HUD zvětšení:** stiskni a podrž spirálu Lolly v rohu, aby se rozložily `−`, **Fit** a `+`. Krátké klepnutí na spirálu stále otevře nabídku profilu.
+V Lolly Design bere **Fit all** v úvahu kreslicí plochy i volné vrstvy. Při ručním oddalování může zvětšení klesnout pod 20 %, dokud stránka nezabere polovinu zobrazení. Pevný limit je nižší z hodnot 5 % běžného měřítka Fit a 2 % absolutního zvětšení.
 
-V Design zahrnuje **Fit all** kreslicí plochy i volné vrstvy. Ručně lze oddálit pod 20 %, dokud celá stránka nevyplní polovinu zobrazení. Pevná dolní mez je nižší z hodnot 5 % běžného měřítka Fit a 2 % absolutního zvětšení.
+Při změně velikosti výstupu se zobrazení vždy znovu přizpůsobí.
 
-Změna velikosti výstupu vždy vrátí zobrazení na čisté přizpůsobení.
-
-![HUD zvětšení rozložený ze spirály v rohu plátna - minus, Fit, plus, pak přepínače motivu a zvuku a úchyt, který jím pohybuje](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
+![HUD zvětšení rozbalený ze spirály v rohu plátna - minus, Fit, plus, potom přepínače motivu a zvuku a úchyt pro přesouvání](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
 
 ### Zpět a znovu
 
-**Cmd/Ctrl-Z** vrací zpět a **Cmd/Ctrl-Shift-Z** (nebo **Cmd/Ctrl-Y**) vpřed. Stejná dvojice je jako tlačítka **Undo** a **Redo** nad ovládacími prvky (v Design jsou v horní liště) a každé zešedne, když už není co vzít zpět. Zpráva říká, který vstup každé vrácení obnovilo, s tlačítkem **Redo** ve zprávě.
+**Cmd/Ctrl-Z** provede krok zpět a **Cmd/Ctrl-Shift-Z** (nebo **Cmd/Ctrl-Y**) krok vpřed. Tlačítka **Undo** a **Redo** jsou nad ovládacími prvky, v Lolly Design pak na horní liště. Každé zešedne, když už pro něj nezbývá žádný krok. Zpráva s tlačítkem **Redo** uvádí, který vstup daný krok zpět obnovil.
 
-- **Tažení je jeden krok.** Opakované změny jednoho prvku do půl sekundy se sloučí, takže přetažení posuvníku přes celý rozsah je jedno vrácení.
-- **Uchovává se posledních 100 kroků.** Nová úprava po vrácení vymaže zásobník vpřed.
-- **V textovém poli** patří Cmd/Ctrl-Z poli, znak po znaku. Lolly převezme posuvníky, rozbalovací nabídky, barvy a přepínače.
-- **Výběr souboru** ve vstupu souboru není krok, protože ty bajty se drží jen pro tuto relaci.
+- **Jedno tažení je jeden krok.** Opakované změny stejného ovládacího prvku během půl sekundy se spojí do jediného kroku.
+- **Zachovává se posledních 100 kroků.** Nová úprava po kroku zpět vymaže zásobník kroků vpřed.
+- **V textovém poli** zpracovává Cmd/Ctrl-Z samotné pole, znak po znaku. U posuvníků, rozbalovacích nabídek, barev a přepínačů ho zpracovává Lolly.
+- **Zvolení souboru** v souborovém vstupu není krok, protože jeho bajty se uchovávají jen po dobu této relace.
 
-V živé [spolupráci](/info/collaborate.html) tvá historie zůstává tvoje: změna z druhého zařízení se nikdy nedostane do tvého zásobníku. Vrácení trvá, dokud nástroj neopustíš nebo nenačteš znovu. Pro cokoli staršího uchovávají nástroje, které ukládají při práci, dřívější verze pod **History**; viz [Vrať se k dřívější verzi](/info/find-your-work.html#go-back-to-an-earlier-version).
+Při živé [spolupráci](/info/collaborate.html) se změna z druhého zařízení nikdy nezapíše do tvého zásobníku kroků zpět. Kroky zpět jsou dostupné, dokud nástroj neopustíš nebo znovu nenačteš. Pro starší změny uchovávají nástroje s průběžným ukládáním předchozí verze v **History** ([Vrať se k dřívější verzi](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ### Živá kamera
 
-Efekty nástroje **Filter** (Halftone, Scanline, Posterize, Voronoi, Duotone, Stretch, Misprint, Dither, ASCII art a Glitch) ukazují tlačítko **Go live**, kde je kamera k dispozici. Zapni ho a efekt sleduje tvou webkameru snímek po snímku a pohybový export zaznamená výsledek jako GIF, WebM nebo MP4. Snímky se zpracovávají na tvém zařízení a kamera se uvolní ve chvíli, kdy zastavíš nebo nástroj opustíš. Každý výběr obrázku má také **Take a photo** pro jediný snímek.
+Efekty nástroje **Filter** (Halftone, Scanline, Posterize, Voronoi, Duotone, Stretch, Misprint, Dither, ASCII art a Glitch) nabízejí tlačítko **Go live**, pokud je dostupná kamera. Zapni ho a efekt bude snímek po snímku sledovat tvou webkameru. Pohybový export zaznamená výsledek jako GIF, WebM nebo MP4. Snímky se zpracovávají na tvém zařízení. Jakmile záznam zastavíš nebo nástroj opustíš, kamera se uvolní. Každý výběr obrázku nabízí i **Take a photo** pro pořízení jediného snímku.
 
-## Ukládání a pokračování
+<!--i:eti-folder-plus-->
+## Ukládání & pokračování
 
-Chceš-li svou práci zachovat, stiskni **Save**, zatržítko vedle **Export** na pilulce vykreslení. Nová práce jde do **My library**, dříve uložená práce se aktualizuje na místě a nic se nestahuje. Panel exportu má stejné tlačítko **Save**.
+Svou práci uchováš stisknutím **Save**, zatržítka vedle **Export** na pilulce vykreslení. Nová práce se uloží do **My library**, už uložená práce se aktualizuje na svém místě a nic se nestahuje. Stejné tlačítko **Save** najdeš i v panelu exportu.
 
-Chceš-li vybrat, kam půjde, stiskni **Save as** vedle **Download** v panelu exportu. Pod **Save to a project** nech vybrané **My library** nebo vyber projekt (**＋ New project…** jej vytvoří) a stiskni **Save**; **Save as a template** uloží návrh jako [šablonu](/info/templates.html), výchozí bod nových dokumentů. V Design je **Save as** v nabídce Lolly; na telefonu stiskni **•••**, pak **File menu**, pak **Save as**.
+Místo uložení vybereš stisknutím **Save as** vedle **Download** v panelu exportu. Pod **Save to a project** ponech **My library** nebo vyber projekt (**＋ New project…** vytvoří nový) a pak stiskni **Save**. Volba **Save as a template** uchová návrh jako [šablonu](/info/templates.html), ze které můžeš tvořit nové dokumenty. V Lolly Design najdeš **Save as** v nabídce Lolly. Na telefonu stiskni **•••**, potom **File menu** a potom **Save as**.
 
-![Dvoudílná pilulka vykreslení: Export se šipkou nahoru, která otevře panel exportu, a Save se zatržítkem, které uloží na místě](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+![Dvě poloviny pilulky vykreslení: Export se šipkou nahoru pro otevření panelu exportu a Save se zatržítkem pro uložení na místě](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
 ::: timeline
-- <!--i:check--> Stiskni **Save** na pilulce vykreslení nebo **Save as** pro výběr projektu.
-- <!--i:folder--> Položka jde do **My library** nebo do projektu, který jsi vybral.
-- <!--i:home--> Později stiskni **Home** vlevo nahoře a otevři kartu **Projects**.
-- <!--i:document--> Otevři položku. Každé nastavení je zpět, připravené ke změně a dalšímu exportu.
+- <!--i:check--> Na pilulce vykreslení stiskni **Save**, nebo zvol **Save as** a vyber projekt.
+- <!--i:folder--> Položka se uloží do **My library** nebo do vybraného projektu.
+- <!--i:home--> Až se budeš chtít vrátit, stiskni vlevo nahoře **Home** a otevři kartu **Projects**.
+- <!--i:document--> Otevři položku. Všechna nastavení se obnoví a můžeš je znovu měnit a exportovat.
 :::
 
-Položky se jmenují podle názvu souboru, který jsi napsal do panelu exportu, jinak podle svého nástroje, například **QR Code**. Soubor, který dostaneš přes **Download**, je hotová kopie; chceš-li jej později změnit, otevři uloženou položku v Projects.
+Položky dostanou název souboru zadaný v panelu exportu, jinak název svého nástroje, například **QR Code**. Soubor z **Download** je hotová kopie. Pro pozdější úpravy otevři uloženou položku v Projects.
 
-Osobní uložení zůstávají na tomto zařízení, v prohlížeči nebo aplikaci, odkud jsi ukládal, pokud nezapneš [Sync](/info/sync.html). Pokud něco není tam, kde to čekáš, [Najdi a obnov svou práci](/info/find-your-work.html) pokrývá každý případ, od zavřené karty po smazaná data prohlížeče.
+::: note Uložená práce zůstává na tomto zařízení
+Osobní uložená práce zůstává na tomto zařízení v prohlížeči nebo aplikaci, kde jsi ji uložil, pokud nezapneš [Sync](/info/sync.html).
+:::
+
+Pokud něco není tam, kde to čekáš, [Najdi a obnov svou práci](/info/find-your-work.html) popisuje všechny případy od zavřené karty po vymazaná data prohlížeče.
 
 ::: details Týmové projekty s Lolly Work (volitelné)
-Pokud [tvá organizace používá Lolly Work](/info/organisation.html), přihlas se k její instanci a otevři **Projects → Team projects** pro relace sdílené s tebou. Přístup a uchovávání nastavuje organizace a relace ukládá její služba Lolly Work. Sdílená relace se při otevření připojí ke své živé kolaboraci, když to tvá organizace povoluje; kroky vysvětluje [Spolupráce](/info/collaborate.html#work-collabs-with-lolly-work-optional).
+Pokud tvá [organizace používá Lolly Work](/info/organisation.html), přihlas se k její instanci a otevři **Projects → Team projects**, kde najdeš relace sdílené s tebou. Organizace určuje přístup a dobu uchovávání a tyto relace ukládá její služba Lolly Work. Pokud organizace povoluje živé úpravy, otevřením sdílené relace se připojíš k její živé spolupráci. Postup vysvětluje [Společná práce](/info/collaborate.html#collabs-through-lolly-work-optional).
 
-Tvá osobní knihovna zůstává oddělená. Přihlášení na jiném zařízení ti dá týmovou práci, ale osobní uložení potřebují k přenosu Sync nebo zálohu.
+Tvá osobní knihovna zůstává oddělená. Přihlášením na jiném zařízení získáš přístup k týmové práci. K přenosu osobní uložené práce stále potřebuješ Sync nebo zálohu.
 :::
 
-## Sdílení tvojí práce
+<!--i:eti-link-->
+## Sdílení tvé práce
 
-Návrh odchází jako odkaz nebo jako soubor. **Share** v ovládacích prvcích exportu otevře dialog, který nabízí obojí, a **Share link** u uložené relace v Projects otevře stejný dialog pro tu relaci.
+Návrh můžeš sdílet odkazem nebo souborem. **Share** v ovládání exportu otevře dialog s oběma možnostmi. **Share link** u uložené relace v Projects otevře stejný dialog pro tuto relaci. Po odeslání souboru na Google Drive, Nextcloud, do bucketu S3, na Dropbox nebo OneDrive může dialog vytvořit odkaz i přes danou službu ([Export souboru](/info/exporting.html#how-export-works)).
 
 ::: cols
 ## Odkaz
 
-- Nese každý vstup v adrese, takže odkaz návrh reprodukuje.
-- Vynechá obrázky a soubory, které jsi přidal z tohoto zařízení, velmi dlouhý text a velmi velké seznamy.
-- Otevře se v jakémkoli prohlížeči, takže odkaz můžeš uložit do záložek, vložit nebo commitnout.
+- Obsahuje všechny vstupy v adrese, takže odkaz znovu vytvoří návrh.
+- Nezahrnuje obrázky a soubory přidané z tohoto zařízení, velmi dlouhý text ani velmi rozsáhlé seznamy.
+- Otevře se v každém prohlížeči, takže ho můžeš uložit do záložek, vložit nebo zahrnout do commitu.
 
 ## Soubor .lolly
 
-- Nese uloženou relaci s obrázky a soubory z tohoto zařízení a může nést i nástroj a designový systém.
-- Zadržuje licencované umění z katalogu, pokud nezvolíš zahrnutí souborů.
-- Otevře se v Lolly: dvakrát na něj klikni, použij **Open** nebo ho přetáhni na aplikaci.
+- Obsahuje uloženou relaci s obrázky a soubory z tohoto zařízení a může obsahovat i nástroj a designový systém.
+- Nezahrnuje licencovaná díla z katalogu, pokud nezvolíš zahrnutí jejich souborů.
+- Otevírá se v Lolly: dvojklikem, přes **Open** nebo přetažením do aplikace.
 :::
 
 ### Odkaz
 
-Odkaz připravený ke zkopírování je nahoře v dialogu s tlačítky **Copy** a **QR**, které otevře nástroj QR Code s tím odkazem. Pod odkazem obsahuje **Link options**:
+Odkaz je nahoře v dialogu spolu s tlačítky **Copy** a **QR**, které otevře nástroj QR Code s tímto odkazem. Pod odkazem najdeš v **Link options** tyto volby:
 
-- **Open in the installed app** přepne odkaz na adresu `lolly://` pro Zkratky, spouštěče a automatizaci, se všemi parametry beze změny.
-- **Shortest link** zabalí dlouhý návrh do kompaktního tokenu a ukáže úsporu ve znacích. Čitelná podoba je tu vždy také.
-- **Password-protect this link** zašifruje odkaz na tvém zařízení pomocí AES-256. Heslo není nikdy součástí odkazu.
-- **Pin this tool version** přidá příznak `_v`, takže pozdější aktualizace nástroje nemůže změnit, co odkaz vykreslí.
-- **When the recipient opens the link…** vybere celou obrazovku, už rozbalený panel exportu, stažení při otevření (`&export`) nebo zkopírování do schránky (`&copy`).
-- **Copy credit** zkopíruje popisek "Made with Lolly" s odkazem, pro příspěvek nebo snímek.
+- **Open in the installed app** změní odkaz na adresu `lolly://` pro Shortcuts, spouštěče a automatizaci. Všechny parametry zůstanou beze změny.
+- **Shortest link** zabalí dlouhý návrh do kompaktního tokenu a ukáže počet ušetřených znaků. Čitelná podoba zůstane dostupná.
+- **Password-protect this link** zašifruje odkaz na tvém zařízení pomocí AES-256. Heslo nikdy není součástí odkazu.
+- **Pin this tool version** přidá příznak `_v`, takže pozdější aktualizace nástroje nezmění vykreslení odkazu.
+- **When the recipient opens the link…** umožňuje zvolit celou obrazovku, už rozbalený panel exportu, stažení při otevření (`&export`) nebo zkopírování do schránky (`&copy`).
+- **Copy credit** zkopíruje popisek „Vytvořeno v Lolly“ s odkazem pro příspěvek nebo snímek.
 
-Když nástroj drží osobní pole, například tvé jméno, **Review personal fields** drží každé z nich mimo odkaz, dokud toto pole nezaškrtneš. [Režim URL](/info/url-mode.html) pokrývá vše, co odkaz může nést.
+Pokud nástroj obsahuje osobní pole, například tvé jméno, **Review personal fields** každé z nich vynechá z odkazu, dokud ho nezaškrtneš. Vše, co může odkaz obsahovat, popisuje [Režim URL](/info/url-mode.html).
 
-**Dialog říká, co odkaz nést nemůže.** Obrázek nebo soubor přidaný z tohoto zařízení, velmi dlouhá textová hodnota a velmi velký seznam se do adresy nevejdou. Každé se počítá při sestavení odkazu. Pokud se muselo něco vynechat, dialog to vypíše a odkáže tě na volbu souboru, místo aby ti podal odkaz, který se otevře s chybějícím obrázkem. Odkaz, který je jen dlouhý, dostane mírnější poznámku s počtem znaků.
+**Dialog uvádí, co odkaz nemůže obsahovat.** Při tvorbě odkazu Lolly počítá vše, co se do adresy nevejde. Pokud něco vynechá, dialog vypíše vynechané položky a odkáže tě na možnost sdílení souborem. U odkazu, který je jen dlouhý, zobrazí mírnější upozornění s počtem znaků.
 
-**Některé nástroje dělají z odkazu celý produkt.** Jump Page shromáždí tvé odkazy na jedné stránce k rozdávání: bio odkaz, přednáška, výloha obchodu. Nic se nehostuje a za stránkou není žádný účet, protože stránka je odkaz. Návštěvník ji dostane na celou šířku, jeden odkaz na scénu při rolování.
+**U některých nástrojů je odkaz celým výsledkem.** Jump Page spojí tvé odkazy do jedné stránky ke sdílení: odkazu v profilu, přednášky nebo výlohy obchodu. Stránkou je samotný odkaz, takže nic není hostované a za stránkou není žádný účet. Návštěvník vidí stránku přes celou šířku a při posouvání prochází scénami s jedním odkazem v každé.
 
-![Jump Page v editoru: scéna s nadpisem v horní části stránky a pod ní scény s odkazy](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page v editoru: scéna s nadpisem nahoře na stránce a pod ní scény s odkazy](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
-::: details Odkazy spravované organizací s Lolly Work
-Pro sdílení, které potřebuje platnost, odvolání nebo heslo, nabízí Lolly Work spravované odkazy na sdílené relace, nástroje a assety katalogu. Řeší se přes službu organizace a řídí se jejími pravidly přístupu. Jsou oddělené od samostatných odkazů výše a odvolání odkazu nemůže vzít zpět soubor, který si někdo už stáhl. [Vykreslování a sdílení](/info/manage/sharing.html) uvádí typy odkazů a oprávnění.
+::: details Odkazy spravované organizací v Lolly Work
+Pro sdílení, které vyžaduje vypršení platnosti, odvolání nebo heslo, nabízí Lolly Work spravované odkazy na sdílené relace, nástroje a assety z katalogu. Otevírají se přes službu organizace a řídí se jejími pravidly přístupu. Jsou oddělené od výše uvedených samostatných odkazů. Odvolání odkazu nevrátí soubor, který už někdo stáhl. Typy odkazů a oprávnění uvádí [Vykreslování a sdílení](/info/manage/sharing.html).
 :::
 
 ### Soubor .lolly
 
-**Download .lolly** v sekci **Editable file** dialogu Share zapíše aktuální návrh jako jeden soubor. Nese uloženou relaci s obrázky a soubory z tohoto zařízení a běžné umění z katalogu jede s ním. Zastaralý nebo nedostupný soubor zůstane externím odkazem, místo aby zmizel. Před uložením dialog ukáže velikost souboru, kolik souborů vkládá, na kolik odkazuje a zda je zahrnut nástroj. Kde má zařízení sdílecí list, **Send to…** mu soubor rovnou předá (AirDrop, sdílení Androidu).
+**Download .lolly** v sekci **Editable file** dialogu Share zapíše aktuální návrh do jediného souboru. Běžná díla z katalogu se zahrnou spolu s obrázky a soubory z tohoto zařízení. Zastaralý nebo nedostupný soubor zůstane externím odkazem. Před uložením dialog ukáže velikost souboru, počet vložených souborů, počet odkazovaných souborů a to, zda je zahrnutý nástroj. Pokud má zařízení systémový panel sdílení, **Send to…** mu soubor předá (AirDrop, sdílení v Androidu).
 
-**Download project (.lolly)** v nabídce složky v **Projects** zapíše celou složku, aby mohl někdo další pokračovat s každou relací ve složce. Dávkové relace zůstanou stranou a upozornění říká, kolik jich je. **Download originals** ve stejné nabídce zapíše obyčejný zip každé položky jako samostatný soubor.
+**Download project (.lolly)** v nabídce složky v **Projects** zapíše celou složku, takže někdo jiný může pokračovat v práci se všemi jejími relacemi. Dávkové relace se vynechají a oznámení uvede jejich počet. **Download originals** ve stejné nabídce vytvoří běžný zip, ve kterém je každá položka samostatným souborem.
 
-Před odesláním souboru jsou tři věci na tobě:
+Než soubor odešleš, rozhodneš o třech věcech:
 
-- **Zda se zahrne tvé jméno.** Tvé jméno, e-mail a organizace se zapíšou, jen když je v [tvém profilu](/info/profile.html) zapnuto **Use my details to create**. Při vypnutí soubor zaznamená jen to, že vznikl v Lolly, a kdy.
-- **Zda se zahrne zadržené umění.** Licencované umění, umění zamčené značkou a díla katalogu, jejichž licence nebyla nikdy zaznamenána, zůstávají ve výchozím stavu venku. Pokud návrh nějaké použije, dialog řekne kolik a nabídne *Download without them* nebo *Include and download*, protože jejich zahrnutí předává soubory tomu, kdo `.lolly` otevře. `CREDITS.txt` souboru vypisuje, co putovalo a co ne, s důvodem; pravidla vysvětluje [Tvůrčí práva a uvedení autorů](/info/creative-rights.html).
-- **Zda se zahrne nástroj.** **Include the tool** zabalí vlastní soubory nástroje, takže se návrh otevře i na zařízení bez toho nástroje. U vlastního nástroje, například forku, začíná zaškrtnuto a u nástroje, který uvádí podepsaný katalog, nezaškrtnuto. V sestavení bez podepsaného katalogu se každý nástroj počítá jako vlastní.
+- **Zda se zahrne tvé jméno.** Tvé jméno, e-mail a organizace se zapíšou jen tehdy, když máš ve [svém profilu](/info/profile.html) zapnuté **Use my details to create**. Pokud je volba vypnutá, soubor zaznamená jen to, že vznikl v Lolly a kdy.
+- **Zda se zahrnou vynechávaná díla.** Licencovaná díla a díla uzamčená pro značku se ve výchozím stavu nezahrnují. Totéž platí pro dílo z katalogu, jehož zaznamenanou licenci Lolly zatím neumí přečíst. Pokud návrh taková díla používá, dialog uvede jejich počet a nabídne *Download without them* nebo *Include and download*. Jejich zahrnutím předáš soubory každému, kdo `.lolly` otevře. Dílo z katalogu bez záznamu o právech se zahrne a dialog každé takové dílo vypíše, abys je mohl před odesláním zkontrolovat. Soubor `CREDITS.txt` uvádí, co se zahrnulo a co ne, i s důvody. Pravidla vysvětlují [Autorská práva a uvedení autorství](/info/creative-rights.html).
+- **Zda se zahrne nástroj.** **Include the tool** přibalí vlastní soubory nástroje, takže se návrh otevře i na zařízení, které tento nástroj nemá. U vlastního nástroje, například forku, je volba zpočátku zaškrtnutá, u nástroje uvedeného v podepsaném katalogu nezaškrtnutá. V sestavení bez podepsaného katalogu se každý nástroj považuje za vlastní.
 
-**Otevření.** V desktopových a mobilních aplikacích dvakrát klikni nebo klepni na `.lolly`, zvol **Open with Lolly** nebo ho pošli do Lolly ze sdílecího listu. Ve webové aplikaci stiskni **Open** nebo přetáhni soubor na Lolly. Každá cesta nejprve přečte manifest souboru a ukáže jeho velikost, obsah a co se stane, než se cokoli zapíše.
+**Otevření souboru.** V desktopové nebo mobilní aplikaci na `.lolly` dvakrát klikni nebo klepni, zvol **Open with Lolly** nebo soubor pošli do Lolly ze systémového panelu sdílení. Ve webové aplikaci stiskni **Open** nebo soubor přetáhni do Lolly. Každý z těchto postupů nejprve přečte manifest souboru a před jakýmkoli zápisem ukáže velikost, obsah a to, co se stane.
 
-Pokud soubor nese nástroj, který nemáš, **Trust this tool?** ukáže nástroj a jeho autora a uvede, že otevření spustí vlastní kód nástroje na tvém zařízení. **Trust & install** pokračuje. Odmítneš-li, práce se přesto uloží do Projects a čeká na den, kdy nástroj přidáš. Nástroj, jehož kód je dodáván jako modul, takto zatím nelze nainstalovat a je odmítnut stejným způsobem.
-
-::: details Co .lolly obsahuje a jak otevření funguje
-`.lolly` je přípona balíčků Lolly a `format` v jeho `manifest.json` říká, co je uvnitř:
-
-- **Sdílený návrh** (`lolly-share`) obsahuje jednu uloženou relaci, její vložené soubory a potvrzení pro vše, co se stále řeší odkazem. Může nést také nástroj a designový systém. Otevření přidá nový Project a relaci nikdy nepřepíše.
-- **Sdílený projekt** (`lolly-share`, druh `project`) obsahuje složku z Projects: její podsložky, každou relaci v nich s dlaždicí a obrázky tam založené. Otevření přidá kopii celé složky. Každá relace putuje jako `sessions/<key>.json` s dlaždicí pod `thumbs/`. Lolly z doby před soubory projektů tě požádá o aktualizaci.
-- **Balíček designového systému** (`lolly-brand`) obsahuje tokeny a může obsahovat písma, loga, zveřejněné verze a uchované zdroje. Otevření balíčku přidá samostatný pojmenovaný designový systém a učiní jej aktivním.
-- **Balíček pracovního prostoru nebo instance** je `lolly-brand` s deklarovanými nástroji, assety katalogu a volitelně adresou instance. Načtení jednoho nahradí jedinou vrstvu pracovního prostoru načtenou dříve a náhled vypisuje tyto účinky v celém zařízení.
-
-Úplná záloha zařízení není `.lolly`. Zůstává `LollyTools-….zip` (formát `lolly-backup`) a obnovuje se přes **Settings → Storage → Import data…**. Zazipovaná složka nástroje také zůstává `.zip`. [Přenos dat](/info/data-transfer.html) je referencí formátu.
-
-`.lolly` je běžný zip. Přejmenuj ho na `.zip` a podívej se dovnitř: tvé vlastní obrázky jsou pod `assets/uploads/`, umění z katalogu pod `assets/catalog/`, `manifest.json` vypisuje každý soubor a README říká, co soubor je.
-
-macOS, Windows, Linux, iOS a Android formát registrují, správci souborů v desktopu ho ukazují jako dokument Lolly a GNOME Files umí zobrazit miniaturu uložené relace. Otevření z Design System Setup doporučí akci designového systému, když ji sdílený návrh nese, ale nikdy neskryje **Open shared design**.
-
-Dokument předaný z jiné aplikace na iOS nebo Androidu je omezen na 48 MB, protože předání kopíruje jeho bajty přes hranici aplikace, a aplikace to oznámí. **Open** uvnitř Lolly takový limit nemá, použij jej tedy pro větší balíček.
-
-Po potvrzení Lolly balíček jednou rozbalí a ověří. Assety jdou do tvé knihovny, spárované podle kontrolního součtu, takže soubor, který už na zařízení je, se znovu použije. Relace jdou do Projects s novými ID, takže stejný soubor lze otevřít dvakrát; relace, jejíž nástroj chybí, tam čeká. Soubory nad 100 MB jsou označeny jako velké a náhled varuje, když úložiště prohlížeče hlásí méně volného místa, než soubor potřebuje. Každá část krytá kontrolou integrity se ověří, než se cokoli potvrdí, a poškozená kopie se odmítne, aniž by cokoli zůstalo.
+::: warning Instalace nástroje spustí jeho kód
+Pokud soubor obsahuje nástroj, který nemáš, **Trust this tool?** zobrazí nástroj a jeho autora a upozorní, že otevřením spustíš vlastní kód nástroje na svém zařízení. **Trust & install** pokračuje v instalaci.
 :::
 
-Odkaz i soubor předávají snímek. Pro živé úpravy pokrývá [Spolupráce](/info/collaborate.html) soukromé kolaborace mezi dvěma zařízeními a volitelné pracovní kolaborace přes Lolly Work.
+Pokud odmítneš, práce se i tak uloží do Projects a počká, dokud nástroj nepřidáš. Nástroj, jehož kód se dodává jako modul, zatím nelze tímto způsobem nainstalovat a je stejným způsobem odmítnut.
 
-## Assety - tvoje knihovna
+::: details Co obsahuje .lolly a jak se otevírá
+`.lolly` je přípona balíčků Lolly a `format` v souboru `manifest.json` určuje, co je uvnitř:
 
-**Assets** (`#/a`) shromažďuje vše, z čeho mohou tvé nástroje čerpat: loga značky, obrázky, zvuk a pohyb, seskupené podle druhu, spolu s tvými vlastními soubory. Tvá nahrání se ukládají na tvém zařízení. Organizace používající Lolly Work může také dodat sdílený katalog podle vlastních pravidel přístupu; viz [Používej Lolly ve své organizaci](/info/organisation.html).
+- **Sdílený návrh** (`lolly-share`) obsahuje jednu uloženou relaci, její vložené soubory a záznam o všem, co se stále načítá přes odkaz. Může obsahovat i nástroj a designový systém. Otevřením se přidá nový projekt a nikdy se nepřepíše relace.
+- **Sdílený projekt** (`lolly-share`, druh `project`) obsahuje složku z Projects: její podsložky, všechny relace v nich s jejich dlaždicemi a uložené obrázky. Otevřením se přidá kopie složky. Každá relace se přenáší jako `sessions/<key>.json` se svou dlaždicí v `thumbs/`. Verze Lolly z doby před zavedením projektových souborů tě požádá o aktualizaci.
+- **Balíček designového systému** (`lolly-brand`) obsahuje tokeny a může obsahovat písma, loga, publikované verze a uchovávané zdroje. Otevřením balíčku se přidá samostatný pojmenovaný designový systém a nastaví se jako aktivní.
+- **Balíček pracovního prostoru nebo instance** je `lolly-brand` s deklarovanými nástroji, assety z katalogu a volitelně adresou instance. Jeho načtením se nahradí jediná dříve načtená překryvná vrstva pracovního prostoru a náhled vypíše tyto dopady na celé zařízení.
 
-![Assety se vzorky a písmy značky a tvými vlastními nahranými soubory](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+Úplná záloha zařízení není `.lolly`. Zůstává souborem `LollyTools-….zip` (formát `lolly-backup`) a obnovuje se přes **Settings → Storage → Import data…**. Složka nástroje zabalená do zipu také zůstává `.zip`. Přehled formátů najdeš v [Přenosu dat](/info/data-transfer.html).
 
-- <!--i:upload--> **Přines své soubory.** Přetáhni obrázek, SVG, zvukový klip, video, Lottie, PDF nebo prezentaci PowerPoint na oblast nahrávání nebo klikni pro výběr. Okamžitě se objeví v Assets i ve výběru assetů každého nástroje. Vícestránkové PDF nebo `.pptx` se zeptá, které stránky či snímky ponechat, a každý se stane assetem SVG. Obrázek, který přidáš uvnitř nástroje, se uchová tak, jak dorazil, v **My images**, takže na něm Content Credential stále ověří, a jen velmi velký soubor se zeptá na změnu velikosti. **Settings → Storage** ukazuje, kolik **My images** drží. Neexistuje žádný limit kromě úložiště tvého zařízení. Chceš-li při příchodu obrázků odstraňovat EXIF a data GPS, zapni **Strip metadata from uploads** v **Settings → Feature flags**; Content Credentials se zachovají v obou případech.
-- <!--i:star--> **Označ si, po čem sahá ruka.** Označ asset nebo vzorek značky hvězdičkou a připne se nahoru každého výběru.
-- <!--i:folder--> **Uklízej.** Přesuň asset do jiné skupiny, skryj sdílený asset značky, který nepoužíváš (**Show hidden** jej vrátí), nebo smaž svá nahrání. Stejná lišta výběru jako v Projects působí na celý výběr.
-- <!--i:layers--> **Odděl video od pozadí.** Otevři podrobnosti videa nebo klikni pravým tlačítkem na jeho kartu ve výběru assetů a zvol **Remove background…**. **On-device model** vyřízne objekt z rušné scény; **Colour key** odstraní rovnoměrně osvětlené pozadí, třeba zelenou obrazovku, s **Tolerance**, **Softness** a **Spill removal** pro okraj a nepotřebuje stahování. **Resolution** (360, 480, 720 nebo 1080p, nikdy nad zdroj) vyměňuje detail za rychlost. Výřez, animované WebP nebo PNG se skutečnou průhledností, se uloží vedle originálu a Content Credential zdroje jede s ním jako ingredience. [Vygenerováno jednou, vykresleno stejně](/info/ai-features.html) vysvětluje, proč zůstává prostou úpravou.
+Soubor `.lolly` je běžný zip. Přejmenuj ho na `.zip`, abys viděl dovnitř. Vlastní obrázky najdeš v `assets/uploads/` a díla z katalogu v `assets/catalog/`. `manifest.json` vypisuje všechny soubory a README popisuje, o jaký soubor jde.
 
-### Vezmi si svou paletu a písma kamkoli
+Formát se registruje v macOS, Windows, Linux, iOS i Android. Správci souborů na desktopu ho zobrazují jako dokument Lolly a GNOME Files umí zobrazit vlastní miniaturu uložené relace. Při otevření z Lolly Design System Setup se doporučí akce pro designový systém, pokud ho sdílený návrh obsahuje, ale **Open shared design** se nikdy neskryje.
 
-Panel **Swatches** v Assets ukazuje barvy, ze kterých je tvá značka složena: barvy značky, barvy, které jsi přidal, její rampy a její spektrum. Role barev, které Lolly drží pro rozhraní (text, povrchy, okraje, vedoucí barvy colourway a kopie barvy značky pod jiným názvem), čekají za šedou kartou **Show colour roles** dole v panelu.
+V iOS a Android je dokument předaný z jiné aplikace omezen na 48 MB a aplikace na to upozorní. Při předání se jeho bajty kopírují přes hranici aplikací. **Open** uvnitř Lolly toto omezení nemá, takže ho použij pro větší balíček.
 
-Každá barva je karta jako každý jiný asset. Kliknutím na jednu otevřeš její podrobnosti, vyber několik, abys stáhl jen ty, nebo stáhni celou paletu ve formátu, který čte tvůj další nástroj:
+Po potvrzení Lolly balíček jednou rozbalí a ověří. Assety se uloží do tvé knihovny a porovnají podle kontrolního součtu, takže soubor už přítomný na zařízení se použije znovu. Relace se uloží do Projects s novými identifikátory, takže stejný soubor můžeš otevřít dvakrát. Relace, jejíž nástroj chybí, tam počká. Soubory nad 100 MB se označí jako velké a náhled varuje, pokud úložiště prohlížeče hlásí méně volného místa, než soubor potřebuje. Než se cokoli zapíše natrvalo, ověří se každá část zahrnutá do kontroly integrity. Poškozená kopie se odmítne a nic po ní nezůstane.
+:::
 
-- <!--i:code--> **Design tokens (JSON)**, **CSS variables** nebo **CSS classes**, pro stylopis nebo build. Barva širší než sRGB si zachová svou širokou hodnotu: CSS ji nastaví po hexu a JSON drží hex spolu s širokou barvou, sestavením CMYK a přímou barvou.
-- <!--i:palette--> **Adobe Swatch Exchange (.ase)**, pro Illustrator nebo Photoshop. Barva zamčená na sestavení CMYK dorazí jako ten vzorek CMYK, přímá barva jako pojmenovaný vzorek přímé barvy a barva širší než sRGB jako Lab.
-- <!--i:pentool--> **Paleta GIMP (.gpl)**, pro GIMP nebo Inkscape, a **proměnné SCSS**, obojí v sRGB.
+Odkaz i soubor předávají snímek aktuálního stavu. Pro živé úpravy popisuje [Společná práce](/info/collaborate.html) soukromou spolupráci mezi dvěma zařízeními a volitelnou pracovní spolupráci přes Lolly Work.
 
-![Panel Swatches - pět tlačítek ke stažení palety nahoře, pak každá barva značky jako čip, který otevře její podrobnosti](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+<!--i:eti-images-->
+## Assety - tvá knihovna
 
-Barvy vybíráš tečkou na každé kartě: Shift-klikem na druhou tečku vybereš vše mezi nimi, tažením rámečku zachytíš mezery, nebo stiskni Cmd/Ctrl+A s fokusem na kartě. Lišta nabízí **Download as…** ve stejných šesti formátech, **Copy hex** a **Favourite**. Než formát vybereš, nabídka vypíše každou barvu, kterou žádný formát nepojme (Transparent nemá vůbec žádnou barvu), které formáty uloží širokou barvu jako její záložní sRGB (SCSS a GIMP) a které nesou hodnoty CMYK a přímých barev (JSON a .ase). Pravým kliknutím na kartu získáš stejné akce pro jednu barvu.
+**Lolly Assets** (`#/a`) obsahuje vše, z čeho mohou tvé nástroje čerpat: loga značky, obrázky, zvuk a animace seskupené podle druhu i tvé vlastní soubory. Nahrané soubory se ukládají na tvém zařízení. Organizace používající Lolly Work může také poskytovat sdílený katalog podle vlastních pravidel přístupu ([Používání Lolly v organizaci](/info/organisation.html)).
 
-Podrobnosti barvy vyplní náhled barvou a rozbalí **Linked values** (její sestavení CMYK nebo přímou barvu, jakoukoli hodnotu zadanou pro konkrétní prostor či tiskový stroj a její designový token), **Every notation** (hex, OKLCH, Display-P3 a další, každý s tlačítkem kopírování), **Plotted on a colour space**, **Tones** a **Readability**. Šipky procházejí paletu, **Copy link** sdílí samotnou barvu a **Open in Colour Lab** ji posune dál.
+![Assets se vzorníky a písmy značky a tvými nahranými soubory](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
-Panel **Fonts** vypisuje písma tvé značky s tlačítkem **download** u každého, k lokální instalaci nebo předání tiskárně.
+- <!--i:upload--> **Přidej své soubory.** Přetáhni obrázek, SVG, zvukový klip, video, Lottie, PDF nebo prezentaci PowerPoint do oblasti pro nahrávání nebo klikni a vyber soubor. Soubor se ihned objeví v Assets a ve výběru assetů každého nástroje. U vícestránkového PDF nebo `.pptx` vybereš, které stránky či snímky zachovat. Každý se stane assetem SVG. Obrázek přidaný uvnitř nástroje se beze změny uchová v **My images**, takže jeho Content Credential lze stále ověřit. Jen u velmi velkého souboru se objeví dotaz na změnu velikosti. **Settings → Storage** ukazuje, kolik místa zabírá **My images**. Jediným omezením je kapacita úložiště tvého zařízení. Chceš-li při nahrávání odstranit data EXIF a GPS, zapni **Strip metadata from uploads** v **Settings → Feature flags**. Content Credentials se zachovají v obou případech.
+- <!--i:star--> **Označ si oblíbené položky.** Přidej hvězdičku k assetu nebo barvě ze vzorníku značky a připne se nahoru v každém výběru.
+- <!--i:folder--> **Udělej si pořádek.** Přesuň asset do jiné skupiny, skryj sdílený asset značky, který nepoužíváš (**Show hidden** ho vrátí), nebo smaž vlastní nahrané soubory. Na celý výběr působí stejná lišta výběru jako v Projects.
+- <!--i:layers--> **Odděl video od pozadí.** Otevři podrobnosti videa nebo klikni pravým tlačítkem na jeho kartu ve výběru assetů a zvol **Remove background…**. **On-device model** vyřízne objekt z členité scény. **Colour key** odstraní rovnoměrně osvětlené pozadí, například zelené plátno, a nevyžaduje stahování. **Tolerance**, **Softness** a **Spill removal** doladí okraj. **Resolution** (360, 480, 720 nebo 1080p, nikdy nad rozlišení zdroje) určuje poměr mezi detaily a rychlostí. Výřez je animovaný WebP nebo PNG s průhledností a uloží se vedle originálu. Content Credential zdroje se přenese do výřezu jako součást vstupního materiálu. [Jednou vygenerováno, pokaždé stejně vykresleno](/info/ai-features.html) vysvětluje, proč jde stále o běžnou úpravu.
 
-## Uprav si mřížku
+### Vezmi si paletu a písma kamkoli
 
-- <!--i:star--> **Označ si, co používáš.** Klikni pravým tlačítkem na kartu a zvol **Add to favourites** a dostane velkou dlaždici v pásu nad mřížkou. Pás pokrývají [Tvé oblíbené](/info/favourites.html).
-- <!--i:eyeoff--> **Skryj nástroj, který nepoužíváš.** Klikni pravým tlačítkem na kartu nebo vyber několik a zvol **Hide tool**. Vypadne z mřížky i z toho, co najde psaní v mřížce. Šedá dlaždice **Show hidden tools (N)** na konci je znovu odhalí, ztlumené, každý s **Unhide tool** v nabídce. Skrytí mění jen tvou mřížku: nástroj se stále otevře z odkazu nebo záložky.
-- <!--i:clock--> **Tvé nástroje první.** Jakmile máš uloženou práci ve třech různých nástrojích, řada **Yours** s čipy nad mřížkou začíná tvými oblíbenými a nedávnými nástroji.
-- <!--i:sliders--> **Rozlož si to po svém.** **View options** nastavuje rozvržení (**Grid**, **Card** nebo **List**), velikost a hustotu karet, řazení a filtr kategorií.
+Panel **Swatches** v Assets ukazuje barvy tvé značky: barvy značky, barvy přidané tebou, barevné škály a spektrum. Barvy rolí, které Lolly vyhrazuje pro rozhraní (text, povrchy, okraje, hlavní barvy colourway a kopie barvy značky pod jiným názvem), najdeš pod šedou kartou **Show colour roles** dole v panelu.
 
-![Konec mřížky Tools s odhalenými skrytými nástroji: ztlumená karta Wordmark a vedle ní šedá dlaždice, která je přepnula zpět do zobrazení, nyní s popiskem Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
+Každá barva má kartu jako každý jiný asset. Kliknutím otevři její podrobnosti, vyber několik barev ke stažení nebo stáhni celou paletu ve formátu, který umí číst tvůj další nástroj:
+
+- <!--i:code--> **Design tokens (JSON)**, **CSS variables** nebo **CSS classes** pro stylopis nebo sestavení. Barva mimo rozsah sRGB si zachová svou širokogamutovou hodnotu: CSS ji nastaví za hexadecimálním zápisem a JSON uchová hexadecimální zápis spolu se širokogamutovou barvou, složením CMYK a přímou barvou.
+- <!--i:palette--> **Adobe Swatch Exchange (.ase)** pro Illustrator nebo Photoshop. Barva vázaná na složení CMYK se přenese jako příslušný vzorek CMYK, přímá barva jako pojmenovaný vzorek přímé barvy a barva mimo rozsah sRGB jako Lab.
+- <!--i:pentool--> **GIMP palette (.gpl)** pro GIMP nebo Inkscape a **SCSS variables**, obojí v sRGB.
+
+![Panel Swatches: nahoře pět tlačítek pro stažení palety, pod nimi každá barva značky jako čip, který otevírá její podrobnosti](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+
+::: details Vyber několik barev nebo otevři podrobnosti jedné barvy
+Barvy vybereš tečkou na každé kartě: kliknutí na druhou tečku se Shiftem vybere vše mezi nimi. Můžeš také táhnout výběrový obdélník přes mezery nebo stisknout Cmd/Ctrl+A, když má karta fokus. Lišta nabízí **Download as…** ve stejných šesti formátech, **Copy hex** a **Favourite**. Než zvolíš formát, nabídka vypíše barvy, které žádný formát nepojme (Transparent nemá barvu), formáty ukládající širokogamutovou barvu jako její náhradu v sRGB (SCSS a GIMP) a formáty přenášející hodnoty CMYK a přímých barev (JSON a .ase). Kliknutím pravým tlačítkem na kartu získáš stejné akce pro jednu barvu.
+
+Podrobnosti barvy vyplní náhled danou barvou a rozbalí **Linked values** (její složení CMYK nebo přímou barvu, hodnoty určené pro konkrétní prostor či tiskový stroj a její designový token), **Every notation** (hexadecimální zápis, OKLCH, Display-P3 a další, každý s tlačítkem pro kopírování), **Plotted on a colour space**, **Tones** a **Readability**. Šipkami procházíš paletu, **Copy link** sdílí barvu a **Open in Colour Lab** ji otevře pro další práci.
+:::
+
+Panel **Fonts** vypisuje písma tvé značky a u každého nabízí **download** pro místní instalaci nebo předání tiskárně.
+
+<!--i:eti-grid-->
+## Přizpůsob si mřížku
+
+- <!--i:star--> **Označ si oblíbené nástroje.** Klikni pravým tlačítkem na kartu a zvol **Add to favourites**. Nástroj dostane velkou dlaždici v pruhu nad mřížkou. Tento pruh popisují [Tvé oblíbené](/info/favourites.html).
+- <!--i:eyeoff--> **Skryj nástroj, který nepoužíváš.** Klikni pravým tlačítkem na kartu nebo vyber více karet a zvol **Hide tool**. Zmizí z mřížky i z výsledků hledání psaním v mřížce. Nástroj opustí mřížku a při psaní v ní se už nebude zobrazovat jako shoda. Šedá dlaždice **Show hidden tools (N)** na konci znovu zobrazí skryté nástroje, ztlumené a každý s volbou **Unhide tool** v nabídce. Skrytím se mění jen tvá mřížka: nástroj se dál otevře z odkazu nebo záložky.
+- <!--i:clock--> **Tvé nástroje jako první.** Jakmile uložíš práci ve třech různých nástrojích, řádek čipů **Yours** nad mřížkou nabídne nejdřív tvé oblíbené a nedávné nástroje.
+- <!--i:sliders--> **Uspořádej si zobrazení.** **View options** nastavuje rozvržení (**Grid**, **Card** nebo **List**), velikost a hustotu karet, pořadí řazení a filtr kategorií.
+
+![Konec mřížky Tools se zobrazenými skrytými nástroji: ztlumená karta Wordmark a vedle ní šedá dlaždice, která ji znovu zobrazila, nyní s textem Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
 <!--
 SHOT NOTE (misc-hidden-tools): the trailing `press:End` is required. The
 hidden box and the revealed cards live at the very END of the grid, and
@@ -232,13 +255,13 @@ tool. The closing `hover:` puts the pointer back on the reveal tile, which
 keeps every revealed card dimmed.
 -->
 
-**Pracuj s více kartami najednou.** Zaškrtni políčko každé karty, táhni výběrový rámeček přes prázdné místo nebo klikej se Shiftem/Cmd a objeví se lišta s tím, co dané zobrazení dovoluje:
+**Pracuj s více kartami najednou.** Zaškrtni políčko na každé kartě, táhni výběrový obdélník přes prázdné místo nebo klikni se Shift/Cmd. Objeví se lišta s akcemi, které dané zobrazení umožňuje:
 
-- **Tools a Utilities:** Favourite, Hide, Available offline, **View sessions** (Projects, zobrazí jen relace vytvořené těmito nástroji) a Copy link pro jedinou kartu.
-- **Assets:** Favourite a Hide pro jakýkoli výběr. Duplicate, Download a Delete se objeví, jen když je každá vybraná položka tvým vlastním nahráním, protože sdílený asset designového systému je trvalý závazek.
+- **Tools a Utilities:** Favourite, Hide, Available offline, **View sessions** (Projects zobrazující jen relace vytvořené těmito nástroji) a Copy link pro jednu kartu.
+- **Assets:** Favourite a Hide pro libovolný výběr. Duplicate, Download a Delete se objeví jen tehdy, když jsou všechny vybrané položky tvé vlastní nahrané soubory, protože sdílený asset designového systému představuje trvalý závazek.
 - **Projects:** viz [Najdi a obnov svou práci](/info/find-your-work.html#find-something-you-saved).
 
-![Lišta výběru v galerii pro dva nástroje, nabízející Dostupné offline, Zobrazit relace, Oblíbené a Skrýt](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
+![Lišta výběru galerie pro dva nástroje s akcemi Available offline, View sessions, Favourite a Hide](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
 <!--
 SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
 `[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
@@ -256,37 +279,55 @@ already exist, and build-docs-shots.ts gives every shot a fresh
 storage-seeding hook.
 -->
 
-**View sessions** se objeví, až když je něco vybráno. Klikni místo toho pravým tlačítkem na jednu nevybranou kartu a nabídne **N saved sessions**, seznam uložených relací toho nástroje, kde smazání přesune relaci do Koše.
+**View sessions** se objeví jen při aktivním výběru. Klikni pravým tlačítkem na jednu nevybranou kartu a zvol **N saved sessions**: seznam uložených relací daného nástroje, ve kterém smazání přesune relaci do koše.
 
+<!--i:eti-layers-->
 ## Na telefonu
 
 Na úzké obrazovce se rozvržení změní na jeden sloupec:
 
-- **Ovládací prvky se stanou listem** nahoře s úchytem na dolním okraji. Přetažením úchytu přichytíš list na **peek**, **half** nebo **full**, nebo klepnutím sbalíš a rozbalíš. Náhled vyplní prostor pod ním a při úpravách zůstává na očích.
-- Plovoucí tlačítko **Export** otevře list exportu: formát, velikost, kopírování, uložení a stažení na jednom místě. Klepnutím na pozadí list zavřeš.
+- **Ovládací prvky se přesunou do panelu** nahoře s úchytem pro tažení na spodním okraji. Přetažením úchytu panel přichyť do polohy **peek**, **half** nebo **full**, nebo ho klepnutím sbal a rozbal. Náhled vyplňuje prostor pod ním a během úprav zůstává viditelný.
+- Plovoucí tlačítko **Export** otevře panel exportu: formát, velikost, kopírování, uložení a stažení. Klepnutím na pozadí panel zavřeš.
 
-![Nástroj na obrazovce o šířce telefonu - ovládací prvky jako panel nahoře, vygenerovaná paleta vyplňující náhled pod ním a plovoucí vykreslovací pilulka dole uprostřed](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
+![Nástroj na obrazovce o šířce telefonu: nahoře panel s ovládacími prvky, pod ním vygenerovaná paleta vyplňující náhled a dole uprostřed plovoucí pilulka vykreslení](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+<!--i:eti-copy-->
+## Skládací zařízení a iPhone Duo
+
+Na skládacím zařízení, iPhone Duo nebo téměř čtvercové dotykové obrazovce rozdělí Lolly nástroj do dvou panelů:
+
+- **Ovládací prvky na jedné straně, plátno na druhé.** Ovládací prvky jsou dál od ruky, kterou kreslíš. Zvol **Dominant hand** v **Settings → Accessibility** nebo stiskni **Swap sides** nahoře nad ovládacími prvky. V jazyce psaném zprava doleva se strany zrcadlově obrátí.
+- **Dělicí čára leží v ohybu.** Pokud zařízení hlásí polohu ohybu, panely se setkají právě tam, takže přes ohyb nevede žádný ovládací prvek ani grafika. Na souvislé obrazovce přetáhni dělicí čáru na třetinu, polovinu nebo dvě třetiny šířky. Lolly si tvou volbu pamatuje pro každé zobrazení na tomto zařízení.
+- **Na stole.** Pokud je zařízení napůl otevřené a ohyb vede napříč obrazovkou, plátno zabere horní polovinu a ovládací prvky se umístí pod ohyb. Při prezentování je snímek nahoře a tvé poznámky, další snímek a **Back** a **Next** dole. V Sequence je nahoře náhled a dole časová osa.
+- **Lolly Design, Design System Setup a Assets.** V Lolly Design jsou inspektor, vrstvy a panel exportu kartami vedle plátna. Nástroje jsou podél vnějšího okraje plátna, pod rukou, kterou kreslíš. Pokud se nevejdou, sloupec lze posouvat a zeslabení se šipkou ukazuje směr ke zbývajícím nástrojům. Na stole vedou nástroje podél spodního okraje plátna. Lolly Design System Setup ponechává Board na jedné straně a otevřenou sekci na druhé. V Assets se podrobnosti assetu otevírají vedle knihovny, takže dalším klepnutím zobrazíš další asset na stejném místě.
+- **V ohybu nic není.** Pokud zařízení hlásí ohyb, dialog se otevře na straně s ovládacími prvky. Totéž platí pro vyhledávací pole dole na domovské obrazovce a jeho výsledky. Na ploché obrazovce zůstávají uprostřed.
+- **Složením nic neztratíš.** Složení, rozložení ani otočení zařízení nezmění tvůj dokument, výběr, zvětšení ani pole, do kterého jsi psal. Kurzor zůstane na místě.
+
+Vnější obrazovka skládacího zařízení používá výše popsané rozvržení pro telefon. Stejně se chová okno Lolly v jedné polovině rozdělené obrazovky.
+
+<!--i:eti-smile-->
 ## Nastavení, zvuk a pohodlí
 
-**Settings** dole na domovské obrazovce drží tvé údaje, designové systémy, přístupnost, úložiště a offline stahování. [Lolly Settings](/info/dashboard.html) mapuje každou kartu.
+**Settings** dole na domovské obrazovce obsahuje tvé údaje, designové systémy, přístupnost, úložiště a stahování pro práci offline. Všechny karty popisuje [Nastavení Lolly](/info/dashboard.html).
 
-- **Tvé údaje a portrét** vyplní každý nástroj, který je k tomu určen, například e-mailový podpis nebo jmenovku. Pokrývají je [Profily](/info/profile.html).
-- **Přístupnost** má čtyři přepínače pohodlí: **Reduce motion**, **Hide colourful previews**, **High contrast** a **Large text**. Mění aplikaci kolem tvé práce, nikdy plátno nástroje ani export.
-- **Sound** přehrává jemné pomocné zvuky k tomu, co děláš, a **Neurospicy Mode** přehrává klidnou soustředící stopu. Obojí je vypnuté, dokud nezapneš, v **Settings → Accessibility** nebo v nabídce profilu.
-- **Available offline** stáhne zbytek aplikace, tvé nástroje, katalog a průvodce, než ztratíš připojení. Lolly je webová aplikace, kterou lze nainstalovat: použij tlačítko instalace v prohlížeči nebo *Add to Home Screen* na telefonu pro aplikaci na celou obrazovku, která se sama aktualizuje, když jsi zase online.
-- **Storage** ukazuje, co Lolly na tomto zařízení uchovává. [Když vymažeš data prohlížeče](/info/find-your-work.html#if-you-clear-your-browser-data) vysvětluje, co vymazání odstraní, a [Zásady ochrany soukromí](/info/privacy.html) vypisují vše, co aplikace stahuje nebo odesílá.
+- **Tvé údaje a portrétní fotografie** se doplní do každého nástroje, který je umí použít, například e-mailového podpisu nebo jmenovky. Popisují je [Profily](/info/profile.html).
+- **Accessibility** nabízí čtyři přepínače pro pohodlnější práci: **Reduce motion**, **Hide colourful previews**, **High contrast** a **Large text**. Mění prostředí aplikace kolem tvé práce, nikdy plátno nástroje ani export. Vedle nich **Dominant hand** určuje stranu ovládacích prvků při rozdělení do dvou panelů.
+- **Sound** doprovází tvé akce jemnými pomocnými zvuky a **Neurospicy Mode** přehrává klidnou hudbu pro soustředění. Obojí je vypnuté, dokud to nezapneš v **Settings → Accessibility** nebo v nabídce profilu. Posuvník **Sound shape** pod přepínačem Sound mění zvuky od měkkých, kulatých kapek (Bouba) po suché tikání a škrábání (Kiki), se zvonky Lolly uprostřed. Skladby režimu Neurospicy zahrnují generované stanice Lolly: **Lolly Sings** s jeho žánry a tři **Lofi stations**. Stanice při přehrávání vytvářejí nekonečnou hudbu. Každá má ovládání bicích a textury (u Lofi i nálady), odkaz pro sdílení právě poslouchané melodie a tlačítko pro její uložení do assetů. Vznik melodie vysvětluje [Generovaná hudba](/info/generated-music.html). V **Music generator** v Utilities (`#/music`) si ji můžeš utvářet.
+- **Available offline** stáhne zbytek aplikace, tvé nástroje, katalog a průvodce, než ztratíš připojení. Lolly nainstaluješ jako webovou aplikaci tlačítkem pro instalaci v prohlížeči nebo přes *Add to Home Screen* na telefonu. Nainstalovaná aplikace běží přes celou obrazovku a po opětovném připojení se sama aktualizuje.
+- **Performance UI** v **Settings → Feature flags** přepne aplikaci na jednodušší vzhled, který je méně náročný na vykreslení. Plátna nástrojů a exporty zůstanou stejné. Na pomalém zařízení Lolly tento vzhled zapne samo a uvede důvod spolu s volbami **Undo** a **Keep** ([Performance UI](/info/configuration.html#curating-what-people-see)).
+- **Storage** ukazuje, co Lolly uchovává na tomto zařízení. [Když vymažeš data prohlížeče](/info/find-your-work.html#if-you-clear-your-browser-data) vysvětluje, co se vymazáním odstraní, a [Zásady ochrany soukromí](/info/privacy.html) vypisují vše, co aplikace načítá nebo odesílá.
 
-::: note Když se zobrazení po aktualizaci nenačte
-Prázdný panel nebo zpráva "failed to fetch" hned po aktualizaci obvykle zmizí jedním znovunačtením. Tvá uložená práce, relace a designové systémy zůstávají nedotčené, protože jsou uložené na tvém zařízení. Znovu přidat možná bude třeba jen obrázek, který jsi přidal a nikdy neuložil.
+::: note Pokud se zobrazení po aktualizaci nenačte
+Prázdný panel nebo zprávu „failed to fetch“ hned po aktualizaci obvykle vyřeší jedno opětovné načtení. Tvá uložená práce, relace a designové systémy zůstanou beze změny, protože jsou uložené na tvém zařízení. Jen obrázek, který jsi přidal a nikdy neuložil, může být nutné přidat znovu.
 :::
 
+<!--i:eti-map-pin-->
 ## Kam dál
 
-- **[Design: volné plátno](/info/design.html)**: plátno, tvary, časová osa a prezentování sady snímků.
-- **[Batch a Multi-edit](/info/batch.html)**: mnoho verzí jednoho návrhu nebo několik uložených návrhů upravovaných společně.
-- **[Export souboru](/info/exporting.html)**: volba formátu, velikosti, tiskových jednotek, průhlednosti a videa.
-- **[Import návrhu](/info/design-import.html)**: přines soubor z Figmy, Penpotu, Illustratoru nebo InDesignu do Design a pokračuj v úpravách.
-- **[Šablony](/info/templates.html)**: uložené výchozí body pro nástroj.
-- **[Široká barva a HDR](/info/hdr-editing.html)**: zachovej původní přesnost obrazu v Design a Darkroom.
-- **[Najdi a obnov svou práci](/info/find-your-work.html)**: kde je co a jak to přenést na jiné zařízení.
+- **[Lolly Design: volné plátno](/info/design.html)**: plátno, tvary, časová osa a prezentování sady snímků.
+- **[Dávky a Lolly Multi-edit](/info/batch.html)**: mnoho verzí jednoho návrhu nebo společná úprava několika uložených návrhů.
+- **[Export souboru](/info/exporting.html)**: výběr formátu, velikosti, tiskových jednotek, průhlednosti a videa.
+- **[Import návrhu](/info/design-import.html)**: přenes soubor Figma, Penpot, Illustrator, InDesign, Affinity nebo DXF do Lolly Design a pokračuj v úpravách.
+- **[Šablony](/info/templates.html)**: uložené výchozí návrhy pro nástroj.
+- **[Široký gamut a HDR](/info/hdr-editing.html)**: zachovej původní přesnost obrazu v Lolly Design a Lolly Darkroom.
+- **[Najdi a obnov svou práci](/info/find-your-work.html)**: kde vše najdeš a jak to přeneseš na jiné zařízení.

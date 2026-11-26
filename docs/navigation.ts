@@ -23,6 +23,11 @@ export interface DocsPage {
   aliases: string[];
   /** An old path that now opens at one section of this page: alias to the section's id. */
   aliasAnchors?: Record<string, string>;
+  /** The tools this page guides (plan 354 D6): a tool id, or a tool id and one of this
+   *  page's English heading ids (`qr-code#size-and-print-units`). The tool's help button
+   *  lists them as "Read the guide" rows; build:info writes them per locale to
+   *  tool-guides.json. */
+  tools?: string[];
   secondarySections?: string[];
   description?: string;
   headingId?: string;
@@ -50,6 +55,8 @@ export interface DocsRegistry {
 export const DOCS_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ID = /^[a-z0-9][a-z0-9-]*$/;
 const PATH = /^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/;
+/** A tool guide entry: a tool id, optionally with one heading id of the page. */
+export const TOOL_GUIDE = /^[a-z0-9][a-z0-9-]*(?:#[a-z0-9][a-z0-9-]*)?$/;
 
 export function validateRegistry(registry: DocsRegistry, root = DOCS_ROOT): void {
   if (registry.version !== 1 || registry.sectionSubtitles !== false || registry.canonical !== 'https://lolly.tools/info') {
@@ -61,7 +68,7 @@ export function validateRegistry(registry: DocsRegistry, root = DOCS_ROOT): void
   const paths = new Set<string>();
   const aliases = new Set<string>();
   const workSlugs = new Set<string>();
-  const renderers = new Set(['renderMakeSomethingPage', 'renderFaqPage', 'renderTenetsPage', 'renderDesignImportPage', 'renderFormatsPage']);
+  const renderers = new Set(['renderMakeSomethingPage', 'renderFaqPage', 'renderTenetsPage', 'renderDesignImportPage', 'renderFormatsPage', 'renderMusicHubPage']);
   for (const page of registry.pages) {
     if (!ID.test(page.slug) || slugs.has(page.slug) || !PATH.test(page.path) || paths.has(page.path)) throw new Error(`Duplicate or invalid documentation identity: ${page.slug}`);
     if (!sections.has(page.section) || !page.group || !page.title || !ID.test(page.icon)) throw new Error(`Incomplete documentation metadata: ${page.slug}`);
@@ -79,6 +86,11 @@ export function validateRegistry(registry: DocsRegistry, root = DOCS_ROOT): void
       if (!page.aliases.includes(alias) || !ID.test(anchor)) throw new Error(`Section anchor for an unknown old path, or an invalid id: ${alias}`);
     }
     for (const section of page.secondarySections ?? []) if (!sections.has(section)) throw new Error(`Unknown cross-listed section: ${section}`);
+    const guided = new Set<string>();
+    for (const entry of page.tools ?? []) {
+      if (!TOOL_GUIDE.test(entry) || guided.has(entry)) throw new Error(`Invalid or repeated tool guide entry on ${page.slug}: ${entry}`);
+      guided.add(entry);
+    }
     if (page.work) {
       if (!ID.test(page.work.slug) || workSlugs.has(page.work.slug) || !/^(?:[a-z0-9-]+\/)?[A-Za-z0-9][A-Za-z0-9._-]*\.md$/.test(page.work.path)) throw new Error(`Invalid legacy Work page: ${page.slug}`);
       if (page.contentLicense !== 'MPL-2.0') throw new Error(`Imported Work page lost its original licence: ${page.slug}`);
@@ -117,12 +129,19 @@ export function navigationBlocks(registry: DocsRegistry): Record<string, string>
     ...(p.renderer ? [`render: ${p.renderer}`] : []),
   ]);
   const nav = registry.sections.map(s => object([`label: ${quote(s.title)}`, `href: ${quote('/info/' + s.hub + '.html')}`]));
+  // A section's rail: its own pages in their groups, then the pages it borrows from other
+  // sections (secondarySections) together under one last group. Borrowed pages used to
+  // bring their own group with them, so a rail ended in a run of one-page groups named
+  // after somewhere else (plan 354).
+  const BORROWED = 'Also in other sections';
   const sidebar = registry.sections.map(section => {
-    const list = registry.pages.filter(p => !p.isLanding && (p.section === section.id || p.secondarySections?.includes(section.id)));
-    const groups = [...new Set(list.map(p => p.group))];
-    return `  ${section.key}: { title: ${quote(section.title)}, groups: [\n` + groups.map(group => {
-      const items = list.filter(p => p.group === group).map(p => object([`slug: ${quote(p.slug)}`, `label: ${quote(p.title)}`]));
-      return `    { label: ${quote(group)}, items: [\n${items.map(item => '      ' + item + ',').join('\n')}\n    ] },`;
+    const own = registry.pages.filter(p => !p.isLanding && p.section === section.id);
+    const borrowed = registry.pages.filter(p => !p.isLanding && p.section !== section.id && p.secondarySections?.includes(section.id));
+    const groups: Array<{ label: string; list: DocsPage[] }> = [...new Set(own.map(p => p.group))].map(group => ({ label: group, list: own.filter(p => p.group === group) }));
+    if (borrowed.length) groups.push({ label: BORROWED, list: borrowed });
+    return `  ${section.key}: { title: ${quote(section.title)}, groups: [\n` + groups.map(({ label, list }) => {
+      const items = list.map(p => object([`slug: ${quote(p.slug)}`, `label: ${quote(p.title)}`]));
+      return `    { label: ${quote(label)}, items: [\n${items.map(item => '      ' + item + ',').join('\n')}\n    ] },`;
     }).join('\n') + '\n  ] },';
   });
   const footers = registry.sections.flatMap(section => {

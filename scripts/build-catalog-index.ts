@@ -31,7 +31,7 @@ import { readFileSync, writeFileSync, statSync, existsSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
-  toolDirs, toolFile, listToolFiles, readToolManifest, catalogFile,
+  toolDirs, toolFile, listToolFiles, readToolManifest, catalogFile, contentRoots,
 } from '@lolly-tools/node-shell/content-roots';
 import { applyProfileArg } from './lib/profile-arg.ts';
 
@@ -94,6 +94,10 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   for (const f of INDEX_FIELDS) {
     if (manifest[f] !== undefined) entry[f] = manifest[f];
   }
+  // A profile may keep a tool and not offer it (profiles.json `unlist`). The id still
+  // opens by link, in a saved project and on the render route; the gallery, search and
+  // menus read this field and leave the tool out.
+  if (contentRoots().unlist.has(manifest.id)) entry.listed = false;
   // When this tool was first added to its pack (see ADDED_DATES above). Full index
   // only - it paints the info dialog, never the grid, so it stays off the slim cut.
   if (ADDED_DATES[manifest.id]) entry.added = ADDED_DATES[manifest.id];
@@ -303,8 +307,7 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
 //   templates  17 KB - the "N templates" chip and the info dialog. Both are post-paint.
 //   examples   22 KB - the values/theme of each example look. Deliberately absent:
 //             without `formats` a slim tile can't build its example carousel at all,
-//             which is the point (Task 4.3 - chrome first, art behind it), and the
-//             looks' identity still rides `looks` below.
+//             which is the point (Task 4.3: chrome first, then the art).
 //   formats/width/height/unit/exportable/paged/privacy/version - info-dialog and
 //             carousel inputs, none of which change the tile's box.
 //   anim      the motion file (WP-5.3). Nothing plays it until a hover, a focus or the
@@ -327,24 +330,11 @@ const SLIM_FIELDS = ['id', 'name', 'description', 'category', 'tags', 'status', 
  * two files cannot disagree by construction: whatever entryFromManifest decided
  * about a preview path or an icon is what the slim copy carries. scripts/
  * validate-catalog.ts re-derives with this same function to fail a stale slim file.
- *
- * `looks` is the signature list for a tool's example looks - one `{ sig }` per look, in
- * manifest order, where sig is `JSON.stringify(values)`, the SAME contract
- * build-preview-bundle.ts writes and lib/preview-bundle.ts compares (a mismatch there
- * means the bundle predates a manifest edit). It carries no values of its own, so a
- * slim-only surface can pair look i with its pre-rendered file without the 22 KB of
- * example bodies. No shell reads it yet - the slim gallery paint deliberately shows
- * the committed preview, not the carousel - so treat it as a list of signatures,
- * not as a licence to re-inline look values here.
  */
 export function slimEntry(entry: Record<string, unknown>): Record<string, unknown> {
   const slim: Record<string, unknown> = {};
   for (const f of SLIM_FIELDS) {
     if (entry[f] !== undefined) slim[f] = entry[f];
-  }
-  const examples = entry.examples;
-  if (Array.isArray(examples) && examples.length) {
-    slim.looks = examples.map((v) => ({ sig: JSON.stringify((v as { values?: unknown } | null)?.values ?? {}) }));
   }
   return slim;
 }

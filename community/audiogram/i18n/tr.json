@@ -1,6 +1,6 @@
 {
   "name": "Audiogram",
-  "description": "Bir ses klibini veya şarkıyı, sesle gerçekten hareket eden, tasarım sisteminin renklerinde bir videoya dönüştür - çubuklar, spektrum, halka, sırt çizgisi veya osiloskop, sosyal medyaya hazır.",
+  "description": "Bir ses klibini veya şarkıyı, sesle gerçekten hareket eden, tasarım sisteminin renklerinde bir videoya dönüştür.",
   "a11yLabel": "{{default title \"an audio clip\"}} için animasyonlu dalga formuyla Audiogram kartı",
   "inputs.audio.label": "Ses",
   "inputs.audio.help": "Kitaplığından bir parça seç ya da bir klip yükle. Dalga formunu çizmek için cihazında çözülür - ses tarayıcıdan asla çıkmaz. Yer tutucu bir dalga formu için boş bırak. Dışa aktarımda duymak için indirme seçeneklerinde Ses parçası olarak \"Bu aracın sesi\"ni seç.",

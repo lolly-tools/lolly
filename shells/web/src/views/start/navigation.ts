@@ -105,6 +105,8 @@ export function renderShell(start: StartCtx): void {
             <a href="#/profile?focus=design-systems-section" data-ds-switch>${t('Design systems')}</a>
           </div>
         </header>
+        <!-- Shown only on a copy that goes back to an instance, while it still may. -->
+        <p class="ds-instance-line" data-ds-instance-line role="note" hidden></p>
         <!-- The rooms: independent areas in no order, so nothing is numbered and
              nothing gates on anything else. Versions joins once offered. -->
         <nav class="ds-room-nav" aria-label="${escapeText(t('Design system rooms'))}">
@@ -135,6 +137,8 @@ export function renderShell(start: StartCtx): void {
             role="region" aria-labelledby="ds-live-title" hidden></section>
           <section class="ds-panel" id="start-panel-versions" data-ds-panel="versions"
             role="region" aria-labelledby="ds-room-versions" hidden></section>
+          <section class="ds-panel" id="start-panel-sound" data-ds-panel="sound"
+            role="region" aria-labelledby="ds-room-sound" hidden></section>
           <section class="ds-panel" id="start-panel-usage" data-ds-panel="usage"
             role="region" aria-labelledby="ds-room-usage" hidden></section>
           <section class="ds-panel" id="start-panel-skills" data-ds-panel="skills"

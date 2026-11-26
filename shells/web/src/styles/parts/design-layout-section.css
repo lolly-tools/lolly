@@ -51,7 +51,7 @@
 }
 .dl-section .dl-button[aria-pressed="true"] {
   background: var(--ui-color-selection-surface);
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
 }
 .dl-section .dl-button[aria-pressed="mixed"] {
   border-color: var(--ui-color-border-default);
@@ -192,13 +192,6 @@
   gap: 8px;
   padding-inline: 4px;
 }
-.dl-section .dl-track-section > details > summary::before {
-  content: "›";
-  flex-shrink: 0;
-}
-.dl-section .dl-track-section > details[open] > summary::before {
-  transform: rotate(90deg);
-}
 .dl-section .dl-track-summary {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -251,9 +244,7 @@
   list-style: none;
   width: 24px;
 }
-.dl-section .dl-track-more summary::-webkit-details-marker {
-  display: none;
-}
+.dl-section .dl-track-more summary::after { content: none; }
 .dl-section .dl-track-popover {
   position: absolute;
   z-index: 3;

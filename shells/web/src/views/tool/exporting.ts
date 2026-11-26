@@ -10,8 +10,11 @@ import { holdUpdateWork } from '../../lib/update-work-state.ts';
  */
 import { C2PA_FORMATS, DEFAULT_CMYK_CONDITION, VIDEO_CODEC_STRINGS, hasVideoParams } from '@lolly/engine';
 import { mergeExportPrefs } from '../../lib/export-prefs.ts';
+import { automationPasswordExpected } from '../../lib/automation-export-secret.ts';
+import { LinkPasswordRefused, linkPasswordRefusal } from '../../lib/export-password.ts';
 import { flushAddressWrites } from '../../lib/url-state.ts';
 import { holdStageView } from '../../lib/stage-lod.ts';
+import { holdStageScale } from '../../lib/stage-scale.ts';
 import { withStudioExport } from '../../lib/studio-export-guard.ts';
 import { settleForExport } from '../../lib/export-settle.ts';
 import { livePalette } from '../../lib/live-palette.ts';
@@ -114,6 +117,9 @@ export async function exportUnscaledRaw<T>(tview: ToolViewCtx,
   const resumeStage = tview.stageZoom?.suspend();
   // The view attributes (moving, level of detail) must not reach an export.
   const releaseView = holdStageView(canvasEl);
+  // And the published on-screen scale (lib/stage-scale.ts): a render reads the tool's
+  // own fallback, as the CLI and every offscreen stage do.
+  const releaseScale = holdStageScale(canvasEl);
   const prevTransform = canvasEl!.style.transform;
   const prevOuterTransform = outerEl!.style.transform;
   const prevZoom = canvasEl!.style.zoom; // paged docs fit-to-width via zoom
@@ -135,6 +141,7 @@ export async function exportUnscaledRaw<T>(tview: ToolViewCtx,
     outerEl!.style.width = prevW;
     outerEl!.style.height = prevH;
     releaseView();
+    releaseScale();
     resumeStage?.();
     saved.forEach(({ el, id }) => {
       if (el.isConnected && id != null) el.dataset.canvasInput = id;
@@ -161,6 +168,11 @@ export function resolveExportFormat(tview: ToolViewCtx): void {
         urlUnit || (tview.initialValues.__export_unit as string | undefined) || sizeDims?.unit || 'px',
       dpi: urlDpi || Number(tview.initialValues.__export_dpi) || 300,
       profile: urlProfile || (tview.initialValues.__export_profile as string | undefined) || undefined,
+      // Spot inks as process from ?_spots=process. Link-only, like `password`: a saved
+      // session does not record it, so only a link that asks ticks the box.
+      spots: tview.openedSession.url.spots === 'process' || undefined,
+      // EMF text as outlines from ?_text=outline: ticks the Outline fonts box. Link-only too.
+      emfOutline: tview.openedSession.url.text === 'outline' || undefined,
       // Never restored from saved state. Browser automation supplies its one-time
       // value over a Playwright binding, so it does not enter URL/history/logs.
       password: urlPassword || automationPassword || undefined,
@@ -286,6 +298,15 @@ export function settleLinkExport(tview: ToolViewCtx, canvas: LinkExportSize['can
  */
 export async function linkExport(tview: ToolViewCtx): Promise<void> {
   const fmt = tview.urlFormat || tview.tool.manifest.render.formats[0]!;
+  // The password comes in the link or, from automation, over the one-time binding, and the
+  // two travel the same way from here. A request this file cannot honour stops here, before
+  // any work: an unlocked file is what must not come out of this function.
+  const password = tview.urlPassword || tview.automationPassword || undefined;
+  if (password || automationPasswordExpected()) {
+    if (!password) throw new Error('A password was asked for and did not arrive, so nothing was written.');
+    const refusal = linkPasswordRefusal(fmt, { password, bleed: tview.urlBleed, marks: tview.urlMarks });
+    if (refusal) throw new LinkPasswordRefused(refusal);
+  }
   // Brand vars land async (tokens fetch), so they are awaited with quiescence: a link
   // export captures the branded canvas, not the fallbacks. The live palette (for CMYK
   // ink substitution) comes from the same tokens fetch and waits with them.
@@ -294,7 +315,7 @@ export async function linkExport(tview: ToolViewCtx): Promise<void> {
   const [, , palette] = await Promise.all([waitForQuiescence(tview.contentEl), tview.brandVarsReady, livePalette(tview.host)]);
   const size = linkExportSizeFor(tview);
   await settleLinkExport(tview, size.canvas);
-  const { urlBleed, urlC2pa, urlDepth, urlDurable, urlFilename, urlHdr, urlHeight, urlImprint, urlMarks, urlNostage, urlPassword, urlProfile, urlVideo, urlWidth } = tview;
+  const { urlBleed, urlC2pa, urlDepth, urlDurable, urlFilename, urlHdr, urlHeight, urlImprint, urlMarks, urlNostage, urlProfile, urlVideo, urlWidth } = tview;
   const name = urlFilename || tview.tool.manifest.id;
   const expOpts: RunExportOpts = {
     width: size.width,
@@ -310,19 +331,28 @@ export async function linkExport(tview: ToolViewCtx): Promise<void> {
   if (isCmykFmt(fmt)) {
     expOpts.colorProfile = urlProfile || DEFAULT_CMYK_CONDITION;
     if (fmt === 'pdf-cmyk') expOpts.palette = palette;
+    // ?_spots=process: every spot ink prints in process, finishes keep their plates.
+    // Set only on request, so a link without it exports exactly as before.
+    if (tview.openedSession.url.spots === 'process') expOpts.spotsAsProcess = true;
   }
+  // ?_text=outline: an EMF draws its text as outlines, as the Outline fonts box does, and a
+  // run no font can outline goes in as a picture. The CLI's browser tier sends it for
+  // `--text=outline`; without it an EMF keeps its live text records.
+  if (fmt === 'emf' && tview.openedSession.url.text === 'outline') expOpts.text = 'outline';
   // HTML: honour ?nostage so a deep link auto-exports the full-page document
   // (no fixed-size canvas frame) - mirrors the panel's "Full page" toggle.
   if (fmt === 'html' && urlNostage) expOpts.fullPage = true;
-  // Standard lock: honour ?password= so a deep link can auto-export a locked
-  // PDF or ZIP bundle (basic lock; clear-text in the URL by design - see pdfPassRow).
-  if ((fmt === 'pdf' || fmt === 'zip') && urlPassword) expOpts.password = urlPassword;
+  // Standard lock, read above. The refusal has already seen the format.
+  if (password) expOpts.password = password;
   // Content Credentials: ?c2pa= wins (on/off + ephemeral-cert lifetime,
   // e.g. c2pa=90 or c2pa=off - see url-mode.js); absent it falls back to
   // a render.c2pa tool's popup default. Never stamped alongside a
   // password (the same exclusion the popup enforces; the bridge would
   // skip it anyway).
   const wantC2pa = urlC2pa ? urlC2pa.on : c2paDefaultOn(tview.tool.manifest);
+  // Off means none, so an inlined logo's own manifest goes too. Only an explicit off: `off`
+  // from a Node shell that stamps afterwards, or that resolved a tool default, says keep.
+  if (urlC2pa?.on === false && !tview.urlFlags.has('_keepinlinedc2pa')) expOpts.dropInlinedC2pa = true;
   if (wantC2pa && C2PA_FORMATS.includes(fmt) && !expOpts.password) {
     expOpts.c2pa = true;
     if (urlC2pa?.days) expOpts.c2paDays = urlC2pa.days;

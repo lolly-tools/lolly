@@ -1,6 +1,6 @@
-<div class="qs-page" style="--qs-accent: {{default accent "#2563eb"}}; --qs-bg: {{default background "#ffffff"}}; --qs-ink: {{default ink "#111827"}}; --qs-per-col: {{default perColumn "4"}};">
-  <div class="qs-sheet">
-    <header class="qs-head">
+<div class="qs-page" data-content-surface data-ground="{{ground}}" data-density="{{density}}" data-layout="{{layout}}" data-motion="{{motion}}" data-enter-seconds="{{surfaceEnterSeconds}}" data-curve="{{surfaceCurve}}" style="--content-space:{{surfaceSpacing}}; --qs-on-accent:{{surfaceOnAccent}}; --qs-accent: {{surfaceAccent}}; --qs-bg: {{surfaceGround}}; --qs-ink: {{surfaceInk}}; --qs-per-col: {{default perColumn "4"}};">
+  <div class="qs-sheet" data-content-fit>
+    <header class="qs-head" data-reveal>
       <div class="qs-titles">
         {{#if subheading}}<span class="qs-kicker">{{subheading}}</span>{{/if}}
         <h1 class="qs-title">{{default heading "Scorecard"}}</h1>
@@ -9,7 +9,7 @@
       <div class="qs-overall">
         <span class="qs-overall-label">Overall</span>
         <span class="qs-overall-value">{{overallText}}</span>
-        <span class="qs-overall-bar"><span style="width: {{overallWidth}}"></span></span>
+        <span class="qs-overall-bar"><span data-meter style="width: {{overallWidth}}"></span></span>
         <span class="qs-overall-note">{{knownText}}</span>
       </div>
       {{/if}}
@@ -17,17 +17,20 @@
 
     {{!-- One row per criterion. Bars and score text come from hooks.js; the
           evidence is Markdown, rendered and escaped by the markdown helper. --}}
-    <div class="qs-rows">
+    <div class="qs-rows" data-content-fit>
       {{#each rows}}
-      <div class="qs-row {{level}}">
+      <div class="qs-row {{level}}" data-reveal>
         <span class="qs-initial" aria-hidden="true">{{initial}}</span>
         <div class="qs-main">
           <div class="qs-line"><span class="qs-name">{{name}}</span><span class="qs-score">{{scoreText}}</span></div>
-          <span class="qs-bar"><span style="width: {{width}}"></span></span>
+          <span class="qs-bar"><span data-meter style="width: {{width}}"></span></span>
           {{#if evidence}}<div class="qs-evidence">{{markdown evidence}}</div>{{/if}}
         </div>
       </div>
       {{/each}}
     </div>
   </div>
+  {{#unless (eq motion "none")}}<button type="button" data-content-play data-export-hide>Play motion</button>{{/unless}}
+  <p data-content-fit-warning data-export-hide hidden role="status">This content needs more room. Choose a larger size, fewer columns or shorter text.</p>
+  <canvas data-content-clock width="0" height="0" aria-hidden="true" style="position:absolute;pointer-events:none"></canvas>
 </div>

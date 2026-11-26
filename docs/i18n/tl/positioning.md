@@ -1,86 +1,97 @@
-# Paano ikinukumpara ang Lolly
+# Paano maikukumpara ang Lolly
 
-Ang Lolly ay dalawang bahagi ng iisang open-source na proyekto. Ang **Lolly** ay ang engine, mga app at tool para sa paggawa, pag-edit, pag-convert at pag-export sa device mo, nang walang account. Ang **Lolly Work** ay ang organisation server, pinapatakbo sa sarili mong infrastructure, para sa sign-in, shared project, approval at server rendering. Parehong MPL-2.0. Inihahambing ng pahinang ito ang pares sa ibang paraan ng pagdidisenyo, pamamahala at paggawa ng mga file ng mga tao.
+Gumagawa ang Lolly ng mga file na sumusunod sa brand sa sarili mong device, nang walang account. Ang **Lolly Work** ang server para sa mga team: sign-in, mga shared project, approval at server rendering, sa mga machine na pinapatakbo ng organisasyon mo. Parehong open source sa ilalim ng MPL-2.0.
 
+Pinapanatili ng karamihan ng mga team ang mga tool na mayroon sila. Nagbibigay ng mga design ang isang design app, nananatiling opisyal na sanggunian ang isang DAM, at ginagawang mga tapos na file ng Lolly ang mga aprubadong input. Inilalarawan ng [Gamitin ang Lolly kasama ng umiiral mong DAM](/info/use-with-dam.html) ang kombinasyong iyon. Ang ideya sa likod ng kombinasyon ay [soberanya sa nilalaman](/info/content-sovereignty.html).
+
+<!--i:eti-gauge-->
 ## Mga tool ngayon
 
-Ang bawat singsing ay nagmamarka kung gaano kakumpleto ang paghahatid ng uri ng produkto sa isang kakayahan, na ang bawat uri ay minamarkahan sa pinakamahusay nitong kinatawan. Sinasaklaw ng Lolly column ang Lolly at Lolly Work nang magkasama, at sinasabi ng bawat row kung aling bahagi ang nagbibigay ng ano. Buksan ang pangalan ng row para sa katwiran ng marka nito. Inaayos ang mga column ayon sa Overall completeness row sa itaas: ang mean ng mga minarkahang row, na hindi kasama ang spend row.
+Ipinapakita ng bawat singsing kung gaano kakumpleto natutugunan ng isang uri ng produkto ang isang pangangailangan. Pindutin ang **?** sa tabi ng row para makita ang ebidensya, at ang **?** sa tabi ng legend para makita kung paano gumagana ang mga score.
 
 ::: figure positioning-comparison
-Paghahambing ng kakayahan: pananaliksik sa mga kakumpitensya at marka mula Agosto 2026; ang saklaw ng Lolly + Lolly Work ay nire-review noong 28 Setyembre 2026. Pagmamarka: 0 wala, 25 workaround-grade, 50 totoo pero may gate o bahagya, 75 malakas na may caveat, 100 pangunahing husay.
+Paghahambing ng kakayahan. Pananaliksik tungkol sa mga kakompetensya mula sa mga dokumento ng vendor, Agosto hanggang 21 Nobyembre 2026. Sinuri ang Lolly at Lolly Work noong 21 Nobyembre 2026. Pagbibigay ng score: 0 wala, 25 may workaround, 50 mayroon pero may hadlang o bahagya lang, 75 mahusay pero may mga limitasyon, 100 pangunahing kakayahan.
 :::
 
-::: details Mga tala sa pagmamarka
-Magkahiwalay ang mga available na feature at production maturity. Nailabas na ang Lolly: ang bersyon 1.0 ay inilabas bilang open source noong 30 Agosto 2026, wala pa itong independiyenteng audit sa seguridad at ilang buwan pa lang ang ebidensya ng adoption nito (nasa [Adoption & Governance](/info/adoption-governance.html#status) ang kasalukuyang estado). Ang pagkakaroon ng single sign-on, approval o server rendering ay hindi nagpapatunay ng production track record, kaya sinasalamin ng maturity score iyon. Ang mga marka ng kakumpitensya ay nananatili sa may-petsang review nila noong Agosto.
-
-Isang patakaran ang namamahala sa board. Ang buong marka (100), sa mga row na humahawak sa nilalaman o identity mo, ay nangangailangan ng kakayahang magagamit nang walang account at walang cloud precondition; ang mga row tungkol sa produkto mismo, tulad ng maturity at kadalian ng paggamit, ay hindi sakop. Ang patakarang iyon ay nagpapababa sa Adobe sa Content Credentials: ang pinakamalawak na naipadalang implementasyon (Photoshop, Lightroom, Premiere, Firefly) ay pumipirma nang lokal at sa cloud, pero hindi kailanman nang walang Adobe account at identity, kaya 75. Nililimitahan nito ang mga rendering API sa mass generation at automation sa parehong dahilan.
-
-Ang Canva ay minamarkahan sa pinakamahusay nitong miyembro ng pamilya bawat row, dahil pagmamay-ari nito ang Affinity at Cavalry (parehong ipinamigay noong Oktubre 2025). Ang offline at on-device rendering ay 75 sa pamamagitan ng Affinity, isang desktop suite na nangangailangan pa rin ng na-verify na account at may telemetry, ang bawas na kinukuha rin ng Adobe; ang sariling offline mode ng Canva ay nag-e-edit lang ng mga pre-synced na design, sa isang device, sa limitadong panahon. Ang Autofill ay 50: totoo ito pero Enterprise-gated at asynchronous, at pumupuno lang ito ng text at larawan. Ang mass generation ng Figma ay tumaas mula 25 hanggang 50 nang ilabas ng Buzz ang spreadsheet fill (libreng beta, Agosto 2026).
-
-Ang Content Credentials score ng Lolly na 75 ay sumasaklaw sa on-device signing at server signing ng Lolly Work gamit ang naka-configure na organisation identity; kailangan pa ring pagkatiwalaan ng verifier ang pumirma ([Content Credentials Identity](/info/content-credentials-identity.html)). Ang 50 ng Penpot ay dumarating sa pamamagitan ng sariling export plugin ng Lolly para sa Penpot: ang parehong engine signing, opt-in at isiniwalat bilang gawa ng Lolly. Ang Penpot ay 90 sa on-device rendering: browser canvas na may save target sa server nito, na maaaring i-self-host. Ang Cloudinary ay may sariling column para sa asset library, transform API at CDN nito; minarkahan ng review noong Agosto ang delivery signing nito ng 50.
-
-Ang live collaboration ng Lolly ay kasama ang direktang two-device na pribadong collab at authenticated na work collab sa pamamagitan ng Lolly Work, na may shared edit, cursor at naka-save na team session. Sinasalamin ng Partial score ang kasalukuyang single-node na work deployment at maikling kasaysayan ng operasyon, hindi kawalan ng team editing. Ang mga tantiya ng presyo ay may-petsang list-price arithmetic para sa laki, hindi procurement.
+::: details Mga sanggunian para sa mga score na nagbago noong Nobyembre 2026
+- Canva: [changelog ng API](https://www.canva.dev/docs/apps/rest-apis/changelog/), [mga service app](https://www.canva.dev/blog/developers/canva-service-accounts/), [tulong sa Brand Controls](https://www.canva.com/help/brand-control/)
+- Adobe: [changelog ng InDesign API](https://developer.adobe.com/firefly-services/docs/indesign-apis/getting-started/changelog/), [presyo ng Adobe Express](https://www.adobe.com/express/pricing)
+- Figma: [mga credit ng agent at AI](https://help.figma.com/hc/en-us/articles/42614902212887), [MCP server](https://developers.figma.com/docs/figma-mcp-server/)
+- Frontify at Bynder: [tala ng release ng Frontify noong Oktubre 2026](https://news.frontify.com/163371-what-s-new-in-october-2026), [Frontify MCP](https://help.frontify.com/en/articles/14787214-frontify-mcp-beta)
+- Bannerbear at Placid: [presyo ng Bannerbear](https://www.bannerbear.com/pricing/), [changelog ng Bannerbear](https://www.bannerbear.com/changelog/), [presyo ng Placid](https://placid.app/pricing)
+- Penpot: [presyo ng self-host](https://penpot.app/pricing/self-host), [mga release](https://github.com/penpot/penpot/releases)
+- Cloudinary: [provenance ng nilalaman](https://cloudinary.com/documentation/content_provenance_and_authenticity), [presyo](https://cloudinary.com/pricing)
 :::
 
-## Kailan abutin ang Lolly
+Magkahiwalay na row ang mga feature at track record. Ang unang pampublikong release ng Lolly ay 1.0.1 noong 30 Agosto 2026, wala pang independiyenteng audit ang seguridad nito at ilang buwan pa lang ang ebidensya ng paggamit dito. Nasa [Paggamit & Pamamahala](/info/adoption-governance.html#status) ang kasalukuyang kalagayan.
+
+<!--i:eti-hammer-->
+## Kailan gagamit ng Lolly
 
 ::: cols
-## Abutin ang Lolly kapag
+## Gamitin ang Lolly kapag
 
-- Paulit-ulit na kailangan ang parehong uri ng file: event tile, badge, sertipiko, alerto, social card
-- Maraming file ang galing sa isang template at table ng mga value, sa [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) o sa CLI
-- Ang mga kulay, type at asset ay dapat manatili sa loob ng design system, kahit sa bukas na canvas
-- Ang tapos na Figma, Penpot, Illustrator, InDesign o PDF na design ay dapat maging mae-edit at maulit ([Import a design](/info/design-import.html))
-- Ang mga file ay dapat gawin sa sarili mong mga device o server
+- Paulit-ulit na kailangan ang parehong uri ng file: mga event tile, badge, certificate, alert, social card
+- Maraming file ang nagmumula sa isang template at talahanayan ng mga value, sa [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) o sa CLI
+- Kailangang manatili sa loob ng design system ang mga kulay, type at asset, kahit sa malayang canvas
+- Kailangang maging nae-edit at nauulit ang isang tapos na design sa Figma, Penpot, Illustrator, InDesign, Affinity o PDF ([Mag-import ng design](/info/design-import.html))
+- Kailangang gawin ang mga file sa sarili mong mga device o server
 
-## Abutin ang iba kapag
+## Gumamit ng iba kapag
 
-- Ang gawa ay detalyadong photo retouching o ilustrasyon
-- Nagdidisenyo at nagpa-prototype ka ng interface ng application
-- Kailangan mo ng malaking stock at template library na handa sa unang araw
-- Kailangan mo ng managed na serbisyo na may mahabang track record sa laki
+- Detalyadong pag-retouch ng larawan o ilustrasyon ang gawain
+- Nagdidisenyo at gumagawa ka ng prototype ng interface ng application
+- Kailangan mo ng malaking library ng stock at template na handa sa unang araw
+- Kailangan mo ng pinamamahalaang serbisyo na may mahabang track record sa malawakang paggamit
 :::
 
-Ang mga na-import na design at shared na design token ay hinahayaang pagsamahin ng team ang Lolly sa mga espesyalistang application, habang pinamamahalaan ng Lolly Work ang mga shared asset, review at delivery.
+Hinahayaan ng mga na-import na design at pinagsasaluhang design token ang team na pagsamahin ang Lolly at mga espesyalistang application, habang pinamamahalaan ng Lolly Work ang mga shared asset, review at delivery.
 
-Ipinapakita ng isang buong slide deck ang kisame: sa **Markdown Slides**, idinedeklara ang deck bilang data, inilalatag nang live at ine-export bilang native at mae-edit na PowerPoint file.
+Para sa mga team na may piniling nilalaman sa DAM, magsimula sa pagpapanatili ng library na iyon at ng mga administrator nito. Itinatala ng [Karanasan ng SUSE sa Brandfolder](/info/suse-brandfolder.html) kung paano sinuportahan ng integration ang paggamit at ang pamamahala ng pagbabago sa approval. Maaaring suriin ng mga DAM vendor at partner sa implementation ang parehong kaayusan sa pamamagitan ng [workflow ng partner](/info/dam-partners.html).
 
-![Markdown Slides sa split view: ang mga slide ng deck na nakalista bilang block sa kaliwa, ang inilatag na deck na nire-render sa kanan](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+Sa **Lolly Markdown Slides**, isinusulat bilang data ang isang buong deck, inaayos ang layout nang live at ine-export bilang native at nae-edit na PowerPoint file.
 
+![Ang Lolly Markdown Slides sa split view: nakalista bilang mga block sa kaliwa ang mga slide ng deck, at nire-render sa kanan ang deck na may nakaayos nang layout](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+
+<!--i:eti-shield-check-->
 ## Nasa tool ang mga patakaran
 
-Inilalagay ng Lolly ang magagamit muling mga brand rule sa tool: mga kulay, font, bleed margin, spacing at pinapayagang input. Ang template ang nag-aayos ng mga bahaging hindi dapat baguhin ng tatanggap. Nagdaragdag ang Lolly Work ng group access at input policy sa paligid ng template na iyon, kasama ang approval chain para sa mga catalogue submission at delivery.
+Inilalagay ng Lolly sa tool ang mga patakaran ng brand na magagamit muli: mga kulay, font, bleed margin, spacing at pinapayagang input. Itinatakda ng template ang mga bahaging hindi dapat baguhin ng tatanggap. Nagdaragdag ang Lolly Work ng access para sa grupo at mga policy sa input sa paligid ng template na iyon, na may mga sunod-sunod na approval para sa mga isinusumite sa catalog at delivery.
 
-Ang minsanang pag-check sa tool ay nagpapadali ng paulit-ulit na produksyon, dahil minamana ng bawat output ang mga layout rule nito. Ang copy, mga na-upload na larawan at karapatan sa paggamit ay maaari pa ring kailangang suriin, at nagbibigay ang Lolly Work ng mga shared catalogue at hakbang sa pag-apruba para roon. Para sa creative team, ang tool ay guard-rail: ikaw pa rin ang nagdadala ng data, copy at larawan, at pinananatili ng tool na on-brand ang bawat resulta.
+Pinapadali ng minsanang pagsusuri sa tool ang paulit-ulit na produksyon, dahil minamana ng bawat output ang mga patakaran nito sa layout. Maaaring kailangan pa ring suriin ang teksto, mga na-upload na larawan at mga karapatan sa paggamit, at nagbibigay ang Lolly Work ng mga shared catalog at hakbang sa approval para rito. Para sa creative team, nagsisilbing gabay na hangganan ang tool: ikaw pa rin ang nagbibigay ng data, teksto at larawan, at pinapanatili ng tool na sumusunod sa brand ang bawat resulta.
 
-![Ang buong trabaho ng gumagawa: mag-type ng mga salita. Naayos na ang type, kulay at spacing noong ginawa ang tool](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+![Ang buong gawain ng producer: i-type ang mga salita. Itinakda na ang type, kulay at spacing nang gawin ang tool](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
-Tatlo pang bagay ang nagpapaiba sa pamamaraang ito:
+Tatlo pang pagkakaiba:
 
-- **Ang huling file, mula sa mga input.** Input papasok, tapos na file palabas, walang "ngayon i-save mo mula sa design tool mo at ayusin pa".
-- **Nagko-compose ng mga tool ang mga tool.** Ang isang tool ay maaaring mag-embed ng render ng ibang tool sa iisang tapos na file, na walang code coupling sa pagitan nila.
-- **Bukas hanggang sa pinakailalim.** Open source ang engine, at ang mga tool, asset at design token ay mga file na maaari mong itago sa version control o pamahalaan sa Lolly Work, hindi mga row sa database ng iba.
+- **Ang tapos na file, mula sa mga input.** Input ang pumapasok, tapos na file ang lumalabas, nang walang "ngayon i-save ito mula sa design tool mo at ayusin".
+- **Pinagsasama ng mga tool ang mga tool.** Maaaring i-embed ng isang tool ang render ng ibang tool sa iisang tapos na file, nang walang pagkakaugnay ang code ng dalawa.
+- **Open source.** Open source ang engine, at ang mga tool, asset at design token ay mga file na puwede mong itago sa version control o pamahalaan sa Lolly Work, hindi mga row sa database ng ibang tao.
 
-Nananatili ang mapangahas na disenyo sa kabila ng mga guard-rail. Ang poster-grade na mapa ng lungsod na ito ay tunay na vector na path ng kalsada at tubig, mula sa isang dropdown at dalawang colour field na hindi maituturo sa labas ng design system:
+Posible pa rin ang mapangahas na design sa loob ng mga hangganan. Ang mapa ng lungsod na ito, na angkop para sa poster, ay binubuo ng tunay na vector path ng mga kalsada at tubig, mula sa isang dropdown at dalawang color field na hindi maaaring ituro sa labas ng design system:
 
-![Ang mga canal ring at road network ng Amsterdam na iginuhit mula gilid hanggang gilid sa sariling ink ng design system, bawat stroke ay inilagay ng template at hindi ng kamay](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
+![Ang mga singsing ng kanal at network ng kalsada ng Amsterdam na iginuhit mula gilid hanggang gilid gamit ang sariling tinta ng design system, bawat stroke ay inilagay ng template sa halip na mano-mano](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
 
-## Mag-innovate nang probabilistiko, mag-scale nang deterministiko
+<!--i:eti-stamp-->
+## Mag-innovate batay sa posibilidad, magpalawak nang may tiyak na resulta
 
-Karamihan ng mga "AI creative" na pitch ay inilalagay ang model sa maling panig ng lumang hangganan. Nagpasya na ang mga eskriba at illuminator kung saan ito nasa. Malaya kang gumagawa sa sketch, kung saan puwedeng subukan ang anuman at walang kinikimkim. Saka ka pupunta sa printing press, na nagko-commit. Nasa mga sketch ang sining, at ang press ang paraan para maglakbay ito, at mapagkakatiwalaan ang nakalimbag na gawa dahil tinupad ng press ang pangako nito sa bawat hila.
+Inilalagay ng karamihan sa mga alok na "AI creative" ang model sa maling panig ng isang matagal nang hangganan. Itinakda na ng mga tagasulat at tagapagpalamuti ng manuskrito kung saan ito naroon. Malaya kang gumagawa sa sketch, kung saan puwedeng subukan ang kahit ano at wala pang pinal. Pagkatapos, pupunta ka sa palimbagan, na ginagawang pinal ang gawa. Nasa mga sketch ang sining, ang palimbagan ang paraan ng pagkalat nito, at mapagkakatiwalaan ang nakalimbag na gawa dahil tinutupad ng palimbagan ang pangako nito sa bawat paglimbag.
 
-Ang Lolly ang press. Dalhin ang anumang gusto mo sa mga ideya, model, designer o magaspang na drawing, pero sa sandaling kailangang maging maraming file ang isang ideya, dumadaan ito sa isang bagay na nagre-render sa parehong paraan sa bawat pagkakataon, mula sa mga input na mababasa pabalik ng sinuman. Ang paghahambing sa itaas ay talagang tungkol sa kung sino ang nagpapaulit-ulit sa committed na hakbang na iyon.
+Ang Lolly ang palimbagan. Gamitin ang anumang gusto mo sa pagbuo ng mga ideya, isang model, designer o magaspang na guhit, pero sa sandaling kailangang maging maraming file ang isang ideya, dumadaan ito sa isang bagay na pareho ang pag-render sa bawat pagkakataon, mula sa mga input na mababasa muli ng kahit sino. Ang paghahambing sa itaas ay tungkol talaga sa kung sino ang nagpapahintulot na maulit ang hakbang na iyon ng pagsasapinal.
 
-> Pagkatiwalaan ang creative process, mag-scale nang may rigor.
+> Magtiwala sa malikhaing proseso, magpalawak nang may mahigpit na pamantayan.
 
+<!--i:eti-tag-->
 ## Libre magpakailanman
 
-**Kung nire-render ito sa device mo, libre ito magpakailanman.** Open source ang engine, mga shell, mga tool at mga format, at hindi mababawi ang nailabas na bersyon. Open source din ang Lolly Work. Ang organisasyon ay nagbabayad para sa infrastructure at operasyong pinipili nito, nang walang per-seat o per-render na bayad sa software licence para sa self-hosting. Ikinukuwento ng [Mga tanong at sagot](/info/faq.html) ang kuwento sa likod ng pangako.
+**Kung nare-render ito sa device mo, libre ito magpakailanman.** Open source ang engine, mga shell, tool at format, at hindi na mababawi ang inilabas nang bersyon. Open source din ang Lolly Work. Binabayaran ng organisasyon ang imprastraktura at operasyong pinipili nito, nang walang singil sa lisensya ng software bawat user o bawat render kapag sariling hosting. Ikinukuwento ng [Mga tanong & sagot](/info/faq.html) ang nasa likod ng pangako.
 
-## Kung saan nakatira ang nilalaman mo
+<!--i:eti-map-pin-->
+## Kung saan nakalagay ang nilalaman mo
 
-Ang creative na gawa ng Lolly ay maaaring tumakbo sa hardware na pag-aari mo, at ang mga design token, font, logo at tool nito ay mga file na maaari mong itago. Sa Lolly Work, ang mga shared project, asset, policy at audit record ay nasa storage na kino-configure ng organisasyon mo. Ipinapaliwanag ng [Tiwala](/info/trust.html) kung bakit ito mahalaga, at hinahayaan ka ng [Privacy Policy](/info/privacy.html) at [Verify It Yourself](/info/verify-yourself.html) na i-check ang pahayag sa halip na maniwala lang sa amin.
+Maaaring tumakbo ang malikhaing gawain ng Lolly sa hardware na pag-aari mo, at ang mga design token, font, logo at tool nito ay mga file na puwede mong itago. Sa Lolly Work, nasa storage na kino-configure ng organisasyon mo ang mga shared project, asset, policy at audit record. Ipinapaliwanag ng [Tiwala](/info/trust.html) kung bakit mahalaga iyon, at hinahayaan ka ng [Privacy Policy](/info/privacy.html) at [Ikaw Mismo ang Mag-verify](/info/verify-yourself.html) na suriin ang pahayag sa halip na basta maniwala sa amin.
 
-## Tool por tool
+<!--i:eti-grid-->
+## Bawat tool
 
-Inihahambing ng [Ang Lolly na inihambing, tool por tool](/info/compare.html) ang Lolly sa Canva, Adobe, Figma, Penpot, brand portal, rendering API at online converter, isang page bawat isa, at inilalatag ang [ano ang tumatakbo saan](/info/compare.html#what-runs-where).
+Inihahambing ng [Paghahambing sa Lolly, bawat tool](/info/compare.html) ang Lolly sa Canva, Adobe, Figma, Penpot, mga brand portal, rendering API at online converter, na may tig-isang page, at inilalatag [kung ano ang tumatakbo kung saan](/info/compare.html#what-runs-where).

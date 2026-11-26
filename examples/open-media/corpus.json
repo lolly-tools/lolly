@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "id": "lolly-open-media-study",
+  "revision": "draft-1",
+  "status": "candidate",
+  "editorialPromise": "One useful idea about visual communication, demonstrated with an editable example.",
+  "audience": "People making their first repeatable brand media system.",
+  "identity": {
+    "intent": "Curious, clear and playful, with enough space for the idea to be understood.",
+    "anchors": [
+      "One factual core across derivatives",
+      "Lolly Demo colours and type",
+      "Rounded bass and electric keys",
+      "Plain spoken explanations",
+      "A useful editable example"
+    ],
+    "guidance": "These are authored hypotheses. Musical settings are reproducible choices; recognition, warmth and fit require listening.",
+    "designSystem": "brands/lolly-demo/catalog/assets/lolly/tokens/demo.json",
+    "voice": "bf_lily",
+    "voiceSpeed": 0.95,
+    "signature": "No signature has been approved. The generator's spoken Lolly tag is explicitly off in these candidates."
+  },
+  "modes": [
+    {
+      "id": "explain",
+      "label": "Explain",
+      "purpose": "Help a listener follow a new idea, especially beneath narration.",
+      "direction": "Leave room around the voice. Restraint is a choice about this use, not a universal definition of clarity.",
+      "visual": "One hierarchy, generous space, restrained fades. Keep the source values visible.",
+      "music": "style=warm&seed=202411&bars=16&bpm=84&keys=rhodes&bass=round&lead=none&kit=dusty&texture=0.1&mix.keys=0.65&mix.bass=0.7&mix.lead=0&mix.drums=0.35&mix.fx=0&mix.reverb=0.4&mix.texture=0.1&tag=off&quiet=voices,console,sparkles,sweeps,birds,waves",
+      "bedVolume": 0.3,
+      "duck": 0.3,
+      "listenFor": [
+        "Can every word be followed at a comfortable level?",
+        "Does the bed help without making the explanation feel sleepy?",
+        "Is the ending deliberate or merely faded?"
+      ],
+      "counterexample": "A prominent lead or voice effect competes with the narrator. Removing all motion can also hide the point being explained."
+    },
+    {
+      "id": "demonstrate",
+      "label": "Demonstrate",
+      "purpose": "Show how a choice changes the work while keeping the process legible.",
+      "direction": "A steady pulse can support a sequence of actions. Do not pretend an action is synchronised to a beat unless its timing was authored.",
+      "visual": "Show a before and an after with identical source facts. Reveal each step at a phrase boundary.",
+      "music": "style=citypop&seed=202412&bars=16&bpm=104&keys=rhodes&bass=round&lead=vibes&kit=acoustic&texture=0.1&mix.keys=0.7&mix.bass=0.75&mix.lead=0.25&mix.drums=0.6&mix.fx=0&mix.reverb=0.4&mix.texture=0.1&tag=off&quiet=voices,console,sparkles,sweeps,birds,waves",
+      "bedVolume": 0.3,
+      "duck": 0.3,
+      "listenFor": [
+        "Do visual steps and spoken phrases agree?",
+        "Is the pulse useful rather than hurried?",
+        "Does this feel related to Explain despite the different arrangement?"
+      ],
+      "counterexample": "Fast cuts conceal the changed variable. Decorative effects imply that unchanged data has changed."
+    },
+    {
+      "id": "play",
+      "label": "Play",
+      "purpose": "Invite exploration when the music or expressive motion has room to lead.",
+      "direction": "Allow a more audible melody and brighter rhythm. Use a quieter mix whenever narration needs attention.",
+      "visual": "More expressive entrances and colour use, with the same type, factual core and readable ending.",
+      "music": "style=sugar&seed=202413&bars=16&bpm=120&keys=rhodes&bass=round&lead=kalimba&kit=electronic&texture=0.1&mix.keys=0.8&mix.bass=0.8&mix.lead=0.65&mix.drums=0.8&mix.fx=0.2&mix.reverb=0.5&mix.texture=0.1&tag=off&quiet=voices,console,sweeps,birds,waves",
+      "bedVolume": 0.35,
+      "duck": 0.25,
+      "listenFor": [
+        "Is the melody enjoyable over repeated listening?",
+        "Does the family resemblance survive the brighter treatment?",
+        "Does speech stay understandable after the bed returns?"
+      ],
+      "counterexample": "Continuous novelty makes every edition sound unrelated. A new seed alone does not establish an editorial reason to publish."
+    }
+  ],
+  "stories": [
+    {
+      "id": "chart",
+      "title": "Same numbers. Different impression.",
+      "script": "These two values are forty and fifty. Starting a bar chart at zero shows their full relationship. Cropping the axis can make the difference look much larger. Keep the numbers visible, explain the scale, and choose a presentation that helps the reader judge the difference.",
+      "keyPoint": "40 to 50 is a 25 percent increase.",
+      "source": "Original synthetic values for this demonstration. No external measurement or live feed.",
+      "data": [40, 50],
+      "seedOffset": 0
+    },
+    {
+      "id": "motion",
+      "title": "Let motion point to the change.",
+      "script": "A moving shape attracts attention. In this example, only the value that changes needs emphasis. Keep the labels still, give the movement time to settle, and leave a readable final frame. The motion should help explain the change, while the numbers remain the source of truth.",
+      "keyPoint": "Emphasise the changed value; keep the labels readable.",
+      "source": "Original explanatory example using the same synthetic values, forty and fifty.",
+      "data": [40, 50],
+      "seedOffset": 100
+    },
+    {
+      "id": "sound",
+      "title": "One identity can speak in different tones.",
+      "script": "The picture and the words stay the same. Listen to how a restrained bed, a steady pulse, and a brighter melody change the feeling. A sonic identity can allow all three. Choose the sound for the situation, keep recognisable anchors, and check that the voice still comes through.",
+      "keyPoint": "Keep the anchors. Choose the expression for the situation.",
+      "source": "Original listening prompt. The proposed identity has not yet passed a recognition or preference study.",
+      "data": [40, 50],
+      "seedOffset": 200
+    }
+  ],
+  "review": {
+    "state": "pending",
+    "questions": [
+      "Which examples belong together, without seeing their labels?",
+      "Which use would you choose for each, and why?",
+      "Which words are masked or mispronounced?",
+      "What should remain fixed across new songs?",
+      "What variation would break the identity?"
+    ],
+    "method": "Listen at comparable comfortable levels, shuffle the order, include headphones and speakers, and record disagreements. Do not infer recognition from a waveform or a successful render."
+  }
+}

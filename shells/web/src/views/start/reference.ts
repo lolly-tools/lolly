@@ -9,8 +9,11 @@ import { declaredLook, referenceLook, referenceReport, type ReferenceEvidence } 
 import { declaredReviewNodes, declaredRefusal } from '../../lib/design-system/declared-review.ts';
 import { keepDraftSkill } from '../../lib/design-system/brand-skills.ts';
 import { censusFromTokensDoc, docNeedsMappingReview } from '../../lib/design-system/sources/file.ts';
+import { colourRoleSpecs, proposeColourRoles, proposeRolesFromTokens, type ColourRoleProposal } from '../../lib/brand-propose.ts';
+import { colourRoleReviewHtml, declaredRolesHtml, initialChoices, reviewHasLead, wireColourRoleReview, type ColourRoleReview } from '../../lib/design-system/colour-role-review.ts';
+import { canonicalLiftOptions } from '../../lib/design-system/leads.ts';
 import type { DeclaredRead, DeclaredSource } from '../../lib/design-system/sources/declared.ts';
-import { modeAxis, readTokenAxes } from '@lolly/engine';
+import { adoptColourRoles, modeAxis, readTokenAxes } from '@lolly/engine';
 import { styleEvidenceHtml } from '../../lib/design-system/style-evidence-view.ts';
 import { saveBlob } from '../../pro/zip.ts';
 import { bindOp, type StartCtx } from './context.ts';
@@ -41,11 +44,13 @@ export function reviewDeclaredRead(start: StartCtx, read: DeclaredRead, label: s
     return;
   }
   const { source } = read;
+  // Words that read as a lead colour are as good as naming one, so the file can stand as written.
+  const words = proposeColourRoles(source.doc);
   start.reference.reviewReference(
     censusFromTokensDoc(source.doc, source.label),
     { method: source.method, label: source.label },
     source,
-    !docNeedsMappingReview(source.doc),
+    !docNeedsMappingReview(source.doc) || words.rows.some(row => row.reads === 'primary'),
   );
 }
 
@@ -72,19 +77,36 @@ export function reviewReference(start: StartCtx, census: DesignCensus, evidence:
   name.value = (declared?.name || census.name || evidence.label.replace(/\.[^.]+$/, '') || t('My design system')).slice(0, 80);
   nameLabel.append(name);
   let primary: string | undefined;
+  let syncApply: () => void = () => {};
   const nameValue = (): string => name.value.trim() || t('My design system');
   const preview = node('div', 'ds-reference-preview');
   const proof = mountReferencePreview(preview, start.host);
   start.referencePreviewCancel = proof.dispose;
   const statedDoc = declared && asWritten ? declared.doc : null;
-  const statedModes = statedDoc ? modeAxis(readTokenAxes(statedDoc).axes) : null;
+  // The words a source came with, under review. The document only changes when someone applies.
+  const words: ColourRoleProposal | null = statedDoc ? proposeColourRoles(statedDoc) : null;
+  let review: ColourRoleReview | null = null;
+  const slotsFor = statedDoc && words?.rows.length && docNeedsMappingReview(statedDoc) ? proposeRolesFromTokens(statedDoc, [], null)?.refs ?? {} : {};
+  /** The document Apply would install, as the review stands. A refusal keeps the file as written and shows the reason. */
+  const reviewedDoc = (): Record<string, unknown> | null => {
+    if (!statedDoc) return null;
+    if (!words?.rows.length) return statedDoc;
+    const specs = colourRoleSpecs(words, review?.choices() ?? initialChoices(words));
+    if (!specs.length) return statedDoc;
+    const edit = adoptColourRoles(statedDoc, specs, { slots: slotsFor, lift: canonicalLiftOptions(statedDoc), systemLabel: nameValue() });
+    if (edit.ok) { status.classList.remove('is-error'); status.textContent = ''; return edit.doc; }
+    error(tRaw('Lolly could not write these roles, so the file stays as written: {reason}', { reason: edit.reasons[0] ?? '' }));
+    return statedDoc;
+  };
+  const statedModes = statedDoc ? modeAxis(readTokenAxes(reviewedDoc() ?? statedDoc).axes) : null;
   let theme = statedDoc ? statedModes?.options[0]?.id ?? 'light' : census.colors.length ? referenceLook(census, nameValue(), evidence).roles.surfaceLook : 'light';
   const modes = node('div', 'ds-reference-modes');
   modes.innerHTML = segHtml('reference-mode', [{ id: 'light', label: t('Light') }, { id: 'dark', label: t('Dark') }], theme, t('Generated palette preview'));
   const contrast = node('p', 'ds-src-stage-note');
   const palette = node('div', 'ds-reference-palette');
   const paint = (): void => {
-    const look = statedDoc ? declaredLook(statedDoc, statedModes ? theme : undefined) : referenceLook(census, nameValue(), evidence, primary, theme);
+    const current = reviewedDoc();
+    const look = current ? declaredLook(current, statedModes ? theme : undefined) : referenceLook(census, nameValue(), evidence, primary, theme);
     palette.replaceChildren();
     for (const [label, value] of [[t('Main'), look.preview.primary], [t('Background'), look.preview.surface], [t('Text'), look.preview.text], [t('On main'), look.preview.onPrimary]]) {
       const item = node('span', 'ds-reference-palette-item');
@@ -141,7 +163,16 @@ export function reviewReference(start: StartCtx, census: DesignCensus, evidence:
     visual.append(previewHead, preview);
     workspace.append(visual, controls);
     card.append(workspace);
-    if (statedDoc) controls.append(node('p', 'ds-src-stage-note', t('This source states its own tokens, so nothing here is generated.')));
+    if (statedDoc) {
+      controls.append(node('p', 'ds-src-stage-note', t('This source states its own tokens, so nothing here is generated.')));
+      const roster = declaredRolesHtml(statedDoc);
+      if (roster || words?.rows.length) {
+        const wrap = node('div', '');
+        wrap.innerHTML = roster || colourRoleReviewHtml(words!, initialChoices(words!));
+        controls.append(wrap);
+        if (!roster) review = wireColourRoleReview(wrap, words!, () => { syncApply(); paint(); });
+      }
+    }
     else controls.append(choices, node('p', 'ds-src-stage-note', t('Lolly generates light and dark palettes from your chosen colour. These modes are suggestions, not recovered brand rules.')));
     paint();
     name.addEventListener('input', paint);
@@ -156,9 +187,11 @@ export function reviewReference(start: StartCtx, census: DesignCensus, evidence:
     const use = node('button', 'be-cta is-active', statedDoc ? t('Apply these settings') : t('Apply suggested settings'));
     use.type = 'button';
     use.dataset.referenceApply = '';
+    syncApply = (): void => { use.disabled = !!(words && review) && !reviewHasLead(words, review.choices()); };
+    syncApply();
     use.addEventListener('click', () => {
       if (use.disabled) return;
-      const doc = statedDoc ?? referenceLook(census, nameValue(), evidence, primary).doc;
+      const doc = reviewedDoc() ?? referenceLook(census, nameValue(), evidence, primary).doc;
       const keep = extras?.keepDraft() ?? null;
       void start.tokens.install(doc, nameValue(), use, {
         onError: error, area: 'overview', requireCheckpoint: true,

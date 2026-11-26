@@ -158,7 +158,7 @@ function _psSvg(p, W, H, framingId) {
     : '';
   var head = '<svg xmlns="http://www.w3.org/2000/svg" id="ps-svg"' + keyAttr + ' viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block">';
   if (!p || !p.outSrc) {
-    return head + '<rect width="' + W + '" height="' + H + '" fill="#0f0f12"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-family="SUSE, system-ui, sans-serif" font-size="34" fill="#9ca3af">' + _esc(p && p.note ? p.note : 'Choose an image to stretch') + '</text></svg>';
+    return head + '<rect width="' + W + '" height="' + H + '" fill="#0f0f12"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-family="' + _filterFont + '" font-size="34" fill="#9ca3af">' + _esc(p && p.note ? p.note : 'Choose an image to stretch') + '</text></svg>';
   }
   return head
     + (p.prevSrc ? '<image href="' + p.prevSrc + '" x="0" y="0" width="' + W + '" height="' + H + '" preserveAspectRatio="none"/>' : '')
@@ -215,7 +215,49 @@ function _viewFor(effect, model) {
     if (id.indexOf(pfx) === 0) id = id.slice(pfx.length);
     else if (id === 'image' && img !== 'image') id = img;
     return id === i.id ? i : _rename(i, id);
-  });
+  }).concat([{ id: '_fontBrand', type: 'text', value: _filterFont }]);
+}
+
+// === lolly:shared brandFonts - generated from community/_shared/brand-fonts.js; edit there and run npm run sync:shared ===
+// The design system's text face (font.brand) and mono face (font.mono) as
+// font-family lists, for an SVG attribute, an inline style or a canvas font.
+// A tool never names a face of its own. A headless SVG has no stylesheet, so
+// the CLI, the TUI and the MCP server read the attribute to outline the text,
+// and the page draws the same family. A design system that declares no such
+// face gets the shell's own default, SUSE or SUSE Mono, as --font-brand and
+// --font-mono do. Family names pass the shell's brand-vars.ts rule; a name
+// with a space or a digit is quoted.
+var BF_FAMILY = /^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}$/;
+var BF_GENERIC = /^(serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-(sans-serif|serif|monospace|rounded)|emoji|math|fangsong)$/i;
+function bfFamilyList(value, fallback, generic) {
+  var names = [];
+  var list = Array.isArray(value) ? value : (typeof value === 'string' && value.charAt(0) !== '{' ? value.split(',') : []);
+  for (var i = 0; i < list.length; i++) {
+    var n = String(list[i]).trim().replace(/^['"]+|['"]+$/g, '').trim();
+    if (!BF_FAMILY.test(n) || BF_GENERIC.test(n)) continue;
+    var dup = false;
+    for (var j = 0; j < names.length; j++) if (names[j].toLowerCase() === n.toLowerCase()) dup = true;
+    if (!dup) names.push(n);
+  }
+  if (!names.length) names.push(fallback);
+  return names.map(function (f) { return /^[A-Za-z_-][A-Za-z0-9_-]*$/.test(f) ? f : "'" + f + "'"; }).join(', ') + ', ' + generic;
+}
+async function brandFonts(host) {
+  var out = { brand: bfFamilyList(null, 'SUSE', 'sans-serif'), mono: bfFamilyList(null, 'SUSE Mono', 'monospace') };
+  if (!host || !host.tokens || !host.tokens.resolve) return out;
+  try { out.brand = bfFamilyList(await host.tokens.resolve('{font.brand}'), 'SUSE', 'sans-serif'); } catch (e) { /* the shell's default face stands */ }
+  try { out.mono = bfFamilyList(await host.tokens.resolve('{font.mono}'), 'SUSE Mono', 'monospace'); } catch (e) { /* the shell's default face stands */ }
+  return out;
+}
+// === /lolly:shared brandFonts ===
+
+// The design system's text face for every word the effects write: the lower
+// third (through _fontBrand in the effect's view) and the notes shown in place
+// of a picture. onInit and onInput read it before they run an effect; a live
+// frame uses the last answer.
+var _filterFont = 'SUSE, sans-serif';
+function _readFonts(ctx) {
+  return brandFonts((ctx && ctx.host) || host).then(function (f) { _filterFont = f.brand; }, function () { /* keep the last answer */ });
 }
 
 // The most recent live frame (camera or animated-asset playback) and the image
@@ -249,7 +291,7 @@ function _stillNote(message, W, H) {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" style="width:100%;height:auto;display:block">'
     + '<rect width="' + W + '" height="' + H + '" fill="#f4f4f5"/>'
     + '<text x="' + (W / 2) + '" y="' + (H / 2) + '" text-anchor="middle" dominant-baseline="middle" '
-    + 'font-family="SUSE, system-ui, sans-serif" font-size="' + Math.max(16, Math.round(W / 34)) + '" fill="#9ca3af">'
+    + 'font-family="' + _filterFont + '" font-size="' + Math.max(16, Math.round(W / 34)) + '" fill="#9ca3af">'
     + _esc(message) + '</text></svg>';
 }
 
@@ -294,8 +336,8 @@ function _run(ctx, fn) {
   return _finalize(e, mod.compute && f === mod.compute ? f(vctx.model) : f(vctx), W, H);
 }
 
-function onInit(ctx)  { return _run(ctx, 'onInit'); }
-function onInput(ctx) { return _run(ctx, 'onInput'); }
+function onInit(ctx)  { return _readFonts(ctx).then(function () { return _run(ctx, 'onInit'); }); }
+function onInput(ctx) { return _readFonts(ctx).then(function () { return _run(ctx, 'onInput'); }); }
 function onFrame(ctx) { return _run(ctx, 'onFrame'); }
 // ── Base-raster freeze for a heavy export ─────────────────────────────────────
 // A vector effect's base can be tens of thousands of dot/line/rect nodes (dither
@@ -593,7 +635,7 @@ function placeholder(message, W, H) {
   return svgOpen(W, H)
     + '<rect width="' + W + '" height="' + H + '" fill="#f4f4f5"/>'
     + '<text x="' + (W / 2) + '" y="' + (H / 2) + '" text-anchor="middle" '
-    + 'dominant-baseline="middle" font-family="sans-serif" font-size="34" '
+    + 'dominant-baseline="middle" font-family="' + _filterFont + '" font-size="34" '
     + 'fill="#9ca3af">' + esc(message) + '</text>'
     + '</svg>';
 }
@@ -961,6 +1003,9 @@ function overlayInputs(inp) {
     title: inp.title,
     nameWeight: inp.nameWeight,
     subtitleWeight: inp.subtitleWeight,
+    // The design system's text face, as a font-family list; the consumer reads it
+    // from the tokens and passes it in as _fontBrand.
+    font: inp._fontBrand,
   };
 }
 function overlayActive(o) { return !!(o.showLogo || o.lowerThird); }
@@ -1079,7 +1124,7 @@ function buildOverlaySvg(OW, OH, o) {
     var titleShadow = theme === 'minimal'
       ? ' style="paint-order:stroke;stroke:#0b1512;stroke-opacity:0.55;stroke-width:' + ovF2(titleSize * 0.16) + 'px;stroke-linejoin:round"'
       : '';
-    var FONT = 'SUSE, system-ui, -apple-system, sans-serif';
+    var FONT = o.font || 'SUSE, sans-serif';
 
     if (hasShot) {
       var cxs = padX + chip / 2, cys = cardH / 2, rad = chip / 2;
@@ -1568,7 +1613,7 @@ function placeholder(message, W, H) {
   return svgOpen(W, H)
     + '<rect width="' + W + '" height="' + H + '" fill="#f4f4f5"/>'
     + '<text x="' + (W / 2) + '" y="' + (H / 2) + '" text-anchor="middle" '
-    + 'dominant-baseline="middle" font-family="sans-serif" font-size="34" fill="#9ca3af">'
+    + 'dominant-baseline="middle" font-family="' + _filterFont + '" font-size="34" fill="#9ca3af">'
     + message + '</text></svg>';
 }
 
@@ -1746,6 +1791,9 @@ function overlayInputs(inp) {
     title: inp.title,
     nameWeight: inp.nameWeight,
     subtitleWeight: inp.subtitleWeight,
+    // The design system's text face, as a font-family list; the consumer reads it
+    // from the tokens and passes it in as _fontBrand.
+    font: inp._fontBrand,
   };
 }
 function overlayActive(o) { return !!(o.showLogo || o.lowerThird); }
@@ -1864,7 +1912,7 @@ function buildOverlaySvg(OW, OH, o) {
     var titleShadow = theme === 'minimal'
       ? ' style="paint-order:stroke;stroke:#0b1512;stroke-opacity:0.55;stroke-width:' + ovF2(titleSize * 0.16) + 'px;stroke-linejoin:round"'
       : '';
-    var FONT = 'SUSE, system-ui, -apple-system, sans-serif';
+    var FONT = o.font || 'SUSE, sans-serif';
 
     if (hasShot) {
       var cxs = padX + chip / 2, cys = cardH / 2, rad = chip / 2;
@@ -2474,6 +2522,9 @@ function overlayInputs(inp) {
     title: inp.title,
     nameWeight: inp.nameWeight,
     subtitleWeight: inp.subtitleWeight,
+    // The design system's text face, as a font-family list; the consumer reads it
+    // from the tokens and passes it in as _fontBrand.
+    font: inp._fontBrand,
   };
 }
 function overlayActive(o) { return !!(o.showLogo || o.lowerThird); }
@@ -2592,7 +2643,7 @@ function buildOverlaySvg(OW, OH, o) {
     var titleShadow = theme === 'minimal'
       ? ' style="paint-order:stroke;stroke:#0b1512;stroke-opacity:0.55;stroke-width:' + ovF2(titleSize * 0.16) + 'px;stroke-linejoin:round"'
       : '';
-    var FONT = 'SUSE, system-ui, -apple-system, sans-serif';
+    var FONT = o.font || 'SUSE, sans-serif';
 
     if (hasShot) {
       var cxs = padX + chip / 2, cys = cardH / 2, rad = chip / 2;
@@ -3015,7 +3066,7 @@ function gridSize(img, detail) {
 function placeholder(msg) {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">'
     + '<rect width="100%" height="100%" fill="#f3f5f4"/>'
-    + '<text x="540" y="540" text-anchor="middle" font-family="SUSE, system-ui, sans-serif" '
+    + '<text x="540" y="540" text-anchor="middle" font-family="' + _filterFont + '" '
     + 'font-size="34" fill="#6b7c77">' + esc(msg) + '</text></svg>';
 }
 
@@ -3595,6 +3646,9 @@ function overlayInputs(inp) {
     title: inp.title,
     nameWeight: inp.nameWeight,
     subtitleWeight: inp.subtitleWeight,
+    // The design system's text face, as a font-family list; the consumer reads it
+    // from the tokens and passes it in as _fontBrand.
+    font: inp._fontBrand,
   };
 }
 function overlayActive(o) { return !!(o.showLogo || o.lowerThird); }
@@ -3713,7 +3767,7 @@ function buildOverlaySvg(OW, OH, o) {
     var titleShadow = theme === 'minimal'
       ? ' style="paint-order:stroke;stroke:#0b1512;stroke-opacity:0.55;stroke-width:' + ovF2(titleSize * 0.16) + 'px;stroke-linejoin:round"'
       : '';
-    var FONT = 'SUSE, system-ui, -apple-system, sans-serif';
+    var FONT = o.font || 'SUSE, sans-serif';
 
     if (hasShot) {
       var cxs = padX + chip / 2, cys = cardH / 2, rad = chip / 2;
@@ -4000,7 +4054,7 @@ function lloyd(sites, W, H, iters) {
 function placeholder(msg) {
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">'
     + '<rect width="100%" height="100%" fill="#f3f5f4"/>'
-    + '<text x="540" y="540" text-anchor="middle" font-family="SUSE, system-ui, sans-serif" '
+    + '<text x="540" y="540" text-anchor="middle" font-family="' + _filterFont + '" '
     + 'font-size="34" fill="#6b7c77">' + esc(msg) + '</text></svg>';
 }
 
@@ -4664,6 +4718,9 @@ function overlayInputs(inp) {
     title: inp.title,
     nameWeight: inp.nameWeight,
     subtitleWeight: inp.subtitleWeight,
+    // The design system's text face, as a font-family list; the consumer reads it
+    // from the tokens and passes it in as _fontBrand.
+    font: inp._fontBrand,
   };
 }
 function overlayActive(o) { return !!(o.showLogo || o.lowerThird); }
@@ -4782,7 +4839,7 @@ function buildOverlaySvg(OW, OH, o) {
     var titleShadow = theme === 'minimal'
       ? ' style="paint-order:stroke;stroke:#0b1512;stroke-opacity:0.55;stroke-width:' + ovF2(titleSize * 0.16) + 'px;stroke-linejoin:round"'
       : '';
-    var FONT = 'SUSE, system-ui, -apple-system, sans-serif';
+    var FONT = o.font || 'SUSE, sans-serif';
 
     if (hasShot) {
       var cxs = padX + chip / 2, cys = cardH / 2, rad = chip / 2;
@@ -5388,6 +5445,9 @@ function overlayInputs(inp) {
     title: inp.title,
     nameWeight: inp.nameWeight,
     subtitleWeight: inp.subtitleWeight,
+    // The design system's text face, as a font-family list; the consumer reads it
+    // from the tokens and passes it in as _fontBrand.
+    font: inp._fontBrand,
   };
 }
 function overlayActive(o) { return !!(o.showLogo || o.lowerThird); }
@@ -5506,7 +5566,7 @@ function buildOverlaySvg(OW, OH, o) {
     var titleShadow = theme === 'minimal'
       ? ' style="paint-order:stroke;stroke:#0b1512;stroke-opacity:0.55;stroke-width:' + ovF2(titleSize * 0.16) + 'px;stroke-linejoin:round"'
       : '';
-    var FONT = 'SUSE, system-ui, -apple-system, sans-serif';
+    var FONT = o.font || 'SUSE, sans-serif';
 
     if (hasShot) {
       var cxs = padX + chip / 2, cys = cardH / 2, rad = chip / 2;
@@ -5879,7 +5939,7 @@ function placeholder(message, W, H) {
   return svgOpen(W, H)
     + '<rect width="' + W + '" height="' + H + '" fill="#f4f4f5"/>'
     + '<text x="' + (W / 2) + '" y="' + (H / 2) + '" text-anchor="middle" '
-    + 'dominant-baseline="middle" font-family="sans-serif" font-size="34" '
+    + 'dominant-baseline="middle" font-family="' + _filterFont + '" font-size="34" '
     + 'fill="#9ca3af">' + esc(message) + '</text>'
     + '</svg>';
 }
@@ -6009,6 +6069,9 @@ function overlayInputs(inp) {
     title: inp.title,
     nameWeight: inp.nameWeight,
     subtitleWeight: inp.subtitleWeight,
+    // The design system's text face, as a font-family list; the consumer reads it
+    // from the tokens and passes it in as _fontBrand.
+    font: inp._fontBrand,
   };
 }
 function overlayActive(o) { return !!(o.showLogo || o.lowerThird); }
@@ -6127,7 +6190,7 @@ function buildOverlaySvg(OW, OH, o) {
     var titleShadow = theme === 'minimal'
       ? ' style="paint-order:stroke;stroke:#0b1512;stroke-opacity:0.55;stroke-width:' + ovF2(titleSize * 0.16) + 'px;stroke-linejoin:round"'
       : '';
-    var FONT = 'SUSE, system-ui, -apple-system, sans-serif';
+    var FONT = o.font || 'SUSE, sans-serif';
 
     if (hasShot) {
       var cxs = padX + chip / 2, cys = cardH / 2, rad = chip / 2;
@@ -6744,7 +6807,7 @@ function placeholder(message, W, H) {
   return svgOpen(W, H)
     + '<rect width="' + W + '" height="' + H + '" fill="#f4f4f5"/>'
     + '<text x="' + (W / 2) + '" y="' + (H / 2) + '" text-anchor="middle" '
-    + 'dominant-baseline="middle" font-family="sans-serif" font-size="34" '
+    + 'dominant-baseline="middle" font-family="' + _filterFont + '" font-size="34" '
     + 'fill="#9ca3af">' + esc(message) + '</text></svg>';
 }
 
@@ -6912,6 +6975,9 @@ function overlayInputs(inp) {
     title: inp.title,
     nameWeight: inp.nameWeight,
     subtitleWeight: inp.subtitleWeight,
+    // The design system's text face, as a font-family list; the consumer reads it
+    // from the tokens and passes it in as _fontBrand.
+    font: inp._fontBrand,
   };
 }
 function overlayActive(o) { return !!(o.showLogo || o.lowerThird); }
@@ -7030,7 +7096,7 @@ function buildOverlaySvg(OW, OH, o) {
     var titleShadow = theme === 'minimal'
       ? ' style="paint-order:stroke;stroke:#0b1512;stroke-opacity:0.55;stroke-width:' + ovF2(titleSize * 0.16) + 'px;stroke-linejoin:round"'
       : '';
-    var FONT = 'SUSE, system-ui, -apple-system, sans-serif';
+    var FONT = o.font || 'SUSE, sans-serif';
 
     if (hasShot) {
       var cxs = padX + chip / 2, cys = cardH / 2, rad = chip / 2;
@@ -7807,7 +7873,7 @@ function placeholder(message, W, H) {
   return svgOpen(W, H)
     + '<rect width="' + W + '" height="' + H + '" fill="#f4f4f5"/>'
     + '<text x="' + (W / 2) + '" y="' + (H / 2) + '" text-anchor="middle" '
-    + 'dominant-baseline="middle" font-family="sans-serif" font-size="34" '
+    + 'dominant-baseline="middle" font-family="' + _filterFont + '" font-size="34" '
     + 'fill="#9ca3af">' + esc(message) + '</text></svg>';
 }
 
@@ -7977,6 +8043,9 @@ function overlayInputs(inp) {
     title: inp.title,
     nameWeight: inp.nameWeight,
     subtitleWeight: inp.subtitleWeight,
+    // The design system's text face, as a font-family list; the consumer reads it
+    // from the tokens and passes it in as _fontBrand.
+    font: inp._fontBrand,
   };
 }
 function overlayActive(o) { return !!(o.showLogo || o.lowerThird); }
@@ -8095,7 +8164,7 @@ function buildOverlaySvg(OW, OH, o) {
     var titleShadow = theme === 'minimal'
       ? ' style="paint-order:stroke;stroke:#0b1512;stroke-opacity:0.55;stroke-width:' + ovF2(titleSize * 0.16) + 'px;stroke-linejoin:round"'
       : '';
-    var FONT = 'SUSE, system-ui, -apple-system, sans-serif';
+    var FONT = o.font || 'SUSE, sans-serif';
 
     if (hasShot) {
       var cxs = padX + chip / 2, cys = cardH / 2, rad = chip / 2;
@@ -8560,7 +8629,7 @@ function svgOpen(W, H, extra) {
 function wrapImg(outSrc, W, H, rootExtra, note, overlaySvg, preserve) {
   if (!outSrc) {
     return svgOpen(W, H, rootExtra || '') + '<rect width="' + W + '" height="' + H + '" fill="#0f0f12"/>'
-      + '<text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="34" fill="#9ca3af">'
+      + '<text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-family="' + _filterFont + '" font-size="34" fill="#9ca3af">'
       + esc(note || 'Choose an image to glitch') + '</text>'
       + '<g id="lolly-ov-slot">' + (overlaySvg || '') + '</g></svg>';
   }
@@ -8739,6 +8808,9 @@ function overlayInputs(inp) {
     title: inp.title,
     nameWeight: inp.nameWeight,
     subtitleWeight: inp.subtitleWeight,
+    // The design system's text face, as a font-family list; the consumer reads it
+    // from the tokens and passes it in as _fontBrand.
+    font: inp._fontBrand,
   };
 }
 function overlayActive(o) { return !!(o.showLogo || o.lowerThird); }
@@ -8857,7 +8929,7 @@ function buildOverlaySvg(OW, OH, o) {
     var titleShadow = theme === 'minimal'
       ? ' style="paint-order:stroke;stroke:#0b1512;stroke-opacity:0.55;stroke-width:' + ovF2(titleSize * 0.16) + 'px;stroke-linejoin:round"'
       : '';
-    var FONT = 'SUSE, system-ui, -apple-system, sans-serif';
+    var FONT = o.font || 'SUSE, sans-serif';
 
     if (hasShot) {
       var cxs = padX + chip / 2, cys = cardH / 2, rad = chip / 2;

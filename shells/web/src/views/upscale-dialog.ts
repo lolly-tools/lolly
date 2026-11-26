@@ -26,6 +26,7 @@
  * That whole save tail, provenance included, lives in lib/upscale-job.ts now.
  */
 
+import { closeButtonHtml } from '../lib/close-button.ts';
 import '../styles/upscale.css';   // async CSS chunk (lazy dialog - not on the landing)
 import { mountModal } from '../components/modal.ts';
 import { fmtBytes } from '../lib/format.ts';
@@ -168,7 +169,7 @@ export function openUpscaleDialog(host: UpscaleHost, opts: UpscaleDialogOpts = {
       <div class="upscale-panel">
         <header class="upscale-head">
           <span>${t('Upscale image')}</span>
-          <button type="button" class="upscale-close" aria-label="${escapeHtml(t('Close'))}">&times;</button>
+          ${closeButtonHtml({ className: 'upscale-close' })}
         </header>
         <div class="upscale-body">
           <label class="upscale-choose" data-choose hidden>

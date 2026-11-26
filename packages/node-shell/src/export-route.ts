@@ -5,18 +5,25 @@
  *
  * - SVG, SVGZ and PDF pages the drawing operations carry are written here, with no
  *   browser (`design-ops-svg.ts`, `design-ops-pdf.ts`): route `operations`.
- * - Every still raster goes to the browser tier, the headless Chromium driving the web
- *   shell, which routes the page itself and stamps the credential with the route it took.
- *   Node has no GPU route: the drawing operations reach pixels only through WebGPU, and
- *   a CPU substitute is ruled out (plan 295 section 2). A qualified native adapter would
- *   plug in at `nodeRasterRoute`, admitting the same evaluation the web shell admits and
- *   handing its RGBA to the Node PNG writer before the post-stamp in shells/cli/src/run.ts.
+ * - A PNG of an admitted page is drawn here when no browser tier is available or
+ *   `LOLLY_DESIGN_RASTER=resvg` asks for it (plan 371, M3a, `design-still.ts`): the
+ *   operations SVG with outlined words, drawn by resvg. It records route `operations`
+ *   with a renderer that gives both the drawing operations' version and the resvg build.
+ * - Every other still raster goes to the browser tier, the headless Chromium driving the
+ *   web shell, which routes the page itself and stamps the credential with the route it
+ *   took. Node has no GPU route: the drawing operations reach the GPU only through
+ *   WebGPU, and plan 295 section 2 rules out a CPU stand-in for the GPU page renderer.
+ *   The resvg route is not one: it draws the vector page an SVG export writes, the way
+ *   Tier A draws an SVG-native tool, and records a renderer of its own. A qualified
+ *   native adapter would plug in at `nodeRasterRoute`, admitting the
+ *   same evaluation the web shell admits and handing its RGBA to the Node PNG writer
+ *   before the post-stamp in shells/cli/src/run.ts.
  *
  * `LOLLY_EXPORT_ROUTE` (`auto`, `ops` or `legacy`) is the internal override. `legacy`
  * sends Design pages to the browser tier's compatibility renderer; the value is passed
  * to that tier's page, so `ops` asks the browser tier for its GPU route.
  */
-import { designExportRouteFields, designOperationsRenderer, parseDesignExportRouteChoice, type DesignExportRouteChoice, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
+import { designExportRouteFields, designOperationsRenderer, parseDesignExportRouteChoice, type DesignExportRoute, type DesignExportRouteChoice, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
 import { DESIGN_DRAW_VERSION } from '../../../engine/src/design-draw.ts';
 
 /** The override this process asks for, `auto` when unset or unreadable. */
@@ -27,9 +34,35 @@ export function nodeExportRouteChoice(env: Record<string, string | undefined> = 
 /** The record for a page this shell wrote from the drawing operations. */
 export const nodeOperationsRoute = (): DesignExportRouteRecord => ({ route: 'operations', renderer: designOperationsRenderer(DESIGN_DRAW_VERSION) });
 
+/**
+ * What the credential records when the user accepted a browser-free picture outside the
+ * measured set (`--allow-browser-free`, resvg-admission.ts `acceptRefusals`).
+ */
+export const BROWSER_FREE_ACCEPTED = 'browser-free render outside the measured set';
+
+/**
+ * The route record the Node shells hand the credential: the engine's record (`route` and
+ * `renderer`) with one key node-shell adds, `accepted`, set only when the user accepted a
+ * browser-free picture outside the measured set. A tool other than Design has no `route`
+ * (the engine's route vocabulary is Design's), so its record carries the `renderer` and
+ * `accepted` only, and only when something was accepted.
+ */
+export interface NodeRouteRecord {
+  route?: DesignExportRoute;
+  renderer: string;
+  accepted?: typeof BROWSER_FREE_ACCEPTED;
+}
+
+/** The record for a picture drawn here although its refusals were only accepted, never admitted. */
+export const acceptedRoute = <T extends { renderer: string }>(record: T): T & { accepted: typeof BROWSER_FREE_ACCEPTED } => ({ ...record, accepted: BROWSER_FREE_ACCEPTED });
+
 /** The credential keys for a Node-drawn page (none when the browser tier drew it and stamped its own). */
-export const nodeRouteEnvironment = (record: DesignExportRouteRecord | null | undefined): Record<string, string> =>
-  designExportRouteFields(record) as Record<string, string>;
+export function nodeRouteEnvironment(record: NodeRouteRecord | DesignExportRouteRecord | null | undefined): Record<string, string> {
+  if (!record) return {};
+  const accepted = (record as NodeRouteRecord).accepted === BROWSER_FREE_ACCEPTED;
+  const base = record.route ? designExportRouteFields(record as DesignExportRouteRecord) as Record<string, string> : accepted && record.renderer ? { renderer: String(record.renderer).slice(0, 200) } : {};
+  return accepted ? { ...base, accepted: BROWSER_FREE_ACCEPTED } : base;
+}
 
 /** One log line for a Design still on Node: the browser tier draws it, and why. */
 export function nodeRasterRoute(format: string): string {

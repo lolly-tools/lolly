@@ -1,6 +1,6 @@
 {
   "name": "Prompt Card",
-  "description": "I-typeset ang isang mahabang prompt sa isang compact, malinaw na larawan para sa multimodal model - kadalasang mas mura ang image input kaysa sa parehong mga salita bilang text tokens.",
+  "description": "I-typeset ang isang mahabang prompt sa isang larawan para sa multimodal model - kadalasang mas mura ang image input kaysa sa parehong mga salita bilang text tokens.",
   "a11yLabel": "Prompt to Image - i-paste o i-drop ang teksto sa canvas at ilalagay ito para kumasya sa loob ng isang maliit na larawan",
   "inputs.text.label": "Teksto",
   "inputs.text.help": "I-paste o i-drop kahit saan sa canvas para punan ito.",

@@ -115,6 +115,10 @@ test('a failure that arrives while the gallery is still mounting tears that moun
     });
     await page.goto(`${origin}/#/`, { waitUntil: 'domcontentloaded' });
     await galleryHeld;
+    // Boot starts the gallery's module at its top (plan 371), before the first navigate,
+    // so a held request alone does not mean the mount is under way: wait for the router
+    // to be mounting the gallery, waiting on that held module, before the check fails.
+    await page.waitForFunction(() => document.getElementById('view')?.hasAttribute('data-route-mounting') === true);
     await page.waitForFunction(() => typeof (window as unknown as { __releaseAdapter?: unknown }).__releaseAdapter === 'function');
     await page.evaluate(() => (window as unknown as { __releaseAdapter: () => void }).__releaseAdapter());
     await expectCard(page, 'WEBGPU_UNAVAILABLE');

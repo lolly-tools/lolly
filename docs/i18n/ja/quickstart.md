@@ -1,88 +1,91 @@
-# はじめに
+# 始める
 
-このページを読み終えるころには、ツールがあなたの色とフォントをまとい、すでにお持ちの作品もすぐ再利用できる状態になります。アカウントは不要で、作成も書き出しもお使いのデバイス上で動作します。
+ツールにご自身の色とフォントを設定し、すでにある作品を再利用します。アカウントは不要で、制作と書き出しはお使いのデバイス上で行われます。
 
-::: timeline
-- <!--i:sparkle--> **ファイルを1つ作る。** [最初のファイルを作る](/info/make-something.html)で、数分でQRコードを作ります。
-- <!--i:palette--> **ブランドを取り込む。** 1色、トークンファイル、完成したデザインのいずれかから始めます。
-- <!--i:layers--> **同じものをもっと作る。** リンクを共有する、スプレッドシートを埋める、スクリプトからツールを実行する、のいずれかです。
+::: steps
+- <!--i:eti-sparkles--> **[ファイルを1つ作る](/info/make-something.html)** すべての手順を見ながら、数分でQRコードを作れます。
+- <!--i:eti-palette--> **[ブランドを取り入れる](#put-your-brand-in)** 1つの色、トークンファイル、完成したデザインから始めます。
+- <!--i:eti-folder-move--> **[作品を取り込む](#bring-in-what-you-already-have)** すでにあるデザイン、デッキ、データを、デバイス上で読み込みます。
+- <!--i:eti-repeat--> **[同じものを増やす](#make-many-share-and-automate)** リンクを共有したり、スプレッドシートに入力したり、スクリプトからツールを実行したりします。
 :::
 
-この考え方自体が初めてですか? [Lollyとは](/info/what-is-lolly.html)は5分で読める紹介で、[Lollyの仕組み](/info/how-lolly-works.html)は誰が何をするかを示します。
+[Lollyとは？](/info/what-is-lolly.html)は、5分で読める紹介です。[Lollyの仕組み](/info/how-lolly-works.html)では、誰が何をするかを説明します。
 
-## ブランドを取り込む
+<!--i:eti-palette-->
+## ブランドを取り入れる
 
-lolly.toolsは、Lolly自身のサンプルデザインシステムである**Lolly Demo**で開きます。何を見ているかは[Lolly Demoを知る](/info/lolly-demo.html)で確認できます。ご自身のデザインシステムがこれに置き換わります。デザインシステムとは、色、フォント、いくつかのルールからなる小さなデザイントークンのセットで、すべてのツールがこれを使って描画します。一度設定すれば、作るものはすべてブランドに沿った状態で始まります。
+lolly.toolsは、Lolly自身のサンプルデザインシステムである**Lolly Demo**で開きます([Lolly Demoの紹介](/info/lolly-demo.html))。ご自身のデザインシステムがLolly Demoに置き換わります。デザインシステムは、すべてのツールが描画に使う小さなデザイントークンのセット(色、フォント、いくつかのルール)です。一度設定すれば、作るものはすべて最初からブランドに沿ったものになります。
 
-お手元にあるものに合うルートを選んでください。
+お持ちのものに合う方法を選んでください。
 
-- <!--i:palette--> **1色から。** **Design System Setup**(`#/start`)を開き、デザインシステムに名前を付けて、プライマリカラーを選びます。Lollyはそこから、ライトとダークの背景、テキスト、アクセントを含む、アクセシブルな完全なパレットを導き出します。フォントを選べば、使えるブランドの完成です。
-- <!--i:upload--> **トークンファイルから。** Design System Setupの上部のバーにある**Add from…**は、DTCG、Tokens Studio、Penpotのトークンファイル、SVG、`LollyBrand`パックを受け付けます。ドロップするとパレットが埋まります。デザインシステムがまだ空のあいだは、Boardルームの**Start from a reference**から同じピッカーを開けます。
-- <!--i:pentool--> **完成したデザインから。** Designで**Import a design**を選び、`.fig`、`.penpot`、`.ai`、`.idml`、またはSVGファイルをドロップします。下の[すでにお持ちのものを取り込む](#bring-in-what-you-already-have)をご覧ください。
+- <!--i:palette--> **1つの色。** **Design System Setup**画面(`#/start`)を開き、デザインシステムに名前を付け、主となる色を選びます。Lollyはその色から、ライトとダークの背景、テキスト、アクセントを含む、アクセシビリティに配慮したパレットを作ります。フォントを選べば、使えるブランドができます。
+- <!--i:upload--> **トークンファイル。** Lolly Design System Setupの上部にある**Add from…**は、DTCG、Tokens Studio、Penpotのトークンファイル、SVG、`LollyBrand`パックを読み込みます。ファイルからパレットが埋まります。デザインシステムが空の間は、Boardの**Start from a reference**でも同じピッカーが開きます。
+- <!--i:pentool--> **完成したデザイン。** Lolly Designで**Import a design**を選び、Figma、Penpot、Illustrator、InDesign、Affinity、Photoshop、PowerPoint、SVGのファイルをドロップします([すべての形式](/info/design-import.html#what-comes-in-from-each-app))。下の[すでにあるものを取り込む](#bring-in-what-you-already-have)をご覧ください。
 
-初めてギャラリーを開くと、短いウェルカムが同じ選択肢を示します。**Make it yours**はDesign System Setupを開き、**Bring your design**はデザインを選ぶファイルピッカーを開き、**Explore the community tools**はウェルカムを閉じます。
+初めてギャラリーを開くと、上部の挨拶が次の手順を1つ提示します。lolly.toolsでは、**Start making**がLolly DesignでLaunchポスターを開きます。新規インストールでは、**Make it yours**がLolly Design System Setupを開きます。そのボタンの下にある**Bring a file**は、デザイン用のファイルピッカーを開き、先の2つの選択肢のもう一方がリンクとして表示されます。これらのいずれか、または閉じるボタンを使うと、挨拶は以後表示されなくなります。
 
-![新規インストール時のDesign System SetupのColoursルーム: ライブチップが1つ、入力欄が1つ、最初の決定のすべて](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+![新しいデザインシステムでのLolly Design System SetupのColoursルーム: 1つのライブチップ、1つの入力欄、最初に決めることのすべて](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
-そこから先は、8つのルームで、好きな順序で好きなところまで進められます。**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules**、**Skills**です。アプリ内のすべてのプレビューは、入力に合わせて更新されます。各ルームについては[Lolly Design System Setup](/info/brand-studio.html)で説明しています。
+8つのルームを好きな順序で使って、デザインシステムをさらに整えられます。**Board**、**Colours**、**Type**、**Logos**、**Tokens**、**Files**、**Rules**、**Skills**です。入力すると、アプリ内のすべてのプレビューが更新されます。[Lolly Design System Setup](/info/brand-studio.html)で各ルームを説明しています。
 
-フォントはお使いのデバイスに保存されます。Googleフォントを選ぶと、Lollyはそのファイルをブランドのアセットとして保存するため、書体はオフラインでも持ち運べ、ツールが描画するときに何かを取得することはありません。
+フォントはお使いのデバイス上に保持されます。選んだGoogle Fontはブランドアセットとして保存されるため、書体はオフラインでも使え、ツールの描画時に何かを取得することはありません。
 
-### デザインシステムを見る、切り替える、共有する
+### デザインシステムの表示、切り替え、共有
 
-- **現在のものを見る。** **Settings → Design system**には、現在のデザインシステムが表紙とページとして、読み取り専用で表示されます。
-- **切り替える。** **Settings → Preferences → Design systems**には、このデバイス上のすべてのデザインシステムが一覧になります。1つの組織が複数のデザインシステムを運用することも、複数のカラーウェイを持つ1つを運用することもできます。その構成は[ブランドアーキテクチャ](/info/brand-architectures.html)で整理しています。
-- **共有する。** デザインシステムを`LollyBrand`パックとして書き出します。同僚がインポートすれば、同じパレット、フォント、ルールが手に入る1つのファイルです。
+- **使用中のものを確認する。** **Settings → Design system**は、使用中のデザインシステムを、表紙とページの形で読み取り専用で表示します。
+- **切り替える。** **Settings → Preferences → Design systems**には、このデバイス上のすべてのデザインシステムが並びます。1つの組織が複数のデザインシステムを使うことも、複数のカラーウェイを持つ1つのデザインシステムを使うこともできます。[ブランドの構成](/info/brand-architectures.html)で、その構成を示しています。
+- **共有する。** デザインシステムを`LollyBrand`パックとして書き出します。同僚がその1つのファイルをインポートすれば、同じパレット、フォント、ルールを使えます。
 
-ビルドや組織から提供されるデザインシステムは**管理対象**で、ロックが表示され、読み取り専用のままです。変更するには、**Settings → Preferences → Design systems**から編集可能なコピーを作成します。
+ビルドや組織から提供されるデザインシステムは**管理対象**です。鍵のマークが付き、読み取り専用になります。変更するには、**Settings → Preferences → Design systems**で編集可能なコピーを作ります。
 
-![Settingsのデザインシステムタブ: 現在のデザインシステムを表紙とページで表示](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D)
+![SettingsのDesign systemタブ: 使用中のデザインシステムを表紙とページで表示](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D)
 
-デザインシステムはDTCGトークンです。これは、Penpotが読み書きし、Tokens StudioがFigmaに持ち込む形式であるため、デザインに使うパレットとLollyが適用するパレットは1つのドキュメントになります。詳細は[デザイントークン](/info/design-tokens.html)をご覧ください。
+デザインシステムはDTCGトークンで構成されます。Penpotが読み書きし、Tokens StudioがFigmaに取り込む形式です。デザインに使うパレットとLollyが適用するパレットは、同じ1つのドキュメントです。詳しくは[デザイントークン](/info/design-tokens.html)をご覧ください。
 
-::: details 開発者向け: コマンドラインからブランドパックを作る
-チェックアウトした環境で再利用できるブランドパックを立ち上げるには、`ingest:brand`が、PenpotとTokens Studioが書き出す3つのコンテナを受け付けます。単一の`tokens.json`、`$metadata.json`付きのセットごとのファイルのディレクトリ、または`project.penpot`アーカイブです。
+::: details 開発者向け: コマンドラインでブランドパックを作る
+`ingest:brand`は、チェックアウトしたコード内に再利用可能なブランドパックを作ります。PenpotとTokens Studioが書き出す3種類のコンテナーに対応しています。単一の`tokens.json`、セットごとのファイルと`$metadata.json`を含むディレクトリ、または`project.penpot`アーカイブです。
 
 ```bash
 pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
-`--activate`はブランドをプロファイルとして登録し、そのカタログをビルドして検証します。既定のプロファイルを変更することはありません。新しいパックを使うには、`LOLLY_PROFILE=acme`を付けて実行します。ブランドパックとプロファイルの関係は[設定](/info/configuration.html)で説明しています。
+`--activate`は、ブランドをプロファイルとして登録し、そのカタログをビルドして検証します。既定のプロファイルは変更しません。新しいパックを使うには、`LOLLY_PROFILE=acme`を指定して実行します。ブランドパックとプロファイルの関係は、[設定](/info/configuration.html)で説明しています。
 :::
 
-## すでにお持ちのものを取り込む
+<!--i:eti-folder-move-->
+## すでにあるものを取り込む
 
-白紙から始める必要はありません。
+**Lolly Designのファイル。** Figma、Penpot、Illustrator、InDesign、またはSVGを扱うアプリで作った作品を、編集可能なレイアウトとしてLolly Designで開けます。テキストは書き換えられるまま、図形は図形のまま残り、画像はライブラリに入ります。ファイルはブラウザ内で読み込まれ、何もアップロードされません。[デザインをインポートする](/info/design-import.html)に、各形式と保持される内容をまとめています。
 
-**デザインファイル。** Figma、Penpot、Illustrator、InDesign、または任意のSVGアプリで作った完成作品は、Designで生きたレイアウトとして開きます。テキストは再入力でき、図形は図形のまま、画像はライブラリに入ります。ファイルはブラウザ内で読み込まれ、何もアップロードされません。各形式と引き継がれる内容は[デザインを取り込む](/info/design-import.html)に一覧があります。
+**デッキ。** PowerPointの`.pptx`をLollyにドロップすると、スライドがアセットとして保存されます。**Lolly Markdown Slides**では、Markdownから新しいデッキを作れます。[デッキのブランドを変更する](/info/rebrand.html)では、デッキに自分のデザインシステムを適用します。
 
-**デッキ。** PowerPointの`.pptx`をLollyにドロップするとスライドがアセットとして保管され、**Markdown Slides**ではMarkdownから新しいデッキを書け、[デッキをリブランドする](/info/rebrand.html)ではデッキ全体をデザインシステムに移せます。
+**データ。** CSVまたはJSONの表を貼り付けるかドロップすると、ツールの繰り返しフィールドに入力されます。[Lolly Batch](/info/batch.html#make-many-versions-of-one-design)は、行ごとに完成したファイルを1つ作ります。
 
-**データ。** CSVやJSONの表を貼り付けるかドロップすると、ツールの繰り返しフィールドがそこから埋まります。[Lolly Batch](/info/batch.html#make-many-versions-of-one-design)なら、1行につき完成ファイルを1つ作ります。
+### 一度限りの作品からテンプレートへ
 
-### 一度きりの制作物からテンプレートへ
+インポートしたレイアウトは、通常のLolly Designセッションです。**Share with rules**で、そのセッションをツールに変えられます。他の人が変更できる部分を選ぶと、使う人はその部分だけに入力します。
 
-取り込んだレイアウトは、通常のDesignセッションです。**Share with rules**でツールに変えられます。他の人が変更できる部分を選ぶと、その人たちはそこだけを入力します。
+![Lolly Designのマスターを残し、制作用のコピーで入力項目と制限を選び、受け取った人が入力できる再利用可能な.lollyツールとして共有する](/info/diagrams/concepts/share-with-rules.svg)
 
-![Designのマスターを保ち、制作用コピーで入力と制限を選び、受け取る人が入力する再利用可能な.lollyツールを共有する](/info/diagrams/concepts/share-with-rules.svg)
+[ルール付きでデザインを共有する](/info/create-a-tool.html)で、手順を1つずつ説明しています。
 
-各手順は[ルール付きでデザインを共有する](/info/create-a-tool.html)で順に説明しています。
+<!--i:eti-repeat-->
+## まとめて作り、共有し、自動化する
 
-## たくさん作る、共有する、自動化する
-
-- <!--i:download--> **書き出し。** ツールは、各ツールが対応する形式で、SVG、PDF、PNG、JPG、WebP、動画などを作り、必要なら実際の印刷サイズで書き出せます。[ファイルを書き出す](/info/exporting.html)をご覧ください。
-- <!--i:link--> **リンクを共有する。** ツールの設定はそのリンクに含まれるため、リンクはどこでも同じファイルを開き直します。
+- <!--i:download--> **書き出す。** ツールはSVG、PDF、PNG、JPG、WebP、動画などを作成し、必要に応じて実際の印刷サイズで出力します。使える形式はツールごとに異なります。[ファイルを書き出す](/info/exporting.html)をご覧ください。
+- <!--i:link--> **リンクを共有する。** ツールの設定はリンクに含まれるため、どこでも同じファイルを開き直せます。
 - <!--i:layers--> **1行につき1つ作る。** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)で、スプレッドシートからツールを動かします。
-- <!--i:cpu--> **自動化する。** 同じレンダリングは、[CLI](/info/cli.html)からも[AIエージェント](/info/ai-agents.html)からも実行できます。
+- <!--i:cpu--> **自動化する。** [CLI](/info/cli.html)や[AIエージェント](/info/ai-agents.html)からも、同じレンダリングを実行できます。
 
-リンクは完全なリクエストです。下のグラフは誰も描いていません。種類、見出し、データ表の全体がアドレスバーに入力されたもので、同じリンクはどのデバイスでも同じグラフを描きます。
+リンクには、リクエストに必要な情報がすべて含まれます。下のグラフの種類、見出し、データ表は、アドレスバーに入力したものです。
 
-![月ごとの登録者数を示すエリアチャート。すべての値はクリックではなくクエリパラメータとして渡されている](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Darea%26d%3DMonth%2CSignups%250AJan%2C120%250AFeb%2C180%250AMar%2C265%250AApr%2C340%250AMay%2C455%26t%3DSignups%2520this%2520year%26full&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
+![デザインシステムの色で描いた、チャネル別の月間登録数の棒グラフ。すべての値はクリックではなくクエリパラメーターで渡されたもの](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26sty%3Dposter%26pl%3Droles%26transparentBg%3Dfalse%26d%3DMonth%2CWeb%2CApp%2CPartners%250AJan%2C120%2C60%2C25%250AFeb%2C180%2C95%2C40%250AMar%2C265%2C150%2C70%250AApr%2C340%2C210%2C110%250AMay%2C455%2C290%2C160%250AJun%2C560%2C380%2C230%26t%3DSignups%2520this%2520year%26st%3DBy%2520channel%252C%2520January%2520to%2520June%26full&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
-## 次に進む先
+<!--i:eti-map-pin-->
+## 次に進むページ
 
-- <!--i:people--> **[作る](/info/creators.html)**: 作成、アニメーション、録画、共有、書き出し。
-- <!--i:code--> **[自動化する](/info/builders.html)**: デザインシステム、ツールの作成、コマンドライン、リンク、エージェント。
-- <!--i:usercheck--> **[管理する](/info/operators.html)**: Lolly Workでチーム向けにLollyを運用する。
-- <!--i:server--> **[配備する](/info/operate.html)**: LollyとLolly Workのホスティング。
-- <!--i:shieldcheck--> **[信頼](/info/trust.html)**: プライバシー、セキュリティ、ファイルを自分で確認する方法。
+- <!--i:people--> **[作る](/info/creators.html)**: 制作、アニメーション、録音や録画、共有、書き出し。
+- <!--i:code--> **[自動化する](/info/builders.html)**: デザインシステム、ツール制作、コマンドライン、リンク、エージェント。
+- <!--i:usercheck--> **[管理する](/info/operators.html)**: Lolly Workを使ってチーム向けにLollyを運用する方法。
+- <!--i:server--> **[デプロイする](/info/operate.html)**: LollyとLolly Workのホスティング。
+- <!--i:shieldcheck--> **[信頼性](/info/trust.html)**: プライバシー、セキュリティ、自分でファイルを検証する方法。

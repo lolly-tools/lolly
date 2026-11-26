@@ -1,7 +1,8 @@
 # Build Guide
 
-This page is for a developer who wants to build one of Lolly's apps from source. Pick the app below; each guide lists the toolchain it needs, the commands and what the build produces. To host what you build, read [Choose a deployment](/info/deployment.html).
+Each guide below builds one of Lolly's apps from source, with its toolchain, commands and build output. To host what you build, read [Choose a deployment](/info/deployment.html).
 
+<!--i:eti-map-pin-->
 ## Choose a guide
 
 | You want to build | Guide |
@@ -14,19 +15,23 @@ This page is for a developer who wants to build one of Lolly's apps from source.
 | RPM, deb, Flatpak or Arch packages | [Linux packages](/info/build-obs.html) |
 | The web container image and the Helm chart | [Run on Kubernetes](/info/build-kubernetes.html) |
 
+<!--i:eti-checklist-->
 ## What every build needs
 
 Every build starts from a checkout with its dependencies installed: <!--l:node-->Node.js 22.18 or later (or 24 or later), pnpm and git. [Get the source](/info/contributing-setup.html) covers the clone, the setup script and the content profile. Each app guide then adds its own toolchain, such as Rust for the desktop and mobile apps.
 
-The web app needs a browser with WebGPU from startup. Check [Supported environments](/info/supported-environments.html) before you ship a build to people. A development build is for testing and does not qualify a release.
+::: note The web app needs a browser with WebGPU from startup
+Check [Supported environments](/info/supported-environments.html) before you ship a build to people. A development build is for testing and does not qualify a release.
+:::
 
+<!--i:eti-globe-->
 ## Build the web app
 
 ```bash
 pnpm run build:web    # output: shells/web/dist/
 ```
 
-`build:web` is a chain, so a plain `vite build` inside `shells/web` is not enough on its own. In order, it:
+`build:web` is a chain; a plain `vite build` inside `shells/web` is not enough. In order, the chain:
 
 1. copies the ONNX runtime's WebAssembly and loader files into `shells/web/public/ort/` (`build:ort`; the files are gitignored and regenerated each build);
 2. builds the `/info` docs site (`build:info`);
@@ -35,6 +40,9 @@ pnpm run build:web    # output: shells/web/dist/
 
 Set `LOLLY_PROFILE` on the build to choose the brand it carries. [Choose a deployment](/info/deployment.html#host-the-web-app) covers what to serve and how.
 
+For an instance's own build, `LOLLY_INFO_LOCALES=en` writes the `/info` guides in English only and links every other language to lolly.tools. [Delivery deployment](/info/deploy-delivery.html#build-and-retain-actual-files) describes that and the smaller release a Lolly Work instance can serve, with `build-delivery --codings br` and `--no-validator-map`.
+
+<!--i:eti-layers-->
 ## One source, three apps
 
 The desktop and mobile apps are the web app's own code in a native window. Both Tauri shells build `shells/web/src/` with a Vite plugin (`overrideBridgeModules` in the shell's `vite.config.js`) that swaps a few bridge modules for Tauri versions at build time. The engine, the tools, the templates and the render path stay the same in all three.
@@ -51,6 +59,7 @@ What the swap replaces:
 
 A Tauri build writes its frontend to `shells/tauri-{desktop,mobile}/dist/`, which `tauri.conf.json` reads as `frontendDist`. The web app's own `dist/` is unaffected.
 
+<!--i:eti-help-->
 ## If something fails
 
-Run `pnpm run doctor`. It reads the checkout without changing it and prints the exact repair command for each problem it finds. [Get the source](/info/contributing-setup.html#if-something-fails) lists the common setup failures, such as a Node version too old for type stripping.
+Run `pnpm run doctor`. It reads the checkout without changing it and prints the exact repair command for each problem. [Get the source](/info/contributing-setup.html#if-something-fails) lists the common setup failures, such as a Node version too old for type stripping.

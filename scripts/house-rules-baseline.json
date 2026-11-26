@@ -1,6 +1,6 @@
 {
   "docs/build.ts": {
-    "H4": 8,
+    "H4": 6,
     "H5": 1
   },
   "shells/web/index.html": {
@@ -57,7 +57,7 @@
   },
   "shells/web/src/styles/parts/brand-studio.css": {
     "H4": 5,
-    "H5": 11
+    "H5": 6
   },
   "shells/web/src/styles/parts/collab.css": {
     "H4": 1
@@ -89,8 +89,7 @@
     "H5": 1
   },
   "shells/web/src/styles/parts/dialogs.css": {
-    "H4": 4,
-    "H5": 1
+    "H4": 4
   },
   "shells/web/src/styles/parts/disclosure.css": {
     "H4": 7,

@@ -28,7 +28,7 @@ export function learningReader(host: PickerHost): LearningReader {
       const video = videoSupport(),
         audio = audioSupport();
       const formats =
-        exportAffordance(policy) === 'download'
+        exportAffordance(policy, id) === 'download'
           ? manifest.render.formats.filter(
               (f) =>
                 (!allowed || allowed.includes(f)) &&

@@ -1,5 +1,5 @@
 {
   "name": "Filter",
-  "description": "Ett verktyg för fotoeffekter: välj halvton, scanline, posterisering, voronoi, dither eller ASCII-konst (vektor) eller duoton, pixelsträckning, felttryck eller glitch (raster). Överlägg från designsystemet, livekamera och export till så många format som varje effekt stöder.",
+  "description": "Fotoeffekter: halvton, scanline, posterisering, voronoi, dither eller ASCII-konst (vektor) eller duoton, pixelsträckning, felttryck eller glitch (raster).",
   "featured.blurb": "Tio fotoeffekter, vektor eller raster, i ett verktyg"
 }

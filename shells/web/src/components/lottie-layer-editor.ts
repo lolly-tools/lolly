@@ -98,6 +98,11 @@ export function mountLottieLayerEditor(root: HTMLElement, options: LottieLayerEd
     const next = label ? [...details.querySelectorAll<HTMLElement>('[aria-label]')].find(el => el.getAttribute('aria-label') === label)
       : layer !== undefined ? [...layers.querySelectorAll<HTMLElement>('[data-layer]')].find(el => el.dataset.layer === layer) : undefined;
     next?.focus({ preventScroll: true });
+    // A field the person was in but had not typed into comes back with its value
+    // selected, as Tab leaves a field, so the next key replaces the value. Focus alone
+    // put the caret after the old text: typing 0 over a selected 0.5 made 0.50, and
+    // the edit kept 0.5.
+    if (next instanceof HTMLInputElement && active instanceof HTMLInputElement && next.type !== 'checkbox' && next.type !== 'color') next.select();
   }
   function release(): void {
     if (destroyed || !waiting || typing()) return;

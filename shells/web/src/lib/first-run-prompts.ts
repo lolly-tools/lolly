@@ -27,6 +27,8 @@ const SHOWING = [
   // The personalise nudge, and the offline nudge, which shares its class.
   '.personalize-nudge:not([hidden])',
   'dialog[open]:is(.welcome-dialog, .models-welcome, .tool-guide-dialog)',
+  // The first-visit greeting in place at the top of the gallery (components/welcome-hero.ts).
+  '.welcome-hero',
 ].join(', ');
 
 /** A first-run prompt on screen, or the gallery's banner while it waits to be shown. */

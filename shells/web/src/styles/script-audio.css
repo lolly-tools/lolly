@@ -37,17 +37,6 @@
   font-size: var(--fs-lg);
   font-weight: 600;
 }
-.script-audio-close {
-  background: none;
-  border: none;
-  font-size: calc(20px * var(--a11y-fs));
-  line-height: 1;
-  cursor: pointer;
-  color: hsl(var(--muted-foreground));
-  padding: 2px 6px;
-  border-radius: var(--radius);
-}
-.script-audio-close:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
 .script-audio-body {
   display: flex;
   flex-direction: column;
@@ -78,7 +67,7 @@
   margin: 0;
   font-size: var(--fs-xs);
 }
-.script-audio-more a { color: hsl(var(--primary)); }
+.script-audio-more a { color: hsl(var(--primary-text)); }
 .script-audio-controls {
   display: flex;
   gap: 10px;

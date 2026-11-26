@@ -9,6 +9,7 @@
  */
 import { updateRouteParams, bindDisclosureUrl, routeParams } from '../../lib/url-state.ts';
 import { boardState, mountOverviewRoom, readOverview } from '../../lib/design-system/rooms/overview.ts';
+import { mountSoundRoom } from '../../lib/design-system/rooms/sound.ts';
 import { mountUsageRoom } from '../../lib/design-system/rooms/usage.ts';
 import { mountSkillsRoom } from '../../lib/design-system/rooms/skills.ts';
 import { isStartArea } from '../../lib/design-system/start-route.ts';
@@ -16,6 +17,7 @@ import type { StartArea } from '../../lib/design-system/start-route.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { mountPaletteSheet } from '../../lib/design-system/palette-sheet.ts';
 import { bindOp, type StartCtx } from './context.ts';
+import { soundWashes } from './shared.ts';
 import { isSplitLayout } from '../../lib/layout-posture.ts';
 
 export const syncPaletteSheet = (start: StartCtx): void => {
@@ -137,6 +139,11 @@ export const selectRoom = (start: StartCtx, asked: StartArea, opts: { focus?: bo
   // The live column goes with the Board: beside it on a desk, under it on a
   // phone, the other pane in two panes until a room takes that pane.
   start.livePanel.hidden = area !== 'overview';
+  start.soundPanel.hidden = area !== 'sound';
+  if (area === 'sound') {
+    if (start.sound) void start.sound.refresh();
+    else start.sound = mountSoundRoom(start.soundPanel, { host: start.host, studio: start.studio, washes: soundWashes(start.host), changed: () => { start.rooms.refreshFurnished(); start.brand.wireRegistry(); } });
+  } else start.sound?.suspend();
   start.usagePanel.hidden = area !== 'usage';
   if (area === 'usage') {
     if (start.usage) void start.usage.refresh();

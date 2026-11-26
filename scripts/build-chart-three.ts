@@ -4,7 +4,9 @@
  *
  * The general 3D tool needs WebGPU, model loaders, environments and controls;
  * Chart does not. This IIFE carries only the WebGL scene/geometry/material
- * primitives used by community/chart/lib/chart-three.js. Keeping the build
+ * primitives used by community/chart/lib/chart-three.js, plus the PMREM
+ * generator the chart uses to light glossy finishes from an environment it
+ * builds out of the colourway, and the rounded-box addon for bevelled bars. Keeping the build
  * separate makes its payload and capability boundary reviewable.
  *
  *   pnpm run build:chart-three
@@ -28,11 +30,13 @@ const entry = `
 export {
   Scene, Color, PerspectiveCamera, OrthographicCamera, WebGLRenderer,
   Group, BoxGeometry, SphereGeometry, PlaneGeometry, TubeGeometry, BufferGeometry,
-  Float32BufferAttribute, Mesh, MeshStandardMaterial, MeshPhysicalMaterial,
+  CylinderGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, MeshPhysicalMaterial,
   MeshBasicMaterial, ShadowMaterial, GridHelper, DirectionalLight,
-  HemisphereLight, AmbientLight, Vector3, CatmullRomCurve3, DoubleSide, PCFSoftShadowMap,
-  SRGBColorSpace, ACESFilmicToneMapping
+  HemisphereLight, AmbientLight, Vector3, CatmullRomCurve3, DoubleSide, BackSide, PCFShadowMap,
+  SRGBColorSpace, NeutralToneMapping, ACESFilmicToneMapping, PMREMGenerator, Fog, CanvasTexture,
+  LineSegments, LineBasicMaterial
 } from 'three';
+export { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 `;
 
 const result = await build({
@@ -58,6 +62,8 @@ for (const symbol of [
   'CatmullRomCurve3',
   'MeshPhysicalMaterial',
   'Float32BufferAttribute',
+  'PMREMGenerator',
+  'RoundedBoxGeometry',
 ]) {
   if (!output.includes(symbol)) throw new Error(`chart Three bundle is missing ${symbol}`);
 }

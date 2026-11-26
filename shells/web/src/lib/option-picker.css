@@ -1,0 +1,246 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* The `display: "picker"` select (lib/option-picker.ts): one button in the
+   sidebar and a panel of option tiles under group headings, a bottom sheet on
+   a phone. Every value is a design token or a value copied from the house
+   recipe the brief names beside it, so the picker reads as the controls around
+   it rather than as a new component.
+   Cascade layer: `views`, declared once in styles/app.css. */
+@layer views {
+
+/* ── Trigger ──────────────────────────────────────────────────────────────
+   The button carries `.field-select` itself (parts/fields.css), so its height,
+   corner, surface, bevel, hover lift, focus halo and chevron ARE the native
+   select's. Only what a <button> does differently from a <select> is stated
+   here: it lays its children out in a row and starts its text at the left. */
+.option-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+  text-align: start;
+}
+.option-picker-glyph {
+  flex: none;
+  display: inline-flex;
+  color: var(--ui-color-text-muted);
+}
+.option-picker-glyph svg {
+  width: calc(20px * var(--a11y-fs));
+  height: calc(20px * var(--a11y-fs));
+}
+.option-picker-current {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.option-picker-na { color: var(--ui-color-text-muted); }
+/* Open: the trigger keeps the field's focus halo (parts/fields.css
+   .field-select:focus) while its panel is up, so a panel that opens beside the
+   sidebar still reads as this control's. */
+.option-picker-trigger[aria-expanded="true"] {
+  box-shadow: var(--ui-effect-bevel), var(--ui-effect-focus-halo);
+}
+/* A sidebar select is 44px tall under a finger and sets its text at 16px there
+   (parts/notfound.css); the trigger keeps step with it. */
+@media (pointer: coarse) {
+  .option-picker-trigger {
+    min-height: 44px;
+    font-size: var(--fs-xl);
+  }
+}
+
+/* ── Panel ────────────────────────────────────────────────────────────────
+   Mounted on <body>. The surface is the colour popover's recipe
+   (parts/color-field.css .color-popover): raised surface, neutral hairline,
+   panel corner and the floating step of the shadow ramp. */
+.option-picker-panel {
+  position: fixed;
+  z-index: calc(var(--z-top) + 1);
+}
+/* The floating panel draws 4, 5 or 6 columns, chosen from the set by
+   pickerColumns() so no group ends in a row of one or two, and is as wide as its
+   columns. Its height is the set's own: placePanel() caps a panel the viewport
+   cannot hold, and the list scrolls inside. */
+.option-picker-panel[data-cols="5"] { --picker-cols: 5; }
+.option-picker-panel[data-cols="6"] { --picker-cols: 6; }
+.option-picker-surface {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: clamp(300px, calc(var(--picker-cols, 4) * 108px), calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  padding: var(--sp-4);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-panel);
+  box-shadow: var(--ui-elevation-floating);
+  animation: option-picker-in var(--ui-motion-feedback) var(--ui-motion-standard);
+}
+.option-picker-list {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+@keyframes option-picker-in {
+  from { opacity: 0; transform: translateY(4px); }
+}
+
+/* Group heading: the sidebar's band label (parts/panel.css .lp-band-label). */
+.option-picker-heading {
+  margin: var(--sp-6) 0 var(--sp-2);
+  font-size: var(--ui-type-band);
+  font-weight: var(--ui-type-weight-label);
+  text-transform: uppercase;
+  letter-spacing: var(--ui-type-tracking-label);
+  color: var(--ui-color-text-muted);
+}
+.option-picker-group:first-child > .option-picker-heading { margin-top: 0; }
+
+.option-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--picker-cols, 4), minmax(0, 1fr));
+  gap: var(--sp-2);
+}
+/* A sheet is as wide as the phone, so its columns follow that width. */
+.is-sheet .option-picker-grid { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
+
+/* ── Tile ─────────────────────────────────────────────────────────────── */
+.option-picker-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  min-height: 72px;
+  padding: var(--sp-3) var(--sp-2);
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--ui-color-text-default);
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--ui-motion-feedback), box-shadow var(--ui-motion-feedback);
+}
+.option-picker-tile-glyph {
+  display: inline-flex;
+  color: var(--ui-color-text-muted);
+}
+.option-picker-tile-glyph svg,
+.option-picker-tile-glyph:empty {
+  width: calc(28px * var(--a11y-fs));
+  height: calc(28px * var(--a11y-fs));
+}
+.option-picker-tile-label {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  max-width: 100%;
+  font-size: var(--fs-sm);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+/* No glyph on any option: text-only tiles. */
+.option-picker-list--text .option-picker-tile { min-height: 44px; }
+/* Pictured tiles share their row's two tracks, the picture then the label, so the
+   pictures along a row stay level when one label there runs to two lines. A
+   subgrid takes its height from those tracks and ignores a min-height, so the
+   padding carries the tile's height. Where subgrid is not supported the tile lays
+   its own two rows out and centres them, as the flex column above does. */
+.option-picker-list:not(.option-picker-list--text) .option-picker-tile {
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  justify-items: center;
+  align-content: center;
+  min-height: 0;
+  padding-block: var(--sp-6);
+}
+.option-picker-list:not(.option-picker-list--text) .option-picker-tile-glyph { align-self: end; }
+.option-picker-list:not(.option-picker-list--text) .option-picker-tile-label { align-self: start; }
+
+.option-picker-tile:hover { background: var(--ui-color-surface-muted); }
+/* Chosen: the house on-state of a badged select option (parts/tool.css
+   .badge-select-opt.is-on), a tinted fill and the inset ring. */
+.option-picker-tile.is-on {
+  background: hsl(var(--primary) / 0.14);
+  box-shadow: var(--ui-effect-selected);
+}
+.option-picker-tile.is-on .option-picker-tile-glyph { color: var(--ui-color-text-accent); }
+.option-picker-tile.is-on .option-picker-tile-label {
+  color: hsl(var(--primary-text));
+  font-weight: 600;
+}
+.option-picker-tile:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 1px;
+}
+/* Not applicable in this mode: still the current value, read as parked
+   (parts/tool.css .badge-select-opt.is-na). */
+.option-picker-tile.is-na .option-picker-tile-label,
+.option-picker-tile.is-na .option-picker-tile-glyph { color: hsl(var(--muted-foreground)); }
+
+/* ── Phone: a bottom sheet ───────────────────────────────────────────────
+   The mounted container covers the viewport and draws its own dimmed area,
+   as the tile menu's sheet does (parts/folders.css .ctx-sheet-host). The dim is
+   the black scrim the shell's sheets and dialogs share, written as they write it
+   (parts/tool.css .export-overlay-scrim, parts/dialogs.css); no token holds it. */
+.option-picker-panel.is-sheet {
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.option-picker-scrim {
+  position: absolute;
+  inset: 0;
+  background: hsl(0 0% 0% / 0.45);
+  touch-action: none;
+}
+.is-sheet > .option-picker-surface {
+  position: relative;
+  width: 100%;
+  max-height: 72dvh;
+  padding-bottom: max(var(--sp-4), env(safe-area-inset-bottom));
+  border-width: 0;
+  border-radius: var(--ui-radius-panel) var(--ui-radius-panel) 0 0;
+  box-shadow: var(--ui-elevation-sheet);
+}
+.option-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+.option-picker-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--ui-type-section);
+  font-weight: var(--ui-type-weight-section);
+}
+
+/* Windows High Contrast and other forced palettes erase the tinted fill and the
+   inset ring, which leaves the chosen tile looking like the rest. A system-colour
+   outline keeps it apart. */
+@media (forced-colors: active) {
+  .option-picker-tile.is-on { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+
+/* Both Reduce motion switches take the panel's rise and fade away. */
+@media (prefers-reduced-motion: reduce) {
+  .option-picker-surface { animation: none; }
+  .option-picker-tile { transition: none; }
+}
+html[data-a11y-motion="reduce"] .option-picker-surface { animation: none; }
+html[data-a11y-motion="reduce"] .option-picker-tile { transition: none; }
+
+}

@@ -5,7 +5,7 @@
   .design-system-menu .profile-menu-item > span { min-width: 0; flex: 1; }
   .design-system-menu .profile-menu-item { width: 100%; overflow-wrap: anywhere; }
   .design-system-menu .profile-menu-item[aria-checked="true"] {
-    color: var(--ui-color-action-primary);
+    color: var(--ui-color-text-accent);
     background: var(--ui-color-selection-surface);
     box-shadow: inset 0 0 0 2px var(--ui-color-selection-border);
   }

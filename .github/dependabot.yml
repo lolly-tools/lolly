@@ -154,6 +154,195 @@ updates:
     commit-message:
       prefix: "deps"
 
+  # ── The other WASM kernels: one Cargo lockfile each ───────────────────────
+  # Each kernel under packages/node-shell/wasm/ is its own crate with its own
+  # Cargo.lock, and several of them parse untrusted files (zune-jpeg, png, image,
+  # flate2, ruzstd, moxcms, skrifa, hayro-ccitt and aes among their crates). The
+  # committed .wasm is built from that lockfile, so a bump PR here is a signal,
+  # not a finished change: taking one means rebuilding the kernel, regenerating
+  # its LICENSES.txt and security/cargo-licenses.json, then the SBOM and the
+  # notices. dependabot-auto-merge.yml leaves cargo PRs alone, so none of these
+  # merges unattended, and check:cargo-licenses fails on a crate version the map
+  # lacks for every kernel it reads (layout-kernel is not one of them yet).
+  # Minor and patch bumps are grouped into one PR per kernel.
+  #
+  # Kernels left out, because their Cargo.lock holds no crates.io dependency and
+  # Dependabot has nothing to propose: geometry-kernel, pixel-kernel and
+  # portable-math (first-party crates with no dependencies) and indd and inpaint
+  # (their only dependency is the vendored source tree beside them, a path
+  # dependency). Add an entry here when one of them gains a crates.io dependency.
+  # No kernel README asks for its crate pins to stay frozen.
+  - package-ecosystem: "cargo"
+    directory: "/packages/node-shell/wasm/adobe-psd"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "cargo"
+    directory: "/packages/node-shell/wasm/affinity"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "cargo"
+    directory: "/packages/node-shell/wasm/audio-dsp"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "cargo"
+    directory: "/packages/node-shell/wasm/camera-raw"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "cargo"
+    directory: "/packages/node-shell/wasm/dxf"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "cargo"
+    directory: "/packages/node-shell/wasm/gridcraft-calc"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "cargo"
+    directory: "/packages/node-shell/wasm/image-trace"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "cargo"
+    directory: "/packages/node-shell/wasm/layout-kernel"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "cargo"
+    directory: "/packages/node-shell/wasm/pdf-a11y"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+  - package-ecosystem: "cargo"
+    directory: "/packages/node-shell/wasm/xlsx-numfmt"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
   # ── GitHub Actions: the CI workflows (.github/workflows/*.yml) ─────────────
   - package-ecosystem: "github-actions"
     directory: "/"

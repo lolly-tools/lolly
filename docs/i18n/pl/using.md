@@ -1,213 +1,236 @@
 # Korzystanie z Lolly
 
-Masz otwarte Lolly i chcesz coś zrobić, zachować i wysłać dalej. Ta strona prowadzi przez tę pętlę: otwórz narzędzie, zmień to, co pozwala zmienić, zapisz wynik i udostępnij go jako link lub plik.
+Otwórz narzędzie, zmień dostępne ustawienia, zapisz wynik i udostępnij go linkiem lub jako plik.
 
-Wszystko tutaj działa na Twoim urządzeniu, bez konta, i nadal działa offline, gdy potrzebne narzędzia i zasoby są pobrane. Aby aplikacja się uruchomiła, potrzebna jest przeglądarka lub aplikacja z WebGPU; [Supported environments](/info/supported-environments.html) wymienia przetestowane.
+Wszystko działa na Twoim urządzeniu bez konta, również offline po pobraniu potrzebnych narzędzi i zasobów. Do uruchomienia potrzebna jest przeglądarka lub aplikacja z WebGPU. [Obsługiwane środowiska](/info/supported-environments.html) wymieniają te przetestowane.
 
-## Zorientuj się
+**Cykl pracy** w czterech krokach:
 
-::: figure using-app-map
-Ekran główny: cztery karty u góry i pasek na dole. Otwarte narzędzie pokazuje swoje kontrolki obok podglądu na żywo.
+::: steps
+- <!--i:eti-home--> **[Otwórz narzędzie](#find-your-way-around)** Kliknij kartę na ekranie głównym. Obok podglądu na żywo są kontrolki.
+- <!--i:eti-sliders--> **[Zmień dane wejściowe](#change-what-the-tool-lets-you-change)** Tylko te, które autor pozostawił dostępne. Kliknij projekt, aby znaleźć jego kontrolkę.
+- <!--i:eti-folder-plus--> **[Zapisz pracę](#saving-continuing)** **Save** zachowuje ją w My library, a Projects pozwala ją ponownie otworzyć.
+- <!--i:eti-link--> **[Udostępnij projekt](#sharing-your-work)** Link zawierający wszystkie dane wejściowe lub jeden plik `.lolly`.
 :::
 
-Cztery karty biegną wzdłuż góry ekranu głównego: **Tools**, **Utilities**, **Assets** i **Projects**. Tools to to, czym tworzysz, Utilities to stanowiska do zadań takich jak konwersja, sprawdzanie lub porządkowanie pliku, Assets to Twoja biblioteka, a Projects przechowuje to, co zapisałeś.
+<!--i:eti-home-->
+## Zorientuj się w aplikacji
 
-Pasek na dole zawiera **Open**, **Settings**, pole wyszukiwania, **Verify** i **What?**. Widać go w Tools, Utilities, Assets, Projects, Settings i w przewodnikach czytanych w aplikacji, a znika, gdy otwarte jest narzędzie. [Lolly Search](/info/search.html) z tego pola dociera do Twoich narzędzi, zapisanej pracy, zasobów i ustawień. [Ask Lolly](/info/ask.html) odpowiada na wpisane pytanie odpowiednią sekcją tych przewodników.
+::: figure using-app-map
+Ekran główny ma cztery karty u góry i pasek u dołu. W otwartym narzędziu kontrolki są obok podglądu na żywo.
+:::
 
-Kliknij kartę, aby zacząć coś nowego w tym narzędziu. Zapisana praca otwiera się ponownie z **Projects**.
+U góry ekranu głównego są cztery karty: **Tools**, **Utilities**, **Assets** i **Projects**. Tools służą do tworzenia. Utilities konwertują, sprawdzają lub porządkują plik. Assets to Twoja biblioteka. Projects przechowuje zapisane prace.
 
-![Karta galerii z przykładową nawigacją i akcją Nowy](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
+Na dolnym pasku są **Open**, **Settings**, pole wyszukiwania, skrót **Verify** do Lolly Verify oraz **Docs**, które otwiera te przewodniki. Pasek jest widoczny w Tools, Utilities, Assets, Projects, Settings i przewodnikach w aplikacji, a znika po otwarciu narzędzia. [Lolly Search](/info/search.html) wyszukuje z tego pola Twoje narzędzia, zapisane prace, zasoby i ustawienia. [Ask Lolly](/info/ask.html) odpowiada na wpisane pytanie pasującą sekcją tych przewodników.
 
-Każde narzędzie to widok podzielony: **kontrolki** z jednej strony i podgląd **na żywo** z drugiej. Zmień kontrolkę, a podgląd od razu podąża, a to, co widzisz, jest tym, co się eksportuje.
+Kliknij kartę, aby rozpocząć nową pracę w danym narzędziu. Zapisane prace otwierasz ponownie w **Projects**. Przy pierwszej wizycie pas powitalny u góry galerii oferuje jedną akcję na początek: **Start making** w Lolly Demo lub **Make it yours**, aby skonfigurować własny system projektowy.
 
-![Widok podzielony narzędzia - stos elementów sterujących po lewej i rysowany na żywo wykres słupkowy grupowany po prawej](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
+![Karta galerii z nawigacją po przykładach i akcją New](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
-**Design** jest wyjątkiem. Otwiera się jako swobodna kanwa boksów, które przeciągasz, zmieniasz im rozmiar i wpisujesz w nie tekst, z własnym górnym paskiem, osią czasu i kontrolkami prezentacji. [Design: the free canvas](/info/design.html) to jego przewodnik.
+Każde narzędzie ma widok podzielony: **kontrolki** z jednej strony i **podgląd** na żywo z drugiej. Podgląd aktualizuje się przy zmianie kontrolki, a eksport zawiera to, co widzisz.
 
-## Zmieniaj to, na co narzędzie pozwala
+![Widok podzielony narzędzia - stos kontrolek po lewej i rysowany na żywo grupowany wykres słupkowy po prawej](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26t%3DExample%2520data%26st%3DSample%2520values%252C%2520not%2520a%2520real%2520dataset%26d%3DMonth%252CSeries%2520A%252CSeries%2520B%252CSeries%2520C%250AJan%252C12%252C9%252C5%250AFeb%252C18%252C14%252C7%250AMar%252C24%252C17%252C11%250AApr%252C29%252C23%252C15%26lg%3D1&width=1440&height=900&dpi=192&waitMs=2500&walker=1&format=svg&dark=1&filename=vt-tool-split-view)
 
-Narzędzie pokazuje tylko dane wejściowe, które mają się zmieniać. Jego autor już ustalił kolory, układ, typografię i logikę, więc wszystko, co zrobisz, trzyma się jego reguł. Dane wejściowe obejmują tekst, suwaki, selektory kolorów, listy rozwijane, daty, selektory obrazów i powtarzalne grupy wierszy, a niektóre są w zwijanych sekcjach.
+**Lolly Design** jest wyjątkiem: to swobodna kanwa boksów, które przeciągasz, zmieniasz im rozmiar i wpisujesz w nie tekst, z osobnym górnym paskiem, osią czasu i kontrolkami prezentacji. Jego przewodnikiem jest [Lolly Design: swobodna kanwa](/info/design.html).
 
-![Stos kontrolek narzędzia - pole tekstowe, przyciski kolorów i suwak, i nic poza tym, co autor postanowił zablokować](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
+<!--i:eti-sliders-->
+## Zmieniaj to, na co pozwala narzędzie
 
-**Kliknij projekt, aby znaleźć jego kontrolkę.** Kliknij dowolny element w podglądzie, a odpowiednia kontrolka dostanie fokus i przewinie się do widoku. W powtarzalnej grupie wierszy rozwija się dokładnie ten wiersz, który kliknąłeś.
+Narzędzie pokazuje tylko dane wejściowe przeznaczone do zmiany. Autor ustalił kolory, układ, typografię i logikę, więc Twoja praca jest zgodna z jego regułami. Dane wejściowe obejmują tekst, suwaki, selektory kolorów, listy rozwijane, daty, selektory obrazów i powtarzalne grupy wierszy. Niektóre znajdują się w zwijanych sekcjach.
 
-**Clear changes** nad kontrolkami przywraca każde dane wejściowe do wartości domyślnej.
+![Stos kontrolek narzędzia - pole tekstowe, przyciski kolorów i suwak, bez pozostałych elementów, które autor postanowił zablokować](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=%23tool-inputs&walker=1&format=svg&dark=1&filename=use-tool-inputs)
 
-**Wybory systemu projektowego.** Gdy Twój system projektowy oferuje więcej niż jeden wariant kolorystyczny (colourway), jasny i ciemny wygląd lub inny wybór motywu, mieści je sekcja **Design system** pod kontrolkami. Wybór pojawia się tylko wtedy, gdy zmienia to narzędzie, więc narzędzie do plików nie pokazuje żadnej sekcji. Każdy colourway to kropka w jego własnych kolorach, jasny i ciemny to dwa przyciski, a każdy inny wybór to lista.
+**Kliknij projekt, aby znaleźć jego kontrolkę.** Kliknięcie elementu w podglądzie przewija widok do jego kontrolki i ustawia na niej fokus. W powtarzalnej grupie wierszy rozwija się kliknięty wiersz.
 
-Wybór należy do tej pracy. Podróżuje w linku i zapisanej sesji, podąża za nim każdy kolor powiązany z systemem projektowym, a kolory samej aplikacji zostają bez zmian. Design pokazuje te same wybory na karcie **Canvas** w Inspectorze. Narzędzie, którego kolory są jego treścią, może pozostać przy kanonicznym colourway i wtedy nie oferuje kropek colourway. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) pokazuje colourway na prawdziwej pracy.
+**Clear changes** nad kontrolkami przywraca domyślne wartości wszystkich danych wejściowych.
 
-### Powiększanie i przesuwanie podglądu
+**Wybory systemu projektowego.** Jeśli system projektowy oferuje kilka wariantów kolorystycznych, jasny i ciemny wygląd lub inne opcje motywu, znajdziesz je w sekcji **Design system** pod kontrolkami. Opcja pojawia się tylko wtedy, gdy wpływa na dane narzędzie, więc narzędzie do plików nie pokazuje tej sekcji. Każdy wariant kolorystyczny to kropka w jego kolorach, jasny i ciemny wygląd to dwa przyciski, a pozostałe opcje mają postać listy.
 
-Podgląd zawsze pokazuje dokładnie to, co zostanie wyeksportowane.
+Wybór dotyczy tej pracy. Jest zapisany w linku i zachowanej sesji. Każdy kolor powiązany z systemem projektowym dostosowuje się do wyboru, a kolory samej aplikacji pozostają bez zmian. Lolly Design udostępnia te same opcje na karcie **Canvas** w Inspectorze. Narzędzie, którego kolory są jego treścią, może pozostać przy kanonicznym wariancie kolorystycznym i nie pokazywać wtedy kropek wariantów. [Lolly Demo w użyciu](/info/lolly-demo-in-use.html#colourways-on-real-work) pokazuje warianty kolorystyczne w prawdziwych pracach. Aby użyć jednego wariantu w aplikacji i każdej nowej pracy, wybierz go w **Settings → Appearance** ([Dostosuj wariant kolorystyczny do siebie](/info/colourways.html#make-a-colourway-your-own)).
 
-- **Powiększanie:** Cmd/Ctrl i przewijanie albo szczypnięcie na gładziku, względem wskaźnika. Na klawiaturze `0` lub `Shift+1` dopasowuje wszystko, `1` lub `Shift+0` ustawia 100%, a `Shift+2` dopasowuje zaznaczenie. `+` / `−` zmieniają powiększenie względem wskaźnika, gdy znajduje się nad sceną, a w przeciwnym razie względem środka widoku.
-- **Przesuwanie:** przytrzymaj **Space** i przeciągaj albo przeciągaj środkowym przyciskiem myszy. Zwykłe kliknięcia pozostają wolne do klikania części projektu.
-- **Dotyk:** szczypnij, aby powiększyć, przeciągaj, aby przesuwać, i stuknij dwukrotnie, aby dopasować.
-- **HUD powiększenia:** naciśnij i przytrzymaj wir Lolly w rogu, aby rozwinąć `−`, **Fit** i `+`. Krótkie stuknięcie wiru nadal otwiera menu profilu.
+### Powiększaj i przesuwaj podgląd
 
-W Design **Fit all** obejmuje obszary robocze i luźne warstwy. Ręcznie można oddalić poniżej 20%, aż cała strona zajmie połowę widoku. Bezwzględna dolna granica to mniejsza z wartości: 5% zwykłej skali Fit i 2% powiększenia bezwzględnego.
+- **Powiększanie:** Cmd/Ctrl i przewijanie lub szczypnięcie na gładziku, względem wskaźnika. Z klawiatury `0` lub `Shift+1` dopasowuje wszystko, `1` lub `Shift+0` ustawia 100%, a `Shift+2` dopasowuje zaznaczenie. `+` / `−` zmieniają powiększenie wokół wskaźnika, gdy jest nad sceną, a w innym przypadku wokół środka.
+- **Przesuwanie:** przytrzymaj **Space** i przeciągnij lub przeciągnij środkowym przyciskiem myszy. Zwykłe kliknięcia nadal służą do klikania części projektu.
+- **Dotyk:** szczypnij, aby powiększyć, przeciągnij, aby przesunąć i stuknij dwukrotnie, aby dopasować.
+- **HUD powiększenia:** przytrzymaj wir Lolly w rogu, aby rozwinąć `−`, **Fit** i `+`. Krótkie stuknięcie wiru nadal otwiera menu Twojego profilu.
 
-Zmiana rozmiaru wyjściowego zawsze przywraca widok do czystego dopasowania.
+W Lolly Design **Fit all** uwzględnia obszary robocze i luźne warstwy. Ręczne oddalanie może zejść poniżej 20%, aż strona wypełni połowę widoku. Dolna granica to mniejsza z dwóch wartości: 5% zwykłej skali Fit lub 2% powiększenia bezwzględnego.
 
-![HUD powiększenia rozwinięty z wiru w rogu kanwy - minus, Fit, plus, potem przełączniki motywu i dźwięku oraz uchwyt do przesuwania](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
+Zmiana rozmiaru wyjściowego zawsze ponownie dopasowuje widok.
 
-### Cofanie i ponawianie
+![HUD powiększenia rozwinięty z wiru w rogu kanwy - minus, Fit, plus, następnie przełączniki motywu i dźwięku oraz uchwyt do przesuwania](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=.stage-nav%7Bopacity%3A1!important%7D&drive=drag%3A.stage-nav-profile%7Cdx%3D1%7Chold%3Bwait%3A700&cropSelector=.stage-nav&walker=1&format=svg&dark=1&filename=use-zoom-hud)
 
-**Cmd/Ctrl-Z** cofa, a **Cmd/Ctrl-Shift-Z** (lub **Cmd/Ctrl-Y**) przywraca. Ta sama para jest jako przyciski **Undo** i **Redo** nad kontrolkami (w Design są w górnym pasku), a każdy szarzeje, gdy nie ma już czego cofnąć. Komunikat mówi, które dane wejściowe przywrócono przy każdym cofnięciu, z przyciskiem **Redo** w komunikacie.
+### Cofaj i ponawiaj
 
-- **Przeciągnięcie to jeden krok.** Powtarzane zmiany jednej kontrolki w ciągu pół sekundy łączą się, więc pociągnięcie suwaka przez cały zakres to jedno cofnięcie.
-- **Ostatnie 100 kroków jest zachowywanych.** Nowa edycja po cofnięciu czyści stos do przodu.
-- **W polu tekstowym** Cmd/Ctrl-Z należy do pola, znak po znaku. Lolly przejmuje suwaki, listy rozwijane, kolory i przełączniki.
-- **Wybór pliku** w polu pliku nie jest krokiem, ponieważ te bajty są trzymane tylko na czas tej sesji.
+**Cmd/Ctrl-Z** cofa krok, a **Cmd/Ctrl-Shift-Z** (lub **Cmd/Ctrl-Y**) przywraca go. Przyciski **Undo** i **Redo** są nad kontrolkami lub na górnym pasku w Lolly Design. Przycisk szarzeje, gdy nie ma już dostępnego kroku. Komunikat wskazuje, które dane wejściowe przywróciło cofnięcie, i zawiera przycisk **Redo**.
 
-W trwającej [współpracy](/info/collaborate.html) Twoja historia pozostaje Twoja: zmiana z drugiego urządzenia nigdy nie trafia na Twój stos. Cofanie trwa do opuszczenia narzędzia lub przeładowania. W przypadku starszych zmian narzędzia, które zapisują w trakcie pracy, przechowują wcześniejsze wersje w **History**; zobacz [Go back to an earlier version](/info/find-your-work.html#go-back-to-an-earlier-version).
+- **Przeciągnięcie to jeden krok.** Powtarzające się zmiany jednej kontrolki w ciągu pół sekundy łączą się w jeden krok.
+- **Zachowywanych jest ostatnich 100 kroków.** Nowa zmiana po cofnięciu czyści stos ponawiania.
+- **W polu tekstowym** Cmd/Ctrl-Z działa w tym polu, znak po znaku. Lolly obsługuje cofanie dla suwaków, list rozwijanych, kolorów i przełączników.
+- **Wybór pliku** w polu pliku nie jest krokiem, ponieważ jego bajty są przechowywane tylko w tej sesji.
+
+Podczas [współpracy](/info/collaborate.html) na żywo zmiana z drugiego urządzenia nigdy nie trafia na Twój stos cofania. Cofanie jest dostępne do opuszczenia narzędzia lub przeładowania. Starsze wersje w narzędziach zapisujących w trakcie pracy znajdziesz w **History** ([Wróć do wcześniejszej wersji](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ### Kamera na żywo
 
-Efekty narzędzia **Filter** (Halftone, Scanline, Posterize, Voronoi, Duotone, Stretch, Misprint, Dither, ASCII art i Glitch) pokazują przycisk **Go live**, gdy dostępna jest kamera. Włącz go, a efekt podąża za kamerą internetową klatka po klatce, a eksport ruchu zapisuje wynik jako GIF, WebM lub MP4. Klatki są przetwarzane na Twoim urządzeniu, a kamera jest zwalniana w chwili, gdy przestaniesz lub opuścisz narzędzie. Każdy selektor obrazu ma też **Take a photo** dla pojedynczej klatki.
+Efekty narzędzia **Filter** (Halftone, Scanline, Posterize, Voronoi, Duotone, Stretch, Misprint, Dither, ASCII art i Glitch) pokazują przycisk **Go live**, gdy dostępna jest kamera. Włącz go, a efekt będzie przetwarzać obraz z kamery internetowej klatka po klatce. Eksport animacji zapisuje wynik jako GIF, WebM lub MP4. Klatki są przetwarzane na Twoim urządzeniu. Kamera jest zwalniana, gdy tylko zatrzymasz działanie lub opuścisz narzędzie. Każdy selektor obrazu ma też opcję **Take a photo** do zrobienia pojedynczego zdjęcia.
 
+<!--i:eti-folder-plus-->
 ## Zapisywanie i wznawianie
 
-Aby zachować pracę, naciśnij **Save**, ptaszek obok **Export** na pigułce renderowania. Nowa praca trafia do **My library**, praca zapisana wcześniej jest aktualizowana na miejscu i nic się nie pobiera. Panel eksportu ma ten sam przycisk **Save**.
+Aby zachować pracę, naciśnij **Save**, znacznik wyboru obok **Export** na pigułce renderowania. Nowa praca trafia do **My library**, wcześniej zapisana praca jest aktualizowana w tym samym miejscu i nic się nie pobiera. Ten sam przycisk **Save** jest też w panelu eksportu.
 
-Aby wybrać, dokąd trafi, naciśnij **Save as**, obok **Download** w panelu eksportu. W **Save to a project** zostaw wybrane **My library** albo wybierz projekt (**＋ New project…** tworzy nowy), a potem naciśnij **Save**; **Save as a template** zachowuje projekt jako [szablon](/info/templates.html), punkt wyjścia dla nowych dokumentów. W Design **Save as** jest w menu Lolly; na telefonie naciśnij **•••**, potem **File menu**, potem **Save as**.
+Aby wybrać miejsce zapisu, naciśnij **Save as** obok **Download** w panelu eksportu. W sekcji **Save to a project** pozostaw zaznaczone **My library** lub wybierz projekt (**＋ New project…** tworzy nowy), a potem naciśnij **Save**. Opcja **Save as a template** zapisuje projekt jako [szablon](/info/templates.html), punkt wyjścia dla nowych dokumentów. W Lolly Design opcja **Save as** jest w menu Lolly. Na telefonie naciśnij **•••**, potem **File menu**, a następnie **Save as**.
 
-![Dwuczęściowa pigułka renderowania: Export ze strzałką w górę, która otwiera panel eksportu, i Save z ptaszkiem, który zapisuje na miejscu](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+![Dwuczęściowa pigułka renderowania: Export ze strzałką w górę otwierającą panel eksportu oraz Save ze znacznikiem wyboru zapisującym w tym samym miejscu](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
 ::: timeline
-- <!--i:check--> Naciśnij **Save** na pigułce renderowania albo **Save as**, aby wybrać projekt.
-- <!--i:folder--> Element trafia do **My library** albo do wybranego projektu.
+- <!--i:check--> Naciśnij **Save** na pigułce renderowania lub **Save as**, aby wybrać projekt.
+- <!--i:folder--> Element trafia do **My library** lub do wybranego projektu.
 - <!--i:home--> Później naciśnij **Home** w lewym górnym rogu i otwórz kartę **Projects**.
-- <!--i:document--> Otwórz element. Każde ustawienie wraca, gotowe do zmiany i ponownego eksportu.
+- <!--i:document--> Otwórz element. Wszystkie ustawienia są przywrócone, gotowe do zmiany i ponownego eksportu.
 :::
 
-Elementy są nazywane według nazwy pliku wpisanej w panelu eksportu albo, w razie braku, według narzędzia, na przykład **QR Code**. Plik uzyskany przez **Download** to gotowa kopia; aby zmienić go później, otwórz zapisany element w Projects.
+Elementy otrzymują nazwę pliku wpisaną w panelu eksportu lub nazwę narzędzia, na przykład **QR Code**. Plik z **Download** to gotowa kopia. Aby później go zmienić, otwórz zapisany element w Projects.
 
-Osobiste zapisy zostają na tym urządzeniu, w przeglądarce lub aplikacji, z której zapisałeś, chyba że włączysz [Sync](/info/sync.html). Jeśli czegoś nie ma tam, gdzie oczekujesz, [Find and recover your work](/info/find-your-work.html) omawia każdy przypadek, od zamkniętej karty po wyczyszczone dane przeglądarki.
-
-::: details Wspólne projekty z Lolly Work (opcjonalnie)
-Jeśli Twoja [organizacja używa Lolly Work](/info/organisation.html), zaloguj się do jej instancji i otwórz **Projects → Team projects**, aby zobaczyć udostępnione Ci sesje. Organizacja ustala dostęp i retencję, a jej usługa Lolly Work przechowuje te sesje. Udostępniona sesja dołącza do swojego collabu na żywo przy otwarciu, gdy organizacja zezwala na edycję na żywo; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) wyjaśnia kroki.
-
-Twoja osobista biblioteka pozostaje oddzielna. Zalogowanie na innym urządzeniu daje pracę zespołową, ale osobiste zapisy nadal wymagają Sync lub kopii zapasowej, by się przenieść.
+::: note Zapisy pozostają na tym urządzeniu
+Osobiste zapisy pozostają na tym urządzeniu, w przeglądarce lub aplikacji, z której je zapisano, chyba że włączysz [Sync](/info/sync.html).
 :::
 
-## Udostępnianie swojej pracy
+Jeśli czegoś nie ma w spodziewanym miejscu, [Znajdowanie i odzyskiwanie pracy](/info/find-your-work.html) opisuje każdy przypadek, od zamkniętej karty po wyczyszczone dane przeglądarki.
 
-Projekt wychodzi jako link albo plik. **Share** w kontrolkach eksportu otwiera okno z obiema opcjami, a **Share link** przy zapisanej sesji w Projects otwiera to samo okno dla tej sesji.
+::: details Projekty zespołowe w Lolly Work (opcjonalnie)
+Jeśli Twoja [organizacja korzysta z Lolly Work](/info/organisation.html), zaloguj się do jej instancji i otwórz **Projects → Team projects**, aby zobaczyć udostępnione Ci sesje. Organizacja ustala zasady dostępu i przechowywania, a jej usługa Lolly Work przechowuje te sesje. Gdy organizacja zezwala na edycję na żywo, otwarcie udostępnionej sesji dołącza Cię do trwającej w niej współpracy. [Wspólna praca](/info/collaborate.html#collabs-through-lolly-work-optional) opisuje kolejne kroki.
+
+Twoja osobista biblioteka pozostaje oddzielna. Zalogowanie się na innym urządzeniu daje dostęp do pracy zespołowej. Przeniesienie osobistych zapisów nadal wymaga Sync lub kopii zapasowej.
+:::
+
+<!--i:eti-link-->
+## Udostępnianie pracy
+
+Udostępnij projekt jako link lub plik. Przycisk **Share** w kontrolkach eksportu otwiera okno z obiema opcjami. Opcja **Share link** przy zapisanej sesji w Projects otwiera to samo okno dla tej sesji. Po wysłaniu pliku do Google Drive, Nextcloud, zasobnika S3, Dropbox lub OneDrive okno może też utworzyć link za pośrednictwem tej usługi ([Eksport pliku](/info/exporting.html#how-export-works)).
 
 ::: cols
 ## Link
 
-- Niesie każde dane wejściowe w adresie, więc link odtwarza projekt.
+- Zawiera wszystkie dane wejściowe w adresie, więc link odtwarza projekt.
 - Pomija obrazy i pliki dodane z tego urządzenia, bardzo długi tekst i bardzo duże listy.
-- Otwiera się w każdej przeglądarce, więc możesz dodać link do zakładek, wkleić go lub zatwierdzić w repozytorium.
+- Otwiera się w dowolnej przeglądarce, więc możesz dodać link do zakładek, wkleić go lub zapisać w repozytorium.
 
 ## Plik .lolly
 
-- Niesie zapisaną sesję z obrazami i plikami z tego urządzenia, a może też nieść narzędzie i system projektowy.
-- Wstrzymuje licencjonowaną grafikę z katalogu, chyba że zdecydujesz się dołączyć pliki.
-- Otwiera się w Lolly: kliknij dwukrotnie, użyj **Open** lub upuść na aplikację.
+- Zawiera zapisaną sesję wraz z obrazami i plikami z tego urządzenia, a także może zawierać narzędzie i system projektowy.
+- Pomija licencjonowane grafiki z katalogu, chyba że zdecydujesz się dołączyć ich pliki.
+- Otwiera się w Lolly: kliknij go dwukrotnie, użyj **Open** lub upuść go na aplikację.
 :::
 
 ### Link
 
-Gotowy do skopiowania link jest na górze okna, z **Copy** i przyciskiem **QR**, który otwiera narzędzie QR Code na tym linku. Pod linkiem **Link options** zawiera:
+Link znajduje się u góry okna, obok przycisków **Copy** i **QR**. Ten drugi otwiera narzędzie QR Code z tym linkiem. Pod linkiem sekcja **Link options** zawiera:
 
-- **Open in the installed app** przełącza link na adres `lolly://` dla Skrótów, launcherów i automatyzacji, z każdym parametrem bez zmian.
-- **Shortest link** pakuje długi projekt w zwarty token i pokazuje oszczędność w znakach. Czytelna forma też zawsze jest dostępna.
-- **Password-protect this link** szyfruje link na Twoim urządzeniu algorytmem AES-256. Hasło nigdy nie jest częścią linku.
-- **Pin this tool version** dodaje flagę `_v`, aby późniejsza aktualizacja narzędzia nie mogła zmienić tego, co renderuje link.
-- **When the recipient opens the link…** wybiera pełny ekran, już rozwinięty panel eksportu, pobranie przy otwarciu (`&export`) lub kopię do schowka (`&copy`).
-- **Copy credit** kopiuje podpis "Made with Lolly" z linkiem, do wpisu lub slajdu.
+- **Open in the installed app** zmienia link na adres `lolly://` do użycia w Shortcuts, programach uruchamiających i automatyzacji, zachowując wszystkie parametry.
+- **Shortest link** pakuje długi projekt w zwięzły token i pokazuje, o ile znaków go skrócono. Czytelna postać pozostaje dostępna.
+- **Password-protect this link** szyfruje link na Twoim urządzeniu za pomocą AES-256. Hasło nigdy nie jest częścią linku.
+- **Pin this tool version** dodaje flagę `_v`, aby późniejsza aktualizacja narzędzia nie zmieniła tego, co renderuje link.
+- **When the recipient opens the link…** pozwala wybrać pełny ekran, rozwinięty panel eksportu, pobranie przy otwarciu (`&export`) lub skopiowanie do schowka (`&copy`).
+- **Copy credit** kopiuje podpis „Utworzono w Lolly” z linkiem, do wpisu lub slajdu.
 
-Gdy narzędzie zawiera pola osobiste, takie jak Twoje imię i nazwisko, **Review personal fields** trzyma każde z nich poza linkiem, dopóki go nie zaznaczysz. [URL mode](/info/url-mode.html) omawia wszystko, co może nieść link.
+Gdy narzędzie zawiera pola z danymi osobowymi, takimi jak imię i nazwisko, **Review personal fields** pomija każde z nich w linku, dopóki go nie zaznaczysz. [Tryb URL](/info/url-mode.html) opisuje wszystko, co może zawierać link.
 
-**Okno mówi, czego link nie może nieść.** Obraz lub plik dodany z tego urządzenia, bardzo długa wartość tekstowa i bardzo duża lista nie mieszczą się w adresie. Każdy jest liczony podczas budowania linku. Jeśli coś trzeba było pominąć, okno to wymienia i wskazuje opcję pliku, zamiast dawać link, który otwiera się z brakującym obrazem. Link, który jest tylko długi, dostaje łagodniejszą uwagę z liczbą znaków.
+**Okno informuje, czego link nie może zawierać.** Tworząc link, Lolly zlicza wszystko, co nie mieści się w adresie. Jeśli coś pominięto, okno wymienia pominięte elementy i wskazuje opcję pliku. Link, który jest jedynie długi, otrzymuje łagodniejszą uwagę z liczbą znaków.
 
-**W niektórych narzędziach link jest całym produktem.** Jump Page zbiera Twoje linki na jedną stronę do rozdawania: link do bio, wystąpienie, witryna sklepu. Nic nie jest hostowane i za stroną nie stoi żadne konto, bo stroną jest link. Odwiedzający dostaje ją na pełną szerokość, po jednym linku na scenę podczas przewijania.
+**W niektórych narzędziach link jest całym produktem.** Jump Page zbiera Twoje linki na jednej stronie do udostępniania: jako link w biogramie, prezentację lub witrynę sklepu. Strona jest linkiem, więc nie wymaga hostingu ani konta. Odwiedzający widzi stronę na pełną szerokość, po jednym linku na scenę podczas przewijania.
 
-![Jump Page w edytorze: scena z nagłówkiem w górnej części strony, a pod nią sceny z linkami](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page w edytorze: scena z nagłówkiem u góry strony i sceny z linkami poniżej](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
-::: details Linki zarządzane przez organizację z Lolly Work
-Do udostępniania wymagającego wygaśnięcia, unieważnienia lub hasła Lolly Work oferuje zarządzane linki do wspólnych sesji, narzędzi i zasobów katalogu. Są rozwiązywane przez usługę organizacji i podlegają jej regułom dostępu. Są oddzielne od samodzielnych linków powyżej, a unieważnienie jednego nie cofnie pliku, który ktoś już pobrał. [Rendering and sharing](/info/manage/sharing.html) wymienia typy linków i uprawnienia.
+::: details Linki zarządzane przez organizację w Lolly Work
+Gdy udostępnianie wymaga terminu wygaśnięcia, możliwości unieważnienia lub hasła, Lolly Work oferuje zarządzane linki do udostępnionych sesji, narzędzi i zasobów katalogu. Działają przez usługę organizacji i podlegają jej zasadom dostępu. Są oddzielne od samodzielnych linków opisanych powyżej. Unieważnienie linku nie odbierze pliku, który ktoś już pobrał. [Renderowanie i udostępnianie](/info/manage/sharing.html) wymienia typy linków i uprawnienia.
 :::
 
 ### Plik .lolly
 
-**Download .lolly** w sekcji **Editable file** okna Share zapisuje bieżący projekt jako jeden plik. Niesie zapisaną sesję z obrazami i plikami z tego urządzenia, a zwykła grafika katalogu jedzie razem. Nieaktualny lub niedostępny plik pozostaje odwołaniem zewnętrznym, zamiast znikać. Przed zapisem okno pokazuje rozmiar pliku, ile plików osadza, ile przywołuje i czy narzędzie jest dołączone. Tam, gdzie urządzenie ma arkusz udostępniania, **Send to…** przekazuje plik prosto do niego (AirDrop, udostępnianie Androida).
+**Download .lolly** w sekcji **Editable file** okna Share zapisuje bieżący projekt jako jeden plik. Zwykłe grafiki z katalogu trafiają do niego wraz z obrazami i plikami z tego urządzenia. Nieaktualny lub niedostępny plik pozostaje jako odwołanie zewnętrzne. Przed zapisem okno pokazuje rozmiar pliku, liczbę osadzonych plików, liczbę odwołań do plików oraz informację, czy dołączono narzędzie. Jeśli urządzenie ma systemowy panel udostępniania, **Send to…** przekazuje do niego plik (AirDrop, udostępnianie w Androidzie).
 
-**Download project (.lolly)** w menu folderu w **Projects** zapisuje cały folder, aby ktoś inny mógł kontynuować z każdą sesją w folderze. Sesje Batch zostają, a komunikat podaje ile. **Download originals** w tym samym menu zapisuje zwykły zip z każdym elementem jako osobnym plikiem.
+**Download project (.lolly)** w menu folderu w **Projects** zapisuje cały folder, aby ktoś inny mógł kontynuować pracę z każdą sesją w tym folderze. Sesje wsadowe są pomijane, a komunikat podaje ich liczbę. **Download originals** w tym samym menu zapisuje zwykłe archiwum zip, w którym każdy element jest osobnym plikiem.
 
-Trzy rzeczy należą do Ciebie, zanim plik wyjdzie:
+Przed wysłaniem pliku decydujesz o trzech rzeczach:
 
-- **Czy Twoje imię i nazwisko trafi do pliku.** Imię i nazwisko, e-mail i organizacja są zapisywane tylko wtedy, gdy w [Twoim profilu](/info/profile.html) włączone jest **Use my details to create**. Gdy wyłączone, plik zapisuje tylko, że powstał w Lolly, i kiedy.
-- **Czy wstrzymana grafika trafi do pliku.** Grafika licencjonowana, zablokowana przez markę i dzieła z katalogu, których licencji nigdy nie zapisano, domyślnie zostają poza plikiem. Jeśli projekt używa któregokolwiek, okno podaje ile i oferuje *Download without them* lub *Include and download*, ponieważ dołączenie ich oddaje pliki każdemu, kto otworzy `.lolly`. Plik `CREDITS.txt` wymienia, co podróżowało, a co nie, z powodem; [Creative rights and credits](/info/creative-rights.html) wyjaśnia reguły.
-- **Czy narzędzie trafi do pliku.** **Include the tool** pakuje własne pliki narzędzia, aby projekt otwierał się na urządzeniu bez tego narzędzia. Domyślnie zaznaczone dla narzędzia niestandardowego, takiego jak fork, i odznaczone dla narzędzia z podpisanego katalogu. W kompilacji bez podpisanego katalogu każde narzędzie liczy się jako niestandardowe.
+- **Czy dołączyć Twoje dane.** Imię i nazwisko, e-mail i organizacja są zapisywane tylko wtedy, gdy w [Twoim profilu](/info/profile.html) włączone jest **Use my details to create**. Gdy ta opcja jest wyłączona, plik zapisuje jedynie informację, że powstał w Lolly i kiedy.
+- **Czy dołączyć pomijane grafiki.** Licencjonowane grafiki i grafiki z blokadą marki są domyślnie pomijane, podobnie jak prace z katalogu, których zapisanej licencji Lolly nie potrafi jeszcze odczytać. Jeśli projekt ich używa, okno podaje ich liczbę i oferuje *Download without them* lub *Include and download*. Dołączenie ich udostępnia pliki każdemu, kto otworzy `.lolly`. Praca z katalogu bez zapisanych informacji o prawach jest dołączana, a okno wymienia każdą z nich, aby można ją było sprawdzić przed wysłaniem. Plik `CREDITS.txt` wymienia dołączone i pominięte elementy wraz z przyczyną. [Prawa do twórczości i informacje o autorstwie](/info/creative-rights.html) wyjaśnia zasady.
+- **Czy dołączyć narzędzie.** **Include the tool** pakuje pliki samego narzędzia, dzięki czemu projekt otworzy się na urządzeniu bez tego narzędzia. Opcja jest domyślnie zaznaczona dla niestandardowego narzędzia, takiego jak fork, i niezaznaczona dla narzędzia z podpisanego katalogu. W kompilacji bez podpisanego katalogu każde narzędzie jest uznawane za niestandardowe.
 
-**Otwieranie.** W aplikacjach komputerowych i mobilnych kliknij dwukrotnie lub stuknij `.lolly`, wybierz **Open with Lolly** albo wyślij go do Lolly z arkusza udostępniania. W aplikacji internetowej naciśnij **Open** lub upuść plik na Lolly. Każda droga najpierw czyta manifest pliku i pokazuje jego rozmiar, zawartość i to, co się stanie, zanim cokolwiek zostanie zapisane.
+**Otwieranie pliku.** W aplikacjach na komputery i urządzenia mobilne kliknij dwukrotnie lub dotknij pliku `.lolly`, wybierz **Open with Lolly** lub wyślij go do Lolly z systemowego panelu udostępniania. W aplikacji internetowej naciśnij **Open** lub upuść plik na Lolly. Każda z tych metod najpierw odczytuje manifest pliku i pokazuje jego rozmiar, zawartość i planowane działania, zanim cokolwiek zostanie zapisane.
 
-Jeśli plik niesie narzędzie, którego nie masz, **Trust this tool?** pokazuje narzędzie i jego autora oraz mówi, że otwarcie uruchamia na Twoim urządzeniu kod tego narzędzia. **Trust & install** przechodzi dalej. Jeśli odmówisz, praca nadal zostaje zapisana w Projects i czeka na dzień, w którym dodasz narzędzie. Narzędzia, którego kod jest dostarczany jako moduł, nie można jeszcze tak zainstalować i jest odrzucane w ten sam sposób.
-
-::: details Co zawiera .lolly i jak działa jego otwieranie
-`.lolly` to rozszerzenie paczki Lolly, a `format` w jej `manifest.json` mówi, co jest w środku:
-
-- **Udostępniony projekt** (`lolly-share`) zawiera jedną zapisaną sesję, jej osadzone pliki i potwierdzenie dla wszystkiego, co nadal jest rozwiązywane przez odwołanie. Może też nieść narzędzie i system projektowy. Otwarcie dodaje nowy Project i nigdy nie nadpisuje sesji.
-- **Udostępniony folder projektów** (`lolly-share`, rodzaj `project`) zawiera folder z Projects: jego podfoldery, każdą sesję w nich z kafelkiem i zdjęcia tam złożone. Otwarcie dodaje kopię całego folderu. Każda sesja podróżuje jako `sessions/<key>.json` z kafelkiem w `thumbs/`. Lolly sprzed plików projektów prosi o aktualizację.
-- **Paczka systemu projektowego** (`lolly-brand`) zawiera tokeny i może zawierać czcionki, logo, opublikowane wersje i zachowane zasoby. Otwarcie paczki dodaje osobny nazwany system projektowy i czyni go aktywnym.
-- **Paczka przestrzeni roboczej lub instancji** to `lolly-brand` z zadeklarowanymi narzędziami, zasobami katalogu i opcjonalnie adresem instancji. Wczytanie jednej zastępuje pojedynczą nakładkę przestrzeni roboczej wczytaną wcześniej, a podgląd wymienia te skutki w całym urządzeniu.
-
-Pełna kopia zapasowa urządzenia nie jest `.lolly`. Pozostaje `LollyTools-….zip` (format `lolly-backup`) i jest przywracana przez **Settings → Storage → Import data…**. Spakowany folder narzędzia także pozostaje `.zip`. [Data transfer](/info/data-transfer.html) to opis formatu.
-
-`.lolly` to zwykły zip. Zmień nazwę na `.zip`, aby zajrzeć do środka: Twoje własne obrazy są w `assets/uploads/`, grafika katalogu w `assets/catalog/`, `manifest.json` wymienia każdy plik, a README mówi, czym jest plik.
-
-macOS, Windows, Linux, iOS i Android rejestrują ten format, menedżery plików na komputerze pokazują go jako dokument Lolly, a GNOME Files może pokazać własną miniaturę zapisanej sesji. Otwieranie z Design System Setup poleca akcję systemu projektowego, gdy udostępniony projekt ją niesie, ale nigdy nie ukrywa **Open shared design**.
-
-Dokument przekazany z innej aplikacji na iOS lub Androidzie ma limit 48 MB, ponieważ przekazanie kopiuje jego bajty przez granicę aplikacji, i aplikacja o tym mówi. **Open** wewnątrz Lolly nie ma takiego limitu, więc użyj go dla większej paczki.
-
-Po potwierdzeniu Lolly rozpakowuje i weryfikuje paczkę jednorazowo. Zasoby trafiają do biblioteki, dopasowane po sumie kontrolnej, więc plik już obecny na urządzeniu jest używany ponownie. Sesje trafiają do Projects z nowymi identyfikatorami, więc ten sam plik można otworzyć dwa razy; sesja, której brakuje narzędzia, czeka tam. Pliki powyżej 100 MB są oznaczane jako duże, a podgląd ostrzega, gdy pamięć przeglądarki zgłasza mniej wolnego miejsca, niż plik potrzebuje. Każda część objęta integralnością jest sprawdzana, zanim cokolwiek zostanie zatwierdzone, a uszkodzona kopia jest odrzucana bez pozostawiania czegokolwiek.
+::: warning Instalacja narzędzia uruchamia jego kod
+Jeśli plik zawiera narzędzie, którego nie masz, okno **Trust this tool?** pokazuje narzędzie i jego autora oraz informuje, że otwarcie uruchomi kod narzędzia na Twoim urządzeniu. **Trust & install** zatwierdza tę czynność.
 :::
 
-Link i plik przekazują migawkę. Do edycji na żywo [Working together](/info/collaborate.html) opisuje prywatne collaby między dwoma urządzeniami i opcjonalne collaby robocze przez Lolly Work.
+Jeśli odmówisz, praca i tak zostanie zapisana w Projects i poczeka, aż dodasz narzędzie. Narzędzia, którego kod jest dostarczany jako moduł, nie można jeszcze zainstalować w ten sposób i jest ono odrzucane tak samo.
 
-## Zasoby - twoja biblioteka
+::: details Co zawiera plik .lolly i jak działa jego otwieranie
+`.lolly` to rozszerzenie pakietów Lolly, a pole `format` w pliku `manifest.json` określa zawartość:
 
-**Assets** (`#/a`) zbiera wszystko, z czego mogą korzystać Twoje narzędzia: logo marki, obrazy, audio i ruch, pogrupowane według rodzaju, razem z Twoimi własnymi plikami. Twoje wgrane pliki są przechowywane na urządzeniu. Organizacja używająca Lolly Work może też dostarczyć wspólny katalog z własnymi regułami dostępu; zobacz [Use Lolly at your organisation](/info/organisation.html).
+- **Udostępniony projekt graficzny** (`lolly-share`) zawiera jedną zapisaną sesję, osadzone w niej pliki i potwierdzenie dla wszystkiego, co nadal jest dostępne przez odwołanie. Może też zawierać narzędzie i system projektowy. Otwarcie dodaje nowy projekt i nigdy nie nadpisuje sesji.
+- **Udostępniony projekt** (`lolly-share`, rodzaj `project`) zawiera folder z Projects: jego podfoldery, każdą sesję w nich wraz z jej kafelkiem i zapisane tam obrazy. Otwarcie dodaje kopię folderu. Każda sesja jest przenoszona jako `sessions/<key>.json`, a jej kafelek znajduje się w `thumbs/`. Wersja Lolly sprzed wprowadzenia plików projektów prosi o aktualizację.
+- **Pakiet systemu projektowego** (`lolly-brand`) zawiera tokeny i może zawierać czcionki, logo, opublikowane wersje i zachowane zasoby. Otwarcie pakietu dodaje oddzielny, nazwany system projektowy i go aktywuje.
+- **Pakiet przestrzeni roboczej lub instancji** to `lolly-brand` z zadeklarowanymi narzędziami, zasobami katalogu i opcjonalnym adresem instancji. Wczytanie zastępuje jedyną wcześniej wczytaną nakładkę przestrzeni roboczej, a podgląd wymienia te skutki dla całego urządzenia.
 
-![Zasoby z próbkami i krojami pisma marki oraz twoimi własnymi przesłanymi plikami](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+Pełna kopia zapasowa urządzenia nie jest plikiem `.lolly`. Pozostaje plikiem `LollyTools-….zip` (format `lolly-backup`) i jest przywracana przez **Settings → Storage → Import data…**. Spakowany folder narzędzia również pozostaje plikiem `.zip`. [Przenoszenie danych](/info/data-transfer.html) opisuje formaty.
 
-- <!--i:upload--> **Wprowadź swoje pliki.** Upuść obraz, SVG, klip audio, wideo, Lottie, PDF lub prezentację PowerPoint na obszarze wgrywania albo kliknij, aby wybrać. Trafia od razu do Assets i do selektora zasobów każdego narzędzia. Wielostronicowy PDF lub `.pptx` pyta, które strony lub slajdy zachować, a każdy staje się zasobem SVG. Obraz dodany wewnątrz narzędzia jest zachowywany tak, jak przyszedł, w **My images**, więc Content Credential na nim nadal się weryfikuje, a tylko bardzo duży plik pyta, czy zmienić rozmiar. **Settings → Storage** pokazuje, ile zawiera **My images**. Nie ma limitu poza pamięcią urządzenia. Aby usuwać dane EXIF i GPS w momencie dodawania obrazów, włącz **Strip metadata from uploads** w **Settings → Feature flags**; Content Credentials są zachowywane w obu przypadkach.
-- <!--i:star--> **Dodaj do ulubionych to, po co sięgasz.** Oznacz gwiazdką zasób lub próbkę marki, a przypnie się na górze każdego selektora.
-- <!--i:folder--> **Porządkuj.** Przenieś zasób do innej grupy, ukryj wspólny zasób marki, którego nie używasz (**Show hidden** go przywraca) albo usuń własne wgrane pliki. Ten sam pasek zaznaczania co w Projects działa na całym zaznaczeniu.
-- <!--i:layers--> **Oddziel wideo od tła.** Otwórz szczegóły wideo lub kliknij prawym przyciskiem jego kartę w selektorze zasobów i wybierz **Remove background…**. **On-device model** wycina obiekt z ruchliwej sceny; **Colour key** usuwa równomiernie oświetlone tło, takie jak green screen, z ustawieniami **Tolerance**, **Softness** i **Spill removal** dla krawędzi, i nie wymaga pobierania. **Resolution** (360, 480, 720 lub 1080p, nigdy powyżej źródła) wymienia szczegóły na szybkość. Wycięcie, animowany WebP lub PNG z prawdziwą przezroczystością, jest zapisywane obok oryginału, a Content Credential źródła jedzie jako składnik. [Generated once, rendered the same](/info/ai-features.html) wyjaśnia, dlaczego to pozostaje zwykłą edycją.
+Plik `.lolly` to zwykłe archiwum zip. Zmień rozszerzenie na `.zip`, aby zajrzeć do środka. Twoje obrazy znajdują się w `assets/uploads/`, a grafiki z katalogu w `assets/catalog/`. Plik `manifest.json` wymienia wszystkie pliki, a README wyjaśnia, czym jest ten plik.
 
-### Zabierz swoją paletę i kroje pisma wszędzie
+macOS, Windows, Linux, iOS i Android rejestrują ten format. Menedżery plików na komputerach pokazują go jako dokument Lolly, a GNOME Files może wyświetlać własną miniaturę zapisanej sesji. Otwarcie w Lolly Design System Setup zaleca działanie dotyczące systemu projektowego, jeśli udostępniony projekt go zawiera, ale nigdy nie ukrywa **Open shared design**.
 
-Panel **Swatches** w Assets pokazuje kolory, z których składa się Twoja marka: kolory marki, kolory dodane przez Ciebie, jej rampy i jej spektrum. Kolory ról, które Lolly trzyma dla interfejsu (tekst, powierzchnie, krawędzie, kolory wiodące colourway i kopie koloru marki pod inną nazwą), czekają za szarą kartą **Show colour roles** na dole panelu.
+W iOS i Androidzie dokument przekazywany z innej aplikacji ma limit 48 MB, o czym aplikacja informuje. Przekazanie kopiuje jego bajty między aplikacjami. **Open** wewnątrz Lolly nie ma takiego limitu, więc użyj tej opcji dla większego pakietu.
 
-Każdy kolor to karta jak każdy inny zasób. Kliknij jedną, aby otworzyć jej szczegóły, zaznacz kilka, aby pobrać tylko je, albo pobierz całą paletę w formacie, który czyta Twoje inne narzędzie:
+Po zatwierdzeniu Lolly jednorazowo rozpakowuje i weryfikuje pakiet. Zasoby trafiają do Twojej biblioteki i są dopasowywane według sumy kontrolnej, więc plik obecny już na urządzeniu jest używany ponownie. Sesje trafiają do Projects z nowymi identyfikatorami, dzięki czemu ten sam plik można otworzyć dwa razy. Sesja, której narzędzia brakuje, czeka tam na nie. Pliki powyżej 100 MB są oznaczane jako duże, a podgląd ostrzega, gdy pamięć przeglądarki zgłasza mniej wolnego miejsca, niż potrzeba na plik. Każda część objęta kontrolą integralności jest sprawdzana przed zatwierdzeniem jakichkolwiek zmian, a uszkodzona kopia jest odrzucana bez pozostawiania śladów.
+:::
 
-- <!--i:code--> **Design tokens (JSON)**, **CSS variables** lub **CSS classes**, dla arkusza stylów lub kompilacji. Kolor szerszy niż sRGB zachowuje swoją szeroką wartość: CSS ustawia ją po hex, a JSON zachowuje hex razem z szerokim kolorem, kompozycją CMYK i farbą dodatkową.
-- <!--i:palette--> **Adobe Swatch Exchange (.ase)**, dla Illustratora lub Photoshopa. Kolor zablokowany na składzie CMYK przychodzi jako ta próbka CMYK, farba dodatkowa jako nazwana próbka dodatkowa, a kolor szerszy niż sRGB jako Lab.
-- <!--i:pentool--> **GIMP palette (.gpl)**, dla GIMP lub Inkscape, oraz **SCSS variables**, oba w sRGB.
+Zarówno link, jak i plik przekazują stan z chwili zapisu. Jeśli potrzebujesz edycji na żywo, [Wspólna praca](/info/collaborate.html) opisuje prywatną współpracę między dwoma urządzeniami i opcjonalną współpracę służbową przez Lolly Work.
 
-![Panel Swatches - pięć przycisków pobierania palety u góry, potem każdy kolor marki jako znacznik, który otwiera jego szczegóły](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+<!--i:eti-images-->
+## Zasoby - Twoja biblioteka
 
-Zaznaczaj kolory kropką na każdej karcie: kliknij z Shift drugą kropkę, aby zaznaczyć wszystko pomiędzy, przeciągnij ramkę przez luki albo naciśnij Cmd/Ctrl+A z fokusem na karcie. Pasek oferuje **Download as…** w tych samych sześciu formatach, **Copy hex** i **Favourite**. Zanim wybierzesz format, menu wymienia każdy kolor, którego żaden format nie może pomieścić (Transparent nie ma w ogóle koloru), które formaty zapisują szeroki kolor jako jego zapasowy sRGB (SCSS i GIMP) i które niosą wartości CMYK i farb dodatkowych (JSON i .ase). Kliknij kartę prawym przyciskiem, aby uzyskać te same akcje dla jednego koloru.
+**Lolly Assets** (`#/a`) zawiera to, z czego mogą korzystać Twoje narzędzia: logo marki, obrazy, dźwięk i animacje pogrupowane według rodzaju oraz Twoje własne pliki. Dodane przez Ciebie pliki są przechowywane na Twoim urządzeniu. Organizacja korzystająca z Lolly Work może też udostępnić wspólny katalog na własnych zasadach dostępu ([Korzystanie z Lolly w organizacji](/info/organisation.html)).
 
-Szczegóły koloru wypełniają podgląd tym kolorem i rozwijają **Linked values** (jego skład CMYK lub farbę dodatkową, każdą wartość stworzoną dla konkretnej przestrzeni lub maszyny drukarskiej oraz jego token projektowy), **Every notation** (hex, OKLCH, Display-P3 i resztę, każda z przyciskiem kopiowania), **Plotted on a colour space**, **Tones** i **Readability**. Klawisze strzałek przechodzą przez paletę, **Copy link** udostępnia sam kolor, a **Open in Colour Lab** prowadzi dalej.
+![Assets z próbkami kolorów i czcionkami marki oraz Twoimi plikami](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
-Panel **Fonts** wymienia czcionki Twojej marki z przyciskiem **download** przy każdej, do zainstalowania lokalnie lub przekazania drukarni.
+- <!--i:upload--> **Dodaj swoje pliki.** Upuść obraz, SVG, klip audio, wideo, Lottie, PDF lub prezentację PowerPoint na obszar dodawania plików albo kliknij, aby wybrać. Plik od razu pojawia się w Assets i selektorze zasobów każdego narzędzia. Wielostronicowy PDF lub `.pptx` pyta, które strony lub slajdy zachować, a każdy z nich staje się zasobem SVG. Obraz dodany w narzędziu jest zachowywany bez zmian w **My images**, więc jego Content Credential nadal przechodzi weryfikację. Tylko bardzo duży plik wywołuje pytanie o zmianę rozmiaru. **Settings → Storage** pokazuje, ile miejsca zajmuje **My images**. Jedynym limitem jest pamięć urządzenia. Aby usuwać dane EXIF i GPS podczas dodawania, włącz **Strip metadata from uploads** w **Settings → Feature flags**. Content Credentials są zachowywane w obu przypadkach.
+- <!--i:star--> **Oznacz ulubione zasoby.** Dodaj gwiazdkę do zasobu lub próbki koloru marki, aby przypiąć je u góry każdego selektora.
+- <!--i:folder--> **Uporządkuj zasoby.** Przenieś zasób do innej grupy, ukryj nieużywany wspólny zasób marki (**Show hidden** przywraca jego widoczność) lub usuń własne pliki. Ten sam pasek zaznaczenia co w Projects działa na całym zaznaczeniu.
+- <!--i:layers--> **Usuń tło z wideo.** Otwórz szczegóły wideo lub kliknij jego kartę prawym przyciskiem w selektorze zasobów i wybierz **Remove background…**. **On-device model** wycina obiekt ze sceny z wieloma szczegółami. **Colour key** usuwa równomiernie oświetlone tło, takie jak zielony ekran, i nie wymaga pobierania. **Tolerance**, **Softness** i **Spill removal** dostosowują krawędź. **Resolution** (360, 480, 720 lub 1080p, nigdy powyżej rozdzielczości źródła) pozwala wybrać między szczegółowością a szybkością. Wycięty obraz to animowany WebP lub PNG z przezroczystością, zapisany obok oryginału. Content Credential źródła jest dołączany do wyciętego obrazu jako składnik. [Wygenerowane raz, renderowane tak samo](/info/ai-features.html) wyjaśnia, dlaczego to nadal zwykła edycja.
 
-## Dopasuj siatkę do siebie
+### Zabierz paletę i czcionki ze sobą
 
-- <!--i:star--> **Dodaj do ulubionych to, czego używasz.** Kliknij kartę prawym przyciskiem i wybierz **Add to favourites**, a dostanie duży kafel w pasku nad siatką. [Your favourites](/info/favourites.html) opisuje ten pasek.
-- <!--i:eyeoff--> **Ukryj narzędzie, którego nigdy nie używasz.** Kliknij kartę prawym przyciskiem lub zaznacz kilka i wybierz **Hide tool**. Znika z siatki i z tego, co znajduje wpisywanie w siatce. Szary kafel **Show hidden tools (N)** na końcu odsłania je ponownie, przyciemnione, a w menu każdego jest **Unhide tool**. Ukrywanie zmienia tylko Twoją siatkę: narzędzie nadal otwiera się z linku lub zakładki.
-- <!--i:clock--> **Najpierw Twoje narzędzia.** Gdy masz zapisaną pracę w trzech różnych narzędziach, rząd znaczników **Yours** nad siatką zaczyna się od Twoich ulubionych i ostatnich narzędzi.
+Panel **Swatches** w Assets pokazuje kolory Twojej marki: kolory firmowe, dodane przez Ciebie kolory, skale tonalne i widmo. Kolory ról, które Lolly rezerwuje dla interfejsu (tekst, powierzchnie, krawędzie, główne kolory wariantów kolorystycznych i kopie koloru marki pod inną nazwą), kryją się pod szarą kartą **Show colour roles** na dole panelu.
+
+Każdy kolor ma kartę jak każdy inny zasób. Kliknij ją, aby otworzyć szczegóły, zaznacz kilka kolorów, aby pobrać wybrane, lub pobierz całą paletę w formacie odczytywanym przez inne narzędzie:
+
+- <!--i:code--> **Design tokens (JSON)**, **CSS variables** lub **CSS classes**, do arkusza stylów lub kompilacji. Kolor spoza gamutu sRGB zachowuje wartość w szerszej przestrzeni: CSS ustawia ją po wartości szesnastkowej, a JSON zachowuje wartość szesnastkową wraz z kolorem w szerszej przestrzeni, składowymi CMYK i farbą dodatkową.
+- <!--i:palette--> **Adobe Swatch Exchange (.ase)**, do Illustrator lub Photoshop. Kolor przypisany do określonych składowych CMYK trafia tam jako próbka CMYK, farba dodatkowa jako nazwana próbka koloru dodatkowego, a kolor spoza sRGB jako Lab.
+- <!--i:pentool--> **GIMP palette (.gpl)**, do GIMP lub Inkscape, oraz **SCSS variables**, oba w sRGB.
+
+![Panel Swatches - pięć przycisków pobierania palety u góry, a pod nimi każdy kolor marki jako element otwierający jego szczegóły](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+
+::: details Zaznacz kilka kolorów lub otwórz szczegóły jednego
+Zaznaczaj kolory za pomocą kropki na każdej karcie: kliknij drugą kropkę z Shift, aby zaznaczyć wszystko pomiędzy, przeciągnij prostokąt przez odstępy lub naciśnij Cmd/Ctrl+A, gdy karta ma fokus. Pasek oferuje **Download as…** w tych samych sześciu formatach, **Copy hex** i **Favourite**. Zanim wybierzesz format, menu wymienia kolory, których nie może zapisać żaden format (Transparent nie ma koloru), formaty zapisujące kolor o szerokim gamucie jako jego odpowiednik sRGB (SCSS i GIMP) oraz formaty zachowujące wartości CMYK i kolorów dodatkowych (JSON i .ase). Kliknij kartę prawym przyciskiem, aby wykonać te same działania na jednym kolorze.
+
+Szczegóły koloru wypełniają podgląd tym kolorem i rozwijają sekcje **Linked values** (składowe CMYK lub farba dodatkowa, wartości przygotowane dla określonej przestrzeni lub maszyny drukarskiej oraz token projektowy), **Every notation** (hex, OKLCH, Display-P3 i pozostałe, każda z przyciskiem kopiowania), **Plotted on a colour space**, **Tones** i **Readability**. Klawisze strzałek przechodzą po palecie, **Copy link** udostępnia kolor, a **Open in Colour Lab** otwiera go do dalszej pracy.
+:::
+
+Panel **Fonts** wymienia kroje pisma Twojej marki, każdy z opcją **download**, aby zainstalować je lokalnie lub przekazać drukarni.
+
+<!--i:eti-grid-->
+## Dostosuj siatkę do siebie
+
+- <!--i:star--> **Dodaj używane narzędzia do ulubionych.** Kliknij kartę prawym przyciskiem i wybierz **Add to favourites**. Narzędzie otrzyma duży kafelek w pasku nad siatką. [Twoje ulubione](/info/favourites.html) opisuje ten pasek.
+- <!--i:eyeoff--> **Ukryj narzędzie, którego nie używasz.** Kliknij kartę prawym przyciskiem lub zaznacz kilka i wybierz **Hide tool**. Znika ono z siatki i wyników wyszukiwania podczas pisania w siatce. Narzędzie opuszcza siatkę i nie jest już znajdowane podczas pisania w niej. Szary kafelek **Show hidden tools (N)** na końcu ponownie pokazuje ukryte narzędzia, przygaszone, każde z opcją **Unhide tool** w menu. Ukrycie zmienia tylko Twoją siatkę: narzędzie nadal otwiera się z linku lub zakładki.
+- <!--i:clock--> **Twoje narzędzia jako pierwsze.** Gdy zapiszesz pracę w trzech różnych narzędziach, wiersz **Yours** nad siatką pokaże skróty najpierw do ulubionych, a potem do ostatnio używanych narzędzi.
 - <!--i:sliders--> **Ułóż po swojemu.** **View options** ustawia układ (**Grid**, **Card** lub **List**), rozmiar i gęstość kart, kolejność sortowania i filtr kategorii.
 
-![Koniec siatki Tools z odsłoniętymi ukrytymi narzędziami: przyciemniona karta Wordmark, a obok szary kafel, który przywrócił je do widoku, teraz z napisem Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
+![Koniec siatki Tools po pokazaniu ukrytych narzędzi: przygaszona karta Wordmark, a obok szary kafelek, który przywrócił jej widoczność i teraz ma napis Hide hidden tools](/t/url-shot?url=%2F%23%2F&width=1440&height=680&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A.gtile--hiddenbox%3Bpress%3AEnd%3Bwait%3A800%3Bhover%3A.gtile--hiddenbox%3Bwait%3A300&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&rasterDpi=96&dark=1&filename=misc-hidden-tools)
 <!--
 SHOT NOTE (misc-hidden-tools): the trailing `press:End` is required. The
 hidden box and the revealed cards live at the very END of the grid, and
@@ -232,13 +255,13 @@ tool. The closing `hover:` puts the pointer back on the reveal tile, which
 keeps every revealed card dimmed.
 -->
 
-**Działaj na kilku kartach naraz.** Zaznacz pole wyboru każdej karty, przeciągnij ramkę zaznaczenia przez puste miejsce albo kliknij z Shift/Cmd, a pojawi się pasek z tym, na co pozwala dany widok:
+**Działaj na kilku kartach naraz.** Zaznacz pole wyboru każdej karty, przeciągnij prostokąt zaznaczenia przez pustą przestrzeń lub kliknij z Shift/Cmd, a pojawi się pasek działań dostępnych w danym widoku:
 
-- **Tools i Utilities:** Favourite, Hide, Available offline, **View sessions** (Projects, pokazujące tylko sesje wykonane tymi narzędziami) i Copy link dla pojedynczej karty.
-- **Assets:** Favourite i Hide dla dowolnego zaznaczenia. Duplicate, Download i Delete pojawiają się tylko wtedy, gdy każdy zaznaczony element jest jednym z Twoich własnych wgranych plików, ponieważ wspólny zasób systemu projektowego jest trwałym kontraktem.
-- **Projects:** zobacz [Find and recover your work](/info/find-your-work.html#find-something-you-saved).
+- **Tools i Utilities:** Favourite, Hide, Available offline, **View sessions** (Projects pokazujące tylko sesje utworzone tymi narzędziami) oraz Copy link dla pojedynczej karty.
+- **Assets:** Favourite i Hide dla dowolnego zaznaczenia. Duplicate, Download i Delete pojawiają się tylko wtedy, gdy wszystkie zaznaczone elementy są Twoimi własnymi plikami, ponieważ wspólny zasób systemu projektowego stanowi trwały kontrakt.
+- **Projects:** zobacz [Znajdowanie i odzyskiwanie pracy](/info/find-your-work.html#find-something-you-saved).
 
-![Pasek zaznaczenia w galerii dla dwóch narzędzi, oferujący Dostępne offline, Zobacz sesje, Ulubione i Ukryj](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
+![Pasek zaznaczenia galerii dla dwóch narzędzi z opcjami Available offline, View sessions, Favourite i Hide](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
 <!--
 SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
 `[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
@@ -256,37 +279,55 @@ already exist, and build-docs-shots.ts gives every shot a fresh
 storage-seeding hook.
 -->
 
-**View sessions** pojawia się dopiero po zaznaczeniu czegoś. Kliknij prawym przyciskiem pojedynczą niezaznaczoną kartę, a zaoferuje **N saved sessions**, listę zapisanych sesji tego narzędzia, w której usunięcie przenosi sesję do Kosza.
+**View sessions** pojawia się tylko wtedy, gdy coś jest zaznaczone. Kliknij prawym przyciskiem pojedynczą niezaznaczoną kartę, aby otworzyć **N saved sessions**: listę zapisanych sesji tego narzędzia, na której usunięcie przenosi sesję do kosza.
 
+<!--i:eti-layers-->
 ## Na telefonie
 
-Na wąskim ekranie układ staje się jedną kolumną:
+Na wąskim ekranie układ zmienia się w jedną kolumnę:
 
-- **Kontrolki stają się arkuszem** u góry z uchwytem do przeciągania na jego dolnej krawędzi. Przeciągnij uchwyt, aby przeskoczyć do **peek**, **half** lub **full**, albo stuknij go, aby zwinąć i rozwinąć. Podgląd wypełnia miejsce poniżej i pozostaje widoczny podczas edycji.
-- Pływający przycisk **Export** otwiera arkusz eksportu: format, rozmiar, kopiowanie, zapis i pobieranie w jednym miejscu. Stuknij tło, aby zamknąć arkusz.
+- **Kontrolki tworzą panel** u góry z uchwytem do przeciągania na dolnej krawędzi. Przeciągnij uchwyt, aby ustawić panel w pozycji **peek**, **half** lub **full**, albo dotknij go, aby zwinąć lub rozwinąć panel. Podgląd wypełnia przestrzeń poniżej i pozostaje widoczny podczas edycji.
+- Pływający przycisk **Export** otwiera panel eksportu: format, rozmiar, kopiowanie, zapis i pobieranie. Dotknij tła, aby zamknąć panel.
 
-![Narzędzie na ekranie o szerokości telefonu - kontrolki jako arkusz u góry, wygenerowana paleta wypełniająca podgląd poniżej i pigułka renderu unosząca się na dole pośrodku](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
+![Narzędzie na ekranie o szerokości telefonu - kontrolki w panelu u góry, wygenerowana paleta wypełniająca podgląd poniżej i pływająca pigułka renderowania na środku u dołu](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
-## Settings, dźwięk i komfort
+<!--i:eti-copy-->
+## Urządzenia składane i iPhone Duo
 
-**Settings** na dole ekranu głównego zawiera Twoje dane, systemy projektowe, dostępność, pamięć i pobrania offline. [Lolly Settings](/info/dashboard.html) mapuje każdą kartę.
+Na urządzeniu składanym, iPhone Duo lub niemal kwadratowym ekranie dotykowym Lolly dzieli narzędzie na dwa panele:
 
-- **Twoje dane i zdjęcie** wypełniają każde narzędzie zbudowane, by z nich korzystać, takie jak podpis e-mail lub identyfikator. [Profiles](/info/profile.html) je opisuje.
-- **Dostępność** ma cztery przełączniki komfortu: **Reduce motion**, **Hide colourful previews**, **High contrast** i **Large text**. Zmieniają aplikację wokół Twojej pracy, nigdy kanwę narzędzia ani eksport.
-- **Dźwięk** odtwarza delikatne dźwięki pomocnicze dla tego, co robisz, a **Neurospicy Mode** odtwarza spokojną ścieżkę skupienia. Oba są wyłączone, dopóki ich nie włączysz, w **Settings → Accessibility** lub w menu profilu.
-- **Available offline** pobiera resztę aplikacji, Twoje narzędzia, katalog i przewodniki, zanim stracisz połączenie. Lolly to aplikacja internetowa, którą można zainstalować: użyj przycisku instalacji w przeglądarce lub *Add to Home Screen* na telefonie, aby mieć pełnoekranową aplikację, która sama się aktualizuje, gdy znów jesteś online.
-- **Storage** pokazuje, co Lolly przechowuje na tym urządzeniu. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) wyjaśnia, co usuwa wyczyszczenie, a [Privacy Policy](/info/privacy.html) wymienia wszystko, co aplikacja pobiera lub wysyła.
+- **Kontrolki po jednej stronie, kanwa po drugiej.** Kontrolki są po przeciwnej stronie niż ręka, którą rysujesz. Wybierz **Dominant hand** w **Settings → Accessibility** lub naciśnij **Swap sides** u góry kontrolek. W języku pisanym od prawej do lewej strony zamieniają się miejscami.
+- **Zawias wyznacza podział.** Gdy urządzenie zgłasza miejsce zgięcia, panele stykają się wzdłuż niego, więc żadna kontrolka ani grafika nie leży na zgięciu. Na ciągłym ekranie przeciągnij separator na jedną trzecią, połowę lub dwie trzecie szerokości. Lolly zapamiętuje Twój wybór dla każdego widoku na tym urządzeniu.
+- **Na stole.** Gdy urządzenie jest otwarte do połowy, a zgięcie biegnie w poprzek ekranu, kanwa zajmuje górną połowę, a kontrolki znajdują się poniżej zgięcia. Podczas prezentacji slajd jest u góry, a notatki, następny slajd oraz **Back** i **Next** poniżej. W Sequence podgląd jest u góry, a oś czasu na dole.
+- **Lolly Design, Design System Setup i Assets.** W Lolly Design Inspector, warstwy i panel eksportu są kartami obok kanwy. Narzędzia znajdują się wzdłuż zewnętrznej krawędzi kanwy, pod ręką, którą rysujesz. Gdy się nie mieszczą, kolumnę można przewijać, a przygaszenie ze strzałką wskazuje, w którą stronę są pozostałe. Na stole narzędzia biegną wzdłuż dolnej krawędzi kanwy. Lolly Design System Setup utrzymuje Board po jednej stronie, a otwarty pokój po drugiej. W Assets szczegóły zasobu otwierają się obok biblioteki, więc kolejne dotknięcie pokazuje następny zasób w tym samym miejscu.
+- **Nic na zgięciu.** Gdy urządzenie zgłasza zgięcie, okno dialogowe otwiera się po stronie z kontrolkami. Tak samo pole wyszukiwania u dołu ekranu głównego i jego wyniki. Na płaskim ekranie pozostają pośrodku.
+- **Składanie niczego nie traci.** Złożenie, rozłożenie lub obrócenie urządzenia zachowuje dokument, zaznaczenie, powiększenie i pole, w którym piszesz, wraz z pozycją kursora.
+
+Zewnętrzny ekran urządzenia składanego zachowuje opisany wyżej układ telefonu, podobnie jak okno Lolly zajmujące połowę podzielonego ekranu.
+
+<!--i:eti-smile-->
+## Ustawienia, dźwięk i wygoda
+
+**Settings** u dołu ekranu głównego zawiera Twoje dane, systemy projektowe, ułatwienia dostępu, pamięć i pobieranie do pracy offline. [Ustawienia Lolly](/info/dashboard.html) opisują każdą kartę.
+
+- **Twoje dane i zdjęcie portretowe** uzupełniają każde narzędzie, które z nich korzysta, takie jak podpis e-mail lub identyfikator. [Profile](/info/profile.html) opisują je dokładniej.
+- **Accessibility** zawiera cztery przełączniki wygody: **Reduce motion**, **Hide colourful previews**, **High contrast** i **Large text**. Zmieniają aplikację wokół Twojej pracy, nigdy kanwę narzędzia ani eksport. Obok nich **Dominant hand** wybiera stronę kontrolek w układzie z dwoma panelami.
+- **Sound** odtwarza delikatne dźwięki pomocnicze przy wykonywaniu działań, a **Neurospicy Mode** odtwarza spokojną ścieżkę ułatwiającą skupienie. Obie opcje są wyłączone, dopóki nie włączysz ich w **Settings → Accessibility** lub menu profilu. Suwak **Sound shape** pod przełącznikiem Sound zmienia dźwięki od miękkich, obłych kropli (Bouba) po suche tyknięcia i szuranie (Kiki), z dzwonkami Lolly pośrodku. Ścieżki Neurospicy obejmują generowane stacje Lolly: **Lolly Sings** i jego gatunki oraz trzy **Lofi stations**. Stacje tworzą niekończącą się muzykę podczas odtwarzania. Każda ma kontrolki perkusji i faktury dźwięku (oraz nastroju w Lofi), link do udostępniania słuchanej melodii i przycisk zapisujący ją w zasobach. [Generowana muzyka](/info/generated-music.html) wyjaśnia, jak powstaje melodia. **Music generator** w Utilities (`#/music`) pozwala ją kształtować.
+- **Available offline** pobiera resztę aplikacji, Twoje narzędzia, katalog i przewodniki, zanim utracisz połączenie. Aby zainstalować Lolly jako aplikację internetową, użyj przycisku instalacji w przeglądarce lub *Add to Home Screen* na telefonie. Zainstalowana aplikacja działa na pełnym ekranie i aktualizuje się po odzyskaniu połączenia.
+- **Performance UI** w **Settings → Feature flags** nadaje aplikacji prostszy wygląd, którego rysowanie wymaga mniej zasobów. Kanwy narzędzi i eksporty pozostają takie same. Na wolnym urządzeniu Lolly samodzielnie włącza ten wygląd i wyjaśnia dlaczego, z opcjami **Undo** i **Keep** ([Performance UI](/info/configuration.html#curating-what-people-see)).
+- **Storage** pokazuje, co Lolly przechowuje na tym urządzeniu. [Jeśli wyczyścisz dane przeglądarki](/info/find-your-work.html#if-you-clear-your-browser-data) wyjaśnia, co zostaje usunięte, a [Polityka prywatności](/info/privacy.html) wymienia wszystko, co aplikacja pobiera lub wysyła.
 
 ::: note Jeśli widok nie ładuje się po aktualizacji
-Pusty panel lub komunikat "failed to fetch" zaraz po aktualizacji zwykle znika po jednym przeładowaniu. Twoja zapisana praca, sesje i systemy projektowe pozostają nietknięte, ponieważ są przechowywane na urządzeniu. Tylko obraz, który dodałeś i nigdy nie zapisałeś, może wymagać ponownego dodania.
+Pusty panel lub komunikat „failed to fetch” tuż po aktualizacji zwykle znika po jednym przeładowaniu. Zapisana praca, sesje i systemy projektowe pozostają nienaruszone, ponieważ są przechowywane na Twoim urządzeniu. Jedynie obraz dodany, ale nigdy niezapisany, może wymagać ponownego dodania.
 :::
 
-## Dokąd dalej
+<!--i:eti-map-pin-->
+## Co dalej
 
-- **[Design: the free canvas](/info/design.html)**: kanwa, kształty, oś czasu i prezentowanie prezentacji.
-- **[Batch and Multi-edit](/info/batch.html)**: wiele wersji jednego projektu albo kilka zapisanych projektów edytowanych razem.
-- **[Export a file](/info/exporting.html)**: wybór formatu, rozmiaru, jednostek druku, przezroczystości i wideo.
-- **[Import a design](/info/design-import.html)**: wprowadź plik z Figmy, Penpot, Illustratora lub InDesign do Design i edytuj dalej.
-- **[Templates](/info/templates.html)**: zapisane punkty wyjścia dla narzędzia.
-- **[Wide Colour and HDR](/info/hdr-editing.html)**: zachowaj oryginalną precyzję obrazu w Design i Darkroom.
-- **[Find and recover your work](/info/find-your-work.html)**: gdzie jest wszystko i jak przenieść to na inne urządzenie.
+- **[Lolly Design: swobodna kanwa](/info/design.html)**: kanwa, kształty, oś czasu i prezentowanie slajdów.
+- **[Przetwarzanie wsadowe i Lolly Multi-edit](/info/batch.html)**: wiele wersji jednego projektu lub kilka zapisanych projektów edytowanych razem.
+- **[Eksport pliku](/info/exporting.html)**: wybór formatu, rozmiaru, jednostek druku, przezroczystości i wideo.
+- **[Import projektu](/info/design-import.html)**: przenieś plik Figma, Penpot, Illustrator, InDesign, Affinity lub DXF do Lolly Design i kontynuuj edycję.
+- **[Szablony](/info/templates.html)**: zapisane punkty wyjścia do pracy z narzędziem.
+- **[Szeroki gamut kolorów i HDR](/info/hdr-editing.html)**: zachowaj pierwotną precyzję obrazu w Lolly Design i Lolly Darkroom.
+- **[Znajdowanie i odzyskiwanie pracy](/info/find-your-work.html)**: gdzie wszystko się znajduje i jak przenieść to na inne urządzenie.

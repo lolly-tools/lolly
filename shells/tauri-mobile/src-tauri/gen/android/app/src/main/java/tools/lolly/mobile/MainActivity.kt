@@ -75,6 +75,12 @@ class MainActivity : TauriActivity() {
     // Downloads dir. Exposed to every script in the WebView, so it only ever shares
     // files it can prove live under our own export root - nothing else.
     webView.addJavascriptInterface(ShareBridge(), "LollyShare")
+    // Pinch zoom for the whole app (WCAG 1.4.4, Resize text). Android's WebView pinches
+    // only with its built-in zoom on, which wry leaves off; its on-screen +/- buttons
+    // stay hidden. The canvas surfaces that pinch on their own set touch-action, so the
+    // page does not zoom under them (shells/web/src/main.ts, initMobilePlatformFit).
+    webView.settings.builtInZoomControls = true
+    webView.settings.displayZoomControls = false
   }
 
   /** Inbound ACTION_SEND / ACTION_SEND_MULTIPLE: stash the shared file for the JS side. */

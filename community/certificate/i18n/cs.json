@@ -1,6 +1,6 @@
 {
   "name": "Certifikát",
-  "description": "Certifikáty o absolvování a ocenění v aktivním design systému a jeho barevné variantě: čtyři styly, tiskové velikosti i velikosti pro sociální sítě a pohyb pro sdílení - po jednom jménu, nebo celý seznam z CSV v Hromadně z řádků.",
+  "description": "Certifikáty o absolvování a ocenění: čtyři styly, tiskové velikosti i velikosti pro sociální sítě a pohyb - jedno jméno po druhém, nebo seznam z CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} pro {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Druh",
   "inputs.certKind.help": "Určuje znění: nadpis, řádek nad tím, za co certifikát je, a značku na pečeti.",

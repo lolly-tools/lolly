@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
+import { embeddablePictureSrc, rowPicture } from '../lib/session-picture.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { updateRouteParams } from '../lib/url-state.ts';
-import { createProjectScenePreviews, projectRecentExports } from './projects-scene-previews.ts';
+import { createProjectScenePreviews, projectRecentExports, recentExportsRailHtml } from './projects-scene-previews.ts';
 import { sceneThumbPatcher } from './projects-scene-patch.ts';
 import { handleProjectTextAction, projectAssetMenu, removeProjectAsset } from './projects-asset-actions.ts';
 import { mountLocalProjectAsset, localProjectAssetHref, setProjectViewTitle } from './projects-asset-view.ts';
@@ -35,7 +37,7 @@ import { openNewLocalTextFile } from '../lib/project-text-file.ts';
 import { groupSelectionInFolder } from './projects-folder-create.ts';
 import { createFolderStore, childFolders, folderPath, descendantFolderIds, FOLDER_COLORS } from '../folders.ts';
 import type { Folder, FolderItem, TrashEntry, ProjectTemplate } from '../folders.ts';
-import { PTPL_SLOT_PREFIX, isHiddenSlot } from '../lib/batch-slots.ts';
+import { PTPL_SLOT_PREFIX, isHiddenSlot, MUSIC_SLOT_PREFIX } from '../lib/batch-slots.ts';
 import { noteSessionOpen } from '../lib/open-intent.ts';
 import { instantiateBlueprint } from './projects-blueprint.ts';
 import { createTrash } from '../lib/trash.ts';
@@ -65,7 +67,7 @@ import { projectListHead } from '../components/project-listhead.ts';
 import { projectsTopRight } from './projects-topbar.ts';
 import { claimSearchBar, clearSearchBar } from '../components/search-bar.ts';
 import {
-  RETURN_KEY, armSessionReturn, sessionOpenHref,
+  RETURN_KEY, armSessionReturn, sessionOpenHref, sessionRenderHref,
   buildSessionHaystack, buildFolderHaystack, matchesHaystack,
 } from '../lib/search/projects-source.ts';
 import { tokenize } from '../lib/search/match.ts';
@@ -91,7 +93,7 @@ import { chooseAddSeed, templateBulkRows, templatePickerSource, templateSessionS
 import type { TemplateActionHost } from '../lib/template-actions.ts';
 import { getSessionSource } from '../lib/session-source.ts';
 import { openRequestedTeamProject, openTeamProjects, createSharedProjectsView, type TeamProjectsDoor } from './projects-team.ts';
-import { projectsDropHooks } from './projects-drop.ts';
+import { projectsDropDoor } from './projects-drop.ts';
 import { onTeamMoveClick, teamMoveButtonHtml, wireLocalTeamDrops, type LocalProjectItem, type TeamTransferDeps } from './projects-team-transfer.ts';
 import { applyTileStates, approvalInfoRows, readSessionApprovals } from './projects-tile-state.ts';
 import type { HostV1, Profile, AssetRef } from '@lolly-tools/core/host-v1';
@@ -234,7 +236,7 @@ export async function mountProjects(
   if (!folderId) playProjectsAah();
   const w = window as typeof window & { __toolIndex?: { tools?: ProjectsTool[] } };
   const nameById = new Map((w.__toolIndex?.tools ?? []).map((tool): [string, string] => [tool.id, (tool as unknown as ProjectsTool).name]));
-  const toolName = (id: string): string => nameById.get(id) || id || t('Saved session');
+  const toolName = (id: string): string => nameById.get(id) || (`${id}:` === MUSIC_SLOT_PREFIX ? t('Music generator') : id) || t('Saved session');
   // Full index entries (formats + intended width/height/unit) so session tiles can show
   // the same "what you'll get" spec the gallery cards do - see sessionTile's `tool` opt.
   const toolById = new Map((w.__toolIndex?.tools ?? []).map((t): [string, ProjectsTool] => [t.id, t as unknown as ProjectsTool]));
@@ -327,7 +329,7 @@ export async function mountProjects(
   // Recent-exports rail (plans/133 WP-10): the downloads log's reopen tiles,
   // rendered at the ROOT of /p now that this view is the one folder manager.
   // Collapsible, remembered per device (a convenience, not state that matters).
-  let recentExports: Array<{ href: string; thumb: string; caption: string; at: number }> = [];
+  let recentExports: Awaited<ReturnType<typeof projectRecentExports>> = [];
   const RECENTS_COLLAPSED_KEY = 'lolly-projects-recents-collapsed';
   let recentsCollapsed = ((): boolean => { try { return localStorage.getItem(RECENTS_COLLAPSED_KEY) === '1'; } catch { return false; } })();
 
@@ -404,7 +406,7 @@ export async function mountProjects(
   // Sessions resolve via the state index; images via the resolved AssetRef map.
   function previewForRef(ref: string): MemberPreview | null {
     const e = entryMap.get(ref);
-    if (e) return isBatchSlot(e.slot) ? { batch: true } : { thumb: e.thumb || null };
+    if (e) return isBatchSlot(e.slot) ? { batch: true } : { thumb: e.thumb || null, preview: e.preview ?? null, slot: e.slot };
     const img = imageRefs.get(ref);
     return img?.url ? { url: img.url } : null;
   }
@@ -633,21 +635,7 @@ export async function mountProjects(
         ${!list && loose.length && topFolders.length ? `<h2 class="projects-sec-label">${t('My library')}</h2>` : ''}
         ${looseTiles}${blueprintTile()}${templatesRootTile()}${trashTile}
       </div>
-      ${recentExports.length ? `
-        <section class="projects-exports folder-exports">
-          <button type="button" class="projects-exports-head" data-recents-toggle aria-expanded="${!recentsCollapsed}">
-            <span class="folder-exports-title">${t('Recent exports')}</span>
-            <span class="projects-exports-count">${recentExports.length}</span>
-          </button>
-          ${recentsCollapsed ? '' : `<div class="folder-exports-rail">
-            ${recentExports.map(x => `
-              ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - exportReopenHref() builds a fixed '#/tool/<id>' hash route */ ''}
-              <a class="folder-export-tile" href="${escape(x.href)}" data-open-export
-                 title="${escape(x.caption)} · ${escape(new Date(x.at).toLocaleDateString())}">
-                <img src="${escape(x.thumb)}" alt="${escape(x.caption)}" loading="lazy">
-              </a>`).join('')}
-          </div>`}
-        </section>` : ''}`);
+      ${recentExports.length ? recentExportsRailHtml(recentExports, recentsCollapsed) : ''}`);
   }
 
 
@@ -1239,20 +1227,11 @@ export async function mountProjects(
     attachDrops();
   }
 
-  // OS drops land here too (plans/133 WP-6): the shared chooser ingests them, and
-  // whatever the library routes stored is filed into the folder on screen. Bound to
-  // the persistent viewEl; the router tears itself down on every hashchange, which
-  // the in-place ?tools= / ?q= exits also fire WITHOUT a remount - so this is
-  // (re)attached from wire(), and attachDropRouter replaces any live attachment.
-  const dropRouter = import('../lib/drop-router.ts');
-  function attachDrops(): void {
-    void dropRouter.then((m) => {
-      if (!mounted) return;
-      const picker = host as unknown as PickerHost, refresh = async () => { if (mounted) { await reload(); render(); } }, addToFolder = (id: string, ref: string) => store.addItem(id, { type: 'image', ref }).catch(() => {});
-      m.attachDropRouter(viewEl, picker, { ...projectsDropHooks({ host: picker, folderTarget: currentFolderTarget, addToFolder, refresh, mounted: () => mounted }),
-        onStored: (ids) => { const target = currentFolderTarget(); void (async () => { if (target) for (const id of ids) await addToFolder(target, id); await refresh(); })(); } });
-    });
-  }
+  // OS drops land here too (plans/133 WP-6, projects-drop.ts): held from this point while the
+  // library loads, then routed and filed into the folder on screen. wire() attaches the router
+  // after every render, because the in-place ?tools= / ?q= exits tear it down without a remount.
+  const attachDrops = projectsDropDoor(viewEl, { host: host as unknown as PickerHost, folderTarget: () => currentFolderTarget(), mounted: () => mounted,
+    addToFolder: (id, ref) => store.addItem(id, { type: 'image', ref }).catch(() => {}), refresh: async () => { if (mounted) { await reload(); render(); } } });
 
   // (Right-click + long-press → context menu is wired once per mount by the shared
   // wireTileContextMenu above - bound to the persistent viewEl, so it survives the
@@ -1837,8 +1816,7 @@ export async function mountProjects(
       return `
         <div class="movepicker-head">
           <h2 class="movepicker-title">${escape(title)}</h2>
-          <button type="button" class="movepicker-close" aria-label="${escape(t('Close'))}">✕</button>
-        </div>
+          ${closeButtonHtml({ className: 'movepicker-close' })}</div>
         <nav class="movepicker-crumbs" aria-label="${escape(t('Folder path'))}">
           <button type="button" class="movepicker-crumb${cursor == null ? ' is-current' : ''}" data-cursor="">${t('Projects')}</button>
           ${path.map(f => `<span class="projects-crumb-sep" aria-hidden="true">/</span><button type="button" class="movepicker-crumb${f.id === cursor ? ' is-current' : ''}" data-cursor="${escape(f.id)}">${escape(f.name)}</button>`).join('')}
@@ -2058,16 +2036,16 @@ export async function mountProjects(
           // Re-keyed with its own times kept (plan 277 timing fix): a new slot
           // for a new name is not a new save.
           const state = (host as ProjectsHost).state;
-          if (state.restore && entry.updatedAt) await state.restore(newSlot, data, entry.thumb, entry.updatedAt, entry.savedAt);
-          else await state.save(newSlot, data, entry.thumb);
+          if (state.restore && entry.updatedAt) await state.restore(newSlot, data, rowPicture(entry), entry.updatedAt, entry.savedAt);
+          else await state.save(newSlot, data, rowPicture(entry));
           await host.state.delete(entry.slot).catch(() => {});
           await store.swapSessionSlot(entry.slot, newSlot);
         } else {
-          await (host as ProjectsHost).state.save(entry.slot, data, entry.thumb);
+          await (host as ProjectsHost).state.save(entry.slot, data, rowPicture(entry));
         }
       } else {
         data.__export_filename = name;   // the export filename for single-tool sessions
-        await (host as ProjectsHost).state.save(entry.slot, data, entry.thumb);
+        await (host as ProjectsHost).state.save(entry.slot, data, rowPicture(entry));
       }
     } catch (e) { if (host.log) host.log('warn', 'projects: rename failed', { error: String(e) }); }
   }
@@ -2108,7 +2086,7 @@ export async function mountProjects(
       }
       data.__label = name;
       if (!batch) data.__export_filename = name;   // single-tool export filename tracks the name
-      await (host as ProjectsHost).state.save(newSlot, data, entry.thumb || '');
+      await (host as ProjectsHost).state.save(newSlot, data, rowPicture(entry));
       // File beside the original: same folder, or loose (Uncategorised) if it was loose.
       const owner = ownerByRef.get(slot);
       if (owner) await store.moveItem(newSlot, owner.id, 'session');
@@ -2321,8 +2299,7 @@ export async function mountProjects(
     // Up to four member previews, resolved the same way the grid tile's mosaic is.
     const thumbs = folder.items.slice(0, 4).map(i => {
       const p = previewForRef(i.ref);
-      const src = p && 'thumb' in p && p.thumb ? p.thumb : p && 'url' in p && p.url ? p.url : '';
-      return typeof src === 'string' && src.startsWith('data:') ? src : '';
+      return embeddablePictureSrc(p);
     });
     // Body x14..166, y30..112; cells inset 8 with a 4px gutter.
     const CELL_W = 66, CELL_H = 31;
@@ -2351,7 +2328,7 @@ export async function mountProjects(
       if (e) {   // a favourited saved session
         const name = e.label || e.filename || toolName(e.toolId);
         const tn = toolName(e.toolId);
-        out.push({ id: ref, name, preview: e.thumb || undefined, href: resumeHref(e), featured: { blurb: name !== tn ? tn : undefined } });
+        out.push({ id: ref, name, preview: e.thumb || undefined, picture: { preview: e.preview, thumb: e.thumb, slot: e.slot, toolId: e.toolId }, href: resumeHref(e), featured: { blurb: name !== tn ? tn : undefined } });
         continue;
       }
       const folder = folders.find(f => f.id === ref);
@@ -2397,7 +2374,7 @@ export async function mountProjects(
       return {
         id: e.slot,
         name,
-        preview: e.thumb || undefined,
+        preview: e.thumb || undefined, picture: { preview: e.preview, thumb: e.thumb, slot: e.slot, toolId: e.toolId },
         href: resumeHref(e),
         featured: { blurb: name !== tn ? tn : undefined },
       };
@@ -2563,7 +2540,7 @@ export async function mountProjects(
   // A single-tool session downloads as a bare file (its native format); a batch session
   // falls back to a zip. See pro/folder-export.js renderSessionToFile.
   function renderSession(slot: string): void {
-    if (slot.startsWith('__learning__:')) { window.location.hash = `#/learning?slot=${encodeURIComponent(slot)}&export=1`; return; }
+    const elsewhere = sessionRenderHref(slot); if (elsewhere) { window.location.hash = elsewhere; return; }
     // The job is named by what it is rendering - the session's own name, else its tool.
     // It is what the toast (and a desktop notification) says while this view is gone.
     const entry = entryBySlot().get(slot);
@@ -2797,7 +2774,7 @@ export async function mountProjects(
         const data = await h.state.load(it.ref).catch(() => null);
         if (!e || !data) continue;
         const tslot = `${PTPL_SLOT_PREFIX}${token}:${it.ref}`;
-        await h.state.save(tslot, data, e.thumb || '');
+        await h.state.save(tslot, data, rowPicture(e));
         kept.push({ type: 'session', ref: tslot });
         copied++;
       }

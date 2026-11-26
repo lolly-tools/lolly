@@ -105,8 +105,9 @@
      inset and `--chrome-h` grows with Large text, so the prompt cannot slide
      under either the native Tauri switcher or the top-right controls. */
   top: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-4) + var(--vv-top, 0px));
-  right: calc(2em + var(--vv-right, 0px));
-  width: min(340px, calc(100vw - 2rem));
+  /* Stands inside a side the system holds, as the cluster above does (tokens.css). */
+  right: calc(max(2em, var(--safe-right) + 0.5rem) + var(--vv-right, 0px));
+  width: min(340px, calc(100vw - 2rem - var(--safe-left) - var(--safe-right)));
   padding: 15px 16px 14px;
   display: grid;
   grid-template-columns: auto 1fr;
@@ -132,7 +133,7 @@
      same optical weight as the heading rather than shrinking against it. */
   width: calc(34px * var(--a11y-fs)); height: calc(34px * var(--a11y-fs)); flex: none;
   border-radius: var(--radius-md);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   background: hsl(var(--primary) / 0.12);
 }
 .personalize-nudge-icon svg { width: calc(19px * var(--a11y-fs)); height: calc(19px * var(--a11y-fs)); }
@@ -167,16 +168,7 @@
 
 .personalize-nudge-close {
   position: absolute; top: 7px; right: 7px;
-  /* The box holds a ✕ glyph that already scales - at a fixed 26px the 1.2 glyph
-     fills it edge to edge and the hit target stops growing with everything else. */
-  width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs));
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: calc(18px * var(--a11y-fs)); line-height: 1;
-  color: hsl(var(--muted-foreground));
-  background: transparent; border: 0; border-radius: 8px; cursor: pointer;
-  transition: background var(--dur-1), color var(--dur-1);
 }
-.personalize-nudge-close:hover { color: hsl(var(--foreground)); background: hsl(var(--muted) / .6); }
 
 .personalize-nudge :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 
@@ -196,7 +188,8 @@
     position: relative;
     top: auto; right: auto;
     width: auto;
-    margin: calc(4.4rem + var(--safe-top)) .6rem 12px;
+    /* The side terms end the card where the top bar ends, inside a side the system holds. */
+    margin: calc(4.4rem + var(--safe-top)) calc(.6rem + var(--safe-right)) 12px calc(.6rem + var(--safe-left));
     box-shadow: none;
   }
   .gallery:not(.has-featured) .personalize-nudge:not([hidden]) ~ .tool-masonry { padding-top: 0; }
@@ -289,20 +282,9 @@
 .gallery-search:focus {
   border-color: hsl(var(--ring));
 }
-/* ✕ clear button - shared by Tools + Catalogue (component-audit rec 11; previously
-   the gallery built this with inline JS styles and the catalog borrowed projects'
-   .projects-search-clear). Shown/hidden via the `hidden` attribute, so re-assert
-   the UA default against the `display:inline-flex` below. */
-.gallery-search-clear {
-  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
-  width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs)); display: inline-flex; align-items: center; justify-content: center;
-  border: 0; border-radius: var(--radius-round); background: transparent; color: hsl(var(--muted-foreground));
-  font-size: var(--fs-md); line-height: 1; cursor: pointer;
-  transition: background var(--dur-1), color var(--dur-1);
-}
-.gallery-search-clear[hidden] { display: none; }
-.gallery-search-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
-.gallery-search-clear:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+/* The clear button, shared by Tools and Catalogue: the shared close button
+   (lib/close-button.ts) at its small size. Only its place in the field is set here. */
+.gallery-search-clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); }
 
 /* Spotlight chord hint (plans/99 section 2f) - the ⌃␣ <kbd> chip right-aligned inside
    the box. Advertises Control-Space ONLY (⌘Space stays bound but silent - the
@@ -345,23 +327,6 @@
    phones (still reachable from the profile page / capabilities), leaving the
    footer as the original search + Pro/What? stack. */
 .gallery-nav-link { white-space: nowrap; }
-/* Verify (Content Credentials) reads as the trust action: a solid SUSE Pine Green
-   pill with a shield-check. Explicit green (not --primary, which is dark teal in the
-   light theme) so it's green in every theme. */
-.gallery-footer a.gallery-nav-link--verify {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-3);
-  background: hsl(var(--primary) / 1);
-  color: hsl(var(--primary-foreground) / 1);
-  border-color: transparent;
-  font-weight: 600;
-}
-.gallery-footer a.gallery-nav-link--verify:hover {
-  background: hsl(151 57% 36%);
-  color: #fff;
-  border-color: transparent;
-}
 /* Every footer nav link shows its icon + text label on desktop; on phones the label
    collapses away (see the media query) so each button is just its icon. */
 /* Icons scale on --a11y-fs: below 640px .gallery-nav-label is hidden (see the media
@@ -436,7 +401,7 @@
 }
 .gallery-empty-hint { margin: 0; font-size: var(--fs-lg); }
 .gallery-empty-hint a,
-.gallery-retry { color: hsl(var(--primary)); font-weight: 600; }
+.gallery-retry { color: hsl(var(--primary-text)); font-weight: 600; }
 .gallery-retry {
   font: inherit;
   background: none;
@@ -502,7 +467,7 @@
 .tool-card-icon {
     display: block;
     flex-shrink: 0;
-    color: hsl(var(--primary));
+    color: hsl(var(--primary-text));
     place-self: start;
 
 }
@@ -534,7 +499,8 @@ stroke-width:.81;
    fill). It's persistent - it stays put on hover; the Open/Continue chip stacks
    just above it (see below) rather than the badge ceding the slot. */
 .gtile-hero .badge,
-.gcar .badge {
+.gcar .badge,
+.gtile-tile--iconled .badge {
   top: auto;
   left: auto;
   right: 12px;                 /* line up with .gtile-continue's gutter, not the 8px inset */
@@ -550,7 +516,8 @@ stroke-width:.81;
    shape, the warning colour as its fill. (The inline body badge on preview-less
    cards keeps its lighter, outlined treatment below.) */
 .gtile-hero .badge-experimental,
-.gcar .badge-experimental {
+.gcar .badge-experimental,
+.gtile-tile--iconled .badge-experimental {
   background: hsl(var(--destructive));
   color: hsl(var(--destructive-foreground));
   border: none;
@@ -770,7 +737,7 @@ stroke-width:.81;
 .gallery-sort-dir .sd-down { opacity: 1; }
 /* Reversed (ascending): flip the emphasis and tint the control so the non-default
    state reads at a glance (matches the filter FAB's active dot signal). */
-.gallery-sort-dir.is-asc { color: hsl(var(--primary)); border-color: hsl(var(--primary)); }
+.gallery-sort-dir.is-asc { color: hsl(var(--primary-text)); border-color: hsl(var(--primary)); }
 .gallery-sort-dir.is-asc .sd-up { opacity: 1; }
 .gallery-sort-dir.is-asc .sd-down { opacity: 0.3; }
 
@@ -820,10 +787,10 @@ stroke-width:.81;
 /* Favourites pill - leading star; the glyph carries the accent when inactive and
    rides the foreground colour when the pill is active (filled). */
 .gallery-pill--fav { display: inline-flex; align-items: center; }
-.gallery-pill--fav .pill-star { margin-right: 5px; color: hsl(var(--primary)); line-height: 1; }
+.gallery-pill--fav .pill-star { margin-right: 5px; color: hsl(var(--primary-text)); line-height: 1; }
 .gallery-pill--fav.active .pill-star { color: inherit; }
 /* Inline star used in the empty-favourites message. */
-.star-inline { color: hsl(var(--primary)); font-weight: 700; }
+.star-inline { color: hsl(var(--primary-text)); font-weight: 700; }
 
 /* CSS multi-column masonry. --cols scales with width. Column count is fixed by the
    viewport, NOT the result count: a short list (search / filter) packs into the
@@ -950,16 +917,22 @@ html[data-a11y-previews="hidden"] .gallery .ftile-iconfill svg { max-width: 52px
 /* Card size (components/view-options.ts). Step 2 is each grid's own layout and carries
    no attribute, so the ladder above is untouched by default. The other steps set a column
    shift and a width scale for the grids to read. The Tools grid packs its two smaller steps
-   by a minimum card width instead of a shift, so a card keeps its name beside "+ New"
-   (200px on a desktop; a phone allows 165px, two columns at most). Its two larger
+   by a minimum card width instead of a shift: a Grid card is its picture and one caption
+   line, so it holds together down to 150px on a desktop (about eight columns at 1280px)
+   and 110px on a phone (three columns; the next step up draws two). Its two larger
    steps move along the breakpoint ladder. */
 [data-card-size="0"] { --card-shift: 2; --card-scale: .6; }
 [data-card-size="1"] { --card-shift: 1; --card-scale: .8; }
 [data-card-size="3"] { --card-shift: -1; --card-scale: 1.35; }
 [data-card-size="4"] { --card-shift: -2; --card-scale: 1.8; }
-.tool-masonry[data-card-size="0"] { --tool-card-min: 200px; }
-.tool-masonry[data-card-size="1"] { --tool-card-min: 240px; }
-@media (max-width: 640px) { .tool-masonry[data-card-size="0"] { --tool-card-min: 165px; } }
+/* The gap shrinks with the cards, so a small card is not islanded in a gutter twice its
+   caption's height. */
+.tool-masonry[data-card-size="0"] { --tool-card-min: 150px; gap: var(--grid-gap-tight); }
+.tool-masonry[data-card-size="1"] { --tool-card-min: 200px; gap: min(var(--grid-gap), 20px); }
+@media (max-width: 640px) {
+  .tool-masonry[data-card-size="0"] { --tool-card-min: 110px; }
+  .tool-masonry[data-card-size="1"] { --tool-card-min: 165px; }
+}
 .tool-masonry:is([data-card-size="0"], [data-card-size="1"]) { grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--tool-card-min)), 1fr)); }
 .tool-masonry:is([data-card-size="3"], [data-card-size="4"]) { grid-template-columns: repeat(max(1, var(--cols) + var(--card-shift)), minmax(0, 1fr)); }
 
@@ -1022,7 +995,11 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 
 .gtile:hover .tool-card-icon svg { opacity: 1; }
 .gtile:hover .gtile-desc { color: hsl(var(--foreground)); }
-.gtile.is-navigating { opacity: 0.6; }
+/* The pressed card while its tool opens. The dim rides filter, like the hidden tools'
+   dim above, and for the same reason: the entrance cascade's card-in fill pins the
+   opacity property at 1, so an opacity dim never showed on a card the cascade had
+   revealed. opacity: 1 keeps .is-navigating's own 0.45 below from stacking on it. */
+.gtile.is-navigating { opacity: 1; filter: opacity(0.6); }
 /* Cold-load entrance: a quick, satisfying cascade. JS arms the reveal
    (.reveal-armed → tiles start hidden) and an IntersectionObserver adds .is-in
    per tile with a staggered --reveal-delay. So the above-the-fold batch cascades
@@ -1093,9 +1070,8 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
   pointer-events: none;
 }
 /* Two copies of the icon, one over the other: a static muted BASE and, over it, a
-   TRACE in the theme's --secondary colour whose dashes walk the outline while a
-   preview loads. Both inset from the tile edges so the icon floats within the
-   preview area. */
+   solid OUTLINE in the primary colour that breathes while a preview loads. Both inset
+   from the tile edges so the icon floats within the preview area. */
 .gtile-iconfill-base,
 .gtile-iconfill-trace {
   position: absolute;
@@ -1123,37 +1099,35 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 /* Base: the very muted ghost that always stands in for a missing/loading preview. */
 
 .gtile-iconfill-base {  color: var(--ui-color-surface-canvas); opacity: 0.5; transform: translatey(4px); filter: blur(6px);}
-/* Trace: hsl(var(--secondary)), the theme's secondary surface tone (not
-   --brand-secondary). styles/tokens.css sets --secondary for each theme, and
-   brand-vars.ts rebuilds the brand theme's value from the active brand's primary
-   colours. stroke-dasharray breaks each outline into short dashes, and the
-   animated dashoffset moves the dashes slowly along the outline; the gaps between
-   them show the muted base underneath. */
-.gtile-iconfill-trace {   color: hsl(var(--primary) / .35); stroke-linecap: round; stroke-linejoin: round; }
-.gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) {
-  fill:transparent;
-  stroke-width: 3px;             /* the same 3px as the base outline it walks over */
-  stroke-dasharray: 12 4;     /* 12-unit dashes, 4-unit gaps: a 16-unit pattern */
-  animation: gtile-icon-trace 4.8s linear infinite;
-
+/* Outline: the tool's icon as one solid line in a tint of the primary colour. A solid
+   line, never dashes: a dashed outline means a drop area in this app, and a card that
+   is still loading is not one. Waiting is shown by a slow change of opacity, the same
+   language as the strip's pending dots. Opacity is composited, so fifty waiting cards
+   cost no repaint (the walking dashes that stood here repainted every outline on
+   every frame, and had to be paused during the WebGPU check below for that reason). */
+.gtile-iconfill-trace {
+  color: hsl(var(--primary) / .3);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: gtile-icon-wait 2.4s ease-in-out infinite;
 }
-/* Each loop moves the dashes exactly one 16-unit pattern, so the restart shows the
-   same frame the loop began on instead of jumping half a dash. 4.8s per pattern
-   keeps the earlier pace of 200 units a minute. Change the offset with the dash
-   pattern. */
-@keyframes gtile-icon-trace { to { stroke-dashoffset: -16; } }
-/* Held still while the shell's WebGPU startup check runs (lib/startup-motion.ts): on
-   software graphics the per-frame repaint of every traced outline delayed the device
-   past its budget. Paused rather than removed, so the trace carries on from the same
-   frame once the check settles. */
-html[data-webgpu-pending] .gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) { animation-play-state: paused; }
-/* The trace is a WAITING affordance only - stop it once real art has loaded (carousel
-   .has-art / hero .is-ready), on the permanent icon-only fallback (preview gone, not
-   "loading"), and under reduced-motion - leaving just the muted base. */
+.gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) {
+  fill: transparent;
+  stroke-width: 3px;             /* the same 3px as the base outline under it */
+}
+@keyframes gtile-icon-wait { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+/* Held still while the shell's WebGPU startup check runs (lib/startup-motion.ts), as
+   every other ambient animation is. */
+html[data-webgpu-pending] .gtile-iconfill-trace { animation-play-state: paused; }
+/* The outline is a WAITING affordance only - drop it once real art has loaded (carousel
+   .has-art / hero .is-ready) and on the permanent icon-only fallback (preview gone, not
+   "loading"), leaving just the muted base. Under either Reduce motion switch the outline
+   stays and holds still, so a waiting card still shows which tool it is. */
 .gcar.has-art .gtile-iconfill-trace,
 .gtile-hero--preview.is-ready .gtile-iconfill-trace,
 .gtile-hero--icononly .gtile-iconfill-trace { display: none; }
-@media (prefers-reduced-motion: reduce) { .gtile-iconfill-trace { display: none; } }
+@media (prefers-reduced-motion: reduce) { .gtile-iconfill-trace { animation: none; } }
+html[data-a11y-motion="reduce"] .gtile-iconfill-trace { animation: none; }
 /* Once a REAL preview is showing, drop the WHOLE icon backdrop (base + trace), not just the
    animated trace above. The muted base was only ever a loading stand-in, but it sits BEHIND
    the preview (z-index:-1), so it bleeds through a preview that carries transparency and shows
@@ -1171,6 +1145,19 @@ html[data-webgpu-pending] .gtile-iconfill-trace svg :is(path, circle, rect, line
 /* Preview failed for good: pin the icon-only hero visible (it never got the load-driven
    .is-ready reveal) and lift the muted ghost a touch so the fallback still reads. */
 .gtile-hero--icononly .gtile-iconfill-base { color: hsl(var(--muted-foreground) / .32); }
+/* Performance UI renders no looks (views/gallery.ts queueCarousel). A card with a baked
+   cover still shows that file; for every other card the icon IS the picture, and the
+   soft ghost above would leave the box looking empty.
+   Draw it plainly instead: the muted ink, no blur (a filter on every tile is exactly
+   the compositing the mode drops) and a size that sits in the box rather than fills
+   it. A look that does load (a lead slide, a deck) still takes the box, as above. */
+html[data-perf-ui] .gcar .gtile-iconfill-base {
+  color: hsl(var(--muted-foreground) / .55);
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+html[data-perf-ui] .gcar .gtile-iconfill-base svg { width: 36%; height: 36%; }
 /* Cross-fade frames for a tile with several saved sessions. Every frame is already an
    absolutely-filled, contained .gtile-hero-img (see above), stacked in the same square
    box - so this only drives the dissolve. Only .is-active is opaque; the opacity
@@ -1419,10 +1406,13 @@ html[data-webgpu-pending] .gtile-iconfill-trace svg :is(path, circle, rect, line
    rather than broken. base.css's reduced-motion blocks (OS query and the app pref
    alike) stop it dead, leaving the static dim dot above - and a docs capture pins
    reduced motion, so a baseline is never mid-pulse. */
-.gcar-dot[data-look-pending] { animation: gcar-dot-wait 1.6s ease-in-out infinite; }
+/* A look is drawn once the person shows interest in its card (data-looks-wanted, set by
+   views/gallery.ts). Until then nothing is on its way, so the dot rests and does not
+   breathe: a grid of cards that all pulse reads as a page that never finishes loading. */
+.gcar[data-looks-wanted] .gcar-dot[data-look-pending] { animation: gcar-dot-wait 1.6s ease-in-out infinite; }
 @keyframes gcar-dot-wait { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 /* The pending dot holds still while the WebGPU startup check runs, like the trace above. */
-html[data-webgpu-pending] .gcar-dot[data-look-pending] { animation-play-state: paused; }
+html[data-webgpu-pending] .gcar[data-looks-wanted] .gcar-dot[data-look-pending] { animation-play-state: paused; }
 /* Touch: a 6px dot is too small to reliably tap. Grow the TAP AREA only, via a
    ::after - the dot itself never changes size (padding here would also drag its
    box-shadow out to the bigger box and read as a bigger dot). */
@@ -1519,7 +1509,7 @@ html[data-a11y-previews="hidden"] .tool-masonry:is([data-browse-layout="card"],[
 /* Icon-led empty tile - the tool's icon beside the "Open to start" note, so even a
    tool with no preview or examples reads as a real card. Column layout to give the
    icon presence. */
-.gtile-tile--iconled { flex-direction: column; gap: var(--sp-4); padding: 20px 16px; }
+.gtile-tile--iconled { position: relative; flex-direction: column; gap: var(--sp-4); padding: 20px 16px; }
 .gtile-tile-icon { display: flex; color: hsl(var(--muted-foreground) / .45); line-height: 0; }
 .gtile-tile-icon svg { width: 40px; height: 40px; }
 .gtile-tile-txt { font-size: var(--fs-sm); line-height: 1.35; color: hsl(var(--muted-foreground) / .5);; font-weight: 400; font-style: italic; }
@@ -1533,7 +1523,7 @@ html[data-a11y-previews="hidden"] .tool-masonry:is([data-browse-layout="card"],[
    hit area, so starting fresh is as obvious as the hero's Continue. */
 /* Body fills the space under the square visual so every tile in a row is the same
    height (the grid stretches them; the body takes up the slack). */
-.gtile-body { position: relative; flex: 1 1 auto; padding-bottom:32px;}
+.gtile-body { position: relative; flex: 1 1 auto; }
 /* The visual (preview hero / example carousel / icon-or-resume tile) is a fixed
    square and never shrinks in the flex column - so the grid stays regular. */
 .gtile > .gtile-hero,
@@ -1545,16 +1535,17 @@ html[data-a11y-previews="hidden"] .tool-masonry:is([data-browse-layout="card"],[
    background tint, which muddied the caption text. */
 .gtile-body--link { cursor: pointer; }
 
-/* Caption row: icon + (name / sub-line / description) + "+ New" chip + badge.
-   Top-aligned so the icon, chip and badge sit beside the title at the top of the
-   text column rather than floating against its vertical centre. */
+/* Caption row: icon + name + the starting-point chip, one line under the picture. The
+   description is Card's and List's (and the About dialog's); Grid lets the picture
+   speak. A resumable tool's "Last opened" sub-line sits under the name, so the row
+   centres on the text column. */
 .gtile-cap {
   display: flex;
-  align-items: flex-start;
-  gap: var(--sp-5);
-
+  align-items: center;
+  gap: var(--sp-4);
 }
-.gtile-cap .tool-card-icon svg { width: 36px; height: 36px; }
+.gtile-cap .tool-card-icon { flex: none; line-height: 0; }
+.gtile-cap .tool-card-icon svg { width: 24px; height: 24px; }
 .gtile-meta { min-width: 0; flex: 1; display: flex; flex-direction: column; }
 .gtile-name { text-decoration: none; }
 /* The whole text body is the click target (stretched ::after); hovering it
@@ -1569,9 +1560,136 @@ a.gtile-name:focus-visible::after {
   border-radius: calc(var(--radius) * 0.8);
 }
 
+/* A small Grid card (the smaller card-size steps, or Compact on a phone) keeps the
+   picture, the name and the count. The caption icon, the carousel arrows and the
+   status badge on the picture give way, and the name steps down a size. Swipe and the
+   dots still move between looks, and the caption still announces the status. Each
+   card is its own size container, so this follows the card, not the window. */
+@container (max-width: 200px) {
+  .tool-masonry:not([data-browse-layout]) .gtile:not(.gtile--utility) .gtile-cap { gap: var(--sp-3); padding: var(--sp-3) var(--sp-4) var(--sp-4); }
+  .tool-masonry:not([data-browse-layout]) .gtile:not(.gtile--utility) .gtile-cap > .tool-card-icon,
+  .tool-masonry:not([data-browse-layout]) .gcar-nav,
+  .tool-masonry:not([data-browse-layout]) :is(.gcar, .gtile-tile--iconled) > .badge { display: none; }
+  .tool-masonry:not([data-browse-layout]) .gtile:not(.gtile--utility) .gtile-name { font-size: var(--fs-md) !important; }
+  .tool-masonry:not([data-browse-layout]) .gtile-tpl { padding: var(--sp-1) var(--sp-3); }
+}
+
+/* On a touch screen the selection dot shows at rest (parts/object-tiles.css). On a
+   utility's flat tile the dark disc would be the loudest thing there, so it draws as
+   Card's touch ring instead (parts/browse-layout.css): smaller, a neutral ring with no
+   fill, and the primary fill only once pressed. A small Grid card keeps the disc,
+   which has to read over a picture, at a size that leaves the picture in charge. */
+@media (pointer: coarse) {
+  .tool-masonry:not([data-browse-layout]) .gtile--utility .tile-check {
+    --object-check-size: calc(18px * var(--a11y-fs));
+    background: transparent;
+    border-color: var(--ui-color-text-muted);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .tool-masonry:not([data-browse-layout]) .gtile--utility .tile-check[aria-pressed="true"] {
+    background: var(--ui-color-action-primary);
+    border-color: var(--ui-color-action-primary);
+    color: var(--ui-color-action-on-primary);
+  }
+  .tool-masonry:not([data-browse-layout]) .gtile--utility .tile-check svg { width: calc(10px * var(--a11y-fs)); height: calc(10px * var(--a11y-fs)); }
+  @container (max-width: 200px) {
+    .tool-masonry:not([data-browse-layout]) .gtile:not(.gtile--utility) .tile-check { --object-check-size: calc(20px * var(--a11y-fs)); }
+    .tool-masonry:not([data-browse-layout]) .gtile:not(.gtile--utility) .tile-check svg { width: calc(11px * var(--a11y-fs)); height: calc(11px * var(--a11y-fs)); }
+  }
+}
+
 /* (The "New" recency badge is retired - Andy 2026-08-28: it collided with the
    ".gtile-new" "+ New" start-blank action. Recency lives in the info dialog's
    "Added" line now.) */
+
+/* ── The workspace's shelf - what a connected workspace published for this person
+   (views/published-shelf.ts), above the grid: one card per template, the picture
+   first, then the name, and a Use that reads as a button before hover. Use is the
+   card's link, stretched over the whole card; the person's copy and the New version
+   button sit above that stretch so each takes its own tap. Absent on a plain build.
+   hidePreviews swaps each picture for the tool's icon. ── */
+.published-shelf { margin: var(--sp-7) var(--sp-7) 0; }
+.published-shelf-title {
+  margin: 0 0 var(--sp-5);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+.published-shelf-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr));
+  gap: var(--sp-6);
+}
+.published-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-5);
+  padding: var(--sp-4);
+  border-radius: var(--radius-lg, 16px);
+  background: hsl(var(--card));
+  box-shadow: var(--shadow-1);
+  color: hsl(var(--foreground));
+  text-decoration: none;
+}
+.published-card:hover, .published-card:focus-visible, .published-card:has(.published-card-use:focus-visible) { box-shadow: var(--shadow-2, var(--shadow-1)); }
+.published-card-media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 5.5rem;
+  width: auto;
+  max-width: 8rem;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-sm, 8px);
+  background: hsl(var(--muted) / 0.5);
+  overflow: hidden;
+}
+.published-card-thumb { width: 100%; height: 100%; object-fit: contain; }
+.published-card-media:has(.published-card-thumb) .published-card-icon { display: none; }
+.published-card-icon { display: inline-flex; color: hsl(var(--muted-foreground)); }
+.published-card-icon svg { width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); }
+.published-card-text { display: grid; gap: 2px; min-width: 0; }
+.published-card-name { font-size: var(--fs-lg); font-weight: 650; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+.published-card-sub { display: flex; align-items: center; flex-wrap: wrap; gap: 2px var(--sp-3); min-width: 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.published-card-sub > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The company card is a button with Use's look on it; a published card's Use is the
+   link, and its ::after covers the card, so a tap anywhere on the card is Use. */
+span.published-card-use { pointer-events: none; }
+a.published-card-use::after { content: ""; position: absolute; inset: 0; border-radius: var(--radius-lg, 16px); }
+/* The person's copy and the New version button take their own taps, above Use's stretch. */
+.published-card-copy, .published-card-new { position: relative; z-index: 1; }
+.published-card-copy {
+  justify-self: start;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.published-card-new {
+  flex: none;
+  font-weight: 650;
+  background: hsl(var(--primary) / .14);
+  color: hsl(var(--foreground));
+}
+@media (pointer: coarse) {
+  a.published-card-use, .published-card-new { min-height: var(--ui-size-target); display: inline-flex; align-items: center; }
+  .published-card-copy { min-height: 32px; display: inline-flex; align-items: center; }
+}
+html[data-a11y-previews="hidden"] .published-card-thumb { display: none; }
+html[data-a11y-previews="hidden"] .published-card-media .published-card-icon { display: inline-flex; }
+.gallery:not(.has-featured) .published-shelf { margin-top: 6.4rem; }
+@media (max-width: 640px) {
+  .published-shelf-row { grid-template-columns: 1fr; }
+  .gallery:not(.has-featured) .published-shelf { margin-top: calc(4.4rem + var(--safe-top)); }
+}
+/* The shelf already cleared the topbar, so what follows it sits one step below
+   it instead of clearing the bar a second time. */
+.gallery:not(.has-featured) .published-mount:has(.published-shelf) ~ .yours-shelf { margin-top: var(--sp-7); }
+.gallery:not(.has-featured) .published-mount:has(.published-shelf) ~ .tool-masonry { padding-top: var(--sp-7); }
 
 /* ── "Yours" shelf - the resident's own tools above the grid (plans/170 WP-2).
    Favourites + recents as quiet icon-and-name chips; renders only once three
@@ -1626,49 +1744,46 @@ a.gtile-name:focus-visible::after {
   text-overflow: ellipsis;
 }
 .gtile-cap .badge { position: static; }   /* badge sits inline here, not pinned */
-/* Curated starting-point count (plans/142) - a quiet line under the description;
-   the fresh open presents the chooser, so the count itself is the affordance. */
-/* It is also the card's start-a-new-session link (opens the template chooser via the
-   empty ?template= boot flag): a flat primary pill, above the stretched title link
-   (a.gtile-name::after, z-index 1) so it takes its own click. */
-.gtile-tpl,
-.gtile-tpl.btn {
+/* Curated starting points (plans/142): a document glyph and the count (or the "Start
+   with" name) at the end of the caption line. Opening the tool fresh presents the
+   chooser, so the count is the path. Quiet at rest, the accent on hover and focus,
+   and above the stretched name link (a.gtile-name::after, z-index 1) so it takes its
+   own click. The full wording is its tooltip and accessible name. */
+.gtile-tpl {
+  position: relative;
   z-index: 2;
-  width: fit-content;
-  margin: 3px auto;
-  font-size: var(--fs-2xs);
-  font-weight: 600;
-  line-height: 1;
-  background: hsl(var(--primary) / .68);
-  color: hsl(var(--primary-foreground) / 1);
-  border: 0;
-  box-shadow: none;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  max-width: 45%;
+  margin-inline-start: auto;
+  padding: var(--sp-2) var(--sp-4);
   border-radius: var(--radius-pill);
-  padding: var(--sp-3) var(--sp-6);
+  background: color-mix(in srgb, var(--ui-color-text-default) 7%, transparent);
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
   text-decoration: none;
-  transition: background var(--dur-1);
-  position:absolute;
-  bottom: 8px;
-  right:8px;
-  text-transform: uppercase;
+  white-space: nowrap;
+  transition: background var(--dur-1), color var(--dur-1);
 }
-.gtile-tpl.btn:hover {
-  color: hsl(var(--primary-foreground) / 1);
-  background: hsl(var(--primary) / 1);
-}
-/* Description lives in the meta column, directly under the title - no horizontal
-   padding of its own (the column already starts past the icon). */
+.gtile-tpl[hidden] { display: none; }
+.gtile-tpl-icon { display: flex; flex: none; }
+.gtile-tpl-icon svg { width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); }
+.gtile-tpl-n { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.gtile-tpl:hover,
+.gtile-tpl:focus-visible { background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent); }
+.gtile-tpl:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+/* The description is Card's and List's (parts/browse-layout.css hides it in Grid and
+   places it there). Its type and colour live here with the rest of the caption. */
 .gtile-desc {
   margin: 5px 0 0;
   font-size: var(--fs-sm);
   line-height: 1.45;
-  color:color-mix(in srgb, var(--ui-color-surface-muted) 50%, var(--ui-color-text-default));
-  /* Clamp to two lines so the caption block is a predictable height across every
-     tile - the last thing that would make the grid ragged. */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  color: color-mix(in srgb, var(--ui-color-surface-muted) 50%, var(--ui-color-text-default));
   overflow: hidden;
 }
 /* Export-format chips - moved OFF the card into the info (i) dialog. Grouped into
@@ -1710,16 +1825,13 @@ a.gtile-name:focus-visible::after {
   border: 1px solid hsl(var(--border) / 0.6);
 }
 .meta-fmt--default {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-weight: 600;
   background: hsl(var(--primary) / 0.12);
   border-color: hsl(var(--primary) / 0.4);
 }
 
-/* Round icon button - no longer rendered on gallery cards (tile actions live in
-   the context menu + selection toolbar now), but still the close button of the
-   folder overlay's dialogs (folder-overlay.ts), so the base class stays here in
-   the always-loaded sheet. */
+/* The component library keeps this legacy round icon-button specimen. */
 .gtile-iconbtn {
   /* Aria-labelled, no visible text, so the glyph and its tap target take the
      multiplier. (The svg below is 1em against the button's inherited, UNSCALED
@@ -1740,20 +1852,37 @@ a.gtile-name:focus-visible::after {
   transition: color var(--dur-1), border-color var(--dur-1), background var(--dur-1);
 }
 .gtile-iconbtn:hover {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   border-color: hsl(var(--primary) / 0.5);
   background: hsl(var(--primary) / 0.08);
 }
 .gtile-iconbtn svg { width: calc(1em * var(--a11y-fs)); height: calc(1em * var(--a11y-fs)); stroke-width:.125em}
 
 /* ── Utilities view (#/u) ─────────────────────────────────────────────────────
-   A utility's icon is a clear enough affordance on its own, so these tiles drop
-   the preview hero entirely and stack a LARGER icon ABOVE the title + description.
-   The box holds a fixed landscape aspect (3:2 - between 4:3 and 16:9) so every
-   tile is the same height whatever the description length. */
+   A utility's icon is a clear enough affordance on its own, so these tiles drop the
+   preview and stack the icon above the name, like an app launcher. The description
+   is for Card, List and the About dialog. The box keeps a fixed 4:3 so every tile is
+   the same height, and the grid packs by a minimum tile width: about six across a
+   1280px window and two on a phone at the default step. The card-size steps scale
+   that width (three across a phone at the smallest). */
+.tool-masonry--utility:not([data-browse-layout]) {
+  --util-min: calc(200px * var(--card-scale, 1));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--util-min)), 1fr));
+  gap: min(var(--grid-gap), 20px);
+}
+.tool-masonry--utility[data-card-size="0"]:not([data-browse-layout]) { gap: var(--grid-gap-tight); }
+/* Compact: a smaller tile on the same scale and the tight gap. */
+.tool-masonry--utility[data-browse-density="compact"]:not([data-browse-layout]) {
+  --util-min: calc(160px * var(--card-scale, 1));
+  gap: var(--grid-gap-tight);
+}
+@media (max-width: 640px) {
+  .tool-masonry--utility:not([data-browse-layout]) { --util-min: calc(160px * var(--card-scale, 1)); }
+  .tool-masonry--utility[data-browse-density="compact"]:not([data-browse-layout]) { --util-min: calc(128px * var(--card-scale, 1)); }
+}
 .gtile--utility {
   aspect-ratio: 4 / 3;
-  contain-intrinsic-size: auto 220px;
+  contain-intrinsic-size: auto 150px;
 }
 .gtile--utility .gtile-body {
   display: flex;
@@ -1764,18 +1893,33 @@ a.gtile-name:focus-visible::after {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: var(--sp-6);
-  padding: 18px 16px;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
 }
 .gtile--utility .tool-card-icon { place-self: center; }
+/* The icon scales with the tile (the tile is its own size container), from 28px on
+   the smallest step to 48px. */
 .gtile--utility .tool-card-icon svg {
-  width: 56px;
-  height: 56px;
+  width: clamp(28px, 22cqi, 48px);
+  height: clamp(28px, 22cqi, 48px);
   opacity: 0.6;
 }
 .gtile--utility:hover .tool-card-icon svg { opacity: 1; }
-.gtile--utility .gtile-meta { align-items: center; }
-.gtile--utility .gtile-name { white-space: normal; }
+.gtile--utility .gtile-meta { align-items: center; max-width: 100%; }
+.gtile--utility .gtile-name {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+/* The status line is Card's; in Grid the badge stays in the caption, under the name. */
+.gtile--utility .gtile-cap > .badge { margin-block-start: calc(-1 * var(--sp-2)); }
+/* A small tile takes a smaller name, so two lines still fit the 4:3 box. */
+@container (max-width: 160px) {
+  .gtile--utility .gtile-cap { gap: var(--sp-3); padding: var(--sp-3); }
+  .gtile--utility .gtile-name { font-size: var(--fs-md) !important; }
+}
 /* (The per-card favourite / offline / info / history icon cluster is gone: tile
    actions live in the context menu and the selection toolbar now.) */
 
@@ -1922,7 +2066,7 @@ a.gtile-name:focus-visible::after {
   background: none;
   padding: 0;
   font: inherit;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   cursor: pointer;
   text-decoration: underline;
 }
@@ -2015,7 +2159,7 @@ html[data-a11y-previews="hidden"] .tool-meta-dialog .meta-look-thumb { display: 
 .gallery-topright {
   position: fixed;
   z-index: 99999;
-  right: calc(var(--chrome-inset) + var(--vv-right, 0px));
+  right: calc(var(--chrome-inset-right) + var(--vv-right, 0px));
   top: calc(var(--chrome-top) + var(--vv-top, 0px));
   /* Inset past the edge dock (lib/edge-dock.ts) logically, so it flips with RTL; 0px when
      nothing is docked. margin-inline-end offsets a right-anchored fixed element inward. */
@@ -2091,14 +2235,6 @@ html[data-a11y-previews="hidden"] .tool-meta-dialog .meta-look-thumb { display: 
 .gallery-bulkbar-actions { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; }
 .gallery-bulkbar-actions .btn { display: inline-flex; align-items: center; gap: var(--sp-3); }
 .gallery-bulkbar-actions .btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
-.gallery-bulkbar-clear {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: calc(30px * var(--a11y-fs)); height: calc(30px * var(--a11y-fs)); flex: none;
-  border-radius: var(--radius-pill); cursor: pointer;
-  font-size: var(--fs-xl); line-height: 1; color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted) / .6); border: none;
-}
-.gallery-bulkbar-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 /* Icon-only when the labels would wrap or overflow (lib/bulk-bar.ts fitBulkBar sets
    .is-compact by measuring). Labels are clipped, not removed, so each button keeps its
    accessible name; the label is also its tooltip. */

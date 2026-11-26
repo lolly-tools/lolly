@@ -25,6 +25,11 @@ export interface ExportPolicy {
   canDownload: boolean;
   /** May the caller instead file an approval request for the result. */
   canRequestApproval: boolean;
+  /** `canDownload` for one tool: the tool's own answer where the host gave one,
+   *  otherwise the deployment-wide answer. */
+  canDownloadFor(toolId: string): boolean;
+  /** `canRequestApproval` for one tool, on the same terms. */
+  canRequestApprovalFor(toolId: string): boolean;
   /** The approval chain bound to a tool's outputs, or `undefined` when none is - 
    *  i.e. this tool's output isn't gated on this instance. */
   approvalChainFor(toolId: string): string | undefined;
@@ -44,6 +49,10 @@ export interface ExportPolicySpec {
   chains?: Record<string, string>;
   /** toolId → the format subset that tool may export (absent = unrestricted). */
   formats?: Record<string, string[]>;
+  /** toolId → that tool's own download answer, where it differs from `canDownload`. */
+  downloads?: Record<string, boolean>;
+  /** toolId → that tool's own approval-request answer, where it differs. */
+  requests?: Record<string, boolean>;
 }
 
 /** Which export affordance a policy resolves to. Dormant/`canDownload` → the
@@ -69,9 +78,13 @@ export function setExportPolicy(spec: ExportPolicySpec | undefined): void {
   if (!spec) { current = undefined; return; }
   const chains = spec.chains ?? {};
   const formats = spec.formats ?? {};
+  const downloads = spec.downloads ?? {};
+  const requests = spec.requests ?? {};
   current = {
     canDownload: spec.canDownload,
     canRequestApproval: spec.canRequestApproval,
+    canDownloadFor: (toolId: string) => Object.hasOwn(downloads, toolId) ? downloads[toolId] === true : spec.canDownload,
+    canRequestApprovalFor: (toolId: string) => Object.hasOwn(requests, toolId) ? requests[toolId] === true : spec.canRequestApproval,
     approvalChainFor: (toolId: string) => chains[toolId],
     formatsFor: (toolId: string) => formats[toolId],
   };
@@ -80,11 +93,16 @@ export function setExportPolicy(spec: ExportPolicySpec | undefined): void {
 /**
  * The affordance a policy resolves to. Pure - the single place the download-vs-
  * request-vs-blocked decision lives, so the view and its tests agree. `undefined`
- * (dormant) and `canDownload` both mean the ordinary download.
+ * (dormant) and `canDownload` both mean the ordinary download. With a `toolId`,
+ * that tool's own answers count first, so a host can withhold one tool's
+ * download and leave the rest.
  */
-export function exportAffordance(policy: ExportPolicy | undefined): ExportAffordance {
-  if (!policy || policy.canDownload) return 'download';
-  if (policy.canRequestApproval) return 'request-approval';
+export function exportAffordance(policy: ExportPolicy | undefined, toolId?: string): ExportAffordance {
+  if (!policy) return 'download';
+  const download = toolId === undefined ? policy.canDownload : policy.canDownloadFor(toolId);
+  if (download) return 'download';
+  const request = toolId === undefined ? policy.canRequestApproval : policy.canRequestApprovalFor(toolId);
+  if (request) return 'request-approval';
   return 'blocked';
 }
 

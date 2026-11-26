@@ -6,9 +6,10 @@
  * (lib/ask/*) both federate over the static site's per-locale search index - 
  * `/info/search-index.json` for English, `/info/<lang>/search-index.json`
  * otherwise, one record per page section, exactly as docs/build.ts's
- * indexSections writes it. This module is the ONE place that path, that record
- * shape, and the docs scorer's field weights live, so the two consumers cannot
- * drift (plans/99 principle 1 applied to the docs haystack).
+ * indexSections writes it. This module is the ONE place that path lives; the
+ * record shape, the field weights and the search ranking live beside it in
+ * docs-rank.ts, which the /info site bundles as well, so no consumer can drift
+ * (plans/99 principle 1 applied to the docs haystack).
  *
  * `loadDocsIndex()` is module-level, locale-keyed and cached: the index is
  * fetched once per session per locale and shared. Any failure resolves to an
@@ -21,24 +22,17 @@
  * paths stay byte-identical.
  */
 import { currentLang, docsAppHref, type Lang } from '../../i18n.ts';
-import { fold, type SearchField } from './match.ts';
+import type { DocsRecord, PreparedRecord } from './docs-rank.ts';
+import { prepareRecords } from './docs-rank.ts';
 import { infoLocaleBuilt } from '../info-locales.ts';
 
-/** One /info page section, as docs/build.ts's indexSections writes it. Keys are
- *  short because the file ships once per locale and is fetched by readers:
- *  p=page slug, t=page title, h=heading ('' for the page intro), a=anchor
- *  ('' for the page intro), x=body snippet, i=page sidebar-icon key (optional - 
- *  absent in indices built before plans/103; the consumer falls back). */
-export interface DocsRecord { p: string; t: string; h: string; a: string; x: string; i?: string }
-
-/** A record with its haystack folded once at load, not per keystroke. */
-export interface PreparedRecord { rec: DocsRecord; fields: SearchField[] }
-
-/** The docs scorer's field weights (heading > page title > body). Shared so the
- *  provider and the Ask retriever rank identically. */
-export const HEADING_WEIGHT = 8;
-export const TITLE_WEIGHT = 3;
-export const BODY_WEIGHT = 1;
+// The record shape, the weights and the folding live in docs-rank.ts, which the /info
+// site bundles too (plan 354 D4); they are re-exported here for the existing importers.
+export {
+  BODY_WEIGHT, HEADING_WEIGHT, PAGE_CONTENTS_WEIGHT, PAGE_TITLE_WEIGHT, TITLE_WEIGHT,
+  prepareRecords, rankDocs,
+} from './docs-rank.ts';
+export type { DocsRecord, PreparedRecord, RankedDocsRecord } from './docs-rank.ts';
 
 /** The /info base for a locale: English is unprefixed, every other locale lives
  *  under /info/<lang>/ (mirrors i18n.ts's docsInfoHref and the docs sidebar). A build
@@ -67,18 +61,6 @@ export function docsHrefFor(base: string, rec: DocsRecord): string {
 export function docsAppHrefFor(rec: DocsRecord): string {
   const href = docsAppHref(rec.p);
   return rec.a ? `${href}?h=${encodeURIComponent(rec.a)}` : href;
-}
-
-/** Fold a raw record list into the prebuilt-haystack shape once. */
-export function prepareRecords(records: unknown): PreparedRecord[] {
-  return (Array.isArray(records) ? (records as DocsRecord[]) : []).map((rec): PreparedRecord => ({
-    rec,
-    fields: [
-      { text: fold(String(rec.h ?? '')), weight: HEADING_WEIGHT },
-      { text: fold(String(rec.t ?? '')), weight: TITLE_WEIGHT },
-      { text: fold(String(rec.x ?? '')), weight: BODY_WEIGHT },
-    ],
-  }));
 }
 
 /** Fetch + fold the active locale's index (uncached - callers cache). */

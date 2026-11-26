@@ -85,18 +85,23 @@ table in each distinct commit tip being pushed. Branch creation, forced updates,
 multiple refs and annotated tags use Git's supplied object IDs. Deletions skip
 source checks. Intermediate commits are not checked when a later tip repairs
 them. The check reads raw Git blobs into a temporary directory, runs that commit's
-generators with `--check --allow-drift`, and removes the snapshot. Staged changes,
+generators with `--check`, and removes the snapshot. Staged changes,
 unstaged changes and untracked files cannot change the result and remain
 untouched.
 
-Stale counts never refuse a push and never fail a pull request. Every merge moves
-the generated counts in `shells/web/src/README.md` and `engine/README.md`, so a
-pull request that committed its own copy conflicted with every other open pull
-request. Pull requests leave those files alone; CI reports drift as a warning,
-and `.github/workflows/generated-readmes.yml` regenerates both after each push to
-main and proposes them as one bot pull request, "chore: regenerate generated
-READMEs". The hook and CI still refuse a map that cannot be built: a missing
-generator, missing or misordered markers, or a generator error.
+The two generated maps hold no counts, so they no longer conflict between pull
+requests. `engine/README.md` has one row per module (purpose, export, test and
+fuzz status) in path order; `shells/web/src/README.md` lists the source files of
+2,500 lines or more in path order. A row changes only when its own module or file
+is added, removed or renamed, or changes one of those properties, so a pull
+request that does that commits its own lines, and two pull requests that touch
+different modules touch different lines. The hook and CI refuse a map that is out
+of date (the message lists the rows and the command), a missing generator,
+missing or misordered markers, or a generator error. Line counts are printed by
+`pnpm run build:web-src-readme -- --stats` and never committed: they moved with
+almost every change, and committing them made every two open pull requests
+conflict. A branch based on an older main still runs that main's generators,
+which wrote counts; their drift is reported and does not refuse the push.
 
 To check a particular commit or branch before pushing:
 
@@ -104,8 +109,7 @@ To check a particular commit or branch before pushing:
 node scripts/check-pushed-generated.ts HEAD
 ```
 
-To see the regenerated maps locally (you do not need to commit them; the bot
-pull request carries them after the merge):
+To bring both maps up to date, then commit what they change:
 
 ```sh
 node scripts/gen-web-src-readme.ts
@@ -115,7 +119,11 @@ node scripts/gen-engine-modules.ts
 The existing wording checks still inspect the working tree. A local pass does not
 qualify a release.
 
-The bot pull request is opened and refreshed with the lolly-automation GitHub
+`.github/workflows/generated-readmes.yml` still regenerates both maps and the
+`api/` function bundles after each push to main and proposes any difference as
+one bot pull request. With the maps checked in every pull request it normally
+carries only the `api/` bundles; the maps are there as a safety net. The bot pull
+request is opened and refreshed with the lolly-automation GitHub
 App's token, so CI and the required `qualification` check run on it like on any
 other pull request, and auto-merge lands it once they pass. Nobody needs to close
 and reopen it. It changes only the generated READMEs and the `api/` bundles, so it

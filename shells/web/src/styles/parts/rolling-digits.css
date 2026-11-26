@@ -1,0 +1,54 @@
+/* Rolling digits (components/rolling-digits.ts): a stepped readout whose figures
+   roll to the next value. Chrome only - nothing here may be used inside the tool
+   canvas or an export stage.
+
+   The real value is the `.rd-text` span (visually hidden, read by assistive tech).
+   What shows is `.rd-roll`: one column per character, each drawing its glyphs from
+   `content` so the readout gains no text a reader or a copy could pick up. A digit
+   column holds 0-9 three times and moves with a transform; the script keeps it in
+   the middle set at rest so a roll can turn over 9 to 0 in either direction.
+
+   Everything is in em, so the large text multiplier on the host's font-size scales
+   the columns with the type. Tabular figures keep every column the same width. */
+
+.rd {
+  --rd-lh: 1.2em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rd-roll {
+  display: inline-flex;
+  align-items: flex-start;
+  vertical-align: middle;
+}
+
+.rd-col,
+.rd-ch {
+  display: inline-block;
+  height: var(--rd-lh);
+  line-height: var(--rd-lh);
+  overflow: hidden;
+}
+
+.rd-col::before {
+  content: "0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9\A 0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9\A 0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9";
+  display: block;
+  white-space: pre;
+  transform: translateY(calc(var(--rd-pos, 10) * var(--rd-lh) * -1));
+  transition: transform var(--dur-3) var(--ease-out);
+}
+/* A jump: a fast run of values, reduced motion, or the reset to the middle set. */
+.rd-col--instant::before { transition: none; }
+
+.rd-ch::before {
+  content: attr(data-ch);
+  white-space: pre;
+}
+
+/* Reduced motion (the OS setting or the app's own pref) sets figures without a roll.
+   The script already places them instantly then; these hold for any path it misses. */
+@media (prefers-reduced-motion: reduce) {
+  .rd-col::before { transition: none; }
+}
+html[data-a11y-motion="reduce"] .rd-col::before { transition: none; }

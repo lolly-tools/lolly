@@ -1,5 +1,5 @@
 <main class="utility"><div class="trim-root" data-start="{{start}}" data-end="{{end}}" data-duration="{{duration}}">
- {{#unless hasFile}}<section class="empty"><div class="mark">✂</div><h1>Trim a clip</h1><p>Cut, turn or shrink a clip, take a poster frame or a contact sheet, or extract the audio.</p><button class="btn btn--primary" type="button" data-file-pick>Choose audio or video…</button><small>Local codecs only. Nothing is uploaded.</small></section>{{/unless}}
+ {{#unless hasFile}}<section class="empty"><div class="mark" aria-hidden="true">✂</div><h1>Trim a clip</h1><p>Cut, turn or shrink a clip, take a poster frame or a contact sheet, or extract the audio.</p><button class="btn btn--primary" type="button" data-file-pick>Choose audio or video…</button><small>Local codecs only. Nothing is uploaded.</small></section>{{/unless}}
  {{#if hasFile}}<section class="card"><header><strong>{{fileName}}</strong><span>{{fileSize}}</span><button type="button" class="btn btn--ghost quiet" data-file-pick>Replace</button></header>
   {{#if available}}<div class="media">{{#if isVideo}}<video controls muted preload="metadata" src="{{sourceUrl}}"></video>{{else}}<audio controls preload="metadata" src="{{sourceUrl}}"></audio>{{/if}}</div>
    <div class="timeline" aria-label="Clip range">

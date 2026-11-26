@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "asset-export",
-  "toolVersion": "1.1.0",
-  "toolVersionRange": "1.1.0",
+  "toolVersion": "1.2.0",
+  "toolVersionRange": "1.2.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,8 +11,8 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "8f4e28486cc5cf5a0a2310e5853fece5772060f9ef61025e69c0836007ccec26",
-      "bytes": 1785
+      "sha256": "b029be0ccde3d15f4b11b2f48587fd9317bf222af7f5bd510cd39436aa7f40ca",
+      "bytes": 1787
     },
     "reference/inputs.json": {
       "sha256": "ae3523684b77b7850b26933e94b4d945854bee2f17e6271e291bdf1e9f42189a",

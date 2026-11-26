@@ -78,7 +78,7 @@ test('sans and mono are byte-identical to what they always were', async () => {
   assert.equal(await familyOf(undefined), await familyOf('sans'));
 });
 
-test('display is a closed keyword, so it never reaches the deck as a typeface NAME', async () => {
+test('display is a closed keyword: the deck names the headings face it draws in, never the word itself', async () => {
   const html = await mount({
     boxes: [
       { id: 'f1', kind: 'frame', x: 0, y: 0, w: 800, h: 600, order: 0, bg: '#ffffff' },
@@ -88,8 +88,11 @@ test('display is a closed keyword, so it never reaches the deck as a typeface NA
   const s = new JSDOM(html).window.document.querySelector('script[data-pptx-deck]')!;
   const deck = JSON.parse(s.textContent || 'null');
   const run = deck.slides[0].elements[0].paras[0].runs[0];
-  assert.equal(run.font, undefined,
-    'a CSS custom property is not a PowerPoint face - the deck theme font applies instead');
+  // The custom property the canvas draws the slot in. The exporter resolves it to the
+  // stack's first family against the exported node (tests/design-pptx.test.ts), and a
+  // slot that resolves to nothing is left off, so `display` or `var(...)` never reaches
+  // the .pptx as a face.
+  assert.equal(run.font, 'var(--font-display, var(--font-brand))');
 });
 
 test('the default document sets its headline in the display face', () => {

@@ -427,13 +427,21 @@ update), recompressed to WOFF2 for the web. No glyphs, metrics or name-table
 entries were changed.`;
 
 // world-atlas TopoJSON bundled for the meeting-planner map.
-const WORLD_ATLAS_TEXT = `tools/meeting-planner/lib/countries-110m.json is a world-atlas TopoJSON
-build (https://github.com/topojson/world-atlas), under the ISC License,
+const WORLD_ATLAS_TEXT = `tools/meeting-planner/lib/countries-110m.json and
+tools/timezone/data/countries-50m.json and countries-110m.json are world-atlas
+TopoJSON builds (https://github.com/topojson/world-atlas), under the ISC License,
 Copyright Mike Bostock. Its geometry is derived from Natural Earth
 (https://www.naturalearthdata.com), which is released into the public
 domain (Natural Earth Terms of Use).
 
 ${ISC_BODY}`;
+
+// Attribution for data derived from OpenStreetMap. The ODbL asks for a notice
+// that states the licence and gives its address; the full text is at that
+// address and in community/timezone/licenses/TZ-ODbL.txt.
+const OSM_ODBL_TEXT = `Map data © OpenStreetMap contributors (https://www.openstreetmap.org/copyright).
+This derived data is available under the Open Data Commons Open Database
+License 1.0 (ODbL): https://opendatacommons.org/licenses/odbl/1-0/`;
 
 // Flathub's shared-modules, vendored at shells/tauri-desktop/flatpak/shared-modules/
 // (a nested git submodule until the 2026-09-11 fold). The upstream repository ships NO
@@ -570,7 +578,7 @@ const MANIFEST: {
     },
     {
       name: 'GridCraft number formats and Rust dependencies',
-      version: '0.14.2 (5e415cdd34d287b90a4a9df67eb4f532f6f72d96; pinned Cargo.lock)',
+      version: '0.19.1 (main at 11a5711ab11c4b94acce63faa07bb42c058c124f; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT AND Unicode-3.0',
       copyright: 'Storytold and individual crate authors, reproduced in the notices below.',
       files: 'packages/node-shell/wasm/xlsx-numfmt/xlsx-numfmt.wasm',
@@ -580,12 +588,12 @@ const MANIFEST: {
     },
     {
       name: 'GridCraft formula engine and Rust dependencies',
-      version: '0.14.2 (5e415cdd34d287b90a4a9df67eb4f532f6f72d96; pinned Cargo.lock)',
+      version: '0.19.1 (main at 11a5711ab11c4b94acce63faa07bb42c058c124f; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT AND Unicode-3.0',
       copyright: 'Storytold and individual crate authors, reproduced in the notices below.',
       files: 'packages/node-shell/wasm/gridcraft-calc/gridcraft-calc.wasm',
       text: readFileSync(join(ROOT, 'packages/node-shell/wasm/gridcraft-calc/LICENSES.txt'), 'utf8'),
-      note: 'GridCraft gridcraft-calc, gridcraft-formula, gridcraft-functions, gridcraft-model, gridcraft-numfmt and gridcraft-core compiled through a bounded Lolly byte adapter. Source changes: an injected clock and random seed in place of the system clock, and the regular-expression functions left out. MIT is elected for dependencies offering that licence choice. Source, modifications and build instructions are in packages/node-shell/wasm/gridcraft-calc/.',
+      note: 'GridCraft gridcraft-calc, gridcraft-formula, gridcraft-functions, gridcraft-model, gridcraft-numfmt and gridcraft-core compiled through a bounded Lolly byte adapter. Source changes: an injected clock and random seed in place of the system clock, lower array and lambda limits, and the regular-expression functions and equation layout left out. MIT is elected for dependencies offering that licence choice. Source, modifications and build instructions are in packages/node-shell/wasm/gridcraft-calc/.',
       where: 'web',
     },
     {
@@ -640,13 +648,23 @@ const MANIFEST: {
     },
     {
       name: 'VectorCraft Affinity reader',
-      version: '0.19.0 (05d5f99fd7e7dc00db3a9754d594b1214945d855; pinned Cargo.lock)',
+      version: '0.24.0 (1b744eae520b7f0e1980d030560194b2121ae651; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT',
       copyright: 'The ArtCraft Team and the VectorCraft contributors, reproduced in the notices below.',
       files: 'packages/node-shell/wasm/affinity/affinity.wasm',
       text: readFileSync(join(ROOT, 'packages/node-shell/wasm/affinity/LICENSES.txt'), 'utf8'),
       note: 'Standalone vectorcraft-affinity crate (MIT is elected from MIT OR Apache-2.0) compiled through a bounded Lolly byte adapter. The file layout was learned from the MIT-licensed afread description and checked against public documents; no Affinity software was used. The provenance, the clean-room account and the one local edit are in packages/node-shell/wasm/affinity/vendor/vectorcraft-affinity/UPSTREAM.md. Source, build instructions and licences are in packages/node-shell/wasm/affinity/.',
       where: 'web',
+    },
+    {
+      name: 'lolly-render Node binding and its Rust dependencies',
+      version: '0.1.0 (pinned crates/lolly-render-node/Cargo.lock)',
+      spdx: 'MPL-2.0 AND MIT AND BSD-3-Clause AND BSD-2-Clause AND ISC AND Zlib',
+      copyright: 'Individual crate authors, reproduced in the notices below.',
+      files: 'crates/lolly-render-node (lolly-render.<platform>.node, built by .github/workflows/lolly-render-addon.yml)',
+      text: readFileSync(join(ROOT, 'crates/lolly-render-node/LICENSES.txt'), 'utf8'),
+      note: 'The Design page renderer (crates/lolly-render) and its napi-rs binding, which the Node shells load only when LOLLY_DESIGN_RASTER=lolly-render asks for it. Not yet in a published package. Upstream crates are unmodified, and MIT is elected for dependencies offering that licence choice; the list is written by scripts/build-lolly-render-notices.ts.',
+      where: 'cli',
     },
     {
       name: 'storytold indd-utils INDD converter',
@@ -660,7 +678,7 @@ const MANIFEST: {
     },
     {
       name: 'storytold photocraft camera raw decoder',
-      version: '0.18.0 (97a83f074f5407841a1444ee3f9be478ce03368b; pinned Cargo.lock)',
+      version: '0.18.0 (97a83f074f5407841a1444ee3f9be478ce03368b with upstream fixes 06bedca787a4, c004e38e759a and 4c33a7b8f216; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT',
       copyright: 'The ArtCraft Team and the PhotoCraft contributors, reproduced in the notices below.',
       files: 'packages/node-shell/wasm/camera-raw/camera-raw.wasm',
@@ -729,12 +747,25 @@ const MANIFEST: {
     },
     {
       name: 'three.js',
-      version: '0.185.1 (r185)',
+      version: '0.186.1 (r186)',
       spdx: 'MIT',
       copyright: 'Copyright © 2010-2026 three.js authors',
-      files: 'tools/chart/lib/three-chart.min.js',
+      files: 'tools/chart/lib/three-chart.min.js, tools/timezone/lib/renderer.min.js',
       text: `Copyright © 2010-2026 three.js authors\n\n${MIT_BODY}`,
-      note: "Chart's lazy WebGL build carries only its scene, geometry, material and lighting primitives and is rebuilt by scripts/build-chart-three.ts. It stays at r185 until that bundle is next rebuilt.",
+      note: "Chart's lazy WebGL build carries only its scene, geometry, material and lighting primitives, the PMREM generator and the RoundedBoxGeometry addon, and is rebuilt by scripts/build-chart-three.ts. The Timezone renderer bundles the parts of three.js it uses with its own code; scripts/build-timezone.ts rebuilds it, and the committed file reproduces byte for byte from three 0.186.1.",
+      where: 'web',
+    },
+    {
+      name: 'd3-geo and d3-array (Timezone bundles)',
+      version: 'd3-geo 3.1.1, d3-array 3.2.4',
+      spdx: 'ISC',
+      copyright: 'Copyright 2010-2024 Mike Bostock (d3-geo); Copyright 2010-2023 Mike Bostock (d3-array)',
+      files: 'tools/timezone/hooks.js, tools/timezone/lib/renderer.min.js',
+      text: [
+        readFileSync(join(ROOT, 'community/timezone/licenses/D3-ISC.txt'), 'utf8').trim(),
+        readFileSync(join(ROOT, 'community/timezone/licenses/D3-array-ISC.txt'), 'utf8').trim(),
+      ].join('\n\n---\n\n'),
+      note: 'Bundled into the Timezone hooks and renderer by scripts/build-timezone.ts. Both files reproduce byte for byte from these versions. The licence texts are the upstream files, kept beside the tool in tools/timezone/licenses/.',
       where: 'web',
     },
     {
@@ -767,6 +798,49 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'React and ReactDOM (UMD production builds)',
+      version: '18.3.1',
+      spdx: 'MIT',
+      copyright: 'Copyright (c) Facebook, Inc. and its affiliates.',
+      files: 'tools/sandbox/lib/react.production.min.js, tools/sandbox/lib/react-dom.production.min.js',
+      text: `Copyright (c) Facebook, Inc. and its affiliates.\n\n${MIT_BODY}`,
+      note: 'The umd/*.production.min.js files of the react and react-dom 18.3.1 npm packages, unchanged (SHA-256 pinned in security/vendor-artifacts.json). The Sandbox tool loads them for the code it runs.',
+      where: 'web',
+    },
+    {
+      name: 'Babel standalone (@babel/standalone)',
+      version: '8.0.4',
+      spdx: 'MIT',
+      copyright: 'Copyright (c) 2014-present Sebastian McKenzie and other contributors',
+      files: 'tools/sandbox/lib/babel.min.js',
+      text: `Copyright (c) 2014-present Sebastian McKenzie and other contributors\n\n${MIT_BODY}`,
+      note: 'The babel.min.js file of the @babel/standalone 8.0.4 npm package, unchanged (SHA-256 pinned in security/vendor-artifacts.json). The Sandbox tool uses it to compile JSX and TypeScript in the browser.',
+      where: 'web',
+    },
+    {
+      name: 'Paper Shaders (@paper-design/shaders)',
+      version: '0.0.80',
+      spdx: 'Apache-2.0',
+      copyright: 'Copyright 2026 Paper',
+      files: 'tools/backdrop/lib/paper-shaders.min.js',
+      text: [
+        readFileSync(join(ROOT, 'community/backdrop/lib/NOTICE'), 'utf8').trim(),
+        readFileSync(join(ROOT, 'community/backdrop/lib/LICENSE'), 'utf8').trim(),
+      ].join('\n\n---\n\n'),
+      note: 'A tree-shaken bundle of ShaderMount, two colour and noise helpers and 15 fragment shaders from the 0.0.80 npm package; the LICENSE and NOTICE beside it match that package byte for byte. The command and entry file that made the bundle were not recorded when it was vendored (it first appears in the lolly-tools snapshot of 2026-08-27), so the tree cannot rebuild these bytes: an esbuild 0.28.2 IIFE build of the same 18 exports from the 0.0.80 package gives the same code in a different module order.',
+      where: 'web',
+    },
+    {
+      name: 'webgl-noise 3D simplex noise (inlined GLSL)',
+      version: 'git e2f27ac204eef3c7af479d8354d50e6a65639223 (src/noise3D.glsl)',
+      spdx: 'MIT',
+      copyright: 'Copyright (C) 2011 by Ashima Arts (Simplex noise); Copyright (C) 2011-2016 by Stefan Gustavson (Classic noise and others)',
+      files: 'tools/gradient/template.html (the Flow mode shader)',
+      text: `Copyright (C) 2011 by Ashima Arts (Simplex noise)\nCopyright (C) 2011-2016 by Stefan Gustavson (Classic noise and others)\n\n${MIT_BODY}`,
+      note: 'By Ian McEwan and Stefan Gustavson (https://github.com/ashima/webgl-noise). No revision was recorded when the functions were inlined on 2026-08-26. Compared later, they match src/noise3D.glsl token for token at every upstream commit from fbfcc21fbe22 (2011-08-13) to e2f27ac204ee (2016-05-13); upstream changed the function on 2020-10-14.',
+      where: 'web',
+    },
+    {
       name: 'signalsmith-stretch (WASM)',
       version: '1.3.2',
       spdx: 'MIT',
@@ -789,13 +863,34 @@ const MANIFEST: {
     },
     {
       name: 'libopenmpt (compiled WASM)',
-      version: '0.8.7 (Emscripten build)',
+      version: '0.8.10 (Emscripten build)',
       spdx: 'BSD-3-Clause',
       copyright:
         '© 2004-2026 OpenMPT Project Developers & Contributors; © 1997-2003 Olivier Lapicque',
       files: 'shells/web/src/vendor/libopenmpt/libopenmpt.mjs',
       text: LIBOPENMPT_TEXT,
       note: 'Tracker-module (.mod/.xm/.s3m/.it/…) decoder. Built from source with permissive internal codecs only - see scripts/build-libopenmpt-wasm.sh.',
+      where: 'web',
+    },
+    {
+      name: 'libjxl JPEG XL codec (compiled WASM)',
+      version: '0.13.0 (5a7da83447212fe4900fc29ce97430b881caa67e) with Brotli 1.2.1, Highway 1.2.0 and skcms 96d9171c94b9; Emscripten 4.0.23',
+      spdx: 'BSD-3-Clause AND MIT AND (Apache-2.0 OR BSD-3-Clause) AND (MIT OR NCSA)',
+      copyright: 'The JPEG XL Project Authors; the Brotli Authors; Google LLC (Highway, skcms); Emscripten authors',
+      files: 'packages/node-shell/wasm/jxl/lolly-jxl.wasm, packages/node-shell/wasm/jxl/vendor/lolly-jxl.mjs',
+      text: (
+        [
+          ['libjxl', 'LICENSE.libjxl'],
+          ['libjxl additional IP rights grant (patents)', 'PATENTS.libjxl'],
+          ['Brotli', 'LICENSE.brotli'],
+          ['Highway (Apache-2.0 OR BSD-3-Clause; the Apache-2.0 text follows)', 'LICENSE.highway'],
+          ['skcms', 'LICENSE.skcms'],
+          ['Emscripten runtime glue', 'LICENSE.emscripten'],
+        ] as [string, string][]
+      )
+        .map(([title, file]) => `${title}:\n\n${readFileSync(join(ROOT, 'packages/node-shell/wasm/jxl', file), 'utf8').trim()}`)
+        .join('\n\n---\n\n'),
+      note: 'libjxl with Brotli, Highway and skcms at the libjxl v0.13.0 submodule pointers (Brotli db24a98aed38, the v1.2.1 tag; Highway 457c891775a7, the 1.2.0 tag), compiled with Lolly\'s adapter (scripts/jxl/adapter.cc) by scripts/build-jxl-wasm.sh. The upstream sources are unchanged. Licence files, hashes and build notes are in packages/node-shell/wasm/jxl/; the commits are also in security/vendor-artifacts.json.',
       where: 'web',
     },
     {
@@ -831,23 +926,44 @@ const MANIFEST: {
     },
     {
       name: 'Composa edge tracer (adapted)',
-      version: 'git 4322495dae4836c0be26d1c85b0741bc63798a30',
+      version: 'git 212dfa7c70ab3455cb9ef2ef49788d5df63c2604 (EdgeTracer.cs blob f1f3bfbdda46)',
       spdx: 'MIT',
       copyright: 'Copyright (c) 2026 Dennis van der Stelt',
       files: 'engine/src/edge-trace.ts',
       text: `Copyright (c) 2026 Dennis van der Stelt\n\n${MIT_BODY}`,
-      note: 'The Canny thresholds, the chain following with its one-pixel gap bridge and the Douglas-Peucker simplification, translated into Lolly\'s own code from Composa (https://github.com/dvdstelt/Composa), src/Composa.Core/Painting/EdgeTracer.cs. No Composa source file is copied. Used by the MCP server\'s lolly_trace_edges.',
+      note: 'The Canny thresholds, the chain following with its one-pixel gap bridge and the Douglas-Peucker simplification, translated into Lolly\'s own code from Composa (https://github.com/dvdstelt/Composa), src/Composa.Core/Painting/EdgeTracer.cs. No Composa source file is copied. Used by the MCP server\'s lolly_trace_edges. It was adapted from commit 4322495dae48, which is no longer on Composa\'s main branch; EdgeTracer.cs there is the same file (blob f1f3bfbdda46) as at 212dfa7c70ab, the last commit that commit shares with main, and as on main today.',
+      where: 'web',
+    },
+    {
+      name: 'Detent physics (@hayderkg/detent, vendored)',
+      version: '0.1.1 (git 2887e4abcc3ddfbdb3f2b76bec6049665e1bbb94)',
+      spdx: 'MIT',
+      copyright: 'Copyright (c) 2026 Hayder',
+      files: 'shells/web/src/lib/detent-physics.ts',
+      text: `Copyright (c) 2026 Hayder\n\n${MIT_BODY}`,
+      note: 'The framework-free physics of Detent (https://github.com/hayderkg/detent): src/physics/* (springs, the coast and release planner, the velocity tracker, snapping, rubber band and tick crossings), the Physics presets and the wheel and trackpad reading from src/engine/engine.ts, joined into one file with the full notice in its header and its local changes listed there. The byte pin is in security/vendor-artifacts.json. Drives the Cover Flow, the ruler dial and present-mode swipes. Detent\'s demo site carries no licence, so nothing from it is copied.',
+      where: 'web',
+    },
+    {
+      name: 'Jelly UI (vendored, patched)',
+      version: 'snapshot 2026-07-21 (jelly-org/ui 8e39a8e61b5a43a562ae85e4b01191d333d5b121, established later)',
+      spdx: 'MIT',
+      copyright: 'Copyright (c) 2026 bmson; bundled Fluent System Icons Copyright (c) 2020 Microsoft Corporation',
+      files: 'shells/web/src/vendor/jelly/jelly.mjs',
+      text: `${readFileSync(join(ROOT, 'shells/web/src/vendor/jelly/LICENSE.jelly.txt'), 'utf8').trim()}\n\n---\n\nFluent System Icons (https://github.com/microsoft/fluentui-system-icons), bundled by Jelly UI:\n\nCopyright (c) 2020 Microsoft Corporation\n\n${MIT_BODY}`,
+      note: 'The built ESM bundle served at https://jelly-ui.com/dist/jelly.js on 2026-07-21, with one local performance patch (shells/web/src/vendor/jelly/README.md). The source commit was not recorded at the time; the README gives the evidence for 8e39a8e. The byte pin is in security/vendor-artifacts.json.',
       where: 'web',
     },
   ],
   icons: [
     {
       name: 'Lucide',
-      version: '(icon path data)',
+      version: '(icon path data; Lucide version not recorded)',
       spdx: 'ISC',
       copyright: '© Lucide Contributors (portions © Cole Bemis, Feather, MIT)',
       files: 'all 27 tools/*/icon.svg, the web shell icon registry (shells/web/src/lib/icons.ts) and Lolly Demo\'s two-tone Etiquette icons (brands/lolly-demo/catalog/assets/lolly/icons/*.svg, outlined from the registry drawings)',
       text: LUCIDE_TEXT,
+      note: 'The path data was copied by hand, into the tool icons from 2026-06-27 and into the shell icon registry from 2026-07-12, with no Lucide release recorded, so the drawings may come from more than one release. No Lucide package is installed.',
       where: 'web',
     },
   ],
@@ -877,8 +993,31 @@ const MANIFEST: {
       version: '(TopoJSON, Natural Earth-derived)',
       spdx: 'ISC AND public-domain',
       copyright: 'Copyright Mike Bostock; underlying data © Natural Earth (public domain)',
-      files: 'tools/meeting-planner/lib/countries-110m.json',
+      files: 'tools/meeting-planner/lib/countries-110m.json, tools/timezone/data/countries-50m.json, tools/timezone/data/countries-110m.json',
       text: WORLD_ATLAS_TEXT,
+      where: 'web',
+    },
+    {
+      name: 'OpenStreetMap street and water clips (Street Map)',
+      version: 'Overpass API extract committed 2026-06-22',
+      spdx: 'ODbL-1.0',
+      copyright: '© OpenStreetMap contributors',
+      files: 'tools/street-map/lib/roads/*.json (53 cities)',
+      text: OSM_ODBL_TEXT,
+      note: 'Road and water geometry fetched from the public Overpass API by scripts/build-street-clips.ts and clipped around each city centre. The extract date and the Overpass data timestamp were not recorded. All 53 clips are unchanged since they were first committed on 2026-06-22, the day the script was written, so the data is OpenStreetMap as Overpass served it then. History before 2026-07-07 is kept in an archive tag rather than on main, where the clips first appear on 2026-07-08 with the same bytes.',
+      where: 'web',
+    },
+    {
+      name: 'Timezone tool data (boundaries, places and cities)',
+      version: 'Timezone Boundary Builder 2026c; tzdb zone.tab 2026c; city-timezones 3b4979521a38',
+      spdx: 'ODbL-1.0 AND MIT AND public-domain',
+      copyright: '© OpenStreetMap contributors (boundaries); Kevin Roberts and city-timezones contributors (cities)',
+      files: 'tools/timezone/data/timezones.json, places.json, zone.tab and cities.json',
+      text: [
+        OSM_ODBL_TEXT,
+        `city-timezones (https://github.com/kevinroberts/city-timezones), reduced into tools/timezone/data/cities.json:\n\n${readFileSync(join(ROOT, 'community/timezone/licenses/city-timezones-MIT.txt'), 'utf8').trim()}`,
+      ].join('\n\n---\n\n'),
+      note: 'The time zone boundaries are a derived database of Timezone Boundary Builder 2026c, itself derived from OpenStreetMap, and stay under the ODbL. zone.tab, and the coordinates taken from it into places.json, are public domain as the file states. The country outlines are listed under world-atlas. tools/timezone/THIRD_PARTY.md describes each file and the transformation, and tools/timezone/licenses/ holds the full licence texts. Refreshed by scripts/vendor-timezone-data.ts.',
       where: 'web',
     },
   ],
@@ -941,10 +1080,11 @@ const ZXING_CPP_WASM_ENTRY: Entry = {
 
 // The upstream HarfBuzz WASM is a distinct shipped component carried inside the
 // harfbuzzjs npm package, so it sits next to the npm web group rather than in
-// the MANIFEST above.
+// the MANIFEST above. The harfbuzzjs version comes from the lockfile, like the
+// npm entry it follows, so the label cannot fall behind the installed package.
 const HARFBUZZ_WASM_ENTRY: Entry = {
   name: 'HarfBuzz (compiled WASM)',
-  version: '(bundled in harfbuzzjs 1.4.0)',
+  version: `(bundled in harfbuzzjs ${lockedVersion('harfbuzzjs') ?? 'version not locked'})`,
   spdx: 'MIT (HarfBuzz "Old MIT")',
   copyright: '© Google, Behdad Esfahbod, Red Hat, et al.',
   files: 'node_modules/harfbuzzjs/dist/harfbuzz.wasm, harfbuzz-subset.wasm (shipped)',

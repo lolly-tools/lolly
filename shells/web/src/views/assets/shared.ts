@@ -10,6 +10,7 @@ import { t } from '../../i18n.ts';
 import { mountZoomHud } from '../../components/zoom-hud.ts';
 import type { TextSignalPanel } from '../valid-text.ts';
 import { icon } from '../../lib/icons.ts';
+import { escape as escapeText } from '../../utils.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { perfUiOn } from '../../feature-flags.ts';
 import { halfWindow, offsetToUv } from '../../lib/loupe-gl.ts';
@@ -18,13 +19,16 @@ import type { FontDownload } from '../../lib/typefaces.ts';
 import type { RewordCandidate, RewordSpan, RewordSuggestion } from '@lolly/engine';
 import type { RewordStatus } from '../../lib/reworder.ts';
 import type { DerivedSignInputs } from '../../lib/derived-asset.ts';
-import type { AssetRef, HostV1, Profile } from '@lolly-tools/core/host-v1';
+import type { AssetQuery, AssetRef, HostV1, Profile } from '@lolly-tools/core/host-v1';
+import type { AssetScope } from '../../lib/design-system/asset-scope.ts';
 import type { EmojiPackPinV1 } from '@lolly-tools/core/emoji-v1';
 import type { EmojiSpecimenSource } from '../../lib/emoji-specimen.ts';
 import { VISUAL_TYPES } from '../../lib/asset-kinds.ts';
+import { workspaceTemplateOf, type WorkspaceTemplate } from '../../lib/workspace-templates.ts';
 import { actionButtonContent } from '../../components/action-button.ts';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
 import type { IconTheme } from '../../../../../engine/src/icon-theme.ts';
+import { COLOURWAY_LOOK_PREFIX, ON_DARK_SUFFIX } from '../../../../../engine/src/brand-treatments.ts';
 
 export interface AssetDownloadAppearance {
   theme: IconTheme | null;
@@ -133,6 +137,13 @@ export const isCanonicalGlyphKey = (key: string): boolean => /^[0-9a-f]{4,6}(?:-
  * not a pack: every field the host needs to load the set has to be there, or the
  * tile would be an offer nothing can honour.
  */
+/** A workspace template this person can start from (lib/workspace-templates.ts): the
+ *  details sheet's Use opens its tool from the template. A retired one is never offered. */
+export function startableTemplate(ref: AssetRef | undefined): WorkspaceTemplate | null {
+  const tpl = workspaceTemplateOf(ref);
+  return tpl && !tpl.retired ? tpl : null;
+}
+
 export function emojiPackMeta(ref: AssetRef | undefined): EmojiPackTileMeta | null {
   if (ref?.type !== 'data') return null;
   const value = (ref.meta as { emoji?: unknown } | undefined)?.emoji;
@@ -315,8 +326,10 @@ export interface CatalogHost extends HostV1 {
     // The meta-only annotation write (AI-signals note, declare-AI-origins): no
     // quota metering, no pin-preserve - the stored bytes are untouched.
     _updateUserAssetMeta(id: string, meta: Record<string, unknown>, patch?: { aiGenerated?: 'full' | 'partial' | null }): Promise<void>;
-    _iconThemes?(): Promise<IconTheme[]>;
+    _iconThemes?(forAssetId?: string, ground?: AssetGround): Promise<IconTheme[]>;
     _photoTreatments?(): Promise<PhotoTreatment[]>;
+    _queryEverySystem?(filter?: AssetQuery): Promise<AssetRef[]>;
+    _assetScope?(): Promise<AssetScope | null>;
     _sourceHistory?: ReturnType<typeof import('../../bridge/assets.ts').createAssetsAPI>['_sourceHistory'];
   };
   profile: HostV1['profile'] & { set(profile: Profile): Promise<unknown> };
@@ -331,16 +344,75 @@ export const isThemable = (ref: AssetRef): boolean => {
   const tags = ref.meta?.tags as string[] | undefined;
   return Boolean(tags?.includes('themable') || tags?.includes('illustration'));
 };
-// The ground a tile should give its artwork when the chrome is the other way round
-// (asset-shared.css): a two-colour icon's default pairing and a logo tagged on-light
-// are drawn for light, a logo tagged on-dark for dark. Untagged art keeps the checker.
-export type TileGround = 'duo' | 'on-light' | 'on-dark' | '';
-export const tileGround = (ref: AssetRef): TileGround => {
-  const tags = (ref.meta?.tags as string[] | undefined) ?? [];
-  if (tags.includes('themable')) return 'duo';
-  if (!tags.includes('logo')) return '';
-  return tags.includes('on-dark') ? 'on-dark' : tags.includes('on-light') ? 'on-light' : '';
-};
+// The ground behind every asset: a soft checkerboard in the app's own light or dark
+// scheme (styles/parts/object-tiles.css). The toolbar's Dark ground switch flips it, so
+// artwork drawn for the other kind of surface, such as a reverse logo or a light icon
+// pairing, can be checked where it will be used. A chrome preference on this device,
+// stored only while it differs from the scheme, so a person who never touches the
+// switch always sees the ground follow the theme.
+export type AssetGround = 'light' | 'dark';
+export const ASSET_GROUND_KEY = 'lolly-asset-ground';
+/** The light or dark scheme the app chrome is drawn in right now. */
+export function appScheme(): AssetGround {
+  try {
+    const scheme = getComputedStyle(document.documentElement).colorScheme;
+    if (/dark/.test(scheme)) return 'dark';
+    if (/light/.test(scheme)) return 'light';
+  } catch { /* no styles yet: read the theme name below */ }
+  return (document.documentElement.dataset.theme ?? 'light') === 'light' ? 'light' : 'dark';
+}
+/** The ground the assets sit on: the stored choice, else the app's scheme. */
+export function readAssetGround(): AssetGround {
+  try {
+    const stored = localStorage.getItem(ASSET_GROUND_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+  } catch { /* storage off: follow the scheme */ }
+  return appScheme();
+}
+/** Remember a ground, or forget it when it is the one the scheme gives anyway. */
+export function writeAssetGround(ground: AssetGround): void {
+  try {
+    if (ground === appScheme()) localStorage.removeItem(ASSET_GROUND_KEY);
+    else localStorage.setItem(ASSET_GROUND_KEY, ground);
+  } catch { /* storage off: the switch still works until the view closes */ }
+}
+/** Is the ground the other way round from the app's scheme? */
+export const groundFlipped = (): boolean => readAssetGround() !== appScheme();
+/** Mark an element whose assets sit on the other ground (the grid, the details sheet). */
+export function applyAssetGround(el: Element | null | undefined): void {
+  el?.toggleAttribute('data-ground-flipped', groundFlipped());
+}
+
+// The Dark ground switch. The ground behind every asset follows the app's scheme; this
+// switch puts it on dark (or back on light), so artwork drawn for the other surface can
+// be checked, and the icon colours a colourway offers follow it (iconThemeForGround).
+// One label, pressed while the ground is dark, so the button reads the same way in
+// either theme. The toolbar holds one, so does each icon group's Colours row and so
+// does an asset's own Colours row in the details sheet; wiring.ts syncAssetGround
+// keeps them in step.
+export function groundSwitchHtml(): string {
+  const dark = readAssetGround() === 'dark';
+  const label = t('Dark ground');
+  return `<button type="button" class="cat-showhidden cat-ground${dark ? ' is-on' : ''}" aria-pressed="${dark}" aria-label="${escapeText(label)}" title="${escapeText(label)}">${icon('moon', { size: 15 })}<span class="cat-btn-label">${label}</span></button>`;
+}
+// The icon colours a colourway gives depend on the ground. On a light ground a strip
+// offers the colourway's own pairing (`colourway-<id>`); on a dark ground it offers that
+// colourway's pairing for a dark ground (`colourway-<id>--on-dark`), whose two tones are
+// both light enough to read there (engine/src/brand-treatments.ts colourwayInks). The
+// Dark ground switch therefore moves every swatch and every chosen pair with the ground.
+/** The same colourway's pairing for a ground. An id no colourway made comes back as it is. */
+export function iconThemeForGround(id: string | null | undefined, ground: AssetGround): string | null {
+  if (!id) return null;
+  if (!id.startsWith(COLOURWAY_LOOK_PREFIX)) return id;
+  const light = id.endsWith(ON_DARK_SUFFIX) ? id.slice(0, -ON_DARK_SUFFIX.length) : id;
+  return ground === 'dark' ? `${light}${ON_DARK_SUFFIX}` : light;
+}
+/** The offered pairing an id names. A pairing chosen on the other ground answers with the
+ *  same colourway's pairing for the ground the strip is on now. */
+export function iconThemeById(cat: { iconThemes: IconTheme[]; iconThemeGround: AssetGround }, id: string | null | undefined): IconTheme | undefined {
+  const want = iconThemeForGround(id, cat.iconThemeGround);
+  return want ? cat.iconThemes.find(th => th.id === want) : undefined;
+}
 
 // Sentinel "theme" = the asset's own bytes, unchanged. Downloading the original
 // keeps any embedded Content Credential intact byte-for-byte; a recolour changes
@@ -366,8 +438,9 @@ export function downloadName(ref: AssetRef, ext: string): string {
     .replace(/\.[a-z0-9]+$/i, '')
     .replace(/[^\w.\- ]+/g, '').trim().replace(/\s+/g, '-').toLowerCase() || 'asset';
   // A rondocode song's stored bytes are its canonical JSON, which rondocode itself
-  // opens as `.rondo.json`; a bare `.rondo` would claim rondo-language text.
-  return `${base}.${ext === 'rondo' ? 'rondo.json' : ext}`;
+  // opens as `.rondo.json`; a bare `.rondo` would claim rondo-language text. A saved
+  // station tune is JSON too (lib/lofi-tune.ts).
+  return `${base}.${ext === 'rondo' ? 'rondo.json' : ext === 'lofi' ? 'lofi.json' : ext}`;
 }
 export const svgTextToDataUrl = (svg: string): string => 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 // Read a Blob's bytes as a `data:` URI - a self-contained href for an SVG <image>

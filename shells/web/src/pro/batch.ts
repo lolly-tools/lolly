@@ -11,6 +11,7 @@
  * Failures are isolated - one bad row is recorded and the batch continues.
  */
 import { renderRowToBlob, getTool, isExportable } from './render-export.ts';
+import { isMusicRow } from './folder-rows.ts';
 import { deriveExportFilename } from '@lolly/engine';
 import { playSfx } from '../lib/sfx.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
@@ -341,9 +342,12 @@ export async function runBatch<F = unknown>(
       // and marks it never rendered, nor put them in its recreate URL.
       const printed: BatchRow = { ...row, ...printSettingsFor(row, { profile, bleed, marks }, format) };
       const t0 = Date.now();
-      const { blob, format: fmt, url } = await renderRowToBlob(printed as Parameters<typeof renderRowToBlob>[0], host, {
-        format: row.format || format, width: row.outWidth, height: row.outHeight, unit: rowUnit as NonNullable<Parameters<typeof renderRowToBlob>[2]>['unit'], dpi: rowDpi, strongPassword, imprint,
-      });
+      // A tune kept from the music generator renders to audio, as its own Download does.
+      const { blob, format: fmt, url } = isMusicRow(row)
+        ? await (await import('../lib/music-render.ts')).renderMusicFile(host, String(row.values?.params ?? ''))
+        : await renderRowToBlob(printed as Parameters<typeof renderRowToBlob>[0], host, {
+          format: row.format || format, width: row.outWidth, height: row.outHeight, unit: rowUnit as NonNullable<Parameters<typeof renderRowToBlob>[2]>['unit'], dpi: rowDpi, strongPassword, imprint,
+        });
       const ms = Date.now() - t0; // render time, surfaced in the zip manifest
       // Per-row filename wins for the stem (extension stripped - we add the
       // format's); else the tool id. Either way it's prefixed with the row number
@@ -445,6 +449,8 @@ export async function planBatch<F = unknown>(
     const row = rows[i]!;
     const drop = (reason: string) => { skipped.push({ row, reason, srcIndex: i, uid: row.uid }); record(row, -1, i, reason); };
     if (!row.toolId) { drop('No template selected'); continue; }
+    // A kept tune has no tool to load: it renders to audio (runBatch, lib/music-render.ts).
+    if (isMusicRow(row)) { renderable.push(row); srcIndex.push(i); record(row, renderable.length - 1, i); continue; }
     try {
       const tool = await getToolDep(row.toolId);
       if (!isExportableDep(tool.manifest)) {

@@ -15,7 +15,7 @@ import { createAssetsAPI } from '../../bridge/assets.ts';
 import { withRecordedBrandPage } from '../../../../../engine/src/brand-page-address.ts';
 import { createTokensAPI } from '../../bridge/tokens.ts';
 import { createDesignSystemRegistry, type RegistryDb } from './registry.ts';
-import { addHostedDesignSystem, checkHostedDesignSystems, refreshHostedDesignSystem, shapeHostedManifest } from './hosted.ts';
+import { InstanceSignInNeeded, addHostedDesignSystem, checkHostedDesignSystems, refreshHostedDesignSystem, shapeHostedManifest } from './hosted.ts';
 import { readDesignSystemIdentity } from '../../../../../engine/src/design-system.ts';
 
 const realFetch = globalThis.fetch;
@@ -103,6 +103,34 @@ async function rig() {
   await registry.ensure();
   return { db, assets, registry, host };
 }
+
+const sri = async (text: string): Promise<string> => `sha256-${btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)))))}`;
+
+test('tokens read from a catalog have to match it, and nothing signed them whatever a pack said before', async () => {
+  const r = await rig();
+  const raw = JSON.stringify(TOKENS_DOC);
+  const routesWith = async (bytes: string, checksum: string) => routes({
+    [`${BASE}/catalog/assets/acme/tokens/brand.json`]: new Blob([bytes], { type: 'application/json' }),
+    [`${BASE}/catalog/assets/index.json`]: { ...INDEX, assets: INDEX.assets.map(a => a.id === 'acme/tokens/brand' ? { ...a, checksum: undefined, formats: [{ format: 'json', url: a.formats[0]!.url, checksum }] } : a) },
+    [`${BASE}/api/v1/instance`]: manifest({ brand: { ...manifest().brand, checksum: checksum } }),
+  });
+  const good = await sri(raw);
+  stubFetch(await routesWith(raw, good));
+  const record = await addHostedDesignSystem(r.host as never, BASE);
+  assert.equal(record.source.kind === 'hosted' && record.source.signature, 'unsigned');
+  // A record once filled from a verified pack does not keep saying so.
+  await r.registry.put({ ...record, source: { ...record.source, signature: 'verified' } as typeof record.source });
+  const edited = JSON.stringify({ ...TOKENS_DOC, $description: 'edited' });
+  stubFetch(await routesWith(edited, await sri(edited)));
+  assert.equal(await refreshHostedDesignSystem(r.host as never, record.id, { force: true }), 'updated');
+  const updated = (await r.registry.get(record.id))!;
+  assert.equal(updated.source.kind === 'hosted' && updated.source.signature, 'unsigned');
+  // A document that does not match its catalog is not kept, and the row says an update is waiting.
+  stubFetch(await routesWith(edited, await sri('something else')));
+  assert.equal(await refreshHostedDesignSystem(r.host as never, record.id, { force: true }), 'stale');
+  const stale = (await r.registry.get(record.id))!;
+  assert.equal(stale.source.kind === 'hosted' && stale.source.stale, true);
+});
 
 test('shapeHostedManifest reads the brand block and tolerates an older manifest without one', () => {
   const m = shapeHostedManifest(manifest());
@@ -204,4 +232,31 @@ test('a managed system records the address from its manager\'s source, and a cop
   await r.registry.setActive(copy.id);
   r.host.tokens!.bust({ lock: true });
   assert.equal((await r.host.tokens!.snapshot()).brandPage, undefined);
+});
+
+// Andy, 2026-11-24: "From an instance" answered "hosts no catalog (401)" for lolly.ing.
+test('a sign-in gated instance is said to need sign-in, before anything is made or its catalog is asked for', async () => {
+  const r = await rig();
+  const log: string[] = [];
+  stubFetch({ 'https://gated.example.com/api/v1/instance': manifest({ name: 'Acme Work', accessMode: 'gated' }) }, log);
+  const before = (await r.registry.list()).length;
+  await assert.rejects(
+    () => addHostedDesignSystem(r.host as unknown as Parameters<typeof addHostedDesignSystem>[0], 'https://gated.example.com'),
+    (e: unknown) => e instanceof InstanceSignInNeeded && e.base === 'https://gated.example.com' && /sign in/.test(e.message) && !/hosts no catalog/.test(e.message),
+  );
+  assert.equal((await r.registry.list()).length, before, 'no half record');
+  assert.ok(!log.some(url => url.includes('/catalog/')), 'the catalog it would refuse is not asked for');
+});
+
+test('an instance that refuses its catalog with 401 needs sign-in too, whatever its manifest says, and leaves no record', async () => {
+  const r = await rig();
+  stubFetch({
+    'https://quiet.example.com/api/v1/instance': manifest({ name: 'Quiet' }),
+    'https://quiet.example.com/catalog/assets/index.json': () => new Response('{"error":{"code":"UNAUTHORIZED"}}', { status: 401, headers: { 'content-type': 'application/json' } }),
+  });
+  await assert.rejects(
+    () => addHostedDesignSystem(r.host as unknown as Parameters<typeof addHostedDesignSystem>[0], 'https://quiet.example.com'),
+    (e: unknown) => e instanceof InstanceSignInNeeded,
+  );
+  assert.deepEqual((await r.registry.list()).map(x => x.id), ['shipped'], 'the record made for the attempt is taken back out');
 });

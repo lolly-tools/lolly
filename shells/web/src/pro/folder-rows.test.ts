@@ -8,7 +8,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  stemOf, slug, rowFromToolSession, rowFromBatchRow, rowsForFolder, rowsFromRefs,
+  stemOf, slug, rowFromToolSession, rowFromBatchRow, rowsForFolder, rowsFromRefs, rowFromMusicProject, isMusicRow,
 } from './folder-rows.ts';
 
 test('stemOf strips a known extension, falls back to toolId', () => {
@@ -267,4 +267,17 @@ test('rowsFromRefs opens a selection verbatim, non-tool items as tool-less rows'
 test('rowsFromRefs on an empty selection yields no rows', async () => {
   const host = { state: { async load() { return null; } } };
   assert.deepEqual(await rowsFromRefs(host, []), []);
+});
+
+test('a tune kept from the music generator is one audio row, named after its project', async () => {
+  const tune = { __toolId: '__music__', __label: 'Ska · 7', __musicStudio: { version: 1, params: 'style=ska&seed=7&bars=64' } };
+  const host = { state: { async load(ref: string) { return ref === '__music__:1' ? tune : null; } } };
+  const rows = await rowsForFolder(host, { name: 'Launch', items: [{ type: 'session', ref: '__music__:1' }] });
+  assert.equal(rows.length, 1);
+  assert.ok(isMusicRow(rows[0]!), 'the music row, not a tool row');
+  assert.deepEqual(rows[0]!.values, { params: 'style=ska&seed=7&bars=64' }, 'its settings as the link carries them');
+  assert.equal(rows[0]!.format, 'm4a');
+  assert.equal(rows[0]!.filename, 'Launch/Ska-7');
+  assert.equal(rows[0]!.uid, 'Launch::__music__:1');
+  assert.equal(rowFromMusicProject({ __toolId: '__music__', __label: 'x' }), null, 'a record with no settings makes no row');
 });

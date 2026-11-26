@@ -1,5 +1,5 @@
 {
   "name": "Filter",
-  "description": "Satu alat untuk efek foto: pilih halftone, scanline, posterize, voronoi, dither atau ASCII art (vektor), atau duotone, pixel-stretch, misprint atau glitch (raster). Overlay sistem desain, kamera langsung dan ekspor ke sebanyak mungkin format yang didukung setiap efek.",
+  "description": "Efek foto: halftone, scanline, posterize, voronoi, dither atau ASCII art (vektor), atau duotone, pixel-stretch, misprint atau glitch (raster).",
   "featured.blurb": "Sepuluh efek foto, vektor atau raster, dalam satu alat"
 }

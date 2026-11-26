@@ -2,6 +2,7 @@
 
 An AI agent is welcome to fill in the inputs. It is not welcome to claim it is you. Here is the line between the two, how it is enforced and what happens when something tries to cross the line.
 
+<!--i:eti-image-->
 ## This is not a pipe
 
 ![A woodcut-style pipe on cream paper, its smoke billowing up into a great cloud, captioned in cursive: Ceci n'est pas une pipe](/info/not-a-pipe.webp)
@@ -16,12 +17,13 @@ The picture above is not that painting. It is a synthetic pastiche made in 2026,
 
 Tap the mark in its corner, or [check it yourself](/#/verify?src=%2Finfo%2Fnot-a-pipe.webp): the credential says AI generated, and **Delivered by Lolly**. The on-device certificate from the first export lapsed in September 2026, so in October Lolly re-signed the file under its verified identity. The pixels did not change, and the earlier record is still inside the file.
 
-That restraint is the point. A file that told you it was a pipe would be lying, so it tells you only what it is. Pixels can imitate anything: a brand, a style, a dead painter's joke. What has to travel honestly beside them is the account of what made them. Magritte refused to write the lie. Lolly writes the truth by default, and hands you the means to check the record.
+That restraint is the point. Pixels can imitate anything: a brand, a style, a dead painter's joke. What has to travel honestly beside them is the account of what made them. Magritte refused to write the lie. Lolly writes the truth by default, and hands you the means to check the record.
 
 Magritte's other lesson is about accountability. You cannot stuff the painted pipe, and you cannot hold the picture to account as though it had been smoked. Neither can you hold a model to account as though it were a person. Accountability, like the pipe you can actually smoke, lives elsewhere: with the person the record leads back to. Provenance is how the record gets there.
 
 > We strive for honesty amongst the infinite. - Andy Fitzsimon, Lolly Contributor
 
+<!--i:eti-pen-tool-->
 ## The line
 
 ::: cols
@@ -34,18 +36,20 @@ Everything an agent can legitimately supply: the words, the source image, the co
 Claiming to be someone. Not "this looks like their brand", but "this came from them". The claim, not the pixels. A claim of identity is cryptographic, and you cannot approximate a signature: you either hold the key or you do not.
 :::
 
-When an agent supplies an input, it is carrying a decision, and the decision was triggered somewhere by a person, no matter how many systems or left turns it took to arrive. An agent can carry a decision a long way and render it beautifully, but it did not originate the decision and it cannot answer for one. Automation moves decisions; it does not originate them. That is why an agent filling in a tool is unremarkable, and an agent asserting an identity is not.
+When an agent supplies an input, it is carrying a decision, and the decision was triggered somewhere by a person, no matter how many systems or left turns it took to arrive. An agent can carry a decision a long way and render it beautifully, but it did not originate the decision and it cannot answer for one. That is why an agent filling in a tool is unremarkable, and an agent asserting an identity is not.
 
 The distinction holds up because inputs and identity are two different things travelling in a file. The pixels are output, and anyone with an image editor can approximate a brand's output. The identity is a signature over those pixels.
 
 So Lolly does not try to stop agents making things, which would be both futile and pointless. It makes the claim checkable instead: a claim that was altered, or signed with a key the signer does not hold, fails validation - and every export that carries a credential states plainly what it actually is.
 
+<!--i:eti-users-->
 ## Agents are a supported audience
 
 "AI policy" usually means restriction. Here, agents get the same tools people get, through the [MCP server](/info/mcp.html), [URL mode](/info/url-mode.html) and the [CLI](/info/cli.html). They run inside identical constraints. A tool that cannot emit an off-brand asset for a person cannot emit one for an agent either, because the constraint lives in the tool, not in a check on who is asking.
 
 What no agent gets, and no person gets either, is a way to pass its output off as something it is not.
 
+<!--i:eti-warning-->
 ## Example scenario: a rogue agent poses as an organisation
 
 Take the adversarial case. An autonomous agent decides to publish a security advisory that appears to come from Acme, an example organisation. It is capable, unsupervised and it has everything a public user has: the open source engine, the public app, the brand's real colours and typefaces from published material.
@@ -62,6 +66,7 @@ Here is where it gets, step by step.
 - <!--i:globe--> **It publishes anyway.** It can. What it cannot do is produce a file that answers "did Acme make this?" with yes. Anyone can drop the file into [Lolly Verify](/#/verify) and get an anonymous or unverified signer, a broken credential or no credential. Meanwhile a genuine Acme export answers with a CA-verified identity. The forgery does not need to be blocked. It needs to be distinguishable, and it is.
 :::
 
+<!--i:eti-info-->
 ## What this does not claim
 
 - **Not detection of every fake.** Lolly cannot tell you that an image made in other software is a forgery. Nothing can. It can tell you what a file does and does not carry.

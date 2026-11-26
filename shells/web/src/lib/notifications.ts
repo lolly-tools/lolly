@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
+import { viewingAs } from '../org/view-as.ts';
+
 export interface ShellNotification {
   id: string;
   title: string;
@@ -35,8 +37,11 @@ let loading: Promise<void> | undefined;
 let writes = Promise.resolve();
 const KEY = 'lolly:notification-preferences';
 
-/** Chrome preferences contain dismissal flags and deadlines, never message content or tool state. */
+/** Chrome preferences contain dismissal flags and deadlines, never message content or tool state.
+ *  While viewing as a partner they are neither read nor written: the queue shows what the
+ *  partner would see, and a dismissal there lasts only for this tab. */
 export function configureNotifications(state: NotificationPreferencesStore = chromeStore): Promise<void> {
+  if (viewingAs()) return Promise.resolve();
   if (storage === state && loading) return loading;
   storage = state;
   loading = state.read().then(value => {
@@ -94,7 +99,7 @@ export function restoreNotification(id: string): void {
 }
 function persist(): void {
   const state = storage;
-  if (!state) return;
+  if (!state || viewingAs()) return;
   while (preferences.size > 200) preferences.delete(preferences.keys().next().value!);
   const ready = loading;
   writes = writes.then(async () => {

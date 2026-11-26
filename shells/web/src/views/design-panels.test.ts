@@ -93,3 +93,149 @@ test('destroy removes Sequence interaction listeners', () => {
     assert.deepEqual(f.state(), { timelineOpen: true, inspectorOpen: true, timelineCloses: 0 });
   } finally { f.close(); }
 });
+
+test('on a phone the inspector and the layers list are the two tabs of one drop-down panel', () => {
+  // A narrow window in jsdom is the phone layout; the sheet driver needs matchMedia.
+  const mql = (query: string) => {
+    const max = /max-width:\s*(\d+)px/.exec(query);
+    return { matches: !!max && window.innerWidth <= Number(max[1]), media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} };
+  };
+  (window as unknown as { matchMedia: typeof mql }).matchMedia = mql;
+  width(390);
+  const layout = document.createElement('div');
+  layout.className = 'tool-layout is-editor';
+  const stage = document.createElement('div'), canvas = document.createElement('div');
+  const navEl = document.createElement('aside');
+  navEl.className = 'fc-nav';
+  stage.append(canvas, navEl); layout.append(stage); document.body.append(layout);
+  const inspEl = document.createElement('aside');
+  inspEl.className = 'fc-insp';
+  let inspectorOpen = false, navigatorOpen = false, phoneHost: ((el: HTMLElement) => void) | null = null, left = 0;
+  const handle = mountDesignPanels({
+    stage, canvas,
+    design: { isTimelineOpen: () => false, toggleTimeline() {}, setColumnWidths() {} } as unknown as Parameters<typeof mountDesignPanels>[0]['design'],
+    navigator: {
+      el: navEl, isOpen: () => navigatorOpen, width: () => 0,
+      // As the view wires it (views/tool/session.ts): an open column is activated.
+      setOpen(value: boolean) { navigatorOpen = value; if (value) handle.activate('navigator'); handle.sync(); },
+    } as unknown as Parameters<typeof mountDesignPanels>[0]['navigator'],
+    inspector: {
+      isOpen: () => inspectorOpen,
+      setOpen(value: boolean) { inspectorOpen = value; if (value) handle.activate('inspector'); handle.sync(); return value; },
+      enterPhone(host: (el: HTMLElement) => void) { phoneHost = host; host(inspEl); },
+      leavePhone() { phoneHost = null; left++; inspEl.remove(); },
+    } as unknown as Parameters<typeof mountDesignPanels>[0]['inspector'],
+    more() {},
+  });
+  try {
+    flush();
+    const panel = layout.querySelector<HTMLElement>('.design-phone-panel');
+    assert.ok(panel, 'the panel is mounted in the phone layout');
+    assert.ok(phoneHost, 'and it holds the inspector');
+    assert.equal(navEl.parentElement, panel!.querySelector('.dpp-body'), 'and the layers list');
+    assert.equal(panel!.dataset.snap, 'peek');
+    // The bottom bar's buttons pick the tab and open the panel to half.
+    const bar = (name: string) => [...stage.querySelectorAll<HTMLButtonElement>('.design-compact-actions button')].find(b => b.textContent === name)!;
+    bar('Inspect').click(); flush();
+    assert.deepEqual([inspectorOpen, panel!.dataset.snap, panel!.dataset.tab], [true, 'half', 'inspect']);
+    // (Where the canvas band starts is measured layout, which the browser test checks.)
+    assert.equal(stage.style.getPropertyValue('--design-panel-reserve'), '', 'the bottom sheet\'s reserve is not written');
+    bar('Layer/Page').click(); flush();
+    assert.deepEqual([inspectorOpen, navigatorOpen, panel!.dataset.tab, panel!.dataset.snap], [false, true, 'layers', 'half']);
+    bar('Layer/Page').click(); flush();
+    assert.deepEqual([navigatorOpen, panel!.dataset.snap], [false, 'peek'], 'the same button folds it');
+    // A wide window takes the panel down and hands both columns back.
+    width(1440);
+    assert.equal(layout.querySelector('.design-phone-panel'), null);
+    assert.equal(left, 1, 'the inspector was let go');
+    assert.equal(navEl.parentElement, stage, 'the layers list is home');
+  } finally { handle.destroy(); flush(); layout.remove(); delete (window as unknown as { matchMedia?: unknown }).matchMedia; }
+});
+
+// A window that shows a single column (a phone, a fold, a narrowed desk) closes the
+// other. With room again, the columns that rule closed come back, and no others.
+function columns(open: { inspector: boolean; navigator: boolean }) {
+  width(1440);
+  const stage = document.createElement('div'), canvas = document.createElement('div');
+  stage.append(canvas); document.body.append(stage);
+  let inspectorOpen = open.inspector, navigatorOpen = open.navigator;
+  const handle = mountDesignPanels({
+    stage, canvas,
+    design: { isTimelineOpen: () => false, toggleTimeline() {}, setColumnWidths() {} } as unknown as Parameters<typeof mountDesignPanels>[0]['design'],
+    // As the view wires them (views/tool/session.ts): an opened column is activated.
+    navigator: {
+      isOpen: () => navigatorOpen, width: () => navigatorOpen ? 220 : 0,
+      setOpen(value: boolean) { navigatorOpen = value; if (value) handle.activate('navigator'); handle.sync(); },
+    } as unknown as Parameters<typeof mountDesignPanels>[0]['navigator'],
+    inspector: {
+      isOpen: () => inspectorOpen,
+      setOpen(value: boolean) { inspectorOpen = value; if (value) handle.activate('inspector'); handle.sync(); return value; },
+    } as unknown as Parameters<typeof mountDesignPanels>[0]['inspector'],
+    more() {},
+  });
+  flush();
+  return {
+    state: () => ({ inspector: inspectorOpen, navigator: navigatorOpen }),
+    // The person's own open and close, through the column's door.
+    person(panel: 'inspector' | 'navigator', value: boolean) {
+      if (panel === 'inspector') { inspectorOpen = value; if (value) handle.activate('inspector'); }
+      else { navigatorOpen = value; if (value) handle.activate('navigator'); }
+      handle.sync(); flush();
+    },
+    close() { handle.destroy(); flush(); stage.remove(); },
+  };
+}
+
+test('both columns open, a narrow window and back: both are open again', () => {
+  const f = columns({ inspector: true, navigator: true });
+  try {
+    width(390);
+    const narrow = f.state();
+    assert.equal(Number(narrow.inspector) + Number(narrow.navigator), 1, 'one column at a time while narrow');
+    width(1440);
+    assert.deepEqual(f.state(), { inspector: true, navigator: true });
+    // And it holds a second time round.
+    width(390); width(1440);
+    assert.deepEqual(f.state(), { inspector: true, navigator: true });
+  } finally { f.close(); }
+});
+
+test('a column opened on purpose while narrow stays, beside the one that made way', () => {
+  const f = columns({ inspector: true, navigator: false });
+  try {
+    width(390);
+    f.person('navigator', true);
+    assert.deepEqual(f.state(), { inspector: false, navigator: true }, 'the list took the inspector’s place');
+    width(1440);
+    assert.deepEqual(f.state(), { inspector: true, navigator: true });
+  } finally { f.close(); }
+});
+
+test('a column the person closed while narrow stays closed, and nothing opens that was never open', () => {
+  const f = columns({ inspector: true, navigator: false });
+  try {
+    width(390);
+    f.person('inspector', false);
+    width(1440);
+    assert.deepEqual(f.state(), { inspector: false, navigator: false });
+  } finally { f.close(); }
+  const g = columns({ inspector: true, navigator: true });
+  try {
+    width(390);
+    const shown = g.state().inspector ? 'inspector' : 'navigator';
+    g.person(shown, false);
+    width(1440);
+    assert.deepEqual(g.state(), { inspector: shown !== 'inspector', navigator: shown !== 'navigator' }, 'only the column the rule closed comes back');
+  } finally { g.close(); }
+});
+
+test('a desk too narrow for both columns does not open and close them in turn', () => {
+  const f = columns({ inspector: true, navigator: false });
+  try {
+    width(700);
+    f.person('navigator', true);
+    const first = f.state();
+    for (let i = 0; i < 3; i++) { window.dispatchEvent(new Event('resize')); flush(); }
+    assert.deepEqual(f.state(), first);
+  } finally { f.close(); }
+});

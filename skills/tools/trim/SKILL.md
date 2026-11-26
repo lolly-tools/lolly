@@ -5,7 +5,7 @@ description: "Operate the Lolly Trim tool (trim) using its declared inputs and s
 
 # Trim
 
-Tool ID: `trim`. Tool version: `1.1.0`. Engine range: `^1.0.0`.
+Tool ID: `trim`. Tool version: `1.1.1`. Engine range: `^1.0.0`.
 
 Cut, turn or shrink an audio or video clip, take a poster frame or contact sheet, mute it or extract its audio on your device.
 

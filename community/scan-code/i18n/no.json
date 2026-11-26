@@ -1,5 +1,5 @@
 {
   "name": "Skanning",
-  "description": "Les QR-koder og strekkoder på enheten, uten at noe sendes til en sky. En leser, ikke en åpner: den dekoder, klassifiserer og forklarer hva en kode inneholder - lenker, Wi-Fi, kontakter, produktkoder - og lar deg handle bevisst. Kopiering er alltid den første handlingen; å åpne, bli med eller legge til er et eksplisitt, informert trykk.",
+  "description": "Les QR-koder og strekkoder på enheten. Kopiering er alltid den første handlingen; å åpne, bli med eller legge til er et eksplisitt, informert trykk.",
   "featured.blurb": "Les enhver kode, trygt og frakoblet"
 }

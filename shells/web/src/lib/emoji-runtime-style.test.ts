@@ -41,9 +41,13 @@ test('embedded sources retain the runtime default unless a source explicitly sel
   assert.equal(actual, null);
 });
 
-/** Lolly Demo's design system and the emoji style it states. */
-function demoStyle(): { doc: unknown; style: EmojiStyleV1 } {
-  const doc: unknown = JSON.parse(readFileSync(new URL('../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json', import.meta.url), 'utf8'));
+/**
+ * Lolly Demo's design system and the emoji style it states. The style's palette was saved
+ * from the first 64 colours before Lolly Demo declared its colour roles, so the exact
+ * round trip runs on that copy; the shipped file is checked for the colours it draws.
+ */
+function demoStyle(file = '../../../../tests/fixtures/colour-roles/lolly-demo-no-roles.json'): { doc: unknown; style: EmojiStyleV1 } {
+  const doc: unknown = JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
   const read = readEmojiStyle(doc);
   assert.equal(read.status, 'selected', 'Lolly Demo states an emoji style');
   return { doc, style: (read as { style: EmojiStyleV1 }).style };
@@ -65,6 +69,15 @@ test('a placed tool under Lolly Demo gets a link, and the link keeps the same em
   const swatches = createTokenSet(doc).colors().map(swatch => ({ id: swatch.ref, hex: swatch.value }));
   const pair = { emoji: params.get('emoji') ?? '', emojifx: params.get('emojifx') ?? '' };
   assert.deepEqual(emojiStyleFrom(pair, [{ pin: style.primary }], swatches), style);
+});
+
+test('under Lolly Demo with its colour words, a short emoji link snaps to the same colours as its saved style', () => {
+  const { doc, style } = demoStyle('../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json');
+  const swatches = createTokenSet(doc).colors().map(swatch => ({ id: swatch.ref, hex: swatch.value }));
+  const fromLink = emojiStyleFrom({ emoji: `${style.primary.id}@${style.primary.pin.version}`, emojifx: style.treatment.mode }, [{ pin: style.primary }], swatches);
+  const colours = (s: EmojiStyleV1 | null): string[] => [...new Set(((s?.treatment as { palette?: Array<{ hex: string }> })?.palette ?? []).map(entry => entry.hex.toLowerCase()))].sort();
+  assert.ok(colours(style).length > 1);
+  assert.deepEqual(colours(fromLink), colours(style), 'the declared roles add no colour the palette lacked and push none out');
 });
 
 test('a link gives up the saved style first, then the set, and reports when nothing fits', () => {

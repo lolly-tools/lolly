@@ -36,6 +36,8 @@ import { createDesignSystem, uniqueDesignSystemId } from './manage.ts';
 export interface HostedManifest {
   name: string;
   engineVersion?: string;
+  /** `gated` and `per-tool` instances answer only to people who are signed in. */
+  accessMode?: string;
   packUrl: string | null;
   brand: {
     profile: string | null;
@@ -65,6 +67,21 @@ export const HOSTED_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 const str = (v: unknown): string | null => (typeof v === 'string' && v ? v : null);
 
+/**
+ * The instance answers only to people who are signed in, so its design system cannot
+ * be copied from outside. The caller offers the connect step, which has the sign-in
+ * (components/instance-sheet.ts); once connected, the instance's design system is the
+ * app's own.
+ */
+export class InstanceSignInNeeded extends Error {
+  readonly base: string;
+  constructor(base: string, name: string) {
+    super(`${name} asks people to sign in. Connect to ${base} as your Lolly instance to use its design system.`);
+    this.name = 'InstanceSignInNeeded';
+    this.base = base;
+  }
+}
+
 /** Shape a manifest body. Null when it is not a Lolly instance manifest. */
 export function shapeHostedManifest(body: unknown): HostedManifest | null {
   if (!body || typeof body !== 'object') return null;
@@ -77,6 +94,7 @@ export function shapeHostedManifest(body: unknown): HostedManifest | null {
   return {
     name,
     ...(str(m.engineVersion) ? { engineVersion: str(m.engineVersion)! } : {}),
+    ...(str(m.accessMode) ? { accessMode: str(m.accessMode)! } : {}),
     packUrl,
     brand: b ? {
       profile: str(b.profile), label: str(b.label), version: str(b.version), checksum: str(b.checksum),
@@ -110,12 +128,13 @@ function unreachableMessage(base: string, e: unknown): string {
 
 /** The tokens asset of a catalog index plus the logo assets its document names. */
 interface CatalogCore {
-  tokens: { id: string; name?: string; brandLock?: boolean; checksum?: string; url: string; version?: string };
+  tokens: { id: string; name?: string; brandLock?: boolean; checksum?: string; bytes?: string; url: string; version?: string };
   assets: Array<{ id: string; type: string; version?: string; formats: Array<{ format: string; url: string; checksum?: string }> }>;
 }
 
 async function readCatalogCore(base: string): Promise<CatalogCore> {
   const resp = await instanceFetch(`${base}/catalog/assets/index.json?paged=1`, { cache: 'no-cache' });
+  if (resp.status === 401 || resp.status === 403) throw new InstanceSignInNeeded(base, base.replace(/^https?:\/\//, ''));
   if (!resp.ok) throw new Error(`${base} hosts no catalog (${resp.status}).`);
   const idx = await resp.json() as { brandTokens?: string | null; assets?: CatalogCore['assets'] };
   const assets = idx.assets ?? [];
@@ -126,7 +145,7 @@ async function readCatalogCore(base: string): Promise<CatalogCore> {
   const fmt = head.formats.find(f => f.format === 'json') ?? head.formats[0];
   if (!fmt) throw new Error(`${base}'s tokens asset has no file.`);
   return {
-    tokens: { id: head.id, name: head.name, brandLock: head.brandLock, checksum: head.checksum ?? fmt.checksum, url: fmt.url, version: head.version },
+    tokens: { id: head.id, name: head.name, brandLock: head.brandLock, checksum: head.checksum ?? fmt.checksum, bytes: fmt.checksum, url: fmt.url, version: head.version },
     assets,
   };
 }
@@ -152,7 +171,13 @@ async function synthesiseFromCatalog(host: HostedHost, base: string, record: Des
   const core = await readCatalogCore(base);
   const docResp = await instanceFetch(core.tokens.url.startsWith('http') ? core.tokens.url : `${base}${core.tokens.url}`, { cache: 'no-cache' });
   if (!docResp.ok) throw new Error(`Could not read ${base}'s design tokens (${docResp.status}).`);
-  const doc = await docResp.json();
+  const bytes = new Uint8Array(await docResp.arrayBuffer());
+  // The index states what the document should be, so a document that does not match it
+  // is refused rather than kept. The index itself is unsigned on this route, which is
+  // why the record never reads as verified after it (syncInto).
+  const expected = core.tokens.bytes;
+  if (expected && await sriOf(bytes) !== expected) throw new Error(`${base}'s design tokens do not match its catalog.`);
+  const doc = JSON.parse(new TextDecoder().decode(bytes));
   const byId = new Map(core.assets.map(a => [a.id, a]));
   const rekeyed = new Map<string, string>();
   let slot = 0;
@@ -183,6 +208,11 @@ async function synthesiseFromCatalog(host: HostedHost, base: string, record: Des
   return core.tokens.checksum ?? null;
 }
 
+async function sriOf(bytes: Uint8Array): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes as BufferSource));
+  return `sha256-${btoa(String.fromCharCode(...digest))}`;
+}
+
 /** Download the pack, import it into the record's namespace. Returns its ETag. */
 async function importPack(host: HostedHost, record: DesignSystemRecord, packUrl: string): Promise<{ etag: string | null; signature: PackSignature; theme?: 'light' | 'dark' | 'brand' }> {
   const resp = await instanceFetch(packUrl, { cache: 'no-cache' });
@@ -210,6 +240,12 @@ export async function addHostedDesignSystem(host: HostedHost, url: string): Prom
     if (r.source.kind === 'hosted' && r.source.instance === base) throw new Error(`${r.label} is already on this device from ${base}.`);
   }
   const manifest = await fetchHostedManifest(base);
+  // A gated instance refuses its catalog to an anonymous reader, so this stops before anything is made.
+  if (manifest.accessMode === 'gated' || manifest.accessMode === 'per-tool') throw new InstanceSignInNeeded(base, manifest.name);
+  // An instance that says nothing of its access can still refuse its catalog. Ask once
+  // before a record exists, so a refusal leaves nothing to take back out.
+  const anonymous = await instanceFetch(`${base}/catalog/assets/index.json?paged=1`, { cache: 'no-cache' }).catch(() => null);
+  if (anonymous && (anonymous.status === 401 || anonymous.status === 403)) throw new InstanceSignInNeeded(base, manifest.name);
   const label = manifest.brand?.label || manifest.name || base.replace(/^https?:\/\//, '');
   const record = await createDesignSystem(host as unknown as Parameters<typeof createDesignSystem>[0], {
     label,
@@ -243,6 +279,8 @@ async function syncInto(host: HostedHost, record: DesignSystemRecord, manifest: 
     checksum = checksum ?? r.etag?.replace(/^W\//, '').replace(/^"|"$/g, '') ?? null;
   } else {
     checksum = (await synthesiseFromCatalog(host, base, record)) ?? checksum;
+    // Nothing signed this material, whatever a pack said earlier.
+    signature = 'unsigned';
   }
   return {
     ...record,

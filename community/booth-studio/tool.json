@@ -1,12 +1,12 @@
 {
   "id": "booth-studio",
   "name": "Booth",
-  "version": "0.3.3",
+  "version": "0.4.1",
   "engineVersion": "^1.0.0",
   "status": "experimental",
   "singleInstance": true,
   "category": "event",
-  "description": "Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch.",
+  "description": "Dress a 3D event booth with sponsor artwork. Pick a booth design and render a still or a turntable for a sponsor pitch.",
   "a11yLabel": "3D mockup of {{default design \"a corner L\"}} event booth dressed with sponsor artwork",
   "tags": [
     "booth",

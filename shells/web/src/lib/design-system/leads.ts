@@ -307,6 +307,17 @@ export function liftLeads(doc: unknown, opts: LiftLeadOptions = {}): ColourwayEd
   return liftToColourways(doc, { id: opts.id ?? uniqueLeadId(doc, name), name });
 }
 
+/**
+ * The canonical lead's id and name for a document that still has one lead, as a colour
+ * role edit lifts it: named after the primary colour, because "Main" would read badly
+ * beside a role called Main. Undefined once the document has colourways.
+ */
+export function canonicalLiftOptions(doc: unknown): { id: string; name: string } | undefined {
+  if (colourwayAxis(doc)) return undefined;
+  const name = uniqueLeadName(doc, defaultCanonicalName(doc));
+  return { id: uniqueLeadId(doc, name), name };
+}
+
 export interface AddLeadOptions {
   /** The new lead colour, in any notation the engine parses. */
   colour: string;

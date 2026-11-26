@@ -3,7 +3,7 @@
   "name": "Print Sheet",
   "description": "Lay one design - or a whole pile of them - out n-up on A4, Letter or A3, across as many pages as it takes, with crop marks in the margin.",
   "a11yLabel": "Print sheet, {{default rowsOut rows}} rows by {{default colsOut cols}} columns",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "engineVersion": "^1.0.0",
   "status": "community",
   "category": "everyone",

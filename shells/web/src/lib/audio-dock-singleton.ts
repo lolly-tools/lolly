@@ -27,7 +27,10 @@ import {
   type DockViz,
   type DockRepeat,
   type DockVolume,
+  type DockControl,
   type DockPlacement,
+  type DockSeekGrid,
+  type DockPositionText,
 } from '@lolly-tools/audio-dock';
 import { isNeuroDockCollapsed, setNeuroDockCollapsed } from './neuro-dock-pref.ts';
 import { neuroDemoActive } from './neuro-demo.ts';
@@ -65,6 +68,14 @@ html[data-a11y-motion="reduce"] .audio-dock.neuro-managed.is-entering { animatio
      desktop placement), which lands controls off a phone's viewport. The phone
      placement is full-width by policy, so it must beat the inline geometry. */
   .audio-dock.neuro-managed { right: 8px !important; left: 8px !important; width: auto !important; max-width: none; }
+  /* A window state also writes an INLINE top and height, sized on a desktop or grown by a
+     resize. On a phone that carried the header, with Close and Collapse, up under the
+     status bar where no tap reaches. The window stays anchored above the bottom cluster
+     and is never taller than the space under the status bar; the face scrolls inside. */
+  .audio-dock.neuro-managed:not([data-fullscreen]):not(:fullscreen) {
+    top: auto !important; bottom: calc(6rem + var(--safe-bottom)) !important;
+    max-height: calc(100dvh - 6rem - var(--safe-bottom) - var(--safe-top) - 8px) !important;
+  }
   /* The header ▾ now collapses the window to this mini pill on touch too (the two-finger
      tap owns the visualiser menu, packages/audio-dock), so the pill IS the small player on
      phones - show it, pinned as a compact bottom-inset pill hugging the inline-end rather
@@ -126,6 +137,9 @@ class ComposedHost implements DockHost {
   duration(): number { return this.musicSrc?.duration?.() ?? 0; }
   seekable(): boolean { return this.musicSrc?.seekable?.() ?? false; }
   seek(seconds: number): void { this.musicSrc?.seek?.(seconds); }
+  /** A generated tune's bars, which the scrub snaps to, and the words for where it is. */
+  seekGrid(): DockSeekGrid | null { return this.musicSrc?.seekGrid?.() ?? null; }
+  describePosition(seconds: number): DockPositionText { return this.musicSrc?.describePosition?.(seconds) ?? {}; }
   nowPlaying(): DockNowPlaying { return this.musicSrc?.nowPlaying() ?? { title: '' }; }
   onChange(listener: () => void): () => void {
     this.listeners.add(listener);
@@ -139,6 +153,10 @@ class ComposedHost implements DockHost {
   get repeat(): DockRepeat | undefined { return this.musicSrc?.repeat; }
   get volume(): DockVolume | undefined { return this.musicSrc?.volume; }
   get volumes(): DockVolume[] | undefined { return this.musicSrc?.volumes; }
+  /** One controls popover on the speaker button, when the music source asks for one. */
+  get controlsPopover(): boolean | undefined { return this.musicSrc?.controlsPopover; }
+  /** The current source's own controls (a Lofi station's mood, drums, texture, share). */
+  controls(): DockControl[] { return this.musicSrc?.controls?.() ?? []; }
 
   private emit(): void {
     for (const l of this.listeners) { try { l(); } catch { /* one bad listener never blocks the rest */ } }

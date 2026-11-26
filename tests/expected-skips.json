@@ -521,6 +521,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/chart-colour-roles.test.ts",
+      "fullName": "SUSE leads with Primary accent, Supporting accent and Warm accent",
+      "reason": "brands/suse is not mounted on this machine",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
       "file": "tests/check-file.test.ts",
       "fullName": "the delivered Sleepwalking decks check with no error finding, and list their wording edits against the source",
       "reason": "the delivered Sleepwalking deck fixture is not on this machine (set LOLLY_CHECK_SLEEPWALKING)",
@@ -1460,7 +1467,7 @@
     },
     {
       "file": "tests/docs-masthead.test.ts",
-      "fullName": "a page with no masthead still opens with the pathways strip, once, in its body",
+      "fullName": "every docs page carries the sections once, in the bar; the landing carries them in its page",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -1480,8 +1487,50 @@
       "owner": "tests"
     },
     {
+      "file": "tests/docs-nav-budget.test.ts",
+      "fullName": "a long section rail shows a handful of rows until a reader opens a group",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-nav-budget.test.ts",
+      "fullName": "the skip link is the first stop and lands on the article, past the bar and the rail",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-nav-budget.test.ts",
+      "fullName": "the sections row holds the sections and nothing else, so it stays one row",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-nav-budget.test.ts",
+      "fullName": "no trail says its own page title again, and a section's own page has no trail",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-nav-budget.test.ts",
+      "fullName": "a page shows its trail over the title and ends with Previous and Next in rail order",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-tool-guides.test.ts",
+      "fullName": "every manifest entry opens a real page and section in every locale build",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
       "file": "tests/docs-logos.test.ts",
-      "fullName": "a long page gets the jump nav and a short one does not",
+      "fullName": "a page with sections gets the contents rail, and every docs page gets the page bar",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -1516,21 +1565,21 @@
     },
     {
       "file": "tests/docs-logos.test.ts",
-      "fullName": "the jump nav is exempted from the rules that own every other <nav>",
+      "fullName": "the contents rail takes over from the page bar at 1100px",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-logos.test.ts",
-      "fullName": "the jump nav script closes on Escape and returns focus",
+      "fullName": "the contents script closes on Escape, returns focus and leaves the move to the browser",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-logos.test.ts",
-      "fullName": "the jump nav ships on locale pages too",
+      "fullName": "the contents ship on locale pages too",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -1544,7 +1593,7 @@
     },
     {
       "file": "tests/docs-masthead.test.ts",
-      "fullName": "a banked masthead would replace the canvas, not join it",
+      "fullName": "a banked masthead replaces the plain band, not joins it",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -1579,7 +1628,7 @@
     },
     {
       "file": "tests/docs-masthead.test.ts",
-      "fullName": "the canvas never takes a pointer event, in either instance",
+      "fullName": "the landing canvas never takes a pointer event, and the band scrims neither",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -1600,7 +1649,7 @@
     },
     {
       "file": "tests/docs-masthead.test.ts",
-      "fullName": "the landing and the masthead draw from the same generated list",
+      "fullName": "every page ships the one generated list the landing draws from",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -1614,21 +1663,14 @@
     },
     {
       "file": "tests/docs-masthead.test.ts",
-      "fullName": "the masthead burst yields to links, buttons and text selection",
+      "fullName": "the landing hero keeps its plain, unguarded chip field",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
     },
     {
       "file": "tests/docs-masthead.test.ts",
-      "fullName": "the masthead script honours reduced motion, off-screen and hidden tabs",
-      "reason": "no built /info on disk - run `pnpm run build:info`",
-      "capability": "docs-build",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/docs-masthead.test.ts",
-      "fullName": "with nothing mapped, every page still gets the default field - not a blank band",
+      "fullName": "with nothing mapped, every page gets the plain band - words, no field",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -1936,7 +1978,7 @@
     },
     {
       "file": "tests/gallery-preview.browser.test.ts",
-      "fullName": "every gallery tool gets a cover before extra templates, including tools below the fold",
+      "fullName": "every tool near the screen gets a cover before an extra template is drawn; a tool below the fold gets one when the page comes near",
       "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
       "capability": "environment",
       "owner": "tests"
@@ -1950,7 +1992,28 @@
     },
     {
       "file": "tests/gallery-preview.browser.test.ts",
-      "fullName": "the welcome leaves a complete gallery behind it and holds housekeeping until it closes",
+      "fullName": "the classic welcome dialog (#/?welcome=classic) defers tool previews until the gallery is entered",
+      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/gallery-preview.browser.test.ts",
+      "fullName": "the greeting in place lets the gallery's previews load under it",
+      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/gallery-preview.browser.test.ts",
+      "fullName": "the greeting's Bring a file opens the native import picker before loading import handlers",
+      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/gallery-preview.browser.test.ts",
+      "fullName": "the welcome leaves a complete gallery behind it and holds housekeeping only while the mark draws",
       "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
       "capability": "environment",
       "owner": "tests"
@@ -1958,20 +2021,6 @@
     {
       "file": "tests/gallery-preview.browser.test.ts",
       "fullName": "transparent covers switch ink and open targets with the live gallery theme",
-      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/gallery-preview.browser.test.ts",
-      "fullName": "welcome defers tool preview rendering until the user enters the gallery",
-      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/gallery-preview.browser.test.ts",
-      "fullName": "welcome opens the native import picker before loading import handlers",
       "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
       "capability": "environment",
       "owner": "tests"
@@ -3210,7 +3259,14 @@
     },
     {
       "file": "tests/studio3d.shell.browser.test.ts",
-      "fullName": "3D Studio arranges several objects: click selects, drags move, keys nudge, undo restores",
+      "fullName": "3D Studio arranges several objects: click selects, drags move with no mode, keys nudge, undo restores",
+      "reason": "Set STUDIO_SHELL_URL to a running web shell.",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/studio3d.shell.browser.test.ts",
+      "fullName": "3D Studio handles on the selected object: the ring turns in 15 degree steps, the squares lift and scale, one undo step each",
       "reason": "Set STUDIO_SHELL_URL to a running web shell.",
       "capability": "environment",
       "owner": "tests"
@@ -3218,6 +3274,27 @@
     {
       "file": "tests/studio3d.shell.browser.test.ts",
       "fullName": "3D Studio imports, reopens a portable model and exports through editor and batch",
+      "reason": "Set STUDIO_SHELL_URL to a running web shell.",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/studio3d.shell.browser.test.ts",
+      "fullName": "3D Studio keeps the object in reach: actions by the selection, Enter to select, a zoom kept through a drag, and a motion that hides the handles",
+      "reason": "Set STUDIO_SHELL_URL to a running web shell.",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/studio3d.shell.browser.test.ts",
+      "fullName": "3D Studio moves its camera on the canvas: wrap, keys, wheel, pan, frame and views, one undo step each",
+      "reason": "Set STUDIO_SHELL_URL to a running web shell.",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/studio3d.shell.browser.test.ts",
+      "fullName": "3D Studio on a phone: a pinch zooms the camera, two fingers pan, and the bar stays on screen",
       "reason": "Set STUDIO_SHELL_URL to a running web shell.",
       "capability": "environment",
       "owner": "tests"
@@ -3254,6 +3331,55 @@
       "file": "tests/tool-input-actions.browser.test.ts",
       "fullName": "Charts data actions sit above the textarea and remain clickable with larger text",
       "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "brief: responsive layouts fit and motion seeks deterministically",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "scorecard: responsive layouts fit and motion seeks deterministically",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "email: responsive layouts fit and motion seeks deterministically",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "week: responsive layouts fit and motion seeks deterministically",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "pricing-table: responsive layouts fit and motion seeks deterministically",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "link-card: responsive layouts fit and motion seeks deterministically",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "longer copy and denser tables fit without silently clipping the message",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
       "capability": "environment",
       "owner": "tests"
     },
@@ -3427,7 +3553,7 @@
     },
     {
       "file": "tests/design-brief-suse.test.ts",
-      "fullName": "every SUSE icon theme states the surfaces it suits",
+      "fullName": "every SUSE colourway gives an icon pairing for each ground it suits",
       "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
       "capability": "brand:suse",
       "owner": "tests"
@@ -3640,6 +3766,104 @@
       "fullName": "corpus case: object styles reach strokes, corners and opacity in a converted guide",
       "reason": "converted corpus fixtures not present (plans/idml-reader/convert.ts)",
       "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/profile-companion.test.ts",
+      "fullName": "Lolly's marks travel with their recorded terms",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/profile-companion.test.ts",
+      "fullName": "SUSE's rows win the six samples, and every SUSE row comes through unchanged",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/profile-companion.test.ts",
+      "fullName": "the merged index holds both design systems and every reader agrees on the head",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/profile-companion.test.ts",
+      "fullName": "the mount copies a named file set, no audio, skills, slides, renditions, cards or previews",
+      "reason": "brands/suse is not checked out",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render.test.ts",
+      "fullName": "lolly-render draws engine pages, the same bytes twice",
+      "reason": "lolly-render is not built here: run `cargo build --release` in crates/lolly-render (or set LOLLY_RENDER_BIN)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render.test.ts",
+      "fullName": "lolly-render refuses a page it does not draw, by name, and writes nothing",
+      "reason": "lolly-render is not built here: run `cargo build --release` in crates/lolly-render (or set LOLLY_RENDER_BIN)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render-addon.test.ts",
+      "fullName": "LOLLY_DESIGN_RASTER=lolly-render draws the page with the crate, the same pixels as the test binary",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render-addon.test.ts",
+      "fullName": "a page the crate refuses goes on to the default route, and the log says why",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render-addon.test.ts",
+      "fullName": "a refused page comes back as a value with its stable codes, the first one named",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render-addon.test.ts",
+      "fullName": "the binding draws each core fixture to the bytes the test binary writes, on the thread pool too",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/fuzz-regression.test.ts",
+      "fullName": "fuzz lolly-render-envelope: 300 seeded mutations stay bounded",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/fuzz-regression.test.ts",
+      "fullName": "fuzz lolly-render-jpeg: 300 seeded mutations stay bounded",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/fuzz-regression.test.ts",
+      "fullName": "fuzz lolly-render-png: 300 seeded mutations stay bounded",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/fuzz-regression.test.ts",
+      "fullName": "fuzz lolly-render-webp: 300 seeded mutations stay bounded",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
       "owner": "tests"
     }
   ]

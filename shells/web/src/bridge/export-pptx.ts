@@ -9,7 +9,7 @@
  * time, never at module init, so resolution order is safe. (To remove the cycle
  * later, lift those shared helpers into a common render-util module.)
  */
-import { buildPptxParts, EMU_PER_PX, imageDimensions, parseGradientAngle, parseGradientStop, splitCssArgs, svgToNativePptx } from "@lolly/engine";
+import { buildPptxParts, colourRoleThemeAccents, EMU_PER_PX, imageDimensions, parseGradientAngle, parseGradientStop, splitCssArgs, svgToNativePptx } from "@lolly/engine";
 import type { PptxSlide, PptxShape, PptxFill, PptxMedia, PptxLayout, PptxAudio } from "../../../../engine/src/pptx.ts";
 import { parseCssColorFull, objectPositionFractions } from "./export-css.ts";
 import { asStr, deckAnim, deckAudioExt, deckBox, deckFill, deckNarrationMark, deckNotes, deckPlaceholder, deckSrcRect, deckSlideTransitions, deckSyncShape, deckTheme, emuOf, firstFontFamily, nameStaticFaces, parseDeckModel, STATIC_FACE_DIR, withBrandFonts, type DeckBox, type DeckColorResolver, type DeckNotes, type DeckNoteSink } from "./pptx-deck.ts";
@@ -21,11 +21,13 @@ import {
 import { slideMasterForExport, tokenColorsFromStyle } from '@lolly-tools/node-shell/design-pptx';
 import type { SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
 import { presentationOf } from './presentation.ts';
+import { canvasColorResolver, rasterizeSvgBytes, sourceAuthorOf } from './office-shared.ts';
 import { beginFrameClock, renderFrameAt, endFrameClock } from './frame-clock.ts';
 import { renderVideo } from './export.ts';
 import { pickWebCodecsVideo } from './video-shared.ts';
 import { narrationDwellMs } from "../lib/motion-model.ts";
 import { pureRotationDeg, detectUnsupportedCss, inlineBlobUrlsInEl, rasterizeNodeToDataUrl, imprintEmbedCanvas, stripCommentNodes, _host, _exportNotice, type ExportOpts, type ImprintState } from "./export.ts";
+import { liveOrigin, originNow } from "./export-origin.ts";
 
 type Rgba = [number, number, number, number];
 
@@ -87,23 +89,11 @@ function sniffImgExt(buf: Uint8Array, url: string): 'png' | 'jpeg' | 'svg' | nul
 async function svgBytesToPng(svgBytes: Uint8Array, w: number, h: number, imprint?: ImprintState): Promise<Uint8Array | null> {
   return svgBytesToRaster(svgBytes, w, h, 'image/png', imprint);
 }
-// The same, encoded as `mime` (plan 291 M4: a treated JPEG photo stays a JPEG).
+// The same, encoded as `mime` (plan 291 M4: a treated JPEG photo stays a JPEG). The
+// drawing itself is office-shared.ts's, which the Word export uses too.
 async function svgBytesToRaster(svgBytes: Uint8Array, w: number, h: number, mime: 'image/png' | 'image/jpeg', imprint?: ImprintState): Promise<Uint8Array | null> {
-  if (typeof document === 'undefined') return null;
-  const url = URL.createObjectURL(new Blob([svgBytes as BlobPart], { type: 'image/svg+xml' }));
-  try {
-    const img = await new Promise<HTMLImageElement>((res, rej) => {
-      const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('svg raster')); im.src = url;
-    });
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(2, Math.min(MAX_PPTX_PX, Math.round(w)));
-    canvas.height = Math.max(2, Math.min(MAX_PPTX_PX, Math.round(h)));
-    const cx = canvas.getContext('2d');
-    if (!cx) return null;
-    cx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    imprintEmbedCanvas(canvas, imprint);   // Lolly-rendered inline art only (opt-in, size-floored)
-    return dataUrlToBytes(mime === 'image/jpeg' ? canvas.toDataURL('image/jpeg', 0.92) : canvas.toDataURL('image/png'));
-  } catch { return null; } finally { URL.revokeObjectURL(url); }
+  return rasterizeSvgBytes(svgBytes, w, h, mime, MAX_PPTX_PX,
+    (canvas) => imprintEmbedCanvas(canvas, imprint));   // Lolly-rendered inline art only (opt-in, size-floored)
 }
 
 // Inline tags whose text folds into the PARENT's text box as styled RUNS (instead of
@@ -329,10 +319,18 @@ async function pptxSlideFromPage(pageEl: Element, opts: ExportOpts): Promise<Ppt
   const shapes: PptxShape[] = [];
   const motionNotes: DeckNotes = { mapped: [], dropped: [] };
   const media: PptxMedia[] = [];
-  const rootRect = pageEl.getBoundingClientRect();
+  // Each box is read as its offset from the page, measured in the same task as the box
+  // (`boxRect`), so a page the app moves while the walk awaits a picture keeps every
+  // shape in its place (export-origin.ts).
+  const origin = liveOrigin(pageEl);
+  const boxRect = (el: Element): DOMRect => {
+    const r = el.getBoundingClientRect();
+    const at = originNow(origin);
+    return new DOMRect(r.left - at.left, r.top - at.top, r.width, r.height);
+  };
   const E = EMU_PER_PX;
   const addMedia = (bytes: Uint8Array, ext: PptxMedia['ext']): number => (media.push({ bytes, ext }), media.length - 1);
-  const boxOf = (r: DOMRect) => ({ x: Math.round((r.left - rootRect.left) * E), y: Math.round((r.top - rootRect.top) * E), cx: Math.round(r.width * E), cy: Math.round(r.height * E) });
+  const boxOf = (r: DOMRect) => ({ x: Math.round(r.left * E), y: Math.round(r.top * E), cx: Math.round(r.width * E), cy: Math.round(r.height * E) });
   const full = () => shapes.length >= MAX_PPTX_SHAPES;
 
   // NATIVE-vector fast path: lower a FLAT stroke/fill SVG (the user's own line-art)
@@ -480,7 +478,7 @@ async function pptxSlideFromPage(pageEl: Element, opts: ExportOpts): Promise<Ppt
     if (el.hasAttribute('data-slide-notes')) return;
     const style = window.getComputedStyle(el);
     if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity || '1') === 0) return;
-    const rect = el.getBoundingClientRect();
+    const rect = boxRect(el);
     if (rect.width < 0.5 || rect.height < 0.5) return;
 
     // A rotated element: bake it to a picture (rotation preserved) rather than
@@ -548,19 +546,6 @@ async function pptxSlideFromPage(pageEl: Element, opts: ExportOpts): Promise<Ppt
   if (motionNotes.dropped.length) _host?.log?.('warn', `pptx: ${motionNotes.dropped.join('; ')}.`);
   if (full()) _host?.log?.('warn', `pptx: slide hit the ${MAX_PPTX_SHAPES}-object cap; some elements were dropped.`);
   return { shapes, media };
-}
-
-/**
- * The imported source document's author, when the stage declares one via the
- * `data-source-author` attribute (the deck/doc studios emit it from their
- * `sourceAuthor` input, set at import from the source file's own core props).
- * The shared core-props writer then carries BOTH authors when they differ
- * (plans/144 G6 follow-up).
- */
-export function sourceAuthorOf(node: Element): string | undefined {
-  const el = node.matches?.('[data-source-author]') ? node : node.querySelector?.('[data-source-author]');
-  const v = el?.getAttribute?.('data-source-author')?.trim();
-  return v || undefined;
 }
 
 /* ── per-slide narration (plans/180 M-C) ─────────────────────────────────────── */
@@ -725,48 +710,6 @@ async function deckElementToShape(el: Record<string, unknown>, addMedia: (b: Uin
   return deckSyncShape(el, animNotes, resolve); // rect / text / table / path (pure)
 }
 
-/**
- * The brand-token lookup a deck colour resolves through (plan 179 A12).
- *
- * A Design artboard's fill is a token on any branded document - `var(--brand-surface,
- * #ffffff)` - and pptx-deck.ts understands literal colours only, so before this the
- * default deck exported with no slide background at all.
- *
- * Read the custom properties off THE NODE BEING EXPORTED, not off a global id. Custom
- * properties inherit, and `applyBrandVars` writes the active brand block onto whichever
- * element the caller handed it: `#tool-canvas` in the editor, but a bare
- * `.pro-export-canvas` on the offscreen stage that #/batch renders through (pro/render-
- * export.ts). A `#tool-canvas` lookup found nothing on that route and fell back to
- * `documentElement`, where brand-vars only ever writes `--brand-primary`/`--brand-warn` -
- * so every other `var(--brand-*)` resolved to '', `deckFill` answered undefined, and the
- * same document exported white from the batch route and branded from the editor. Closest
- * ancestor first so a node INSIDE the canvas still finds it; the node itself otherwise.
- * Memoised by name - one deck references the same handful of tokens on every slide.
- * Returns undefined (→ every var() falls back to its own literal) when there is no DOM,
- * which is how the node-side suites reach this module's pure half.
- */
-function canvasColorResolver(node?: Element): DeckColorResolver | undefined {
-  const doc = typeof document === 'undefined' ? null : document;
-  const win = typeof window === 'undefined' ? null : window;
-  if (!doc || typeof win?.getComputedStyle !== 'function') return undefined;
-  const root = node?.closest?.('#tool-canvas') ?? node
-    ?? doc.querySelector?.('#tool-canvas') ?? doc.documentElement;
-  if (!root) return undefined;
-  const seen = new Map<string, string>();
-  let cs: CSSStyleDeclaration | null = null;
-  return (name: string): string => {
-    const hit = seen.get(name);
-    if (hit !== undefined) return hit;
-    let val = '';
-    try {
-      cs ??= win.getComputedStyle(root);
-      val = (cs.getPropertyValue(name) || '').trim();
-    } catch { /* detached document - the var()'s own fallback stands */ }
-    seen.set(name, val);
-    return val;
-  };
-}
-
 // Read + validate a tool-authored deck model off the export node, or null to DOM-walk.
 function readDeckModel(node: Element): Record<string, unknown> | null {
   const el = node.querySelector?.(PPTX_DECK_SEL) ?? (node.matches?.(PPTX_DECK_SEL) ? node : null);
@@ -856,6 +799,15 @@ async function brandTokenColors(node?: Element): Promise<Array<{ path: string; v
   } catch { return undefined; }
 }
 
+/** The accents' order for a design system that declares colour roles. Nothing otherwise, so the theme stays as it was. */
+async function brandThemeAccents(): Promise<{ themeAccents?: string[] }> {
+  try {
+    const snapshot = await _host?.tokens?.snapshot?.();
+    const themeAccents = colourRoleThemeAccents(snapshot?.document);
+    return themeAccents.length ? { themeAccents } : {};
+  } catch { return {}; }
+}
+
 /**
  * Lower a Design document with slide-master bindings, or null to let the caller keep
  * to the deck-model path. Null is the answer whenever the master cannot be read, so a
@@ -909,6 +861,8 @@ async function renderPptxFromDesign(doc: DesignDocV1, opts: ExportOpts, sourceAu
     faceFonts: withBrandFonts(undefined, cssVars)?.fonts,
     // The theme slots no semantic token fills take the brand's own colours.
     tokenColors: await brandTokenColors(node),
+    // A design system with colour roles gives the theme's accents in its own order.
+    ...await brandThemeAccents(),
   });
 
   // Each note also reaches the person (the export card and an aria-live announce), and

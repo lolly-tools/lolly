@@ -28,7 +28,7 @@ export const INTENT_RESOLUTION_VERSION = 1 as const;
 /** The version a `VisualIntentV1` document states. */
 export const VISUAL_INTENT_VERSION = 1 as const;
 /** Bumped when a purpose, a role or a named surface is added or changes meaning. */
-export const INTENT_VOCABULARY_VERSION = 1 as const;
+export const INTENT_VOCABULARY_VERSION = 2 as const;
 
 /**
  * What a piece has to do for its reader. Closed: each one is served by at least one real
@@ -98,6 +98,10 @@ export const INTENT_ROLES: Readonly<Record<string, readonly string[]>> = Object.
   image: ['asset'],
   jobTitle: ['text'],
   lastname: ['text'],
+  /** The partner's mark in a co-branded piece: the guest's logo, never the lead brand's
+   *  (vocabulary 2, Lolly Work plan 82 M7). The lead brand's own logo is not a role,
+   *  because the design system supplies the look. */
+  partnerMark: ['asset'],
   phone: ['text'],
   recipient: ['text'],
   sender: ['text'],

@@ -89,9 +89,18 @@ async function openOptions(page: Page): Promise<void> {
   await page.locator('#filter-popover').waitFor({ state: 'visible' });
 }
 
-/** Move the card-size slider the way a keyboard user does: Home, then step right. */
+/**
+ * Move the card-size slider the way a keyboard user does: Home, then step right.
+ *
+ * The popover's range input becomes the app's own slider on the first idle moment
+ * after load (components/custom-slider.ts, `installRangeUpgrader`), and the upgrade
+ * hides the input. On a busy CI runner that moment can come while this function is
+ * sending keys; a key aimed at the input then goes to the page and the step never
+ * changes. So the keys wait for the slider in its final form.
+ */
 async function setStep(page: Page, step: number): Promise<void> {
   await openOptions(page);
+  await page.locator('#filter-popover .view-options-size .custom-slider[data-cs-for-range]').waitFor();
   const slider = page.locator('#filter-popover').getByRole('slider', { name: 'Card size' });
   await slider.focus();
   await slider.press('Home');
@@ -203,14 +212,18 @@ test('Tools Card: search still hides tools, Compact is shorter, RTL mirrors the 
     await page.locator('#filter-popover [data-density-mode="compact"]').click();
     assert.equal(await page.locator('.tool-masonry').getAttribute('data-browse-density'), 'compact');
     assert.ok(await cardHeight() < comfortable, 'Compact cards are shorter');
-    // Compact puts both detail lines on one; the description gives way, never the
-    // status badge ("Experimental" is what says exports carry a watermark).
-    const badges = await page.locator('.tool-masonry .gtile:not(.is-filtered)[data-tool-id] .gtile-meta > .gtile-status').evaluateAll(els => els.map((el) => {
+    // The detail line leads with the status badge; the description gives way, never the
+    // badge ("Experimental" is what says exports carry a watermark). "Community" alone is
+    // left to Grid's picture and the About dialog, so a row spends the line on the text.
+    const statuses = page.locator('.tool-masonry .gtile:not(.is-filtered)[data-tool-id] .gtile-meta > .gtile-status');
+    const badges = await statuses.evaluateAll(els => els.filter(el => el.getClientRects().length > 0).map((el) => {
       const meta = el.parentElement!.getBoundingClientRect(), b = el.querySelector('.badge')!.getBoundingClientRect();
       return b.width > 0 && b.left >= meta.left - 1 && b.right <= meta.right + 1 && el.scrollWidth <= el.clientWidth + 1;
     }));
     assert.ok(badges.length > 0, 'some tool carries a status');
     assert.deepEqual([...new Set(badges)], [true], 'every status badge shows whole in Compact');
+    const community = await statuses.evaluateAll(els => els.filter(el => el.querySelector(':scope > .badge-community:only-child')).map(el => el.getClientRects().length));
+    assert.deepEqual([...new Set(community)].filter(n => n > 0), [], 'a row draws no "Community" badge');
     await page.locator('#filter-popover [data-density-mode="comfortable"]').click();
     await page.keyboard.press('Escape');
 

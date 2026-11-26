@@ -298,6 +298,36 @@ test('setCapabilities rebuilds the volume sliders a host gained after the dock w
   dock.destroy();
 });
 
+test('the picker follows list changes from sources a host gained after the dock was built', () => {
+  // Same order as the web shell: the dock is built over a host with no sources, a music
+  // source registers later, and the library changes after that (a tune saved, a track
+  // uploaded). The dock subscribed at creation, to nothing, so the new row never showed.
+  let rows: DockSource[] = [{ id: 'a', title: 'Groove Salad', kind: 'music', group: 'Catalog' }];
+  const listeners = new Set<() => void>();
+  const sources = {
+    list: (): DockSource[] => rows,
+    select: () => {},
+    currentId: () => '',
+    onListChange: (l: () => void) => { listeners.add(l); return () => listeners.delete(l); },
+  };
+  let current: typeof sources | undefined;
+  const host = makeHost();
+  Object.defineProperty(host, 'sources', { get: () => current });
+  const dock = createAudioDock({ host, capabilities: {} });
+
+  current = sources;
+  dock.setCapabilities({ music: true });
+  assert.deepEqual([...dock.el.querySelectorAll<HTMLElement>('[data-src-id]')].map((b) => b.dataset.srcId), ['a']);
+
+  rows = [...rows, { id: 'user/tune/1', title: 'Lolly Sings · F major · 98 bpm', kind: 'music', group: 'Lolly Sings' }];
+  for (const l of listeners) l();
+  assert.deepEqual([...dock.el.querySelectorAll<HTMLElement>('[data-src-id]')].map((b) => b.dataset.srcId), ['a', 'user/tune/1'],
+    'the saved tune appears without a reload');
+
+  dock.destroy();
+  assert.equal(listeners.size, 0, 'destroying the dock unsubscribes');
+});
+
 test('searchable picker filters rows and hides empty groups', () => {
   const host = makeHost();
   host.sources!.searchable = true;
@@ -729,4 +759,224 @@ test('destroy() unmounts and unsubscribes', () => {
   host.state.now = { title: 'gone' };
   host.emit();
   assert.notEqual(dock.el.querySelector('[data-title]')?.textContent, 'gone');
+});
+
+test('controls: the current source brings its own choice, switch, slider and action', async () => {
+  const st = { mood: 'warm', drums: true, texture: 0.5, shared: 0 };
+  let show: 'lofi' | 'none' = 'lofi';
+  const host = makeHost({
+    controls: () => show === 'none' ? [] : [
+      { kind: 'choice', id: 'mood', label: 'Mood', options: [{ id: 'warm', label: 'Warm' }, { id: 'rainy', label: 'Rainy' }], get: () => st.mood, set: (v) => { st.mood = v; } },
+      { kind: 'toggle', id: 'drums', label: 'Drums', get: () => st.drums, set: (v) => { st.drums = v; } },
+      { kind: 'range', id: 'texture', label: 'Texture', min: 0, max: 1, step: 0.05, get: () => st.texture, set: (v) => { st.texture = v; } },
+      { kind: 'action', id: 'share', label: 'Share', run: () => { st.shared++; return 'Link copied'; } },
+    ],
+  });
+  const dock = createAudioDock({ host, capabilities: { music: true }, mount: document.body });
+  const block = dock.el.querySelector<HTMLElement>('[data-controls]')!;
+  const opt = (id: string): HTMLButtonElement => block.querySelector<HTMLButtonElement>(`[data-ctl="mood"][data-ctl-opt="${id}"]`)!;
+  assert.equal(opt('warm').getAttribute('aria-pressed'), 'true', 'the current choice is pressed');
+  assert.equal(opt('rainy').getAttribute('aria-pressed'), 'false');
+
+  opt('rainy').click();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(st.mood, 'rainy', 'a choice sets the host');
+  assert.equal(opt('rainy').getAttribute('aria-pressed'), 'true', 'and repaints');
+
+  const drums = block.querySelector<HTMLButtonElement>('[data-ctl="drums"]')!;
+  assert.equal(drums.getAttribute('aria-pressed'), 'true');
+  drums.click();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(st.drums, false, 'a switch flips');
+
+  const range = block.querySelector<HTMLInputElement>('input[data-ctl="texture"]')!;
+  range.value = '0.8';
+  range.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  assert.equal(st.texture, 0.8, 'a slider sets live');
+
+  const share = block.querySelector<HTMLButtonElement>('[data-ctl="share"]')!;
+  share.click();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(st.shared, 1, 'an action runs');
+  assert.equal(share.textContent, 'Link copied', 'and shows what it said for a moment');
+
+  show = 'none';
+  host.emit();
+  assert.equal(block.innerHTML, '', 'a source with no controls shows no block');
+  dock.destroy();
+});
+
+test('icon controls: a switch and an action with an icon are small buttons named by their tooltip, in one row', async () => {
+  const st = { light: false, shared: 0 };
+  const glyph = '<svg viewBox="0 0 24 24"><path d="M0 0h24"/></svg>';
+  const host = makeHost({
+    controls: () => [
+      { kind: 'toggle', id: 'drums', label: 'Drums', get: () => true, set: () => {} },
+      { kind: 'toggle', id: 'light', label: 'Light visualiser', icon: glyph, get: () => st.light, set: (v) => { st.light = v; } },
+      { kind: 'action', id: 'share', label: 'Share this tune or moment', icon: glyph, run: () => { st.shared++; return 'Link copied'; } },
+    ],
+  });
+  const dock = createAudioDock({ host, capabilities: { music: true }, mount: document.body });
+  const block = dock.el.querySelector<HTMLElement>('[data-controls]')!;
+  const row = block.querySelector<HTMLElement>('.audio-dock-icons')!;
+  assert.ok(row, 'the icon controls sit in one row');
+  assert.equal(row.querySelectorAll('[data-ctl]').length, 2, 'both icon controls, and only those, are in the row');
+  assert.ok(!row.querySelector('[data-ctl="drums"]'), 'a control without an icon keeps its labelled pill');
+  const share = row.querySelector<HTMLButtonElement>('[data-ctl="share"]')!;
+  for (const attr of ['aria-label', 'title', 'data-tip']) assert.equal(share.getAttribute(attr), 'Share this tune or moment', `named by ${attr}`);
+  assert.equal(share.textContent, '', 'no visible text, only the icon');
+  assert.ok(share.querySelector('svg'), 'the icon');
+
+  const light = row.querySelector<HTMLButtonElement>('[data-ctl="light"]')!;
+  assert.equal(light.getAttribute('aria-pressed'), 'false');
+  light.click();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(st.light, true, 'an icon switch flips');
+  assert.equal(light.getAttribute('aria-pressed'), 'true', 'and shows it is on');
+
+  share.click();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(st.shared, 1, 'an icon action runs');
+  assert.ok(share.querySelector('svg'), 'and keeps its icon');
+  assert.equal(row.querySelector('[data-said]')!.textContent, 'Link copied', 'what it said shows beside the row');
+  dock.destroy();
+});
+
+test('a visualizer canvas whose WebGL context is lost is swapped for a fresh one and mounted again', async () => {
+  const mounted: HTMLCanvasElement[] = [];
+  let unmounts = 0;
+  const host = makeHost({ viz: { supported: () => true, mount: (c) => { mounted.push(c); }, unmount: () => { unmounts++; } } }, true);
+  const dock = createAudioDock({ host, capabilities: { music: true, viz: true }, mount: document.body });
+  const before = dock.el.querySelector<HTMLCanvasElement>('[data-viz-canvas]')!;
+  assert.equal(mounted.at(-1), before, 'the renderer mounts on the dock canvas');
+
+  const lost = new dom.window.Event('webglcontextlost', { cancelable: true });
+  before.dispatchEvent(lost);
+  assert.ok(lost.defaultPrevented, 'the loss is taken (so the browser may restore it)');
+  await new Promise((r) => setTimeout(r, 300));
+  const after = dock.el.querySelector<HTMLCanvasElement>('[data-viz-canvas]')!;
+  assert.notEqual(after, before, 'a fresh canvas element replaces the lost one');
+  assert.ok(!before.isConnected, 'the lost canvas is gone');
+  assert.ok(unmounts >= 1, 'the old renderer is released');
+  assert.equal(mounted.at(-1), after, 'and the renderer mounts again on the fresh canvas');
+  dock.destroy();
+});
+
+// ── the music scrub: a slider over the host's position ─────────────────────────
+// A host whose track is 40 seconds long. With a grid it is a generated tune of twenty
+// two-second bars whose parts change at 8 s and 24 s.
+function scrubHost(grid: boolean, over: Partial<DockHost> = {}) {
+  let at = 5;
+  const seeks: number[] = [];
+  const points = Array.from({ length: 20 }, (_, i) => i * 2);
+  const marks = [8, 24];
+  const host = makeHost({
+    currentTime: () => at,
+    duration: () => 40,
+    seekable: () => true,
+    seek: (s: number) => { seeks.push(s); at = s; },
+    ...(grid ? {
+      seekGrid: () => ({ points, marks }),
+      describePosition: (s: number) => ({ label: `Bar ${Math.floor(s / 2) + 1} of 20`, spoken: `Bar ${Math.floor(s / 2) + 1} of 20, ${s} seconds` }),
+    } : {}),
+    ...over,
+  });
+  const dock = createAudioDock({ host, capabilities: { music: true } });
+  const scrub = dock.el.querySelector<HTMLElement>('[data-scrub]')!;
+  scrub.getBoundingClientRect = () => ({ left: 0, top: 0, right: 200, bottom: 18, width: 200, height: 18, x: 0, y: 0, toJSON: () => ({}) });
+  const key = (k: string): boolean => {
+    const e = new dom.window.KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true });
+    scrub.dispatchEvent(e);
+    return e.defaultPrevented;
+  };
+  const pointer = (type: string, clientX: number): void => {
+    scrub.dispatchEvent(new dom.window.MouseEvent(type, { clientX, button: 0, bubbles: true, cancelable: true }));
+  };
+  return { host, dock, scrub, seeks, key, pointer, setAt: (s: number) => { at = s; } };
+}
+
+test('the music scrub is a slider a screen reader can read, with the bar and part beside the times', () => {
+  const { dock, scrub } = scrubHost(true);
+  const root = dock.el;
+  assert.equal(root.getAttribute('data-seekable'), 'true');
+  assert.equal(scrub.getAttribute('role'), 'slider');
+  assert.equal(scrub.tabIndex, 0, 'reachable with Tab');
+  assert.equal(scrub.getAttribute('aria-label'), 'Seek within track');
+  assert.equal(scrub.getAttribute('aria-valuemin'), '0');
+  assert.equal(scrub.getAttribute('aria-valuemax'), '40');
+  assert.equal(scrub.getAttribute('aria-valuenow'), '5');
+  assert.equal(scrub.getAttribute('aria-valuetext'), 'Bar 3 of 20, 5 seconds', 'the host words what a screen reader hears');
+  assert.equal(root.querySelector('[data-time-pos]')!.textContent, 'Bar 3 of 20', 'the label between the times');
+  assert.equal(root.querySelector('[data-time-cur]')!.textContent, '0:05');
+  assert.equal(root.querySelector('[data-time-dur]')!.textContent, '0:40');
+  const marks = [...root.querySelectorAll<HTMLElement>('.audio-dock-seek-mark')].map((m) => m.style.left);
+  assert.deepEqual(marks, ['20%', '60%'], 'a tick where each part starts');
+  assert.equal(root.querySelector<HTMLElement>('[data-scrub-fill]')!.style.width, '12.5%');
+  dock.destroy();
+});
+
+test('the arrow keys step one bar, Page Up and Page Down one part, Home and End go to the ends', () => {
+  const { dock, seeks, key, setAt } = scrubHost(true);
+  assert.equal(key('ArrowRight'), true, 'the key is the slider\'s');
+  assert.deepEqual(seeks, [6], 'from 5 s, in the bar that starts at 4 s, on to the next bar');
+  setAt(6.5);
+  key('ArrowLeft');
+  assert.equal(seeks.at(-1), 4, 'back to the bar before the one playing');
+  key('Home');
+  assert.equal(seeks.at(-1), 0);
+  key('End');
+  assert.equal(seeks.at(-1), 38, 'the last bar');
+  setAt(0);
+  key('PageUp');
+  assert.equal(seeks.at(-1), 8, 'the next part');
+  key('PageUp');
+  assert.equal(seeks.at(-1), 24);
+  key('PageDown');
+  assert.equal(seeks.at(-1), 8, 'the part before');
+  assert.equal(key('a'), false, 'any other key is left alone');
+  dock.destroy();
+});
+
+test('a press or a drag snaps to the nearest bar, and seeks only when it lets go', () => {
+  const { dock, seeks, pointer } = scrubHost(true);
+  const root = dock.el;
+  pointer('pointerdown', 33);   // 6.6 s: the bar at 6 s is nearest
+  assert.deepEqual(seeks, [], 'nothing seeks while the pointer is down');
+  assert.equal(root.querySelector('[data-time-pos]')!.textContent, 'Bar 4 of 20', 'the label shows where it will land');
+  assert.equal(root.querySelector('[data-time-cur]')!.textContent, '0:06');
+  pointer('pointermove', 101);  // 20.2 s
+  pointer('pointerup', 101);
+  assert.deepEqual(seeks, [20], 'lets go on the bar at 20 s');
+  pointer('pointerdown', 150);
+  pointer('pointercancel', 150);
+  assert.deepEqual(seeks, [20], 'a cancelled drag does not seek');
+  dock.destroy();
+});
+
+test('a recorded track seeks anywhere: the arrows move 5 seconds and End stops short of the end', () => {
+  const { dock, scrub, seeks, key, pointer, setAt } = scrubHost(false);
+  assert.equal(scrub.getAttribute('aria-valuetext'), '0:05 of 0:40', 'the times, when the host has no words of its own');
+  assert.equal(dock.el.querySelector('[data-time-pos]')!.textContent, '');
+  assert.equal(dock.el.querySelectorAll('.audio-dock-seek-mark').length, 0);
+  key('ArrowRight');
+  assert.deepEqual(seeks, [10]);
+  key('End');
+  assert.equal(seeks.at(-1), 39, 'a looping track would start again from the top at 40');
+  setAt(10);
+  pointer('pointerdown', 101);
+  pointer('pointerup', 101);
+  assert.ok(Math.abs(seeks.at(-1)! - 20.2) < 1e-9, 'where it let go, not snapped');
+  dock.destroy();
+});
+
+test('the Mini size shows how far through the track it is, and nothing for a live stream', () => {
+  const { dock } = scrubHost(true);
+  dock.setCollapse('mini');
+  const line = dock.el.querySelector<HTMLElement>('[data-mini-progress]')!;
+  assert.equal(line.getAttribute('aria-hidden'), 'true', 'to look at; the scrub is the control');
+  assert.equal(line.style.getPropertyValue('--dock-progress'), '0.1250');
+  dock.destroy();
+  const radio = scrubHost(false, { seekable: () => false, duration: () => 0 });
+  assert.equal(radio.dock.el.getAttribute('data-seekable'), 'false', 'no scrub and no line for radio');
+  radio.dock.destroy();
 });

@@ -44,7 +44,7 @@ test('the sidebar sync passes the tool id, so the renderer can look the policy u
 });
 
 test('a locked value reaches the runtime once it exists, so canvas, session and link agree with the control', () => {
-  const apply = SETUP.indexOf('policyValuesFor(toolId, runtime.getModel())');
+  const apply = SETUP.indexOf('policyValuesFor(toolId, runtime.getModel()');
   const runtime = SETUP.indexOf('await createRuntime(');
   assert.ok(apply > runtime && runtime > 0, 'applied right after the runtime is created');
   assert.match(SETUP, /await runtime\.applyPatch\(policyValues\);\s*await runtime\.resolveRefs\(\);/);

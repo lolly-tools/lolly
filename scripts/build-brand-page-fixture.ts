@@ -5,8 +5,8 @@
  * Lolly Work stores and serves a folder Lolly made, and its parser follows the format key
  * by key on purpose, so a new key or path in `brand.json` is refused there. This folder
  * holds one of everything the generator can write, at a few kilobytes: an owner-published
- * logo, an openly licensed logo, a logo held back, a font with its licence text, a skill
- * and an example. Work's tests publish the folder and serve the result.
+ * logo, an openly licensed logo, a logo held back, a font with its licence text, colour
+ * roles, a skill and an example. Work's tests publish the folder and serve the result.
  *
  *   node scripts/build-brand-page-fixture.ts --out=<lolly-work>/tests/fixtures/brand-page-folder
  *
@@ -18,6 +18,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { deriveBrandTokens } from '../engine/src/brand-derive.ts';
+import { setColourRoles } from '../engine/src/colour-roles.ts';
 import type { BrandPageInputV1 } from '../engine/src/brand-page.ts';
 import { buildBrandPage } from '../engine/src/brand-page.ts';
 
@@ -33,10 +34,20 @@ const OWN_WORK = (id: string): Record<string, unknown> => ({
   }],
 });
 
+/** A system with its own colour words: one read as the lead, one by name only with a description. */
+function fixtureTokens(): unknown {
+  const named = setColourRoles(deriveBrandTokens({ primary: '#0b6e4f' } as never), [
+    { label: 'Evergreen', fills: 'primary' },
+    { label: 'Signal', description: 'The small flag on a page.', value: '#c9a227' },
+  ], { lift: { id: 'house', name: 'House' }, systemLabel: 'Fixture' });
+  if (!named.ok) throw new Error(`the fixture's colour roles were refused: ${named.reasons.join(' ')}`);
+  return named.doc;
+}
+
 /** The input behind the fixture, one of everything the format can hold. */
 export function brandPageFixtureInput(): BrandPageInputV1 {
   return {
-    tokens: deriveBrandTokens({ primary: '#0b6e4f' } as never),
+    tokens: fixtureTokens(),
     name: 'Fixture',
     id: 'fixture',
     publishedVersion: '1.0.0',

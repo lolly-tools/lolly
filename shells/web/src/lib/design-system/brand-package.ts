@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** A brand plus an explicit collection. The nested payload reuses .lolly's
  * integrity, asset closure, sanitisation and collision-safe asset ingest. */
+import { rowPictureDataUrl, type PictureState } from '../session-picture.ts';
 import { strToU8, type Unzipped } from 'fflate';
 import { exportBrandPack, type BrandTransferHost } from '../../brand-transfer.ts';
 import { buildLollyFile, readLollyFile, ingestLollyFile, type LollyFileContents, type LollyLibraryAsset, type LollyToolBundle } from '../lolly-pack.ts';
@@ -49,7 +50,7 @@ export interface PreparedBrandContent { payload: LollyFileContents; tools: Lolly
 export async function buildBrandPackage(
   host: BrandPackageHost, system: string, selection: BrandSelection,
   opts: { resolveTool?: (id: string) => Promise<LollyToolBundle | null>; progress?: (label: string) => void } = {},
-): Promise<{ blob: Blob; filename: string; references: number }> {
+): Promise<{ blob: Blob; filename: string; references: number; unrecorded: string[] }> {
   opts.progress?.('Preparing the brand…');
   const record = await host.designSystems?.get(system);
   if (!record) throw new Error('This design system is no longer on this device.');
@@ -58,7 +59,7 @@ export async function buildBrandPackage(
     setItem() {},
   } }, { system });
   if (!brand.summary.tokens) throw new Error('This design system has no readable tokens to export.');
-  if (!selection.sessions.length && !selection.assets.length && !selection.tools.length) return { ...brand, references: 0 };
+  if (!selection.sessions.length && !selection.assets.length && !selection.tools.length) return { ...brand, references: 0, unrecorded: [] };
 
   const sessions: PackedSession[] = [];
   const rows = await host.state.list();
@@ -67,7 +68,7 @@ export async function buildBrandPackage(
     const data = await host.state.load(slot);
     if (typeof row?.toolId !== 'string' || !row.toolId || !data) throw new Error(`The selected session “${row?.label || slot}” is no longer available.`);
     opts.progress?.(`Adding ${row.label || row.toolId}…`);
-    sessions.push({ toolId: row.toolId, label: nameOf(row.label, row.toolId), thumb: row.thumb ?? null, data });
+    sessions.push({ toolId: row.toolId, label: nameOf(row.label, row.toolId), thumb: await rowPictureDataUrl(host.state as PictureState, row), data });
   }
   const selected = new Set(selection.assets);
   // A catalogue item referenced from a session travels only when its licence lets
@@ -122,7 +123,7 @@ export async function buildBrandPackage(
   entries[README_NAME] = strToU8(new TextDecoder().decode(original[README_NAME]) + `\nSelected local content: ${counts.sessions} sessions, ${counts.assets} files, ${counts.tools} tools.\nRequired session assets travel inside content/collection.lolly. ${counts.references} assets remain external references.\n${payload.summary.credits ? 'CREDITS.txt inside content/collection.lolly lists the catalogue works it uses, what was held back and why.\n' : ''}Import this .lolly in Lolly to add the brand and selected content. Existing sessions are never replaced; tools retain their normal trust prompt.\n`);
   const integrity = await buildIntegrity(entries);
   const zip = await zipAsync({ 'manifest.json': strToU8(JSON.stringify({ ...manifest, formatVersion: 4, minReader: Math.max(2, Number(manifest.minReader) || 1), contents: counts, integrity })), ...entries });
-  return { blob: new Blob([zip as BlobPart], { type: brand.blob.type }), filename: brand.filename, references: counts.references };
+  return { blob: new Blob([zip as BlobPart], { type: brand.blob.type }), filename: brand.filename, references: counts.references, unrecorded: payload.summary.unrecorded ?? [] };
 }
 
 /** Verify every nested payload before the brand importer writes anything. */

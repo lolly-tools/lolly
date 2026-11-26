@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "snippet",
-  "toolVersion": "1.7.0",
-  "toolVersionRange": "1.7.0",
+  "toolVersion": "1.7.1",
+  "toolVersionRange": "1.7.1",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "f70e77c6e3025250420d7dd43451707bd78b5ae5c8be10e6b48541f60c32042a",
+      "sha256": "f254f211d18cfa78d93296e589c104834bb21493127ca1f14c9a124a71df9caf",
       "bytes": 2665
     },
     "reference/inputs.json": {

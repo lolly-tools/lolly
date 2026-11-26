@@ -11,6 +11,9 @@ import { base64ToBytes } from '../../../../engine/src/bytes.ts';
 import type { AssetsAPI, TextAPI, TextPathCluster } from '@lolly-tools/core/host-v1';
 import { createTextCompositionAPI } from '@lolly-tools/node-shell/text-composition';
 import { createGlyphCache } from '@lolly-tools/node-shell/text-glyphs';
+import { shapingSegments } from '@lolly-tools/node-shell/text-bidi';
+import { fillSegments } from '@lolly-tools/node-shell/fallback-fonts';
+import { noteShapedChain } from './fallback-font-source.ts';
 import { strikeMetricsFact, type StrikeMetrics } from '../../../../engine/src/text-decoration.ts';
 import { registerTextStrikeMetrics } from './text-drawing-facts.ts';
 import type { Blob as HbBlob, Face as HbFace, Font as HbFont, Feature as HbFeature } from 'harfbuzzjs';
@@ -39,6 +42,8 @@ interface FontEntry {
   font: HbFont;
   upem: number;
   unicodes: Set<number>;
+  /** Draws only what the faces before it cannot (TextToPathOpts.fallbackFonts `fill`). */
+  fill?: boolean;
 }
 
 const faceCache = new Map<string, FaceEntry>();
@@ -211,16 +216,23 @@ export function createTextAPI(assets?: AssetsAPI): TextAPI {
      * across in PIXELS - faces may differ in units-per-em, so nothing else is
      * comparable between them. Shaping per segment means no kerning across a
      * face boundary, exactly as in a browser.
+     *
+     * A run that holds right-to-left characters, or a complex script beside another
+     * script, is split by direction and script first (text-bidi.ts) and its pieces are
+     * laid out in visual order, so the pen always runs left to right.
      */
-    async toPath({ text, fontUrl, fontSize, features, letterSpacing = 0, variations, fallbackFonts, clusters: wantClusters, preserveWhitespaceAdvance = false }) {
+    async toPath({ text, fontUrl, fontSize, features, letterSpacing = 0, variations, fallbackFonts, clusters: wantClusters, preserveWhitespaceAdvance = false, direction }) {
       if (!text || (!preserveWhitespaceAdvance && !text.trim())) {
         return { d: '', advanceWidth: 0, bbox: null, notdef: 0, ...(wantClusters ? { clusters: [] } : {}) };
       }
 
-      const chain = [
+      const chain: FontEntry[] = [
         await loadFont(fontUrl, variations),
-        ...await Promise.all((fallbackFonts ?? []).map(f => loadFont(f.fontUrl, f.variations))),
+        ...await Promise.all((fallbackFonts ?? []).map(async f => (f.fill ? { ...await loadFont(f.fontUrl, f.variations), fill: true } : loadFont(f.fontUrl, f.variations)))),
       ];
+      // A fill face splits the run cluster by cluster, so an earlier face keeps every
+      // character it maps; a chain without one splits as it always did.
+      const split = chain.some(f => f.fill) ? (part: string) => fillSegments(part, chain) : (part: string) => segmentByFace(part, chain);
       const hb = _hb!;
 
       // OpenType feature toggles (e.g. 'liga=0', 'salt=1') let a caller disable
@@ -237,9 +249,8 @@ export function createTextAPI(assets?: AssetsAPI): TextAPI {
       // Per-cluster accumulation (plans/175 WP-D), keyed by the cluster's ABSOLUTE
       // UTF-16 start in `text` (HarfBuzz cluster values are segment-relative).
       const pieces = wantClusters ? new Map<number, { d: string; x: number; advance: number }>() : null;
-      let segStart = 0;
 
-      for (const seg of segmentByFace(text, chain)) {
+      for (const seg of shapingSegments(text, direction, split)) {
         const { font, upem } = chain[seg.face]!;
         const scale = fontSize / upem;
         // letter-spacing is given in px; convert to font units to add to the pen advance.
@@ -249,6 +260,7 @@ export function createTextAPI(assets?: AssetsAPI): TextAPI {
 
         const buf = new hb.Buffer();
         buf.addText(seg.text);
+        if (seg.script) { buf.setDirection(seg.rtl ? hb.Direction.RTL : hb.Direction.LTR); buf.setScript(seg.script); }
         buf.guessSegmentProperties();
         hb.shape(font, buf, feats.length ? (feats as HbFeature[]) : undefined);
 
@@ -275,7 +287,7 @@ export function createTextAPI(assets?: AssetsAPI): TextAPI {
           const glyphD = rawPath ? transformPath(rawPath, ox, oy, scale) : '';
           if (glyphD) d += glyphD;
           if (pieces) {
-            const key = segStart + cluster;
+            const key = seg.start + cluster;
             const piece = pieces.get(key);
             const penPxHere = (originUnits + penX) * scale;
             const advPx = (xAdvance + lsUnits) * scale;
@@ -300,9 +312,10 @@ export function createTextAPI(assets?: AssetsAPI): TextAPI {
           penX += xAdvance + lsUnits;   // uniform tracking after every glyph (CSS-style)
         }
         penPx += penX * scale;
-        segStart += seg.text.length;
       }
 
+      // A run drawn whole with a fallback chain the export resolved (font-fill.ts).
+      if (!notdef) noteShapedChain(fallbackFonts);
       return {
         d,
         advanceWidth: penPx,

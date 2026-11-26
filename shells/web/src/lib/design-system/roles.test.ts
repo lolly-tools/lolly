@@ -29,7 +29,7 @@ globalThis.document = dom.window.document;
 
 const {
   ROLE_IDS, ROLE_IDS_ALL, ASSIGNABLE_ROLES, roleLabel, readRoles, roleAssignments, assignRole, clearRole,
-  roleContrast, roleReadouts, buildRolesModel, rampStepName, rolesStripHtml, mountRolesStrip, WEAK_LC, setRoleValue,
+  roleContrast, roleReadouts, buildRolesModel, rampStepName, rolesStripHtml, mountRolesStrip, WEAK_LC, setRoleValue, apcaParts,
 } = await import('./roles.ts');
 const { addLead, leadSelection } = await import('./leads.ts');
 type RoleId = import('./roles.ts').RoleId;
@@ -708,7 +708,7 @@ test('mountRolesStrip: a changed swatch list rebuilds, and puts focus back', () 
 
 test('roleLabel covers every declared role', () => {
   for (const id of ROLE_IDS_ALL) assert.ok(roleLabel(id).length > 0, `${id} has no label`);
-  assert.equal(new Set(ROLE_IDS_ALL.map(roleLabel)).size, ROLE_IDS_ALL.length, 'labels must be distinct');
+  assert.equal(new Set(ROLE_IDS_ALL.map(id => roleLabel(id))).size, ROLE_IDS_ALL.length, 'labels must be distinct');
 });
 
 // ── All seven slots (plan 182 section 5.7 step 1) ────────────────────────────
@@ -766,6 +766,20 @@ test('on-primary is measured against the primary itself', () => {
 
 // A hairline is meant to be quiet. The engine's own derive puts `edge` around
 // Lc 22, so flagging it would be an alarm that is always on.
+test('the readout speaks plainly, with the figures in the tooltip and no minus sign', () => {
+  const good = apcaParts({ lc: -102, use: 'body-preferred', label: 'Body text, comfortably', wcag: 12.3, weak: false });
+  assert.equal(good.text, 'Text reads well');
+  assert.equal(good.weak, false);
+  assert.equal(good.title, 'Contrast 102 (APCA), 12.30 to 1 (WCAG). Body text, comfortably.');
+  const large = apcaParts({ lc: 60, use: 'large-text', label: 'Large text - 24px, or 16px bold', wcag: 4, weak: false });
+  assert.equal(large.text, 'Large text only');
+  const weak = apcaParts({ lc: 32, use: 'non-text', label: 'Icons and borders only', wcag: 2, weak: true });
+  assert.equal(weak.text, 'Hard to read as text');
+  assert.equal(weak.weak, true);
+  assert.match(weak.title, /can still work for shapes/, 'a colour weak under text is not a wrong colour');
+  assert.equal(apcaParts({ lc: 22, use: 'invisible', label: 'Not usable', wcag: 1.2, weak: true }, true).text, 'Not for text', 'a hairline is not drawn behind text');
+});
+
 test('the edge row reports its Lc without the weak warning', () => {
   const doc = derived();
   const raw = roleReadouts(doc, 'light', resolverFor(doc)).edge.contrast;

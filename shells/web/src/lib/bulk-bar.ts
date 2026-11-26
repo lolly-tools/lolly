@@ -21,6 +21,7 @@
  * without a re-render.
  */
 
+import { closeButtonHtml } from './close-button.ts';
 import { t, tn } from '../i18n.ts';
 import { escape } from '../utils.ts';
 import { fitLabels, rowOverflows } from './fit-labels.ts';
@@ -60,7 +61,7 @@ export function bulkBarHtml(cfg: BulkBarConfig): string {
     <div class="${cfg.prefix}" role="region" aria-label="${escape(t('Selection actions'))}" hidden>
       <span class="${cfg.prefix}-count" aria-live="polite"></span>
       <div class="${cfg.prefix}-actions">${buttons}</div>
-      <button type="button" class="${cfg.prefix}-clear" data-bulk="clear" aria-label="${escape(t('Clear selection'))}">✕</button>
+      ${closeButtonHtml({ size: 'sm', className: `${cfg.prefix}-clear`, label: t('Clear selection'), attrs: { 'data-bulk': 'clear' } })}
     </div>`;
 }
 

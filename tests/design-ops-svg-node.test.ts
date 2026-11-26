@@ -19,6 +19,9 @@ import { embedC2pa } from '@lolly/engine';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { packQuery } from '../engine/src/url-pack.ts';
 import { designPageSvg } from '../engine/src/design-page-svg.ts';
+import { tokenColorVar } from '../engine/src/color-face.ts';
+import { tokenFamily } from '../engine/src/token-context.ts';
+import { createTokenSet } from '../engine/src/tokens.ts';
 import { designOpsSvgNode } from '../packages/node-shell/src/design-ops-svg.ts';
 import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
 import { createNodeTextAPI } from '../packages/node-shell/src/text.ts';
@@ -63,6 +66,30 @@ test('Node hands a page to the browser tier, with the reason, whenever it cannot
   assert.match(await reason(frameNode('cover'), {}, withBrandColor), /color-unresolved \(chip\)/, 'a brand colour only the live page can read');
   const withPicture = [...boxes, { id: 'pic', kind: 'image', x: 300, y: 200, w: 100, h: 100, image: 'missing/asset', frame: 'cover' }];
   assert.match(await reason(frameNode('cover'), {}, withPicture), /image-unread \(pic\)/, 'a picture the host cannot read is never left out');
+});
+
+test('a brand variable draws what the web canvas paints: the token, on every design system, and the row\'s fallback only where no token answers', async () => {
+  for (const path of ['brands/lolly-demo/catalog/assets/lolly/tokens/demo.json', 'brands/lolly-start/catalog/assets/lolly/tokens/brand.json']) {
+    const tokens = JSON.parse(await readFile(join(ROOT, path), 'utf8'));
+    const set = createTokenSet(tokens);
+    const family = await tokenFamily(tokens, 'primary');
+    const themed = { ...host, tokens: { colors: async () => set.colors(), family: async () => family, resolve: async (ref: string) => set.resolve(ref) } } as unknown as HostV1;
+    const hex = (name: string): string => String(set.colors().find(s => s.path === name)!.value).toLowerCase();
+    const fill = async (bg: string): Promise<string> => {
+      const page = await designOpsSvgNode(frameNode('cover'), doc([{ id: 'cover', kind: 'frame', x: 0, y: 0, w: 100, h: 100, bg }]), themed, { repoRoot: ROOT });
+      assert.ok(page && 'svg' in page, `${bg}: ${page && 'reason' in page ? page.reason : 'no page'}`);
+      return /<rect [^>]*fill="(#[0-9a-f]{6})"/i.exec(page.svg)![1]!.toLowerCase();
+    };
+    assert.equal(await fill('var(--brand-primary, #abcdef)'), hex('color.semantic.primary'), `${path}: the slot, not its fallback`);
+    assert.equal(await fill('var(--brand-primary)'), hex('color.semantic.primary'), `${path}: no fallback needed, and no browser`);
+    assert.equal(await fill('var(--brand-surface, #abcdef)'), hex('color.semantic.surface'));
+    const named = set.colors().find(s => !s.path.startsWith('color.semantic.'))!;
+    assert.equal(await fill(`var(${tokenColorVar(named.ref)}, #abcdef)`), String(named.value).toLowerCase(), `${path}: a token by its own variable`);
+    if (family.length >= 2) assert.equal(await fill('var(--brand-lead-2, #abcdef)'), family[1]!.value.toLowerCase(), `${path}: a colourway lead`);
+    assert.equal(await fill('var(--brand-no-such-colour, #abcdef)'), '#abcdef', `${path}: the fallback where no token answers`);
+    const out = await designOpsSvgNode(frameNode('cover'), doc([{ id: 'cover', kind: 'frame', x: 0, y: 0, w: 100, h: 100, bg: 'var(--brand-no-such-colour)' }]), themed, { repoRoot: ROOT });
+    assert.ok(out && 'reason' in out && /color-unresolved/.test(out.reason), `${path}: and no fallback goes to the browser tier`);
+  }
 });
 
 test('the CLI exports a Design frame as SVG without a browser', async () => {
@@ -120,7 +147,7 @@ test('SVG and SVGZ refuse composed snapshots, retain all other whole-page admiss
       { opts: { sourceDocument: { toolId: 'design', values: { boxes, textDocument: 'Stories' } } }, reason: /composes text stories/ },
       { opts: { ...doc(boxes), watermark: true }, reason: /watermark/ },
       { opts: doc(boxes.map(row => row.id === 'chip' ? { ...row, bgBlur: 8 } : row)), reason: /background-blur \(chip\)/ },
-      { opts: doc(boxes.map(row => row.id === 'chip' ? { ...row, bg: 'var(--brand-primary)' } : row)), reason: /color-unresolved \(chip\)/ },
+      { opts: doc(boxes.map(row => row.id === 'chip' ? { ...row, bg: 'var(--brand-no-such-colour)' } : row)), reason: /color-unresolved \(chip\)/ },
       { opts: doc([...boxes, picture]), reason: /image-unread \(pic\)/ },
       { opts: doc([...boxes, { ...picture, image: 'pictures/icon?theme=dark' }]), reason: /image-unread \(pic\)/ },
       { opts: doc(boxes.map(row => row.id === 'title' ? { ...row, text: 'Hello 👋' } : row)), reason: /text-emoji \(title\)/ },

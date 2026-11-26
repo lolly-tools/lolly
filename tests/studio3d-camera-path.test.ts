@@ -4,7 +4,6 @@ import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { JSDOM } from 'jsdom';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import {
@@ -27,6 +26,7 @@ import {
   presetFixture,
 } from './fixtures/studio3d/recipes/generate-camera-presets.ts';
 import { baseHost } from './helpers/host.ts';
+import { studioBarHarness } from './helpers/studio3d-bar.ts';
 
 const keys = [
   { at: 0, azimuth: 0, elevation: 10, fov: 30, zoom: 1, panX: 0, panY: 1.6, panZ: 0 },
@@ -180,54 +180,28 @@ test('a key name is the reader\'s own label, and a named key can be recalled by 
  * because the button only reads values and writes inputs (plan 265 milestone 3, F2).
  */
 test('Go to key steps through the saved views and names the one it reached', async () => {
-  const tool = await loadTool('3d-studio', (p) => readFile(join('community', p), 'utf8'));
-  const runtime = await createRuntime(tool, baseHost(), {
+  const values = {
     cameraMotion: 'keys',
-    cameraKeys: [{ ...keys[0]!, name: 'Hero' }, keys[1]!],
-  });
-  const { window } = new JSDOM(`<body>${runtime.getHydrated()}</body>`);
-  const previous = globalThis.document;
-  globalThis.document = window.document;
-  try {
-    const { syncStudioControls } = await import('../shells/web/src/lib/studio3d/controls.ts');
-    const marker = window.document.querySelector('[data-lolly-studio]')!;
-    const values = {
-      cameraMotion: 'keys',
-      cameraKeys: [{ ...keys[0], name: 'Hero' }, keys[1]],
-      camera: {},
-      target: { x: 0, y: 1.6, z: 0 },
-    };
-    const edits: { id: string; value: unknown }[] = [];
-    const entry = {
-      canvas: window.document.createElement('canvas'),
-      marker,
-      handle: { highlight() {}, showLightHandles() {}, fit: () => null },
-      ready: true,
-      recipe: buildStudioScene({ version: 1, values }),
-      inputValues: values,
-      inputCamera: {},
-      options: { setInput: (id: string, value: unknown) => edits.push({ id, value }) },
-      render() {},
-    };
-    syncStudioControls(entry as never);
-    const go = marker.querySelector('[data-studio-go-key]') as HTMLButtonElement;
-    const note = () => marker.querySelector('[data-studio-camera-note]')?.textContent;
-    assert.ok(go, 'the camera path group offers Go to key');
-    assert.equal(go.disabled, false);
-    go.click();
-    assert.deepEqual(edits, studioCameraFromKey(values, 0));
-    assert.equal(note(), 'Key 1 of 2: Hero. Turn Play path off to hold this view.');
-    edits.length = 0;
-    go.click();
-    assert.deepEqual(edits, studioCameraFromKey(values, 1));
-    assert.equal(note(), 'Key 2 of 2. Turn Play path off to hold this view.');
-    edits.length = 0;
-    go.click();
-    assert.deepEqual(edits, studioCameraFromKey(values, 0), 'the last key wraps round to the first');
-  } finally {
-    globalThis.document = previous;
-    runtime.destroy();
-  }
+    cameraKeys: [{ ...keys[0], name: 'Hero' }, keys[1]],
+    camera: {},
+    target: { x: 0, y: 1.6, z: 0 },
+  };
+  // One edit across two inputs is one undo step: the studio hands both to commitMany.
+  const bar = await studioBarHarness(values, { commitMany: true });
+  const go = bar.action('studio-go-key');
+  assert.ok(go, 'the camera path group offers Go to key');
+  assert.equal(go.disabled, false);
+  const batch = (edits: { id: string; value: unknown }[]) => Object.fromEntries(edits.map((e) => [e.id, e.value]));
+  go.onPress!(null as never);
+  assert.deepEqual(bar.edits, [batch(studioCameraFromKey(values, 0))]);
+  assert.equal(bar.status(), 'Key 1 of 2: Hero: turn Play path off to hold this view.');
+  bar.edits.length = 0;
+  go.onPress!(null as never);
+  assert.deepEqual(bar.edits, [batch(studioCameraFromKey(values, 1))]);
+  assert.equal(bar.status(), 'Key 2 of 2: turn Play path off to hold this view.');
+  bar.edits.length = 0;
+  go.onPress!(null as never);
+  assert.deepEqual(bar.edits, [batch(studioCameraFromKey(values, 0))], 'the last key wraps round to the first');
 });
 
 test('the real tool carries a camera path through URL mode and reports the clip length', async () => {
@@ -239,8 +213,10 @@ test('the real tool carries a camera path through URL mode and reports the clip 
     duration: 6,
   });
   assert.match(runtime.getHydrated(), /data-clip-ms="6000"/);
-  assert.match(runtime.getHydrated(), /data-studio-play aria-pressed="true"/);
-  assert.match(runtime.getHydrated(), /data-studio-go-key/);
+  const live = Object.fromEntries(runtime.getModel().map((i) => [i.id, i.value]));
+  const bar = await studioBarHarness(live);
+  assert.equal(bar.action('studio-play')?.pressed, true, 'Play path reads on while the keys play');
+  assert.ok(bar.action('studio-go-key'));
   const parsed = parseUrlState(serializeUrlState(runtime.getModel()), tool.manifest);
   const reopened = await createRuntime(tool, host, parsed.values);
   const values = Object.fromEntries(reopened.getModel().map((i) => [i.id, i.value]));
@@ -250,7 +226,8 @@ test('the real tool carries a camera path through URL mode and reports the clip 
   assert.equal(studioCameraPose(scene, 0.5).azimuth, 90);
   await reopened.setInput('cameraMotion', 'still');
   assert.match(reopened.getHydrated(), /data-clip-ms="0"/);
-  assert.match(reopened.getHydrated(), /data-studio-play aria-pressed="false"/);
+  await bar.sync(Object.fromEntries(reopened.getModel().map((i) => [i.id, i.value])));
+  assert.equal(bar.action('studio-play')?.pressed, false);
   runtime.destroy();
   reopened.destroy();
 });
@@ -474,67 +451,32 @@ test('the pinned camera moves evaluate as they were pinned', () => {
  * there while a move is chosen (plan 267, D3).
  */
 test('Convert to keys hands the move over as editable rows', async () => {
-  const tool = await loadTool('3d-studio', (p) => readFile(join('community', p), 'utf8'));
-  const runtime = await createRuntime(tool, baseHost(), { cameraMotion: 'sweep' });
-  const { window } = new JSDOM(`<body>${runtime.getHydrated()}</body>`);
-  const previous = globalThis.document;
-  globalThis.document = window.document;
-  try {
-    const { syncStudioControls } = await import('../shells/web/src/lib/studio3d/controls.ts');
-    const marker = window.document.querySelector('[data-lolly-studio]')!;
-    const edits: { id: string; value: unknown }[] = [];
-    const values: Record<string, unknown> = { cameraMotion: 'sweep', camera: {}, target: {} };
-    const entry = {
-      canvas: window.document.createElement('canvas'),
-      marker,
-      handle: { highlight() {}, showLightHandles() {}, fit: () => null },
-      ready: true,
-      recipe: buildStudioScene({ version: 1, values }),
-      inputValues: values,
-      inputCamera: {},
-      options: { setInput: (id: string, value: unknown) => edits.push({ id, value }) },
-      render() {},
-    };
-    syncStudioControls(entry as never);
-    const convert = marker.querySelector('[data-studio-convert-keys]') as HTMLButtonElement;
-    const note = () => marker.querySelector('[data-studio-camera-note]')?.textContent;
-    assert.ok(convert, 'the camera path group offers Convert to keys');
-    assert.equal(convert.hidden, false, 'a chosen move offers the conversion');
-    convert.click();
-    assert.deepEqual(edits, studioCameraPresetEdit(entry.recipe));
-    assert.equal((edits[0]!.value as unknown[]).length, 3);
-    assert.equal(edits[1]!.value, 'keys');
-    assert.equal(note(), 'Converted to 3 keys. Edit them under Motion.');
+  const values: Record<string, unknown> = { cameraMotion: 'sweep', camera: {}, target: {} };
+  // Without commitMany (a multi-edit cell) each input is written on its own, in order.
+  const bar = await studioBarHarness(values);
+  const convert = bar.action('studio-convert-keys');
+  assert.ok(convert, 'a chosen move offers the conversion');
+  convert.onPress!(null as never);
+  assert.deepEqual(bar.edits, studioCameraPresetEdit(bar.entry.recipe as never));
+  const [rows, motion] = bar.edits as { id: string; value: unknown }[];
+  assert.equal((rows!.value as unknown[]).length, 3);
+  assert.equal(motion!.value, 'keys');
+  assert.equal(bar.status(), 'Converted to 3 keys, which you can edit under Motion.');
 
-    // A dolly the zoom range cannot follow says so, rather than looking like a mistake.
-    const tight = { cameraMotion: 'dolly', camera: { zoom: 2 }, target: {} };
-    entry.recipe = buildStudioScene({ version: 1, values: tight });
-    entry.inputValues = tight;
-    syncStudioControls(entry as never);
-    edits.length = 0;
-    (marker.querySelector('[data-studio-convert-keys]') as HTMLButtonElement).click();
-    assert.equal(
-      note(),
-      'Converted to 3 keys. Edit them under Motion. The zoom range limited this move, so the subject changes size.'
-    );
+  // A dolly the zoom range cannot follow says so, rather than looking like a mistake.
+  await bar.sync({ cameraMotion: 'dolly', camera: { zoom: 2 }, target: {} });
+  bar.edits.length = 0;
+  bar.action('studio-convert-keys')!.onPress!(null as never);
+  assert.equal(bar.status(), 'Converted to 3 keys; the zoom range limited the move, so the subject changes size.');
 
-    // Authored keys are already editable, and an orthographic dolly has nothing to give.
-    for (const held of [
-      { cameraMotion: 'keys', cameraKeys: keys, target: {} },
-      { cameraMotion: 'still', target: {} },
-      { cameraMotion: 'dolly', projection: 'orthographic', target: {} },
-    ]) {
-      entry.recipe = buildStudioScene({ version: 1, values: held });
-      entry.inputValues = held;
-      syncStudioControls(entry as never);
-      assert.equal(
-        (marker.querySelector('[data-studio-convert-keys]') as HTMLButtonElement).hidden,
-        true,
-        `${held.cameraMotion} hides Convert to keys`
-      );
-    }
-  } finally {
-    globalThis.document = previous;
-    runtime.destroy();
+  // Authored keys are already editable, and an orthographic dolly has nothing to give.
+  for (const held of [
+    { cameraMotion: 'keys', cameraKeys: keys, target: {} },
+    { cameraMotion: 'still', target: {} },
+    { cameraMotion: 'dolly', projection: 'orthographic', target: {} },
+  ]) {
+    await bar.sync(held);
+    assert.equal(bar.action('studio-convert-keys'), undefined, `${held.cameraMotion} hides Convert to keys`);
   }
 });
+

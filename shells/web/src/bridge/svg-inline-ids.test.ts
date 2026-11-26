@@ -12,7 +12,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 
-import { namespaceInlinedSvgIds } from './svg-inline-ids.ts';
+import { inlineIdKey, namespaceInlinedSvgIds } from './svg-inline-ids.ts';
 
 const XLINK = 'http://www.w3.org/1999/xlink';
 
@@ -76,4 +76,26 @@ test('a subtree with no ids is untouched', () => {
   const svg = parse('<svg xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1" fill="url(#ext)"/></svg>');
   namespaceInlinedSvgIds(svg, 'd.svg');
   assert.equal(svg.querySelector('rect')!.getAttribute('fill'), 'url(#ext)');
+});
+
+test('a blob: source is keyed by its text, so a new session gives the same ids', () => {
+  // The browser mints a fresh blob: URL per session. Hashing that URL gave one
+  // file a new prefix on every page load, so two exports of one page differed.
+  const text = '<svg xmlns="http://www.w3.org/2000/svg"><radialGradient id="k"/><circle r="1" fill="url(#k)"/></svg>';
+  const run1 = parse(text), run2 = parse(text);
+  namespaceInlinedSvgIds(run1, inlineIdKey('blob:http://127.0.0.1:5101/1b2f0c6e-4f0a-4d8e-9a43-0f6c1d2e3a4b', text));
+  namespaceInlinedSvgIds(run2, inlineIdKey('blob:http://127.0.0.1:6233/9e8d7c6b-5a49-4382-a1b0-c9d8e7f6a5b4', text));
+  const idOf = (s: Element): string => s.querySelector('radialGradient')!.getAttribute('id')!;
+  assert.equal(idOf(run1), idOf(run2));
+  // Two different files behind blob: URLs still get prefixes of their own.
+  const other = '<svg xmlns="http://www.w3.org/2000/svg"><radialGradient id="k"/><rect width="1" height="1" fill="url(#k)"/></svg>';
+  const run3 = parse(other);
+  namespaceInlinedSvgIds(run3, inlineIdKey('blob:http://127.0.0.1:5101/1b2f0c6e-4f0a-4d8e-9a43-0f6c1d2e3a4b', other));
+  assert.notEqual(idOf(run3), idOf(run1));
+});
+
+test('a stable source keeps its URL as the key, so existing prefixes do not move', () => {
+  assert.equal(inlineIdKey('/catalog/previews/battlecards.svg', '<svg/>'), '/catalog/previews/battlecards.svg');
+  assert.equal(inlineIdKey('data:image/svg+xml,%3Csvg%2F%3E', '<svg/>'), 'data:image/svg+xml,%3Csvg%2F%3E');
+  assert.equal(inlineIdKey('BLOB:http://x/1', '<svg/>'), '<svg/>');
 });

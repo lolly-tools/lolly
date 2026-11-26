@@ -12,6 +12,7 @@
  * imports from here. The single integration point is the lazy route in main.js.
  * To remove the feature: delete this folder and that one route case.
  */
+import { closeButtonHtml } from '../lib/close-button.ts';
 import './pro.css';
 import { batchChrome } from './chrome.ts';
 import { batchFormats, mountBatchFormats } from './formats.ts';
@@ -1241,7 +1242,7 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
             <span class="pro-sess-name">${escape(s.name)}</span>
             <span class="pro-sess-when">${escape(relTime(s.updatedAt))}</span>
           </button>
-          <button type="button" class="pro-sess-del" data-del="${escape(s.slot)}" title="Delete" aria-label="Delete ${escape(s.name)}">✕</button>
+          ${closeButtonHtml({ size: 'sm', danger: true, className: 'pro-sess-del', label: `Delete ${s.name}`, attrs: { 'data-del': s.slot, title: 'Delete' } })}
         </li>`).join('')}</ul>`
         : `<p class="pro-sess-empty">No saved sessions yet - save the current grid below.</p>`}
       <div class="pro-sess-save">

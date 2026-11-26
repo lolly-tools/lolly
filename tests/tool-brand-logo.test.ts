@@ -67,12 +67,12 @@ for (const spec of cases) {
     r.removeLogos();
     const rt = await createRuntime(tool, r.host, spec.values);
     const doc = new JSDOM(rt.getHydrated() as string).window.document;
-    const warning = doc.querySelector('[data-export-hide][role="status"]');
+    const warning = doc.querySelector('[data-export-hide][role="status"]:not([hidden])');
     assert.match(warning?.textContent ?? '', /logo.*unavailable/i);
     assert.equal(doc.querySelectorAll('img').length, 0);
     assert.equal(r.warnings.length, 1);
     await rt.setInput('brandLogo', false);
-    assert.equal(new JSDOM(rt.getHydrated() as string).window.document.querySelector('[data-export-hide][role="status"]'), null);
+    assert.equal(new JSDOM(rt.getHydrated() as string).window.document.querySelector('[data-export-hide][role="status"]:not([hidden])'), null);
     assert.deepEqual(r.queries, []);
   });
 }

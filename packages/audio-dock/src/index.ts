@@ -15,6 +15,7 @@
 
 export { createAudioDock } from './dock.ts';
 export { DOCK_CSS, DOCK_STYLE_ID } from './styles.ts';
+export { snapToGrid, stepFrom, leapFrom, seekKeyTarget, nearestPoint, pointBefore, lastSecond } from './seek-grid.ts';
 export type {
   DockHost,
   DockCapabilities,
@@ -26,6 +27,8 @@ export type {
   DockSources,
   DockAttribution,
   DockNowPlaying,
+  DockSeekGrid,
+  DockPositionText,
   DockNarration,
   DockNarrationPlayer,
   DockAtmosphere,
@@ -37,6 +40,7 @@ export type {
   DockVizTransition,
   DockVizInfluence,
   DockVolume,
+  DockControl,
   DockRepeat,
   DockPlacement,
   DockPlacementStore,

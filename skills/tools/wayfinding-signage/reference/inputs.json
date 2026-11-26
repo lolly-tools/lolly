@@ -221,5 +221,73 @@
     "type": "color",
     "default": "{color.semantic.secondary}",
     "help": "Default colour for arrows and rules. A row with its own colour overrides it."
+  },
+  {
+    "id": "ground",
+    "label": "Colour treatment",
+    "type": "select",
+    "default": "tint",
+    "options": [
+      {
+        "value": "tint",
+        "label": "Brand tint"
+      },
+      {
+        "value": "lead",
+        "label": "Lead colour"
+      },
+      {
+        "value": "ink",
+        "label": "Ink"
+      },
+      {
+        "value": "surface",
+        "label": "Surface"
+      }
+    ],
+    "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+    "section": "Treatment"
+  },
+  {
+    "id": "density",
+    "label": "Spacing",
+    "type": "select",
+    "default": "auto",
+    "options": [
+      {
+        "value": "auto",
+        "label": "Fit content"
+      },
+      {
+        "value": "compact",
+        "label": "Compact"
+      },
+      {
+        "value": "comfortable",
+        "label": "Comfortable"
+      },
+      {
+        "value": "spacious",
+        "label": "Spacious"
+      }
+    ],
+    "section": "Treatment"
+  },
+  {
+    "id": "layout",
+    "label": "Layout",
+    "type": "select",
+    "default": "list",
+    "options": [
+      {
+        "value": "list",
+        "label": "List"
+      },
+      {
+        "value": "grid",
+        "label": "Two columns"
+      }
+    ],
+    "section": "Treatment"
   }
 ]

@@ -1,6 +1,6 @@
 {
   "name": "Markdown Slides",
-  "description": "Convierte Markdown o una especificación JSON en una presentación de PowerPoint nativa y editable en segundos - con texto real, viñetas, tablas y el tema de tu sistema de diseño. El camino rápido basado en texto hacia una presentación; recurre al lienzo de Design cuando quieras maquetar las diapositivas a mano o animarlas. Los gráficos y diagramas vienen de tus otras herramientas Lolly. Exporta en .pptx (editable), además de PDF y PNG.",
+  "description": "Convierte Markdown o una especificación JSON en una presentación de PowerPoint nativa y editable. Exporta .pptx (editable), además de PDF y PNG.",
   "a11yLabel": "Presentación con {{_slideCount}} diapositivas",
   "inputs.size.label": "Tamaño de la presentación",
   "inputs.size.help": "Un solo tamaño para toda la presentación - PowerPoint da a cada diapositiva el mismo tamaño.",

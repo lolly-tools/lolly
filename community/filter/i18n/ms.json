@@ -1,5 +1,5 @@
 {
   "name": "Penapis",
-  "description": "Satu alat untuk kesan foto: pilih halftone, scanline, posterize, voronoi, dither atau seni ASCII (vektor) atau duotone, regangan piksel, salah cetak atau glitch (raster). Lapisan sistem reka bentuk, kamera langsung dan eksport ke seberapa banyak format yang disokong setiap kesan.",
+  "description": "Kesan foto: halftone, scanline, posterize, voronoi, dither atau seni ASCII (vektor) atau duotone, regangan piksel, salah cetak atau glitch (raster).",
   "featured.blurb": "Sepuluh kesan foto, vektor atau raster, dalam satu alat"
 }

@@ -113,6 +113,12 @@ const DIALOG_CREATE_ALLOWED: Record<string, number> = {
   // element; the zoom also fills the viewport with its own dim ground (no ::backdrop box to
   // hit-test) and re-renders the QR at full size. Documented at openQrZoom.
   'components/collab-ceremony.ts': 1,
+  // The docs picture viewer (2026-11-08): one module both readers run, and /info runs it
+  // without the app, so mountModal is not there to call. It is also the QR-zoom case: a
+  // full-window gesture surface (pinch, drag, swipe to close) with its own ground, not a
+  // centred content box. Escape, Back and focus return are its own and are tested
+  // (lib/docs-lightbox.test.ts, tests/docs-lightbox.browser.test.ts).
+  'lib/docs-lightbox.ts': 1,
 };
 const SHOW_MODAL_ALLOWED: Record<string, number> = {
   'components/modal.ts': 1,  // the primitive itself
@@ -127,6 +133,9 @@ const SHOW_MODAL_ALLOWED: Record<string, number> = {
   // The collab QR-zoom opens the nested full-screen dialog it mints (see DIALOG_CREATE_ALLOWED):
   // mountModal cannot own a nested dialog's Escape, so this one lifecycle is deliberate + local.
   'components/collab-ceremony.ts': 1,
+  // The docs picture viewer opens the dialog it mints (see DIALOG_CREATE_ALLOWED), with the
+  // setAttribute('open') fallback for an engine without showModal.
+  'lib/docs-lightbox.ts': 1,
 };
 
 test('R1 (rec 4): the <dialog> lifecycle is minted only by components/modal.ts (mountModal)', () => {
@@ -217,7 +226,6 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   // named maps; these were never in scope). Counts surveyed 2026-07-13 - down only.
   'components/color-field.ts': 2,
   'components/help-tip.ts': 1,
-  'components/music-player.ts': 6,   // play/pause now come from lib/icons.ts (2026-07-29)
   'components/view-toggle.ts': 2,   // 3 → 2, 2026-08-20: the Tools tab's inline wrench went - it's icon('hammer') from lib/icons.ts now
   'lib/audio-coaching.ts': 1,
   // 5 → 0, plan 97 M1 (2026-08-09): the five BRAND_TABS glyphs went with the tab
@@ -249,6 +257,11 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   // Connected services logos (Simple Icons paths in lib/service-marks/), the same
   // one-template shape as the vendor marks above. 2026-09-30.
   'lib/service-marks.ts': 1,
+  // A picker option's own glyph (manifest options[].glyph, engine 1.348.0). The glyph is
+  // tool data: a tool brings its own pictures and the registry does not grow. One
+  // template; the path data is drawn only after passing the schema's pattern again.
+  // 2026-11-17.
+  'lib/option-picker.ts': 1,
   'views/free-canvas-fields.ts': 1,
   'views/multi-edit.ts': 1,
   'views/personalize-nudge.ts': 1,
@@ -650,6 +663,15 @@ test('R9: lib/icons.ts glyph bodies are well-formed (balanced quotes and tags)',
 const RAW_HTML_SINK = /\.(?:inner|outer)HTML\s*\+?=(?!=)(?!\s*['"]\s*['"]\s*[;,)])|\binsertAdjacentHTML\s*\(/;
 
 const RAW_HTML_ALLOWED: Record<string, number> = {
+  // The one close button's element form (2026-11-19): the markup form parsed in a
+  // detached holder. Its label, class and attribute values are all escaped, and attribute names
+  // are held to a plain-name pattern.
+  'lib/close-button.ts': 1,
+  // The picker panel (display "picker", 2026-11-17): option labels, group headings and
+  // the input label through escape(), t() strings escape()d, the close glyph from the
+  // registry, and an option glyph only after it passes the schema's path pattern.
+  'lib/option-picker.ts': 1,
+  'lib/design-system/rooms/colour-roles.ts': 3,   // 2026-11-06: the Colour roles room; every label goes through esc() in colour-roles-html.ts
   'views/read-extract.ts': 5, // Read and extract: static shell markup plus escapeHtml()-wrapped counts and messages, and renderExtractHtml output
   // The split layout's Swap sides button: one fixed registry icon, nothing interpolated.
   'lib/split-panes.ts': 1,
@@ -740,6 +762,12 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // +1 2026-09-26 (plan 277 step 2): the compact navigation's disclosure summary, fixed
   // markup plus two lib/icons glyphs; the section title goes in through textContent.
   // -1 2026-10-08: the Listen button's registry icon went with the docs narration.
+  // 2026-11-06 (docs reader): the donut became the Check this page line (same fixed SVG,
+  // its words set through textContent); the compact disclosures went (-1); the contents
+  // rail and the page bar arrived (+2): both are packages/docs-render contents.ts
+  // output, which escapes every heading text and id, with t() labels and a registry icon.
+  // -1 2026-11-06: the reader's own language button went; the app's top row carries
+  // the language menu now (components/view-topbar.ts).
   'views/docs.ts': 6,
   // #/prepare route scaffold: the shared chrome (backHomeHtml/langFabHtml) plus t() copy,
   // no free text; the panel itself mounts into an empty slot (components/prepare/panel.ts).
@@ -797,6 +825,11 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // the build's own sprite reference on /info). The button's label, its accessible name
   // and the confirmation are set via textContent or setAttribute, never as HTML.
   'lib/docs-enhance.ts': 1,
+  // The docs picture viewer (2026-11-08). One insertAdjacentHTML sink, in putIcon: a
+  // TRUSTED lib/icons.ts glyph the host passes in (icon() in the app, the same calls made
+  // at build time for /info). Labels, alt text and captions are set through setAttribute
+  // and textContent; a figure's copy is cloned nodes, never markup.
+  'lib/docs-lightbox.ts': 1,
   // 1 as of 2026-08-09: the non-camera animated-SVG live source. `start()` inlines the
   // armed markup into an off-screen host so its CSS/SMIL actually ticks and `grabAnim`
   // can sample it - the same reason views/anim-svg-mount.ts inlines rather than uses an
@@ -826,7 +859,6 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/instance-sheet.ts': 1,
   'components/lang-menu.ts': 2,
   'components/modal.ts': 1,
-  'components/music-player.ts': 5,
   // Prepare for sharing (components/prepare/, 2026-09-10). Every sink is a template whose
   // free-text interpolations go through escape() (utils.ts): file names, byte counts,
   // scope paths, formats, limitations, masked and revealed values, replacements, rule
@@ -867,7 +899,6 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/share-dialog.ts': 3,
   // Reviewed 2026-09-20: fixed registry icons only, with literal names and sizes.
   // Panel titles and labels use textContent; no user or tool values enter these sinks.
-  'components/docked-panel.ts': 1,
   'views/export-share.ts': 1,
   // The row list's innerHTML replace, modelled on profiles-manager.ts. Reviewed - 
   // every interpolated value (digest, name, fact line, reported-speech claim,
@@ -1083,7 +1114,6 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'lib/export-panel-float.ts': 2,
   'lib/float-panel.ts': 2,
   'lib/gamut-slider.ts': 1,
-  'lib/page-filmstrip.ts': 1,
   'lib/recent-stack.ts': 1,
   'lib/recording-tips.ts': 2,
   // The revert path of an on-canvas cell edit: restores the element's OWN
@@ -1167,8 +1197,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // (19 previously: +1 for renderCvdMatrix, feature #4 - the APCA contrast matrix,
   // whose only interpolations are escape()d hexes/names/title/band plus a Number Lc.)
   'views/color-lab.ts': 21,
-  'views/components-data.ts': 1,
-  'views/components.ts': 8, // +1 2026-09-06: the reference block's fill (components-reference.ts output, every value escape()d)
+  'views/components.ts': 6, // +1 2026-09-06: the reference block's fill (components-reference.ts output, every value escape()d). 8 to 6 on 2026-11-19: the source-snippet stage was unreachable and went, and the sample and the no-sample stages share one fill
   'views/components-examples.ts': 1, // shared bulkBarHtml renderer with literal demo actions; all labels escaped by the renderer
   // The cost card's body replace. Reviewed - costBodyHtml (views/cost-panel.ts)
   // escape()s every interpolated value: line/calc/amount cells, the source and
@@ -1209,12 +1238,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // the top of this rule measured. The one place DOCUMENT text reaches the column -
   // the text/notes rows - is `escape(String(value ?? ''))` at both the attribute and
   // the textarea child, so the attacker-shaped half of the input is covered.
-  // 2 to 3 on 2026-09-23 (plans/273): the panel head gained a kind glyph,
-  // `kindMark.innerHTML = icon(SECTION_META[...].glyph)`. Same category as the
-  // close button's `innerHTML = icon('close')` on the line above it - `icon()`
-  // interpolates nothing, it looks a name up in a closed literal table and
-  // returns a fixed path string, and the name here is an InspectorSection key.
-  'views/design-inspector.ts': 2,
+  // The remaining sink draws the kind glyph from the closed icon table.
+  // The close button now uses lib/close-button.ts.
+  'views/design-inspector.ts': 2, // + the Selection / Canvas switch: segHtml output, which escapes every value
   'views/doc-editor.ts': 1,
   // 1 as of 2026-07-31: applyPreflight writes the "Before you export" card body.
   // Reviewed - every value at that sink comes from preflightBodyHtml, which
@@ -1224,7 +1250,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // 1 as of 2026-08-26: the grouped format picker's refresh() rebuilds the
   // category accordion after a setFormats narrowing. Reviewed - format ids and
   // labels are escape()d, category labels are escape(t(…)) literals, and the
-  // chevron comes from the shared icon() generator.
+  // chevron comes from the shared icon() generator. Still 1 on 2026-11-20, when
+  // the panel moved onto mountBodyPopover: the same paint() now fills the whole
+  // open panel, adding the head, an escape(t(…)) literal and the shared close button.
   'components/export-format-picker.ts': 1,
   'views/export-preflight.ts': 1,
   // 41 as of 2026-08-07: +1 for the Line tool's drawLineRubber (connectLayer.innerHTML,
@@ -1313,7 +1341,12 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // app-level prefs, and the /profile sound card is their home), taking its sink with it.
   // +1 2026-09-27 (plan 277 P3): the saved-sessions dialog redraws its rows after
   // a Trash Undo; savedItem builds each row through sessionRow, which escapes.
+  // +1 2026-11-07 (plan 82 M2, lolly-work): the workspace's shelf of published templates;
+  // views/published-shelf.ts escapes every value, and a tool icon is the catalog's own markup.
   'views/gallery.ts': 8,
+  // The page deck's markup, moved out of views/gallery.ts as it was: the tool id is escaped,
+  // and each page is a data URL from this shell's own render.
+  'views/gallery-paged-deck.ts': 1,
   'views/multi-edit.ts': 3,
   // 6, unchanged 2026-08-09 (plan 97 M5 - the design-system hand-offs). The three
   // new controls are markup inside the existing report template, not new sinks:
@@ -1344,7 +1377,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // state and the card grid) became one, when the pane's markup moved to the shared
   // builder in views/picker-cards.ts.
   'components/photo-treatment-strip.ts': 1, // Moved from picker.ts: SVG filters from the validated catalogue treatment builder.
-  'views/picker.ts': 24,
+  'views/picker.ts': 25, // +1 plans/82 M8: the Partner marks section, built by the picker's own sectionHtml and card
   // The Projects tab (lolly plan 299 X8): one pane render. Folder, project, session and file
   // names, ids, crumbs and preview urls are escapeHtml()d; the rest is t() copy, registry
   // icon() markup and a tool's own registry icon, drawn as the Saved creations cards draw theirs.
@@ -1766,7 +1799,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // translated labels are escaped, properties are allowlisted, and counts and
   // viewport dimensions were bounded by readBrandStyleEvidence before rendering.
   // Reviewed summaries escape source values; segment markup uses its shared renderer.
-  'views/start/reference.ts': 3,
+  'views/start/reference.ts': 4,   // plans/352 R4: + the colour role review; t() strings and escape()d values only
   // Rule labels, origins, resources and text escape at interpolation; IDs and states are bounded.
   'lib/design-system/rooms/usage.ts': 2,
   // Skills room (plan 323): the room shell and the reader escape every catalog and skill
@@ -1831,6 +1864,30 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // helpTip escapes its translated text; action buttons are appended as DOM nodes.
   'lib/collab-share-private.ts': 1,
   'lib/rules-entrypoints.ts': 1,
+  // The locked tool's Preview button takes its eye glyph from the fixed icon
+  // registry. Nothing is interpolated; the label is a text node.
+  'views/locked-tool.ts': 1,
+  // 2026-11-09: the music generator's back pill and its page, written once. Station names,
+  // labels and titles go through escape(); icons come from the fixed registry; the rest
+  // is numbers. Instrument lists, the hint and the picker are filled with DOM APIs.
+  'views/music-studio.ts': 2,
+  // 2026-11-14: the music generator's visualiser settings, written fresh on each open.
+  // Every label goes through escape(); the mode switch is segHtml, which escapes its own;
+  // the shuffle glyph is the module's fixed SVG. The preset and cycle lists are filled
+  // with DOM APIs, and the buttons' glyphs swap as nodes.
+  'views/music-studio/viz-stage.ts': 1,
+  // 2026-11-15: the Sound room, painted whole through one render(). Every name, line,
+  // voice, file name and note goes through escape(); the rest is translated copy, the
+  // pill-slider and segmented-control markup (both escape their own) and fixed icons.
+  'lib/design-system/rooms/sound.ts': 1,
+  // 2026-11-15: the music generator's line about a design system's sound, through one
+  // render(). The use, the design system's name, the sound's label and its notes go
+  // through escape(); the rest is translated copy and fixed icons.
+  'views/music-studio/sound-profile.ts': 1,
+  // 2026-11-09: the first-visit greeting, painted again in place when the language
+  // changes. Language names, the privacy text and its link go through escape(); the
+  // rest is translated copy, the fixed icon registry and the module's own SVG.
+  'components/welcome-hero.ts': 1,
 };
 
 test('R10: raw-HTML sinks are a pinned inventory, not a growing one', () => {
@@ -2071,7 +2128,9 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 247 to 243 (plan 336): the studio's glowing Add from button and its
     // breathing keyframes went with the rail; the bar's button is a plain pill.
     // 243 to 242 (plan 346): the Board's colour chips wear the faint edge token.
-    pin: 242,
+    // 242 to 241: the shared progress bar lost its outline (Andy, 2026-11-14).
+    // 241 to 240: Cover Flow's Open control wears the chrome's bevel and elevation.
+    pin: 238,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,
@@ -2089,7 +2148,7 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 92 → 91 on 2026-09-30: the Storage card's big archive button became a plain .btn.
     // 91 to 90 on 2026-10-21: the ink ribbon's 8px row left the Design system tab.
     // 90 to 89 (plan 346): the Board's colour chips take --radius-xs.
-    pin: 89,
+    pin: 87,
     count: (t) => (t.match(/border-radius:\s*\d+(?:\.\d+)?px\s*[;}!]/g) ?? []).length,
     fix: 'use var(--radius-xs|sm|md|lg) (derived from --radius) or var(--radius) for the base panel size',
   },
@@ -2114,7 +2173,9 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // --ui-type-* tokens.
     // 412 to 409 (plan 346): the Board's title, door notes and way out read
     // --ui-type-lead, --fs-md and --fs-sm.
-    pin: 409,
+    // 409 to 388: close buttons that set a text cross by font size draw the
+    // shared close button (lib/close-button.ts), which sizes an icon.
+    pin: 388,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },
@@ -2163,7 +2224,10 @@ test('R13 (plans/188): reusable content patterns read semantic Lolly UI roles', 
     ]],
     ['styles/parts/saved-list.css', [
       '--ui-color-surface-canvas', '--ui-color-surface-muted', '--ui-color-selection-surface',
-      '--ui-radius-panel', '--ui-radius-choice-round', '--ui-motion-feedback',
+      '--ui-radius-panel', '--ui-motion-feedback',
+    ]],
+    ['styles/parts/buttons.css', [
+      '--ui-color-text-muted', '--ui-radius-control', '--ui-motion-feedback',
     ]],
     ['styles/parts/projects.css', [
       '--ui-color-selection-border', '--ui-color-text-muted', '--ui-radius-control',
@@ -2173,7 +2237,7 @@ test('R13 (plans/188): reusable content patterns read semantic Lolly UI roles', 
       '--ui-radius-panel', '--ui-radius-surface', '--ui-edge-strong',
     ]],
     ['styles/parts/profile.css', [
-      '--ui-color-selection-surface', '--ui-radius-panel', '--ui-radius-choice-round',
+      '--ui-color-selection-surface', '--ui-radius-panel',
     ]],
   ];
   for (const [rel, roles] of required) {

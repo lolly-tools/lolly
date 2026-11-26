@@ -1,6 +1,6 @@
 {
   "name": "Palette Lab",
-  "description": "Palaguin ang isang palette mula sa iisang seed colour - harmony accents, perceptual OKLab ramps at mga badge ng WCAG/APCA readability, may DTCG tokens at CSV export.",
+  "description": "Palaguin ang isang palette mula sa iisang seed colour - harmony accents, OKLab ramps at mga badge ng WCAG/APCA readability, may DTCG tokens at CSV export.",
   "inputs.seed.label": "Seed na kulay",
   "inputs.seed.help": "Ang kulay na pinagmulan ng buong palette - default sa iyong brand primary.",
   "inputs.harmony.label": "Harmony",

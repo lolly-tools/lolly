@@ -16,6 +16,8 @@
 // Module-level and exported because the .penpot writer's SVG producer
 // (bridge/export-penpot.ts) reads the same serialised clone and needs the same bake;
 // two copies of this walk is how one of them ends up painting a different colour.
+import { exportFontFamily } from './fallback-font-source.ts';
+
 export function bakeTextStyles(liveEl: Element, clone: Element): void {
   const SEL = 'text, path, rect, circle, ellipse, line, polygon, polyline';
   const live = liveEl.querySelectorAll(SEL);
@@ -35,7 +37,7 @@ export function bakeTextStyles(liveEl: Element, clone: Element): void {
     if (cs.fillOpacity && parseFloat(cs.fillOpacity) < 1) set('fill-opacity', cs.fillOpacity);
     if (cs.strokeOpacity && parseFloat(cs.strokeOpacity) < 1) set('stroke-opacity', cs.strokeOpacity);
     if (lt.tagName.toLowerCase() !== 'text') return;
-    set('font-family', cs.fontFamily);
+    set('font-family', exportFontFamily(cs.fontFamily));
     set('font-size', cs.fontSize);
     set('font-weight', cs.fontWeight);
     set('font-style', cs.fontStyle);

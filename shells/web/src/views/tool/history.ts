@@ -25,6 +25,7 @@ import type { FastPathCfg } from '../canvas-scene.ts';
 import { ICON_REDO, ICON_UNDO, isTextEditing, resolveTranscribeSpec } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
 import { icon } from '../../lib/icons.ts';
+import { toolCanvasRole } from '../tool-canvas-role.ts';
 
 export const setDesignIntent = (tview: ToolViewCtx, intent: DesignIntent, pickDefault = false): void => {
   const { toolId } = tview;
@@ -462,9 +463,8 @@ export function wireHistory(tview: ToolViewCtx): void {
       </div>`
     : ''; tview.privacyBadge = privacyBadge;
 
-  // Output previews are a single image; file utilities render their actual
-  // interface here, so preserve their buttons and fields in the accessibility tree.
-  const canvasRole = runtime.hasExportFile || tview.toolId === '3d-studio' ? 'group' : 'img'; tview.canvasRole = canvasRole;
+  // Keep canvas controls in the accessibility tree.
+  const canvasRole = toolCanvasRole(tview.tool.manifest, runtime.hasExportFile, hideSidebar); tview.canvasRole = canvasRole;
 }
 
 type HistoryRegister = (sync: (canUndo: boolean, canRedo: boolean) => void) => void;

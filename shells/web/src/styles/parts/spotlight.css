@@ -104,7 +104,7 @@ html[data-a11y-motion="reduce"] .spotlight-anim { animation: none; }
 /* The explicit ?q= handoff row closing a group (plans/99 section 2a). */
 .spotlight-see-all {
   justify-content: space-between;
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
 }
 .spotlight-see-all .spotlight-opt-title {
   color: inherit;
@@ -119,13 +119,13 @@ html[data-a11y-motion="reduce"] .spotlight-anim { animation: none; }
    overlap - the same results lead the overlay, highlighted. Uses --primary, the
    shell-chrome accent brand-vars.ts overrides per active brand (same token the
    see-all and Ask rows already tint with). */
-.spotlight-group-label--own { color: hsl(var(--primary)); }
+.spotlight-group-label--own { color: hsl(var(--primary-text)); }
 .spotlight-opt--own {
   background: linear-gradient(90deg, hsl(var(--primary) / 0.08), hsl(var(--primary) / 0));
   padding-block: 1rem;
   margin: .5rem 0; /* the lead group breathes a little more than the rest */
 }
-.spotlight-opt--own .spotlight-opt-icon { color: hsl(var(--primary)); }
+.spotlight-opt--own .spotlight-opt-icon { color: hsl(var(--primary-text)); }
 /* Hover / keyboard-active deepen the wash so the own group's selection still
    reads over its resting tint (out-specifies the shared .spotlight-opt:hover). */
 .spotlight-opt--own:hover,
@@ -147,7 +147,7 @@ html[data-a11y-motion="reduce"] .spotlight-anim { animation: none; }
 .spotlight-opt[data-group="ask"] {
   background: linear-gradient(90deg, hsl(var(--primary) / 0.08), hsl(var(--primary) / 0));
 }
-.spotlight-opt[data-group="ask"] .spotlight-opt-icon { color: hsl(var(--primary)); }
+.spotlight-opt[data-group="ask"] .spotlight-opt-icon { color: hsl(var(--primary-text)); }
 .spotlight-opt[data-group="ask"] .spotlight-opt-icon svg.ask-spark {
   width: calc(19px * var(--a11y-fs));
   height: calc(19px * var(--a11y-fs));

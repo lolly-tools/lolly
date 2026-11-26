@@ -353,7 +353,7 @@
 .lang-menu-item:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
 .lang-menu-item[aria-checked="true"] {
   background: var(--ui-color-selection-surface);
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
   font-weight: 700;
 }
 /* Sort toggle at the top of the menu - Speakers (default) vs A–Z. Styles

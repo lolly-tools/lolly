@@ -128,6 +128,27 @@ interface AssetHash {
 // 'created' preserves every existing caller.
 type Authorship = 'created' | 'delivered';
 
+/**
+ * The licence the signer offers the asset under, and the credit it asks for, as
+ * machine-readable terms beside `rights` in the same `cawg.metadata` assertion: the
+ * XMP rights and Creative Commons REL properties a photo or audio tool already reads
+ * (`xmpRights:WebStatement`, `cc:license`, `cc:attributionName`,
+ * `cc:attributionURL`) and the IPTC credit line (`photoshop:Credit`). The terms in
+ * words stay in `rights` (`dc:rights`). Every value is validated: a URL must be a
+ * public http(s) address and text is bounded. A statement the signer made, not a
+ * verdict on rights.
+ */
+export interface C2paLicenceInput {
+  /** The licence's terms page: `cc:license` and `xmpRights:WebStatement`. */
+  url: string;
+  /** The party to credit: `cc:attributionName`. */
+  attributionName?: string;
+  /** Where the credit points: `cc:attributionURL`. */
+  attributionUrl?: string;
+  /** The credit line, word for word: `photoshop:Credit`. */
+  credit?: string;
+}
+
 // One recorded step for the actions assertion. `action` is a C2PA action code
 // (c2pa.created / c2pa.edited / c2pa.converted / c2pa.color_adjustments / …);
 // `digitalSourceType` (IPTC) and a free-text `description` are optional. The
@@ -256,17 +277,38 @@ function intentAssertionMap(r: C2paIntentRecord): Record<string, unknown> {
 const APPROVAL_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
 const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 
+// A template's id: an identifier with up to two namespace segments (`inst/<id>`). No
+// spaces and no free text, so a template's display name cannot travel in its place. A
+// segment after the first may start with `-` or `_`, because Lolly Work mints a
+// template's id from random base64url (`inst/-x0…`).
+export const APPROVAL_TEMPLATE_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}(?:\/[A-Za-z0-9_-]{1,128}){0,2}$/;
+const FILE_APPROVAL_KEYS: readonly string[] = ['approvalId', 'decidedAt', 'reviewedSha256'];
+const TEMPLATE_APPROVAL_KEYS: readonly string[] = ['approvalId', 'decidedAt', 'covers', 'templateId', 'templateVersion', 'exampleSha256'];
+
+/** Whether an approval record covers a template's variants rather than one reviewed file. */
+export const isTemplateApproval = (a: C2paApprovalRecord): a is C2paTemplateApprovalRecord => (a as { covers?: unknown }).covers !== undefined;
+
 // The approval assertion's map. Refuses rather than coerces, and refuses any field it
 // does not name: this record travels in files people share, so what it can hold is
-// fixed here and widening it is a decision, not a parameter.
+// fixed here and widening it is a decision, not a parameter. There are two closed
+// shapes, one reviewed file or one template's variants, and a record is one or the other.
 function approvalAssertionMap(a: C2paApprovalRecord): Record<string, unknown> {
+  const template = isTemplateApproval(a);
+  const allowed = template ? TEMPLATE_APPROVAL_KEYS : FILE_APPROVAL_KEYS;
   for (const key of Object.keys(a)) {
-    if (key !== 'approvalId' && key !== 'decidedAt' && key !== 'reviewedSha256') throw new Error(`c2pa: an approval record cannot carry '${key.slice(0, 40)}'`);
+    if (!allowed.includes(key)) throw new Error(`c2pa: an approval record cannot carry '${key.slice(0, 40)}'`);
   }
   if (typeof a.approvalId !== 'string' || !APPROVAL_ID.test(a.approvalId)) throw new Error('c2pa: approval.approvalId must be an identifier');
   if (typeof a.decidedAt !== 'string' || !ISO_INSTANT.test(a.decidedAt) || Number.isNaN(Date.parse(a.decidedAt))) throw new Error('c2pa: approval.decidedAt must be an ISO 8601 date and time');
-  if (typeof a.reviewedSha256 !== 'string' || !SHA256_TEXT.test(a.reviewedSha256)) throw new Error("c2pa: approval.reviewedSha256 must be 'sha256:<64 hex>'");
-  return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, reviewedSha256: a.reviewedSha256 };
+  if (!template) {
+    if (typeof a.reviewedSha256 !== 'string' || !SHA256_TEXT.test(a.reviewedSha256)) throw new Error("c2pa: approval.reviewedSha256 must be 'sha256:<64 hex>'");
+    return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, reviewedSha256: a.reviewedSha256 };
+  }
+  if (a.covers !== 'template') throw new Error("c2pa: approval.covers must be 'template'");
+  if (typeof a.templateId !== 'string' || !APPROVAL_TEMPLATE_ID.test(a.templateId)) throw new Error('c2pa: approval.templateId must be an identifier');
+  if (!Number.isSafeInteger(a.templateVersion) || a.templateVersion < 1) throw new Error('c2pa: approval.templateVersion must be a positive whole number');
+  if (typeof a.exampleSha256 !== 'string' || !SHA256_TEXT.test(a.exampleSha256)) throw new Error("c2pa: approval.exampleSha256 must be 'sha256:<64 hex>'");
+  return { version: 1, approvalId: a.approvalId, decidedAt: a.decidedAt, covers: 'template', templateId: a.templateId, templateVersion: a.templateVersion, exampleSha256: a.exampleSha256 };
 }
 
 // The c2pa.ingredient.v3 map for a source with no credential of its own.
@@ -338,6 +380,9 @@ interface BuildC2paManifestOptions {
   /** User-asserted copyright + licence, emitted as `dc:rights` in the v2
    *  cawg.metadata assertion (from buildExportMeta / an input's bindToMeta). */
   rights?: string;
+  /** The licence's machine-readable terms and credit, beside `rights` in the same
+   *  cawg.metadata assertion (v2 claims only). See {@link C2paLicenceInput}. */
+  licence?: C2paLicenceInput;
   /**
    * Explicit action history for the actions assertion. When present and
    * non-empty it REPLACES the default single created/published action - each
@@ -365,10 +410,11 @@ interface BuildC2paManifestOptions {
    */
   intent?: C2paIntentRecord;
   /**
-   * Records an approval decision as {@link LOLLY_APPROVAL_ASSERTION}. Only an update
-   * can carry one: the manifest must name a credentialed parentOf ingredient, the
-   * credential of the file as it was reviewed. Absent, the output is byte-identical
-   * to before this option existed.
+   * Records an approval decision as {@link LOLLY_APPROVAL_ASSERTION}. A file's approval
+   * goes only in an update: the manifest must name a credentialed parentOf ingredient,
+   * the credential of the file as it was reviewed. A template's approval goes in a
+   * variant render's own credential. Absent, the output is byte-identical to before
+   * this option existed.
    */
   approval?: C2paApprovalRecord;
   /**
@@ -408,6 +454,8 @@ export interface EmbedOptions {
   authorship?: Authorship;
   /** User-asserted copyright + licence → `dc:rights` in the manifest. */
   rights?: string;
+  /** The licence's machine-readable terms and credit. See {@link C2paLicenceInput}. */
+  licence?: C2paLicenceInput;
   actions?: C2paActionInput[];
   ingredients?: C2paIngredientInput[];
   /**
@@ -419,7 +467,7 @@ export interface EmbedOptions {
    * one assertion per model (see {@link buildC2paManifest}).
    */
   aiDisclosure?: C2paAiDisclosureInput | readonly C2paAiDisclosureInput[];
-  /** An approval record, for an update over a credentialed parent. See {@link buildC2paManifest}. */
+  /** An approval record: a file's, for an update over a credentialed parent, or a template's, for a variant render. See {@link buildC2paManifest}. */
   approval?: C2paApprovalRecord;
   /** The intent record, for a render that started from an intent. See {@link buildC2paManifest}. */
   intent?: C2paIntentRecord;
@@ -658,6 +706,12 @@ const INGREDIENT_MIME: Record<string, string> = {
   avif: 'image/avif',
 };
 
+/** The format key whose `dc:format` an ingredient assertion wrote, for carrying it again. */
+export function ingredientFormatOfMime(mime: unknown): string | undefined {
+  if (typeof mime !== 'string') return undefined;
+  return Object.keys(INGREDIENT_MIME).find((key) => INGREDIENT_MIME[key] === mime);
+}
+
 // Joins a list of human-readable fragments as "a, b and c" (Oxford-comma-free,
 // matching British house style elsewhere in this file's descriptions).
 function joinList(items: string[]): string {
@@ -726,7 +780,7 @@ export function collectAiIngredientDeclarations(model: ReadonlyArray<{ type: str
  * description; `aiUpscale` (the essence is an on-device AI-upscaled asset) swaps
  * it to `compositeWithTrainedAlgorithmicMedia` - a real image with model-inferred
  * detail - and appends an "AI-upscaled with <model> <version>" edit step naming
- * the model; `textAdded` (rendered text placed OVER an opened asset - the caller
+ * the model; `textAdded` (rendered text placed OVER a placed asset - the caller
  * gates this on an ingredient being present) appends a `c2pa.edited` "Added text"
  * step. From-scratch text is content, not an edit - it belongs in the input
  * digest, so callers must NOT set `textAdded` without an ingredient.
@@ -745,7 +799,7 @@ export function exportActionSteps(format: string, flags: {
    *  `screen` instead means a display was captured (a screenshot / screen recording) →
    *  created → screenCapture, which is a different IPTC term and a different claim. */
   capture?: { camera?: boolean; microphone?: boolean; screen?: boolean };
-  /** Text was placed over an opened asset (gate on ingredients) - appends "Added text". */
+  /** Text was placed over a placed asset (gate on ingredients) - appends "Added text". */
   textAdded?: boolean;
   /** Short teaser of that text for the step label (full copy rides in the input digest). */
   textSample?: string;
@@ -756,6 +810,11 @@ export function exportActionSteps(format: string, flags: {
    *  created → compositeWithTrainedAlgorithmicMedia, plus a c2pa.placed step naming
    *  each. Pair with an `aiDisclosure` on the manifest (section 18.28.3). */
   aiIngredients?: AiIngredientDeclaration[];
+  /** The export is a rendition of a credentialed picture that travels as its one
+   *  `parentOf` ingredient (a tool's `renditionOf`): `action` takes the place of the
+   *  created step, after the `c2pa.opened` step the embedder writes for that parent.
+   *  Pass it only with that ingredient: a history has to start with created or opened. */
+  rendition?: { action: string };
 } = {}): C2paActionInput[] {
   if (flags.delivered) return [{ action: 'c2pa.published' }];
   const f = String(format || '').toLowerCase();
@@ -785,7 +844,7 @@ export function exportActionSteps(format: string, flags: {
       : captured
         ? { action: 'c2pa.created', digitalSourceType: CAPTURE_SOURCE_TYPE, description: captureDescription(cap!) }
         : { action: 'c2pa.created', digitalSourceType: DIGITAL_SOURCE_TYPE };
-  const steps: C2paActionInput[] = [created];
+  const steps: C2paActionInput[] = [flags.rendition ? renditionStep(flags.rendition.action, created) : created];
   if (flags.cmyk) steps.push({ action: 'c2pa.color_adjustments', description: 'Converted colours to CMYK for print' });
   if (flags.paletteColors) steps.push({ action: 'c2pa.color_adjustments', description: `Snapped colours to the brand palette (${flags.paletteColors} colour${flags.paletteColors === 1 ? '' : 's'})` });
   if (flags.marks?.length) steps.push({ action: 'c2pa.edited', description: `Added ${joinList(flags.marks)}` });
@@ -798,14 +857,95 @@ export function exportActionSteps(format: string, flags: {
   // The model that enlarged the image, named - so an inspected asset discloses not
   // just THAT it was AI-upscaled but with what. Kept as its own step after the other
   // edits, before the render/encode close.
-  if (upscaled) steps.push({ action: 'c2pa.edited', description: `AI-upscaled with ${upscaled.model} ${upscaled.version}` });
+  if (upscaled) steps.push({ action: 'c2pa.edited', description: aiUpscaleDescription(upscaled) });
   // Each AI-declared ingredient named with its declared grade, so the record
   // says not just THAT AI media was placed but which piece and how fully.
-  if (aiPlaced) steps.push({ action: 'c2pa.placed', description: `Placed AI-declared ingredient${aiPlaced.length === 1 ? '' : 's'}: ${joinList(aiPlaced.map(i => `${i.name} (${i.kind === 'full' ? 'AI-generated' : 'AI-assisted'})`))}` });
+  if (aiPlaced) steps.push({ action: 'c2pa.placed', description: aiPlacedDescription(aiPlaced) });
   if (RASTER_OUTPUTS.has(f)) steps.push({ action: 'c2pa.converted', description: `Rendered to ${f.toUpperCase()}` });
   else if (VIDEO_OUTPUTS.has(f)) steps.push({ action: 'c2pa.converted', description: `Encoded to ${f.toUpperCase()}` });
   else if (f === 'pdf' || f === 'pdf-cmyk') steps.push({ action: 'c2pa.converted', description: 'Rendered to PDF' });
   return steps;
+}
+
+/** What each rendition action says it did, for the step's description. */
+const RENDITION_DESCRIPTIONS: Record<string, string> = {
+  'c2pa.color_adjustments': 'Adjusted the colours',
+  'c2pa.filtered': 'Applied a filter',
+  'c2pa.converted': 'Converted the picture',
+  'c2pa.resized': 'Resized the picture',
+  'c2pa.cropped': 'Cropped the picture',
+  'c2pa.edited': 'Edited the picture',
+};
+
+/**
+ * A rendition's head step. The picture was opened, not made, so the step keeps no
+ * digitalCreation claim; a composite or AI source type the created step would have
+ * declared (an AI-declared component, an upscale) still travels on this step.
+ */
+function renditionStep(action: string, created: C2paActionInput): C2paActionInput {
+  const declared = created.digitalSourceType && created.digitalSourceType !== DIGITAL_SOURCE_TYPE ? created.digitalSourceType : undefined;
+  return {
+    action,
+    ...(declared ? { digitalSourceType: declared } : {}),
+    description: RENDITION_DESCRIPTIONS[action] ?? 'Edited the picture',
+  };
+}
+
+// The two AI steps exportActionSteps writes, as text. One writer for each, so the
+// reader below can check a reading by writing it again.
+const AI_GRADE = { full: 'AI-generated', partial: 'AI-assisted' } as const;
+function aiPlacedDescription(list: AiIngredientDeclaration[]): string {
+  return `Placed AI-declared ingredient${list.length === 1 ? '' : 's'}: ${joinList(list.map(i => `${i.name} (${AI_GRADE[i.kind]})`))}`;
+}
+function aiUpscaleDescription(up: { model: string; version: string }): string {
+  return `AI-upscaled with ${up.model} ${up.version}`;
+}
+
+/**
+ * The AI facts {@link exportActionSteps} wrote into a step list, read back: the
+ * ingredients its `c2pa.placed` step declares AI-made and the model its upscale step
+ * names. A shell that replaces a credential with its own passes them to
+ * exportActionSteps again, which writes the same steps. A reading counts only when
+ * writing it again gives the very description it came from, so a step another writer
+ * made, or a name the list form cannot hold, is left out rather than guessed.
+ */
+export function aiFactsFromSteps(steps: ReadonlyArray<{ action?: unknown; description?: unknown; parameters?: unknown }>): {
+  aiIngredients: AiIngredientDeclaration[];
+  aiUpscale?: { model: string; version: string };
+} {
+  const aiIngredients: AiIngredientDeclaration[] = [];
+  let aiUpscale: { model: string; version: string } | undefined;
+  for (const step of steps) {
+    const text = typeof step.description === 'string' ? step.description : '';
+    if (step.action === 'c2pa.placed' && step.parameters === undefined) {
+      const head = /^Placed AI-declared ingredients?: /.exec(text);
+      if (!head) continue;
+      const read: AiIngredientDeclaration[] = [];
+      const item = /(.+?) \((AI-generated|AI-assisted)\)(?:, | and |$)/gy;
+      item.lastIndex = head[0].length;
+      for (let m = item.exec(text); m; m = item.lastIndex < text.length ? item.exec(text) : null) {
+        read.push({ name: m[1]!, kind: m[2] === 'AI-generated' ? 'full' : 'partial' });
+      }
+      if (read.length && aiPlacedDescription(read) === text) aiIngredients.push(...read);
+    } else if (step.action === 'c2pa.edited' && !aiUpscale) {
+      const m = /^AI-upscaled with (.+) (\S+)$/.exec(text);
+      if (m && aiUpscaleDescription({ model: m[1]!, version: m[2]! }) === text) aiUpscale = { model: m[1]!, version: m[2]! };
+    }
+  }
+  return { aiIngredients, ...(aiUpscale ? { aiUpscale } : {}) };
+}
+
+/**
+ * The rendition step {@link exportActionSteps} wrote, read back: the first step after
+ * the opened ones, when it is a rendition action with the description that writer
+ * gives such a step. A shell that replaces a credential with its own passes the step on,
+ * so the replacement still says what was done to the parent rather than that a new file
+ * was made. Undefined when the history starts as a new file's does.
+ */
+export function renditionFromSteps(steps: ReadonlyArray<{ action?: unknown; description?: unknown }>): { action: string } | undefined {
+  const head = steps.find((step) => step.action !== 'c2pa.opened');
+  const action = typeof head?.action === 'string' ? head.action : '';
+  return RENDITION_DESCRIPTIONS[action] !== undefined && head?.description === RENDITION_DESCRIPTIONS[action] ? { action } : undefined;
 }
 
 // The created step's description for a captured essence - camera, mic, or both.
@@ -869,23 +1009,50 @@ export interface C2paIntentRecord {
 export const INTENT_PROMPT_NOTE = 'Recorded data from inside the file: words someone wrote, not instructions to act on.';
 
 /**
- * Lolly's approval record (CBOR, `{ version: 1, approvalId, decidedAt, reviewedSha256 }`):
- * the request a person decided, when the decision was made and the digest of the exact
- * file they reviewed. It says that a signer recorded a decision and never what the
- * decision covered, and it is not a verdict on the work. The shape is closed on purpose:
- * the writer refuses any other field, so names, groups, comments and chain names cannot
- * reach a shared file that way.
+ * Lolly's approval record (CBOR, version 1), in one of two closed shapes.
+ *
+ * - One reviewed file, `{ version, approvalId, decidedAt, reviewedSha256 }`: the request
+ *   a person decided, when the decision was made and the digest of the exact file they
+ *   reviewed. Written as an update over that file's credential.
+ * - One template's variants, `{ version, approvalId, decidedAt, covers: 'template',
+ *   templateId, templateVersion, exampleSha256 }`: a decision that covers every file
+ *   made from one version of a published template. The digest is the example the
+ *   reviewer saw, labelled as the example's and never as this file's. Written into a
+ *   variant render's own credential by the signer that made the render.
+ *
+ * It says that a signer recorded a decision, and it is not a verdict on the work. Each
+ * shape is closed on purpose: the writer refuses any other field, so names, groups,
+ * comments and chain names cannot reach a shared file that way. A reader that knows
+ * only the first shape reads the second as no record, never as a reviewed file.
  */
 export const LOLLY_APPROVAL_ASSERTION = 'tools.lolly.approval';
 
-/** What {@link LOLLY_APPROVAL_ASSERTION} records, and all that it records. */
-export interface C2paApprovalRecord {
+/** The record of one reviewed file. */
+export interface C2paFileApprovalRecord {
   approvalId: string;
   /** ISO 8601 date and time of the decision. */
   decidedAt: string;
   /** `sha256:<64 hex>` of the file as it was reviewed. */
   reviewedSha256: string;
+  covers?: never;
 }
+
+/** The record of one template version's variants. */
+export interface C2paTemplateApprovalRecord {
+  approvalId: string;
+  /** ISO 8601 date and time of the decision. */
+  decidedAt: string;
+  covers: 'template';
+  /** The template's id (`inst/<id>`), never its name. */
+  templateId: string;
+  templateVersion: number;
+  /** `sha256:<64 hex>` of the example file the reviewer saw, which is not this file. */
+  exampleSha256: string;
+  reviewedSha256?: never;
+}
+
+/** What {@link LOLLY_APPROVAL_ASSERTION} records, and all that it records. */
+export type C2paApprovalRecord = C2paFileApprovalRecord | C2paTemplateApprovalRecord;
 
 // The BMFF (mp4) hard-binding assertion label - used here (buildC2paManifest
 // picks it over the byte-range c2pa.hash.data for bmff assets) and by
@@ -910,6 +1077,31 @@ export const CREATIVE_WORK_ASSERTION = 'stds.schema-org.CreativeWork';
 // removed in 2.x, so this replaces the v1 CreativeWork path.
 export const METADATA_ASSERTION = 'cawg.metadata';
 const DC_CONTEXT = { dc: 'http://purl.org/dc/elements/1.1/' };
+// The vocabularies a licence's terms are written in: XMP rights management, the
+// Creative Commons Rights Expression Language and the IPTC credit line, under
+// the prefixes XMP itself uses for them.
+const LICENCE_CONTEXT = {
+  xmpRights: 'http://ns.adobe.com/xap/1.0/rights/',
+  cc: 'http://creativecommons.org/ns#',
+  photoshop: 'http://ns.adobe.com/photoshop/1.0/',
+};
+
+/**
+ * A licence's terms as JSON-LD properties for the cawg.metadata assertion. The
+ * licence page is required; the rest is written only when given. The two
+ * Creative Commons properties whose values are addresses are written as IRIs
+ * (`@id`), as CC REL defines them; the XMP web statement stays text, as XMP does.
+ */
+function licenceTerms(licence: C2paLicenceInput): Record<string, unknown> {
+  const url = publicHttpUrl(licence.url, 'licence.url');
+  const out: Record<string, unknown> = {};
+  out['xmpRights:WebStatement'] = url;
+  out['cc:license'] = { '@id': url };
+  if (licence.attributionName != null) out['cc:attributionName'] = boundedText(licence.attributionName, 'licence.attributionName', 1024);
+  if (licence.attributionUrl != null) out['cc:attributionURL'] = { '@id': publicHttpUrl(licence.attributionUrl, 'licence.attributionUrl') };
+  if (licence.credit != null) out['photoshop:Credit'] = boundedText(licence.credit, 'licence.credit', 1024);
+  return out;
+}
 
 // ─── section 18.28 AI disclosure (C2PA 2.4) ──────────────────────────────────────────
 
@@ -1115,6 +1307,7 @@ export async function buildC2paManifest({
   author,
   authorship = 'created',
   rights,
+  licence,
   actions: actionSteps,
   ingredients,
   aiDisclosure,
@@ -1188,9 +1381,11 @@ export async function buildC2paManifest({
   if (relationships.filter((r) => r === 'parentOf').length > 1) {
     throw new Error('c2pa: a manifest may carry only one parentOf ingredient (manifest.multipleParents) - mark the components componentOf');
   }
-  // An approval is recorded over a credential that already exists. A first credential
-  // written only to say "approved" would state a history this signer never saw.
-  if (approval && !ingList.some((ing, i) => relationships[i] === 'parentOf' && !isSourceIngredient(ing))) {
+  // A file's approval is recorded over a credential that already exists. A first credential
+  // written only to say "approved" would state a history this signer never saw. A template
+  // approval is the other way round: the signer that makes a variant render records the
+  // decision it rendered under, in that render's own first credential.
+  if (approval && !isTemplateApproval(approval) && !ingList.some((ing, i) => relationships[i] === 'parentOf' && !isSourceIngredient(ing))) {
     throw new Error('c2pa: an approval record needs a credentialed parentOf ingredient');
   }
   // Build each ingredient's c2pa.ingredient.v3 assertion FIRST: the opened or
@@ -1321,19 +1516,23 @@ export async function buildC2paManifest({
   // v2: the human author rides in the spec-clean c2pa.metadata assertion
   // (JSON-LD, Dublin Core dc:creator) instead of the removed schema.org one.
   let metadataBox: Uint8Array | null = null;
-  if (v2 && (author?.name || rights)) {
+  const licenceLd = v2 && licence ? licenceTerms(licence) : null;
+  if (v2 && (author?.name || rights || licenceLd)) {
     // JSON-LD cawg.metadata: dc:creator (author) + dc:rights (user-asserted
     // copyright/licence). Either one alone is enough to emit the assertion.
     // The licensing contact rides inside the creator entry npm-style -
     // `Name <email> (site)` - Dublin Core has no contact term of its own, and a
     // composed string stays a single dc:creator any external viewer displays
     // verbatim; the verifier's parseCreatorEntry unpicks it on read.
-    const metaLd: Record<string, unknown> = { '@context': DC_CONTEXT };
+    // The context lists only the vocabularies used, so a manifest without a
+    // licence keeps its exact bytes.
+    const metaLd: Record<string, unknown> = { '@context': licenceLd ? { ...DC_CONTEXT, ...LICENCE_CONTEXT } : DC_CONTEXT };
     if (author?.name) {
       const contact = [author.email ? `<${String(author.email)}>` : '', author.url ? `(${String(author.url)})` : ''].filter(Boolean).join(' ');
       metaLd['dc:creator'] = [contact ? `${String(author.name)} ${contact}` : String(author.name)];
     }
     if (rights) metaLd['dc:rights'] = String(rights);
+    if (licenceLd) Object.assign(metaLd, licenceLd);
     metadataBox = jumbfSuperbox(UUID_JSON_CONTENT, METADATA_ASSERTION, isoBox('json', te.encode(JSON.stringify(metaLd))));
     storeBoxes.push(metadataBox);
   }

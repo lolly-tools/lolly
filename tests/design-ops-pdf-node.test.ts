@@ -7,6 +7,7 @@ import { mkdtemp, readFile, rm, mkdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { PDFDocument, PDFName, PDFArray, decodePDFRawStream, PDFRawStream } from 'pdf-lib';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { embedC2pa, extractC2paStore, verifyC2pa } from '@lolly/engine';
@@ -162,16 +163,37 @@ test('a recorded hook failure cannot become a PDF browser admission fallback', a
   }
 });
 
-test('a print finishing failure keeps its original cause and cannot become an admission reason', async () => {
-  const meta = { ...options().meta!, tool: 'Design 雨' };
-  await assert.rejects(bytesOf(options({ provenance: true, meta })), (error: Error) => {
-    assert.equal(error.name, 'PdfFinishingError');
-    assert.match(error.message, /WinAnsi cannot encode/);
-    assert.ok(error.cause instanceof Error);
-    assert.equal(error.cause.message, error.message);
-    return true;
-  });
+test('a print finishing failure keeps its original cause and cannot become an admission reason', async (t) => {
+  // The mark font is only asked for while the finishing pass draws the labels.
+  const failure = new Error('Mark font unavailable');
+  const font = t.mock.method(PDFDocument.prototype, 'embedFont', async () => { throw failure; });
+  try {
+    await assert.rejects(bytesOf(options({ provenance: true })), (error: Error) => {
+      assert.equal(error.name, 'PdfFinishingError');
+      assert.equal(error.message, failure.message);
+      assert.equal(error.cause, failure);
+      return true;
+    });
+  } finally {
+    font.mock.restore();
+  }
   assert.ok((await bytesOf()).length > 0, 'a later valid export is not poisoned by the failed finishing pass');
+});
+
+test('a name in letters the mark font lacks goes to the browser tier, which draws it, instead of failing', async () => {
+  const reason = async (meta: PdfFinishingOpts['meta']) => {
+    const out = await designOpsPdfNode(pageNode(), options({ provenance: true, meta }), host, { repoRoot: ROOT });
+    return out && 'reason' in out ? out.reason : '';
+  };
+  for (const name of ['مايا ليندكفيست', '林美雅', 'Мария Иванова', 'Maya 🎨']) {
+    assert.match(await reason({ ...options().meta!, author: name }), /print marks hold letters the mark font does not have/, name);
+  }
+  assert.match(await reason({ ...options().meta!, tool: 'Design 雨' }), /mark font/);
+  // Latin-1 is the mark font's own, so those names stay here, as before.
+  assert.equal(await reason({ ...options().meta!, author: 'José Núñez' }), '');
+  // Without the label there is nothing to draw, so a name decides nothing.
+  const unlabelled = await designOpsPdfNode(pageNode(), options({ cropMarks: true, meta: { ...options().meta!, author: '林美雅' } }), host, { repoRoot: ROOT });
+  assert.ok(unlabelled && 'pdf' in unlabelled);
 });
 
 test('an encryption failure stays fatal and the next encrypted export can recover', async (t) => {
@@ -200,7 +222,7 @@ test('the CLI refuses a finishing failure even with an explicit HTML fallback', 
     await writeFile(join(dir, 'catalog', 'tools', 'index.json'), JSON.stringify({ tools: [{ id: 'design' }] }));
     await writeFile(join(dir, 'catalog', 'assets', 'index.json'), JSON.stringify({ assets: [] }));
     await writeFile(join(dir, 'tools', 'design', 'tool.json'), JSON.stringify({
-      id: 'design', name: 'Design 雨', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
+      id: 'design', name: 'Design fixture', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
       render: { width: 120, height: 80, formats: ['pdf'] },
       inputs: [{ id: 'boxes', type: 'blocks', fields: [
         { id: 'id', type: 'text' }, { id: 'kind', type: 'text' },
@@ -208,8 +230,12 @@ test('the CLI refuses a finishing failure even with an explicit HTML fallback', 
       ] }],
     }));
     await writeFile(join(dir, 'tools', 'design', 'template.html'), '<div data-pdf-page data-frame-id="f"></div>');
+    // The mark font fails to load in the child, so the finishing pass itself throws.
+    const preload = join(dir, 'mark-font-fails.mjs');
+    await writeFile(preload, `import pdfLib from ${JSON.stringify(pathToFileURL(join(ROOT, 'node_modules/pdf-lib/cjs/index.js')).href)};\n`
+      + "pdfLib.PDFDocument.prototype.embedFont = async () => { throw new Error('Mark font unavailable'); };\n");
     const output = join(dir, 'failed.pdf');
-    const run = spawnSync(process.execPath, [join(ROOT, 'shells/cli/bin/lolly.ts'), 'run', 'design',
+    const run = spawnSync(process.execPath, ['--import', pathToFileURL(preload).href, join(ROOT, 'shells/cli/bin/lolly.ts'), 'run', 'design',
       '--boxes=[{"id":"f","kind":"frame","w":120,"h":80}]', '--export=pdf', '--text=outline', '--marks=prov',
       `--output=${output}`, '--html-fallback', '--c2pa=0'], {
       cwd: dir, encoding: 'utf8', timeout: 30_000,
@@ -217,7 +243,7 @@ test('the CLI refuses a finishing failure even with an explicit HTML fallback', 
         LOLLY_WEB_BASE: 'http://127.0.0.1:9', LOLLY_RENDERER: 'chromium', NO_COLOR: '1' },
     });
     assert.notEqual(run.status, 0, run.stderr);
-    assert.match(run.stderr, /WinAnsi cannot encode/);
+    assert.match(run.stderr, /Mark font unavailable/);
     assert.doesNotMatch(run.stderr, /Escalating|HTML_FALLBACK|Cannot export/);
     assert.equal(existsSync(output), false);
     assert.equal(existsSync(join(dir, 'failed.html')), false, 'a finishing failure cannot produce an HTML substitute');

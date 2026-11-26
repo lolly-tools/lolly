@@ -13,6 +13,7 @@ import { announce } from '../../a11y.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { t } from '../../i18n.ts';
 import { colorFieldHtml, colorVarLabel, resolveColorVar, wireColorField } from '../../components/color-field.ts';
+import { colourRoleWord, linkedColourWord } from '../../lib/colour-role-words.ts';
 import { icon as uiIcon } from '../../lib/icons.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
 import { createStylePreview, type StylePreview } from '../free-canvas-style-preview.ts';
@@ -69,14 +70,18 @@ export function colorScope(fc: FcCtx): Element | null {
  * always stored.
  */
 export function colorSeed(fc: FcCtx, raw: unknown): { value: string; name: string } {
+  // A colour role kept as its link (the canvas background): show the colour it resolves to, under its word.
+  const link = raw && typeof raw === 'object' ? raw as { ref?: unknown; value?: unknown } : null;
+  if (link && colourRoleWord(link.ref)) return { value: String(link.value ?? ''), name: colourRoleWord(link.ref) };
   const s = raw == null ? '' : String(raw);
   return { value: resolveColorVar(s, colorScope(fc)), name: colorVarLabel(s) };
 }
 /** `colorFieldHtml` with the var() resolution applied - every seed in the editor.
+ *  `word` is the design system's word when the caller knows the row links this colour.
  *  A function declaration, not a const: `buildToolbar` runs before this line does. */
-export function seededColorField(fc: FcCtx, id: string, raw: unknown): string {
+export function seededColorField(fc: FcCtx, id: string, raw: unknown, word = ''): string {
   const s = colorSeed(fc, raw);
-  return colorFieldHtml(id, s.value, { float: true, name: s.name });
+  return colorFieldHtml(id, s.value, { float: true, name: word || s.name });
 }
 /**
  * The PAINT section of a contextual bar: fill, text colour, and - for any kind that
@@ -105,16 +110,16 @@ export function paintCtxHtml(fc: FcCtx, first: Box, allPaths: boolean, allStroke
   const fillShown = gradOn ? (fc.gradient.gradStopColor(first) ?? fillVal) : fillVal;
   return (
     (cfg.fillField
-      ? `<span class="fc-cfield" data-tip="${escapeText(fillTitle)}">${seededColorField(fc, 'fc-fill', fillShown)}</span>`
+      ? `<span class="fc-cfield" data-tip="${escapeText(fillTitle)}">${seededColorField(fc, 'fc-fill', fillShown, gradOn ? '' : linkedColourWord(first, cfg.fillField, fillVal))}</span>`
       : '') +
     (cfg.gradField && !allPaths
       ? `<button type="button" class="fc-cbtn${gradOn ? ' is-on' : ''}" data-cx="grad" aria-pressed="${gradOn}" data-tip="${escapeText(t('Gradient - drag the stops on the canvas'))}" aria-label="${escapeText(t('Gradient fill'))}">${icon(SVG.gradIc)}</button>`
       : '') +
     (cfg.textColorField && !allPaths
-      ? `<span class="fc-cfield" data-tip="${escapeText(t('Text colour'))}">${seededColorField(fc, 'fc-fg', fgVal)}</span>`
+      ? `<span class="fc-cfield" data-tip="${escapeText(t('Text colour'))}">${seededColorField(fc, 'fc-fg', fgVal, linkedColourWord(first, cfg.textColorField, fgVal))}</span>`
       : '') +
     (allStroked && cfg.strokeField
-      ? `<span class="fc-cfield" data-tip="${escapeText(t('Stroke colour'))}">${seededColorField(fc, 'fc-stroke', strokeVal)}</span>`
+      ? `<span class="fc-cfield" data-tip="${escapeText(t('Stroke colour'))}">${seededColorField(fc, 'fc-stroke', strokeVal, linkedColourWord(first, cfg.strokeField, strokeVal))}</span>`
       : '') +
     (allStroked
       ? `<button type="button" class="fc-cbtn" data-cx="stroke" data-tip="${escapeText(t('Stroke - width, style, ends, corners, fill rule'))}" aria-label="${escapeText(t('Stroke options'))}">${icon(SVG.strokeIc)}</button>`

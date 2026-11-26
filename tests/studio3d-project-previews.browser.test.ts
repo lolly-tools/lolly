@@ -21,7 +21,8 @@ test('3D Studio first look is transparent and saved projects recover missing sce
       const mod='/src/bridge/index.ts',host=await (await import(mod)).createBridge();
       return (await host.state.list()).find((item:{toolId?:string;slot:string})=>item.toolId==='3d-studio'||item.slot.startsWith('3d-studio:'));
     });
-    assert.ok(saved?.thumb?.startsWith('data:image/'),'Save attaches the scene preview before reporting success');
+    // Since plan 373 a picture is stored once and the list row carries its reference.
+    assert.ok(saved?.preview?.key||saved?.thumb?.startsWith('data:image/'),'Save attaches the scene preview before reporting success');
     await page.evaluate(async()=>{
       const mod='/src/bridge/index.ts',host=await (await import(mod)).createBridge();
       const values=JSON.parse(document.querySelector<HTMLElement>('[data-lolly-studio]')!.dataset.lollyStudio!).values;
@@ -32,7 +33,7 @@ test('3D Studio first look is transparent and saved projects recover missing sce
     await tile.waitFor();
     await page.waitForFunction(()=>{
       const tile=document.querySelector('[data-open-session="3d-studio:preview-regression"]')?.closest('[data-ref]');
-      return !!tile?.querySelector('img[src^="data:image/"]');
+      return !!tile?.querySelector('img[src^="data:image/"], img[src^="blob:"]');
     });
     await page.screenshot({path:'/tmp/lolly-studio-project-preview.png'});
   }catch(error){await diagnose(error);throw error;}finally{await context.close();await closeBrowser();}

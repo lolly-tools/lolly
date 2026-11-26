@@ -1,6 +1,6 @@
 {
   "name": "Palettlab",
-  "description": "Dyrk en palett fra én frøfarge - harmoniaksenter, perseptuelle OKLab-ramper og WCAG/APCA-lesbarhetsmerker, med DTCG-tokener og CSV-eksport.",
+  "description": "Dyrk en palett fra én frøfarge - harmoniaksenter, OKLab-ramper og WCAG/APCA-lesbarhetsmerker, med DTCG-tokener og CSV-eksport.",
   "inputs.seed.label": "Frøfarge",
   "inputs.seed.help": "Fargen hele paletten vokser fra - standard er merkevarens primærfarge.",
   "inputs.harmony.label": "Harmoni",

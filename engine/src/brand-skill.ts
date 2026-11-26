@@ -639,6 +639,12 @@ export function baselineBrandSkill(source: object, opts: { revision?: string } =
     if (colours.length > 120) out.push('', `${colours.length - 120} more colours are in the design context.`);
     out.push('');
   }
+  const colourRoles = rec(brief.colourRoles);
+  if (list(colourRoles.roles).length) {
+    out.push('## Colour roles', '', cell(colourRoles.note), '', '| Name | Token | Lolly reads this as |', '| --- | --- | --- |');
+    for (const role of list(colourRoles.roles)) out.push(`| ${cell(role.label)} | \`${cell(role.reference)}\` | ${(Array.isArray(role.readAs) ? role.readAs : []).map(cell).join('; ')} |`);
+    out.push('');
+  }
   const combos = rec(brief.combinations);
   const pairs = list(combos.pairs);
   if (pairs.length) {

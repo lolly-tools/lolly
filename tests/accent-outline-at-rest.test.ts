@@ -103,6 +103,8 @@ const ALLOWED: Allowed[] = [
     reason: 'The Design canvas outline around a selected group, drawn only while the group is selected.' },
   { file: `${PARTS}editor.css`, selector: '.fc-handle',
     reason: 'The Design canvas resize and rotate handles, drawn only on the current selection.' },
+  { file: `${PARTS}stage-kit.css`, selector: '.stage-kit-handle',
+    reason: "The handles the stage kit's handle layer draws on a tool's selected object, as .fc-handle does in Design: part of the selection overlay." },
   { file: `${PARTS}editor.css`, selector: '.fc-rubber',
     reason: 'The Design canvas rubber band, drawn only while the pointer is dragging out a selection.' },
   { file: `${PARTS}editor.css`, selector: '.fc-pen-node',
@@ -131,8 +133,6 @@ const ALLOWED: Allowed[] = [
     reason: "The scrub readout's arrow, drawn in the readout's own fill and shown only while scrubbing." },
 
   // Previews, illustrations and content, where the colour is the thing shown.
-  { file: `${PARTS}components-lib.css`, selector: '.cl-cover-swatches i',
-    reason: "The components cover palette swatches: the edge shows the brand's own action colour as content." },
   { file: `${PARTS}dashboard.css`, selector: '.dash-token-shape',
     reason: "A token preview swatch on the dashboard: the edge shows the brand's selection colour as content." },
   { file: `${PARTS}document.css`, selector: '.doc-color::after',

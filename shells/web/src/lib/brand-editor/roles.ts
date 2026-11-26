@@ -14,8 +14,10 @@ import { announce } from '../../a11y.ts';
 import { playSfx } from '../sfx.ts';
 import { readStarterDoc } from '../design-system/rooms/overview.ts';
 import { starterColorIds } from '../design-system/ownership.ts';
-import { ROLE_IDS, ROLE_IDS_ALL, assignRole, clearRole, mountRolesStrip, readRoles, roleLabel } from '../design-system/roles.ts';
+import { ROLE_IDS_ALL, assignRole, clearRole, mountRolesStrip, roleLabel, roleWords } from '../design-system/roles.ts';
+import { readColourRoles, setRoleValue } from '@lolly/engine';
 import { mountRoleChips } from '../design-system/role-chips.ts';
+import { roleTargets, targetRole } from '../design-system/role-targets.ts';
 import type { RoleId } from '../design-system/roles.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
 
@@ -35,19 +37,20 @@ export const renderUseAs = (bedit: BrandEditorCtx): void => {
   const cur = bedit.selected >= 0 ? bedit.swatches[bedit.selected] : null;
   useasRow.hidden = !cur || cur.kind === 'semantic';
   if (useasRow.hidden || !cur) return;
-  const held = readRoles(bedit.doc, bedit.state.editContext());
-  useasRow.querySelectorAll<HTMLElement>('[data-be-useas]').forEach(b => {
-    const role = b.dataset.beUseas as RoleId | undefined;
-    const pressed = !!role && held[role]?.ref === cur.key;
+  const targets = roleTargets(bedit.doc, bedit.state.editContext());
+  syncUseAsButtons(useasRow, targets);
+  useasRow.querySelectorAll<HTMLElement>('button[data-be-useas]').forEach(b => {
+    const target = targets.find(x => x.target === b.dataset.beUseas);
+    const pressed = !!target && target.ref === cur.key;
     b.setAttribute('aria-pressed', String(pressed));
     // A lead's own role (plans/319: primary and secondary on a design system with
     // colourways, and the surface when the colourways tint it) can be re-pointed
     // but never cleared, so its pressed button is not a toggle. It stays pressed,
     // because that is still true, and says why pressing it again changes
     // nothing; the strip makes the same promise by offering no empty choice.
-    if (role && pressed && held[role]?.lead) {
+    if (target && pressed && target.required) {
       b.setAttribute('aria-disabled', 'true');
-      b.title = leadRoleNote(role);
+      b.title = leadRoleNote(target.label);
     } else {
       b.removeAttribute('aria-disabled');
       b.removeAttribute('title');
@@ -56,9 +59,24 @@ export const renderUseAs = (bedit: BrandEditorCtx): void => {
   const hint = useasRow.querySelector<HTMLElement>('[data-be-useas-hint]');
   if (hint) { hint.hidden = true; hint.textContent = ''; }
 };
+/** One button per thing a colour can be: the system's own words when it has them. */
+const syncUseAsButtons = (row: HTMLElement, targets: ReturnType<typeof roleTargets>): void => {
+  const buttons = [...row.querySelectorAll<HTMLButtonElement>('button[data-be-useas]')];
+  if (buttons.length === targets.length && buttons.every((b, i) => b.dataset.beUseas === targets[i]!.target && b.textContent === targets[i]!.label)) return;
+  const next = targets.map((target) => {
+    const b = row.ownerDocument.createElement('button');
+    b.type = 'button'; b.className = 'be-btn be-btn--sm';
+    b.dataset.beUseas = target.target;
+    b.setAttribute('aria-pressed', 'false');
+    b.textContent = target.label;
+    return b;
+  });
+  for (const b of buttons) b.remove();
+  row.querySelector('[data-be-useas-hint]')?.before(...next);
+};
 /** Why a lead's own role cannot be cleared from the "Use as" row. */
-export const leadRoleNote = (role: RoleId): string =>
-  tRaw('Every colourway needs its own {role}. To change this one, use another colour as {role}.', { role: roleLabel(role) });
+export const leadRoleNote = (role: string): string =>
+  tRaw('Every colourway needs its own {role}. To change this one, use another colour as {role}.', { role });
 export const showFontErr = (bedit: BrandEditorCtx, m: string): void => {
   const { fontErr } = bedit; if (fontErr) { fontErr.textContent = m; fontErr.hidden = !m; } if (m) announce(m, { assertive: true }); };
 // One optional face-role chip: an active badge, or a button to assign the role.
@@ -75,19 +93,28 @@ export function wireRolesStrip(bedit: BrandEditorCtx): void {
   // Both role surfaces write through here and report what actually happened: a
   // refused write (a document the role can't land in) re-renders both, so the
   // control snaps back to the truth rather than persisting nothing and
-  // announcing success.
-  const assign = (role: RoleId, key: string): void => {
-    if (!assignRole(bedit.doc, role, key, bedit.state.editContext())) { bedit.rolesStrip?.render(); bedit.roleChips?.render(); return; }
+  // announcing success. A colour for one of the system's own roles goes to that role,
+  // the same way the Colour roles table writes.
+  const assign = (role: RoleId | string, key: string): void => {
+    const { lead, mode } = bedit.state.editContext();
+    const roleId = targetRole(role) ?? readColourRoles(bedit.doc).slots.find(s => s.slot === role && s.source !== 'system')?.roleId ?? null;
+    const declared = roleId && readColourRoles(bedit.doc).roles.some(r => r.id === roleId && r.declared);
+    if (roleId && declared) {
+      const edit = setRoleValue(bedit.doc, { roleId, colourway: lead, mode, value: `{${key}}` });
+      if (!edit.ok) { bedit.rolesStrip?.render(); bedit.roleChips?.render(); return; }
+      bedit.state.pushUndo(tRaw('Change {role}', { role: readColourRoles(bedit.doc).roles.find(r => r.id === roleId)?.label ?? roleId }));
+      bedit.doc = edit.doc;
+    } else if (!assignRole(bedit.doc, role as RoleId, key, bedit.state.editContext())) { bedit.rolesStrip?.render(); bedit.roleChips?.render(); return; }
     bedit.ramps.repaintPalette(); bedit.state.persist(true);
-    announce(tRaw('{role} is now {name}', { role: roleLabel(role), name: bedit.roles.nameOfKey(key) }));
+    const shown = roleTargets(bedit.doc, bedit.state.editContext()).find(x => x.target === role)?.label ?? roleLabel(role as RoleId, roleWords(bedit.doc));
+    announce(tRaw('{role} is now {name}', { role: shown, name: bedit.roles.nameOfKey(key) }));
   };
   const rolesStrip = rolesMount ? mountRolesStrip(rolesMount, {
     doc: () => bedit.doc as Record<string, unknown>,
     context: bedit.state.editContext,
-    // Four slots until there is a palette, then every slot a tool can read
-    // (plan 182 section 5.7 step 1). Seven rows in front of somebody who has
-    // just added their first colour is a form; four is a strip.
-    ids: () => (bedit.beat >= 2 ? ROLE_IDS_ALL : ROLE_IDS),
+    // Every slot a tool can read: the strip sits in its own fold under the Colour
+    // roles table, so nobody meets these seven rows without asking for them.
+    ids: () => ROLE_IDS_ALL,
     resolve,
     swatches: bedit.roles.roleSwatchOptions,
     assign,
@@ -95,10 +122,11 @@ export function wireRolesStrip(bedit: BrandEditorCtx): void {
       // A removal: clearing `primary` deletes the token the app's own accent
       // reads, and nothing on screen holds the swatch it pointed at. Snapshot
       // first, and drop it again if there turned out to be nothing to remove.
-      bedit.state.pushUndo(tRaw('Clear {role}', { role: roleLabel(role) }));
+      const words = roleWords(bedit.doc);
+      bedit.state.pushUndo(tRaw('Clear {role}', { role: roleLabel(role, words) }));
       if (!clearRole(bedit.doc, role, bedit.state.editContext())) { undoStack.pop(); rolesStrip?.render(); return; }
       bedit.ramps.repaintPalette(); bedit.state.persist(true);
-      announce(tRaw('{role} is not set', { role: roleLabel(role) }));
+      announce(tRaw('{role} is not set', { role: roleLabel(role, words) }));
     },
   }) : null; bedit.rolesStrip = rolesStrip;
   paletteHooks.push(() => rolesStrip?.render());
@@ -120,21 +148,28 @@ export function wireRolesStrip(bedit: BrandEditorCtx): void {
   // colour itself. A pressed button means "this swatch IS that role", so
   // pressing it again clears the role rather than re-writing it.
   const useasRow = editorEl?.querySelector<HTMLElement>('[data-be-useas]') ?? null; bedit.useasRow = useasRow;
+  // The bulk bar's "Assign roles" menu speaks the system's words too.
+  paletteHooks.push(() => {
+    const words = roleWords(bedit.doc);
+    for (const item of bedit.root.querySelectorAll<HTMLElement>('[data-be-bulk-role]')) item.textContent = roleLabel(item.dataset.beBulkRole as RoleId, words);
+  });
 }
 
 export async function wireUseAs(bedit: BrandEditorCtx): Promise<void> {
   const { host, undoStack, useasRow } = bedit;
   useasRow?.addEventListener('click', (e) => {
-    const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-be-useas]');
-    const role = btn?.dataset.beUseas as RoleId | undefined;
+    const btn = (e.target as HTMLElement).closest<HTMLElement>('button[data-be-useas]');
+    const role = btn?.dataset.beUseas;
     if (!role || bedit.selected < 0) return;
     const cur = bedit.swatches[bedit.selected]; if (!cur || cur.kind === 'semantic') return;
     const key = cur.key;
     const wasSet = btn!.getAttribute('aria-pressed') === 'true';
+    const target = roleTargets(bedit.doc, bedit.state.editContext()).find(x => x.target === role);
+    const label = target?.label ?? role;
     // Un-pressing a lead's own role would remove nothing (clearRole refuses), so
     // say why in the row and to a screen reader instead of doing nothing silently.
-    if (wasSet && readRoles(bedit.doc, bedit.state.editContext())[role]?.lead) {
-      const note = leadRoleNote(role);
+    if (wasSet && target?.required) {
+      const note = leadRoleNote(label);
       const hint = useasRow?.querySelector<HTMLElement>('[data-be-useas-hint]');
       if (hint) { hint.textContent = note; hint.hidden = false; }
       announce(note);
@@ -143,8 +178,16 @@ export async function wireUseAs(bedit: BrandEditorCtx): Promise<void> {
     // Un-pressing REMOVES the role (the strip's Clear by another door), so it
     // takes the same snapshot; assigning is not destructive and does not. The
     // snapshot is dropped again if the write turned out to change nothing.
-    if (wasSet) bedit.state.pushUndo(tRaw('Clear {role}', { role: roleLabel(role) }));
-    const wrote = wasSet ? clearRole(bedit.doc, role, bedit.state.editContext()) : assignRole(bedit.doc, role, key, bedit.state.editContext());
+    if (wasSet) bedit.state.pushUndo(tRaw('Clear {role}', { role: label }));
+    const roleId = targetRole(role);
+    let wrote: boolean;
+    if (wasSet) wrote = clearRole(bedit.doc, role as RoleId, bedit.state.editContext());
+    else if (roleId) {
+      const { lead, mode } = bedit.state.editContext();
+      const edit = setRoleValue(bedit.doc, { roleId, colourway: lead, mode, value: `{${key}}` });
+      wrote = edit.ok && edit.changed;
+      if (edit.ok && edit.changed) { bedit.state.pushUndo(tRaw('Change {role}', { role: label })); bedit.doc = edit.doc; }
+    } else wrote = assignRole(bedit.doc, role as RoleId, key, bedit.state.editContext());
     if (!wrote) {
       if (wasSet) undoStack.pop();
       bedit.roles.renderUseAs(); // the button's pressed state describes the doc, not the tap
@@ -157,8 +200,8 @@ export async function wireUseAs(bedit: BrandEditorCtx): Promise<void> {
     if (idx >= 0) { bedit.selected = idx; bedit.replace.refreshTile(idx); }
     bedit.roles.renderUseAs();
     announce(wasSet
-      ? tRaw('{role} is not set', { role: roleLabel(role) })
-      : tRaw('{role} is now {name}', { role: roleLabel(role), name: cur.name }));
+      ? tRaw('{role} is not set', { role: label })
+      : tRaw('{role} is now {name}', { role: label, name: cur.name }));
   });
 
   // Which of these colours came with the blank brand rather than from a person

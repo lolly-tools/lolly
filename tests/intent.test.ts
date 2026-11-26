@@ -17,6 +17,7 @@ import {
   INTENT_PURPOSE_MEANINGS,
   INTENT_ROLES,
   INTENT_SURFACES,
+  INTENT_VOCABULARY_VERSION,
   TOOL_INTENTS_FILE,
   type IntentToolFactsV1,
 } from '../packages/core/src/intent-v1.ts';
@@ -423,6 +424,32 @@ test('content is bound by role, refused by type and never coerced', async () => 
   assert.equal((await resolveIntent(ask({ content: { data: ['x'] } }), [blocks])).surfaces[0]!.chosen!.unused[0]!.code, 'value-refused');
   const notFilled = tool({ id: 'c', inputs: [{ id: 'heading', type: 'select', options: ['a'] }] });
   assert.equal((await resolveIntent(ask({ content: { heading: 'a' } }), [notFilled])).surfaces[0]!.chosen!.unused[0]!.code, 'no-input', 'a role cannot fill a type it does not accept');
+});
+
+test('a partner\'s mark fills only the asset input a tool maps to partnerMark (vocabulary 2)', async () => {
+  assert.equal(INTENT_VOCABULARY_VERSION, 2);
+  const lockup = tool({
+    id: 'lockup',
+    inputs: [{ id: 'heading', type: 'text' }, { id: 'partnerLogo', type: 'asset' }, { id: 'eventLogo', type: 'asset' }],
+    intents: [{ purpose: 'promote', roles: { partnerMark: 'partnerLogo' }, needs: ['partnerMark'] }],
+  });
+  assert.equal(validSidecar({ version: 1, intents: [{ purpose: 'promote', roles: { partnerMark: 'partnerLogo' }, needs: ['partnerMark'] }] }), true, JSON.stringify(validSidecar.errors));
+  const request = ask({ content: { heading: 'SLES 16: what changes for resellers', partnerMark: 'inst/northwind-logo' } });
+  assert.equal(validRequest(request), true, JSON.stringify(validRequest.errors));
+  const answer = await resolveIntent(request, [lockup]);
+  assert.equal(validAnswer(answer), true, JSON.stringify(validAnswer.errors));
+  assert.equal(answer.closed.vocabularyVersion, 2);
+  const chosen = answer.surfaces[0]!.chosen!;
+  assert.deepEqual(chosen.inputs, { heading: 'SLES 16: what changes for resellers', partnerLogo: 'inst/northwind-logo' }, 'the event logo slot never takes the partner\'s mark');
+  assert.deepEqual(chosen.gaps, []);
+  // A needed mark that nobody gave is a gap, never a guess.
+  const missing = await resolveIntent(ask({ content: { heading: 'x' } }), [lockup]);
+  assert.deepEqual(missing.surfaces[0]!.chosen!.gaps.map((g) => g.role), ['partnerMark']);
+  // A tool that maps no partnerMark leaves it unused, whatever asset inputs it has.
+  const plain = tool({ id: 'plain', inputs: [{ id: 'heading', type: 'text' }, { id: 'logo', type: 'asset' }] });
+  const unused = (await resolveIntent(ask({ content: { heading: 'x', partnerMark: 'inst/northwind-logo' } }), [plain])).surfaces[0]!.chosen!;
+  assert.deepEqual(unused.unused.map((u) => [u.role, u.code]), [['partnerMark', 'no-input']]);
+  assert.equal(Object.hasOwn(unused.inputs, 'logo'), false);
 });
 
 test('surfaces: a stated size answers for itself, in the tool\'s own terms, and physical sizes convert', async () => {

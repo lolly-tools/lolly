@@ -300,6 +300,27 @@ test('a zx link with the WRONG password fails; it never renders defaults', async
   assert.equal(existsSync(out), false);
 });
 
+test('a password on a format that cannot carry one fails with exit 4, writes nothing and never repeats it', async () => {
+  const out = join(root, 'never-locked.svg');
+  await assert.rejects(
+    () => run({ toolId: 'vec-tool', params: { password: 'Zq7-right-password' }, outputPath: out, format: 'svg' }),
+    (error: Error & { exit?: number; kind?: string }) => error.exit === 4 && error.kind === 'PASSWORD_UNAVAILABLE'
+      && /"svg" file cannot carry a password, so nothing was written/.test(error.message) && !error.message.includes('Zq7-right-password'),
+  );
+  assert.equal(existsSync(out), false);
+});
+
+test('a utility that does not lock its file fails with exit 4 and writes nothing', async () => {
+  const input = join(root, 'to-transform.txt');
+  await writeFile(input, 'plain bytes');
+  const out = join(root, 'never-locked.bin');
+  await assert.rejects(
+    () => run({ toolId: 'xform-tool', params: { source: input, password: 'Zq7-right-password' }, outputPath: out }),
+    (error: Error & { exit?: number; kind?: string }) => error.exit === 4 && error.kind === 'PASSWORD_NOT_APPLIED' && !error.message.includes('Zq7-right-password'),
+  );
+  assert.equal(existsSync(out), false);
+});
+
 test('--password stands in for --link-password when the link is encrypted', async () => {
   const out = outPath('svg');
   await run({ toolId: 'vec-tool', params: { zx: ZX, password: 'hunter2' }, outputPath: out, format: 'svg' });

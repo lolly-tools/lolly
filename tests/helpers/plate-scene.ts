@@ -40,12 +40,18 @@ export interface ScenePass {
   /** Extra Ghostscript arguments for this pass, such as `-dMaxSpots=0` to flatten spots to their alternate. */
   rip?: string[];
   tol?: number;
+  /** The exact set of plates the separation writes: `C`, `M`, `Y`, `K` and each spot plate's name, in any order. */
+  plates?: string[];
+  /** Plates that must carry ink somewhere on the page (a darkest pixel above half a percent). */
+  inked?: string[];
   regions: SceneRegion[];
 }
 
 export interface SceneStructure {
   noDeviceRgbOps?: boolean;
   separations?: string[];
+  /** The PDF holds no /Separation colour space at all: every colour is process. */
+  noSeparations?: boolean;
   overprintStates?: string[];
   pageSizePt?: [number, number];
 }
@@ -57,6 +63,11 @@ export interface Scene {
   /** The content profile that supplies the brand palette (LOLLY_PROFILE). */
   profile: string;
   pressProfile?: string;
+  /**
+   * Extra `lolly run design` flags for the render, such as `--spots=process` or `--file=<tokens.json>` (a path from
+   * the repository root). The flags the runner sets itself cannot be given here.
+   */
+  args?: string[];
   page: { width: number; height: number };
   boxes: Array<Record<string, unknown>>;
   structure?: SceneStructure;
@@ -77,6 +88,9 @@ export function loadScenes(dir: string): Scene[] {
 }
 
 const HEX = /^#[0-9a-f]{6}$/i;
+const FLAG = /^--[a-z_][a-z0-9_-]*(=.*)?$/i;
+/** Flags scripts/plate-oracle.test.ts sets on every render; a scene's own args may not override them. */
+const RUNNER_FLAGS = new Set(['boxes-data', 'width', 'height', 'export', 'format', 'output', 'no-provenance', 'press-profile', 'profile']);
 
 /** What is wrong with a scene's shape, as readable sentences. An empty list is a valid scene. */
 export function sceneProblems(scene: Scene, file = scene?.id ?? 'scene'): string[] {
@@ -91,11 +105,20 @@ export function sceneProblems(scene: Scene, file = scene?.id ?? 'scene'): string
   need(Array.isArray(scene.boxes) && scene.boxes.length > 0, 'boxes must be a Design row list');
   need(Array.isArray(scene.passes) && scene.passes.length > 0, 'at least one pass is required');
   if (scene.knownFailing) need(scene.knownFailing.reason?.length > 20, 'knownFailing needs a reason that says why');
+  if (scene.args !== undefined) {
+    need(Array.isArray(scene.args) && scene.args.every(a => typeof a === 'string' && FLAG.test(a)), 'args must be a list of --flag or --flag=value strings');
+    const taken = (scene.args ?? []).map(a => String(a).replace(/^--/, '').split('=')[0]!).filter(f => RUNNER_FLAGS.has(f));
+    need(taken.length === 0, `args cannot set the runner's own flags: ${taken.join(', ')}`);
+  }
   const names = new Set<string>();
   for (const pass of scene.passes ?? []) {
     need(pass.name && !names.has(pass.name), `pass name "${pass.name}" is missing or repeated`);
     names.add(pass.name);
     need(pass.regions?.length > 0, `pass "${pass.name}" has no regions`);
+    for (const key of ['plates', 'inked'] as const) {
+      const list = pass[key];
+      if (list !== undefined) need(Array.isArray(list) && list.length > 0 && list.every(n => typeof n === 'string' && n), `pass "${pass.name}": ${key} must be a list of plate names`);
+    }
     for (const region of pass.regions ?? []) {
       const where = `${pass.name}/${region.name}`;
       const [x, y, w, h] = region.rect ?? [-1, -1, 0, 0];
@@ -199,6 +222,41 @@ export function maxTotalInk(plates: Record<string, PlateImage | null>, rect: [nu
 /** The file Ghostscript's tiffsep writes for a plate: `<base>(Cyan).tif` for process inks, `<base>(<spot name>).tif` for a spot. */
 export const plateFile = (base: string, plate: Plate): string => `${base}(${GS_PLATE_NAME[plate] ?? plate}).tif`;
 
+/**
+ * The plates a tiffsep run wrote for page `stem` (such as `p1`), read off the file names in its output directory:
+ * process plates as `C`, `M`, `Y` and `K`, a spot plate by its own name. The composite `<stem>.tif` is not a plate.
+ */
+export function platesWritten(files: readonly string[], stem: string): string[] {
+  const byGs = new Map(Object.entries(GS_PLATE_NAME).map(([short, long]) => [long, short]));
+  const out: string[] = [];
+  for (const f of files) {
+    if (!f.startsWith(`${stem}(`) || !f.endsWith(').tif')) continue;
+    const name = f.slice(stem.length + 1, -').tif'.length);
+    out.push(byGs.get(name) ?? name);
+  }
+  return out.sort();
+}
+
+/** Failures of the plates a separation wrote against a pass's `plates` (the exact set) and `inked` lists. */
+export function plateSetFailures(written: readonly string[], pass: Pick<ScenePass, 'plates' | 'inked'>, maxInk: (plate: string) => number): string[] {
+  const out: string[] = [];
+  if (pass.plates) {
+    const want = [...pass.plates].sort();
+    const missing = want.filter(p => !written.includes(p));
+    const extra = written.filter(p => !want.includes(p));
+    if (missing.length || extra.length) {
+      out.push(`plates written: ${written.join(', ') || 'none'}; expected exactly ${want.join(', ')}`
+        + (missing.length ? ` (missing ${missing.join(', ')})` : '') + (extra.length ? ` (unexpected ${extra.join(', ')})` : ''));
+    }
+  }
+  for (const p of pass.inked ?? []) {
+    if (!written.includes(p)) { out.push(`plate ${p} carries no ink: the separation did not write it`); continue; }
+    const peak = maxInk(p);
+    if (!(peak > 0.5)) out.push(`plate ${p} carries no ink anywhere on the page (darkest pixel ${Math.round(peak * 10) / 10}%)`);
+  }
+  return out;
+}
+
 
 export type Separate = (r: number, g: number, b: number) => [number, number, number, number];
 
@@ -293,6 +351,7 @@ export function structureFailures(facts: PdfFacts, want: SceneStructure): string
     if (Math.abs(facts.pageSizePt[0] - w) > 0.5 || Math.abs(facts.pageSizePt[1] - h) > 0.5) out.push(`page is ${facts.pageSizePt.join(' x ')} pt, expected ${w} x ${h}`);
   }
   for (const name of want.separations ?? []) if (!facts.separations.includes(name)) out.push(`no /Separation colour space named ${name} (found: ${facts.separations.join(', ') || 'none'})`);
+  if (want.noSeparations && facts.separations.length) out.push(`the PDF still names spot colour spaces: ${facts.separations.join(', ')}`);
   for (const name of want.overprintStates ?? []) {
     const s = facts.overprint[name];
     if (!s?.used) out.push(`no content stream selects the overprint state /${name}`);

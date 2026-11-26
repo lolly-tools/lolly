@@ -137,7 +137,7 @@
   padding: .2rem .55rem;
   border-radius: var(--radius);
   background: var(--ui-color-selection-surface);
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
   font-size: calc(.68rem * var(--a11y-fs));
   font-weight: 700;
   text-transform: uppercase;

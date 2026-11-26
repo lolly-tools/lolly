@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "link-card",
-  "toolVersion": "1.0.4",
-  "toolVersionRange": "1.0.4",
+  "toolVersion": "1.1.0",
+  "toolVersionRange": "1.1.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,12 +11,12 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "b0b28459f8bab2cd198ad65089f295d4a63b72c861d8cbfa4b682e4aaedca7d5",
-      "bytes": 1896
+      "sha256": "4ba7fea5d01de02181e7ab5060e22c7e33a498fb2831a17035b33bb912d593f1",
+      "bytes": 2020
     },
     "reference/inputs.json": {
-      "sha256": "d99e8f6fda0f0bc33ad678d5fa1ab215b17634234913fadc637e36b6f706dd7f",
-      "bytes": 3440
+      "sha256": "83bbcebc11c122cf4a29ae865e0953713058c8cbeb0d6198cb83ad5c7fe7cb39",
+      "bytes": 5362
     },
     "reference/examples.json": {
       "sha256": "b748aa92e5efc59de3d04735f2021fddd0c5ad2409c84dbaf9785aa12e6c2b02",

@@ -2,26 +2,30 @@
 
 _Dernière vérification : 28 septembre 2026._
 
-Si ton équipe crée aujourd'hui des publications sociales, des diapositives et des flyers dans Canva, cette page dit où Lolly fait la même tâche et où Canva reste mieux adapté.
+Si ton équipe crée des publications pour les réseaux sociaux, des diapositives et des flyers dans Canva, cette page indique où Lolly remplit la même fonction et où Canva convient mieux.
 
+<!--i:eti-award-->
 ## Ce que Canva fait mieux
 
-Canva combine une grande bibliothèque de modèles et d'images, des applications et des flux d'équipe hébergés dans un seul service géré. Ce contenu et cette expérience prêts à l'emploi aident quand tu as besoin d'un point de départ aujourd'hui. Voir les [modèles de Canva](https://www.canva.com/templates/) et la [place de marché d'applications](https://www.canva.com/apps/). Son édition en direct a aussi un long historique d'exploitation à une échelle que les collabs de travail de Lolly n'ont pas atteinte.
+Canva combine une vaste bibliothèque de modèles et de contenus, des applications et des flux de travail d'équipe hébergés dans un seul service géré. Les contenus prêts à l'emploi aident quand tu as besoin d'un point de départ aujourd'hui. Voir [les modèles de Canva](https://www.canva.com/templates/) et sa [place de marché d'applications](https://www.canva.com/apps/). L'édition en direct de Canva a un long historique d'exploitation à une échelle que les collaborations de travail de Lolly n'ont pas atteinte.
 
-## Où ils se recoupent
+<!--i:eti-blend-->
+## Leurs fonctions communes
 
-Les deux permettent de partir d'un modèle et de produire un graphisme terminé sans être designer. Les deux prennent en charge le travail d'équipe et les contrôles de marque : [Canva les regroupe dans ses offres business](https://www.canva.com/canva-business/), tandis que Lolly sépare l'application créative et le serveur d'organisation.
+Les deux permettent à une personne qui n'est pas designer de partir d'un modèle et de produire un visuel fini. Les deux prennent en charge le travail en équipe et les contrôles de marque. [Canva les regroupe dans ses offres pour entreprises](https://www.canva.com/canva-business/). Lolly sépare l'application de création du serveur de l'organisation.
 
-## Comment Lolly fait la tâche commune
+<!--i:eti-lolly-->
+## Comment Lolly remplit les fonctions communes
 
-Un outil Lolly encode les changements que les gens peuvent faire, et le même outil s'exécute dans le navigateur, l'application de bureau ou la CLI. Une mise en page créée sur le canevas Design peut devenir un [outil avec des règles](/info/create-a-tool.html), et un outil peut produire beaucoup de fichiers à partir d'un tableau de valeurs.
+Un outil Lolly fixe les modifications que les personnes peuvent faire. Le même outil tourne dans le navigateur, l'application de bureau ou la CLI. Une mise en page créée sur le canevas Lolly Design peut devenir un [outil avec des règles](/info/create-a-tool.html). Un seul outil peut créer de nombreux fichiers à partir d'un tableau de valeurs.
 
-![Le canevas libre de Design, où les couleurs, polices et ressources proposées sont celles du design system](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Le canevas libre de Lolly Design, où les couleurs, les polices et les ressources proposées sont celles du design system](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
-Lolly autonome continue de créer et d'exporter sur l'appareil, sans compte, et fonctionne hors ligne une fois ses ressources enregistrées. Deux personnes peuvent modifier en direct dans une [collab privée](/info/collaborate.html), d'appareil à appareil. Les Content Credentials sont activés par défaut pour les exports pris en charge, et tu peux les désactiver.
+Lolly en utilisation autonome crée et exporte sur l'appareil, sans compte. Il fonctionne hors ligne une fois ses ressources enregistrées. Deux personnes peuvent modifier en direct dans une [collaboration privée](/info/collaborate.html), d'appareil à appareil. Content Credentials est activé par défaut pour les exports pris en charge, et tu peux le désactiver.
 
+<!--i:eti-building-->
 ## Avec une organisation
 
-Lolly Work, exploité sur le serveur propre de ton organisation, ajoute la connexion, les projets partagés, les collabs de travail en direct, les ressources approuvées et les politiques. [What runs where](/info/compare.html#what-runs-where) met les deux parties côte à côte, avec les limites que partage chaque comparaison.
+Lolly Work, exécuté sur le propre serveur de ton organisation, ajoute la connexion, les projets partagés, les collaborations de travail en direct, les ressources approuvées et les politiques. [Ce qui tourne où](/info/compare.html#what-runs-where) présente les deux parties côte à côte, avec les limites communes à toutes les comparaisons.
 
-Canva est une marque de son propriétaire. Cette page décrit où les deux produits se recoupent et n'est pas affiliée à Canva.
+Canva est une marque de son propriétaire. Cette page décrit les fonctions communes des deux produits et n'est pas affiliée à Canva.

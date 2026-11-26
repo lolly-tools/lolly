@@ -1,0 +1,30 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+.view-as-banner {
+  position: fixed;
+  top: 0;
+  inset-inline: 0;
+  z-index: 100000;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 8px max(12px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--ui-color-border-default);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--shadow-1);
+  font-size: var(--fs-sm);
+}
+
+.view-as-banner-copy { flex: 1 1 220px; min-width: 0; overflow-wrap: anywhere; }
+.view-as-banner-title { font-weight: 600; }
+.view-as-banner-programme, .view-as-banner-note { color: var(--ui-color-text-muted); font-weight: 400; }
+.view-as-banner .btn { flex: 0 1 auto; min-height: 44px; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+html[data-viewing-as] body { padding-top: var(--view-as-h); }
+
+.view-as-sheet { box-sizing: border-box; max-width: min(440px, calc(100vw - 24px)); }
+.view-as-field { display: grid; gap: 4px; margin-block: 12px; }
+.view-as-field .field-select { width: 100%; min-width: 0; }
+.view-as-error { color: hsl(var(--destructive-text)); overflow-wrap: anywhere; }

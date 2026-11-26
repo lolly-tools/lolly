@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { mountTokenWorkspace, type TokenWorkspaceOptions } from './token-workspace.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
@@ -322,5 +323,73 @@ test('embedded in a fold that names it: no heading, chip or intro; one line per 
     assert.ok(row.querySelector('.tw-row-meta'));
     assert.ok(row.querySelector('.tw-value code'));
     assert.equal(s.find('[data-tw-detail]').classList.contains('is-empty'), true, 'nothing chosen reads as a prompt, not an empty card');
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+});
+
+// ── Colour roles (plans/352) ─────────────────────────────────────────────────
+
+const roleDoc = (path: string): Record<string, unknown> => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8')) as Record<string, unknown>;
+const DEMO_DOC = '../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json';
+const NO_ROLES_DOC = '../../../../tests/fixtures/colour-roles/lolly-demo-no-roles.json';
+
+/** Every path the list offers, page by page. */
+function allListed(s: ReturnType<typeof setup>): string[] {
+  const paths: string[] = [];
+  for (let i = 0; i < 20; i += 1) {
+    paths.push(...[...s.root.querySelectorAll<HTMLElement>('[data-tw-token]')].map(b => b.dataset.twToken!));
+    const next = s.find<HTMLButtonElement>('[data-tw-next]');
+    if (next.disabled) break;
+    next.click();
+  }
+  return paths;
+}
+
+test('a colour role\'s values in each colourway stay with the role, and the role says so in its own word', () => {
+  const s = setup(undefined, { embedded: true });
+  try {
+    s.write(roleDoc(DEMO_DOC));
+    s.workspace.refresh();
+    const paths = allListed(s);
+    assert.deepEqual(paths.filter(p => p.startsWith('color.colourway.')), [], 'no colourway value is listed as a token of its own');
+    assert.equal(new Set(paths).size, paths.length);
+    assert.match(s.find('[data-tw-count]').textContent!, /^97 tokens · 14 colourway values are listed with their colour roles$/);
+    const search = s.find<HTMLInputElement>('[data-tw-search]'); search.value = 'surface'; search.dispatchEvent(new Event('input'));
+    assert.deepEqual([...s.root.querySelectorAll<HTMLElement>('[data-tw-token]')].map(b => b.dataset.twToken), ['color.semantic.surface', 'color.semantic.on-surface', 'color.role.alt-surface']);
+    assert.match(s.root.querySelector('[data-tw-token="color.semantic.surface"] .tw-row-meta')!.textContent!, /Colour role: Paper/);
+    s.workspace.select('color.semantic.surface');
+    const detail = s.find('[data-tw-detail]');
+    assert.match(detail.textContent!, /Paper is one of this design system’s colour roles\./);
+    const rows = [...detail.querySelectorAll('.tw-role-values tbody tr')].map(r => r.querySelector('th')!.textContent);
+    assert.deepEqual(rows, ['Spearmint', 'Morning', 'Spring', 'Beach', 'Afternoon', 'Midnight'], 'one row per colourway, in the design system\'s order');
+    assert.deepEqual([...detail.querySelectorAll('.tw-role-values thead th')].map(h => h.textContent), ['Colourway', 'Light', 'Dark']);
+    assert.match(detail.textContent!, /Change these colours in the Colour roles table/);
+    // A reference still reaches a value, and the value says which role holds the colour.
+    s.workspace.select('color.colourway.light.surface');
+    assert.match(s.find('[data-tw-detail]').textContent!, /This is one of Paper’s colours/);
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+});
+
+test('read-only, the role\'s values show without a way to change them', () => {
+  const s = setup(undefined, { commit: undefined });
+  try {
+    s.write(roleDoc(DEMO_DOC));
+    s.workspace.refresh();
+    s.workspace.select('color.semantic.primary');
+    const detail = s.find('[data-tw-detail]');
+    assert.ok(detail.querySelector('.tw-role-values'));
+    assert.doesNotMatch(detail.textContent!, /Change these colours/);
+  } finally { s.workspace.teardown(); s.dom.window.close(); }
+});
+
+test('a system with no colour roles lists every colourway value as before', () => {
+  const s = setup(undefined, { embedded: true });
+  try {
+    const doc = roleDoc(NO_ROLES_DOC);
+    s.write(doc);
+    s.workspace.refresh();
+    const paths = allListed(s);
+    assert.ok(paths.some(p => p.startsWith('color.colourway.')));
+    assert.doesNotMatch(s.find('[data-tw-count]').textContent!, /colour role/);
+    assert.equal(s.root.querySelector('.tw-row-meta')!.textContent!.includes('Colour role'), false);
   } finally { s.workspace.teardown(); s.dom.window.close(); }
 });

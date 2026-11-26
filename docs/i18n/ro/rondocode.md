@@ -1,48 +1,53 @@
-# Melodii Rondocode
+# Melodii Lolly Rondocode
 
-O melodie rondocode este muzică scrisă ca cod: sintetizatoare, tipare și un mix, redate pe măsură ce tastezi. Lolly poate reda o melodie sub un video, iar utilitarul **Rondocode** te lasă să scrii una și s-o exporți ca audio. Ambele înregistrează melodia în Content Credentials ale fișierului, deci muzica spune de unde vine.
+<a id="rondocode-songs"></a>
 
+O melodie rondocode este muzică scrisă sub formă de cod: sintetizatoare, tipare și un mix, redate în timp ce tastezi. Lolly poate reda o melodie pe fundalul unui video, iar utilitarul **Rondocode** scrie melodii și le exportă ca audio; ambele înregistrează melodia în Content Credentials ale fișierului.
+
+<!--i:eti-music-->
 ## Redă o melodie în Lolly
 
-Selectorul de resurse primește o melodie ca fișier `.rondo` sau `.rondo.json` ori ca link de partajare `rondocode.com` lipit. O melodie este cod care își face propriul sunet, deci rulează cât lungime cere clipul ei. Poate fi **music bed** sub un export video sau poate rula în playerul ambiental din Neurospicy Mode.
+Selectorul de resurse acceptă o melodie ca fișier `.rondo` sau `.rondo.json` ori ca link de partajare `rondocode.com` lipit. O melodie se redă pe orice durată cerută de clipul ei. Poate fi **fundalul muzical** al unui export video sau poate fi redată în playerul ambiental al modului Neurospicy.
 
-Codul melodiei rulează în sandbox-ul Lolly, fără rețea și fără acces la fișierele tale. Orice parte pe care o randare nu o poate reda, precum un microfon live sau cântatul fără modelele de voce, este listată în detaliile resursei.
+Codul melodiei rulează în mediul izolat Lolly, fără rețea și fără acces la fișierele tale. Orice parte pe care o randare nu o poate reda, precum un microfon live sau cântatul fără modelele de voce, este listată în detaliile resursei.
 
-Din terminal, `lolly mix` ia o melodie ca întreaga coloană sonoră; vezi [Randare CLI](/info/cli-rendering.html).
+Din terminal, `lolly mix` acceptă o melodie ca întreagă coloană sonoră; vezi [Randare CLI](/info/cli-rendering.html).
 
+<!--i:eti-code-->
 ## Scrie și exportă o melodie
 
-Deschide **Rondocode** din **Utilities** ca să scrii o melodie în editorul live rondocode și s-o auzi pe măsură ce tastezi. Exportă-o ca **WAV**, **MP3**, **M4A**, **Opus** sau **FLAC**, ca ZIP de stems, ca **MIDI** sau ca înregistrare a ceea ce se redă. Din terminal, `lolly rondocode --export=mid` scrie același fișier MIDI. **Export length** setează câte secunde durează un export audio. Fișierul melodiei în sine (`.rondo.json`) este codul tău așa cum a fost scris și nu poartă nimic adăugat.
+Deschide instrumentul **Rondocode** din **Utilities** ca să scrii o melodie în editorul live rondocode și să o auzi în timp ce tastezi. Export-o ca **WAV**, **MP3**, **M4A**, **Opus** sau **FLAC**, ca ZIP cu piste separate, ca **MIDI** sau ca înregistrare a ceea ce se redă. Din terminal, `lolly rondocode --export=mid` scrie același fișier MIDI. **Export length** setează câte secunde durează un export audio. Fișierul melodiei (`.rondo.json`) este codul tău așa cum l-ai scris, fără nimic adăugat.
 
-O melodie poate cânta versurile cu `sing()`. Cântatul este făcut pe dispozitivul tău de modele de voce descărcate, iar un fișier care conține cântat sintetizat declară mereu cântatul ca generat de AI (vezi [Funcții AI](/info/ai-features.html)).
+O melodie își poate cânta versurile cu `sing()`. Modelele de voce descărcate produc cântatul pe dispozitivul tău. Un fișier care conține cântat sintetizat îl declară întotdeauna ca generat de AI (vezi [Funcții AI](/info/ai-features.html)).
 
-## Melodii în credențială
+<!--i:eti-badge-check-->
+## Melodii în certificat
 
 Un export video sau audio care redă o melodie rondocode înregistrează fiecare melodie în Content Credentials ca sursă:
 
 - numele melodiei;
-- SHA-256 al fișierului ei `.rondo.json`;
-- cum a fost randată: în sandbox-ul Lolly, clasa de execuție `vm`, cu versiunea și seed-ul randerului și orice parte pe care randarea nu a putut-o reda.
+- SHA-256 al fișierului său `.rondo.json`;
+- cum a fost randată: în mediul izolat Lolly, clasa de execuție `vm`, cu versiunea motorului de randare și valoarea inițială, precum și orice parte pe care randarea nu a putut-o reda.
 
-Muzica calculată din codul unei melodii este marcată ca media algoritmică, deci Verify nu o semnalează ca AI. Înainte să exporți, o linie sub **Download** listează melodiile pe care credențiala le va înregistra; după export, aceeași linie raportează ce a găsit o citire a fișierului livrat. Debifează **C2PA Credentials** ca să omiți înregistrarea. O imagine statică nu înregistrează nicio melodie, pentru că nu are sunet. `lolly mix` și [serverul MCP](/info/mcp.html) scriu aceeași înregistrare.
+Muzica calculată din codul unei melodii este marcată ca media algoritmică, deci Lolly Verify nu o semnalează ca AI. Înainte să exporți, o linie sub **Download** listează melodiile pe care le va înregistra certificatul. După export, aceeași linie raportează ce a găsit o citire a fișierului livrat. Debifează **C2PA Credentials** pentru a omite înregistrarea. O imagine statică nu înregistrează nicio melodie, deoarece nu are sunet. O imagine statică nu înregistrează nicio melodie. `lolly mix` și [serverul MCP](/info/mcp.html) scriu aceeași înregistrare.
 
-## Fișiere de la utilitarul Rondocode
+<!--i:eti-file-->
+## Fișiere din utilitarul Rondocode
 
-Cele mai multe utilitare pe dispozitiv nu scriu credențială, pentru că transformă un fișier pe care îl deții deja. Rondocode face audio nou, deci fiecare fișier audio pe care îl scrie poartă Content Credentials care înregistrează melodia ca sursă: numele ei, SHA-256 al fișierului `.rondo.json` și unde a rulat codul. Asta acoperă WAV, MP3, M4A, Opus, FLAC, fiecare stem dintr-un ZIP de stems și o înregistrare a ceea ce se redă.
+Majoritatea utilitarelor de pe dispozitiv nu scriu certificat, deoarece transformă un fișier pe care îl deții deja. Lolly Rondocode creează conținut audio nou, deci fiecare fișier audio pe care îl scrie conține Content Credentials care înregistrează melodia ca sursă: WAV, MP3, M4A, Opus, FLAC, fiecare pistă separată dintr-un ZIP cu piste separate și o înregistrare a ceea ce se redă.
 
-- Randările editorului însuși rulează în cadrul lui privat (clasa de execuție `frame`) și înregistrează versiunea editorului.
-- O randare făcută de CLI sau de un link de partajare rulează în clasa `vm` și înregistrează versiunea și seed-ul randerului.
-- Un WAV afirmă același lucru și în comentariul lui RIFF.
-- Muzica calculată din codul melodiei este media algoritmică și nu este marcată ca AI.
+- Randările proprii ale editorului rulează în cadrul său privat (clasa de execuție `frame`) și înregistrează versiunea editorului.
+- O randare realizată de CLI sau de un link de partajare rulează în clasa `vm` și înregistrează versiunea motorului de randare și valoarea inițială.
+- Un WAV declară același lucru și în comentariul său RIFF.
 
-Când o melodie cântă, fișierul declară cântatul ca generat de AI într-o formă citibilă de mașină. Tipul sursei digitale al credențialei este media compusă făcută cu modele antrenate, înregistrarea listează părțile cântate, iar o declarație C2PA AI pe model identifică fiecare model prin care a trecut cântatul: text-to-speech Supertonic-3, aliniatorul de foneme wav2vec 2.0, codificatorul ContentVec și vocea RVC, cu depozitul și commit-ul de unde îl găzduiește Lolly. Un fișier care conține cântat sintetizat nu este niciodată salvat fără acea declarație.
+Când o melodie cântă, declarația AI poate fi citită automat. Tipul de sursă digitală al certificatului este media compozită realizată cu modele antrenate, înregistrarea listează părțile cântate, iar câte o declarație AI C2PA pentru fiecare model identifică fiecare model prin care a trecut cântatul: Supertonic-3 pentru conversia textului în vorbire, aliniatorul de foneme wav2vec 2.0, codificatorul ContentVec și vocea RVC, cu depozitul și commitul din care Lolly îl găzduiește.
 
 ### Ce conține fișierul MIDI
 
-Fișierul MIDI este un Standard MIDI File, format 1. Prima pistă conține tempoul și măsura de 4/4, iar după ea urmează câte o pistă pentru fiecare sintetizator, numită după sintetizator. Fiecare notă își păstrează începutul, durata și velocity. Un sintetizator al cărui nume se citește ca un instrument, precum un bas, corzi, un pad sau un pian, primește instrumentul General MIDI potrivit, iar un nume asemănător unei baterii merge pe canalul 10. O acordare care nu este în douăsprezece tonuri este rotunjită la cel mai apropiat semiton cu un pitch bend.
+Fișierul MIDI este un Standard MIDI File, format 1. Prima pistă conține tempoul și o măsură de 4/4, urmată de câte o pistă pentru fiecare sintetizator, cu numele sintetizatorului. Fiecare notă își păstrează începutul, durata și intensitatea. Un sintetizator al cărui nume indică un instrument, precum un bas, coarde, un pad sau un pian, primește instrumentul General MIDI corespunzător, iar un nume de percuție este pus pe canalul 10. Un acordaj care nu are douăsprezece tonuri este rotunjit la cel mai apropiat semiton cu o ajustare pitch bend.
 
-Un fișier MIDI nu poate păstra cum sună o melodie. Setările sintetizatorului, filtrele, efectele, magistralele, sample-urile și cântatul nu sunt în el, așa că un DAW cântă notele cu propriile instrumente. Tempoul este citit din ciclurile pe secundă ale melodiei, un ciclu fiind o măsură de patru timpi, pentru că măsura proprie a melodiei nu face parte din ceea ce returnează randatorul.
+Un fișier MIDI nu poate conține setările sintetizatoarelor, filtrele, efectele, magistralele, sample-urile sau cântatul, deci un DAW redă notele cu propriile instrumente. Tempoul este citit din ciclurile pe secundă ale melodiei, cu un ciclu considerat o măsură de patru timpi, deoarece măsura proprie a melodiei nu face parte din ceea ce returnează motorul de randare.
 
-Un fișier MIDI nu are loc pentru o credențială, deci un eveniment text din fișier poartă în schimb afirmația, iar panoul de export îți spune asta. Panoul descrie toate acestea înainte să exporți, iar după fiecare export editorul citește fișierul salvat și raportează doar ce a găsit citirea.
+Un fișier MIDI nu are loc pentru un certificat, deci un eveniment text din fișier conține declarația, iar panoul de export îți spune asta. Panoul descrie toate acestea înainte să exporți. După fiecare export, editorul citește înapoi fișierul salvat și raportează doar ce a găsit acea citire.
 
 Pentru ce înregistrează Content Credentials în general, vezi [Exportă un fișier](/info/exporting.html#content-credentials-c2pa).

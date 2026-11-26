@@ -75,9 +75,18 @@ export function computeViewportInsets(m: ViewportMetrics): ViewportInsets {
   //    toasts and the action pills BEHIND the keyboard. That one needs the
   //    inset, and only at the bottom.
   //
-  // The threshold above is what separates them. Top/left/right stay 0 either
-  // way: a keyboard only ever eats the bottom.
-  const occlusion = m.innerHeight - m.vvHeight - Math.max(0, m.offsetTop);
-  const bottom = occlusion >= KEYBOARD_MIN_OCCLUSION ? Math.round(occlusion) : 0;
-  return { top: 0, left: 0, right: 0, bottom };
+  // The threshold above is what separates them. Left and right stay 0 either
+  // way: a keyboard never eats a side.
+  //
+  // The top is 0 for the toolbar, and follows the keyboard's pan. When a field
+  // takes focus WebKit on iOS slides the visible area down the page to keep the
+  // field in view (visualViewport.offsetTop, 13px for a field near the top of an
+  // iPhone 17), while position:fixed stays with the layout viewport. A top-pinned
+  // surface then rides up under the status bar by that much: the tool sheet's
+  // back button sat behind the clock while its URL field was being typed in.
+  // Handing the pan back as the top inset keeps every --vv-top reader in place.
+  const pan = Math.max(0, m.offsetTop);
+  const occlusion = m.innerHeight - m.vvHeight - pan;
+  const keyboard = occlusion >= KEYBOARD_MIN_OCCLUSION;
+  return { top: keyboard ? Math.round(pan) : 0, left: 0, right: 0, bottom: keyboard ? Math.round(occlusion) : 0 };
 }

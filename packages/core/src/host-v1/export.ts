@@ -265,6 +265,18 @@ export interface ExportOpts {
   colorProfile?: 'srgb' | 'none' | string;
 
   /**
+   * Print every declared spot ink as its process CMYK alternate in the CMYK
+   * formats (pdf-cmyk, cmyk-tiff, eps-cmyk): the build the swatch already
+   * declares, or the press conversion of its colour. A Print PDF then carries
+   * only the four process plates. A declared finish (foil, emboss, spot varnish,
+   * die cut, …) is not an ink and keeps its own plate. Optional/additive (v1.324):
+   * unset or false keeps the named spot plates, so existing output is unchanged.
+   * The `_spots=process` URL param turns this on. Recorded nowhere: the inks the file
+   * carries are the only trace.
+   */
+  spotsAsProcess?: boolean;
+
+  /**
    * Hint: this export is a low-fidelity thumbnail/preview, not the deliverable.
    * Hooks may take a cheap path - e.g. an expensive-capture tool can reuse the
    * last render already on the canvas instead of re-running the capture.
@@ -375,6 +387,15 @@ export interface ExportOpts {
   c2paAiUpscale?: { model: string; version: string };
 
   /**
+   * A rendition's action for the C2PA history (added v1.341). Set by the runtime
+   * when the tool declares `renditionOf` and the named input's picture carries a
+   * credential, which then travels in `ingredients` as the one `parentOf`. The
+   * embedder opens that parent first and writes `action` where a new file writes
+   * `c2pa.created`. Opaque to the shell; ignored by non-C2PA exports.
+   */
+  c2paRendition?: { action: import('../rendition-v1.ts').RenditionAction };
+
+  /**
    * The attribution this export promised, and the way back to say what it
    * actually delivered (added v1.197, plan 253). The runtime freezes ONE
    * evaluation of the recorded sources per export and puts its plan here, so
@@ -455,6 +476,25 @@ export interface ExportMeta {
    * signer records an address. It does not show that the page belongs to anyone.
    */
   brandPage?: string;
+  /**
+   * The partner company and programme the export was made for (Lolly Work plans/82
+   * M3), from the workspace the person is signed in to, while the design-system
+   * record is on. The company is the one whose details filled the work, with the
+   * revision of those details; the programme is the one that published the work.
+   * Never the person, a contact's email or phone, an address or a currency. Absent
+   * outside a partner programme and on records written before engine 1.334.
+   */
+  partner?: ExportPartner;
+}
+
+/** The partner an export was made for (Lolly Work plans/82 M3). Either part may be absent. */
+export interface ExportPartner {
+  /** The partner company: its workspace id, its name and its details revision. */
+  company?: { id: string; label: string; revision: number };
+  /** The partner programme: its workspace id and its name. */
+  programme?: { id: string; label: string };
+  /** The piece's attached kit: its catalog asset id and revision, only for this company (engine 1.343+). */
+  kit?: { id: string; revision: number };
 }
 
 /** One brand skill revision that guided an export (plan 323). */

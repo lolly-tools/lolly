@@ -72,3 +72,55 @@ test('action feedback replaces hover help, preserves focus and dismisses when th
     close();
   } finally { f.close(); }
 });
+
+/** A tip on an element that holds a panel, as a colour field's wrapper holds its popover. */
+function panelFixture() {
+  const dom = new JSDOM('<body><span id="wrap" data-tip="Artboard fill"><button id="open">Open</button><div id="panel" data-tip-boundary><button id="pick">Pick</button><button id="inner" data-tip="On Main">Aa</button></div></span></body>', { pretendToBeVisual: true });
+  const doc = dom.window.document;
+  const stop = mountTooltips(doc);
+  const over = (id: string): void => {
+    const event = new dom.window.Event('pointerover', { bubbles: true });
+    Object.assign(event, { pointerType: 'mouse' });
+    doc.getElementById(id)!.dispatchEvent(event);
+  };
+  const tip = (): string | null => doc.querySelector('[role="tooltip"]')?.textContent ?? null;
+  return { dom, doc, over, tip, panel: doc.getElementById('panel')!, close() { stop(); dom.window.close(); } };
+}
+
+test('a tip on an element says nothing about a panel inside the element, and a tip in the panel still works', () => {
+  const f = panelFixture();
+  try {
+    f.over('open');
+    assert.equal(f.tip(), 'Artboard fill', 'the control itself keeps its tip');
+    f.over('pick');
+    assert.equal(f.tip(), null, 'moving into the panel takes the tip down');
+    f.doc.getElementById('pick')!.focus();
+    assert.equal(f.tip(), null, 'and focus inside the panel shows none');
+    f.over('inner');
+    assert.equal(f.tip(), 'On Main');
+  } finally { f.close(); }
+});
+
+test('Escape with a panel open inside the tip\'s element reaches the panel, and otherwise stops at the tip', () => {
+  const f = panelFixture();
+  const press = (): { reached: boolean; prevented: boolean } => {
+    let reached = false;
+    const seen = (): void => { reached = true; };
+    f.doc.getElementById('open')!.addEventListener('keydown', seen, { once: true });
+    const event = new f.dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    f.doc.getElementById('open')!.dispatchEvent(event);
+    return { reached, prevented: event.defaultPrevented };
+  };
+  try {
+    f.over('open');
+    assert.equal(f.tip(), 'Artboard fill');
+    assert.deepEqual(press(), { reached: true, prevented: false }, 'one press closes the panel');
+    assert.equal(f.tip(), null, 'and takes the tip down with it');
+
+    f.panel.hidden = true;
+    f.over('pick'); f.over('open');
+    assert.equal(f.tip(), 'Artboard fill');
+    assert.deepEqual(press(), { reached: false, prevented: true }, 'with the panel shut the press is the tip\'s alone');
+    assert.equal(f.tip(), null);
+  } finally { f.close(); }
+});

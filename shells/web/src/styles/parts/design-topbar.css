@@ -33,6 +33,9 @@
   gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-5);
   padding-top: calc(var(--sp-3) + var(--safe-top));
+  /* The bar reaches the screen edge; its controls stand inside a side the system holds. */
+  padding-left: calc(var(--dtb-pad, var(--sp-5)) + var(--safe-left));
+  padding-right: calc(var(--dtb-pad, var(--sp-5)) + var(--safe-right));
   background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, var(--ui-color-surface-raised));
   -webkit-backdrop-filter: blur(16px) saturate(1.3);
   backdrop-filter: blur(16px) saturate(1.3);
@@ -111,7 +114,7 @@
 .dtb-btn:active:not(:disabled) { filter: brightness(0.94); }
 .dtb-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .dtb-btn:disabled { opacity: 0.34; cursor: default; }
-.dtb-btn[aria-pressed="true"] { background: color-mix(in srgb, var(--ui-color-action-primary) 14%, transparent); color: var(--ui-color-action-primary); }
+.dtb-btn[aria-pressed="true"] { background: color-mix(in srgb, var(--ui-color-action-primary) 14%, transparent); color: var(--ui-color-text-accent); }
 .dtb-btn[aria-expanded="true"] { background: var(--ui-color-surface-muted); }
 
 .dtb-zoom-level { min-width: calc(52px * var(--a11y-fs)); font-variant-numeric: tabular-nums; }
@@ -192,6 +195,11 @@
   width: calc(22px * var(--a11y-fs));
   height: calc(22px * var(--a11y-fs));
 }
+/* The count on the swirl hangs past the button's corner, so the round clip above cut
+   the badge in half. parts/topbar.css lifts the clip for a button with a count, but that
+   sheet is layered and this one is not, so the lift has to be restated here to win. The
+   mark and the headshot are round by themselves and need no clip. */
+.design-topbar .profile-link:has(.notification-badge:not([hidden])) { overflow: visible; }
 /* Icon only in the bar: the name would push Export off a narrow window. */
 .design-topbar .profile-link-name { display: none; }
 
@@ -218,6 +226,11 @@
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+/* In Design's phone layout the menu leaves the bar for the body (positionEditorPopover in
+   free-canvas-popover.ts) and is placed in viewport coordinates, below its trigger,
+   above the inspector sheet and the navigator. The gap below the trigger is in its
+   placement, so the margin goes. */
+.dtb-menu.fc-popover--viewport { position: fixed; z-index: 9500; margin-block-start: 0; }
 .dtb-menu-item {
   display: flex;
   align-items: center;
@@ -262,7 +275,7 @@
   transform: rotate(-45deg);
   opacity: 0;
 }
-.dtb-menu-item[aria-checked="true"] { color: var(--ui-color-action-primary); font-weight: 600; }
+.dtb-menu-item[aria-checked="true"] { color: var(--ui-color-text-accent); font-weight: 600; }
 .dtb-menu-item[aria-checked="true"]::after { opacity: 1; }
 
 /* ── breakpoints ───────────────────────────────────────────────────────────── */
@@ -298,14 +311,14 @@
 }
 .design-topbar[data-density="icons"],
 .design-topbar[data-density="compact"],
-.design-topbar[data-density="min"] { gap: var(--sp-2); padding-inline: var(--sp-4); }
+.design-topbar[data-density="min"] { gap: var(--sp-2); --dtb-pad: var(--sp-4); }
 /* Compact and min: the centre cluster (and then Share and the Present menu) live in
    the hamburger; the name takes the freed width so it never truncates first. */
 .design-topbar[data-density="compact"] .dtb-name,
 .design-topbar[data-density="min"] .dtb-name { flex: 1 1 auto; }
 
 /* A compact header keeps the document name, Undo, Export and the profile queue reachable. */
-.design-topbar[data-density="phone"] { gap: 4px; padding-inline: max(8px, env(safe-area-inset-left, 0px)) max(8px, env(safe-area-inset-right, 0px)); }
+.design-topbar[data-density="phone"] { gap: 4px; padding-left: max(8px, var(--safe-left)); padding-right: max(8px, var(--safe-right)); }
 .design-topbar[data-density="phone"] :is(.chrome-topleft, [data-topbar="file"], .dtb-intent, .dtb-split) { display: none; }
 .design-topbar[data-density="phone"] .dtb-name { flex: 1 1 90px; min-width: 90px; width: 0; padding-inline: 4px; }
 .design-topbar[data-density="phone"] .dtb-right { flex: none; gap: 4px; }

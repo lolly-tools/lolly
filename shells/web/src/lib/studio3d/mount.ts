@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 import { buildStudioScene, studioAnimated } from '../../../../../engine/src/studio3d.ts';
 import {
-  studioActiveObject,
-  studioObjectName,
-} from '../../../../../engine/src/studio3d-arrangement.ts';
-import {
   type StudioValues,
-  studioActiveIndex,
   studioActiveValues,
-  studioCollectionRows,
 } from '../../../../../engine/src/studio3d-collection.ts';
 import type { StudioSceneV1 } from '../../../../../packages/core/src/studio3d-v1.ts';
 import { STUDIO_CONTEXT_LOST, StudioEmptyFrameError } from './capture.ts';
-import { syncStudioControls, wireStudioGestures } from './controls.ts';
+import { studioFit } from './controls.ts';
+import { wireStudioGestures } from './gestures.ts';
+import { clearStudioControls, syncStudioControls } from './toolbar.ts';
+import type { StageKitPort } from '../stage-kit.ts';
 import type { StudioLease } from './pool.ts';
 import { StudioRenderer } from './renderer.ts';
 import type { StudioSceneCounters, StudioSceneQuality, StudioSceneState } from './scene-host.ts';
@@ -92,6 +89,14 @@ export interface StudioMountOptions {
   read: StudioRead;
   isCurrent?: () => boolean;
   setInput?: (id: string, value: unknown) => void;
+  /** Write several inputs as one undo step (the tool view's history); see controls.ts commit. */
+  commitMany?: (values: Record<string, unknown>, label: string) => void;
+  /**
+   * The stage kit (lib/stage-kit.ts) the studio's controls are drawn in, beside the
+   * picture. Only the tool view passes one: multi-edit, Design scene boxes, exports and
+   * one-off renders draw no controls.
+   */
+  chrome?: StageKitPort | null;
   reviewCollection?: () => void;
   /** Open the library to add several sources at once to the arrangement or collection. */
   addObjects?: () => void;
@@ -150,6 +155,18 @@ interface Entry {
   deferred: DeferredMount | null;
   deferTimer: ReturnType<typeof setTimeout> | undefined;
   closed: boolean;
+  /** The source notes the Info panel shows. */
+  notes?: string;
+  /** Redraw the controls from the current state; set by toolbar.ts while a kit is attached. */
+  refreshChrome?: () => void;
+  /** Save a camera view a wheel or key run is still previewing; set by gestures.ts. */
+  flushView?: () => void;
+  /** Whether the selected object shows its handles; chrome state, never saved (controls.ts). */
+  selected?: boolean;
+  /** Place the selected object's handles on the frame just drawn; set by gestures.ts. */
+  drawHandles?: () => void;
+  /** Take the handles off the stage; set by gestures.ts. */
+  clearHandles?: () => void;
   /**
    * Draw a frame. Only a capture render (`capture` true: the export clock or a prepare)
    * draws while a capture is running; any other call returns without drawing.
@@ -179,12 +196,15 @@ function status(entry: Entry, message: string, state: StudioSceneState): void {
     label.textContent = message;
     label.hidden = state === 'ready' || state === 'cancelled';
   }
+  // A scene that failed shows no handles on the frame it can no longer draw.
+  if (state === 'error') entry.drawHandles?.();
 }
 
 function destroy(entry: Entry): void {
   const loading = !entry.ready && !entry.error;
   entry.closed = true;
   entry.generation++;
+  clearStudioControls(entry);
   cancelAnimationFrame(entry.frame);
   clearTimeout(entry.deferTimer);
   clearTimeout(entry.captureTimer);
@@ -303,10 +323,6 @@ export async function mountToolStudio(
     const canvas = (lease?.canvas ?? document.createElement('canvas')) as FrameCanvas;
     canvas.className = 'lolly-studio-canvas';
     canvas.style.cssText = 'width:100%;height:100%;display:block;touch-action:none;';
-    canvas.setAttribute(
-      'aria-label',
-      '3D studio preview. Drag or use arrow keys to orbit. Shift moves by ten degrees.'
-    );
     let handle: StudioRenderer;
     try {
       handle = lease?.renderer ?? new StudioRenderer(canvas);
@@ -356,13 +372,6 @@ export async function mountToolStudio(
         if (current.error) throw current.error;
         if (!current.ready) throw new Error(STUDIO_LOADING);
         const bounds = current.marker.getBoundingClientRect();
-        current.marker.style.setProperty(
-          '--studio-ui-scale',
-          String(current.marker.clientWidth / Math.max(1, bounds.width))
-        );
-        // The frame's VISIBLE width decides the toolbar's labels: a phone shows a 1280 px
-        // layout at a third of its size, where the long labels wrap into four rows.
-        current.marker.dataset.studioNarrow = String(bounds.width < 560);
         const max = Math.max(bounds.width, bounds.height),
           scale = quality === 'preview' ? Math.min(1, 800 / Math.max(1, max)) : 1;
         // An export names its pixel size; the frame is resampled at that size (within
@@ -380,7 +389,11 @@ export async function mountToolStudio(
             const verify = current.verifyNext;
             current.verifyNext = false;
             handle.capture(target.width, target.height, quality, time, seconds, verify);
-          } else handle.render(target.width, target.height, quality, time, seconds);
+          } else {
+            handle.render(target.width, target.height, quality, time, seconds);
+            // The handles over the preview move in the same task as the frame they sit on.
+            if (!capture && quality === 'preview') current.drawHandles?.();
+          }
         } catch (error) {
           const failure = error instanceof Error ? error : new Error(String(error));
           if (capture) current.captureError ??= failure;
@@ -470,6 +483,8 @@ export async function mountToolStudio(
   entry.marker = marker;
   entry.options = options;
   entry.recipe = recipe;
+  // Another source is another subject: a selection made on the old one does not carry over.
+  if (entry.selected && (raw.values?.source ?? '') !== (entry.inputValues.source ?? '')) entry.selected = false;
   entry.inputValues = raw.values || {};
   entry.inputCamera = {
     azimuth: recipe.camera.azimuth,
@@ -478,47 +493,6 @@ export async function mountToolStudio(
     zoom: recipe.camera.zoom,
     ...(studioActiveValues(entry.inputValues).camera as StudioValues),
   };
-  const review = marker.querySelector<HTMLButtonElement>('[data-studio-review]');
-  if (review) {
-    review.hidden = !options.reviewCollection;
-    review.onclick = () => options.reviewCollection?.();
-  }
-  const reset = marker.querySelector<HTMLButtonElement>('[data-studio-shared-camera]');
-  if (entry.inputValues.source === 'collection') {
-    const selected = studioCollectionRows(entry.inputValues)[studioActiveIndex(entry.inputValues)]!;
-    const label = marker.querySelector('[data-studio-item-label]');
-    if (label)
-      label.textContent = `${selected.index + 1}. ${selected.name}${selected.ownFraming ? ' (own framing)' : ''}`;
-    if (reset) {
-      reset.hidden = !options.setInput || !selected.ownFraming;
-      reset.onclick = () => {
-        options.endGesture?.();
-        options.setInput?.(
-          'subjects',
-          (entry!.inputValues.subjects as StudioValues[]).map((item, i) =>
-            i === selected.index ? { ...item, ownFraming: false } : item
-          )
-        );
-        options.endGesture?.();
-      };
-    }
-  }
-  if (entry.inputValues.source === 'arrangement') {
-    const label = marker.querySelector('[data-studio-object-label]');
-    if (label) {
-      try {
-        const index = studioActiveObject(entry.inputValues);
-        const row = (entry.inputValues.objects as StudioValues[])[index] ?? {};
-        const count = (entry.inputValues.objects as StudioValues[]).length;
-        const missing =
-          (row.kind === 'artwork' || row.kind === 'model') &&
-          !(row.asset && (typeof row.asset === 'string' || (row.asset as { url?: string }).url));
-        label.textContent = `${index + 1} of ${count}: ${studioObjectName(row, index)}${row.visible === false ? ' (hidden)' : missing ? ' (no file yet)' : ''}`;
-      } catch (error) {
-        label.textContent = (error as Error).message;
-      }
-    }
-  }
   const generation = ++entry.generation;
   marker.appendChild(entry.canvas);
   entry.observer.observe(marker);
@@ -536,14 +510,14 @@ export async function mountToolStudio(
     syncStudioControls(entry);
     entry.render('preview');
     status(entry, '', 'ready');
-    const details = marker.querySelector<HTMLElement>('[data-studio-info]');
-    if (details) {
-      const prefix =
-        recipe.objects
-          ? `${recipe.objects.filter((object) => object.visible && !object.pending).length} of ${recipe.objects.length} objects visible, ${Math.round(info.triangles).toLocaleString()} triangles. Selected object slots: `
-          : '';
-      details.textContent = `${prefix}${info.slots.map((slot, i) => `${i + 1}: ${slot.id}`).join(' / ')}${info.warnings.length ? '\n' + info.warnings.join('\n') : ''}`;
-    }
+    // The source notes: shown by the Info control in the stage kit, and kept on the
+    // marker for scripts and tests that read what the scene loaded.
+    const prefix = recipe.objects
+      ? `${recipe.objects.filter((object) => object.visible && !object.pending).length} of ${recipe.objects.length} objects visible, ${Math.round(info.triangles).toLocaleString()} triangles. Selected object slots: `
+      : '';
+    entry.notes = `${prefix}${info.slots.map((slot, i) => `${i + 1}: ${slot.id}`).join(' / ')}${info.warnings.length ? '\n' + info.warnings.join('\n') : ''}`;
+    marker.dataset.studioNotes = entry.notes;
+    entry.refreshChrome?.();
   } catch (error) {
     if (generation !== entry.generation || options.isCurrent?.() === false) return;
     entry.ready = false;
@@ -625,13 +599,7 @@ export function frameToolStudio(container: Element, timeoutMs = 15_000): Promise
     const tick = () => {
       const entry = registry.get(container);
       if (!entry || !container.isConnected || Date.now() - started > timeoutMs) return resolve(false);
-      if (entry.ready && !entry.error) {
-        const fit = entry.marker.querySelector<HTMLButtonElement>('[data-studio-fit]');
-        if (fit && !fit.disabled) {
-          fit.click();
-          return resolve(true);
-        }
-      }
+      if (entry.ready && !entry.error && entry.options.setInput) return resolve(studioFit(entry));
       setTimeout(tick, 120);
     };
     tick();
@@ -643,8 +611,9 @@ export function destroyToolStudio(container?: Element): void {
     if (!container || entry.container === container) destroy(entry);
 }
 
-/** Save the mounted preview without preparing a second export scene or shader set. */
-export function captureStudioThumbnail(root: HTMLElement, maxWidth = 720, maxHeight = 560): string | null {
+/** Draw the mounted preview into a canvas fitted inside the tile, without
+ *  preparing a second export scene or shader set. The preview writer encodes the canvas. */
+export function captureStudioCanvas(root: HTMLElement, maxWidth = 720, maxHeight = 560): HTMLCanvasElement | null {
   const canvas = root.querySelector<HTMLCanvasElement>('canvas.lolly-studio-canvas');
   const entry = canvas && owners.get(canvas);
   if (!canvas || !entry?.ready || entry.capturing || entry.closed) return null;
@@ -656,5 +625,10 @@ export function captureStudioThumbnail(root: HTMLElement, maxWidth = 720, maxHei
   const context = output.getContext('2d');
   if (!context) return null;
   context.drawImage(canvas, 0, 0, output.width, output.height);
-  return output.toDataURL('image/png');
+  return output;
+}
+
+/** The same picture as a PNG data URL (the catalog preview build's capture). */
+export function captureStudioThumbnail(root: HTMLElement, maxWidth = 720, maxHeight = 560): string | null {
+  return captureStudioCanvas(root, maxWidth, maxHeight)?.toDataURL('image/png') ?? null;
 }

@@ -199,6 +199,24 @@
     position: absolute; left: -1.6em; top: 0; min-width: 1.4em;
     color: var(--accent); font-weight: 700;
   }
+  /* A table pasted as Markdown (the helper's md-table). Rules in the text colour at low
+     strength, the header in the accent, columns aligned as the Markdown says. */
+  .mpdf-cell-body .md-table, .mpdf-cover-text .md-table, .mpdf-back-text .md-table, .mpdf-back-about-text .md-table {
+    width: 100%; margin: .4em 0 .6em; border-collapse: collapse; font-size: .92em;
+  }
+  .mpdf-cell-body .md-table th, .mpdf-cover-text .md-table th, .mpdf-back-text .md-table th, .mpdf-back-about-text .md-table th,
+  .mpdf-cell-body .md-table td, .mpdf-cover-text .md-table td, .mpdf-back-text .md-table td, .mpdf-back-about-text .md-table td {
+    padding: .35em .6em; text-align: left; vertical-align: top;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  }
+  .mpdf-cell-body .md-table th, .mpdf-cover-text .md-table th, .mpdf-back-text .md-table th, .mpdf-back-about-text .md-table th {
+    font-weight: 700; color: var(--accent); border-bottom-color: var(--accent);
+  }
+  :is(.mpdf-cell-body, .mpdf-cover-text, .mpdf-back-text, .mpdf-back-about-text) .md-table .md-align-center { text-align: center; }
+  :is(.mpdf-cell-body, .mpdf-cover-text, .mpdf-back-text, .mpdf-back-about-text) .md-table .md-align-right { text-align: right; }
+  /* The outer cells meet the text column's edges; the gutter is between columns only. */
+  :is(.mpdf-cell-body, .mpdf-cover-text, .mpdf-back-text, .mpdf-back-about-text) .md-table :is(th, td):first-child { padding-left: 0; }
+  :is(.mpdf-cell-body, .mpdf-cover-text, .mpdf-back-text, .mpdf-back-about-text) .md-table :is(th, td):last-child { padding-right: 0; }
   /* Headings authored with "# "…"###### ". Sized relative to the block's own text so
      they stay proportionate on the cover, in content cells and on the back page. */
   .mpdf-cell-body h1, .mpdf-cell-body h2, .mpdf-cell-body h3, .mpdf-cell-body h4, .mpdf-cell-body h5, .mpdf-cell-body h6,

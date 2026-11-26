@@ -54,17 +54,37 @@
  *                  drew the export. `_madewith=0`/`off` leaves them out of the file's
  *                  metadata and credential, and the description keeps its plain
  *                  form. Read into `madeWith`.
+ *   - `_spots` - how the CMYK formats print a brand's declared spot inks.
+ *                  `_spots=process` writes every spot ink as its process build (the
+ *                  CMYK it already declares, or the press conversion of its colour),
+ *                  so a Print PDF has the four process plates and nothing more. A
+ *                  declared finish (foil, emboss, varnish, die) is not an ink and
+ *                  keeps its own plate. Absent, or any other value, keeps the spot
+ *                  plates. Read into `spots`.
+ *   - `_kit` - the PARTNER KIT this piece carries as a guest (Lolly Work plan 82 M8):
+ *                  `<id>@<revision>`, the kit asset's catalog id and the asset version
+ *                  attached (`_kit=inst/5b2e@2`). Read into `partnerKit` and written
+ *                  into a share link from `partnerKit`, because the kit a piece was made
+ *                  with belongs to the piece. The link points at a kit and never carries
+ *                  its bytes: a recipient the kit is not served to renders without the
+ *                  kit. A value that is not an id and a whole revision reads as absent.
+ *   - `_text` - how an EMF export writes text. `_text=outline` draws every run as
+ *                  vector outlines, the export panel's Outline fonts box, where the
+ *                  default keeps GDI text records the reader's fonts draw. A run no font
+ *                  can outline goes in as a picture. Absent, or any other value, keeps
+ *                  the live text. The CLI's browser tier sends it for
+ *                  `--export=emf --text=outline`. Read into `text`.
  *   - `width`/`w`, `height`/`h` - output dimensions (value in `unit`, default px)
  *   - `unit` - physical unit for width/height: px (default), mm, cm, in, pt
  *   - `dpi` - raster resolution for physical units (default 300; px → 96)
  *   - `profile` - colour profile: raster ICC ('srgb'/'none') or, for pdf-cmyk,
  *                  the press condition ('fogra39', 'swop', 'gracol', …)
- *   - `password` - open-password for the STANDARD (40-bit RC4) `pdf` lock only (a
- *                  basic lock, not strong encryption). Intentionally clear-text in
- *                  the URL - it exists so links can pre-set a password for quick,
- *                  short-lived transactional use; do not use it for confidential
- *                  material. The Strong (AES-256) tier is deliberately NOT a URL
- *                  param: its password is typed at export/open and never serialized.
+ *   - `password` - open-password for the STANDARD (40-bit RC4) `pdf` or ZipCrypto
+ *                  `zip` lock only (a basic lock, not strong encryption). INBOUND
+ *                  only: a link can bring one, and the web shell then takes it out
+ *                  of the address. No Lolly surface writes it into a URL. Do not use
+ *                  it for confidential material. The Strong (AES-256) tier is NOT a
+ *                  URL param: its password is typed at export/open, never serialized.
  *   - `bleed` - bleed amount (dimension string, e.g. `3mm`) for the print
  *                  formats (`pdf`/`pdf-cmyk`/`cmyk-tiff`); ignored otherwise.
  *   - `marks` - print marks for the print formats: a CSV of `crop`, `reg`,
@@ -255,6 +275,8 @@ import { normalizeTableValue, syntheticInputs } from './inputs.ts';
 import type { BlockFieldSpec, InputManifest, InputSpec, InputValue, TableValue } from './inputs.ts';
 import type { PrintMarksFlags } from './print-marks.ts';
 import type { AssetRef } from './bridge/host-v1.ts';
+import type { PartnerKitAttachmentV1 } from '@lolly-tools/core/partner-kit-v1';
+import { readPartnerKitAttachment } from './partner-kit-attachment.ts';
 
 /** Content Credentials toggle parsed from the `c2pa` param. */
 export interface C2paSetting {
@@ -437,6 +459,17 @@ export interface UrlState {
    *  null ⇒ absent (record), false ⇒ an explicit `_madewith=0`/`off`, true ⇒ an
    *  explicit on. */
   madeWith?: boolean | null;
+  /** How the CMYK formats print declared spot inks (the `_spots` param). `process`
+   *  writes each ink as its process build; null ⇒ absent or any other value, which
+   *  keeps the named spot plates. */
+  spots?: SpotsSetting | null;
+  /** The partner kit attached (the `_kit` param): the kit asset's id and the revision.
+   *  null ⇒ absent or unreadable. Which kits a caller is served is not something
+   *  url-mode can know, so a kit it is not served is the caller's to leave out. */
+  partnerKit?: PartnerKitAttachmentV1 | null;
+  /** How an EMF export writes text (the `_text` param). `outline` draws outlines;
+   *  null ⇒ absent or any other value, which keeps live text records. */
+  text?: TextSetting | null;
 }
 
 /** The slice of an input model item serializeUrlState reads. */
@@ -510,6 +543,11 @@ export interface SerializeUrlOpts {
   /** The design-system record (the `_madewith` param). Default-on like `imprint`:
    *  false ⇒ `_madewith=0`; true/undefined ⇒ omitted. */
   madeWith?: boolean;
+  /** How the CMYK formats print spot inks (the `_spots` param). Only `process`
+   *  writes the param; anything else keeps the default and writes nothing. */
+  spots?: SpotsSetting | string | null;
+  /** The partner kit attached (the `_kit` param), written when it reads as an attachment. */
+  partnerKit?: PartnerKitAttachmentV1 | null;
   /** Keep device-local `user/…` asset ids in the serialised state (plan 171).
    *  Default FALSE - the engine-enforced product contract is that a device-local
    *  id never leaves the device (docs/url-mode.md), so a top-level `user/` asset
@@ -527,7 +565,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'full', 'iframe', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence', '_themes', '_madewith']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'sampletimes', 'motionblur', 'seqrange', 'lang', 'designv', 'ds', 'full', 'iframe', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence', '_themes', '_madewith', '_spots', '_text', '_kit']);
 // NOTE on the presentation-mode kiosk flag: it was the unreserved `loop` until
 // 2026-08-28 (plan 171 executed the rename inside the id-break window). `loop` is a
 // live *input* id in several tools (deck-builder, 3d, flythrough, digi-ad,
@@ -546,6 +584,47 @@ export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', '
 // metadata (pkg.name, pkg.version, pkg.dest, …) beside the rpm and tar.gz formats. No
 // link carries it yet: the export panel passes ExportOpts.pkg and `lolly pack` takes
 // flags. parseUrlState skips it, and an input id or urlKey cannot hold a dot anyway.
+
+/** The one value of the `_spots` param that does anything: print spot inks in process. */
+export type SpotsSetting = 'process';
+
+/**
+ * Read the `_spots` param. Only `process` (any case, trimmed) turns the choice on;
+ * absence and every other value keep the default, the named spot plates. Opt-in by
+ * construction, so a typo can never quietly flatten a brand's inks.
+ */
+export function parseSpots(raw: string | null | undefined): SpotsSetting | null {
+  return typeof raw === 'string' && raw.trim().toLowerCase() === 'process' ? 'process' : null;
+}
+
+export { readPartnerKitAttachment };
+
+/** Read the `_kit` param, `<id>@<revision>`. Null when absent or when either half does not read. */
+export function parsePartnerKitParam(raw: string | null | undefined): PartnerKitAttachmentV1 | null {
+  if (typeof raw !== 'string') return null;
+  const at = raw.lastIndexOf('@');
+  if (at <= 0) return null;
+  const digits = raw.slice(at + 1);
+  if (!/^[1-9][0-9]{0,6}$/.test(digits)) return null;
+  return readPartnerKitAttachment({ id: raw.slice(0, at), revision: Number(digits) });
+}
+
+/** Write the `_kit` param's value, or null when the attachment does not read. */
+export function formatPartnerKitParam(attachment: unknown): string | null {
+  const att = readPartnerKitAttachment(attachment);
+  return att ? `${att.id}@${att.revision}` : null;
+}
+
+/** The one value of the `_text` param that does anything: draw EMF text as outlines. */
+export type TextSetting = 'outline';
+
+/**
+ * Read the `_text` param. Only `outline` (any case, trimmed) turns the choice on;
+ * absence and every other value keep the default, live EMF text records.
+ */
+export function parseTextSetting(raw: string | null | undefined): TextSetting | null {
+  return typeof raw === 'string' && raw.trim().toLowerCase() === 'outline' ? 'outline' : null;
+}
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -814,6 +893,12 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     // The design-system record (see header). Default-on, so only an explicit
     // opt-out reads as false; absent stays null.
     madeWith: parseMeta(params.get('_madewith')),
+    // How the CMYK formats print spot inks (see header). Opt-in: only `process` counts.
+    spots: parseSpots(params.get('_spots')),
+    // The partner kit attached (see header). An id and a whole revision, else absent.
+    partnerKit: parsePartnerKitParam(params.get('_kit')),
+    // How an EMF export writes text (see header). Opt-in: only `outline` counts.
+    text: parseTextSetting(params.get('_text')),
   };
 }
 
@@ -881,6 +966,11 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   if (opts.metadata === false) params.set('meta', 'off');
   // Default-on as well: only leaving the design-system record out travels.
   if (opts.madeWith === false) params.set('_madewith', '0');
+  // Opt-in, off by default: only the request to print spot inks in process travels.
+  if (parseSpots(opts.spots ?? null)) params.set('_spots', 'process');
+  // The partner kit a piece carries travels with it, as `<id>@<revision>`.
+  const kit = formatPartnerKitParam(opts.partnerKit);
+  if (kit) params.set('_kit', kit);
   // Opt-in, off by default: only an explicit request writes the param.
   if (opts.durable) params.set('durable', '1');
   if (opts.hdr) params.set('hdr', '1');

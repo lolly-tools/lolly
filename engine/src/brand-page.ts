@@ -18,7 +18,7 @@
 import { BRAND_PAGE_VERSION, DESIGN_MD_TARGET } from '@lolly-tools/core/brand-page-v1';
 import type { TextAPI } from '@lolly-tools/core/host-v1';
 import type {
-  BrandPageCheckVariantV1, BrandPageChecksV1, BrandPageColourPairV1, BrandPageColourwayV1, BrandPageFileRoleV1, BrandPageFileV1,
+  BrandPageCheckVariantV1, BrandPageChecksV1, BrandPageColourPairV1, BrandPageColourRoleV1, BrandPageColourwayV1, BrandPageFileRoleV1, BrandPageFileV1,
   BrandPageHeldKindV1, BrandPageHeldV1, BrandPagePairReadingV1, BrandPageRuleCheckV1, BrandPageUsageV1, BrandPageV1,
 } from '@lolly-tools/core/brand-page-v1';
 import { redistribution } from './asset-rights.ts';
@@ -32,6 +32,8 @@ import { withRecordedBrandPage } from './brand-page-address.ts';
 import { readDesignSystemIdentity, slugifyDesignSystemId } from './design-system.ts';
 import { writeDesignMd } from './design-md.ts';
 import { brandSystemOf } from './brand-system.ts';
+import { COLOUR_ROLE_BY_NAME, COLOUR_SLOT_READS, readColourRoles } from './colour-roles.ts';
+import { declaredColourRoleIds } from './colourway.ts';
 import { brandSkillScopeHints } from './brand-skill.ts';
 import { leaveOutScopedTokenText } from './token-scope.ts';
 import { colorToHex, createTokenSet, TOKEN_EXT } from './tokens.ts';
@@ -167,6 +169,8 @@ export interface PageFactsV1 {
   variants: PageVariantV1[];
   /** The named colours, resolved in the canonical variant. */
   named: Array<{ name: string; path: string; value: string }>;
+  /** The design system's own colour words in its own order, with the canonical variant's colour and what Lolly reads each as, for `AGENTS.md`. Empty when it declares none. */
+  agentColourRoles: Array<{ label: string; description: string; path: string; value: string; readAs: string[] }>;
   logos: Array<{ id: string; name: string; path: string; surface: 'light' | 'dark' | 'any'; mono: boolean; licence?: string }>;
   heroLogos: { onDark: string | null; onLight: string | null };
   faces: Array<{ family: string; tokens: string[]; files: string[]; licence: string | null; licenceFile: string | null; source: string | null; outline: BrandPageOutlineV1 | null }>;
@@ -179,7 +183,14 @@ export interface PageFactsV1 {
   tokenPaths: string[];
   masterSize: { width: number; height: number } | null;
   madeWith: boolean;
+  /** The brand's own colour words, in its order. Empty when it declares none. */
+  colourRoles: BrandPageColourRoleV1[];
 }
+
+/** What Lolly reads a slot as, in the words the studio shows. Empty for a role read by name only. */
+export const slotReadsAs = (slot: string): string => (Object.hasOwn(COLOUR_SLOT_READS, slot) ? COLOUR_SLOT_READS[slot as keyof typeof COLOUR_SLOT_READS].split(':')[0]! : '');
+/** What Lolly reads a role as: the slots it fills, or by name only. */
+export const roleReadsAs = (role: Pick<BrandPageColourRoleV1, 'fills'>): string => (role.fills.length ? role.fills.map(slotReadsAs).join(', ') : COLOUR_ROLE_BY_NAME.split(':')[0]!);
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -331,12 +342,27 @@ function measure(id: string, label: string, fgSlot: string, bgSlot: string, fg: 
   return { id, label, foreground: { slot: fgSlot, value: fg }, background: { slot: bgSlot, value: bg }, contrast, apca: Math.round(apcaContrast(fg, bg)), reads: readingOf(contrast) };
 }
 
-function pairsFor(doc: unknown, selection: Record<string, string>, slots: Record<string, string>, brief: DesignBriefV1): BrandPageColourPairV1[] {
+/** The pairs the fixed list covers for a slot no role fills, then each role's own in the brand's order and words. */
+function pairsFor(doc: unknown, selection: Record<string, string>, slots: Record<string, string>, brief: DesignBriefV1, roles: readonly BrandPageColourRoleV1[]): BrandPageColourPairV1[] {
   const out: BrandPageColourPairV1[] = [];
+  const held = new Set(roles.flatMap(role => role.fills));
+  const SLOT_OF_PAIR: Readonly<Record<string, string>> = { 'text-on-surface': 'text', 'muted-on-surface': 'muted', 'on-primary': 'primary', 'primary-on-surface': 'primary', 'secondary-on-surface': 'secondary' };
   for (const p of PAIRS) {
+    if (held.has(SLOT_OF_PAIR[p.id] as BrandPageColourRoleV1['fills'][number])) continue;
     const fg = slots[p.foreground];
     const bg = slots[p.background];
     if (fg && bg) out.push(measure(p.id, p.label, p.foreground, p.background, fg, bg));
+  }
+  const surface = slots.surface;
+  for (const role of roles) {
+    const value = slots[role.id];
+    // The surface is what the others are measured on, and a hairline is meant to sit far under any text floor.
+    if (!value || role.id === 'surface' || role.fills.includes('surface') || role.id === 'edge' || role.fills.includes('edge')) continue;
+    const ink = role.id === 'text' || role.id === 'muted' || role.fills.includes('text') || role.fills.includes('muted');
+    const onId = role.id === 'primary' ? 'on-primary' : `on-${role.id}`;
+    const on = ink ? undefined : slots[onId] ?? (role.fills.includes('primary') ? slots['on-primary'] : undefined);
+    if (on) out.push(measure(onId, `Text on ${role.label}`, onId, role.id, on, value));
+    if (surface) out.push(measure(`role-${role.id}-on-surface`, `${role.label} on the background`, role.id, 'surface', value, surface));
   }
   // A brand's declared pairings, in this variant's values.
   if (brief.combinations.from === 'declared') {
@@ -423,6 +449,16 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
   const colourwayRows = allColourways.slice(0, colourwayLimit);
   for (const dropped of allColourways.slice(colourwayLimit)) hold(`Colourway ${dropped.name}`, `a page holds at most ${MAX_VARIANTS} colourway and mode pairs`, 'limit');
 
+  // The brand's own words for its colours. This reads the document the scope hints already went over.
+  const colourRoles: BrandPageColourRoleV1[] = declaredColourRoleIds(doc).length
+    ? readColourRoles(doc).roles.filter(role => role.declared).map(role => ({
+      id: role.id, label: role.label,
+      ...(role.description ? { description: role.description } : {}),
+      token: role.path,
+      fills: role.slots.filter((slot): slot is BrandPageColourRoleV1['fills'][number] => slot !== 'on-primary'),
+    }))
+    : [];
+
   // Rules: only text free of the scope hints reaches a page or an agent file.
   const rulesAll = Array.isArray(brief.houseRules) ? brief.houseRules : [];
   const rules: PageFactsV1['rules'] = [];
@@ -452,7 +488,7 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
       const slots = slotsOf(doc, selection);
       const primary = slots.primary;
       const heroSurface = primary && contrastRatio('#ffffff', primary) < contrastRatio('#000000', primary) ? 'light' : 'dark';
-      const pairs = pairsFor(doc, selection, slots, brief);
+      const pairs = pairsFor(doc, selection, slots, brief, colourRoles);
       const stem = `${colourway.id}.${mode.id}`;
       addText(`tokens/${stem}.tokens.json`, 'tokens-resolved', pretty(resolvedTokens(doc, selection)));
       addText(`design/${stem}.DESIGN.md`, 'design-md-variant', writeDesignMd({
@@ -597,6 +633,12 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
     .filter((c, i, all) => all.findIndex(o => o.name === c.name && o.value === c.value) === i)
     .slice(0, 240);
 
+  const canonicalColours = new Map(createTokenSet(doc, { selection: canonical.selection }).colors().map(c => [c.path, c.value]));
+  const agentColourRoles: PageFactsV1['agentColourRoles'] = (brief.colourRoles?.roles ?? []).flatMap(role => {
+    const path = role.reference.slice(1, -1);
+    const value = hexOf(canonicalColours.get(path));
+    return value ? [{ label: text(role.label, 80), description: text(role.description, 600), path, value, readAs: role.readAs }] : [];
+  });
   const tokenPaths = createTokenSet(doc, { selection: canonical.selection }).query().map(e => e.path);
   const colourways: BrandPageColourwayV1[] = colourwayRows.map(c => ({ id: c.id, name: c.name, modes: modes.map(m => m.id) }));
   const usage = cleanUsage(withOwnerTerms(input.usage, ownerTerms));
@@ -604,7 +646,7 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
   const orderedHeld = sortHeld(held);
   const facts: PageFactsV1 = {
     id, name, summary: overview ? firstSentence(overview) : `The ${name} design system.`, overview, usage, origin,
-    colourways, modes: modes.map(m => ({ id: m.id, name: m.name })), variants, named, logos, heroLogos, faces, nameOutline, examples,
+    colourways, modes: modes.map(m => ({ id: m.id, name: m.name })), variants, named, colourRoles, agentColourRoles, logos, heroLogos, faces, nameOutline, examples,
     rules, skills, checks, held: orderedHeld, tokenPaths, madeWith: input.madeWith !== false,
     masterSize: brief.coverage.type === 'declared' && brief.master?.size ? { width: brief.master.size.width, height: brief.master.size.height } : null,
   };
@@ -629,6 +671,7 @@ export async function buildBrandPage(input: BrandPageInputV1): Promise<BrandPage
     ...(usage ? { usage } : {}),
     colourways, files: listed,
     ...(logos.length ? { logos: logos.map(l => (l.id === brief.logos.onLight || l.id === brief.logos.onDark ? { ...l, primary: true } : l)) } : {}),
+    ...(colourRoles.length ? { colourRoles } : {}),
     held: orderedHeld,
     checks: {
       file: 'checks.json', variants: checks.variants.length, pairs: pairs.length, pairsBelow3: pairs.filter(p => p.reads === 'below-3').length,

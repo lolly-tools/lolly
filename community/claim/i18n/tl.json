@@ -1,6 +1,6 @@
 {
   "name": "Claim",
-  "description": "I-claim ang iyong pangalan sa anumang media na nagawa mo na - larawan, PDF, video o audio. I-stamp ang iyong author, copyright at lisensya bilang Content Credentials (may durable raster Imprint din), na pinapanatili ang anumang credential na nasa loob na ng file - lahat sa iyong device, bago mo ito i-upload kahit saan.",
+  "description": "I-claim ang iyong pangalan sa anumang media - larawan, PDF, video o audio. I-stamp ang iyong author, copyright at lisensya bilang Content Credentials, sa iyong device.",
   "a11yLabel": "Mag-embed ng mga kredensyal sa iyong larawan",
   "inputs.creator.label": "Artista / May-akda",
   "inputs.creator.help": "Ang iyong pangalan - naka-embed bilang author/creator ng larawan (EXIF Artist, XMP dc:creator, at ang Content Credential).",

@@ -21,6 +21,7 @@ import {
 import { startJob } from '../../lib/jobs.ts';
 import { t } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
+import { mountEditorPanel, placeAtPoint } from '../free-canvas-popover.ts';
 import { bindOp, type FcCtx } from './context.ts';
 
 const PRESET_COPY: Record<ImageTracePreset, { name: string; hint: string }> = {
@@ -76,11 +77,9 @@ export function askTraceImage(fc: FcCtx): void {
   };
   p.querySelector<HTMLButtonElement>('[data-trace-go]')!.addEventListener('click', (e) => { e.stopPropagation(); go(); });
   p.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
-  stageEl.appendChild(p);
+  mountEditorPanel(p, null, stageEl);
   fc.morePanel = p;
-  const sr = stageEl.getBoundingClientRect();
-  p.style.left = Math.max(6, Math.min(fc.lastMenuAt.x - sr.left, Math.max(6, sr.width - p.offsetWidth - 6))) + 'px';
-  p.style.top = Math.max(6, Math.min(fc.lastMenuAt.y - sr.top, Math.max(6, sr.height - p.offsetHeight - 6))) + 'px';
+  placeAtPoint(p, stageEl, fc.lastMenuAt.x, fc.lastMenuAt.y);
   p.querySelector<HTMLInputElement>('input:checked')?.focus();
 }
 

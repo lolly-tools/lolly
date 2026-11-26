@@ -1,6 +1,6 @@
 {
   "name": "Markdown-bilder",
-  "description": "Gör om Markdown eller en JSON-specifikation till en riktig, redigerbar PowerPoint-presentation - riktig text, punktlistor, tabeller och designsystemets tema - på några sekunder. Den snabba textbaserade vägen till en presentation; använd Design-canvasen när du vill lägga upp bilder för hand eller animera dem. Diagram och illustrationer kommer från dina andra Lolly-verktyg. Exporterar .pptx (redigerbar), samt PDF och PNG.",
+  "description": "Gör om Markdown eller en JSON-specifikation till en riktig, redigerbar PowerPoint-presentation. Exporterar .pptx (redigerbar), samt PDF och PNG.",
   "a11yLabel": "Presentation med {{_slideCount}} bilder",
   "inputs.size.label": "Bildspelets storlek",
   "inputs.size.help": "En storlek för hela presentationen - PowerPoint ger alla bilder samma storlek.",

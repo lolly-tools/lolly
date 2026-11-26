@@ -17,6 +17,7 @@
 import { pathToFileURL } from 'node:url';
 import { createHttpLifecycle, createWriteTracker } from '../../shared/http-lifecycle.mjs';
 import { createGateway } from './gateway.ts';
+import { warnIfUnpatchedNode } from '@lolly-tools/node-shell/node-patch-level';
 import { createLiveRelay } from './live-relay.ts';
 import { browserJobStatus, closeBrowser, closeWebShell } from './render.ts';
 import { createUsageBudget } from './usage-budget.ts';
@@ -52,6 +53,7 @@ export function startHttpServer(port = Number(process.env.PORT || 8790)): void {
   lifecycle.installSignalHandlers();
   lifecycle.server.listen(port, process.env.LOLLY_MCP_BIND_HOST || '127.0.0.1', () => {
     process.stderr.write(`lolly-mcp (http) on http://localhost:${port}/mcp\n`);
+    warnIfUnpatchedNode((line) => process.stderr.write(`${line}\n`));
     if (!process.env.LOLLY_WEB_BASE)
       process.stderr.write(
         '  note: LOLLY_WEB_BASE unset - Tier-B (browser) formats disabled; svg/data + resvg-png still work.\n'

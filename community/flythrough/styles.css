@@ -19,7 +19,7 @@
   position: absolute;
   inset: auto 0 12px 0;
   text-align: center;
-  font: 500 13px/1.4 SUSE, system-ui, sans-serif;
+  font: 500 13px/1.4 var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
   color: #e7eefb;
   opacity: 0.85;
   pointer-events: none;

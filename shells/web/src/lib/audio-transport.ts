@@ -24,6 +24,8 @@
  * but the ELAPSED clock keeps running throughout, because that number is always real and
  * is the one a listener is actually reading.
  */
+import { snapToGrid, seekKeyTarget } from '@lolly-tools/audio-dock/seek-grid';
+import type { DockPositionText, DockSeekGrid } from '@lolly-tools/audio-dock';
 import { icon } from './icons.ts';
 import { escape } from '../utils.ts';
 
@@ -39,6 +41,24 @@ export function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return '--:--';
   const total = Math.floor(seconds);
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}
+
+/**
+ * Where the track is, for a source the element cannot report: a generated tune plays
+ * into the element as a live stream, whose clock is not the tune's (lib/tune-preview.ts).
+ * With a source the transport reads the time from it and seeks through it; the element
+ * still plays, pauses and sets the volume.
+ */
+export interface TransportSource {
+  /** Seconds into the track and its length; null while it is not known yet. */
+  position(): { seconds: number; duration: number } | null;
+  seek(seconds: number): void;
+  /** Where a seek can land (a tune's bars, which a drag snaps to and the arrows step along). */
+  grid?(): DockSeekGrid | null;
+  /** Words for a position: the bar and part shown above the scrubber, and its spoken value. */
+  describe?(seconds: number): DockPositionText;
+  /** Called when the position changes other than by playing on (a seek, the end of the track). */
+  onChange?(listener: () => void): () => void;
 }
 
 export interface AudioTransportLabels {
@@ -70,7 +90,9 @@ export function audioTransportHtml(labels: Partial<AudioTransportLabels> = {}): 
     // reachable and operable from the keyboard like the native control it replaces.
     + `<span class="cat-tp-seek" data-tp-seek role="slider" tabindex="0"`
     + ` aria-label="${escape(l.seek)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">`
-    + `<span class="cat-tp-seek-fill" data-tp-fill></span></span>`
+    + `<span class="cat-tp-seek-fill" data-tp-fill></span><span data-tp-marks></span></span>`
+    // A generated tune's bar and part ("Bar 5 of 43 · Verse"), just above the bar.
+    + `<span class="cat-tp-pos" data-tp-pos hidden></span>`
     + `<button type="button" class="cat-tp-btn cat-tp-mute" data-tp-mute`
     + ` title="${escape(l.mute)}" aria-label="${escape(l.mute)}" aria-pressed="false">${VOLUME}</button>`
     + `<input type="range" class="cat-tp-vol" data-tp-vol min="0" max="1" step="0.01" value="1"`
@@ -95,6 +117,7 @@ export function wireAudioTransport(
   root: ParentNode,
   audioEl: HTMLAudioElement,
   labels: Partial<AudioTransportLabels> = {},
+  source?: TransportSource,
 ): AudioTransport {
   const l = { ...FALLBACK, ...labels };
   const wrap = root.querySelector<HTMLElement>('[data-transport]');
@@ -103,6 +126,8 @@ export function wireAudioTransport(
   const seek = root.querySelector<HTMLElement>('[data-tp-seek]');
   const fill = root.querySelector<HTMLElement>('[data-tp-fill]');
   const muteBtn = root.querySelector<HTMLButtonElement>('[data-tp-mute]');
+  const posEl = root.querySelector<HTMLElement>('[data-tp-pos]');
+  const marksEl = root.querySelector<HTMLElement>('[data-tp-marks]');
   const vol = root.querySelector<HTMLInputElement>('[data-tp-vol]');
   if (!wrap || !playBtn || !seek || !fill) return { refresh() {}, destroy() {} };
 
@@ -110,8 +135,29 @@ export function wireAudioTransport(
   // attribute up front would leave an unplayable element behind if the wiring bailed.
   audioEl.controls = false;
 
-  const seekable = (): boolean => Number.isFinite(audioEl.duration) && audioEl.duration > 0;
+  // The clock: the source's when there is one, else the element's.
+  const duration = (): number => (source ? source.position()?.duration ?? 0 : audioEl.duration);
+  const now = (): number => (source ? source.position()?.seconds ?? 0 : audioEl.currentTime);
+  const grid = (): DockSeekGrid | null => source?.grid?.() ?? null;
+  const seekable = (): boolean => Number.isFinite(duration()) && duration() > 0;
   let scrubbing = false;
+  /** Where a drag over a source will land; it seeks when the pointer lets go. */
+  let dragAt: number | null = null;
+  let marksDrawn: readonly number[] | undefined;
+
+  /** The part ticks in the scrubber, redrawn only when the source hands over other marks. */
+  const paintMarks = (): void => {
+    const marks = seekable() ? grid()?.marks : undefined;
+    if (!marksEl || marks === marksDrawn) return;
+    marksDrawn = marks;
+    const total = duration();
+    marksEl.replaceChildren(...(marks ?? []).filter((m) => m > 0 && m < total).map((m) => {
+      const tick = document.createElement('span');
+      tick.className = 'cat-tp-mark';
+      tick.style.left = `${((m / total) * 100).toFixed(3)}%`;
+      return tick;
+    }));
+  };
 
   const paint = (): void => {
     const playing = !audioEl.paused && !audioEl.ended;
@@ -120,7 +166,8 @@ export function wireAudioTransport(
     playBtn.title = label;
     playBtn.setAttribute('aria-label', label);
 
-    const pct = seekable() ? Math.min(100, Math.max(0, (audioEl.currentTime / audioEl.duration) * 100)) : 0;
+    const at = dragAt ?? now();
+    const pct = seekable() ? Math.min(100, Math.max(0, (at / duration()) * 100)) : 0;
     fill.style.width = `${pct}%`;
     seek.setAttribute('aria-valuenow', String(Math.round(pct)));
     seek.setAttribute('aria-disabled', String(!seekable()));
@@ -129,10 +176,16 @@ export function wireAudioTransport(
     // it loses the one number the listener actually wants. Show `0:12` and add `/ 1:30`
     // only once there is a real length; seeking stays disabled either way.
     const clock = seekable()
-      ? `${formatTime(audioEl.currentTime)} / ${formatTime(audioEl.duration)}`
-      : formatTime(audioEl.currentTime);
-    seek.setAttribute('aria-valuetext', clock);
+      ? `${formatTime(at)} / ${formatTime(duration())}`
+      : formatTime(at);
+    const words = seekable() ? source?.describe?.(at) : undefined;
+    seek.setAttribute('aria-valuetext', words?.spoken ?? clock);
     if (timeEl) timeEl.textContent = clock;
+    if (posEl) {
+      posEl.textContent = words?.label ?? '';
+      posEl.hidden = !words?.label;
+    }
+    paintMarks();
 
     const muted = audioEl.muted || audioEl.volume === 0;
     if (muteBtn) {
@@ -146,11 +199,21 @@ export function wireAudioTransport(
     if (vol && document.activeElement !== vol) vol.value = String(audioEl.muted ? 0 : audioEl.volume);
   };
 
+  /** Go to `seconds`: through the source, on its grid, or on the element. */
+  const seekTo = (seconds: number): void => {
+    if (source) source.seek(snapToGrid(seconds, grid(), duration()));
+    else audioEl.currentTime = Math.min(audioEl.duration, Math.max(0, seconds));
+    paint();
+  };
+
   const seekToClientX = (clientX: number): void => {
     if (!seekable()) return;
     const r = seek.getBoundingClientRect();
     if (r.width <= 0) return;
     const ratio = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+    // A source (a generated tune) starts again wherever it seeks, so a drag shows where it
+    // will land, snapped to the grid, and seeks once when the pointer lets go.
+    if (source) { dragAt = snapToGrid(ratio * duration(), grid(), duration()); paint(); return; }
     audioEl.currentTime = ratio * audioEl.duration;
     paint();
   };
@@ -168,10 +231,24 @@ export function wireAudioTransport(
     if (!scrubbing) return;
     scrubbing = false;
     try { seek.releasePointerCapture(e.pointerId); } catch { /* already gone */ }
+    const landing = dragAt;
+    dragAt = null;
+    if (landing !== null && e.type === 'pointerup') seekTo(landing);
+    else paint();
   };
 
   const onKey = (e: KeyboardEvent): void => {
     if (!seekable()) return;
+    // A source steps along its grid: the arrows a bar, Page Up and Page Down a part, the
+    // rules the Neurospicy player's scrub keeps (packages/audio-dock seek-grid).
+    if (source) {
+      const to = seekKeyTarget(e.key, now(), grid(), duration());
+      if (to === null) return;
+      e.preventDefault();
+      e.stopPropagation();   // the arrows are the slider's, not a page turn in the sheet around it
+      seekTo(to);
+      return;
+    }
     const step = e.key === 'PageUp' || e.key === 'PageDown' ? 30 : 5;
     let delta = 0;
     if (e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'PageUp') delta = step;
@@ -180,6 +257,7 @@ export function wireAudioTransport(
     else if (e.key === 'End') { e.preventDefault(); audioEl.currentTime = audioEl.duration; paint(); return; }
     else return;
     e.preventDefault();
+    e.stopPropagation();
     audioEl.currentTime = Math.min(audioEl.duration, Math.max(0, audioEl.currentTime + delta));
     paint();
   };
@@ -215,6 +293,7 @@ export function wireAudioTransport(
   const EVENTS = ['play', 'pause', 'ended', 'timeupdate', 'durationchange',
     'loadedmetadata', 'volumechange', 'emptied'] as const;
   for (const ev of EVENTS) audioEl.addEventListener(ev, paint);
+  const unsubscribe = source?.onChange?.(paint);
 
   paint();
 
@@ -230,6 +309,7 @@ export function wireAudioTransport(
       seek.removeEventListener('pointercancel', onPointerUp);
       seek.removeEventListener('keydown', onKey);
       for (const ev of EVENTS) audioEl.removeEventListener(ev, paint);
+      unsubscribe?.();
     },
   };
 }

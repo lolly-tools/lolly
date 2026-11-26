@@ -1,6 +1,6 @@
 {
   "name": "Bitişler",
-  "description": "Sanat çalışmanızda folyo, spot UV, kabartma ve yumuşak dokunuş bitişlerini önizleyin - ardından baskıya hazır spot plakayı dışa aktarın. Ekrandaki parlaklık yalnızca sunum amaçlıdır; plaka, matbaanızın ihtiyaç duyduğu gerçek teslim edilebilir üründür.",
+  "description": "Sanat çalışmanda folyo, spot UV, kabartma ve yumuşak dokunuş bitişlerini önizle, ardından spot plakayı dışa aktar. Ekrandaki parlaklık yalnızca sunum amaçlıdır.",
   "a11yLabel": "Simüle edilmiş bir baskı kaplamalı çalışma, veya kalıp görünümünde baskıya hazır kalıp",
   "inputs.image.label": "Çalışma",
   "inputs.image.help": "Çalışmanızı seçin veya kendi görselinizi yükleyin. Cihazınızda işlenir, pikseller tarayıcıdan asla çıkmaz.",

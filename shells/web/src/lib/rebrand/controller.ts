@@ -1905,7 +1905,7 @@ export function createRebrandController(deps: RebrandControllerDepsV1): RebrandC
     return {
       census,
       source,
-      system: { colors: input.colors, ...(input.darkColors ? { darkColors: input.darkColors } : {}), master: input.master },
+      system: { colors: input.colors, ...(input.darkColors ? { darkColors: input.darkColors } : {}), ...(input.themeAccents?.length ? { themeAccents: input.themeAccents } : {}), master: input.master },
       ...(look ? { look } : {}),
       ...(locked ? { locked: true } : {}),
     };

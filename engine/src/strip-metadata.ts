@@ -9,6 +9,8 @@
 // typed one serves the shells directly (see file-metadata.ts for the read-side
 // counterpart, which documents the same duplication). PDF is deliberately NOT
 // handled here: it needs a real PDF library (host.pdf.strip in the shells).
+// Audio (M4A/MP4, WAV, MP3, FLAC, Ogg Opus) is handled by strip-audio.ts, which
+// stripMetadata() calls for those formats under the same fail-closed contract.
 //
 // A format this module cannot confidently parse is returned untouched rather
 // than risk corrupting it. But "untouched" is only ever returned when there is
@@ -37,13 +39,16 @@
 
 import { concatBytes } from './bytes.ts';
 import { readMpfIndex } from './file-metadata.ts';
+import { AUDIO_STRIP_FORMATS, audioMetadataResidual, stripAudioMetadata, type AudioStripFormat } from './strip-audio.ts';
 
-export type StripFormat = 'jpeg' | 'png' | 'svg';
+export type StripFormat = 'jpeg' | 'png' | 'svg' | AudioStripFormat;
 
 /** Formats this module (or the shell's host.pdf.strip) can produce a clean copy of. */
-const STRIPPABLE = new Set(['JPEG', 'PNG', 'SVG', 'PDF']);
+const STRIPPABLE = new Set(['JPEG', 'PNG', 'SVG', 'PDF', 'MP4', 'WAV', 'MP3', 'FLAC', 'OGG']);
 
-/** True when `format` (as reported by extractFileMetadata / a C2PA sniff, e.g. "JPEG", "PDF") can be cleaned: directly by stripMetadata() for jpeg/png/svg, or via host.pdf.strip() for pdf. */
+const isAudio = (format: string): format is AudioStripFormat => (AUDIO_STRIP_FORMATS as readonly string[]).includes(format);
+
+/** True when `format` (as reported by extractFileMetadata / a C2PA sniff, e.g. "JPEG", "PDF", "WAV") can be cleaned: directly by stripMetadata() for jpeg/png/svg and the audio formats (MP4 covers M4A), or via host.pdf.strip() for pdf. */
 export function isStrippableFormat(format: string | null | undefined): boolean {
   return !!format && STRIPPABLE.has(format.toUpperCase());
 }
@@ -351,6 +356,7 @@ function stripSvg(bytes: Uint8Array): Uint8Array {
  * the read-side's concern, not something stripMetadata claims to remove).
  */
 export function hasResidualMetadata(bytes: Uint8Array, format: StripFormat): string | null {
+  if (isAudio(format)) return audioMetadataResidual(bytes, format);
   if (format === 'jpeg') {
     for (const s of scanJpeg(bytes) ?? []) {
       if (s.sos) break; // reached the scan/entropy data, no metadata beyond here
@@ -392,10 +398,12 @@ export function hasResidualMetadata(bytes: Uint8Array, format: StripFormat): str
 }
 
 /**
- * Produce a lossless clean copy of `bytes` for a supported raster/vector format.
- * The image content (pixels or paint commands) is preserved byte-for-byte;
- * only metadata (EXIF/XMP/ICC/IPTC/comments/editor cruft) is removed. PDF is
- * not handled here: clean it via the shell's `host.pdf.strip()`.
+ * Produce a lossless clean copy of `bytes` for a supported raster, vector or audio
+ * format. The image content (pixels or paint commands) or audio data is preserved
+ * byte-for-byte; only metadata (EXIF/XMP/ICC/IPTC/comments/editor cruft, audio
+ * tags and Content Credentials) is removed. PDF is not handled here: clean it via
+ * the shell's `host.pdf.strip()`. Audio formats are handled by stripAudioMetadata
+ * (strip-audio.ts).
  *
  * ONE deliberate exception to "image content preserved": a multi-picture JPEG
  * (HDR gain map, MPO) loses every image after the primary along with the MPF
@@ -410,6 +418,8 @@ export function hasResidualMetadata(bytes: Uint8Array, format: StripFormat): str
  * this module can't confidently parse) verifies clean and is returned untouched.
  */
 export function stripMetadata(bytes: Uint8Array, format: StripFormat): Uint8Array {
+  // Audio has its own verify-after-strip, which also checks the audio bytes are unchanged.
+  if (isAudio(format)) return stripAudioMetadata(bytes, format);
   let out: Uint8Array;
   if (format === 'jpeg') out = stripJpeg(bytes);
   else if (format === 'png') out = stripPng(bytes);

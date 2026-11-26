@@ -66,14 +66,31 @@
 .view-loading-mark .lolly-mark__spin-1 { animation: view-loading-spin 2.4s linear infinite; }
 .view-loading-mark .lolly-mark__spin-2 { animation: view-loading-spin 4.6s linear infinite reverse; }
 .view-loading-mark .lolly-mark__spin-3 { animation: view-loading-spin 7s linear infinite; }
+/* The mark carries both shadings and the theme shows one (components.css). The hidden
+   one must not spin: an animation on a display:none ring has nothing to draw, so the
+   browser cannot run it on the compositor and ran it on the main thread instead, a
+   style pass for the whole page on every frame while the card was up. The shown rings
+   spin on the compositor and keep turning while the main thread is busy. */
+:root:not([data-theme="dark"], [data-theme="brand"]) .view-loading-mark .lolly-mark__reverse :is(.lolly-mark__spin-1, .lolly-mark__spin-2, .lolly-mark__spin-3),
+:is([data-theme="dark"], [data-theme="brand"]) .view-loading-mark .lolly-mark__primary :is(.lolly-mark__spin-1, .lolly-mark__spin-2, .lolly-mark__spin-3) { animation: none; }
+/* A tool open shows the card on the plain ground the view it left gives way to: there
+   is nothing behind it to dim, and a dimmed ground would brighten at once as the tool
+   arrives. The card keeps its own shadow. It shows in the same frame the view leaves,
+   so it must be visible from that frame: its entrance starts half opaque and only
+   eases in, where the ordinary entrance starts from nothing and left a bare ground. */
+.view-loading--plain::backdrop { background: transparent; }
+.view-loading.view-loading--plain { animation: view-loading-plain-in calc(var(--dur-1) * 2 / 3) var(--ease-out); }
+@keyframes view-loading-plain-in { from { opacity: .5; } }
 @keyframes view-loading-spin { to { transform: rotate(360deg); } }
 @keyframes view-loading-in { from { opacity: 0; transform: translateY(6px) scale(.97); } }
 @media (prefers-reduced-motion: reduce) {
+  .view-loading.view-loading--plain,
   .view-loading,
   .view-loading-mark .lolly-mark__spin-1,
   .view-loading-mark .lolly-mark__spin-2,
   .view-loading-mark .lolly-mark__spin-3 { animation: none; }
 }
+html[data-a11y-motion="reduce"] .view-loading.view-loading--plain,
 html[data-a11y-motion="reduce"] .view-loading,
 html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-1,
 html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-2,
@@ -97,6 +114,9 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 }
 .open-progress-thumb img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
 .open-progress .modal-title { overflow-wrap: anywhere; }
+/* The title holds focus when the card appears (so a stray Space or Enter presses
+   nothing); it is not a control, so it draws no focus ring. */
+.open-progress .modal-title:focus { outline: none; }
 /* The step on the left, the story count on the right: the count changes per story and
    is not in the live region, so it sits beside the step rather than inside it. */
 .open-progress-status { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); margin: 0 0 var(--sp-5); }
@@ -195,11 +215,6 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   padding: 16px 20px; border-bottom: 1px solid hsl(var(--border));
 }
 .save-dialog-head h2 { margin: 0; flex: 1 1 auto; font-size: var(--fs-xl); font-weight: 700; }
-.save-dialog-close {
-  flex: none; width: 30px; height: 30px; border: 0; border-radius: var(--radius);
-  background: none; color: hsl(var(--muted-foreground)); font-size: 22px; line-height: 1; cursor: pointer;
-}
-.save-dialog-close:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 
 .save-dialog-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
 
@@ -264,9 +279,6 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   font-size: calc(12.5px * var(--a11y-fs)); font-weight: 600;
   color: hsl(var(--muted-foreground)); padding: 2px 2px;
 }
-.save-more > summary::-webkit-details-marker { display: none; }
-.save-more > summary::before { content: '▸'; display: inline-block; margin-right: 6px; transition: transform var(--dur-1); }
-.save-more[open] > summary::before { transform: rotate(90deg); }
 .save-more > summary:hover, .save-more > summary:focus-visible { color: hsl(var(--foreground)); outline: none; }
 
 .save-dialog-foot {
@@ -277,7 +289,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 .save-dialog-foot span { flex: 1 1 200px; line-height: 1.4; }
 .save-link {
   flex: none; border: 0; background: none; padding: 0; cursor: pointer;
-  color: hsl(var(--primary)); font: inherit; font-size: var(--fs-sm); font-weight: 600;
+  color: hsl(var(--primary-text)); font: inherit; font-size: var(--fs-sm); font-weight: 600;
 }
 .save-link:hover { text-decoration: underline; }
 
@@ -382,7 +394,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   /* A soft accent TAG, not a solid primary-fill button (that fill pair is buttons.css's
      alone - see the R2 primitive guard); a translucent tint reads better here anyway. */
   background: hsl(var(--primary) / 0.16);
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   font-size: var(--fs-2xs);
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -468,7 +480,7 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   font-size: var(--fs-sm);
   font-weight: 400;
   font-style:italic;
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
 }
 /* Each label carries `.field-toggle` and each box `.field-check` - the row's
    flex/centre/gap/cursor and the tick's whole appearance live there now. */
@@ -729,6 +741,33 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   color: hsl(var(--muted-foreground));
 }
 .tool-guide-actions { display: flex; justify-content: flex-end; }
+/* "Read the guide" (plan 354 D6): the docs pages and sections mapped to the tool, under
+   the steps or on their own. Each row is a link: the section's name, then its page. */
+.tool-guide-docs { display: flex; flex-direction: column; gap: var(--sp-2); }
+.tool-guide-docs-title {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+.tool-guide-docs-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--sp-1); }
+.tool-guide-doc {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-height: var(--ui-size-target);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius);
+  color: hsl(var(--foreground));
+  text-decoration: none;
+  transition: background var(--dur-1);
+}
+.tool-guide-doc:hover { background: hsl(var(--accent)); }
+.tool-guide-doc:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+.tool-guide-doc-icon { flex: none; width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); margin-top: 2px; color: hsl(var(--muted-foreground)); }
+.tool-guide-doc-text { display: flex; flex-direction: column; min-width: 0; }
+.tool-guide-doc-title { font-size: var(--fs-md); font-weight: 600; line-height: 1.4; }
+.tool-guide-doc-page { font-size: var(--fs-sm); line-height: 1.4; color: hsl(var(--muted-foreground)); }
 
 /* Device picker (plans/162) - a mountModal adapter: camera / mic radio lists. */
 .devpick-body { display: flex; flex-direction: column; gap: 14px; margin: 8px 0 4px; }
@@ -758,3 +797,29 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 /* The notice a tab shows when another tab's "Clear all my data" stops it
    (lib/clear-elsewhere.ts): nothing sits below the message, so no gap for actions. */
 .clear-elsewhere .modal-msg { margin-bottom: 0; }
+
+/* ─── The Neurospicy player's share card (components/neuro-share-card.ts) ────
+   The plain .modal card: the track, a choice between this tune and this moment
+   (a choice that cannot travel is greyed with its reason), the link it will
+   share, and Copy (plus the device's share sheet where there is one). */
+.neuro-share { width: min(420px, 92vw); }
+.neuro-share .modal-title:focus { outline: none; }
+.neuro-share-track { margin: 0 0 var(--sp-4); font-size: var(--fs-md); color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
+.neuro-share-choices { display: grid; gap: var(--sp-2); margin: 0 0 var(--sp-4); padding: 0; border: 0; }
+.neuro-share-legend { padding: 0; margin: 0 0 var(--sp-2); font-size: var(--fs-sm); font-weight: 600; }
+.neuro-share-choice {
+  display: flex; align-items: flex-start; gap: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-control);
+  cursor: pointer;
+}
+.neuro-share-choice:has(input:checked) { background: color-mix(in srgb, var(--ui-color-action-primary) 10%, transparent); }
+.neuro-share-choice.is-unavailable { cursor: default; opacity: 0.6; }
+.neuro-share-choice input { margin: 3px 0 0; accent-color: var(--ui-color-action-primary); }
+.neuro-share-choice-text { display: grid; gap: 2px; }
+.neuro-share-choice-label { font-weight: 600; }
+.neuro-share-choice-detail { font-size: var(--fs-sm); line-height: 1.45; color: var(--ui-color-text-muted); }
+.neuro-share-link { width: 100%; font-size: var(--fs-sm); }
+.neuro-share-status { min-height: 1.4em; margin: var(--sp-2) 0 0; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.neuro-share-reason { margin: 0 0 var(--sp-4); line-height: 1.5; }

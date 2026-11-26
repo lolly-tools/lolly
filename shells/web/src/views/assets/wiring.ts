@@ -23,7 +23,7 @@ import { exportSwatches, paletteEntriesToSwatches } from '../../lib/swatch-expor
 import type { SwatchExportFormat } from '../../lib/swatch-export.ts';
 import { staggerReveal } from '../../lib/reveal.ts';
 import { restyleIconTheme, treatmentFilterSvg } from '@lolly/engine';
-import { CAT_ICONS, isThemable, setCatToggle, svgTextToDataUrl } from './shared.ts';
+import { CAT_ICONS, applyAssetGround, iconThemeById, iconThemeForGround, isThemable, readAssetGround, setCatToggle, svgTextToDataUrl, writeAssetGround } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 import { findFacetOption, withProviderFacet } from '../assets-provider.ts';
 
@@ -33,7 +33,7 @@ import { findFacetOption, withProviderFacet } from '../assets-provider.ts';
 // flipping between colours never re-fetches. Best-effort per tile - a failure leaves it.
 export async function retheemeGroup(cat: CatCtx, group: HTMLElement, themeId: string | null): Promise<void> {
   const { iconSvgCache } = cat;
-  const th = themeId ? cat.iconThemes.find(x => x.id === themeId) : null;
+  const th = iconThemeById(cat, themeId) ?? null;
   group.dataset.iconTheme = themeId ?? '';
   // Recolour every icon in the group concurrently. The old serial `for…await`
   // did up to ~111 network round-trips one after another on the first colour
@@ -43,8 +43,6 @@ export async function retheemeGroup(cat: CatCtx, group: HTMLElement, themeId: st
     const ref = id ? cat.assetById.get(id) : null;
     const img = tile.querySelector<HTMLImageElement>('.cat-thumb');
     if (!ref || !img || !isThemable(ref)) return;
-    // A pairing whose light colours need a dark ground gives that ground as previewBg.
-    if (img.closest('.cat-tile-fig--duo')) img.style.backgroundColor = th?.previewBg ?? '';
     if (!th) { img.src = ref.url; return; }   // back to base
     try {
       let base = iconSvgCache.get(id!);
@@ -53,6 +51,49 @@ export async function retheemeGroup(cat: CatCtx, group: HTMLElement, themeId: st
       img.src = svgTextToDataUrl(restyleIconTheme(base, th) || base);
     } catch { /* leave this tile on its current art */ }
   }));
+}
+// Put the grid, an open details sheet and every Dark ground switch on the current ground:
+// after the switch is pressed, and when the app's theme changes under the view.
+export function syncAssetGround(cat: CatCtx): void {
+  const { viewEl } = cat;
+  applyAssetGround(viewEl.querySelector('.catalog'));
+  applyAssetGround(cat.detailsDialog);
+  const dark = readAssetGround() === 'dark';
+  const switches = [...viewEl.querySelectorAll<HTMLElement>('.cat-ground'), ...(cat.detailsDialog?.querySelectorAll<HTMLElement>('.cat-ground') ?? [])];
+  for (const btn of switches) {
+    btn.classList.toggle('is-on', dark);
+    btn.setAttribute('aria-pressed', String(dark));
+  }
+  void syncIconPairs(cat);
+}
+// The icon colours follow the ground (views/assets/shared.ts iconThemeForGround). After
+// the ground changes, every swatch in the view and in an open details sheet takes its
+// colourway's pairing for the new ground, and each group that has a pair chosen is drawn
+// in that colourway's pairing for the new ground. All in place, so scroll is kept.
+export async function syncIconPairs(cat: CatCtx): Promise<void> {
+  const { host, viewEl } = cat;
+  const ground = readAssetGround();
+  if (cat.iconThemeGround === ground || !cat.iconThemes.length || typeof host.assets._iconThemes !== 'function') return;
+  const themes = await host.assets._iconThemes(undefined, ground).catch(() => null);
+  // A second press while the read was out: the later call has the ground now.
+  if (!themes?.length || !cat.mounted || readAssetGround() !== ground || cat.iconThemeGround === ground) return;
+  cat.iconThemes = themes;
+  cat.iconThemeGround = ground;
+  cat.catIconTheme = iconThemeForGround(cat.catIconTheme, ground);
+  for (const root of [viewEl, cat.detailsDialog]) {
+    for (const btn of root?.querySelectorAll<HTMLElement>('.cat-dl-theme:not(.cat-dl-treat)') ?? []) {
+      const th = iconThemeById(cat, btn.dataset.theme);
+      if (!th) continue;
+      btn.dataset.theme = th.id;
+      const [base, accent] = btn.querySelectorAll<HTMLElement>('.cat-dl-duo i');
+      if (base) base.style.background = th.c2;
+      if (accent) accent.style.background = th.c1;
+    }
+  }
+  for (const group of viewEl.querySelectorAll<HTMLElement>('.cat-group')) {
+    const chosen = iconThemeForGround(group.dataset.iconTheme, ground);
+    if (chosen) void retheemeGroup(cat, group, chosen);
+  }
 }
 // Inject the treatment <filter> defs once (a hidden 0×0 SVG in the view root) so the
 // grid can preview a wash with a live CSS `filter: url(#…)` - no re-encode, and
@@ -221,7 +262,7 @@ export function wire(cat: CatCtx): void {
     const catSw = target.closest<HTMLElement>('.cat-dl-theme');
     const catGroup = catSw?.closest<HTMLElement>('.cat-group');
     if (catSw && catGroup) {
-      cat.catIconTheme = catSw.dataset.theme ?? null;
+      cat.catIconTheme = catSw.dataset.theme || null;   // "Original" is the empty id
       catGroup.querySelectorAll<HTMLElement>('.cat-dl-theme').forEach(b => {
         const on = b === catSw; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', String(on));
       });
@@ -262,6 +303,13 @@ export function wire(cat: CatCtx): void {
     // Collapse-all / Expand-all - fold or unfold every section in place (no re-render,
     // so scroll is kept). Checked BEFORE .cat-showhidden since it reuses that button
     // style. If anything is open we collapse all; once all are folded we expand all.
+    // Dark ground: flip the checkerboard behind every asset. Checked before
+    // .cat-showhidden, whose button style it shares.
+    if (target.closest('.cat-ground')) {
+      writeAssetGround(readAssetGround() === 'dark' ? 'light' : 'dark');
+      syncAssetGround(cat);
+      return;
+    }
     const collapseAll = target.closest<HTMLElement>('.cat-collapse-all');
     if (collapseAll) {
       const groups = [...body.querySelectorAll<HTMLElement>('.cat-group')];
@@ -300,6 +348,13 @@ export function wire(cat: CatCtx): void {
       const next = body.querySelector<HTMLElement>('[data-swatch-reveal]');
       if (next && hiding) window.scrollBy(0, next.getBoundingClientRect().top - top);
       if (e.detail === 0) next?.focus({ preventScroll: true });
+      return;
+    }
+
+    if (target.closest('.cat-allsystems')) {
+      cat.allSystems = !cat.allSystems;
+      updateRouteParams({ systems: cat.allSystems ? 'all' : null });
+      void cat.tiles.reload().then(() => { if (cat.mounted) cat.sections.rerender(); });
       return;
     }
 
@@ -448,6 +503,8 @@ export const onTileDragStart = (_cat: CatCtx, e: DragEvent): void => {
 export function wiringOps(cat: CatCtx) {
   return {
     retheemeGroup: bindOp(cat, retheemeGroup),
+    syncAssetGround: bindOp(cat, syncAssetGround),
+    syncIconPairs: bindOp(cat, syncIconPairs),
     ensureTreatmentDefs: bindOp(cat, ensureTreatmentDefs),
     retreatGroup: bindOp(cat, retreatGroup),
     reapplyTreatment: bindOp(cat, reapplyTreatment),

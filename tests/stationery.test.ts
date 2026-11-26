@@ -175,7 +175,7 @@ test('a declared brand logo replaces the wordmark and follows the surface', { sk
   const html = rt.getHydrated() as string;
   assert.ok(!html.includes('st-wordmark'));
   assert.ok(html.includes('src="asset:brand/logo/wide"'));
-  assert.equal(resolved[0], '{asset.logo.horizontal-primary}');
+  assert.equal(resolved.find(ref => ref.startsWith('{asset.logo.')), '{asset.logo.horizontal-primary}');
   const dark = await createRuntime(tool, host, { piece: 'business-card-back', accent: '#14181b' });
   assert.equal(dark.getHydratedString('{{logoUrl}}'), 'asset:brand/logo/reverse');
   // The back asks for the one-colour lockup first: a full-colour mark can vanish
@@ -238,12 +238,12 @@ test('a brand colour that carries alpha keeps its hue', { skip: SKIP }, async ()
       })[ref],
     }),
   };
-  const rt = await createRuntime(tool, baseHost({ tokens }), { piece: 'business-card-front' });
+  const rt = await createRuntime(tool, baseHost({ tokens }), { piece: 'business-card-front', ground: 'surface' });
   rt.getHydrated();
   assert.equal(rt.getHydratedString('{{inkColor}}'), '#1a1a1a');
   assert.equal(rt.getHydratedString('{{paperColor}}'), '#fffdf7');
   // An 8-digit value typed straight into the input takes the same road.
-  const direct = await mount({ piece: 'business-card-front', color: '#AABBCCDD' });
+  const direct = await mount({ piece: 'business-card-front', color: '#AABBCCDD', ground: 'surface', background: '#111111' });
   assert.equal(direct.rt.getHydratedString('{{inkColor}}'), '#aabbcc');
 });
 

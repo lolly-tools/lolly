@@ -34,6 +34,7 @@ import { mapTextFontAssets } from '../../../../engine/src/text-assets.ts';
 import { assetDependency, encodeAssetVersion } from '../../../../engine/src/asset-version.ts';
 import { ensureSceneManifest } from '../bridge/asset-dependencies.ts';
 import { base64ToBytes, bytesToBin } from '../../../../engine/src/bytes.ts';
+import { packCreditsText, type PackCreditEntry, type PackHoldEntry } from '../../../../engine/src/asset-rights.ts';
 import { resolveSessionUserAsset, rebaseImportedAssetPins } from './session-asset-versions.ts';
 import { prepareLollyEmoji } from './lolly-emoji.ts';
 import { zipAsync } from './zip.ts';
@@ -236,6 +237,8 @@ export interface LollyAssetEntry {
   licensed?: boolean;
   /** Why the bytes were held back, in plain words (plan 253). */
   holdReason?: string;
+  /** The bytes travelled with no licence recorded; the reason in words. */
+  unrecorded?: string;
   /** Whether a deployment rule or a licence condition held the bytes back. */
   holdKind?: 'policy' | 'licence' | 'unknown';
   /** The canonical licence name, when one was recorded. */
@@ -402,33 +405,6 @@ export interface LollyProjectContents {
   sessions: Array<LollyProjectSessionEntry & { data: Record<string, unknown>; thumbUrl: string | null }>;
 }
 
-/** One catalog work whose bytes travelled inside the pack. */
-export interface PackCreditEntry {
-  label: string;
-  id: string;
-  path: string;
-  licence?: string;
-  credit?: string;
-  notices?: string[];
-  /** True when the sender chose to include bytes that were held back by default. */
-  includedByChoice?: true;
-}
-
-/** One catalog work whose bytes did NOT travel, and the reason. */
-export interface PackHoldEntry {
-  label: string;
-  id: string;
-  reason: string;
-  /**
-   * Whether a deployment rule or a licence condition held the bytes back.
-   * Printed as its own line, because a catalog lock read as a licence condition
-   * would misrepresent a brand policy as an extra copyright term on open
-   * material (plan 253 section 11).
-   */
-  kind?: 'policy' | 'licence' | 'unknown';
-  licence?: string;
-}
-
 /** What `resolveLibrary` hands back for a catalog id it can supply bytes for. */
 export interface LollyLibraryAsset {
   bytes: Uint8Array | Blob;
@@ -448,6 +424,12 @@ export interface LollyLibraryAsset {
   holdReason?: string;
   /** Whether a deployment rule or a licence condition held it back. */
   holdKind?: 'policy' | 'licence' | 'unknown';
+  /**
+   * No licence is recorded, and the reason in words: the bytes travel anyway, with a
+   * warning to the sender and a line in CREDITS.txt asking whoever opens the file to
+   * check the terms (see lib/redistribution.ts packRights).
+   */
+  unrecorded?: string;
   /** The canonical licence name, when one was recorded. */
   licence?: string;
   /** The readable credit the source asks for, when one was recorded. */
@@ -468,6 +450,8 @@ export interface LollySummary {
   hasLicensed: boolean;
   /** Held-back assets left out because `includeLicensed` was false. */
   licensedExcluded: number;
+  /** Catalog works that travelled with no licence recorded, by label: the sender is told. */
+  unrecorded?: string[];
   /** True when the file carries CREDITS.txt (any catalog work was involved). */
   credits: boolean;
   /** The creator name embedded, if any (drives the "includes your name" line). */
@@ -497,6 +481,9 @@ export interface LollyBuildInput {
   resolveUser?: (id: string, version?: string) => Promise<BeamAssetRecord | null>;
   /** Resolve a catalog id's bytes for embedding, or null → it travels as a ref. */
   resolveLibrary?: (id: string) => Promise<LollyLibraryAsset | null>;
+  /** Reads the emoji packs a session names, for a caller that sends other catalog files
+   *  by reference. Only the glyphs the document uses travel. Falls back to `resolveLibrary`. */
+  resolveEmojiPack?: (id: string) => Promise<LollyLibraryAsset | null>;
   /** Carry brand-pack / licensed catalog bytes (after the licensed-content confirmation). */
   includeLicensed?: boolean;
   /** Embed the tool's own files, so the `.lolly` opens on a device that lacks it. The
@@ -632,7 +619,8 @@ function extForAsset(format: string, mime: string): string {
 function assetPath(dir: string, base: string, format: string, mime: string, taken: Set<string>): string {
   // A rondocode song is stored as its canonical JSON, the file rondocode itself
   // opens as `.rondo.json`; `.rondo` alone would claim rondo-language text.
-  const ext = (format || '').toLowerCase() === 'rondo' ? 'rondo.json' : extForAsset(format, mime);
+  const lower = (format || '').toLowerCase();
+  const ext = lower === 'rondo' ? 'rondo.json' : lower === 'lofi' ? 'lofi.json' : extForAsset(format, mime);
   let stem = (base.split(/[\\/]/).pop() ?? base);           // last segment of an id-shaped name
   const dot = stem.lastIndexOf('.');                        // drop an already-matching extension
   if (dot > 0 && stem.slice(dot + 1).toLowerCase() === ext) stem = stem.slice(0, dot);
@@ -694,6 +682,7 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
   // travelled, one per work that did not, each with the reason.
   const carried: PackCreditEntry[] = [];
   const heldBack: PackHoldEntry[] = [];
+  const unrecorded: string[] = [];
   // Full lowercased zip paths already used, so two same-named assets never collide.
   const takenPaths = new Set<string>();
 
@@ -754,12 +743,15 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
       ...(lib.credit ? { credit: lib.credit } : {}),
       ...(lib.notices?.length ? { notices: [...lib.notices] } : {}),
       ...(lib.licensed ? { includedByChoice: true as const } : {}),
+      ...(lib.unrecorded ? { unrecorded: lib.unrecorded } : {}),
     });
+    if (lib.unrecorded) unrecorded.push(lib.label ?? id);
     assets.push({
       kind: 'asset', id, source: 'library', path, bytes: bytes.length,
       label: lib.label ?? id, type: lib.type, format: lib.format, mime: lib.mime,
       ...(lib.licensed ? { licensed: true } : {}),
       ...(lib.holdReason ? { holdReason: lib.holdReason } : {}),
+      ...(lib.unrecorded ? { unrecorded: lib.unrecorded } : {}),
       ...(lib.licence ? { licence: lib.licence } : {}),
       ...(lib.credit ? { credit: lib.credit } : {}),
       ...(lib.meta ? { meta: lib.meta } : {}),
@@ -866,6 +858,7 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
     totalBytes,
     hasLicensed,
     licensedExcluded,
+    unrecorded,
     credits: Boolean(credits || input.toolCredits),
     ...(input.creator?.name ? { creatorName: input.creator.name } : {}),
     toolFiles: bundledTool?.files.length ?? 0,
@@ -1163,51 +1156,6 @@ function readRenovationPart(manifest: LollyManifest, files: Parameters<typeof re
     }
   }
   return { id: block.id.trim(), name: block.name.trim(), project, parts, assets: [...block.assets] };
-}
-
-/**
- * The pack's readable credits: every catalog work whose bytes travelled, with its
- * licence, credit and any notice the licence asks to travel, then every work that
- * was held back with the reason it was.
- *
- * It is a record, not a clearance. It says what this file carries and what it does
- * not; it does not say a use is permitted, and a work with no licence recorded
- * reads exactly that way. Returns '' when no catalog work was involved at all.
- */
-const HOLD_KIND: Record<'policy' | 'licence' | 'unknown', string> = {
-  policy: 'deployment policy',
-  licence: 'licence condition',
-  unknown: 'nothing recorded about passing these bytes on',
-};
-
-export function packCreditsText(carried: readonly PackCreditEntry[], heldBack: readonly PackHoldEntry[]): string {
-  if (!carried.length && !heldBack.length) return '';
-  const lines: string[] = ['Credits for the catalog works in this file.', ''];
-  if (carried.length) {
-    lines.push(`Travelled with this file (${carried.length}):`, '');
-    for (const entry of carried) {
-      lines.push(`- ${entry.label} (${entry.id})`);
-      lines.push(`  file:    ${entry.path}`);
-      lines.push(`  licence: ${entry.licence || 'not recorded'}`);
-      if (entry.credit) lines.push(`  credit:  ${entry.credit}`);
-      if (entry.includedByChoice) lines.push('  included by the sender, who chose to carry bytes held back by default');
-      for (const notice of entry.notices ?? []) lines.push(`  notice:  ${notice}`);
-      lines.push('');
-    }
-  }
-  if (heldBack.length) {
-    lines.push(`Held back (${heldBack.length}) - referenced, but the bytes are not in this file:`, '');
-    for (const entry of heldBack) {
-      lines.push(`- ${entry.label} (${entry.id})`);
-      lines.push(`  licence: ${entry.licence || 'not recorded'}`);
-      lines.push(`  held by: ${HOLD_KIND[entry.kind ?? 'unknown']}`);
-      lines.push(`  reason:  ${entry.reason}`);
-      lines.push('');
-    }
-    lines.push('Open the file on a device that already has these works, or ask the sender.', '');
-  }
-  lines.push('Keep this file with the design when you pass it on.');
-  return lines.join('\n');
 }
 
 /** Binary tool files store verbatim; text (tool.json/template/hooks/css/i18n) deflates. */

@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "compress-pdf",
-  "toolVersion": "1.0.1",
-  "toolVersionRange": "1.0.1",
+  "toolVersion": "1.0.2",
+  "toolVersionRange": "1.0.2",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,7 +10,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "17bb27b4303a40a2659d106a20d4583ed6eb7be87d326b20a3dc8809a5a687c5",
+      "sha256": "f6fea3cb0effa7615c7788a7ddf7b72750baa7cc6fd6ec0c74ec858e283d08df",
       "bytes": 1583
     },
     "reference/inputs.json": {

@@ -1,5 +1,5 @@
 {
   "name": "Filtr",
-  "description": "Jeden nástroj pro fotoefekty: vyber si polotónový rastr, scanline, posterizaci, voronoi, dither nebo ASCII art (vektor), nebo duotón, pixel-stretch, misprint či glitch (rastr). Překryvy podle design systému, živá kamera a export do tolika formátů, kolik daný efekt podporuje.",
+  "description": "Fotoefekty: polotónový rastr, scanline, posterizace, voronoi, dither nebo ASCII art (vektor), nebo duotón, pixel-stretch, chybný tisk či glitch (rastr).",
   "featured.blurb": "Deset fotoefektů, vektorových i rastrových, v jednom nástroji"
 }

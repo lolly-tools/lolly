@@ -13,7 +13,7 @@ import { booleanBoxes, boxOutlineKind, simplifyBoxes } from '../vector-ops.ts';
 import type { BooleanOpName } from '../vector-ops.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { InputValue } from '../../../../../engine/src/inputs.ts';
-import { positionEditorPopover } from '../free-canvas-popover.ts';
+import { mountEditorPanel, placeAtPoint, placeEditorPanel, placePanelBeside, positionEditorPopover, stageFoot } from '../free-canvas-popover.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
@@ -485,6 +485,12 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
       'Drop a Figma <b>.fig</b> / SVG, a Penpot <b>.penpot</b>, a Photoshop <b>.psd</b> or <b>.psb</b>, an Illustrator <b>.ai</b> or <b>.pdf</b>, a PowerPoint <b>.pptx</b>, or an InDesign <b>.idml</b> (File → Export → InDesign Markup). For a Premiere-compatible <b>.xml</b> or XML + media ZIP, choose Replace the board. (For editable text from a Figma <b>SVG</b>, uncheck “Outline text” on export.)'
     ) +
     '</p>' +
+    // A Markdown deck is words, not a drawing: it comes in as slides laid out by the
+    // design system's own layouts (slide-masters.ts slidesFromMarkdown), whatever the
+    // choice below says.
+    (importArtboardCapable
+      ? `<p class="fc-import-hint">${t('A Markdown <b>.md</b> deck comes in as slides, after what is on the canvas.')}</p>`
+      : '') +
     // The per-import choice (plans/104 section 337, widened 2026-09-02): one page onto
     // the board, every page as an artboard, or every frame as a timed scene. Each
     // option is present only where the tool can honour it; a tool with neither
@@ -509,11 +515,19 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
     '<input type="checkbox" class="field-check" checked><span></span></label>' +
     '<div class="fc-import-status" role="status" aria-live="polite"></div>';
   panel.addEventListener('pointerdown', (e) => e.stopPropagation());
-  stageEl.appendChild(panel);
+  mountEditorPanel(panel, anchor, stageEl);
+  // Beside its trigger and kept above the phone layout's bottom bar, the size panel's
+  // placement: a More menu at the foot of the screen used to open this below the screen.
   const ar = anchor.getBoundingClientRect();
   const sr = stageEl.getBoundingClientRect();
-  panel.style.left = Math.min(ar.right - sr.left + 8, sr.width - 272) + 'px';
-  panel.style.top = Math.max(6, ar.top - sr.top) + 'px';
+  const at = placePanelBeside(
+    { right: ar.right - sr.left, top: ar.top - sr.top },
+    { w: panel.offsetWidth, h: panel.offsetHeight },
+    { w: sr.width },
+    stageFoot(stageEl, sr)
+  );
+  placeEditorPanel(panel, stageEl, at);
+  if (at.maxHeight != null) panel.style.maxHeight = `${at.maxHeight}px`;
   fc.popover = panel;
 
   const status = panel.querySelector<HTMLElement>('.fc-import-status')!;
@@ -536,7 +550,7 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
   const fileEl = document.createElement('input');
   fileEl.type = 'file';
   fileEl.accept =
-    '.fig,.svg,.penpot,.zip,.psd,.psb,.ai,.pdf,.pptx,.idml,.indd,.af,.afdesign,.afphoto,.afpub,.aftemplate,.dxf,.xml,.fcpxml,.otio,.edl,.json,image/svg+xml,application/zip,application/pdf,application/illustrator,application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    '.md,.markdown,text/markdown,.fig,.svg,.penpot,.zip,.psd,.psb,.ai,.pdf,.pptx,.idml,.indd,.af,.afdesign,.afphoto,.afpub,.aftemplate,.dxf,.xml,.fcpxml,.otio,.edl,.json,image/svg+xml,application/zip,application/pdf,application/illustrator,application/vnd.openxmlformats-officedocument.presentationml.presentation';
   fileEl.style.display = 'none';
   panel.appendChild(fileEl);
   chooseBtn.addEventListener('click', (e) => {
@@ -560,7 +574,15 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
     tplBox.checked = true;
     chooseBtn.disabled = true;
     try {
-      if (importMode === 'scenes') {
+      if (importArtboardCapable && /\.(md|markdown)$/i.test(f.name)) {
+        const made = await fc.slideMasters.slidesFromMarkdown(await f.text());
+        if (!made) throw new Error(t('This design system has no slide layouts, so a Markdown deck cannot be laid out.'));
+        if (!made.slides) throw new Error(t('No slides were found in this file.'));
+        status.classList.add('is-ok');
+        status.textContent = [made.slides === 1 ? t('Added 1 slide.') : t('Added {n} slides.', { n: made.slides }), ...made.notes].join(' ');
+        // The panel closes in a moment; what did not come across stays on the stage.
+        if (made.notes.length) fc.stage.flash(made.notes.join(' '));
+      } else if (importMode === 'scenes') {
         // The user chose "As timed scenes": frames become timed scenes (importAsScenes above).
         const n = await importAsScenes(fc, f, (m: string) => {
           status.textContent = m;
@@ -1260,12 +1282,8 @@ export function openContextMenu(fc: FcCtx, clientX: number, clientY: number): vo
   fc.toolbox.fillPopover(fc.popover, items);
   fc.popover.addEventListener('pointerdown', (e) => e.stopPropagation());
   fc.popover.addEventListener('keydown', fc.menus.onPopoverKey);
-  stageEl.appendChild(fc.popover);
-  const sr = stageEl.getBoundingClientRect();
-  const left = Math.max(6, Math.min(clientX - sr.left, sr.width - fc.popover.offsetWidth - 6));
-  const top = Math.max(6, Math.min(clientY - sr.top, sr.height - fc.popover.offsetHeight - 6));
-  fc.popover.style.left = left + 'px';
-  fc.popover.style.top = top + 'px';
+  mountEditorPanel(fc.popover, null, stageEl);
+  placeAtPoint(fc.popover, stageEl, clientX, clientY);
 }
 // Open the menu at a point, selecting whatever is under it first (a right-click on an
 // unselected box acts on THAT box, not on the stale selection). Shared by the desktop
@@ -1299,6 +1317,15 @@ export function onContextMenu(fc: FcCtx, e: MouseEvent): void {
 }
 export function openAddMenu(fc: FcCtx, anchor: HTMLElement): void {
   const { ADD_KIND_ICON, addKinds } = fc;
+  // The compact layout hides the tool rail, so the rail's drawing tools are offered here.
+  // A menu row is one word and the rail's own glyph. The rail's tooltip also lists a
+  // shortcut and a hold gesture, and neither exists on a phone.
+  const drawingItems: PopItem[] = fc.stageEl.dataset.designLayout === 'compact' && fc.cv.pathField ? [
+    { sep: true },
+    { label: t('Line'), icon: icon(SVG.line), key: 'line', run: () => fc.modes.setMode('line') },
+    { label: t('Pen'), icon: icon(SVG.pen), key: 'pen', run: () => fc.modes.setMode('pen') },
+    { label: t('Pencil'), icon: icon(SVG.freehand), key: 'pencil', run: () => fc.modes.setMode('pencil') },
+  ] : [];
   spawnPopover(fc, 
     anchor,
     [...addKinds.filter(k => !fc.timeCfg || k.id !== 'camera').flatMap((k) => [{
@@ -1309,7 +1336,7 @@ export function openAddMenu(fc: FcCtx, anchor: HTMLElement): void {
       label: t('Text frame'), icon: icon(ADD_KIND_ICON.text || SVG.add),
       run: () => fc.modes.setMode('create', { kind: { ...k, id: 'text-frame', label: t('Text frame'), seed: { ...k.seed, [fc.cv.textFrameField!]: 'fixed' } } }),
     },{label:t('Text on a circle'),icon:icon(ADD_KIND_ICON.text || SVG.add),run:()=>fc.storyPath.circle()},
-      {label:t('Text on a path'),keepOpen:true,icon:icon(ADD_KIND_ICON.text || SVG.add),run:()=>fc.storyPathUi.open(anchor)}] : [])]), ...(fc.storyText.available() && fc.storyText.read().document.stories.some(story=>!story.frameIds.length) ? [{label:t('Place text'),keepOpen:true,icon:icon(SVG.add),run:()=>fc.storyRecovery.unplaced(anchor)}] : [])]
+      {label:t('Text on a path'),keepOpen:true,icon:icon(ADD_KIND_ICON.text || SVG.add),run:()=>fc.storyPathUi.open(anchor)}] : [])]), ...(fc.storyText.available() && fc.storyText.read().document.stories.some(story=>!story.frameIds.length) ? [{label:t('Place text'),keepOpen:true,icon:icon(SVG.add),run:()=>fc.storyRecovery.unplaced(anchor)}] : []), ...drawingItems]
   );
 }
 export function openArrangeMenu(fc: FcCtx): void {

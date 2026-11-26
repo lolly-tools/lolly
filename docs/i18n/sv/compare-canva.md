@@ -1,27 +1,31 @@
 # Lolly och Canva
 
-_Senast kontrollerad: 28 september 2026._
+_Senast kontrollerat: 28 september 2026._
 
-Om ditt team gör sociala inlägg, bilder och flyers i Canva i dag säger den här sidan var Lolly gör samma jobb och var Canva förblir den bättre lösningen.
+Om ditt team skapar inlägg för sociala medier, presentationsbilder och flygblad i Canva säger den här sidan var Lolly gör samma jobb och var Canva passar bättre.
 
+<!--i:eti-award-->
 ## Vad Canva gör bättre
 
-Canva kombinerar ett stort mall- och stockbibliotek, appar och värdbaserade teamarbetsflöden i en hanterad tjänst. Det färdiga innehållet och den upplevelsen hjälper när du behöver en startpunkt i dag. Se [Canvas mallar](https://www.canva.com/templates/) och [appmarknad](https://www.canva.com/apps/). Dess redigering i realtid har också en lång driftshistorik i en skala som Lollys arbetscollabs inte har nått.
+Canva kombinerar ett stort bibliotek av mallar och stockmaterial, appar och hostade teamarbetsflöden i en hanterad tjänst. Det färdiga innehållet hjälper när du behöver en utgångspunkt i dag. Se [Canvas mallar](https://www.canva.com/templates/) och [appmarknadsplats](https://www.canva.com/apps/). Canvas redigering i realtid har en lång drifthistorik i en skala som Lollys work collabs inte har nått.
 
+<!--i:eti-blend-->
 ## Där de överlappar
 
-Båda låter någon börja från en mall och göra en färdig grafik utan att vara designer. Båda stöder teamarbete och varumärkeskontroller: [Canva paketerar dem i sina företagsplaner](https://www.canva.com/canva-business/), medan Lolly håller den kreativa appen och organisationsservern isär.
+Båda låter den som inte är designer börja från en mall och skapa färdig grafik. Båda stöder teamarbete och varumärkeskontroller. [Canva samlar dessa i sina företagsabonnemang](https://www.canva.com/canva-business/). Lolly håller den kreativa appen och organisationsservern åtskilda.
 
-## Hur Lolly gör det överlappande jobbet
+<!--i:eti-lolly-->
+## Så utför Lolly de gemensamma uppgifterna
 
-Ett Lolly-verktyg kodar de ändringar folk får göra, och samma verktyg körs i webbläsaren, datorappen eller CLI. En layout gjord på Design-ytan kan bli ett [verktyg med regler](/info/create-a-tool.html), och ett verktyg kan göra många filer av en tabell med värden.
+Ett Lolly-verktyg bestämmer vilka ändringar människor får göra. Samma verktyg körs i webbläsaren, skrivbordsappen eller CLI. En layout gjord på Lolly Designs yta kan bli ett [verktyg med regler](/info/create-a-tool.html). Ett verktyg kan skapa många filer från en tabell med värden.
 
-![Designs fria yta, där färgerna, typsnitten och tillgångarna som erbjuds är designsystemets egna](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Lolly Designs fria yta, där färgerna, typsnitten och tillgångarna som erbjuds är designsystemets egna](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
-Fristående Lolly fortsätter att skapa och exportera på enheten, utan konto, och fungerar offline när dess tillgångar är sparade. Två personer kan redigera live i en [privat collab](/info/collaborate.html), enhet till enhet. Content Credentials är på som standard för exporter som stöds, och du kan stänga av dem.
+Fristående Lolly skapar och exporterar på enheten, utan konto. Det fungerar offline när tillgångarna är sparade. Två personer kan redigera i realtid i en [privat collab](/info/collaborate.html), enhet till enhet. Content Credentials är på som standard för exporter som stöds, och du kan stänga av dem.
 
+<!--i:eti-building-->
 ## Med en organisation
 
-Lolly Work, som körs på din organisations egen server, lägger till inloggning, delade projekt, levande arbetscollabs, godkända tillgångar och policyer. [Vad som körs var](/info/compare.html#what-runs-where) ställer de två delarna bredvid varandra, med gränserna som varje jämförelse delar.
+Lolly Work, som körs på din organisations egen server, lägger till inloggning, delade projekt, work collabs i realtid, godkända tillgångar och policyer. [Vad som körs var](/info/compare.html#what-runs-where) ställer de två delarna sida vid sida, med de begränsningar som alla jämförelser delar.
 
-Canva är ett varumärke som tillhör sin ägare. Den här sidan beskriver var de två produkterna överlappar och är inte knuten till Canva.
+Canva är ett varumärke som tillhör sin ägare. Den här sidan beskriver var de två produkterna överlappar och har ingen koppling till Canva.

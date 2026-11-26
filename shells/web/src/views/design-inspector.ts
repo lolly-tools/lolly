@@ -1,3 +1,5 @@
+import { closeButton } from '../lib/close-button.ts';
+import { segHtml as panelSegHtml, syncSeg, wireSeg } from '../lib/seg.ts';
 import { webSectionRows } from './design-web-section.ts';
 import { createStrokeRows, STROKE_PLACEMENT_FIELDS } from './design-inspector-stroke.ts';
 import { sceneSummary } from './design-inspector-scene.ts';
@@ -112,7 +114,8 @@ import { THEME_SEG, chooseDocumentTheme, documentThemeRows, documentThemeSignatu
 import { icon } from '../lib/icons.ts';
 import type { IconName } from '../lib/icons.ts';
 import { colorFieldHtml, wireColorField, resolveColorVar, colorVarLabel } from '../components/color-field.ts';
-import { designColorValue } from '../lib/design-color.ts';
+import { designColorValue, designInputColorValue } from '../lib/design-color.ts';
+import { linkedColourWord } from '../lib/colour-role-words.ts';
 import { numField } from '../components/num-field.ts';
 import { areaRow, readRow, selectRow, textRow, toggleRow } from './design-inspector-rows.ts';
 import { createAspectLocks, sizeAndScaleRows, wireAspectLocks } from './design-inspector-aspect.ts';
@@ -135,7 +138,7 @@ import {
 } from '../lib/motion-model.ts';
 import type { AppearIntent, AppearMode } from '../lib/motion-model.ts';
 import { auditCurrentDesign } from './design-mounted-audit.ts';
-import type { MountedDesignAudit, MountedFontStyle } from './design-mounted-audit.ts';
+import type { MountedDesignAudit, MountedFontResolver } from './design-mounted-audit.ts';
 import { mountedDesignFindingMessage } from './design-audit-copy.ts';
 import { mountDesignTokenBindings } from './design-token-bindings.ts';
 import type { BlockFieldSpec } from '../../../../engine/src/inputs.ts';
@@ -305,7 +308,7 @@ export interface DesignInspectorOpts {
   fonts?: InspectorFonts;
   /** Resolve a rendered run through the vector-export font registry. This is
    * async because user/discovered webfonts may need their bytes checked. */
-  resolveFont?: (style: MountedFontStyle, text: string) => Promise<boolean>;
+  resolveFont?: MountedFontResolver;
   /** The manifest's `boxes` field declarations - the source of every select's options. */
   fields?: unknown[];
   tokens?: { host: HostV1; metadataField: string; commit?: (rows: Box[], label: string) => void | Promise<void> };
@@ -569,6 +572,15 @@ function clampN(v: unknown, dflt: number, lo: number, hi: number): number {
  */
 const fv = (b: Box, field: string | undefined): unknown => (field ? b[field] : undefined);
 
+/**
+ * The column head: the one selected thing's own `name`, else what `kind` of thing it is.
+ * A multi-selection has no one section that could carry the count now that the paint
+ * groups stand on their own, so the head shows the count.
+ */
+function headText(g: Gate, name: string, kind: string): string {
+  return g.kind === 'multi' ? t('{n} selected', { n: g.ids.length }) : g.kind === 'empty' ? t('Document') : g.kind === 'guide' ? t('Guide') : name || kind;
+}
+
 /** `CSS.escape` where the platform has it (jsdom does not), for a manifest field name. */
 const q = (s: unknown): string =>
   (typeof CSS !== 'undefined' && typeof CSS.escape === 'function') ? CSS.escape(String(s)) : String(s).replace(/["\\]/g, '\\$&');
@@ -684,13 +696,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   colTitle.textContent = t('Inspector');
   const headTools = document.createElement('span');
   headTools.className = 'export-popup-tools';
-  const closeBtn = document.createElement('button');
-  closeBtn.type = 'button';
-  closeBtn.className = 'export-popup-close fc-insp-close';
-  closeBtn.setAttribute('data-act-col', 'close');
-  closeBtn.setAttribute('aria-label', t('Hide inspector'));
-  closeBtn.title = t('Hide inspector');
-  closeBtn.innerHTML = icon('close', { size: 18 });
+  const closeBtn = closeButton({ className: 'export-popup-close fc-insp-close', label: t('Hide inspector'), attrs: { 'data-act-col': 'close', title: t('Hide inspector') } });
   closeBtn.addEventListener('click', () => { setOpen(false); opts.onClose?.(); });
   headTools.append(closeBtn);
   headBar.append(colTitle, headTools);
@@ -698,16 +704,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   let documentView = false;
   let advancedTextOpen = false;
-  const tabs = document.createElement('nav');
-  tabs.className = 'lp-rail fc-insp-tabs';
-  tabs.setAttribute('aria-label', t('Inspector settings'));
-  const selectionTab = document.createElement('button');
-  const documentTab = document.createElement('button');
-  for (const [button, label, value] of [[selectionTab, t('Selection'), false], [documentTab, t('Canvas'), true]] as const) {
-    button.type = 'button'; button.textContent = label;
-    button.addEventListener('click', () => { documentView = value; sync(true); });
-    tabs.appendChild(button);
-  }
+  // The Selection / Canvas switch is the panel's own segmented control (lib/seg.ts),
+  // the same one every other two-way choice in a panel uses.
+  const tabs = document.createElement('div');
+  tabs.className = 'fc-insp-tabs';
+  tabs.innerHTML = panelSegHtml('inspector-scope', [{ id: 'selection', label: t('Selection') }, { id: 'canvas', label: t('Canvas') }], 'selection', t('Inspector settings'), { variant: 'panel', extraClass: 'lp-seg--pill' });
+  wireSeg(tabs, { onChange: (value) => { documentView = value === 'canvas'; sync(true); } });
   el.appendChild(tabs);
 
   const scroll = document.createElement('div');
@@ -917,7 +919,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * the token's own name onto the trigger. The MODEL is untouched - the `var()` stays
    * in the box until the user picks something else.
    */
-  function colorField(id: string, raw: unknown, label = '', mixed = false): string {
+  function colorField(id: string, raw: unknown, label = '', mixed = false, word = ''): string {
     // A colour whose value is a design-token alias reaches this row as the runtime's
     // unresolved ref OBJECT, not a string: the engine parses `{color.semantic.surface}`
     // (the design tool's own background default) into `{ ref, _unresolved }`. Stringifying
@@ -954,7 +956,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // An unset colour is "None", not an empty cell. `colorVarLabel` answers only
     // for a brand token, and the value answers for a hand-picked colour; with
     // neither, the honest word is the one the picker itself would show.
-    return colorFieldHtml(id, resolved, { float: true, name: colorVarLabel(val) || resolved || t('None'), label });
+    return colorFieldHtml(id, resolved, { float: true, name: word || colorVarLabel(val) || resolved || t('None'), label });
   }
 
   /** The manifest's own options for a field, `[value, label]`, already translated. */
@@ -1063,8 +1065,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       + (value === 'mixed' ? ` aria-valuetext="${escape(t('Mixed'))}"` : '') + '>'
       + numCell('', field, value, { name: label, min, max, pair: key, ...o }) + (o.after ?? ''));
 
-  const colorRow = (label: string, id: string, raw: unknown, extra = '', mixed = false): string =>
-    `<div class="fc-row"><span>${label}</span><span class="fc-cfield">${colorField(id, raw, label, mixed)}</span>${extra}</div>`;
+  const colorRow = (label: string, id: string, raw: unknown, extra = '', mixed = false, word = ''): string =>
+    `<div class="fc-row"><span>${label}</span><span class="fc-cfield">${colorField(id, raw, label, mixed, word)}</span>${extra}</div>`;
 
   /**
    * A row that opens another surface. FRAMED, with a trailing chevron, because
@@ -1080,7 +1082,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   /** A door with its own eyebrow, so the label reads as a label and the value as
    *  the thing the door will change. */
   const doorRow = (label: string, value: string, act: string, glyph: IconName): string =>
-    `<div class="lp-row fc-row fc-insp-door"><span class="lp-row-icon"></span>`
+    `<div class="lp-row fc-row fc-insp-door">`
     + `<span class="lp-label">${label}</span>`
     + `<span class="lp-control"><button type="button" class="lp-door fc-cbtn" data-act="${escape(act)}">`
     + `${icon(glyph)}<span>${escape(value)}</span>${icon('chevronRight')}</button></span></div>`;
@@ -1373,10 +1375,10 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
       + `${dimCell(t('H'), cfg.hField, h, { min: 1, max: 100000, name: t('Height') })}</div>`
       + (cfg.fillField
         ? colorRow(t('Fill'), 'fc-insp-fill', fv(b, cfg.fillField),
-          `<button type="button" class="fc-cbtn fc-insp-mini" data-act="gradient">${t('Gradient')}</button>`)
+          `<button type="button" class="fc-cbtn fc-insp-mini" data-act="gradient">${t('Gradient')}</button>`, false, linkedColourWord(b, cfg.fillField, fv(b, cfg.fillField)))
         : '')
       + (cfg.fillField && actions.useAsInput ? doorBtn(t('Use fill as input'), 'input-fill', 'sliders') : '')
-      + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', fv(b, cfg.strokeField)) : '')
+      + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', fv(b, cfg.strokeField), '', false, linkedColourWord(b, cfg.strokeField, fv(b, cfg.strokeField))) : '')
       + (cfg.strokeWField ? strokeUi.rows(cfg.strokeWField, [b], false) : '') + strokeStyleRow(fieldDefs as BlockFieldSpec[], cfg, b, [b], selectRow)
       + (clipF ? toggleRow(t('Clip children'), clipF, boolOf(b[clipF], true)) : '')
       + transitionRows(b)
@@ -1433,9 +1435,9 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     return (cfg.fillField
       ? colorRow(t('Fill'), 'fc-insp-fill', K.shown(b, 'fill', fv(b, cfg.fillField)),
         `<button type="button" class="fc-cbtn fc-insp-mini" data-act="gradient">${t('Gradient')}</button>${K.diamond('fill')}`,
-        differs(rows, cfg.fillField))
+        differs(rows, cfg.fillField), linkedColourWord(b, cfg.fillField, K.shown(b, 'fill', fv(b, cfg.fillField))))
       : '')
-      + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', K.shown(b, 'stroke', fv(b, cfg.strokeField)), K.diamond('stroke'), differs(rows, cfg.strokeField)) : '')
+      + (cfg.strokeField ? colorRow(t('Stroke'), 'fc-insp-stroke', K.shown(b, 'stroke', fv(b, cfg.strokeField)), K.diamond('stroke'), differs(rows, cfg.strokeField), linkedColourWord(b, cfg.strokeField, K.shown(b, 'stroke', fv(b, cfg.strokeField)))) : '')
       + (cfg.strokeWField ? strokeUi.rows(cfg.strokeWField, rows, true) : '') + strokeStyleRow(fieldDefs as BlockFieldSpec[], cfg, b, rows, selectRow);
   }
 
@@ -1468,7 +1470,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const shBlur = agree(rows, (r) => Math.round(clampN(fv(r, cfg.shadowBlurField), 10, 0, 300)));
     return (cfg.shadowField ? segRow(FIELD_GLYPH.shadowIc, t('Apply to'), segHtml(cfg.shadowField, shadowCur, shadowChoices, t('Apply to'))) : '')
       + (cfg.shadowColorField
-        ? colorRow(t('Colour'), 'fc-insp-shadow', fv(b, cfg.shadowColorField) ?? '#00000055', '', differs(rows, cfg.shadowColorField))
+        ? colorRow(t('Colour'), 'fc-insp-shadow', fv(b, cfg.shadowColorField) ?? '#00000055', '', differs(rows, cfg.shadowColorField), linkedColourWord(b, cfg.shadowColorField, fv(b, cfg.shadowColorField)))
         : '')
       + `<div class="fc-dims-row"><span class="fc-dims-ic" data-tip="${escape(t('Offset'))}">${icon('move')}</span>`
       + (cfg.shadowXField ? dimCell(t('X'), cfg.shadowXField, shX, { name: t('Shadow X'), min: -300, max: 300 }) : '')
@@ -1552,7 +1554,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         + `<button type="button" class="fc-cbtn" data-act="smaller" aria-label="${escape(t('Smaller text'))}">A-</button>`
         + numCell('', cfg.fontSizeField, num(cfg.fontSizeField, 48, 1, 2000), { name: t('Size'), min: 4, max: 2000, unit: 'px' })
         + `<button type="button" class="fc-cbtn" data-act="bigger" aria-label="${escape(t('Bigger text'))}">A+</button></div></div>` : '')
-      + (cfg.textColorField ? colorRow(t('Colour'), 'fc-insp-fg', fv(b, cfg.textColorField), '', mixed(cfg.textColorField)) : '')
+      + (cfg.textColorField ? colorRow(t('Colour'), 'fc-insp-fg', fv(b, cfg.textColorField), '', mixed(cfg.textColorField), linkedColourWord(b, cfg.textColorField, fv(b, cfg.textColorField))) : '')
       + (cfg.textColorField && actions.useAsInput ? doorBtn(t('Use colour as input'), 'input-fg', 'sliders') : '')
       + align
       // Vertical align sits WITH horizontal align, because that is the pair
@@ -1944,6 +1946,11 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     });
   }
 
+  const paintHead = (g: Gate): void => { // what is selected (headText); the phone panel's strip shows this too
+    colTitle.textContent = headText(g, g.box ? String(fv(g.box, F_NAME) ?? '').trim() : '', !g.box ? '' : kindOf(g.box) === 'webcam' ? t('Camera') : g.kind === 'frame' ? t('Artboard') : kindOf(g.box));
+    colTitle.title = colTitle.textContent;
+  };
+
   function render(g: Gate): void {
     const keep = focusKey(typeof document !== 'undefined' ? document.activeElement : null);
     parkToolPanel();
@@ -1962,15 +1969,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // replaces, and it is mounted again below when the Document section is showing.
     emojiMounted?.destroy();
     emojiMounted = null;
-    // The column head says WHAT is selected: the one selected thing's own name, else
-    // what kind of thing it is. A multi-selection has no one section that could carry
-    // the count now that the paint groups stand on their own, so the head shows the count.
-    const headName = g.box ? String(fv(g.box, F_NAME) ?? '').trim() : '';
-    const headKind = !g.box ? '' : kindOf(g.box) === 'webcam' ? t('Camera') : g.kind === 'frame' ? t('Artboard') : kindOf(g.box);
-    colTitle.textContent = g.kind === 'multi' ? t('{n} selected', { n: g.ids.length }) : g.kind === 'empty' ? t('Document') : g.kind === 'guide' ? t('Guide') : headName || headKind;
-    colTitle.title = colTitle.textContent;
-    selectionTab.setAttribute('aria-pressed', String(!documentView));
-    documentTab.setAttribute('aria-pressed', String(documentView));
+    paintHead(g);
+    syncSeg(tabs, documentView ? 'canvas' : 'selection');
     // One section. The head is a GRID whose last column is the caret, so a
     // section action (Edit text) goes in the `auto` column before it and the
     // fold control keeps one x for every section in the column. It used to be a
@@ -2120,7 +2120,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
         if (id === 'fc-insp-interact-highlight') { if (interactionColour?.isConnected) commitWebInteractColour(model, interactionIds, val); return; }
         const colour = designColorValue(val, model.getInput('editingRange'), detail);
         if (id === 'fc-insp-guide' && renderedGuideId) { opts.guides?.update(renderedGuideId, { color: typeof val === 'object' ? val.value : val }); return; }
-        if (id === 'fc-insp-bg') { model.setInput('background', colour); return; }
+        if (id === 'fc-insp-bg') { model.setInput('background', designInputColorValue(val, model.getInput('editingRange'), detail)); return; }
         write(colorTarget(cfg, id), colour);
       },
     });
@@ -2435,7 +2435,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // Closing cancels token actions and resets the memo. Disposal invalidates a
     // pending lookup even if this column reopens. Subscriptions stay live so
     // reopening paints the current selection.
-    if (!open) { tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = []; lastSig = null; pendingRebuild = false; disarmSettle(); return; }
+    // Shut but still on the page (the phone panel's peek shows this head), the head alone stays current.
+    if (!open) { tokenDisposers.forEach(dispose => { dispose(); }); tokenDisposers = []; lastSig = null; pendingRebuild = false; disarmSettle(); if (el.isConnected) paintHead(gate()); return; }
     const g = gate();
     const sig = signature(g);
     if (!force && sig === lastSig) return;
@@ -2479,7 +2480,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     if (ev.metaKey || ev.ctrlKey) return;
     if (ev.key === 'Escape') {
       if (ev.defaultPrevented) return;
-      if (el.classList.contains('is-compact-sheet')) return;
+      if (el.classList.contains('is-compact-sheet') || el.closest('.design-phone-panel')) return; // a phone's sheet or panel folds on Escape
       if (el.closest('dialog')) { ev.stopPropagation(); return; }
       // Escape here must NOT reach the editor's ladder. With the column mounted the
       // object bar's buttons open no floating panel, so `dismissFloating()` finds

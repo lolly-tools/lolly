@@ -1,5 +1,5 @@
 {
   "name": "Scan",
-  "description": "Citește coduri QR și coduri de bare direct pe dispozitiv, fără să trimită nimic în cloud. Un cititor, nu un deschizător: decodează, clasifică și explică ce conține un cod - linkuri, Wi-Fi, contacte, coduri de produs - și te lasă să acționezi deliberat. Copierea este mereu primul pas; deschiderea, alăturarea sau adăugarea este o atingere explicită și informată.",
+  "description": "Citește coduri QR și coduri de bare direct pe dispozitiv. Copierea este mereu primul pas; deschiderea, alăturarea sau adăugarea este o atingere explicită și informată.",
   "featured.blurb": "Citește orice cod, în siguranță și offline"
 }

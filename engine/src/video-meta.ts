@@ -6,7 +6,9 @@
  *
  *   MP4 - an iTunes-style `udta ▸ meta ▸ ilst` box appended into `moov`
  *          (©nam/©ART/©day/©cmt/©too + a freeform PUBLISHER item - the keys
- *          ffprobe/players surface as title/artist/date/comment/encoder).
+ *          ffprobe/players surface as title/artist/date/comment/encoder - and,
+ *          when set, `desc` and `cprt`). embedMp4Xmp adds an XMP packet as a
+ *          top-level box.
  *   WebM - a Matroska `Tags` element (one SimpleTag per field, TargetType 50 =
  *          whole movie) appended to the Segment, with the Segment size VINT
  *          patched in place and a Tags entry grown into the SeekHead's reserved
@@ -31,6 +33,10 @@ export interface VideoProvenanceTags {
   encoder: string;
   encodedBy: string;
   publisher: string;
+  /** The iTunes `desc` item, which players and ffprobe show as the description. Absent: not written. */
+  description?: string;
+  /** The iTunes `cprt` item, the copyright or licence notice players show. Absent: not written. */
+  copyright?: string;
 }
 
 interface BoxInfo {
@@ -196,6 +202,8 @@ export function embedMp4Meta(bytes: Uint8Array, tags: VideoProvenanceTags): Uint
   if (tags.artist)    items.push(ilstItem('©ART', tags.artist));
   if (tags.date)      items.push(ilstItem('©day', tags.date));
   if (tags.comment)   items.push(ilstItem('©cmt', tags.comment));
+  if (tags.description) items.push(ilstItem('desc', tags.description));
+  if (tags.copyright) items.push(ilstItem('cprt', tags.copyright));
   if (tags.encoder)   items.push(ilstItem('©too', tags.encoder));
   if (tags.publisher) items.push(freeform('PUBLISHER', tags.publisher));
   if (!items.length) return bytes;
@@ -220,6 +228,67 @@ export function embedMp4Meta(bytes: Uint8Array, tags: VideoProvenanceTags): Uint
     patchChunkOffsets(out, moov.off, moov.size + udta.length, moov.off + moov.size, udta.length);
   }
   return out;
+}
+
+/**
+ * The inverse of embedMp4Meta: the movie's `udta` box taken out, with the chunk
+ * offsets of a fast-start file moved back by its size, so a file Lolly tagged can be
+ * tagged again (embedMp4Meta leaves a file that already has a `udta` untouched).
+ * embedMp4Meta followed by this gives back the original bytes. A file with no `udta`
+ * in its movie, or a structure this does not walk, returns the input untouched.
+ */
+export function withoutMp4Udta(bytes: Uint8Array): Uint8Array {
+  const top = walkBoxes(bytes, 0, bytes.length);
+  const moov = top?.find((b) => b.type === 'moov');
+  if (!moov) return bytes;
+  const children = walkBoxes(bytes, moov.off + 8, moov.off + moov.size);
+  const udta = children?.find((b) => b.type === 'udta');
+  if (!udta) return bytes;
+  const out = concat(
+    bytes.subarray(0, moov.off),
+    be32(moov.size - udta.size), fourcc('moov'),
+    bytes.subarray(moov.off + 8, udta.off),
+    bytes.subarray(udta.off + udta.size),
+  );
+  const mdat = top!.find((b) => b.type === 'mdat');
+  if (mdat && mdat.off > moov.off) {
+    patchChunkOffsets(out, moov.off, moov.size - udta.size, moov.off + moov.size, -udta.size);
+  }
+  return out;
+}
+
+/** The XMP `uuid` box's usertype (XMP specification part 3, MPEG-4). */
+export const XMP_UUID = Uint8Array.of(0xbe, 0x7a, 0xcf, 0xcb, 0x97, 0xa9, 0x42, 0xe8, 0x9c, 0x71, 0x99, 0x94, 0x91, 0xe3, 0xaf, 0xac);
+
+const isXmpUuid = (bytes: Uint8Array, b: BoxInfo): boolean =>
+  b.type === 'uuid' && b.size >= 24 && XMP_UUID.every((v, i) => bytes[b.off + 8 + i] === v);
+
+/**
+ * Add an XMP packet to an MP4 or M4A as a top-level `uuid` box with the XMP
+ * usertype, where XMP's MPEG-4 mapping puts the packet and where file inspectors
+ * and the metadata stripper look for the packet. Appended as the last box, so nothing
+ * before it moves and the `stco`/`co64` chunk offsets stay valid; a last box whose
+ * size runs to the end of the file is given its size first. A prior XMP box that is
+ * itself the last box is replaced. Conservative like embedMp4Meta: an XMP box
+ * anywhere else, an empty packet or a structure this does not walk returns the
+ * input untouched. Write it before the C2PA box, so the credential's hash covers
+ * the packet.
+ */
+export function embedMp4Xmp(bytes: Uint8Array, xmp: string): Uint8Array {
+  const packet = utf8(String(xmp ?? '').trim());
+  if (!packet.length) return bytes;
+  const top = walkBoxes(bytes, 0, bytes.length);
+  if (!top?.length || top[0]!.type !== 'ftyp' || !top.some((b) => b.type === 'moov')) return bytes;
+  const priors = top.filter((b) => isXmpUuid(bytes, b));
+  const last = top[top.length - 1]!;
+  if (priors.length > 1 || (priors.length === 1 && priors[0] !== last)) return bytes;
+  let kept = priors.length ? bytes.subarray(0, last.off) : bytes;
+  const tail = priors.length ? top[top.length - 2] : last;
+  if (tail && readU32(kept, tail.off) === 0) {
+    kept = kept.slice();
+    writeU32(kept, tail.off, tail.size);
+  }
+  return concat(kept, box('uuid', XMP_UUID, packet));
 }
 
 // ── WebM (Matroska / EBML) ────────────────────────────────────────────────────

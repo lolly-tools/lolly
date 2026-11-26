@@ -285,7 +285,6 @@ const ALLOW: Record<string, string[]> = {
   'docs/work/cli.md': ['read with care: 3 comparison(s) used a stamp that names no timezone'],
   'docs/animating.md': ['follow the shape of the artwork'],
   'docs/ai-features.md': ['actual shape of the audio'],
-  'docs/url-inputs.md': ['actual shape of the catalogue track'],
   // render.transcribe (engine 1.150): the literal MANIFEST KEY a tool author has
   // to type, in its heading and in the example block. The prose around them says
   // "speech to text" instead.
@@ -302,7 +301,7 @@ const ALLOW: Record<string, string[]> = {
     '`transcribeAvailable()`', '`transcribeCached()`',
     '`transcribeModelBytes()`', '`transcribe(src, opts?)`', 'SpeechTranscript',
     // plan 183: the two CLI subcommands that surface this API headlessly
-    '`lolly speak` and `lolly transcribe` are its discovery surface'],
+    '`lolly speak` and `lolly transcribe` expose the API'],
   // Positioning prose that predates the self-reference ban - grandfathered like the
   // code ratchet; the ban stops NEW uses of "(this line is X)"/"the boundary is X"/
   // "the X is structural", it doesn't force a rewrite of meaningful existing copy.

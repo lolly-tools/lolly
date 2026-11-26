@@ -209,14 +209,14 @@ test('a code sample set in under a list item renders as code inside that item', 
   const md = '- Use the CLI:\n\n  ```bash\n  pnpm run cli qr-code \\\n    --export=svg\n  ```\n\n- Next item';
   const html = mdToHtml(md, ctx);
   // The item's own indent comes off; the continuation keeps its relative indent, byte for byte.
-  assert.match(html, /<li>Use the CLI:<div class="doc-code" data-label="Terminal" data-copy="shell"><div class="doc-code-bar" data-label="Terminal"><\/div><pre tabindex="0" role="group" aria-label="Terminal"><code class="language-bash">pnpm run cli qr-code \\\n {2}--export=svg<\/code><\/pre><\/div><\/li>/);
+  assert.match(html, /<li>Use the CLI:<div class="doc-code" data-label="Terminal" data-copy="shell"><div class="doc-code-bar" data-label="Terminal"><\/div><pre tabindex="0" role="group" aria-label="Terminal"><code class="language-bash"><span class="sh-cmd">pnpm<\/span> run cli qr-code <span class="sh-cont">\\<\/span>\n {2}<span class="sh-flag">--export<\/span><span class="sh-op">=<\/span>svg<\/code><\/pre><\/div><\/li>/);
   assert.ok(!/``<code>/.test(html), 'the fence is no longer read as inline code in a paragraph');
 });
 
 test('a numbered list that resumes after a code sample keeps its number', () => {
   const ctx = mockContext();
   const html = mdToHtml('1. Generate the root:\n\n   ```bash\n   make root\n   ```\n\n2. Sign the leaf.', ctx);
-  assert.match(html, /<ol>\n<li>Generate the root:<div class="doc-code"[^>]*><div class="doc-code-bar"[^>]*><\/div><pre[^>]*><code class="language-bash">make root<\/code><\/pre><\/div><\/li>\n<\/ol>/);
+  assert.match(html, /<ol>\n<li>Generate the root:<div class="doc-code"[^>]*><div class="doc-code-bar"[^>]*><\/div><pre[^>]*><code class="language-bash"><span class="sh-cmd">make<\/span> root<\/code><\/pre><\/div><\/li>\n<\/ol>/);
   assert.match(html, /<ol start="2">\n<li>Sign the leaf\.<\/li>/);
 });
 
@@ -243,7 +243,11 @@ test('a narrate-skip fence keeps its bare element for the page that sets it as a
 
 test('a wrapping block holds each argument together, so a flag never splits after its hyphens', () => {
   const html = mdToHtml('```bash wrap\npnpm run cli qr-code --url=https://example.com --output=qr.svg\n```', mockContext());
-  assert.match(html, /<span class="doc-code-token">--url=https:\/\/example\.com<\/span> <span class="doc-code-token">--output=qr\.svg<\/span>/);
+  // The terminal's own spans sit inside each held-together argument, never across two.
+  assert.match(html, /<span class="doc-code-token"><span class="sh-flag">--url<\/span><span class="sh-op">=<\/span>https:\/\/example\.com<\/span> <span class="doc-code-token"><span class="sh-flag">--output<\/span><span class="sh-op">=<\/span>qr\.svg<\/span>/);
+  // A block that is not a shell example keeps the plain held-together arguments.
+  const yaml = mdToHtml('```yaml wrap\nkey: a-long-value\n```', mockContext());
+  assert.match(yaml, /<code class="language-yaml"><span class="doc-code-token">key:<\/span> <span class="doc-code-token">a-long-value<\/span><\/code>/);
   assert.equal(html.replace(/<[^>]+>/g, ''), 'pnpm run cli qr-code --url=https://example.com --output=qr.svg', 'the text is unchanged');
 });
 

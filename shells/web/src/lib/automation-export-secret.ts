@@ -13,6 +13,14 @@ declare global {
   }
 }
 
+/**
+ * The binding exists only when the automation that owns this page asked for a password,
+ * so its presence is that request. An export without the password then writes no file.
+ */
+export function automationPasswordExpected(): boolean {
+  return typeof window !== 'undefined' && typeof window.__lollyTakeExportSecret === 'function';
+}
+
 /** Prefer an explicit URL value for normal interactive links. Otherwise, only
  * an immediate automation export may consume the browser-context binding. */
 export async function takeAutomationExportPassword(

@@ -1,6 +1,6 @@
 {
   "name": "字幕",
-  "description": "クリップの字幕を作成します - デバイス上で文字起こしするか、SRT/VTTファイルを読み込みます。字幕のスタイルを設定し、焼き込み済みのフレームと、きれいな.srt・.vttファイルを書き出せます。",
+  "description": "クリップの字幕を作成します - デバイス上で音声を文字起こしするか、SRT/VTTファイルを読み込み、焼き込み済みのフレームと.srt・.vttファイルを書き出せます。",
   "inputs.style.section": "字幕",
   "inputs.position.section": "字幕",
   "inputs.fontSize.section": "字幕",

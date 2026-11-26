@@ -39,7 +39,15 @@ export interface ImprintState { want: boolean; applied: boolean }
 // The union of options this host's export path understands. A superset of the
 // engine's ExportOpts - the extra fields (print marks, video timing, c2pa, …)
 // are web-shell extensions the engine passes through untouched.
+export { dropInlinedCredentials } from './export-svg-credentials.ts';
+
 export interface ExportOpts {
+  /**
+   * The caller explicitly opted out of Content Credentials, so the finished SVG holds no
+   * `<c2pa:manifest>`, including the one an inlined catalog logo brings along. Unset on an
+   * export nobody configured, which keeps its bytes.
+   */
+  dropInlinedC2pa?: boolean;
   portableDocument?: import('@lolly-tools/core/host-v1').ExportOpts['portableDocument'];
   /** Linear float render supplied by a tool. Encoded through the normal metadata/credential path. */
   deepFrame?: import('@lolly-tools/core/host-v1').CodecFrame;
@@ -61,7 +69,7 @@ export interface ExportOpts {
   ingredients?: (IngredientCredential | SourceIngredient)[];  // preserved source-asset credentials, and sources with none of their own → C2PA
   c2paInputs?: Record<string, string>;   // scalar-input digest → tools.lolly.export assertion (runtime-supplied)
   c2paCapture?: { camera?: boolean; microphone?: boolean; screen?: boolean }; // sensor/screen origin → created step = digitalCapture/screenCapture (runtime-supplied)
-  c2paTextAdded?: { sample?: string };   // text over an opened asset → a c2pa.edited "Added text" step (runtime-supplied)
+  c2paTextAdded?: { sample?: string };   // text over a placed asset → a c2pa.edited "Added text" step (runtime-supplied)
   /** The attribution this export promised, and the callback that says what it
    *  delivered (plan 253, HostV1 v1.197). Runtime-supplied: the plan comes from
    *  one frozen evaluation, and the bridge calls `onReceipt` once after reading
@@ -74,8 +82,13 @@ export interface ExportOpts {
   };
   sourceDocument?: { toolId: string; values: Record<string, unknown> };
   c2paAiUpscale?: { model: string; version: string }; // AI-upscaled essence → created = compositeWithTrainedAlgorithmicMedia + a model-naming edit step (runtime-supplied)
+  c2paRendition?: { action: import('@lolly-tools/core').RenditionAction }; // a rendition tool's credentialed parent travels as parentOf; this action replaces created (runtime-supplied)
   c2paAiIngredients?: Array<{ name: string; kind: 'full' | 'partial' }>; // placed assets the user declared AI-made (runtime-supplied) → composite created step + c2pa.placed + a section 18.28 ai-disclosure
   colorProfile?: string;
+  /** Print every declared spot ink as its process build in the CMYK formats (HostV1
+   *  v1.324, `_spots=process`). A declared finish keeps its own plate. Unset keeps the
+   *  named spot plates, so the default output is unchanged. */
+  spotsAsProcess?: boolean;
   thumbnail?: boolean;
   audio?: ExportAudio;
   /** Normalize the whole exported mix to a target integrated loudness, LKFS
@@ -554,28 +567,31 @@ export async function swapBlobUrls(node: Element, skip?: { has(el: Element): boo
  * the resolution it is drawn at gets a downscaled copy, keyed by its live element, for
  * the render's clone (adjustClonedNode). The live canvas keeps its own picture, so
  * nothing on screen softens while the thumbnail is taken. A picture that cannot be
- * decoded here is left to the full inlining, as before.
+ * decoded is left to the full inlining, as before. The sizes are measured here; the
+ * copies are made off the main thread where the browser can (bridge/thumb-downscale.ts).
  */
 export async function thumbnailPictures(node: Element, renderScale: number): Promise<Map<Element, string>> {
   const out = new Map<Element, string>();
   if (!(renderScale > 0) || typeof createImageBitmap !== 'function') return out;
-  await Promise.all([...node.querySelectorAll('img')].map(async img => {
+  // Every layout read first, in one pass, before any picture is fetched.
+  const wanted: Array<{ img: Element; url: string; w: number; h: number }> = [];
+  for (const img of node.querySelectorAll('img')) {
     const url = img.getAttribute('src');
     const { naturalWidth: nw, naturalHeight: nh, offsetWidth: bw, offsetHeight: bh } = img;
-    if (!url?.startsWith('blob:') || !nw || !nh || !bw || !bh) return;
+    if (!url?.startsWith('blob:') || !nw || !nh || !bw || !bh) continue;
     // Covering its box is the largest a picture is drawn; contain and fill draw no larger.
     const k = 2 * renderScale * Math.max(bw / nw, bh / nh);
-    if (k > 0.5) return;
+    if (k > 0.5) continue;
+    wanted.push({ img, url, w: Math.max(1, Math.round(nw * k)), h: Math.max(1, Math.round(nh * k)) });
+  }
+  if (!wanted.length) return out;
+  const { thumbDownscaler } = await import('./thumb-downscale.ts');
+  const downscaler = thumbDownscaler();
+  await Promise.all(wanted.map(async ({ img, url, w, h }) => {
     try {
       const blob = await (await fetch(url)).blob();
       if (!/^image\/(jpeg|png|webp)$/.test(blob.type)) return;
-      const w = Math.max(1, Math.round(nw * k)), h = Math.max(1, Math.round(nh * k));
-      const bitmap = await createImageBitmap(blob, { resizeWidth: w, resizeHeight: h, resizeQuality: 'high' });
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d')?.drawImage(bitmap, 0, 0);
-      bitmap.close();
-      out.set(img, canvas.toDataURL(blob.type === 'image/jpeg' ? 'image/jpeg' : 'image/png', 0.9));
+      out.set(img, await downscaler.downscale(blob, w, h));
     } catch { /* inlined in full by swapBlobUrls */ }
   }));
   return out;
@@ -619,6 +635,30 @@ export function setExportHost(host: WebHost): void { _host = host; }
  * soundtrack (plan 301), are deduped by instanceId, so a zip member re-entering the
  * render, or a song placed twice, is listed once.
  */
+/** The print marks an export adds, by name, for the credential's "Added ..." step. */
+export function printMarkNames(opts: ExportOpts): string[] {
+  const marks: string[] = [];
+  if (opts.bleed) marks.push(`${opts.bleed}${typeof opts.bleed === 'number' ? 'px' : ''} bleed`);
+  if (opts.cropMarks) marks.push('crop marks');
+  if (opts.registrationMarks) marks.push('registration marks');
+  if (opts.bleedMarks) marks.push('bleed marks');
+  if (opts.colorBars) marks.push('a colour bar');
+  return marks;
+}
+
+/**
+ * A bundle member's own options: its ingredient record starts from what the caller gave
+ * the bundle, so the pictures and sources one member draws never reach another
+ * member's credential (a full MP4 beside a GIF capped short of the same film).
+ */
+export function memberIngredientOpts(opts: ExportOpts): ExportOpts {
+  return {
+    ...opts,
+    ...(opts._ingredientSink ? { _ingredientSink: [...opts._ingredientSink] } : {}),
+    ...(opts._sourceIngredientSink ? { _sourceIngredientSink: [...opts._sourceIngredientSink] } : {}),
+  };
+}
+
 export function foldIngredientSinks(opts: ExportOpts): void {
   if (opts._ingredientSink?.length) {
     // A source ingredient (no credential of its own) has no manifest label; it never collides.

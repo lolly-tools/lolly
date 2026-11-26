@@ -1,0 +1,27 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* The welcome card's own-colour picker (components/welcome-colour-picker.ts): the
+   shared floating menu surface (.folder-menu, folders.css) holding Lolly's inline
+   colour picker and its two buttons. Loaded with the picker, on the first press. */
+@layer views {
+.welcome-colour-pop {
+  position: fixed;
+  box-sizing: border-box;
+  inline-size: min(22rem, calc(100vw - var(--sp-6)));
+  max-block-size: calc(100dvh - var(--sp-6));
+  overflow: auto;
+  gap: var(--sp-5);
+  padding: var(--sp-6);
+}
+/* The picker shows the controls that set one opaque colour and nothing else: the
+   card's colour row is the swatch list, a brand's main colour has no opacity, and
+   there is no palette yet to snap to. */
+.welcome-colour-pop [data-swatch-menu],
+.welcome-colour-pop [data-dial-act="native"],
+.welcome-colour-pop .color-alpha-row,
+.welcome-colour-pop .color-nearest { display: none; }
+.welcome-colour-actions { display: flex; justify-content: flex-end; gap: var(--sp-3); }
+.welcome-colour-actions .btn { min-height: var(--ui-size-control); }
+@media (pointer: coarse) {
+  .welcome-colour-actions .btn { min-height: var(--ui-size-target); }
+}
+}

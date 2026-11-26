@@ -33,6 +33,7 @@ function loadC2paVerify(): Promise<C2paVerifyModule> {
   return C2PA_VERIFY_MODULE;
 }
 import { instanceFetch } from '../lib/instance.ts';
+import { activeNamespace, assetInScope, assetNamespace, pickPalette, readAssetScope, type AssetScope } from '../lib/design-system/asset-scope.ts';
 // The `zzfxm:` procedural-audio id: an ENGINE-owned asset-id scheme, exactly
 // like tool-url.ts's, because every shell that resolves an asset has to
 // recognise it.
@@ -52,6 +53,7 @@ const assetHistory = () => import('./asset-history.ts');
 import type { AssetRef, AssetQuery } from '@lolly-tools/core/host-v1';
 import type { CatalogHistoryDb } from './catalog-history.ts';
 import type { IconTheme } from '../../../../engine/src/icon-theme.ts';
+import { COLOURWAY_ASSET_TREATMENTS_FLAG, isFlagOnSync } from '../feature-flags.ts';
 import type { PhotoTreatment } from '../../../../engine/src/photo-treatment.ts';
 import type { PhotoLookBakeRequest } from './photo-look-raster.ts';
 
@@ -223,11 +225,11 @@ export const MAX_CREDENTIAL_SCAN_BYTES = 64 * 1024 * 1024;
 
 // Parsed theme list from the catalog's icon-themes palette asset (a palette-type
 // asset tagged "icon-themes"). Cached per session; reset when the catalog syncs.
-let ICON_THEMES_CACHE: Promise<IconTheme[]> | null = null;
+const ICON_THEMES_CACHE = new Map<string, Promise<IconTheme[]>>();
 
 // Parsed treatment list from the catalog's photo-treatments palette asset (a
 // palette-type asset tagged "photo-treatments"). Cached like ICON_THEMES_CACHE.
-let PHOTO_TREATMENTS_CACHE: Promise<PhotoTreatment[]> | null = null;
+const PHOTO_TREATMENTS_CACHE = new Map<string, Promise<PhotoTreatment[]>>();
 
 /**
  * There is no hard cap on how many device images a user may keep. The
@@ -340,6 +342,13 @@ export interface AssetsApiOptions {
    * in a realm without a graphics device passes a stand-in here.
    */
   bakePhotoLook?: (req: PhotoLookBakeRequest) => Promise<Blob>;
+  /**
+   * The active design system's token document (`host.tokens.snapshot().document`), read
+   * when a colourway's icon colours or photo wash are offered or resolved
+   * (engine/src/brand-treatments.ts `colourwayIconThemes`). Absent or null: the system
+   * offers no colourway looks.
+   */
+  designSystemDocument?: () => Promise<unknown>;
 }
 
 export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
@@ -351,6 +360,39 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
   // scripts/check-first-load.ts, 2026-09-12). Cleared when the work settles, so a failed fetch is retried
   // rather than a rejected promise being replayed for the life of the page.
   const inFlight = new Map<string, Promise<Blob>>();
+  // The looks a design system's colourways make, per token document. A changed system is
+  // a new document, so its looks are read again; the same one is read once.
+  // `themes` is what a strip offers on a light ground and `onDark` what it offers on a
+  // dark one: each colourway's pairing for a dark ground, under the colourway's own name.
+  // `resolvable` holds both, which an auto icon picks from and a piece can carry.
+  type ColourwayLooks = { themes: IconTheme[]; onDark: IconTheme[]; resolvable: IconTheme[]; treatments: PhotoTreatment[] };
+  const NO_LOOKS: ColourwayLooks = { themes: [], onDark: [], resolvable: [], treatments: [] };
+  const colourwayLookCache = new WeakMap<object, ColourwayLooks>();
+  const colourwayLooks = async (): Promise<ColourwayLooks> => {
+    let doc: unknown = null;
+    try { doc = (await opts.designSystemDocument?.()) ?? null; } catch { doc = null; }
+    if (!doc || typeof doc !== 'object') return NO_LOOKS;
+    let looks = colourwayLookCache.get(doc);
+    if (!looks) {
+      const { colourwayIconThemes, colourwaySurfaceIconThemes, colourwayPhotoTreatments, ON_DARK_SUFFIX } = await import('../../../../engine/src/brand-treatments.ts');
+      try {
+        const themes = colourwayIconThemes(doc);
+        const resolvable = colourwaySurfaceIconThemes(doc);
+        const onDark = themes.flatMap((th) => {
+          const pair = resolvable.find(r => r.id === `${th.id}${ON_DARK_SUFFIX}`);
+          return pair ? [{ id: pair.id, c1: pair.c1, c2: pair.c2, ...(th.label ? { label: th.label } : {}) }] : [];
+        });
+        looks = { themes, onDark, resolvable, treatments: colourwayPhotoTreatments(doc) };
+      } catch { looks = NO_LOOKS; }
+      colourwayLookCache.set(doc, looks);
+    }
+    return looks;
+  };
+  // The "Colourway asset treatments" flag decides whether the looks are OFFERED. A piece
+  // that already carries a colourway look resolves the look whichever way the flag is set.
+  const colourwayTreatmentsOffered = (): boolean => isFlagOnSync(COLOURWAY_ASSET_TREATMENTS_FLAG);
+  /** Ours first, then theirs under any other id. */
+  const lookUnion = <T extends { id: string }>(ours: T[], theirs: T[]): T[] => [...ours, ...theirs.filter(t => !ours.some(o => o.id === t.id))];
   const fetchAndCacheOnce = (meta: AssetMetaRecord, format: AssetFormat, blobKey: string): Promise<Blob> => {
     const pending = inFlight.get(blobKey);
     if (pending) return pending;
@@ -406,7 +448,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
 
   /** An upload (`user/...`) or an inline picture (`data:`) with a photo look. */
   const lookedPicture = async (id: string, baseId: string, treatment: string, opts: { version?: string; tokenSelection?: Readonly<Record<string, string>> }): Promise<AssetRef> => {
-    const def = (await api._photoTreatments()).find(t => t.id === treatment);
+    const def = (await api._knownPhotoTreatments(baseId)).find(t => t.id === treatment);
     if (baseId.startsWith('user/')) {
       const rec = await (await assetHistory()).readUserAssetVersion(db, baseId, opts.version);
       if (!rec) throw new Error(`User asset not found: ${baseId}`);
@@ -448,6 +490,13 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       console.warn('[assets] photo look was not applied to an inline picture:', error);
       return { ...ref, id };
     }
+  };
+
+  /** Which palette a theme read answers from: one for a one-system catalog, else one
+   *  per active system and asset namespace, so a switch never reads the other's. */
+  const paletteCacheKey = async (forAssetId?: string): Promise<string> => {
+    const scope = await readAssetScope(db);
+    return scope ? `${activeNamespace(scope)}|${forAssetId ? assetNamespace(forAssetId) : ''}` : '';
   };
 
   const api = {
@@ -625,7 +674,11 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       };
 
       if (theme) {
-        const def = (await api._iconThemes()).find(t => t.id === theme);
+        // The active system's colourways first, then the catalog palette of the asset's own
+        // system, else of the active one: "All design systems" lets a person pick either, and
+        // a one-system catalog reads the same palette both times. A palette id is no longer
+        // offered, but a piece made with one keeps its colours.
+        const def = (await api._knownIconThemes(baseId)).find(t => t.id === theme) ?? (await api._knownIconThemes()).find(t => t.id === theme);
         if (def) {
           // Cache key carries the pairing's colours, so palette edits re-bake,
           // and a resolve whose bake is already minted skips the blob entirely.
@@ -651,7 +704,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       if (treatment && meta.type === 'raster') {
         const { isRasterPhotoLook, photoLookThemeKey, photoLookCacheKey, resolvePhotoLook } = await import('../../../../engine/src/photo-look.ts');
         const { wrapRasterWithTreatment } = await import('../../../../engine/src/photo-treatment.ts');
-        let def = (await api._photoTreatments()).find(t => t.id === treatment);
+        let def = (await api._knownPhotoTreatments(baseId)).find(t => t.id === treatment) ?? (await api._knownPhotoTreatments()).find(t => t.id === treatment);
         let themeSuffix = '';
         if (def && (isRasterPhotoLook(def) || def.themes)) {
           // A theme variant picks the definition (plan 291 W7); a look only pixels reproduce bakes here.
@@ -689,7 +742,10 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
           // still the jpg blob that backs it, and pruning protects
           // `<baseId>:jpg:<version>`, the key the derived object URL
           // depends on.
-          const cacheKey = `library:${blobKey}:pt:${treatment}${themeSuffix}`;
+          // A colourway's wash follows the system: the key carries the wash's colours, and an
+          // edited colourway bakes again. A palette treatment keeps its old key.
+          const colours = treatment.startsWith('colourway-') ? `:${def.shadow},${def.mid ?? ''},${def.highlight}` : '';
+          const cacheKey = `library:${blobKey}:pt:${treatment}${themeSuffix}${colours}`;
           const common = { ...meta, id, format: format.format, cacheKey, meta: { ...refMeta, treatment, baseId } };
           if (format.format === 'jxl') {
             const original = await toAssetRef({ ...meta, blob: await loadBlob(), format: 'jxl', cacheKey: `library:${blobKey}` }, 'library');
@@ -715,16 +771,46 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     },
 
     /**
-     * Internal: colour pairings for themable icons, from the catalog's
-     * palette asset tagged "icon-themes". [] when the catalog has none.
-     * First entry is the default pairing (matches the fills baked into icons).
-     * Caches the in-flight promise so concurrent cold-cache resolves share one
-     * metadata scan; a transient failure is NOT cached (next call retries).
+     * Internal: the icon colour pairings this design system offers, one per colourway,
+     * canonical first (engine/src/brand-treatments.ts `colourwayIconThemes`). [] when the
+     * system has no colourways, so no colour strip shows. The icon's own colours are not
+     * listed: a strip leads with "Original", which is the plain id with no suffix.
+     * `ground` is the surface the icons are shown on: on `dark` each colourway gives its
+     * pairing for a dark ground (`<id>--on-dark`), under the same name and in the same order.
      */
-    async _iconThemes(): Promise<IconTheme[]> {
-      ICON_THEMES_CACHE ??= (async (): Promise<IconTheme[]> => {
+    async _iconThemes(_forAssetId?: string, ground: 'light' | 'dark' = 'light'): Promise<IconTheme[]> {
+      if (!colourwayTreatmentsOffered()) return [];
+      const looks = await colourwayLooks();
+      return ground === 'dark' ? looks.onDark : looks.themes;
+    },
+
+    /**
+     * Internal: every icon colour pairing an id can name, for resolving and checking a piece
+     * already made: the active system's colourway pairings (each with its dark-ground
+     * pairing), then any palette a catalog still ships (`_catalogIconThemes`), whose ids are
+     * not offered but still resolve.
+     */
+    async _knownIconThemes(forAssetId?: string): Promise<IconTheme[]> {
+      const [ours, theirs] = await Promise.all([colourwayLooks(), api._catalogIconThemes(forAssetId)]);
+      return lookUnion(ours.resolvable, theirs);
+    },
+
+    /**
+     * Internal: the catalog's hand-written icon colour pairings, from its palette asset
+     * tagged "icon-themes". [] when the catalog has none. Read only to resolve an id a
+     * piece already carries.
+     * A catalog holding two systems answers from the palette in the namespace of
+     * `forAssetId`, else of the active system (asset-scope.ts `pickPalette`).
+     * Caches the in-flight promise per palette so concurrent cold-cache resolves
+     * share one metadata scan; a transient failure is NOT cached (next call retries).
+     */
+    async _catalogIconThemes(forAssetId?: string): Promise<IconTheme[]> {
+      const key = await paletteCacheKey(forAssetId);
+      const cached = ICON_THEMES_CACHE.get(key);
+      if (cached) return cached;
+      const pending = (async (): Promise<IconTheme[]> => {
         const all = await db.getAll('asset-meta');
-        const pal = all.find(m => m.type === 'palette' && m.tags?.includes('icon-themes'));
+        const pal = pickPalette(all, 'icon-themes', await readAssetScope(db), forAssetId);
         if (!pal) {
           // Distinguish "synced catalog has no themes" (cacheable) from
           // "metadata hasn't synced yet" (retry once it has).
@@ -735,22 +821,36 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         const { parseIconThemesDoc } = await import('../../../../engine/src/icon-theme.ts');
         return parseIconThemesDoc(JSON.parse(await blob!.text()));
       })().catch(() => {
-        ICON_THEMES_CACHE = null; // unavailable ≠ broken: icons stay default, retry later
+        ICON_THEMES_CACHE.delete(key); // unavailable ≠ broken: icons stay default, retry later
         return [];
       });
-      return ICON_THEMES_CACHE;
+      ICON_THEMES_CACHE.set(key, pending);
+      return pending;
     },
 
     /**
-     * Internal: colour treatments for raster photos, from the catalog's palette
-     * asset tagged "photo-treatments". [] when the catalog has none. Same caching
-     * discipline as _iconThemes(); "None" is not listed here (it's the plain
-     * photo with no id suffix - the picker prepends it).
+     * Internal: the photo washes this design system offers, one gradient map per colourway
+     * (`colourwayPhotoTreatments`). [] when the system has no colourways. "None" is not
+     * listed here: the plain photo has no id suffix, and the picker adds that choice itself.
      */
-    async _photoTreatments(): Promise<PhotoTreatment[]> {
-      PHOTO_TREATMENTS_CACHE ??= (async (): Promise<PhotoTreatment[]> => {
+    async _photoTreatments(_forAssetId?: string): Promise<PhotoTreatment[]> {
+      return colourwayTreatmentsOffered() ? (await colourwayLooks()).treatments : [];
+    },
+
+    /** Internal: every photo treatment an id can name: the colourway washes, then the catalog's own. */
+    async _knownPhotoTreatments(forAssetId?: string): Promise<PhotoTreatment[]> {
+      const [ours, theirs] = await Promise.all([colourwayLooks(), api._catalogPhotoTreatments(forAssetId)]);
+      return lookUnion(ours.treatments, theirs);
+    },
+
+    /** Internal: the catalog's hand-written photo treatments (palette tagged "photo-treatments"), for resolving older ids. */
+    async _catalogPhotoTreatments(forAssetId?: string): Promise<PhotoTreatment[]> {
+      const key = await paletteCacheKey(forAssetId);
+      const cached = PHOTO_TREATMENTS_CACHE.get(key);
+      if (cached) return cached;
+      const pending = (async (): Promise<PhotoTreatment[]> => {
         const all = await db.getAll('asset-meta');
-        const pal = all.find(m => m.type === 'palette' && m.tags?.includes('photo-treatments'));
+        const pal = pickPalette(all, 'photo-treatments', await readAssetScope(db), forAssetId);
         if (!pal) {
           if (!all.length) throw new Error('asset metadata not synced yet');
           return [];
@@ -759,19 +859,34 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         const { parsePhotoTreatmentsDoc } = await import('../../../../engine/src/photo-treatment.ts');
         return parsePhotoTreatmentsDoc(JSON.parse(await blob!.text()));
       })().catch(() => {
-        PHOTO_TREATMENTS_CACHE = null; // unavailable ≠ broken: photos stay untreated, retry later
+        PHOTO_TREATMENTS_CACHE.delete(key); // unavailable ≠ broken: photos stay untreated, retry later
         return [];
       });
-      return PHOTO_TREATMENTS_CACHE;
+      PHOTO_TREATMENTS_CACHE.set(key, pending);
+      return pending;
     },
 
     async _queryMetadata(filter: AssetQuery = {}): Promise<AssetRef[]> {
       return api.query(filter, { metadataOnly: true });
     },
 
-    async query(filter: AssetQuery = {}, listing: { metadataOnly?: boolean } = {}): Promise<AssetRef[]> {
+    /** Internal: what `query` lists with the design-system scope lifted (the Assets
+     *  view's "All design systems"). The same list as `query` on a one-system catalog. */
+    async _queryEverySystem(filter: AssetQuery = {}): Promise<AssetRef[]> {
+      return api.query(filter, { everySystem: true });
+    },
+
+    /** Internal: the design-system scope lists read through, or null when the catalog declares none. */
+    async _assetScope(): Promise<AssetScope | null> {
+      return readAssetScope(db);
+    },
+
+    async query(filter: AssetQuery = {}, listing: { metadataOnly?: boolean; everySystem?: boolean } = {}): Promise<AssetRef[]> {
       const all = await db.getAll('asset-meta');
-      const filtered = all.filter(m => matchesFilter(m, filter));
+      // A catalog holding two design systems lists the active one's rows and the shared
+      // ones (asset-scope.ts). `get` stays global: a saved session finds its asset by id.
+      const scope = listing.everySystem ? null : await readAssetScope(db);
+      const filtered = all.filter(m => matchesFilter(m, filter) && assetInScope(m.id, scope));
       // Don't pre-resolve blob URLs: that forces every cached blob into
       // memory. Every format carries a static catalog URL (same-origin for
       // core/catalog, CDN for on-demand), so the picker can show a thumbnail
@@ -1112,11 +1227,11 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * Internal: called by catalog/sync.js at boot to populate asset metadata.
      * Not part of the public HostV1 bridge contract.
      */
-    async _syncFromIndex(assets: AssetMetaRecord[], source?: { origin: string; tokensHead?: string | null }): Promise<void> {
+    async _syncFromIndex(assets: AssetMetaRecord[], source?: { origin: string; tokensHead?: string | null; companions?: unknown }): Promise<void> {
       const { syncAssetIndex } = await import('./asset-cache-maintenance.ts');
       await syncAssetIndex(db, assets, source, key => { inFlight.delete(key); evictObjectUrlsByPrefix(`library:${key}`); });
-      ICON_THEMES_CACHE = null;       // the icon-themes palette may have changed
-      PHOTO_TREATMENTS_CACHE = null;  // …as may the photo-treatments palette
+      ICON_THEMES_CACHE.clear();       // the icon-themes palette may have changed
+      PHOTO_TREATMENTS_CACHE.clear();  // …as may the photo-treatments palette
     },
 
     /**
@@ -1266,10 +1381,24 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     },
 
     /**
+     * Internal: catalog files this device should keep although no saved document
+     * refers to them yet, such as the emoji set an unsaved piece draws with. A short
+     * list, newest first, so trying every set does not keep every set.
+     */
+    async _holdCatalogAssets(ids: readonly string[]): Promise<void> {
+      return (await import('./asset-cache-maintenance.ts')).holdCatalogAssets(db, ids);
+    },
+
+    /** Internal: fallback fonts a document drew with, kept through prunes on a list of their own. */
+    async _holdFallbackFonts(ids: readonly string[]): Promise<void> {
+      return (await import('./asset-cache-maintenance.ts')).holdFallbackFonts(db, ids);
+    },
+
+    /**
      * Internal: called by syncAssets after writing new metadata.
      *
-     * Keeps core files, explicit downloads, and exact saved dependencies. An
-     * exact dependency survives source replacement or index withdrawal.
+     * Keeps core files, explicit downloads, held files and exact saved dependencies.
+     * An exact dependency survives source replacement or index withdrawal.
      *
      * This prevents on-demand blobs from accumulating when a user browses the
      * asset picker without saving a session.

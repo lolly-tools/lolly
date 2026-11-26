@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { isPhoneLayout } from '../lib/layout-posture.ts';
+import { closeOptionPicker, drawsAsButtons, optionPickerHtml, wireOptionPicker } from '../lib/option-picker.ts';
 import { shareUrlState } from '../lib/share-privacy.ts';
 import { prepareInputPanel } from './tool-input-model.ts';
 import { flattenValue } from '../../../../engine/src/inputs.ts';
@@ -27,8 +28,8 @@ import {
   toHtmlTable,
   readXlsx,
 } from '@lolly/engine';
-import type { TableValue } from '@lolly/engine';
-import { matchesShowIf } from '@lolly/engine';
+import { matchesShowIf, type TableValue } from '@lolly/engine';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { mountInputEmoji, wireEmojiCells } from '../components/input-emoji.ts';
 import { wireTableWorkbench } from './table-workbench-launcher.ts';
 import { tableInputHtml, tableGhostCells } from './table-input-html.ts';
@@ -42,11 +43,7 @@ import { announce } from '../a11y.ts';
 import { blockColourFieldHtml, colourInputHtml, paintAutoColours,
   paletteFieldHtml, wireToolColourFields } from './tool-input-colours.ts';
 import { helpTip, wireHelpTips, linkHelpDescriptions } from '../components/help-tip.ts';
-import {
-  customSliderHtml,
-  mountCustomSlider,
-  SLIDER_DRAG_EVENT,
-} from '../components/custom-slider.ts';
+import { customSliderHtml, mountCustomSlider, rulerDialFor, SLIDER_DRAG_EVENT } from '../components/custom-slider.ts';
 import { canSkipInputsRebuild, staticInputControl } from './inputs-sync.ts';
 import { dragTravel } from '../lib/pointer-wrap.ts';
 import { jellyActive, jellyEnabled } from '../lib/jelly.ts';
@@ -601,13 +598,12 @@ export function renderInputs(
     // collapse chevron (the reported "clicking the 2nd scene expands the 1st"), and a
     // `vector` input forwards to its first number field. Wrap these in a <div role=group>
     // instead: the caption still names them (aria-labelledby), but it never proxies clicks.
-    // A badged OR segmented select renders as a radiogroup of buttons (see controlHtml).
-    // Treat it like other composites: a wrapping <label> would proxy dead-space clicks to
-    // the first option button, and the caption must be aria-labelledby, not a <label for>.
-    const isBadgedSelect =
-      input.control === 'select' &&
-      (input.display !== 'select' && (input.options ?? []).some((o) => (o as { badge?: string }).badge) ||
-        input.display === 'segmented');
+    // A badged or segmented select renders as a radiogroup of buttons, and a picker as
+    // one button that opens a panel (see controlHtml). Treat them like other composites:
+    // a wrapping <label> would proxy a dead-space click to the first button (choosing an
+    // option, or opening the panel), and the caption must be aria-labelledby, not a
+    // <label for>. lib/option-picker.ts drawsAsButtons is the one test for all three.
+    const isBadgedSelect = drawsAsButtons(input);
     const isComposite =
       isBadgedSelect ||
       ['blocks', 'vector', 'asset-picker', 'file-picker', 'color-picker', 'palette-picker', 'table'].includes(
@@ -921,7 +917,7 @@ export function renderInputs(
     const input = panelModel.find((i) => i.id === id);
 
     if (input?.control === 'slider') {
-      setupCustomSlider(control, runtime, id, onDirty);
+      setupCustomSlider(control, runtime, id, onDirty, toolId);
       return;
     }
 
@@ -1228,14 +1224,13 @@ export function renderInputs(
   // ARIA radio keys (arrows/Home/End, Space/Enter) commit the option through the
   // normal input path; the change re-renders the panel (which reveals that option's
   // showIf-gated inputs) and the by-id focus restore returns to the checked button.
+  // A picker's trigger carries the same attribute and commits through the same write.
   el.querySelectorAll<HTMLElement>('[data-badge-select]').forEach((group) => {
     const id = group.dataset.badgeSelect!;
+    const commit = (value: string): void => { runtime.setInput(id, value); onDirty?.(id); };
+    if (wireOptionPicker(group, commit)) return;
     const opts = [...group.querySelectorAll<HTMLElement>('.badge-select-opt')];
-    const pick = (btn: HTMLElement | undefined): void => {
-      if (!btn) return;
-      runtime.setInput(id, btn.dataset.badgeValue!);
-      onDirty?.(id);
-    };
+    const pick = (btn: HTMLElement | undefined): void => { if (btn) commit(btn.dataset.badgeValue!); };
     opts.forEach((btn, idx) => {
       btn.addEventListener('click', () => pick(btn));
       btn.addEventListener('keydown', (e) => {
@@ -1455,7 +1450,7 @@ export function renderInputs(
         const ri = tr.sectionRowIndex;
         const ctl = tr.querySelector('.table-rowctl');
         if (ctl) {
-          ctl.innerHTML = `<button type="button" class="table-del-row" data-table-del-row="${ri}" aria-label="Remove row ${ri + 1}">✕</button>`;
+          ctl.innerHTML = closeButtonHtml({ size: 'sm', danger: true, className: 'table-del-row', label: `Remove row ${ri + 1}`, attrs: { 'data-table-del-row': ri } });
           const del = ctl.querySelector('button');
           if (del) wireDelRow(del);
         }
@@ -2497,6 +2492,7 @@ export function renderInputs(
   el._emojiInputsDispose = mountInputEmoji(el, model, host, runtime);
   el._inputsDispose = () => {
     el._emojiInputsDispose?.();
+    closeOptionPicker(el);
     el._audioThumbs?.destroy();
     el._audioThumbs = undefined;
     if (el._colorPopoverDismiss)
@@ -2697,6 +2693,7 @@ function controlHtml(
         const restricted = selOpts.filter((o) => allow.has(o.value));
         if (restricted.length) selOpts = restricted;
       }
+      if (input.display === 'picker') return optionPickerHtml(input, selOpts);
       // Badged picker: when ANY option carries a `badge`, render a radiogroup of
       // labelled pills instead of a native <select>, so the badge (e.g. vector/raster)
       // is visible while choosing rather than hidden inside a closed dropdown. Roving
@@ -2775,9 +2772,9 @@ function controlHtml(
     case 'color-picker':
       // Shared SUSE colour picker (see components/color-field.js).
       // `swatchesOnly` makes it a palette-restricted picker (no hex/native/alpha).
-      return colourInputHtml(id, input);
+      return colourInputHtml(id, input, modelValues[input.id]);
     case 'palette-picker':
-      return paletteFieldHtml(id, input);
+      return paletteFieldHtml(id, input, modelValues[input.id]);
     case 'asset-picker': {
       const v = input.value as AssetRef | null;
       const currentLabel =
@@ -2874,7 +2871,7 @@ function controlHtml(
           hasValue
             ? `<div class="asset-slot-preview">
           ${thumb}
-          <button type="button" class="asset-clear" data-clear-id="${id}" aria-label="Clear selection">&#x2715;</button>
+          ${closeButtonHtml({ size: 'sm', solid: true, className: 'asset-clear', label: 'Clear selection', attrs: { 'data-clear-id': id } })}
         </div>
         <div class="asset-slot-caption" title="${escape(currentLabel)}">${spark}${escape(currentLabel)}</div>`
             : ''
@@ -2909,7 +2906,7 @@ function controlHtml(
       const accept = Array.isArray(input.accept) ? input.accept.join(',') : '';
       const chosenRow = (r: InputFile, idx?: number): string => {
         const meta = `${escape(r.name)}${r.size ? ` · ${fmtBytes(r.size)}` : ''}`;
-        return `<div class="file-chosen"><span class="file-name" title="${escape(r.name)}">${meta}</span><button type="button" class="file-clear"${idx == null ? '' : ` data-file-index="${idx}"`} aria-label="Remove ${escape(r.name)}">&#x2715;</button></div>`;
+        return `<div class="file-chosen"><span class="file-name" title="${escape(r.name)}">${meta}</span>${closeButtonHtml({ size: 'sm', className: 'file-clear', label: `Remove ${r.name}`, attrs: { 'data-file-index': idx == null ? undefined : idx } })}</div>`;
       };
       if (input.multiple) {
         // A batch input holds an ARRAY of FileRefs (empty when none). The trigger adds
@@ -3162,7 +3159,7 @@ function controlHtml(
             <button type="button" class="block-asset-edit block-asset-edit--baked" data-block-rebake="${fieldId}" title="Re-bake - from ${escape(bakedName)}" aria-label="Re-bake image from ${escape(bakedName)}">&#8635;</button>`
                 : ''
             }
-            ${has ? `<button type="button" class="block-asset-clear" data-block-asset-clear="${fieldId}" aria-label="Remove ${escape(f.label ?? 'image')}">&#x2715;</button>` : ''}
+            ${has ? closeButtonHtml({ size: 'sm', className: 'block-asset-clear', label: `Remove ${f.label ?? 'image'}`, attrs: { 'data-block-asset-clear': fieldId } }) : ''}
           </div>`,
             ' block-control--full'
           );
@@ -3497,7 +3494,7 @@ async function openEmbedEditor(
         <header class="embed-editor-head">
           <span class="embed-editor-spark" aria-hidden="true">&#10022;</span>
           <h2 class="embed-editor-title">${titleVerb} ${titleSlot} <span class="embed-editor-from">from ${escape(desc!.name)}</span></h2>
-          <button type="button" class="embed-editor-close" aria-label="Close">&times;</button>
+          ${closeButtonHtml({ className: 'embed-editor-close' })}
         </header>
         <div class="embed-editor-body">
           <div class="embed-editor-form">
@@ -3754,12 +3751,7 @@ function setupVectorControl(
   });
 }
 
-function setupCustomSlider(
-  el: HTMLElement,
-  runtime: Runtime,
-  id: string,
-  onDirty?: (id: string) => void
-): void {
+function setupCustomSlider(el: HTMLElement, runtime: Runtime, id: string, onDirty?: (id: string) => void, toolId?: string): void {
   // Live numeric readout next to the label. The panel rebuild is suppressed during a
   // slider drag (_sliderDragging), so update this span directly or it stalls mid-drag.
   const valueOut = el.closest('.input-row')?.querySelector<HTMLElement>('.input-value');
@@ -3767,6 +3759,10 @@ function setupCustomSlider(
     onInput(v) {
       if (valueOut) valueOut.textContent = String(v);
       runtime.setInput(id, v);
+    },
+    // A dial's glide: the number moves, the canvas redraws once at rest (onCommit).
+    onPreview(v) {
+      if (valueOut) valueOut.textContent = String(v);
     },
     onCommit(v) {
       // Keep the readout fresh here too, not just in onInput: a keyboard step
@@ -3784,7 +3780,7 @@ function setupCustomSlider(
     onDragEnd() {
       _sliderDragging = false;
     },
-  });
+  }, { ruler: rulerDialFor(toolId), readout: valueOut }); // a phone ruler for the tools trying it
 }
 
 export {

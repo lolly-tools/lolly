@@ -119,7 +119,10 @@ test('--lolly-accent and the old Lolly greens are gone from the shell', () => {
 
 test('the job stripe falls back to the tone and the credential panel washes the tone, not a literal green', () => {
   const tokens = read('styles/tokens.css');
-  assert.match(tokens, /--job-candy-a:\s*var\(--brand-primary,\s*var\(--lolly-tone\)\);/);
+  assert.match(tokens, /--job-candy-tone:\s*var\(--brand-primary,\s*var\(--lolly-tone\)\);/);
+  // Both stripes are that one tone at two mid lightnesses.
+  assert.match(tokens, /--job-candy-a:\s*oklch\(from var\(--job-candy-tone\) 0\.6 /);
+  assert.match(tokens, /--job-candy-b:\s*oklch\(from var\(--job-candy-tone\) 0\.74 /);
   const panel = ruleBody(read('styles/parts/assets.css'), '.cat-cred-lolly') ?? '';
   assert.ok(panel.includes(`color-mix(in srgb, ${READ} 6%, transparent)`), 'a 6% wash of the tone');
   // At rest a card wears the theme's neutral hairline and the tone stays in the wash (C3).

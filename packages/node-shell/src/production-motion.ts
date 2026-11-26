@@ -6,7 +6,7 @@ import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ProductionFacts, ProductionMotionContract } from '@lolly/engine';
-import { inspectMotionBytes } from './motion-inspect.ts';
+import { afterInputSummary, FRAME_LOG_ARGS, inspectMotionBytes } from './motion-inspect.ts';
 
 const run = promisify(execFile);
 const rate = (value: string): number => { const [a, b = '1'] = value.split('/'); return Number(a) / Number(b); };
@@ -50,13 +50,14 @@ export async function collectProductionMotion(bytes: Uint8Array, contract: Produ
     const indices = sampleBudget ? [...new Set(times.map(t => Math.round(t * contract.motion.fps)))] : [];
     if (!sampleBudget) facts.limitations.push('motion-sample-pixel-budget');
     const selection = indices.length ? `,select='${indices.map(n => `eq(n,${n})`).join('+')}'` : '';
-    const args = ['-hide_banner', '-nostdin', '-xerror', '-err_detect', 'explode', '-protocol_whitelist', 'file,pipe', '-threads', '1', '-noautorotate', '-i', path,
-      '-map', '0:v:0', '-filter_threads', '1', '-vf', `showinfo${selection}`, '-fps_mode', 'passthrough'];
+    const args = ['-hide_banner', '-nostdin', '-nostats', '-xerror', '-err_detect', 'explode', '-protocol_whitelist', 'file,pipe', '-threads', '1', '-noautorotate', '-i', path,
+      '-map', '0:v:0', ...FRAME_LOG_ARGS, '-filter_threads', '1', '-vf', `showinfo${selection}`, '-fps_mode', 'passthrough'];
     if (indices.length) args.push('-pix_fmt', 'rgba', '-f', 'rawvideo', 'pipe:1');
     else args.push('-f', 'null', '-');
     const decoded = await run(binaries.decode, args, { signal, timeout: 60_000, maxBuffer: Math.max(8 * 1024 * 1024, indices.length * width * height * 4 + 1), encoding: 'buffer' });
     const log = decoded.stderr.toString();
-    const frames = [...log.matchAll(/\[Parsed_showinfo_[^\]]+\]\s+n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?\bs:(\d+)x(\d+)/g)].map(m => ({ index: Number(m[1]), time: Number(m[2]), width: Number(m[3]), height: Number(m[4]) }));
+    // By the frame's own fields, not the `[Parsed_showinfo_0 @ …]` prefix: see ASHOWINFO_FRAME in motion-inspect.ts.
+    const frames = [...afterInputSummary(log).matchAll(/n:\s*(\d+)\s+pts:\s*[-\d]+\s+pts_time:([-\d.e+]+).*?\bs:(\d+)x(\d+)/g)].map(m => ({ index: Number(m[1]), time: Number(m[2]), width: Number(m[3]), height: Number(m[4]) }));
     if (!frames.length || frames.length > 14_400 || frames.length * width * height > 1_000_000_000 || frames.some((f, i) => f.index !== i || !Number.isFinite(f.time) || f.width !== width || f.height !== height || i > 0 && f.time <= frames[i - 1]!.time)) {
       facts.limitations.push('decoded-frame-ledger-unavailable-or-inconsistent'); return facts;
     }

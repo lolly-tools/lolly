@@ -1,63 +1,70 @@
 # Ask Lolly
 
-Napiš otázku a Ask Lolly odpoví částí těchto průvodců, která ji pokrývá, doslova, s citovanou stránkou, odkud pochází, a odkazem **Open in docs** rovnou na tu část. Nic se negeneruje: odpověď se vyhledá, ocituje a přiřadí, na tvém zařízení.
+Ask Lolly odpoví na otázku odpovídající částí těchto průvodců, citovanou slovo od slova, s uvedením stránky a odkazem **Open in docs** na danou část. Nic se negeneruje: odpověď se vyhledá a cituje na tvém zařízení.
 
-Pod citovanou částí jsou místa v aplikaci, která odpovídají téže otázce: nástroj, utilita, uložený projekt, asset z katalogu, nastavení nebo stránka aplikace. Každý řádek jen naviguje. Nic v odpovědi nemění nastavení, neotevírá soubor ani za tebe nejedná, stejné pravidlo dodržuje [Hledání](/info/search.html).
+Pod citovanou částí jsou místa v aplikaci, která odpovídají otázce: nástroj, utilita, uložený projekt, asset z katalogu, nastavení nebo stránka aplikace. Každý řádek slouží jen k navigaci. Nic v odpovědi nemění nastavení, neotevírá soubor ani nejedná za tebe, stejně jako v [Lolly Search](/info/search.html).
 
-## Kladení otázky
+<!--i:eti-chat-->
+## Položení otázky
 
-Piš do pole otázky dole v zobrazení a stiskni Enter. Cokoli kratšího než dva znaky se ignoruje. Odpovědi se skládají nad polem, nejnovější poslední, a můžeš se ptát dál.
+Piš do pole pro otázku dole v zobrazení a stiskni Enter. Cokoli kratšího než dva znaky se ignoruje. Odpovědi se řadí nad polem, nejnovější nakonec.
 
-![Ask Lolly, otevřené a prázdné: pole otázky dole v zobrazení s poznámkou, že odpovědi pocházejí z dokumentace](/t/url-shot?url=%2F%23%2Fask&width=1200&height=820&waitMs=2200&format=svg&walker=1&filename=ask-view)
+![Ask Lolly, otevřené a prázdné: pole pro otázku dole v zobrazení s poznámkou, že odpovědi pocházejí z dokumentace](/t/url-shot?url=%2F%23%2Fask&width=1200&height=820&waitMs=2200&format=svg&walker=1&filename=ask-view)
 
-Každá otázka se zodpovídá samostatně: dřívější otázky nepřenášejí žádný kontext, takže "co PDF?" po otázce o exportu se čte jako otázka o PDF a nic víc. Zeptej se pokaždé celou otázkou.
+::: note Každá otázka stojí samostatně
+Předchozí otázky nepředávají žádný kontext, takže „a co PDF?“ po otázce o exportu se čte pouze jako otázka o PDF. Pokaždé polož celou otázku.
+:::
 
-První slovo tvé otázky rozhoduje, co odpověď vede:
+První slovo tvé otázky rozhoduje, čím odpověď začíná:
 
-| Začínáš slovem | Co vede |
+| Začneš slovem | Co je první |
 |---|---|
-| *kde*, *najdi*, *otevři*, *ukaž*, *jdi na*, *goto*, *vezmi*, *skoč*, *naviguj*, *přepni* | místa v aplikaci, která odpovídají |
-| *vytvoř*, *udělej*, *vygeneruj*, *sestav*, *navrhni*, *převeď*, *změň velikost*, *zkomprimuj*, *odstraň*, *vyčisti*, *exportuj*, *vykresli*, *přidej* | nástroje, které odpovídají |
-| cokoli jiného - včetně *jak* a *co je* | sekce dokumentace, což je výchozí |
+| *where*, *find*, *open*, *show*, *go to*, *goto*, *take*, *jump*, *navigate*, *switch* | odpovídající místa v aplikaci |
+| *make*, *create*, *generate*, *build*, *design*, *convert*, *resize*, *compress*, *remove*, *strip*, *export*, *render*, *add* | odpovídající nástroje |
+| cokoli jiného, včetně *how do I* a *what is* | část dokumentace, což je výchozí možnost |
 
-Obě poloviny se načtou vždy, takže špatně přečtená otázka odpověď přeuspořádá, ale nepřijdeš o polovinu odpovědi.
+Vždy se načtou obě poloviny, takže chybně vyhodnocená otázka jen změní pořadí odpovědi.
 
-Párování vynechá běžná tázací slova (*jak*, *co*, *já*, *ten*, *můj*) a řadí sekci podle toho, kolik zbývajících slov pokrývá, pak podle toho, kde se shodovala: nadpis váží víc než běžný text. Párování probíhá po podřetězcích, bez ohledu na velikost písmen a diakritiku, takže překlep se neopravuje. Když nic neodpovídá, Ask to řekne a odkáže na index dokumentace, místo aby odpověď vymýšlel.
+Vyhledávání shod vypouští běžná slova z otázek (*how*, *do*, *I*, *the*, *my*). Řadí části podle toho, kolik tvých ostatních slov pokrývají, a pak podle toho, kde se shodují: nadpis má větší váhu než běžný text. Shoda se hledá podle podřetězce bez ohledu na velikost písmen a diakritiku, takže překlep se neopravuje. Když se nic neshoduje, Ask to oznámí a odkáže na rozcestník dokumentace.
 
-**Better matching** je volitelné. Po tvé první odpovědi může Ask nabídnout malý párovací model s velikostí stažení, který pomáhá spárovat otázku s průvodcem, jenž používá jiná slova pro totéž. Stáhne se, jen když souhlasíš, běží na tomto zařízení a mění jen to, které sekce se řadí první: odpověď jsou stále slova dokumentace. Můžeš jej stáhnout také v **Settings → Preferences → Available offline**, kde je uveden jako **Ask matching model** ([Available offline](/info/dashboard.html#available-offline)).
+**Better matching** je volitelné. Po první odpovědi může Ask nabídnout malý model pro vyhledávání shod i s velikostí ke stažení. Model přiřadí otázku k průvodci, který pro stejnou věc používá jiná slova. Stáhne se jen s tvým souhlasem, běží na tomto zařízení a mění pouze to, které části se řadí první. Odpověď stále používá vlastní slova dokumentace. Můžeš ho také stáhnout jako **Ask matching model** v **Settings → Preferences → Available offline** ([Dostupné offline](/info/dashboard.html#available-offline)).
 
-## Co se vrátí
+<!--i:eti-clipboard-->
+## Co dostaneš zpět
 
-Karta odpovědi se skládá v pevném pořadí:
+Karta odpovědi má pevné pořadí:
 
-1. **Samotná sekce**, vykreslená ze zdroje dokumentace - odstavce, seznamy, tabulky, kód a citace, s živými odkazy v aplikaci a na `/info`. Dlouhá sekce je omezena tlačítkem **Show more**, které ji otevře na místě. Obrázky se vynechávají a odkaz na jiný web se vykreslí jako prostý text, ne jako kotva.
-2. **Citace** - *Stránka › Nadpis* - a odkaz **Open in docs** na přesně tu sekci.
-3. **More in the docs** - až čtyři další sekce, které odpovídaly, jako odkazy.
-4. **Řádky v aplikaci** pod stejnými nadpisy skupin, jaké používá Hledání.
+1. **Samotná část**, vykreslená ze zdroje dokumentace: odstavce, seznamy, tabulky, kód a citace, s funkčními odkazy v aplikaci i na `/info`. Dlouhá část končí tlačítkem **Show more**, které zbytek otevře na místě. Obrázky se vynechávají a odkaz na jiný web se zobrazuje jako prostý text.
+2. **Citace** - *Stránka › Nadpis* - a odkaz **Open in docs** na přesnou část.
+3. **More in the docs** - až čtyři další odpovídající části jako odkazy.
+4. **Řádky s místy v aplikaci**, pod stejnými nadpisy skupin jako ve vyhledávání.
 
-Plný text pochází z prostého markdownového dvojčete, které každá stránka dokumentace publikuje na `/info/<slug>.md`, a ta dvojčata jsou jen anglicky. V jiném jazyce - a na hrstce stránek, které nejsou vytvořeny z markdownu - odpověď místo celé sekce sáhne po krátkém výtahu z vyhledávacího indexu. Citace a odkaz **Open in docs** jsou tam v obou případech a míří na stránku ve tvém jazyce.
+Úplný text pochází z markdownové verze, kterou každá stránka dokumentace zveřejňuje na `/info/<slug>.md`. Tyto verze jsou pouze v angličtině. V jiném jazyce a na několika stránkách, které nevznikají z Markdownu, odpověď místo toho zobrazuje krátký výňatek z vyhledávacího indexu. Citace a odkaz **Open in docs** stále směřují na stránku v tvém jazyce.
 
-## Kde žije
+<!--i:eti-map-pin-->
+## Kde ho najdeš
 
-Cesta je `#/ask`. Nemá kartu ani dlaždici v mřížce Utilities; vstupem jsou vyhledávací lišta a samotná adresa.
+Cesta je `#/ask`. Nemá kartu ani dlaždici v mřížce Utilities. Do zobrazení se dostaneš z vyhledávacího pole nebo přes jeho adresu.
 
-- <!--i:search--> **Z hledání.** Každý panel výsledků nese úplně dole řádek **Ask Lolly: *tvůj dotaz***, pod všemi konkrétními nálezy ostatních skupin. Předá otázku jako `#/ask?q=…` a zobrazení se po příchodu jednou zeptá. Předaná slova přijdou malými písmeny a bez interpunkce, takže je v případě potřeby upřesni v poli otázky.
-- <!--i:link--> **Z odkazu.** `#/ask?q=how%20do%20I%20export%20a%20transparent%20png` otevře zobrazení s již položenou otázkou. Hash je jen počáteční zárodek: otázky, které poté napíšeš, se zodpovídají na místě a adresu nikdy nepřepisují.
+- <!--i:search--> **Z vyhledávání.** Každý panel výsledků končí řádkem **Ask Lolly: *tvůj dotaz*** pod výsledky ostatních skupin. Řádek otevře `#/ask?q=…` a zobrazení po příchodu jednou položí otázku. Slova přijdou malými písmeny a bez interpunkce, takže je v poli pro otázku podle potřeby upřesni.
+- <!--i:link--> **Z odkazu.** `#/ask?q=how%20do%20I%20export%20a%20transparent%20png` otevře zobrazení s již položenou otázkou. Fragment adresy předvyplní pouze první otázku. Otázky, které napíšeš potom, se zodpovídají na místě a nikdy nemění adresu.
 
-Vyhledávací lišta v tomto zobrazení ustoupí, protože pole otázky bere Enter, a pilulka zpět tě vrátí, odkud jsi přišel.
+Vyhledávací pole se v tomto zobrazení skryje, protože Enter používá pole pro otázku. Pilulka zpět tě vrátí tam, odkud jsi přišel.
 
-Odpovědi na obrazovce vydrží po tuto relaci: pokud odejdeš a vrátíš se, jsou tam, a znovunačtení je smaže. Nic se nezapisuje do úložiště, takže není žádná historie ke správě.
+Odpovědi zůstávají po dobu této relace: jsou stále na místě, když odejdeš a vrátíš se, a opětovné načtení je smaže. Do úložiště se nic nezapisuje, takže není žádná historie ke správě.
 
+<!--i:eti-download-->
 ## Offline
 
-Odpovědi se skládají ze dvou statických souborů, které web dokumentace už publikuje: vyhledávacího indexu pro jazyk a markdownového dvojčete stránky. Oba se stahují podle názvu, takže Ask funguje dál bez připojení, jakmile jsou v cache. Čtení průvodců v aplikaci je průběžně ukládá a **Guides & docs** v [Available offline](/info/dashboard.html#available-offline) bere celý web včetně snímků obrazovky jedním stažením.
+Odpovědi pocházejí ze dvou statických souborů, které zveřejňuje web dokumentace: vyhledávacího indexu pro daný jazyk a markdownové verze stránky. Oba se stahují podle názvu, takže Ask funguje bez připojení, jakmile jsou v mezipaměti. Čtení průvodců v aplikaci je uloží do mezipaměti. **Guides & docs** v části [Dostupné offline](/info/dashboard.html#available-offline) stáhne celý web včetně snímků obrazovky najednou.
 
-Bez nich se dokumentační polovina odpovědi prostě neobjeví, bez chyby. Řádky v aplikaci ano, protože se párují s daty, která už na zařízení jsou.
+Bez těchto souborů se část odpovědi z dokumentace nezobrazí a neukáže se žádná chyba. Řádky s místy v aplikaci se zobrazují dál, protože hledají shodu v datech, která už jsou na zařízení.
 
+<!--i:eti-lock-->
 ## Soukromí
 
-Tvá otázka nikdy neopustí zařízení. Párování běží lokálně nad soubory stahovanými podle názvu, takže to, cos napsal, není součástí žádného požadavku; není žádný server, který by ji viděl, žádný účet, ke kterému by byla připojena, a po znovunačtení po ní nezbývá žádný záznam. Úplný seznam toho, co aplikace kdy stahuje nebo odesílá, najdeš v [Zásadách ochrany soukromí](/info/privacy.html).
+Tvá otázka nikdy neopustí zařízení. Vyhledávání shod běží místně nad soubory staženými podle názvu, takže zadaný text není součástí žádného požadavku. Žádný server tvou otázku nevidí, žádný účet ji nemá a po opětovném načtení nezůstane žádný záznam. [Zásady ochrany soukromí](/info/privacy.html) uvádějí vše, co aplikace stahuje nebo odesílá.
 
 ---
 
-**Související:** [Hledání](/info/search.html) pro lištu, která předává otázky. [Používání Lolly](/info/using.html) pro zbytek aplikace. [Lolly Settings](/info/dashboard.html#available-offline) pro stažení dokumentace offline jako první.
+**Související:** [Lolly Search](/info/search.html) pro pole, které předává otázky. [Používání Lolly](/info/using.html) pro zbytek aplikace. [Nastavení Lolly](/info/dashboard.html#available-offline) pro předchozí stažení dokumentace offline.

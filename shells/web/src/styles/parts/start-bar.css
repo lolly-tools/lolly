@@ -267,7 +267,7 @@ html:has(.start.start--studio > .ds-top:focus-within) { scroll-padding-block: 0;
    is the ink's and it slides between rooms. */
 .ds-room[aria-current="page"] { background: hsl(var(--primary) / .14); color: var(--ui-color-text-default); }
 .ds-rooms[data-ink] .ds-room[aria-current="page"] { background: transparent; }
-.ds-room[aria-current="page"] .ds-room-ic { color: var(--ui-color-action-primary); }
+.ds-room[aria-current="page"] .ds-room-ic { color: var(--ui-color-text-accent); }
 .ds-room:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
 .ds-room-ic { flex: none; display: grid; place-items: center; width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
 .ds-room-ic svg { width: 100%; height: 100%; }
@@ -393,3 +393,23 @@ html[data-a11y-motion="reduce"] .ds-bar-more { transition: none; }
   .start.start--studio:has(.be-editor.is-picksheet:not([hidden])) .ds-room-nav { display: none; }
 }
 }
+
+/* One plain line on a copy that goes back to an instance, with the way to send it. */
+.ds-instance-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3) var(--sp-5);
+  margin: 0;
+  padding: var(--sp-3) var(--ui-space-page);
+  border-block-end: 1px solid var(--ui-color-border-default);
+  background: var(--ui-color-surface-muted);
+  font-size: var(--ui-type-caption);
+  line-height: 1.5;
+}
+.ds-instance-line[hidden] { display: none; }
+.ds-instance-line > span { flex: 1 1 30ch; }
+.ds-instance-send { flex: none; }
+.start-manager { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+.start-manager[hidden] { display: none; }

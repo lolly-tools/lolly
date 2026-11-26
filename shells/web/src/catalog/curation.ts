@@ -3,7 +3,7 @@
 import { instanceFetch, instancePath, getInstanceBase } from '../lib/instance.ts';
 import type { AssetMetaRecord } from '../bridge/assets.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { readCatalogJson } from './asset-record.ts';
+import { isSharedCatalogId, readCatalogJson } from './asset-record.ts';
 import { selectedAssetFile } from '../lib/asset-files.ts';
 
 export interface CatalogField { id: string; label: string; kind: 'text' | 'date' | 'url' | 'select'; required?: boolean; options?: string[] }
@@ -20,7 +20,7 @@ export interface AssetInspection extends AssetMetaRecord {
 }
 export function sharedAssetId(ref: AssetRef): string | null {
   const id = String(ref.meta?.assetGroupId ?? ref.id.split('?')[0]);
-  return /^(ext|inst)\/[A-Za-z0-9._/-]+$/.test(id) && !id.includes('..') ? id : null;
+  return isSharedCatalogId(id) ? id : null;
 }
 export function inspectedFile(value: AssetInspection, ref: AssetRef): TextIndexFile | undefined {
   const selected = selectedAssetFile(ref), files = value.textIndexFiles ?? [];
@@ -34,6 +34,11 @@ export function inspectedFile(value: AssetInspection, ref: AssetRef): TextIndexF
 export class CatalogCurationError extends Error {
   readonly status: number;
   constructor(message: string, status = 0) { super(message); this.status = status; }
+}
+/** Refuse an id that is not a shared catalog id before it becomes part of a request path. */
+function checkedId(id: string): string {
+  if (!isSharedCatalogId(id)) throw new CatalogCurationError('This shared asset is unavailable.', 404);
+  return id;
 }
 async function request(path: string, init: RequestInit): Promise<Record<string, unknown>> {
   const origin = getInstanceBase();
@@ -49,14 +54,14 @@ async function request(path: string, init: RequestInit): Promise<Record<string, 
 }
 const inspection = (value: Record<string, unknown>): value is Record<string, unknown> & AssetInspection => typeof value.id === 'string' && Array.isArray(value.formats);
 export async function inspectCatalogAsset(id: string, signal?: AbortSignal): Promise<AssetInspection> {
-  const value = await request(`/api/v1/catalog/assets/${id}`, { signal });
+  const value = await request(`/api/v1/catalog/assets/${checkedId(id)}`, { signal });
   if (!inspection(value) || value.id !== id) throw new CatalogCurationError('The server returned invalid asset metadata.');
   return value;
 }
 export async function saveCatalogFields(id: string, fields: Record<string, string | null>, signal?: AbortSignal): Promise<void> {
-  await request(`/api/v1/catalog/assets/${id}/meta`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ fields }), signal });
+  await request(`/api/v1/catalog/assets/${checkedId(id)}/meta`, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ fields }), signal });
 }
 export async function saveReviewedText(id: string, sourceRevision: string, content: { text: string; fileId: string; method: 'ocr' | 'digital' } | null, signal?: AbortSignal): Promise<void> {
-  await request(`/api/v1/catalog/text-index/${id}`, { method: 'PUT', headers: { 'content-type': 'application/json' },
+  await request(`/api/v1/catalog/text-index/${checkedId(id)}`, { method: 'PUT', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ sourceRevision, ...(content ?? { text: null }) }), signal });
 }

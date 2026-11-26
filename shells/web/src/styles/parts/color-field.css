@@ -1052,6 +1052,122 @@
   background-color: #fff;
 }
 
+/* ─── Colour roles (plans/352) ───────────────────────────────────────────── */
+
+/* A design system's own colour words lead the grid, each on show with no hover. They
+   span the grid's columns, and the other colours keep flowing in its tracks below. A
+   system with no roles never draws any of this. */
+.color-swatches:has(> .color-role-swatches) { max-height: 340px; }
+.color-role-swatches {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+  display: grid;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+.color-swatch-head {
+  grid-column: 1 / -1;
+  justify-self: start;
+  font-size: var(--ui-type-field);
+  font-weight: var(--ui-type-weight-label);
+  letter-spacing: var(--ui-type-tracking-label);
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+.color-swatch-head--rest { margin-top: var(--sp-2); }
+.color-role-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  /* The press area reaches past the chip, which then lines up with the heading above it. */
+  margin-inline-start: calc(var(--sp-2) * -1);
+}
+.color-role-swatch {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--ui-size-control);
+  padding: var(--sp-1) var(--sp-2);
+  border: none;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--ui-color-text-default);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.color-role-swatch:hover { background: var(--ui-color-surface-muted); }
+.color-role-swatch:focus-visible,
+.color-role-on:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 1px; }
+.color-role-chip {
+  flex: none;
+  width: calc(24px * var(--a11y-fs));
+  height: calc(24px * var(--a11y-fs));
+  border-radius: var(--radius);
+  /* The same fixed gloss as a grid swatch: an arbitrary colour has no token to take it from. */
+  box-shadow: inset 0 .1rem .25rem #fff4, var(--ui-elevation-control);
+}
+.color-role-text {
+  display: grid;
+  min-width: 0;
+}
+.color-role-word {
+  /* A word in another script reads in its own direction and still sits by its colour:
+     the box takes the word's width, at the start of the column. */
+  justify-self: start;
+  max-width: 100%;
+  font-size: var(--fs-sm);
+  font-weight: var(--ui-type-weight-label);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.color-role-note {
+  justify-self: start;
+  max-width: 100%;
+  font-size: var(--ui-type-help);
+  line-height: 1.3;
+  color: var(--ui-color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.color-role-on {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: var(--ui-size-control);
+  min-height: var(--ui-size-control);
+  padding: 0;
+  border: none;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+.color-role-on:hover { background: var(--ui-color-surface-muted); }
+.color-role-on-chip {
+  display: grid;
+  place-items: center;
+  width: calc(24px * var(--a11y-fs));
+  height: calc(24px * var(--a11y-fs));
+  border-radius: var(--radius);
+  font-size: var(--fs-2xs);
+  font-weight: var(--ui-type-weight-label);
+  box-shadow: inset 0 .1rem .25rem #fff4, var(--ui-elevation-control);
+}
+/* The press area grows at this width and the chip stays the size of the role's own. */
+@media (pointer: coarse), (max-width: 640px) {
+  .color-role-swatch { min-height: var(--ui-size-target); }
+  .color-role-on { min-width: var(--ui-size-target); min-height: var(--ui-size-target); }
+}
+
 /* ─── Touch ──────────────────────────────────────────────────────────────── */
 
 /* The space tabs are the picker's densest control - 30 pills at 29×25 on a tablet,

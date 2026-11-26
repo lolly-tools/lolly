@@ -8,14 +8,17 @@
  * the batch view keeps folder-overlay.ts for its functional open-a-folder-
  * into-the-grid workflow, which is a different job.
  */
+import { hasPicture, previewImg } from './preview-image.ts';
+import type { SessionPreviewRef } from '../bridge/preview-store.ts';
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { mountModal } from './modal.ts';
 
 /** A saved session offered for one-click resume (plans/142 W4): the slot's
  *  entry as the gallery already holds it. `name` is the display caption (the
  *  session's filename or its tool's name). */
-export interface RecentsSession { slot: string; toolId: string; name: string; thumb?: string | null; updatedAt?: string }
+export interface RecentsSession { slot: string; toolId: string; name: string; thumb?: string | null; preview?: SessionPreviewRef | null; updatedAt?: string }
 
 export async function openRecentsDialog(opts: { savedCount?: number; sessions?: RecentsSession[] } = {}): Promise<void> {
   const { getHostRef } = await import('../lib/host-ref.ts');
@@ -28,8 +31,8 @@ export async function openRecentsDialog(opts: { savedCount?: number; sessions?: 
   try {
     const { listExports, exportReopenHref } = await import('../lib/export-history.ts');
     const recents = (await listExports(12))
-      .filter(x => x.thumb)
-      .map(x => ({ href: exportReopenHref(x), thumb: x.thumb!, caption: x.filename || x.label, at: x.at }));
+      .filter(x => hasPicture(x))
+      .map(x => ({ href: exportReopenHref(x), picture: { preview: x.preview, thumb: x.thumb }, caption: x.filename || x.label, at: x.at }));
     rail = recents.length ? `
       <div class="folder-exports">
         <h3 class="folder-exports-title">${t('Recent exports')}</h3>
@@ -38,7 +41,7 @@ export async function openRecentsDialog(opts: { savedCount?: number; sessions?: 
             ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - exportReopenHref() builds a fixed '#/tool/<id>' hash route */ ''}
             <a class="folder-export-tile" href="${escape(x.href)}" data-open-export
                title="${escape(x.caption)} · ${escape(new Date(x.at).toLocaleDateString())}">
-              <img src="${escape(x.thumb)}" alt="${escape(x.caption)}" loading="lazy">
+              ${previewImg(x.picture, `alt="${escape(x.caption)}" loading="lazy"`)}
             </a>`).join('')}
         </div>
       </div>` : '';
@@ -62,7 +65,7 @@ export async function openRecentsDialog(opts: { savedCount?: number; sessions?: 
             ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - sessionOpenHref() builds a fixed in-app route */ ''}
             <a class="folder-export-tile" href="${escape(sessionOpenHref(s, isBatchSlot(s.slot)))}" data-open-session-tile
                title="${escape(s.name)}${s.updatedAt ? ` · ${escape(new Date(s.updatedAt).toLocaleDateString())}` : ''}">
-              ${s.thumb ? `<img src="${escape(s.thumb)}" alt="${escape(s.name)}" loading="lazy">`
+              ${hasPicture(s) ? previewImg(s, `alt="${escape(s.name)}" loading="lazy"`)
                         : `<span class="folder-export-tile-caption">${escape(s.name)}</span>`}
             </a>`).join('')}
         </div>
@@ -75,8 +78,7 @@ export async function openRecentsDialog(opts: { savedCount?: number; sessions?: 
     <div class="recents-dialog">
       <div class="recents-dialog-head">
         <h2 class="recents-dialog-title">${t('Your recent work')}</h2>
-        <button type="button" class="recents-dialog-close" data-recents-close
-          aria-label="${escape(t('Close'))}">&#x2715;</button>
+        ${closeButtonHtml({ className: 'recents-dialog-close', attrs: { 'data-recents-close': true } })}
       </div>
       ${sessionsRail}
       ${rail || (sessionsRail ? '' : `<p class="recents-dialog-empty">${t('Exports you download will show here for quick reopening.')}</p>`)}
@@ -94,7 +96,7 @@ export async function openRecentsDialog(opts: { savedCount?: number; sessions?: 
 }
 
 /** A saved-session row as the gallery and Projects hold it (host.state.list()). */
-interface SavedRow { slot: string; toolId?: string; filename?: string | null; thumb?: string | null; updatedAt?: string }
+interface SavedRow { slot: string; toolId?: string; filename?: string | null; thumb?: string | null; preview?: SessionPreviewRef | null; updatedAt?: string }
 
 /**
  * The avatar menu's "Saved sessions" item, the same on every view that offers it
@@ -110,7 +112,7 @@ export async function openSavedSessionsDialog(rows: readonly SavedRow[], toolNam
     sessions: visible.slice(0, 8).map(r => ({
       slot: r.slot, toolId: r.toolId ?? '',
       name: r.filename || toolName(r.toolId ?? '') || r.toolId || '',
-      thumb: r.thumb, updatedAt: r.updatedAt,
+      thumb: r.thumb, preview: r.preview, updatedAt: r.updatedAt,
     })),
   });
 }

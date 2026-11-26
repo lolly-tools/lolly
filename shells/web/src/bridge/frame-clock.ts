@@ -231,10 +231,19 @@ export function holdStillExports<R extends Exporting>(runtime: R, tool: HeldTool
  * animates (Pose Geeko's alive loop) used to export its first frame N times.
  * captureSvgTime poses SMIL and CSS at `ms`, pins the result into the markup for the
  * one capture, then puts everything back; a picture it cannot pose is captured as is.
+ *
+ * `posed`, when given, runs once the frame is in its final pose and before it is taken,
+ * whichever way it is taken: inside the SMIL pose, or before returning null to a caller
+ * that captures the frame itself. A stamped export records the pictures the frame draws
+ * there. It may run twice when a SMIL pose fails, so it has to be safe to repeat.
  */
-export async function posedFrame<T>(node: Element, ms: number, screenshot: (() => Promise<T>) | null, clone: () => Promise<T>): Promise<T | null> {
-  if (!node.querySelector('animate, animateTransform, animateMotion, animateColor, set')) return screenshot ? screenshot() : null;
-  const capture = screenshot ?? clone;
+export async function posedFrame<T>(node: Element, ms: number, screenshot: (() => Promise<T>) | null, clone: () => Promise<T>, posed?: () => Promise<void>): Promise<T | null> {
+  if (!node.querySelector('animate, animateTransform, animateMotion, animateColor, set')) {
+    await posed?.();
+    return screenshot ? screenshot() : null;
+  }
+  const take = screenshot ?? clone;
+  const capture = posed ? async (): Promise<T> => { await posed(); return take(); } : take;
   try {
     const { captureSvgTime } = await import('./sequence-svg-clock.ts');
     return await captureSvgTime(node as HTMLElement, ms / 1000, capture);

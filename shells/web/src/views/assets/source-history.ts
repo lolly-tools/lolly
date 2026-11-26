@@ -21,7 +21,8 @@ export function mountSourceHistory(root: HTMLElement, ref: AssetRef, assets: { _
     if (!section.open || loaded) return; loaded = true;
     const status = p(t('Loading source history…')); status.setAttribute('role', 'status');
     void (async () => {
-      const id = sharedAssetId(ref) ?? ref.id;
+      // The device history is keyed by whatever id the asset has; only a checked shared id reaches the instance.
+      const shared = sharedAssetId(ref), id = shared ?? ref.id;
       try {
         const local = await assets._sourceHistory?.(id); if (!alive()) return;
         status.textContent = t('Held reads on this device');
@@ -38,8 +39,8 @@ export function mountSourceHistory(root: HTMLElement, ref: AssetRef, assets: { _
         for (const report of local?.reports ?? []) p(`${report.operation} · ${report.relation} · ${report.origin === 'observed-here' ? t('Observed on this device') : report.origin === 'imported' ? t('Imported report') : t('Origin not recorded')}`);
         if (local?.reports.length) p(t('Reports describe recorded operations. Imported reports can have incomplete execution or recipe information.'));
         p(t('Only recorded use on this device is shown. Attributes come from the device index at the recorded read; current access, processing and delivery permission are checked separately.'));
-        if (!id.startsWith('inst/')) return;
-        const response = await instanceFetch(instancePath(`/api/v1/catalog/assets/${id}/versions`), { cache: 'no-store', signal: controller.signal });
+        if (!shared?.startsWith('inst/')) return;
+        const response = await instanceFetch(instancePath(`/api/v1/catalog/assets/${shared}/versions`), { cache: 'no-store', signal: controller.signal });
         const remote = await readCatalogJson(response) as { head: number; sourceReviewCapability?: { kind: string; maxFileBytes: number } | null; versions?: Array<{ version: number; formats: Array<{ format: string; checksum: string; size: number }> }>; sourceReviews?: Array<{ state: string; sourceReview: { purpose: string; target: string; files: Array<{ version: number; format: string; sha256: string }> } }> };
         if (!alive()) return;
         p(t('Current instance file versions: {count}', { count: remote.versions?.length ?? 0 }));

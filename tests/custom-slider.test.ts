@@ -101,6 +101,19 @@ test('keyboard stepping snaps, clamps, and reports through onCommit', () => {
   assert.equal(cs.getAttribute('aria-valuenow'), '1');
 });
 
+test('a slider sitting at 0 steps from 0, not from its minimum', () => {
+  // The start value was read with `|| min`, which turned a 0 into the minimum: the
+  // first key step on a -100 to 100 slider at 0 (Darkroom's Develop rows) went to -99.
+  const el = doc.createElement('div');
+  el.innerHTML = customSliderHtml({ min: -100, max: 100, step: 1, value: 0 });
+  const cs = el.firstElementChild as HTMLElement;
+  doc.body.appendChild(cs);
+  const commits: number[] = [];
+  mountCustomSlider(cs, { onCommit: (v) => commits.push(v) });
+  cs.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+  assert.deepEqual(commits, [1]);
+});
+
 test('jelly: the head and tail are promoted only while the spring runs', async () => {
   const el = doc.createElement('div');
   el.innerHTML = customSliderHtml({ min: 0, max: 1, step: 0.25, value: 0.5 });
@@ -139,6 +152,35 @@ test('upgrade: a slider joins the input, which keeps the value and leaves the a1
 
   upgradeRangeInput(input);                                      // idempotent
   assert.equal(input.parentElement!.querySelectorAll('.custom-slider').length, 1);
+});
+
+test('upgrade: an input that has the focus hands the focus to its slider, so the next key is not lost', () => {
+  const input = rangeRow();
+  input.focus();
+  assert.equal(w.document.activeElement, input);
+  upgradeRangeInput(input);
+  const cs = input.nextElementSibling as HTMLElement;
+  assert.equal(w.document.activeElement, cs, 'the slider has the focus, not the page');
+  const seen: string[] = [];
+  input.addEventListener('input', () => seen.push(input.value));
+  w.document.activeElement!.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true }));
+  assert.equal(input.value, '0', 'the key after the upgrade still moves the value');
+  assert.deepEqual(seen, ['0']);
+
+  const other = rangeRow();
+  upgradeRangeInput(other);
+  assert.equal(w.document.activeElement, cs, 'an input without the focus takes nothing from where it is');
+
+  // Inside a shadow root the document sees only the host as focused.
+  const host = doc.createElement('div');
+  doc.body.appendChild(host);
+  const root = host.attachShadow({ mode: 'open' });
+  root.innerHTML = '<input type="range" class="field-range" min="0" max="4" step="1" value="2" aria-label="Card size">';
+  const shadowed = root.querySelector('input') as HTMLInputElement;
+  shadowed.focus();
+  assert.equal(root.activeElement, shadowed);
+  upgradeRangeInput(shadowed);
+  assert.equal(root.activeElement, shadowed.nextElementSibling, 'the slider in the shadow root has the focus');
 });
 
 test('upgrade: a range with no usable bounds is left alone', () => {

@@ -1,6 +1,6 @@
 {
   "name": "Certificat",
-  "description": "Certificats de réussite et de distinction dans le design system actif et sa variante de couleur : quatre styles, formats d'impression et de réseaux sociaux, et animation pour le partage - un nom à la fois, ou toute une liste depuis un CSV dans En masse depuis des lignes.",
+  "description": "Certificats de réussite et de distinction : quatre styles, formats d'impression et de réseaux sociaux, et animation - un nom à la fois, ou une liste depuis un CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} pour {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Genre",
   "inputs.certKind.help": "Définit le texte : le titre, la ligne au-dessus de l'objet du certificat et le symbole du sceau.",

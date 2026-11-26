@@ -1,8 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { IDBPTransaction } from 'idb';
 import type { SavedStateData, StateRecord } from './state.ts';
-import { indexSavedWork } from './history-index.ts';
+import { putStateRecord } from './state-rows.ts';
+import { revisionOwner, txHasPreviews, ownerRef, ownerSize, releaseOwner } from './preview-store.ts';
 
+/** The stores a history write names. Open a write with `scopeFor(db, ...)`
+ *  (preview-store.ts), which adds the lean list and the preview stores where this
+ *  database has them, so a session record and its picture commit together.
+ *  `revision-previews` is the pre-373 store of History pictures as data URLs: new
+ *  pictures go to the preview store, and this one is read until its last entry has
+ *  moved (bridge/state-list.ts). */
 export const REVISION_STORES = ['state', 'revision-documents', 'revisions', 'revision-payloads', 'revision-previews', 'revision-usage', 'revision-recovery', 'revision-recovery-payloads'];
 export interface DocumentHead {
   slot: string;
@@ -86,8 +93,42 @@ export function needsAdopt(doc: DocumentHead | undefined): boolean {
  * keeps the picture it had until the checkpoint's own capture replaces it
  * (attachPreview): a capture that never arrives (the tool closed first, a busy
  * tab) must not leave the tile blank. */
-export async function writeCurrentState(tx: RevisionTransaction, record: StateRecord, data: SavedStateData, documentId: string): Promise<void> {
+export async function writeCurrentState(tx: RevisionTransaction, record: StateRecord, data: SavedStateData, documentId: string, bytes?: number): Promise<void> {
   const state = tx.objectStore('state');
   const prior = await state.get(record.slot) as StateRecord | undefined;
-  await state.put(indexSavedWork({ ...record, data, thumb: prior?.thumb ?? null, documentId, openedAt: prior?.openedAt, createdAt: prior?.createdAt ?? record.createdAt }));
+  await putStateRecord(tx, { ...withoutPicture(record), ...pictureOf(prior), data, documentId, openedAt: prior?.openedAt, createdAt: prior?.createdAt ?? record.createdAt }, bytes);
+}
+
+/** A record's picture fields, to carry onto the next record. */
+export function pictureOf(record: Pick<StateRecord, 'thumb' | 'preview'> | undefined): Pick<StateRecord, 'thumb' | 'preview'> {
+  return { thumb: record?.preview ? null : record?.thumb ?? null, ...(record?.preview ? { preview: record.preview } : {}) };
+}
+
+/** A record without its picture fields. */
+export function withoutPicture<T extends Pick<StateRecord, 'thumb' | 'preview'>>(record: T): Omit<T, 'preview'> & { thumb: null } {
+  const { preview: _ref, ...rest } = record;
+  return { ...rest, thumb: null };
+}
+
+/** The bytes a revision's picture counts against the History preview budget: the
+ *  stored picture's size, or the legacy data URL's text size before it moved. */
+export async function revisionPreviewSize(tx: RevisionTransaction, id: string): Promise<number> {
+  const moved = await ownerSize(tx, revisionOwner(id));
+  if (moved) return moved;
+  const legacy = await tx.objectStore('revision-previews').get(id) as string | undefined;
+  return typeof legacy === 'string' ? new TextEncoder().encode(legacy).byteLength : 0;
+}
+
+/** Whether a revision holds a picture in either form. */
+export async function revisionHasPreview(tx: RevisionTransaction, id: string): Promise<boolean> {
+  if (txHasPreviews(tx) && await ownerRef(tx, revisionOwner(id))) return true;
+  return !!await tx.objectStore('revision-previews').get(id);
+}
+
+/** Remove a revision's picture in both forms and return the bytes it counted. */
+export async function dropRevisionPreview(tx: RevisionTransaction, id: string): Promise<number> {
+  const size = await revisionPreviewSize(tx, id);
+  if (txHasPreviews(tx)) await releaseOwner(tx, revisionOwner(id));
+  await tx.objectStore('revision-previews').delete(id);
+  return size;
 }

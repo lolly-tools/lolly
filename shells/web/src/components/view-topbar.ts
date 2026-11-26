@@ -37,8 +37,9 @@ export interface ViewTopbarProfile {
 }
 
 export interface ViewTopbarHtmlOpts {
-  /** Which tab is active in the Tools|Projects|Catalog toggle. */
-  active: ViewToggleKey;
+  /** Which tab is active in the Tools|Projects|Catalog toggle; null for a view that is
+   *  none of them (the docs reader), which shows the tabs as plain ways out. */
+  active: ViewToggleKey | null;
   /** View-specific trigger button(s) (filter-fab, history-fab, the view-options
    *  button…), rendered before the language FAB - the one part that's genuinely
    *  different between views. */

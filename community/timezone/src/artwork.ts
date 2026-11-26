@@ -11,7 +11,7 @@ import {
   sphere,
   wrapText,
 } from './geography';
-import { esc, mix, num, type State } from './model';
+import { esc, hourWord, mix, num, timeColor, type State } from './model';
 
 const text = (x: number, y: number, value: any, size: number, fill: string, extra = '') =>
   `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" ${extra}>${esc(value)}</text>`;
@@ -57,7 +57,7 @@ export function markers(s: State, project: (p: number[]) => number[] | null, act
           ly + size * 1.3,
           p.localTime || '',
           size - 1,
-          p.color,
+          timeColor(s, p),
           `font-family="${esc(c.mono)}"`
         );
     }
@@ -196,7 +196,7 @@ export function artwork(s: State, active = -1, withMap = true) {
           y + 64 * k,
           p.error ? 'Check place' : p.localTime || '—',
           (p.error ? 16 : 32) * k,
-          p.color,
+          p.error ? p.color : timeColor(s, p),
           `font-family="${esc(c.mono)}" letter-spacing="${-k}"`
         ) +
         text(
@@ -204,7 +204,7 @@ export function artwork(s: State, active = -1, withMap = true) {
           y + 87 * k,
           p.error
             ? wrapText(p.error, Math.floor(cardW / (6 * k)), 1)[0]
-            : `${p.localDate || ''}  ${p.offset ? 'UTC' + p.offset : ''}${p.dayOffset ? ` · ${p.dayOffset > 0 ? '+' : ''}${p.dayOffset}d` : ''}`,
+            : `${p.localDate || ''}  ${p.offset ? 'UTC' + p.offset : ''}${p.dayOffset ? ` · ${p.dayOffset > 0 ? '+' : ''}${p.dayOffset}d` : ''}${hourWord(s, p) ? ` · ${hourWord(s, p)}` : ''}`,
           11 * k,
           c.muted
         );

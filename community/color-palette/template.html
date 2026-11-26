@@ -70,17 +70,20 @@
   if (!panel || !btn || !pre || panel.dataset.plWired) return;
   panel.dataset.plWired = '1';
 
+  function feedback(label) {
+    var prev = btn.textContent;
+    btn.textContent = label;
+    btn.classList.add('is-copied');
+    setTimeout(function () {
+      btn.textContent = prev;
+      btn.classList.remove('is-copied');
+    }, 1400);
+  }
   btn.addEventListener('click', function () {
-    if (!(navigator.clipboard && navigator.clipboard.writeText)) return;
+    if (!(navigator.clipboard && navigator.clipboard.writeText)) { feedback('Could not copy'); return; }
     navigator.clipboard.writeText(pre.textContent).then(function () {
-      var prev = btn.textContent;
-      btn.textContent = 'Copied';
-      btn.classList.add('is-copied');
-      setTimeout(function () {
-        btn.textContent = prev;
-        btn.classList.remove('is-copied');
-      }, 1400);
-    }, function () {});
+      feedback('Copied');
+    }, function () { feedback('Could not copy'); });
   });
 
   /* Esc closes the open tokens panel; the listener self-removes once this

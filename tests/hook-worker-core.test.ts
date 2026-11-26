@@ -18,7 +18,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   introspectHost, gatherHostSeeds, workerRpcMethods, lockDownAmbientCapabilities,
-  createHookWorkerCore, type HookWorkerPort, type HookWorkerOut, type HostShape,
+  createHookWorkerCore, createHookBudget, type HookWorkerPort, type HookWorkerOut, type HostShape,
   type HookInitMsg,
 } from '../engine/src/hook-worker-core.ts';
 
@@ -224,4 +224,49 @@ test('a run mounted with no token document ignores a tokens message', async () =
   core.handle({ t: 'invoke', runId: 1, callId: 1, name: 'onInput', ctx: {} });
   await new Promise((r) => setTimeout(r, 0));
   assert.deepEqual((sent.find((m) => m.t === 'invoke-done') as { patch: unknown }).patch, { has: 'undefined' });
+});
+
+const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+
+test('a hook budget expires when the hook itself runs past its time', async () => {
+  let expired = 0;
+  createHookBudget(40, () => { expired++; });
+  await wait(120);
+  assert.equal(expired, 1);
+});
+
+test('a hook budget does not count the time a host call is in flight', async () => {
+  let expired = 0;
+  const budget = createHookBudget(60, () => { expired++; });
+  budget.hostCallStarted();
+  await wait(200);
+  assert.equal(expired, 0, 'waiting on the owner is not the hook running');
+  budget.hostCallEnded();
+  await wait(20);
+  assert.equal(expired, 0, 'the time left is what was left when the call began');
+  await wait(150);
+  assert.equal(expired, 1, 'the count resumes once the owner has answered');
+});
+
+test('a hook budget resumes only when the last of several host calls is answered', async () => {
+  let expired = 0;
+  const budget = createHookBudget(40, () => { expired++; });
+  budget.hostCallStarted();
+  budget.hostCallStarted();
+  budget.hostCallEnded();
+  await wait(120);
+  assert.equal(expired, 0, 'one call is still in flight');
+  budget.hostCallEnded();
+  await wait(120);
+  assert.equal(expired, 1);
+});
+
+test('a cleared hook budget never expires, whatever arrives afterwards', async () => {
+  let expired = 0;
+  const budget = createHookBudget(30, () => { expired++; });
+  budget.hostCallStarted();
+  budget.clear();
+  budget.hostCallEnded();
+  await wait(100);
+  assert.equal(expired, 0);
 });

@@ -48,6 +48,29 @@ test('the trigger is a cheap pre-check, not the decision', () => {
   assert.equal(emojiTextTrigger('© 2026'), true);
 });
 
+test('the trigger says yes to every emoji in the pinned table', async () => {
+  // The runtime now asks this before it loads a pack, so a miss here is a glyph that
+  // stays the machine's own, on every surface.
+  const { readFile } = await import('node:fs/promises');
+  const data = JSON.parse(await readFile(new URL('../engine/src/emoji-data/17.0.json', import.meta.url), 'utf8')) as { entries: { key: string; aliases?: string[] }[] };
+  const text = (key: string): string => key.split('-').map(hex => String.fromCodePoint(Number.parseInt(hex, 16))).join('');
+  const missed: string[] = [];
+  let checked = 0;
+  for (const entry of data.entries) for (const key of [entry.key, ...(entry.aliases ?? [])]) {
+    checked++;
+    if (!emojiTextTrigger(text(key))) missed.push(key);
+  }
+  assert.equal(checked, 3953 + 1272, 'the whole table: every canonical entry and every qualification alias');
+  assert.deepEqual(missed, []);
+});
+
+test('the trigger says no to ordinary text in any language', () => {
+  // A set is a download. None of these is worth one.
+  for (const sample of ['Caf\u00e9 cr\u00e8me', 'fa\u00e7ade \u2014 na\u00efve', '\u201cquoted\u201d \u2018text\u2019\u2026', '\u65e5\u672c\u8a9e\u306e\u6587\u7ae0', '\u041f\u0440\u0438\u0432\u0435\u0442', '\u0645\u0631\u062d\u0628\u0627', '\u20ac 10 \u00b0C \u00b1 2', '1 + 2 = 3 # * ok']) {
+    assert.equal(emojiTextTrigger(sample), false, sample);
+  }
+});
+
 test('a text node becomes artwork, and the characters it stood for survive', async () => {
   const input = await fixture('twemoji');
   const view = page(`<p>Hello ${GRIN} world</p>`);

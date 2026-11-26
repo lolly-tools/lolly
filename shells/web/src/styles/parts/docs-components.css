@@ -16,32 +16,125 @@
    by an accent-coloured edge; no negative letter spacing; sizes ride the a11y type
    multiplier, which falls back to 1 where it is not defined. */
 
+/* ── The reading measure ────────────────────────────────────────────────
+   Prose stops at 68ch, about 75 characters of running text, in both readers: a
+   line much longer than that makes the eye lose its place on the way back to the
+   start of the next one (the article column ran to about 115 characters on /info
+   and 105 in the app). Only the running text is capped: tables, code, figures,
+   screenshots and the column layouts keep the full column. `ch` follows the
+   element's own size, so the cap holds under Large text and browser zoom alike. */
+.docs-content > :is(p, ul, ol, dl, blockquote, .doc-note, .doc-details) { max-width: 68ch; }
+/* A disclosure that holds code or a table is mostly that code or table, so it keeps the
+   full column as they do; the prose inside it still stops at the measure. */
+.docs-content > .doc-details:has(> .doc-details-body > :is(.doc-code, .table-wrap)) { max-width: none; }
+.docs-content .doc-details-body > :is(p, ul, ol, .doc-note) { max-width: 68ch; }
+
 .docs-content .doc-visually-hidden {
   position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
-/* ── Admonition: ::: note | warning | check ─────────────────────────────── */
+/* ── Two-tone icons: the Etiquette set (docs/etiquette-icons.ts) ────────────
+   Each icon paints two parts from two properties: --eti-accent, the detail that
+   carries the meaning, and --eti-base, the object around it. Both readers set them
+   here from the theme's roles, so an icon follows Light, Dark, Brand and the
+   colourway the same way on /info and in the app. The base is the ink. The accent
+   is the colourway's action colour, lifted to a mid lightness and some colour where
+   it has less: a light theme's action colour is often a deep one (Spearmint, Ochre,
+   Liquorice) that would sit a shade from the ink, while a dark theme's is light
+   already and keeps its own value. High contrast takes the accent ink for words,
+   which that mode walks to Lc 75 on every surface, so no part of an icon fades. */
+.docs-content,
+.docs-landing {
+  --eti-accent: oklch(from var(--ui-color-action-primary) max(l, .62) clamp(c, c * 2, .16) h);
+  --eti-base: var(--ui-color-text-default);
+}
+html[data-a11y-contrast="high"] :is(.docs-content, .docs-landing) { --eti-accent: var(--ui-color-text-accent); }
+
+/* ── The section divider: a horizon in place of a hard rule ─────────────────
+   A hairline that is strongest at its centre and fades out at both ends, with a soft
+   glow of the same colour under the line. The colour is the icons' accent above
+   (--eti-accent), so the divider follows the loaded design system, its theme and its
+   colourway on /info and in the app, and matches the detail of the icon that follows.
+   One definition: --docs-rule-hairline is the line alone (a heading's own top rule
+   draws the line through border-image), and --docs-rule is the line with its glow, for
+   the box that opens a section and the box that closes the page title. */
+.docs-content {
+  --docs-rule-line: color-mix(in oklab, var(--eti-accent) 75%, transparent);
+  --docs-rule-glow: color-mix(in oklab, var(--eti-accent) 20%, transparent);
+  --docs-rule-hairline: linear-gradient(90deg, transparent, var(--docs-rule-line) 50%, transparent);
+  --docs-rule:
+    var(--docs-rule-hairline) top / 100% 1px no-repeat,
+    radial-gradient(ellipse 50% 100% at 50% 0, var(--docs-rule-glow), transparent 72%) top / 100% 100% no-repeat;
+}
+/* High contrast asks for edges that do not fade: a full line in the border colour, no glow. */
+html[data-a11y-contrast="high"] .docs-content {
+  --docs-rule-glow: transparent;
+  --docs-rule-hairline: linear-gradient(var(--ui-color-border-default), var(--ui-color-border-default));
+}
+/* The page title closes on the divider, and a heading's top rule is the line alone. */
+.docs-content h1 { position: relative; }
+.docs-content h1::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 100%;
+  block-size: 2rem;
+  background: var(--docs-rule);
+  pointer-events: none;
+}
+/* A title in the band over the article already sits on the band's own edge. */
+.docs-masthead h1::after { content: none; }
+.docs-content h2 { border-image: var(--docs-rule-hairline) 1; }
+/* Paper and forced colours drop backgrounds, so both get a plain rule back. */
+@media print, (forced-colors: active) {
+  .docs-content h1::after,
+  .docs-content .md-section-icon::before { content: none; }
+  .docs-content h1 { border-block-end: 1px solid var(--ui-color-border-default); }
+  .docs-content .md-section-icon { border-block-start: 1px solid var(--ui-color-border-default); }
+  .docs-content h2 { border-image: none; }
+}
+
+/* ── Admonition: ::: note | warning | check ───────────────────────────────
+   A tinted panel led by a large two-tone icon: info, warning or circle-check.
+   Each kind has a tone. A note is neutral, a warning takes the docs' caution ink
+   (--warn: Ochre, Banksia or Honey by theme) and a check the colourway's action
+   colour. The tone tints the panel and paints the icon's detail, so the kind reads
+   before a word does, and the hidden kind word says it to a screen reader. The edge
+   is the faint hairline all round, which darkens whatever tint it sits on: a resting
+   edge never wears the accent, and a stripe on one edge breaks on the rounded corner. */
 .docs-content .doc-note {
+  --doc-note-icon: calc(2.5rem * var(--a11y-fs, 1));
   display: grid;
-  grid-template-columns: calc(20px * var(--a11y-fs, 1)) minmax(0, 1fr);
-  gap: 14px;
-  margin: 20px 0;
-  padding: 14px 18px;
-  border-radius: var(--ui-radius-panel);
+  grid-template-columns: var(--doc-note-icon) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  margin: 24px 0;
+  padding: 16px 20px 16px 16px;
+  border-radius: var(--ui-radius-card);
   background: var(--ui-color-surface-muted);
+  box-shadow: var(--ui-edge-faint);
   font-size: calc(16px * var(--a11y-fs, 1));
   line-height: 1.55;
 }
-.docs-content .doc-note--check { background: color-mix(in srgb, var(--ui-color-action-primary) 12%, var(--ui-color-surface-muted)); }
+.docs-content .doc-note--check { background: color-mix(in srgb, var(--eti-accent) 14%, var(--ui-color-surface-muted)); }
 /* Tinted into the muted surface rather than the canvas, so the tint still reads on the
    dark grounds (Dark, Brand), where a tint into the canvas all but vanished. */
-.docs-content .doc-note--warning { background: color-mix(in srgb, var(--ui-color-status-danger) 14%, var(--ui-color-surface-muted)); }
-.docs-content .doc-note-glyph { display: flex; margin-block-start: 2px; color: var(--ui-color-text-muted); }
-.docs-content .doc-note--check .doc-note-glyph { color: var(--ui-color-action-primary); }
-.docs-content .doc-note--warning .doc-note-glyph { color: color-mix(in oklab, var(--ui-color-status-danger) 60%, var(--ui-color-text-default)); }
-.docs-content .doc-note-glyph svg { width: calc(20px * var(--a11y-fs, 1)); height: calc(20px * var(--a11y-fs, 1)); }
-.docs-content .doc-note-title { font-weight: 600; line-height: 1.4; color: var(--ui-color-text-default); }
+.docs-content .doc-note--warning {
+  --doc-note-tone: oklch(from var(--warn, var(--ui-color-status-danger)) max(l, .62) clamp(c, c * 2, .16) h);
+  --eti-accent: var(--doc-note-tone);
+  background: color-mix(in srgb, var(--doc-note-tone) 16%, var(--ui-color-surface-muted));
+}
+html[data-a11y-contrast="high"] .docs-content .doc-note--warning { --doc-note-tone: var(--warn, var(--ui-color-status-danger)); }
+.docs-content .doc-note-glyph { display: flex; }
+.docs-content .doc-note-glyph svg { width: var(--doc-note-icon); height: var(--doc-note-icon); flex: none; }
+/* Beside a short note the words sit level with the icon; a longer one starts at its top. */
+.docs-content .doc-note-main { align-self: center; min-width: 0; }
+.docs-content .doc-note-title { font-weight: 600; font-size: 1.0625em; line-height: 1.4; color: var(--ui-color-text-default); }
+/* A link on a tinted panel takes the accent ink for words, which each theme walks to
+   4.5:1 on its surfaces and on an accent wash over them. A link elsewhere takes the
+   action colour, a fill, and some colourways' fills read under 4.5:1 on a tint. */
+.docs-content .doc-note a:not([class]) { color: var(--ui-color-text-accent); }
 .docs-content .doc-note-body > :first-child { margin-block-start: 4px; }
 .docs-content .doc-note-body > :last-child { margin-block-end: 0; }
 .docs-content .doc-note-body p { margin: 6px 0 0; }
@@ -69,6 +162,7 @@
   color: var(--ui-color-text-default);
 }
 :is(.docs-content, .docs-compact-nav) .doc-details > summary::-webkit-details-marker { display: none; }
+:is(.docs-content, .docs-compact-nav) .doc-details > summary::after { content: none; }
 :is(.docs-content, .docs-compact-nav) .doc-details > summary::marker { content: ''; }
 :is(.docs-content, .docs-compact-nav) .doc-details-glyph,
 :is(.docs-content, .docs-compact-nav) .doc-details-chev { display: flex; align-items: center; justify-content: center; color: var(--ui-color-text-muted); }
@@ -151,6 +245,37 @@
 .docs-content .doc-code pre code { font: inherit; background: none; padding: 0; color: inherit; white-space: inherit; overflow-wrap: inherit; }
 .docs-content .doc-code pre:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
 
+/* ── Terminal: a shell fence drawn by packages/docs-render/src/shell-highlight.ts ──
+   Every colour is a syntax role (tokens.css), so a design system that sets its own
+   syntax colours sets these too, and Light, Dark and Brand each keep the contrast their
+   roles were chosen for. The command is the one bold word on a line; flags and
+   variables take the accent; the punctuation steps back; a comment is set in italic.
+   Expected output sits on a faint band of its own, upright, so it reads as what the
+   terminal printed rather than as a note about it. A placeholder to fill in is tinted. */
+.docs-content .doc-code .sh-cmd { color: var(--ui-color-syntax-keyword); font-weight: 650; }
+.docs-content .doc-code :is(.sh-flag, .sh-var) { color: var(--ui-color-syntax-type); }
+.docs-content .doc-code .sh-key { color: var(--ui-color-syntax-function); font-weight: 550; }
+.docs-content .doc-code .sh-str { color: var(--ui-color-syntax-string); }
+.docs-content .doc-code :is(.sh-op, .sh-cont, .sh-prompt) { color: var(--ui-color-syntax-operator); }
+.docs-content .doc-code .sh-com { color: var(--ui-color-syntax-comment); font-style: italic; }
+.docs-content .doc-code .sh-out {
+  display: inline-block;
+  box-sizing: border-box;
+  min-width: calc(100% + 32px);
+  margin-inline: -16px;
+  padding-inline: 16px;
+  text-indent: 0;
+  background: color-mix(in srgb, var(--ui-color-text-default) 6%, transparent);
+  color: var(--ui-color-text-muted);
+}
+/* The words of a placeholder stay in the ink, so the tint can never cost them contrast. */
+.docs-content .doc-code .sh-ph {
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--ui-color-syntax-type) 16%, transparent);
+  color: var(--ui-color-syntax-string);
+  font-style: italic;
+}
+
 /* Copy, the app's button base under its own name. */
 .docs-content .doc-copy-slot { position: relative; flex: 0 0 auto; }
 .docs-content .doc-copy {
@@ -198,6 +323,256 @@
   font-size: calc(13px * var(--a11y-fs, 1));
 }
 .docs-content .doc-copy-help[hidden] { display: none; }
+
+/* ── Logo strip: ::: logos ────────────────────────────────────────────────
+   The marks a page is about, each with its name. Every mark sits on the same white
+   plate, because these are other people's marks, shipped in their own colours, and a
+   navy or blue mark disappears on a dark page; the plate is the one thing that keeps
+   them unmodified and legible on all three themes. The row wraps on a phone. */
+.docs-content ul.md-logos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 24px 0 28px;
+  padding: 0;
+  list-style: none;
+}
+.docs-content ul.md-logos > li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 20px 8px 8px;
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-faint);
+}
+.docs-content .md-logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--ui-radius-panel);
+  background: #ffffff;
+  box-shadow: var(--ui-edge-faint);
+}
+.docs-content .md-logo img {
+  display: block;
+  width: 2.75rem;
+  height: 2.75rem;
+  max-width: none;
+  margin: 0;
+  object-fit: contain;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+}
+.docs-content .md-logo-name {
+  color: var(--ui-color-text-default);
+  font-size: calc(16px * var(--a11y-fs, 1));
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ── Steps: ::: steps ────────────────────────────────────────────────────
+   The few steps a page walks through, as numbered cards in one row: the cards of
+   ::: cards, read left to right. The icon is a two-tone Etiquette glyph at 3rem; a
+   card whose text opens with a bold link is that link, as a card is. Two columns on
+   a tablet, one on a phone, where the icon moves beside the words. */
+.docs-content .md-steps {
+  container: md-steps / inline-size;
+  margin: 28px 0 36px;
+  padding: 12px;
+  border-radius: calc(var(--ui-radius-card) * 2);
+  background: var(--ui-color-surface-muted);
+}
+.docs-content .md-steps > ol.icon-list {
+  counter-reset: md-step;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11.5rem), 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.docs-content .md-steps > ol.icon-list > li.ic {
+  counter-increment: md-step;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 18px 18px 20px;
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-faint);
+  color: var(--ui-color-text-muted);
+  font-size: calc(15px * var(--a11y-fs, 1));
+  line-height: 1.5;
+  transition: box-shadow var(--ui-motion-feedback, 150ms);
+}
+/* The step's number, in the card's top corner. */
+.docs-content .md-steps > ol.icon-list > li.ic::after {
+  content: counter(md-step);
+  position: absolute;
+  inset-block-start: 16px;
+  inset-inline-end: 18px;
+  color: var(--ui-color-text-muted);
+  font-size: calc(13px * var(--a11y-fs, 1));
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.docs-content .md-steps .li-icon { width: 3rem; height: 3rem; margin: 0; }
+.docs-content .md-steps li.ic > span:not(.li-icon) { min-width: 0; }
+.docs-content .md-steps li.ic > span:not(.li-icon) > strong:first-child {
+  display: block;
+  margin-block-end: 4px;
+  color: var(--ui-color-text-default);
+  font-size: calc(17px * var(--a11y-fs, 1));
+  font-weight: 600;
+  line-height: 1.3;
+}
+.docs-content .md-steps li.ic > span:not(.li-icon) > strong:first-child > a { color: inherit; text-decoration: none; }
+.docs-content .md-steps li.ic > span:not(.li-icon) > strong:first-child > a::after { content: ''; position: absolute; inset: 0; border-radius: var(--ui-radius-card); }
+.docs-content .md-steps li.ic > span:not(.li-icon) > strong:first-child > a:focus-visible { outline: none; }
+.docs-content .md-steps > ol.icon-list > li.ic:has(> span > strong:first-child > a:focus-visible) { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.docs-content .md-steps > ol.icon-list > li.ic:has(> span > strong:first-child > a):hover { box-shadow: var(--ui-edge-strong), var(--ui-elevation-control); }
+
+/* Five steps never leave one card alone on a row. The row fits four cards at the
+   reading width, so five would wrap four and one: they lie three and two instead,
+   the two sharing the second row, or all five across where five fit. In two columns
+   the fifth takes the whole last row. One to four steps keep the row above. */
+@container md-steps (min-width: 23.625rem) and (max-width: 35.74rem) {
+  .docs-content .md-steps > ol.icon-list > li.ic:nth-child(5):last-child { grid-column: 1 / -1; }
+}
+@container md-steps (min-width: 35.75rem) {
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) > li.ic { grid-column: span 2; }
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) > li.ic:nth-child(n+4) { grid-column: span 3; }
+}
+@container md-steps (min-width: 60rem) {
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) > li.ic:nth-child(n) { grid-column: auto; }
+}
+
+/* ── Pillars: ::: pillars <figure-id> … ──────────────────────────────────
+   The few things a page stands on, as one row of cards: each card opens with its
+   own figure, then its heading and words. A small arrow on each picture after the
+   first joins it to the one before, so the row reads as one journey. The figures
+   paint from the icon roles (--eti-base, --eti-accent) and --eti-paper, the card's
+   own surface, so they follow every theme. The block measures its own width, as
+   ::: steps does, because the in-app reader's column is narrower than the window:
+   the cards stack with the arrows pointing down, then sit each picture beside its
+   words, then stand side by side once three fit. */
+.docs-content .md-pillars {
+  container: md-pillars / inline-size;
+  --eti-paper: var(--ui-color-surface-raised);
+  margin: 32px 0 40px;
+  padding: 12px;
+  border-radius: calc(var(--ui-radius-card) * 2);
+  background: var(--ui-color-surface-muted);
+}
+.docs-content .md-pillars-row {
+  --md-pillar-pad: 10px;
+  --md-pillar-gap: 22px;
+  display: grid;
+  gap: var(--md-pillar-gap);
+}
+.docs-content .md-pillar {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--md-pillar-pad);
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-faint);
+}
+.docs-content .md-pillar-art {
+  position: relative;
+  flex: none;
+  height: 136px;
+  border-radius: calc(var(--ui-radius-card) - var(--md-pillar-pad) / 2);
+  background: radial-gradient(120% 100% at 50% 0%, color-mix(in srgb, var(--eti-accent) 16%, var(--ui-color-surface-raised)), var(--ui-color-surface-muted));
+}
+.docs-content .md-pillar-pic,
+.docs-content .md-pillar-pic > svg { display: block; width: 100%; height: 100%; }
+/* The arrow sits on the gap between two cards: above the picture while the cards
+   stack, level with the pictures' middle once they stand side by side. */
+.docs-content .md-pillar-link {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: calc(-1 * (var(--md-pillar-pad) + var(--md-pillar-gap) / 2) - 15px);
+  inset-inline-start: calc(50% - 15px);
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-round);
+  color: var(--eti-accent);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-faint), var(--ui-elevation-control);
+}
+.docs-content .md-pillar-link svg { width: 16px; height: 16px; transform: rotate(90deg); }
+.docs-content .md-pillar-body { padding: 18px 8px 8px; }
+.docs-content .md-pillar-body > h2 {
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  color: var(--ui-color-text-default);
+  font-size: calc(1.25rem * var(--a11y-fs, 1));
+  font-weight: 600;
+  line-height: 1.3;
+}
+.docs-content .md-pillar-body > p {
+  margin: 0;
+  color: var(--ui-color-text-muted);
+  font-size: calc(15px * var(--a11y-fs, 1));
+  line-height: 1.55;
+}
+.docs-content .md-pillar-body > p + p { margin-block-start: 8px; }
+@container md-pillars (min-width: 32rem) and (max-width: 42.99rem) {
+  .docs-content .md-pillar { flex-direction: row; }
+  .docs-content .md-pillar-art { align-self: flex-start; width: 44%; height: auto; aspect-ratio: 12 / 7; }
+  .docs-content .md-pillar-body { flex: 1; align-self: center; min-width: 0; padding: 8px 10px 8px 20px; }
+}
+@container md-pillars (min-width: 43rem) {
+  .docs-content .md-pillars-row { --md-pillar-gap: 14px; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+  .docs-content .md-pillar-art { height: auto; aspect-ratio: 12 / 7; }
+  .docs-content .md-pillar-link {
+    inset-block-start: calc(50% - 15px);
+    inset-inline-start: calc(-1 * (var(--md-pillar-pad) + var(--md-pillar-gap) / 2) - 15px);
+  }
+  .docs-content .md-pillar-link svg { transform: none; }
+  .docs-content .md-pillar-link:dir(rtl) svg { transform: scaleX(-1); }
+}
+@media (max-width: 600px) {
+  .docs-content .md-pillars { padding: 8px; }
+}
+
+/* ── Section icon: <!--i:eti-…--> on a line of its own, before a heading ──────
+   A large two-tone icon that opens the section under it, so a long page can be
+   scanned by its pictures as well as its headings. It carries the section's divider
+   (the horizon defined with the icon colours above), as a row of technology marks
+   does, and the heading follows straight under the icon. */
+.docs-content .md-section-icon {
+  position: relative;
+  display: flex;
+  margin: 40px 0 14px;
+  padding-block-start: 32px;
+}
+.docs-content .md-section-icon::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: 4.5rem;
+  background: var(--docs-rule);
+  pointer-events: none;
+}
+.docs-content .md-section-icon svg { width: 3.5rem; height: 3.5rem; flex: none; }
+.docs-content .md-section-icon + :is(h2, h3) { margin-block-start: 0; padding-block-start: 0; border-block-start: 0; }
 
 /* ── Picture list: a bulleted list whose every item opens with a picture ──────
    Each picture sits on a plate of the same size with its caption underneath, so a
@@ -253,18 +628,50 @@
 .docs-content .md-pictures .shot-cred--asset:is(:focus-within, [data-open]) .shot-cred-line,
 .docs-content .md-pictures .shot-cred--asset .shot-cred-btn:hover + .shot-cred-line,
 .docs-content .md-pictures .shot-cred--asset .shot-cred-line:hover { opacity: 1; pointer-events: auto; }
+/* A picture list of screenshots (docs/chart.md's renderers and templates) is a gallery of
+   wide frames, not a row of marks: two to a row, one on a phone. Each plate is as tall as
+   its picture, the picture runs edge to edge and its "Try it" link sits under it, inside
+   the plate. The gallery takes the whole column rather than the 68ch reading measure. Declared
+   after the count rules above so the column count wins at any length. */
+.docs-content ul.md-pictures:has(> li > .md-pic > .shot) { --md-pic-cols: 2; max-width: none; }
+.docs-content .md-pictures .md-pic:has(> .shot) { aspect-ratio: auto; overflow: hidden; padding-block-end: 8px; }
+.docs-content .md-pictures .md-pic > .shot { width: 100%; margin: 0; }
+.docs-content .md-pictures .md-pic > .shot > img { width: 100%; height: auto; }
 
+@media (max-width: 600px) {
+  .docs-content .md-steps { padding: 8px; }
+  .docs-content .md-steps > ol.icon-list { gap: 8px; }
+  .docs-content .md-steps > ol.icon-list > li.ic { flex-direction: row; gap: 14px; padding: 14px 40px 14px 14px; }
+  .docs-content .md-steps .li-icon { width: 2.75rem; height: 2.75rem; }
+  .docs-content .md-section-icon { margin-block-start: 32px; padding-block-start: 28px; }
+  .docs-content .md-section-icon svg { width: 3rem; height: 3rem; }
+}
 @media (max-width: 520px) {
   .docs-content ul.md-pictures:not(:has(> li:nth-child(3):last-child)) { --md-pic-cols: 2; }
+  .docs-content ul.md-logos { gap: 8px; }
+  .docs-content ul.md-logos > li { gap: 8px; padding: 5px 12px 5px 5px; }
+  .docs-content .md-logo { width: 3rem; height: 3rem; }
+  .docs-content .md-logo img { width: 2.4rem; height: 2.4rem; }
+  .docs-content .md-logo-name { font-size: calc(15px * var(--a11y-fs, 1)); }
+  /* Code in a disclosure starts at the summary's own edge, not past its icon column,
+     so a command keeps the width a phone has. */
+  :is(.docs-content, .docs-compact-nav) .doc-details-body > .doc-code { margin-inline-start: calc(-20px * var(--a11y-fs, 1) - 14px); }
+  .docs-content .doc-code .sh-out { min-width: calc(100% + 28px); margin-inline: -14px; padding-inline: 14px; }
   :is(.docs-content, .docs-compact-nav) .doc-details > summary { gap: 14px; padding-inline: 14px; }
   :is(.docs-content, .docs-compact-nav) .doc-details-body { padding-inline: calc(14px + 20px * var(--a11y-fs, 1) + 14px) 14px; }
-  .docs-content .doc-note { padding: 14px; gap: 12px; }
+  .docs-content .doc-note { --doc-note-icon: calc(2.25rem * var(--a11y-fs, 1)); padding: 14px; gap: 12px; }
   .docs-content .doc-code pre { padding: 12px 14px; font-size: calc(13px * var(--a11y-fs, 1)); }
+}
+/* After the phone rule above, which it overrides at equal specificity: one screenshot a row. */
+@media (max-width: 600px) {
+  .docs-content ul.md-pictures:has(> li > .md-pic > .shot) { --md-pic-cols: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
   :is(.docs-content, .docs-compact-nav) .doc-details-chev { transition: none; }
+  .docs-content .md-steps > ol.icon-list > li.ic { transition: none; }
 }
 html[data-a11y-motion="reduce"] :is(.docs-content, .docs-compact-nav) .doc-details-chev { transition: none; }
+html[data-a11y-motion="reduce"] .docs-content .md-steps > ol.icon-list > li.ic { transition: none; }
 @media print {
   .docs-content .doc-copy-slot, .docs-content .doc-copy-help, .docs-content .doc-details-chev { display: none !important; }
   .docs-content .doc-details > .doc-details-body { display: block !important; }
@@ -273,4 +680,322 @@ html[data-a11y-motion="reduce"] :is(.docs-content, .docs-compact-nav) .doc-detai
   .docs-content .doc-note, .docs-content .doc-details { break-inside: avoid; background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
   .docs-content .doc-code { background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
   .docs-content .doc-code pre { white-space: pre-wrap; overflow: visible; }
+  /* Paper keeps the terminal's words and drops its bands: output stays upright. */
+  .docs-content .doc-code .sh-out { display: inline; margin: 0; padding: 0; background: none; }
+  .docs-content .md-steps, .docs-content .md-steps > ol.icon-list > li.ic, .docs-content ul.md-logos > li { break-inside: avoid; background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
+  .docs-content .md-pillars, .docs-content .md-pillar { break-inside: avoid; background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
+  .docs-content .md-pillar-art { background: none; }
+  .docs-content .md-pillar-link { display: none; }
 }
+
+/* ── Where the page sits, and where reading goes next (plan 354 D3) ─────────
+   Generated from the manifest by docs/build.ts (pageWayfinding), both readers:
+   the trail over the title, and Previous and Next after the article.
+   The trail is a breadcrumb and is drawn as one: the words as written at the small
+   text size, the section a link, a hairline chevron between the steps. It is a way
+   back up, not a label for the heading, so it is not set in capitals, not tracked
+   and not bold. The pager is two quiet cards at the reading measure, the next one
+   aligned to the inline end. */
+.docs-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-md);
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--ui-color-text-muted);
+}
+.docs-crumbs li { display: inline-flex; align-items: center; gap: var(--sp-2); margin: 0; padding: 0; }
+.docs-crumbs li::marker { content: none; }
+/* The step mark: two hairlines, the house arrow, pointing the way the text reads. */
+.docs-crumbs li + li::before {
+  content: "";
+  flex: none;
+  width: .4em;
+  height: .4em;
+  border-block-start: 1.5px solid currentColor;
+  border-inline-end: 1.5px solid currentColor;
+  rotate: 45deg;
+  opacity: .7;
+}
+[dir="rtl"] .docs-crumbs li + li::before { rotate: -45deg; }
+.docs-crumbs a { color: inherit; text-decoration: none; border-radius: var(--radius-xs); }
+.docs-crumbs a:hover,
+.docs-crumbs a:focus-visible { color: var(--ui-color-text-default); text-decoration: underline; text-underline-offset: .2em; }
+.docs-content > .docs-crumbs { margin-bottom: var(--sp-4); }
+/* Below 1100 px the page bar above the article already gives the section and the page,
+   and its sheet lists the groups, so the trail would only repeat the bar and push the
+   first paragraph down (plan 354's phone layout). */
+@media (max-width: 1099px) { .docs-crumbs { display: none; } }
+.docs-content .docs-pager {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--sp-6);
+  max-width: 68ch;
+  margin: var(--sp-8) 0 0;
+}
+.docs-content .docs-pager-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-height: var(--ui-size-target);
+  padding: var(--sp-5) var(--sp-6);
+  border-radius: var(--ui-radius-card);
+  box-shadow: var(--ui-edge-faint);
+  color: var(--ui-color-text-default);
+  text-decoration: none;
+}
+.docs-content a.docs-pager-link:hover { background: var(--ui-color-surface-muted); text-decoration: none; }
+.docs-content a.docs-pager-link:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.docs-content .docs-pager-empty { box-shadow: none; }
+.docs-content .docs-pager-next { text-align: end; }
+.docs-content .docs-pager-dir { font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.docs-content .docs-pager-title { font-weight: 600; line-height: 1.3; }
+@media (max-width: 480px) {
+  .docs-content .docs-pager { grid-template-columns: minmax(0, 1fr); }
+  .docs-content .docs-pager-empty { display: none; }
+}
+
+/* ── Picture viewer: a screenshot, diagram or figure full screen ─────────────
+   Behaviour: lib/docs-lightbox.ts, which both readers run. The page keeps its own
+   pinch-zoom; only the open viewer takes gestures (touch-action: none on the
+   viewer, nowhere else).
+
+   The trigger is a small round button on the picture's top corner, opposite the
+   credential glyph on the bottom corner. With a mouse it shows when the pointer
+   reaches the picture or the keyboard reaches the button; on a touch screen it rests
+   visible, so a reader can tell the picture opens. A tap on the picture itself opens
+   it too. */
+.docs-content :is(.docs-diagram, .showcase, .asset-cred)[data-doc-lightbox] { position: relative; }
+.docs-content .asset-cred[data-doc-lightbox] { display: block; }
+.docs-content [data-doc-lightbox] > img,
+.docs-content [data-doc-lightbox] .showcase-stage,
+.docs-content [data-doc-lightbox] > .docs-figure-art { cursor: zoom-in; }
+.docs-content .doc-lightbox-open {
+  position: absolute;
+  inset-block-start: 0.55rem;
+  inset-inline-end: 0.55rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: calc(32px * var(--a11y-fs, 1));
+  height: calc(32px * var(--a11y-fs, 1));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 88%, transparent);
+  color: var(--ui-color-text-muted);
+  box-shadow: 0 1px 3px #00000024, var(--ui-edge-faint, 0 0 0 0 transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  cursor: zoom-in;
+  transition: opacity var(--ui-motion-feedback, 150ms), color var(--ui-motion-feedback, 150ms), background var(--ui-motion-feedback, 150ms);
+}
+.docs-content .doc-lightbox-open svg { display: block; width: calc(16px * var(--a11y-fs, 1)); height: calc(16px * var(--a11y-fs, 1)); }
+.docs-content .doc-lightbox-open:hover { color: var(--ui-color-text-default); background: var(--ui-color-surface-canvas); }
+.docs-content .doc-lightbox-open:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .docs-content .doc-lightbox-open { opacity: 0; }
+  .docs-content [data-doc-lightbox]:hover > .doc-lightbox-open,
+  .docs-content .doc-lightbox-open:focus-visible { opacity: 1; }
+}
+/* A diagram is centred in a wider box: the button follows the image's own corner. */
+.docs-content .docs-diagram[data-doc-lightbox] > .doc-lightbox-open {
+  inset-inline-end: calc((100% - min(var(--doc-lb-w, 100000) * 1px, 100%)) / 2 + 0.55rem);
+}
+/* The in-app reader's live tool embed covers the shot; the viewer would show the still. */
+.docs-content .shot--live > .doc-lightbox-open { display: none; }
+@media print { .docs-content .doc-lightbox-open { display: none; } }
+@media (prefers-reduced-motion: reduce) { .docs-content .doc-lightbox-open { transition: none; } }
+html[data-a11y-motion="reduce"] .docs-content .doc-lightbox-open { transition: none; }
+
+/* The viewer itself: a full-window modal dialog on the theme's own canvas, so a
+   light screenshot opens on light and its dark twin on dark. */
+dialog.doc-lightbox {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: transparent;
+  color: var(--ui-color-text-default);
+  z-index: 2147483000;
+  touch-action: none;
+  overscroll-behavior: contain;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+dialog.doc-lightbox:not([open]) { display: none; }
+dialog.doc-lightbox::backdrop { background: transparent; }
+.doc-lightbox-scrim {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 96%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  opacity: calc(1 - var(--doc-lb-drag, 0) * 0.75);
+}
+.doc-lightbox-stage { position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: default; }
+.doc-lightbox-pic {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  overflow: hidden;
+  border-radius: var(--ui-radius-card, 10px);
+  background: var(--ui-color-surface-canvas);
+  box-shadow: var(--ui-elevation-floating, 0 8px 30px #0003);
+  cursor: zoom-in;
+}
+.doc-lightbox-pic > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+/* A figure brings its own ground and corners. */
+.doc-lightbox-pic--art { background: none; box-shadow: none; border-radius: 0; overflow: visible; }
+.doc-lightbox-art { position: relative; border-radius: 1.2em; overflow: hidden; text-align: start; }
+.doc-lightbox-art > svg { display: block; width: 100%; height: auto; }
+dialog.doc-lightbox[data-zoomed] .doc-lightbox-pic { cursor: grab; }
+dialog.doc-lightbox[data-dragging] .doc-lightbox-pic { cursor: grabbing; }
+
+/* The bar: the count on the start side, the zoom controls and Close on the end side. */
+.doc-lightbox-bar {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left));
+  pointer-events: none;
+}
+.doc-lightbox-bar > * { pointer-events: auto; }
+.doc-lightbox-count {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 85%, transparent);
+  color: var(--ui-color-text-muted);
+  font-size: calc(13px * var(--a11y-fs, 1));
+  font-variant-numeric: tabular-nums;
+}
+/* One picture on the page: no count, but its place keeps the tools at the end. */
+dialog.doc-lightbox:not([data-many]) .doc-lightbox-count { visibility: hidden; }
+.doc-lightbox-tools { display: flex; gap: 8px; }
+.doc-lightbox-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  box-sizing: border-box;
+  width: var(--ui-size-target, 44px);
+  height: var(--ui-size-target, 44px);
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 85%, transparent);
+  color: var(--ui-color-text-default);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background var(--ui-motion-feedback, 150ms), opacity var(--ui-motion-feedback, 150ms);
+}
+.doc-lightbox-btn svg { width: calc(20px * var(--a11y-fs, 1)); height: calc(20px * var(--a11y-fs, 1)); }
+.doc-lightbox-btn:hover { background: var(--ui-color-surface-muted); }
+.doc-lightbox-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.doc-lightbox-btn[aria-disabled="true"] { opacity: 0.4; cursor: default; }
+.doc-lightbox-btn[aria-disabled="true"]:hover { background: color-mix(in srgb, var(--ui-color-surface-canvas) 85%, transparent); }
+.doc-lightbox-btn[hidden] { display: none; }
+/* Previous and next follow the reading direction. */
+[dir="rtl"] .doc-lightbox-nav svg { transform: scaleX(-1); }
+
+/* The foot: the caption, with previous and next either side of it on a narrow
+   screen. A long caption scrolls inside its own box. */
+.doc-lightbox-foot {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(var(--ui-size-target, 44px) + 20px);
+  padding: 10px 16px max(12px, env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+.doc-lightbox-foot[hidden] { display: none; }
+dialog.doc-lightbox[data-many] .doc-lightbox-foot { padding-inline: calc(var(--ui-size-target, 44px) + 24px); }
+/* On glass, like the controls, so it stays readable over a zoomed picture. */
+.doc-lightbox-caption {
+  max-width: 62ch;
+  max-height: 30vh;
+  margin: 0;
+  padding: 8px 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  pointer-events: auto;
+  border-radius: var(--ui-radius-card, 10px);
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 85%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: var(--ui-color-text-default);
+  font-size: calc(15px * var(--a11y-fs, 1));
+  line-height: 1.45;
+  text-align: center;
+  text-wrap: balance;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.doc-lightbox-caption:empty { display: none; }
+.doc-lightbox-nav {
+  position: absolute;
+  inset-block-end: max(12px, env(safe-area-inset-bottom));
+}
+.doc-lightbox-nav[data-lb="prev"] { inset-inline-start: 12px; }
+.doc-lightbox-nav[data-lb="next"] { inset-inline-end: 12px; }
+@media (min-width: 48em) {
+  .doc-lightbox-nav { inset-block-end: auto; inset-block-start: calc(50% - var(--ui-size-target, 44px) / 2); }
+  .doc-lightbox-nav[data-lb="prev"] { inset-inline-start: 20px; }
+  .doc-lightbox-nav[data-lb="next"] { inset-inline-end: 20px; }
+  dialog.doc-lightbox[data-many] .doc-lightbox-foot { padding-inline: 16px; }
+  .doc-lightbox-caption { font-size: calc(16px * var(--a11y-fs, 1)); }
+  .doc-lightbox-count { font-size: calc(14px * var(--a11y-fs, 1)); }
+}
+
+/* Opening and closing: the scrim and the controls fade while the picture grows from,
+   or shrinks back to, its place on the page (the script moves the picture). */
+dialog.doc-lightbox :is(.doc-lightbox-scrim, .doc-lightbox-bar, .doc-lightbox-foot, .doc-lightbox-nav) {
+  transition: opacity var(--ui-motion-overlay, 220ms) ease;
+}
+dialog.doc-lightbox[data-entering] :is(.doc-lightbox-scrim, .doc-lightbox-bar, .doc-lightbox-foot, .doc-lightbox-nav),
+dialog.doc-lightbox[data-leaving] :is(.doc-lightbox-scrim, .doc-lightbox-bar, .doc-lightbox-foot, .doc-lightbox-nav) { opacity: 0; }
+dialog.doc-lightbox[data-dragging] :is(.doc-lightbox-bar, .doc-lightbox-foot, .doc-lightbox-nav) {
+  opacity: calc(1 - var(--doc-lb-drag, 0) * 1.5);
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.doc-lightbox :is(.doc-lightbox-scrim, .doc-lightbox-bar, .doc-lightbox-foot, .doc-lightbox-nav, .doc-lightbox-btn) { transition: none; }
+}
+html[data-a11y-motion="reduce"] dialog.doc-lightbox :is(.doc-lightbox-scrim, .doc-lightbox-bar, .doc-lightbox-foot, .doc-lightbox-nav, .doc-lightbox-btn) { transition: none; }

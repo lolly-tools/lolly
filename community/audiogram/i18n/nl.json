@@ -1,6 +1,6 @@
 {
   "name": "Audiogram",
-  "description": "Zet een spraakfragment of nummer om in een video in de kleuren van je huisstijl die echt met het geluid meebeweegt - balken, spectrum, ring, ridgeline of scope, klaar voor social media.",
+  "description": "Zet een spraakfragment of nummer om in een video in de kleuren van je huisstijl die met het geluid meebeweegt.",
   "a11yLabel": "Audiogramkaart voor {{default title \"an audio clip\"}} met een geanimeerde golfvorm",
   "inputs.audio.label": "Audio",
   "inputs.audio.help": "Kies een track uit je bibliotheek of upload een clip. Deze wordt op je apparaat gedecodeerd om de golfvorm te tekenen - de audio verlaat de browser nooit. Laat leeg voor een tijdelijke golfvorm. Om het te horen in de export, kies \"Audio van deze tool\" als Audiotrack in de downloadopties.",

@@ -11,6 +11,7 @@ import { canonicalJson } from '../../../../engine/src/canonical-json.ts';
 import { createTokenSet, colorToHex } from '../../../../engine/src/tokens.ts';
 import { usageDependencies } from '../lib/design-system/usage-model.ts';
 import { createTokenConsumerCheck, type TokenConsumerSources } from '../lib/token-consumer-index.ts';
+import { colourRoleCopies, roleValuesByColourway, withoutRoleCopies, type ColourRoleCopies } from '../lib/design-system/colour-role-copies.ts';
 import { escape as esc } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { tokenPreviewHtml, tokenTypeLabel, tokenValueText } from './token-preview.ts';
@@ -55,6 +56,10 @@ export function mountTokenWorkspace(mount: HTMLElement, options: TokenWorkspaceO
   let choices = options.initialSelection ? { ...options.initialSelection } : undefined;
   let renderChoices: Record<string, string> | undefined;
   let inspection: TokenInspection;
+  /** A colour role's values in each colourway, which the list keeps with the role (colour-role-copies.ts). */
+  let copies: ColourRoleCopies | null = null;
+  /** The tokens the list offers: every one but those copies. */
+  let listed: TokenInspection['tokens'] = [];
   let proofDispose: (() => void) | undefined;
   let reviewGeneration = 0;
   let review: { source: ReviewSource; base: string; candidate: Record<string, unknown>; conflicts: TokenMergeConflict[]; decisions: Record<string, 'local' | 'incoming'>; beforeOptions: TokenResolveOptions; afterOptions: TokenResolveOptions; dependencies?: string; resourceError?: string } | null = null;
@@ -93,31 +98,49 @@ export function mountTokenWorkspace(mount: HTMLElement, options: TokenWorkspaceO
       return;
     }
     const recipe = readTokenRecipes(options.read()).find(r => r.set === (token.source?.set ?? undefined) && r.paths.includes(token.path));
+    const roleOwn = copies?.roleAt(token.path) ?? copies?.secondNames.get(token.path) ?? null, roleCopy = roleOwn ? null : copies?.roleOf(token.path) ?? null;
     const links = (paths: string[]): string => paths.length ? `<ul class="tw-links">${paths.slice(0, DETAIL_LIMIT).map(p => `<li><button type="button" class="btn btn--ghost" data-tw-ref="${esc(p)}">${esc(p)}</button></li>`).join('')}</ul>${paths.length > DETAIL_LIMIT ? `<p>${t('Showing {shown} of {total} references. Search tokens to find the rest.', { shown: DETAIL_LIMIT, total: paths.length })}</p>` : ''}` : `<p>${t('None recorded')}</p>`;
     detail.innerHTML = `<button type="button" class="btn btn--ghost" data-tw-back ${history.length ? '' : 'disabled'}>${t('Back to previous token')}</button><h4>${esc(token.path)}</h4><p>${esc(tokenTypeLabel(token.type))} · ${token.source ? esc(token.source.set ?? t('Implicit set')) : t('Inactive definition')}</p>
-      ${token.source?.description ? `<p>${esc(token.source.description)}</p>` : ''}<h5>${t('Value')}</h5><dl><dt>${t('Written as')}</dt><dd>${tokenPreviewHtml(token.type, token.authored, { path: token.path })}<code>${esc(text(token.authored, token.type))}</code></dd><dt>${t('Resolves to')}</dt><dd>${tokenPreviewHtml(token.type, token.resolved, { path: token.path })}<code>${esc(text(token.resolved, token.type))}</code></dd></dl>
+      ${token.source?.description ? `<p>${esc(token.source.description)}</p>` : ''}${roleOwn || roleCopy ? roleHtml((roleOwn ?? roleCopy)!, !!roleOwn) : ''}<h5>${t('Value')}</h5><dl><dt>${t('Written as')}</dt><dd>${tokenPreviewHtml(token.type, token.authored, { path: token.path })}<code>${esc(text(token.authored, token.type))}</code></dd><dt>${t('Resolves to')}</dt><dd>${tokenPreviewHtml(token.type, token.resolved, { path: token.path })}<code>${esc(text(token.resolved, token.type))}</code></dd></dl>
       ${options.commit && token.source ? fold(t('Edit the value'), t('Change what this token stores, then review the change.'), `<p>${t('This edits the winning token definition in this system. Linked input overrides have their own controls.')}</p><textarea class="field-input" data-tw-source-value rows="4" aria-describedby="tw-source-err">${esc(typeof token.authored === 'string' ? token.authored : JSON.stringify(token.authored, null, 2))}</textarea><p class="be-err" id="tw-source-err" data-tw-source-err hidden></p><button type="button" class="btn btn--ghost" data-tw-edit-source>${t('Review source edit')}</button>`) : ''}
       ${recipe ? `<h5>${t('Generation recipe')}</h5><p>${esc(recipe.id)} · ${esc(recipe.kind)} · v${recipe.version}</p><pre>${esc(JSON.stringify({ base: recipe.base, ratio: recipe.ratio, seed: recipe.seed, count: recipe.count }))}</pre><p>${canonicalJson(token.authored) !== canonicalJson(recipe.outputs[token.path]) || Object.hasOwn(recipe.overrides ?? {}, token.path) ? t('Local generated-value override') : t('Generated value')}</p>${options.commit ? `<button type="button" class="btn btn--ghost" data-tw-reset-generated>${t('Use generated value')}</button>` : ''}` : ''}<h5>${t('References')}</h5>${links(token.references)}<h5>${t('Used by')}</h5><p>${t('Token references in this document only. Dynamic tool hooks and other documents are outside this count.')}</p>${links(token.usedBy)}${consumers?.html(token.path) ?? ''}
       <h5>${t('Issues')}</h5>${token.diagnostics.length ? `<ul>${token.diagnostics.map(d => `<li>${esc(d.message)}</li>`).join('')}</ul>` : `<p>${t('No reference issues found')}</p>`}
       ${token.declaredConsumers?.length ? `<h5>${t('Declared roles and slots')}</h5><p>${t('Declarations in this source document. These are not observed render usage or rule checks.')}</p><ul>${token.declaredConsumers.map(consumer => `<li><strong>${esc(consumer.label)}</strong> <code>${esc(consumer.roleId)}</code>${consumer.bindings.length ? `<ul>${consumer.bindings.map(binding => `<li><code>${esc(binding.tool ?? t('Any tool'))} / ${esc(binding.slot)}</code>${binding.modes?.length ? ` · ${esc(binding.modes.join(', '))}` : ''}</li>`).join('')}</ul>` : ''}</li>`).join('')}</ul>` : ''}
       <h5>${t('Where this value comes from')}</h5><ol>${token.candidates.map(c => `<li><strong>${esc(c.set ?? t('Implicit set'))}</strong> · ${c.active ? c === token.source ? t('Used') : t('Overridden') : t('Inactive')}<code>${esc(c.location)}</code><pre>${esc(text(c.value, token.type))}</pre></li>`).join('')}</ol>`;
   }
+  /**
+   * A colour role's values, one row per colourway with each look beside it, read as the
+   * Colour roles table reads them. Shown on the role's own token and on each copy.
+   */
+  function roleHtml(role: NonNullable<ReturnType<ColourRoleCopies['roleOf']>>, own: boolean): string {
+    const colourways = inspection.selection.groups.find(g => g.kind === 'colourway')?.options ?? [];
+    let values: ReturnType<typeof roleValuesByColourway> = { modes: [], rows: [] };
+    try { values = roleValuesByColourway(options.read(), role.id, colourways); } catch { /* the sentence stands alone */ }
+    const chip = (hex: string): string => hex ? `<span class="tw-role-value"><span class="tk-chip" style="--sw:${esc(hex)}" aria-hidden="true"></span><code>${esc(hex)}</code></span>` : `<span>${t('Unavailable')}</span>`;
+    const table = values.rows.length ? `<table class="tw-role-values"><thead><tr><th scope="col">${t('Colourway')}</th>${values.modes.map(m => `<th scope="col">${esc(sentenceCase(m.name))}</th>`).join('')}</tr></thead><tbody>${values.rows.map(r => `<tr><th scope="row">${esc(r.colourway)}</th>${r.values.map(v => `<td>${chip(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>` : '';
+    const lead = own
+      ? tRaw('{role} is one of this design system’s colour roles. The role holds a colour for each colourway and look, so those colours are listed here and not as tokens of their own.', { role: role.label })
+      : tRaw('This is one of {role}’s colours: its value in one colourway and look. The role lists every one, and the token list shows the role instead.', { role: role.label });
+    const edit = options.commit ? `<p>${t('Change these colours in the Colour roles table, at the head of the Colours room.')}</p>` : '';
+    return `<h5>${t('Colour role')}</h5><p>${esc(lead)}</p>${table}${edit}`;
+  }
   /** The tokens the search, type, set and Issues filters let through. */
   function matching(): TokenInspection['tokens'] {
     const search = find<HTMLInputElement>('[data-tw-search]').value.toLowerCase();
     const type = find<HTMLSelectElement>('[data-tw-type]').value, set = find<HTMLSelectElement>('[data-tw-set]').value;
     const issues = find<HTMLInputElement>('[data-tw-issues]').checked;
-    return inspection.tokens.filter(x => x.path.toLowerCase().includes(search) && (!type || x.type === type) && (!set || x.candidates.some(c => (c.set ?? '') === set)) && (!issues || x.diagnostics.length));
+    return listed.filter(x => x.path.toLowerCase().includes(search) && (!type || x.type === type) && (!set || x.candidates.some(c => (c.set ?? '') === set)) && (!issues || x.diagnostics.length));
   }
   function renderList(): void {
     const matches = matching();
     const pages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
     page = Math.min(page, pages - 1);
     const n = matches.length;
-    find('[data-tw-count]').textContent = `${(n === 1 ? tRaw('{n} token', { n }) : tRaw('{n} tokens', { n }))}${pages > 1 ? ` · ${tRaw('Page {p} of {total}', { p: page + 1, total: pages })}` : ''}`;
+    const kept = inspection.tokens.length - listed.length;
+    find('[data-tw-count]').textContent = `${(n === 1 ? tRaw('{n} token', { n }) : tRaw('{n} tokens', { n }))}${pages > 1 ? ` · ${tRaw('Page {p} of {total}', { p: page + 1, total: pages })}` : ''}${kept ? ` · ${kept === 1 ? t('1 colourway value is listed with its colour role') : tRaw('{n} colourway values are listed with their colour roles', { n: kept })}` : ''}`;
     find('.tw-pages').hidden = n <= PAGE_SIZE;
     // "Active" says something only when some definition in the document is not.
-    const someInactive = inspection.tokens.some(x => !x.source);
+    const someInactive = listed.some(x => !x.source);
     const list = find('[data-tw-list]');
     if (!n) {
       const search = find<HTMLInputElement>('[data-tw-search]').value.trim();
@@ -128,7 +151,8 @@ export function mountTokenWorkspace(mount: HTMLElement, options: TokenWorkspaceO
       list.innerHTML = matches.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE).map(x => {
         const value = x.resolved ?? x.candidates[0]?.value;
         // One line per token: the path with its type under it, the value at the end.
-        return `<li><button type="button" class="btn btn--ghost tw-row" data-tw-token="${esc(x.path)}" aria-pressed="${x.path === selected}"><span class="tw-row-path"><strong title="${esc(x.path)}">${esc(x.path)}</strong><span class="tw-row-meta">${esc(tokenTypeLabel(x.type))}${someInactive ? ` · ${x.source ? t('Active') : t('Inactive')}` : ''}${x.diagnostics.length ? ` · <span class="tw-row-issues">${x.diagnostics.length} ${t('issues')}</span>` : ''}</span></span><span class="tw-value">${tokenPreviewHtml(x.type, value, { path: x.path })}<code>${esc(text(value, x.type))}</code></span></button></li>`;
+        const role = copies?.roleAt(x.path) ?? copies?.secondNames.get(x.path);
+        return `<li><button type="button" class="btn btn--ghost tw-row" data-tw-token="${esc(x.path)}" aria-pressed="${x.path === selected}"><span class="tw-row-path"><strong title="${esc(x.path)}">${esc(x.path)}</strong><span class="tw-row-meta">${esc(tokenTypeLabel(x.type))}${role ? ` · ${esc(tRaw('Colour role: {role}', { role: role.label }))}` : ''}${someInactive ? ` · ${x.source ? t('Active') : t('Inactive')}` : ''}${x.diagnostics.length ? ` · <span class="tw-row-issues">${x.diagnostics.length} ${t('issues')}</span>` : ''}</span></span><span class="tw-value">${tokenPreviewHtml(x.type, value, { path: x.path })}<code>${esc(text(value, x.type))}</code></span></button></li>`;
       }).join('');
     }
     find<HTMLButtonElement>('[data-tw-prev]').disabled = page === 0;
@@ -205,6 +229,8 @@ export function mountTokenWorkspace(mount: HTMLElement, options: TokenWorkspaceO
   function refresh(): void {
     if (disposed) return;
     inspection = inspectTokenDocument(options.read(), resolveOptions());
+    copies = colourRoleCopies(options.read());
+    listed = withoutRoleCopies(inspection.tokens, copies);
     choices ??= { ...inspection.selection.choices };
     if (options.context === 'Render version') {
       renderChoices ??= { ...inspection.selection.choices };
@@ -220,8 +246,8 @@ export function mountTokenWorkspace(mount: HTMLElement, options: TokenWorkspaceO
       el.innerHTML = `<option value="">${esc(all)}</option>${values.map(v => `<option value="${esc(v)}">${esc(label(v))}</option>`).join('')}`;
       if (values.includes(value)) el.value = value;
     };
-    updateFilter('[data-tw-type]', [...new Set(inspection.tokens.map(x => x.type).filter((x): x is string => !!x))].sort(), t('All types'), tokenTypeLabel);
-    updateFilter('[data-tw-set]', [...new Set(inspection.tokens.flatMap(x => x.candidates.map(c => c.set).filter((x): x is string => !!x)))], t('Any set'));
+    updateFilter('[data-tw-type]', [...new Set(listed.map(x => x.type).filter((x): x is string => !!x))].sort(), t('All types'), tokenTypeLabel);
+    updateFilter('[data-tw-set]', [...new Set(listed.flatMap(x => x.candidates.map(c => c.set).filter((x): x is string => !!x)))], t('Any set'));
     const setEl = find<HTMLSelectElement>('[data-tw-recipe-set]');
     const sourceSets = tokenSetNames(options.read()) ?? [];
     const previousSet = setEl.value;

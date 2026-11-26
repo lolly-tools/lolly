@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import { assetViewerKind } from '../../lib/asset-viewer-source.ts';
 import { mountAssetFormatViewer } from '../../components/asset-format-viewer.ts';
 import { mountAssetViewerDetails } from '../../components/asset-viewer-details.ts';
@@ -6,6 +7,7 @@ import { mountAssetInspectorDock } from '../../components/asset-inspector-dock.t
 import { openAssetInText } from '../../lib/text-handoff.ts';
 import { mountModelPreview } from '../../lib/model-preview.ts';
 import { mountSpecialPreview } from './special-preview.ts';
+import { workspaceTemplateOf } from '../../lib/workspace-templates.ts';
 import { paintSyntaxPreview, syntaxLanguageForFile } from '../../lib/syntax-preview.ts';
 /**
  * catalog details: building the sheet and wiring its events, in mount order.
@@ -51,10 +53,11 @@ import { applySuggestion, buildThemedAssetId, buildTreatedAssetId, extractC2paSt
 import type { RewordCandidate, } from '@lolly/engine';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { licenceLabel, ownerPublished, readAssetRightsRecord, type AssetRightsMeta } from '../../lib/asset-rights.ts';
+import { readTuneRecord, tuneLicence, tuneLicenceChoices, withTuneLicence } from '../../lib/tune-provenance.ts';
 import { lollyBadge } from '../../lib/lolly-badge.ts';
 import { projectRefSubject } from '../../org/project-catalog-submit.ts';
 import { openCatalogSubmit, uploadSubject } from '../../lib/catalog-submit.ts';
-import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
+import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, applyAssetGround, attachZoom, groundSwitchHtml, readAssetGround, writeAssetGround, catalogAddedText, emojiPackMeta, emojiPackPin, iconThemeById, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, startableTemplate, svgTextToDataUrl } from './shared.ts';
 import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
 import type { EmojiPrefsHost } from '../../lib/emoji-prefs.ts';
 import { audioCardArt, wireAudioViz } from './details-shared.ts';
@@ -74,9 +77,16 @@ import { mountAssetFileList } from '../../components/asset-file-list.ts';
  * build does not actually hold - the old row said "SUSE catalog" on every profile,
  * including a public clone that has no SUSE pack at all. And it never reports a
  * missing licence as permission: absent reads as not recorded.
+ *
+ * A saved tune says where it was made instead of "Your upload". A tune made in the
+ * music generator also shows who made it and the versions that made it, as the tune
+ * records them, and its licence is a menu: CC BY 4.0 for a tune saved since
+ * 2026-11-15 (lib/tune-provenance.ts tuneLicenceRecord), not recorded for an older one
+ * until its maker sets one.
  */
 export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
   const meta = (ref.meta ?? {}) as AssetRightsMeta;
+  const tune = isUser ? readTuneRecord(ref) : null;
   const record = readAssetRightsRecord(meta.rights);
   const label = licenceLabel(meta);
   const profile = label?.profile ?? null;
@@ -87,12 +97,15 @@ export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
   // it is still data, and a link is the one place a string becomes an action.
   const sourceUrl = typeof record?.sourceUrl === 'string' && /^https?:\/\//i.test(record.sourceUrl) ? record.sourceUrl : '';
   const sourceParts = [
-    isUser ? escapeText(t('Your upload')) : escapeText(publisher?.name ?? (ref.source === 'remote' ? t('Shared asset') : t('Catalog'))),
+    tune ? escapeText(tune.origin === 'generator' ? t('Made in the music generator') : t('Saved from the Neurospicy player'))
+      : isUser ? escapeText(t('Your upload')) : escapeText(publisher?.name ?? (ref.source === 'remote' ? t('Shared asset') : t('Catalog'))),
     credited ? escapeText(tRaw('credited to {who}', { who: credited })) : '',
     sourceUrl ? `<a href="${escapeText(sourceUrl)}" target="_blank" rel="noopener noreferrer">${t('Original work')}</a>` : '',
   ].filter(Boolean).join(' · ');
 
-  const licenceCell = label
+  const licenceCell = tune?.origin === 'generator'
+    ? tuneLicencePick(label)
+    : label
     ? `<span title="${escapeText(label.declared)}">${escapeText(label.full)}</span>`
     : escapeText(t('Not recorded'));
 
@@ -128,9 +141,36 @@ export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
             : t('No credit required.');
 
   return metaRow('source', t('Source'), sourceParts)
+    + (tune?.maker ? metaRow('maker', t('Made by'), escapeText(tune.maker)) : '')
+    + (tune?.versions ? metaRow('madeWith', t('Made with'), escapeText(tuneVersionsText(tune.versions))) : '')
     + metaRow('licence', t('Licence'), licenceCell)
     + creditRow
     + metaRow('using', t('Using this work'), escapeText(using));
+}
+
+/** The versions a saved tune records, in one line: "Lolly 1.2.0, engine 1.300.0". */
+function tuneVersionsText(v: { lolly?: string; engine?: string }): string {
+  if (v.lolly && v.engine) return tRaw('Lolly {lolly}, engine {engine}', { lolly: v.lolly, engine: v.engine });
+  return v.lolly ? tRaw('Lolly {lolly}', { lolly: v.lolly }) : tRaw('engine {engine}', { engine: v.engine ?? '' });
+}
+
+/**
+ * The licence menu for a tune its maker made in the music generator: "Not recorded"
+ * first (selected only for a tune with no licence recorded, as one saved before
+ * 2026-11-15 has none), then the licences a person can declare for their own work. A declaration the menu does not list (one that arrived some
+ * other way) stays shown and selected, so the menu never reads as a change.
+ */
+function tuneLicencePick(label: ReturnType<typeof licenceLabel>): string {
+  const choices = tuneLicenceChoices();
+  const current = label?.declared ?? '';
+  const listed = choices.some(c => c.id === current);
+  const option = (value: string, text: string): string =>
+    `<option value="${escapeText(value)}"${value === current ? ' selected' : ''}>${escapeText(text)}</option>`;
+  return `<select class="field-select field-select--sm field-select--auto cat-tune-licence" data-tune-licence aria-label="${escapeText(t('Licence for this tune'))}">`
+    + option('', t('Not recorded'))
+    + (current && !listed ? option(current, label?.full ?? current) : '')
+    + choices.map(c => option(c.id, c.name)).join('')
+    + '</select>';
 }
 
 /**
@@ -269,10 +309,8 @@ export function readAsset(dt: DetailsCtx): void {
   // one-click default; conversion controls only appear after opening the dialog.
   const configurable = isVector(ref) || isThemable(ref) || (ref.type === 'raster' && !ref.meta?.animated)
     || ref.type === 'audio' || ref.type === 'video'; dt.configurable = configurable;
-  // Honour a theme from a shared link (initialTheme) if it's valid, else the first pairing.
-  dt.dTheme = themable
-    ? ((initialTheme && cat.iconThemes.some(t => t.id === initialTheme) ? initialTheme : cat.iconThemes[0]?.id) ?? null)
-    : null;
+  // Honour a colourway from a shared link (initialTheme) if the system offers it, else Original.
+  dt.dTheme = themable && initialTheme && cat.iconThemes.some(t => t.id === initialTheme) ? initialTheme : null;
   // Photo treatment: honour a valid initial (shared link / category selection), else Original.
   dt.dTreatment = treatable && initialTreatment && cat.photoTreatments.some(t => t.id === initialTreatment)
     ? initialTreatment
@@ -333,7 +371,8 @@ export function buildSheet(dt: DetailsCtx): void {
   // is a player, not an image, so it opts out too; a placeholder/dataless-lottie stub has nothing
   // to zoom. attachZoom handles the <svg> player.
   const ownsPreview = (['pdf', 'font', 'converted'].includes(assetViewerKind(String(ref.format ?? '').toLowerCase())) || ref.format === 'svgz') || ref.type === 'font';
-  const specialPreview = (ref.original?.format ?? ref.format) === 'mogrt';
+  // A workspace template is values, not a picture: special-preview.ts draws it in its tool.
+  const specialPreview = (ref.original?.format ?? ref.format) === 'mogrt' || !!workspaceTemplateOf(ref);
   const zoomable = !ownsPreview && !specialPreview && !ref.meta?._placeholder
     && ref.type !== 'audio' && ref.type !== 'model'
     && !isTextKind(ref.type) && ref.type !== 'data'
@@ -422,7 +461,7 @@ export function buildSheet(dt: DetailsCtx): void {
   const content = `
       <header class="cat-details-header">
         ${dt.controls.editingHtml()}
-        <button type="button" class="cat-details-close" data-act="close" aria-label="${escapeText(t('Close'))}">×</button>
+        ${closeButtonHtml({ className: 'cat-details-close', attrs: { 'data-act': 'close' } })}
       </header>
       <div class="cat-details-preview${zoomable ? ' is-zoomable' : ''}">
         <span class="cat-unsaved-pill" data-unsaved hidden>${t('Edits not saved')}</span>
@@ -486,7 +525,7 @@ export function buildSheet(dt: DetailsCtx): void {
         ${dt.rondo.rondoSectionHtml()}
         <div class="cat-details-tech" data-usage hidden></div>
         ${(isTextAsset && !dt.isSkillAsset) || canOcr || canReadDoc || canReadVector ? `<div class="cat-details-tsig" data-tsig hidden></div>` : ''}
-        ${themable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colours')}</span>${cat.thumbs.iconSwatchRow(dt.dTheme)}</div>` : ''}
+        ${themable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colours')}</span><div class="cat-group-colours-row">${cat.thumbs.iconSwatchRow(dt.dTheme)}${groundSwitchHtml()}</div></div>` : ''}
         ${treatable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colour')}</span>${cat.thumbs.treatmentSwatchRow(dt.dTreatment)}</div>` : ''}
       </div>`; dt.content = content;
   let destroyModelPreview: (() => void) | undefined;
@@ -521,6 +560,8 @@ export function buildSheet(dt: DetailsCtx): void {
       cat.detailsMeterDispose = null;
       cat.detailsTransport?.destroy();
       cat.detailsTransport = null;
+      cat.detailsTune?.dispose();
+      cat.detailsTune = null;
       cat.vizTeardown?.();
       cat.vizTeardown = null;
       // Destroy any Lottie player mounted in the preview - lottie-web ticks every mounted player
@@ -542,6 +583,8 @@ export function buildSheet(dt: DetailsCtx): void {
     },
   }); dt.modal = modal;
   const dlg = modal.el; dt.dlg = dlg;
+  // The preview starts on the ground the grid is on (the toolbar's Dark ground switch).
+  applyAssetGround(dlg);
   stopPane = followSplitPane(modal, { id: 'assets' });
   clearSiteInspection = publishSiteInspection(() => dlg.isConnected ? dt.ref : null);
   if (ref.type === 'model') {
@@ -685,7 +728,7 @@ export function paintPassport(dt: DetailsCtx): void {
     void (async () => {
       try {
         if (!dt.dBaseSvg) dt.dBaseSvg = await (await fetch(ref.url)).text();
-        const th = cat.iconThemes.find(x => x.id === dt.dTheme);
+        const th = iconThemeById(cat, dt.dTheme);
         const img = dlg.querySelector<HTMLImageElement>('.cat-thumb');
         if (img && th) img.src = svgTextToDataUrl(restyleIconTheme(dt.dBaseSvg, th) || dt.dBaseSvg);
       } catch { /* leave the base preview */ }
@@ -755,6 +798,10 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     e.stopPropagation();
     dt.panels.closeEditCard();
   }, { capture: true });
+  // A tune's licence menu (assetRightsRows): the choice is saved on the tune at once.
+  dlg.querySelector<HTMLSelectElement>('[data-tune-licence]')?.addEventListener('change', (e) => {
+    void setTuneLicence(dt, (e.currentTarget as HTMLSelectElement).value);
+  });
   dlg.addEventListener('click', async (e) => {
     const target = e.target as HTMLElement;
     if (dt.controls.handleEditingClick(e)) return;
@@ -790,6 +837,13 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       }
       return;
     }
+    // Dark ground: the same switch as the grid's, beside the pairs it changes. The grid,
+    // this sheet and every other switch follow through syncAssetGround.
+    if (target.closest('.cat-ground')) {
+      writeAssetGround(readAssetGround() === 'dark' ? 'light' : 'dark');
+      cat.wiring.syncAssetGround();
+      return;
+    }
     // Colour treatment swatch (raster photos): wash the preview in place via the live CSS
     // filter, keep the modal open. Checked before the icon branch - treat buttons also carry
     // .cat-dl-theme, but this .cat-dl-treat branch owns them.
@@ -807,15 +861,15 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     // Colour swatch (themable icons): recolour the preview in place, keep the modal open.
     const sw = target.closest<HTMLElement>('.cat-dl-theme');
     if (sw && themable) {
-      dt.dTheme = sw.dataset.theme ?? dt.dTheme;
+      dt.dTheme = sw.dataset.theme || null;   // "Original" is the empty id
       dlg.querySelectorAll<HTMLElement>('.cat-dl-theme').forEach(b => {
         const on = b === sw; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', String(on));
       });
       try {
         if (!dt.dBaseSvg) dt.dBaseSvg = await (await fetch(ref.url)).text();
-        const th = cat.iconThemes.find(x => x.id === dt.dTheme);
+        const th = iconThemeById(cat, dt.dTheme) ?? null;
         const img = dlg.querySelector<HTMLImageElement>('.cat-thumb');
-        if (img && th) img.src = svgTextToDataUrl(restyleIconTheme(dt.dBaseSvg, th) || dt.dBaseSvg);
+        if (img) img.src = th ? svgTextToDataUrl(restyleIconTheme(dt.dBaseSvg, th) || dt.dBaseSvg) : ref.url;
       } catch { /* recolour is best-effort - leaves the base preview */ }
       return;
     }
@@ -849,6 +903,15 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       announce(tRaw('{set} is now the set your new work starts from.', { set: pack.label }));
       return;
     }
+    // A workspace template opens its tool from it, through `?template=`, so the
+    // template's rules hold from the first frame.
+    if (act === 'use-template') {
+      const tpl = startableTemplate(ref);
+      if (!tpl) return;
+      cat.sections.closeDetails();
+      location.hash = dt.controls.templateUseHash(tpl);
+      return;
+    }
     if (act === 'open-with') { cat.actions.openWith([ref], dlg.querySelector<HTMLElement>('[data-act="open-with"]') ?? undefined); return; }
     if (act === 'convert') { void cat.actions.convert([ref]); return; }
     if (act === 'open-text') {
@@ -873,7 +936,10 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       const btn = target.closest<HTMLElement>('.cat-act-share');
       // Share the styled variant when a colour is picked, so the recipient reopens the same
       // look (the modifier rides in the asset id - buildThemedAssetId / buildTreatedAssetId).
-      const link = themable && dt.dTheme
+      // A workspace template's link is its Use route, so a colleague opens the tool.
+      const tpl = startableTemplate(ref);
+      const link = tpl ? `${location.origin}${appPathname()}${dt.controls.templateUseHash(tpl)}`
+        : themable && dt.dTheme
         ? `${location.origin}${appPathname()}#/a?asset=${encodeURIComponent(buildThemedAssetId(base, dt.dTheme))}`
         : treatable && dt.dTreatment
           ? `${location.origin}${appPathname()}#/a?asset=${encodeURIComponent(buildTreatedAssetId(base, dt.dTreatment))}`
@@ -1550,7 +1616,8 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); dt.sheet.dismissLayer(); }
       return;
     }
-    if ((e.target as HTMLElement).closest('.asset-format-viewer, input, textarea, select, [contenteditable]')) return;
+    // A slider (the audio scrubber) owns its arrows; a key a control already handled is not a page turn.
+    if (e.defaultPrevented || (e.target as HTMLElement).closest('.asset-format-viewer, input, textarea, select, [contenteditable], [role="slider"]')) return;
     if (e.key === 'ArrowLeft' && nav.prev) { e.preventDefault(); dt.openDetails(cat, nav.prev, dt.dTheme, dt.dTreatment); }
     else if (e.key === 'ArrowRight' && nav.next) { e.preventDefault(); dt.openDetails(cat, nav.next, dt.dTheme, dt.dTreatment); }
   });
@@ -1600,7 +1667,25 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     // the only difference is which renderer decodes the source.
     const zzUrl = audioEl.dataset.zzfxmUrl;
     const modUrl = audioEl.dataset.modUrl;
+    const lofiUrl = audioEl.dataset.lofiUrl;
     const render = zzUrl ? songUrlToWavBlobUrl(zzUrl) : modUrl ? modUrlToWavBlobUrl(modUrl) : null;
+    // A saved tune plays live, as the Neurospicy player plays it (lib/tune-preview.ts): its
+    // own analyser drives the meter and the visualiser, and the transport seeks it by bar.
+    // Closing the sheet stops the tune.
+    const transportLabels = {
+      play: t('Play'), pause: t('Pause'), seek: t('Seek'),
+      mute: t('Mute'), unmute: t('Unmute'), volume: t('Volume'),
+    };
+    if (lofiUrl) {
+      const fail = (): void => { if (note && cat.detailsDialog === dlg) { note.textContent = t('Couldn’t play this track.'); note.hidden = false; } };
+      void import('../../lib/tune-preview.ts').then((m) => {
+        if (cat.detailsDialog !== dlg) return;
+        const tune = m.attachTunePreview(audioEl, lofiUrl, fail);
+        cat.detailsTune = tune;
+        cat.detailsTransport?.destroy();
+        cat.detailsTransport = wireAudioTransport(dlg, audioEl, transportLabels, tune.source);
+      });
+    }
     // A rondocode song renders the same way, and its section also shows the source
     // and names any part the render could not play (details-rondo.ts).
     if (audioEl.dataset.rondoUrl) void dt.rondo.wireRondo(audioEl, note ?? null);
@@ -1612,11 +1697,9 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     // The big preview meter: attaches its analyser on first play (a gesture, so the
     // shared AudioContext may run) and is disposed with the modal (closeDetails).
     const meterEl = dlg.querySelector<HTMLCanvasElement>('[data-audio-meter]');
-    if (meterEl) cat.detailsMeterDispose = attachAudioMeter(meterEl, audioEl);
-    cat.detailsTransport = wireAudioTransport(dlg, audioEl, {
-      play: t('Play'), pause: t('Pause'), seek: t('Seek'),
-      mute: t('Mute'), unmute: t('Unmute'), volume: t('Volume'),
-    });
+    const tuneTap = lofiUrl ? () => (cat.detailsDialog === dlg ? cat.detailsTune?.tap() ?? null : null) : undefined;
+    if (meterEl) cat.detailsMeterDispose = attachAudioMeter(meterEl, audioEl, tuneTap);
+    cat.detailsTransport = wireAudioTransport(dlg, audioEl, transportLabels);
     wireAudioViz(cat, dlg, ref, cat.detailsMeterDispose);
     // The resting art was built synchronously from whatever peaks were already in
     // memory - which on a cold open is none, so the stage showed the glyph instead of
@@ -1629,6 +1712,31 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       if (r && art && cat.detailsDialog === dlg) art.innerHTML = audioCardArt(cat, ref);
     }).catch(() => {});
   }
+}
+
+/**
+ * Save the licence a person chose for a tune they made, then draw the sheet again from
+ * the saved record, so the Licence and "Using this work" rows show what is stored. Only
+ * the licence changes: the stored record is read first, as the author declaration is,
+ * so nothing else on the tune is rewritten.
+ */
+async function setTuneLicence(dt: DetailsCtx, id: string): Promise<void> {
+  const { cat, dlg, host, ref } = dt;
+  try {
+    const rec = (await host.assets._exportUserAssets()).find(r => r.id === ref.id);
+    if (!rec) throw new Error('Asset no longer exists');
+    await host.assets._updateUserAssetMeta(ref.id, withTuneLicence(rec.meta, id));
+  } catch {
+    announce(t('Could not save the licence.'));
+    return;
+  }
+  const meta = withTuneLicence(ref.meta, id) as typeof ref.meta;
+  ref.meta = meta;
+  const listed = cat.assetById.get(ref.id);
+  if (listed && listed !== ref) listed.meta = meta;
+  const saved = tuneLicence(meta);
+  announce(saved ? tRaw('Licence saved: {licence}.', { licence: saved.name }) : t('Licence cleared. It reads as not recorded.'));
+  if (cat.detailsDialog === dlg) dt.openDetails(cat, listed ?? ref);
 }
 
 /** Escape exits the active inspection layer even when a hidden control lost focus. */

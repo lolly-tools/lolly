@@ -32,13 +32,13 @@ export { DOCUMENT_API_VERSION, compileDocument, validateDocument, documentSchema
 export type { CompiledDocument, DocumentInspection, DocumentDiff, DocumentMeasurement } from './document-api.ts';
 export { createRuntime, HOOK_BUDGET_MS, inRealmHookExecutor } from './runtime.ts';
 export {
-  createHookWorkerCore, lockDownAmbientCapabilities, workerRpcMethods, introspectHost, gatherHostSeeds,
+  createHookWorkerCore, createHookBudget, lockDownAmbientCapabilities, workerRpcMethods, introspectHost, gatherHostSeeds,
   STRICT_AMBIENT_GLOBALS, STRICT_NAVIGATOR_PROPERTIES, WORKER_HOOK_NAMES, IN_REALM_ONLY_HOOK_NAMES,
 } from './hook-worker-core.ts';
 export type {
   HostShape, HostSeeds, HookInitMsg, HookInvokeMsg, HookHostReplyMsg, HookDisposeMsg, HookWorkerIn, WorkerHookName,
   InRealmOnlyHookName, HookInitDoneMsg, HookInvokeDoneMsg, HookReportMsg, HookHostCallMsg, HookLogMsg, HookWorkerOut,
-  HookWorkerPort, HookWorkerCoreOpts,
+  HookWorkerPort, HookWorkerCoreOpts, HookBudget,
 } from './hook-worker-core.ts';
 export type { HookExecutor, Hooks, RuntimeViewState, CanvasSize } from './runtime.ts';
 // Emoji (1.196): the runtime draws every emoji in a rendered tree from the
@@ -62,7 +62,7 @@ export {
 export type { CssBlendMode, RasterLayer, LayeredRasterDoc, InflateFn } from './raster-layers.ts';
 export { buildInputModel, summarizeInputs, CREDENTIAL_READABLE_TYPES, normalizeTableValue, deriveExportFilename, matchesShowIf, tokenRestoreRefsOf, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export type { TableValue, TableColumnEditor, ShowIf, InputWriteOptions } from './inputs.ts';
-export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams } from './url-mode.ts';
+export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams, parseSpots, parseTextSetting, parsePartnerKitParam, formatPartnerKitParam, readPartnerKitAttachment } from './url-mode.ts';
 // The `s=` state address + the still-export frame filter both shells apply (plan 112).
 export { parseFrameAddress, selectFramePage, frameFilterApplies } from './frame-address.ts';
 export {
@@ -74,7 +74,7 @@ export type {
   PresentInteractDepth, PresentInteractOptions, PresentInteractContext, PresentInteractStop, PresentInteractAutoSample,
 } from './present-interact.ts';
 export { looksLikeTable, parseTableText, toTsv, toMarkdown, toHtmlTable } from './table-text.ts';
-export type { HdrSettings, DepthSetting, VideoUrlSettings, VideoQuality } from './url-mode.ts';
+export type { HdrSettings, DepthSetting, SpotsSetting, TextSetting, VideoUrlSettings, VideoQuality } from './url-mode.ts';
 export { LANGS, LANG_META, normalizeLang, flagEmoji, sortedLangs } from './lang.ts';
 export type { Lang, LangSort } from './lang.ts';
 export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.ts';
@@ -90,13 +90,15 @@ export { assetVersionPin, encodeAssetVersion, decodeAssetVersion, assetDependenc
 export type { AssetVersionPin } from './asset-version.ts';
 export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplateWithNotes } from './batch.ts';
 export type { BatchRow } from './batch.ts';
-export { buildExportMeta, designRecordCarrier, designRecordEnvironment, designRecordFrom, designRecordWords, guidedByWords, readDesignRecord, readDesignRecordXml, themesSelection, toolCredit, pdfKeywords } from './metadata.ts';
+export { buildExportMeta, designRecordCarrier, designRecordEnvironment, designRecordFrom, designRecordWords, guidedByWords, partnerFactWords, partnerRecord, partnerWords, readDesignRecord, readDesignRecordXml, themesSelection, toolCredit, pdfKeywords } from './metadata.ts';
 export type { DesignRecord, MadeWithPreview } from './metadata.ts';
 export { BRAND_PAGE_ADDRESS_MAX, brandPageAddress, brandPageHost, carriesRecordedBrandPage, readRecordedBrandPage, settleBrandPageWrite, withRecordedBrandPage, withoutRecordedBrandPage } from './brand-page-address.ts';
 export type { BrandPageWrite } from './brand-page-address.ts';
 export { extractFileMetadata, extractXmpPacket, readFileDesignRecord, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
 export type { FileMetadata, MetaField, MetaGroup } from './file-metadata.ts';
 export { softwareName, softwareOrigins, xmlProvenanceFields } from './software-origin.ts';
+export { VERIFY_FINDING_IDS, verifyFindings, verifyHashFailed, verifyRights, verifySoftware, fillFindingText } from './verify-findings.ts';
+export type { VerifyEvidence, VerifyFinding, VerifyFindingId, VerifyFindingsInput, VerifyFindingsReport, VerifyRights, VerifySoftware, VerifyStrength, VerifyTone } from './verify-findings.ts';
 export type { SoftwareOrigin, SoftwareEvidence, SoftwareRole } from './software-origin.ts';
 // Image-metadata byte stampers + the metadata carry (plans/144 Wave 1). The
 // stampers graduated here from the web shell's bridge/export-image-meta.ts
@@ -110,6 +112,9 @@ export {
 } from './image-meta.ts';
 export { stripMetadata, isStrippableFormat, hasResidualMetadata } from './strip-metadata.ts';
 export type { StripFormat } from './strip-metadata.ts';
+// Audio tags and Content Credentials removed byte for byte (M4A/MP4, WAV, MP3, FLAC, Ogg Opus).
+export { AUDIO_STRIP_FORMATS, audioMetadataResidual, inspectAudioMetadata, sniffAudioFormat, stripAudioMetadata } from './strip-audio.ts';
+export type { AudioInspection, AudioMetadataItem, AudioStripFormat } from './strip-audio.ts';
 // The bounded JPEG marker walker, shared with the shells' PDF image placement.
 export { scanJpegSegments, jpegSegmentBody } from './jpeg-segments.ts';
 export type { JpegScan, JpegSegment } from './jpeg-segments.ts';
@@ -144,7 +149,7 @@ export {
 export {
   FINISH_MASK_CMYK, buildCmykPaletteMap, cmykKey, paletteHasFinish,
 } from './cmyk-palette.ts';
-export type { BrandPaletteEntry, PaletteHit, PaletteSpotHit } from './cmyk-palette.ts';
+export type { BrandPaletteEntry, CmykPaletteOptions, PaletteHit, PaletteSpotHit } from './cmyk-palette.ts';
 export { iccSeparation, separationLattice, DEVICE_SEPARATION, NEUTRAL_EPSILON } from './cmyk-separation.ts';
 export type { CmykSeparation, SeparateRgb } from './cmyk-separation.ts';
 export {
@@ -574,6 +579,11 @@ export { APPROVAL_RECORD_FORMATS, artworkUnchanged, recordApprovalInCredential }
 export type { ApprovalNotRecordedReason, ApprovalRecordOutcome, RecordApprovalOptions } from './c2pa-approval.ts';
 export { verifyC2pa, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, collectIngredients, collectIngredientRecords, extractC2paStore, parseCertificate, signedBy } from './c2pa-verify.ts';
 export type { C2paReport, C2paCheck, ParsedCertificate, C2paIngredientRecord } from './c2pa-verify.ts';
+// A shell that writes its credential in place of one the browser wrote keeps what that
+// credential recorded about the pictures placed in the file, and cuts a PDF's update off first.
+export { placedPicturesOf } from './c2pa-extract.ts';
+export type { PlacedPictures } from './c2pa-extract.ts';
+export { pdfWithoutCredential } from './c2pa-containers.ts';
 export type { Signer as C2paSigner } from './c2pa.ts';
 export { C2PA_CHECK, isExpiredOnly, resolveVerdict, defaultTrustAnchors } from './c2pa-verdict.ts';
 export type { C2paVerdict, C2paVerdictInput, C2paVerdictState } from './c2pa-verdict.ts';
@@ -591,6 +601,11 @@ export type { RightsEvaluationInputV1 } from './rights-evaluate.ts';
 export { attributionCompanion, attributionCredits, checkAttributionReadback, sourceIngredientsFor } from './rights-attribution.ts';
 export type { AttributionCompanionV1, SourceDetailV1 } from './rights-attribution.ts';
 export { evaluateReuse, rightsReportFromC2pa } from './rights-report.ts';
+// One answer to "may these bytes be passed on?" and the `.lolly` credits text, so a
+// Lolly Work server, a `.lolly` pack and a brand page agree, plus the package credits readback.
+export { OWNER_PUBLISHED, assetLicenceDeclaration, assetRightsNotices, ownerPublished, packCreditsText, readAssetRightsRecord, redistribution } from './asset-rights.ts';
+export type { AssetRightsMeta, OwnerPublishedV1, PackCreditEntry, PackHoldEntry, Redistribution } from './asset-rights.ts';
+export { checkCompanionReadback } from './rights-companion.ts';
 export {
   verifySeal, parseSealRecord, parseSealRecords, computeSealDigest, assembleSealMessage,
   resolveRanges, verifySealSignature, importSealKey,
@@ -662,8 +677,8 @@ export {
   EPUB_READ_MAX_OUTPUT_CHARS,
 } from './epub-read.ts';
 export { writeOdt } from './odt.ts';
-export { writeDocx } from './docx.ts';
-export type { DocxDoc, DocxBlock, DocxMedia } from './docx.ts';
+export { writeDocx, snapDocxPage } from './docx.ts';
+export type { DocxDoc, DocxBlock, DocxMedia, DocxPage, DocxStyles } from './docx.ts';
 export {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, collectPenpotFontUsage, penpotShapeToNode, penpotGradientToSpec,
@@ -742,6 +757,8 @@ export { renameColourway, reorderColourways, setCanonicalColourway, removeColour
 export { COLOUR_ROLE_GROUP, COLOUR_SLOTS, BINDABLE_COLOUR_SLOTS, DEFAULT_COLOUR_VOCABULARY, COLOUR_SLOT_READS, COLOUR_ROLE_BY_NAME, COLOUR_ROLE_ID, MAX_COLOUR_ROLES, MAX_ROLE_LABEL, MAX_ROLE_DESCRIPTION, WEAK_LC } from './colour-roles.ts';
 export { colourRoleIdRefusal, isUsableColourRoleId, colourRoleIdFromLabel, readColourRoles, colourRolesEditable, colourRoleTable, colourPairContrast, danglingColourAliases, newlyDangling, colourRolesBrief } from './colour-roles.ts';
 export { addColourRole, setColourRoles, bindRole, unbindRole, renameColourRole, describeColourRole, reorderColourRoles, removeColourRole, setRoleValue, setRoleSameAsLight, refreshDerivedOnColours, carryColourRoles } from './colour-roles.ts';
+export { adoptColourRoles, colourRoleThemeAccents, withColourwayKindRestored } from './colour-role-portable.ts';
+export type { AdoptColourRolesOptions, AdoptedColourRole } from './colour-role-portable.ts';
 export type { ColourRoleEntry, ColourRolesReading, ColourPairContrast, RoleOnColour, ColourRoleCell, ColourRoleTableRow, ColourRoleTable, DanglingAlias, ColourRoleRefusal, ColourRoleUse, ColourRoleEdit, AddColourRoleOptions, SetRoleValueOptions, ColourRoleSpec, ColourRoleCarry, BriefColourRoles } from './colour-roles.ts';
 export type { DuplicateColourwayOptions } from './colourway.ts';
 // plans/319 A4: a tool's manifest `tokenAxes` opt-out, which pins an ignored kind of
@@ -910,6 +927,9 @@ export { PHOTO_LOOK_RECIPE, applyPhotoLook, photoLookCacheKey, photoLookThemeKey
 export type { PhotoLookOptions } from './photo-look.ts';
 export type { PhotoTreatmentStop, PhotoTreatmentVariant } from './photo-treatment.ts';
 export { derivePhotoTreatmentsDoc, deriveIconThemesDoc } from './brand-treatments.ts';
+// The icon colours and photo washes a design system offers, one per colourway (1.344).
+export { colourwayIconThemes, colourwaySurfaceIconThemes, colourwayPhotoTreatments, colourwayInks, withColourwayLooks, isColourwayLookId, COLOURWAY_LOOK_PREFIX, ON_DARK_SUFFIX } from './brand-treatments.ts';
+export type { ColourwayInks } from './brand-treatments.ts';
 export {
   hashR6, preparePassword, buildEncryptDictValues, encryptObjectBytes,
 } from './pdf-crypto-r6.ts';
@@ -1045,11 +1065,20 @@ export type { StudioPoseV1 } from './studio3d-motion.ts';
 
 export { brandContext, contextTokens } from './brand-context.ts';
 export { checkBrandDesign, applyBrandFix } from './brand-check.ts';
-export type { BrandCheckCatalogOpts, BrandFinding, BrandFix } from './brand-check.ts';
+export type { BrandCheckCatalogOpts, BrandCheckGuestOpts, BrandFinding, BrandFix } from './brand-check.ts';
+// Partner kits (Lolly Work plan 82 M8): a partner company's logos, colours and placement
+// rules as a guest in the lead brand's work. One reader for the app, the CLI and the server.
+export { checkPartnerKit, readPartnerKit, partnerKitLogoIds, partnerKitColoursFromTokens, partnerKitColoursFromInks } from './partner-kit.ts';
+export type { PartnerKitReadResult } from './partner-kit.ts';
+export { checkGuestMarks, guestRecolourFrom, guestUnmeasuredText } from './partner-kit-check.ts';
+export type { GuestMarkMeasure, GuestMarkReport, GuestMarkUnmeasured, GuestMarkUnmeasuredCode } from './partner-kit-check.ts';
 // The design brief and the Design house rules (plan 291 W3): the context plus the pack's
 // pairings, type, logos, icons, media, master and machine-checkable rules.
 export { designBrief, brandCheckCatalog } from './design-brief.ts';
 export type { DesignBriefAssetV1, DesignBriefCatalogV1, DesignBriefOpts, DesignBriefV1 } from './design-brief.ts';
+// Additive 1.331: a server with no published brand page writes the same DESIGN.md a page holds (Lolly Work plan 82 M7).
+export { writeDesignMd } from './design-md.ts';
+export type { DesignMdWriteInputV1 } from './design-md.ts';
 // Brand skills (plan 323): a brand's standards per discipline as design-system assets.
 export { parseBrandSkill, brandSkillScopeHints, admitBrandSkill, classifyBrandSkillLinks, brandSkillCoverage, brandSkillCoverageFacts, exportBrandSkillFolder, brandSkillFreshness, brandSkillsSection, baselineBrandSkill, measureSvgFamily, spreadExemplars, brandSkillFilesSize } from './brand-skill.ts';
 export type { BrandSkillFindingV1, BrandSkillHeadingV1, BrandSkillLinkV1, ParsedBrandSkillV1, AdmittedBrandSkillV1, BrandSkillAdmissionV1, BrandSkillCatalogAssetV1, BrandSkillLinkClassV1, BrandSkillCoverageFactsV1, BrandSkillCoverageStatusV1, BrandSkillCoverageRowV1, BrandSkillCoverageV1, BrandSkillExportModeV1, BrandSkillExportInputV1, BrandSkillExportV1, BrandSkillFreshnessV1, SvgFamilyMeasureV1 } from './brand-skill.ts';
@@ -1181,7 +1210,7 @@ export type { ArchetypeHintsOptsV1 } from './rebrand-plan.ts';
 // Plan 274 milestone 3: the design-system resolver every renovation surface
 // shares, the review model the queue and the footer render, and the pure plan
 // edits the view, the CLI and the MCP tool apply.
-export { resolveRebrandDesignSystem, swatchesFromColors, themeSlotsFromColors, neutralSlideMaster, colorTokenHash, THEME_SLOTS, THEME_SLOT_TOKENS, THEME_SLOT_ALIASES, FALLBACK_BRAND_FACE } from './rebrand-design-system.ts';
+export { resolveRebrandDesignSystem, swatchesFromColors, themeSlotsFromColors, themeSlotTokensFor, neutralSlideMaster, colorTokenHash, THEME_SLOTS, THEME_SLOT_TOKENS, THEME_SLOT_ALIASES, FALLBACK_BRAND_FACE } from './rebrand-design-system.ts';
 export type { RebrandDesignSystemInputV1, RebrandDesignSystemV1, ThemeSlotV1, ThemeSlotAliasV1 } from './rebrand-design-system.ts';
 export { reviewQueue, objectStates, slideStates, planSummary, pendingSuggestionIds, reviewMessage, effectiveAction, effectiveReplacement, effectiveSlideOrder, reviewFidelity, isCorrected, REVIEW_MESSAGES, REVIEW_NOUNS, REVIEW_FIDELITIES, QUEUE_SECTIONS } from './rebrand-review.ts';
 export type { ReviewMessageV1, ReviewMessageCodeV1, ReviewNounKeyV1, ReviewFidelityV1, QueueSectionV1, QueueItemV1, ObjectStateV1, SlideStateV1, PlanSummaryV1 } from './rebrand-review.ts';

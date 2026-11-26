@@ -25,9 +25,10 @@ import { runDesignChecks } from '../design-checks.ts';
 import { applyPreflight, isPreflightEnabled, preflightView } from '../export-preflight.ts';
 import { exportCheckFindings, exportCheckLines } from '../export-check.ts';
 import type { PreflightRow } from '../export-preflight.ts';
-import { fmtLabel, isC2paFmt, isCmykFmt, panelSize, printEnabled } from './shared.ts';
+import { fmtLabel, isC2paFmt, isCmykFmt, panelSize, printEnabled, spotsAsProcessChecked } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 import { DOCUMENT_THEME_EVENT } from '../../lib/document-theme.ts';
+import { pieceKitData } from '../../lib/partner-kit-state.ts';
 
 /** The palette re-read each mounted panel registered on `window`, dropped with the panel. */
 const paletteRereads = new WeakMap<ActionsCtx, () => void>();
@@ -98,7 +99,7 @@ export async function refreshDesignAudit(ta: ActionsCtx): Promise<void> {
       ta.designAuditRows = structuralRows.length ? structuralRows : [{ id: 'design.checking', tone: 'note', text: tRaw('Checking this design…') }];
       refreshPreflight(ta);
     },
-    resolveFont: (style, text) => fontCoversText(style, text, ta.host.text),
+    resolveFont: (style, text, place) => fontCoversText(style, text, ta.host.text, undefined, place),
   });
   const brandRows = await brandCheckRows({
     boxes: () => runtime.getModel().find(input => input.id === 'boxes')?.value,
@@ -106,6 +107,8 @@ export async function refreshDesignAudit(ta: ActionsCtx): Promise<void> {
     write: next => runtime.setInput('boxes', next as Parameters<typeof runtime.setInput>[1]),
     // The same catalog facts `lolly check` uses, so a themed catalog icon is a known asset here too.
     catalog: () => hostBrandCatalog(ta.host as BrandCatalogHost),
+    // The partner kit the piece carries: its marks measured, its colours and logos its own (plans/82 M8).
+    partner: async () => (pieceKitData(runtime) ? (await import('../../lib/partner-kit.ts')).partnerCheckInput(runtime, ta.host) : null),
   });
   // Creation feedback: the design system's house rules, layer by layer, and the writing
   // score Verify shows. It informs and never gates Download. Loaded on first open, so a
@@ -256,6 +259,9 @@ export function preflightJob(ta: ActionsCtx, format?: string): { job: PreflightJ
       ),
       durable: el!.querySelector<HTMLInputElement>('[data-action="durable"]')?.checked ?? false,
       hdr: el!.querySelector<HTMLInputElement>('[data-action="hdr"]')?.checked ?? false,
+      // The export reads the box whether or not it is on screen (runExport), so the
+      // plate count does too: the inks it folds into process add no plate.
+      ...(spotsAsProcessChecked(el) ? { spotsAsProcess: true } : {}),
     },
     palette: ta.palette,
     stage: stageFacts(ta),
@@ -507,6 +513,7 @@ export function seedPreflightFacts(ta: ActionsCtx): void {
         })),
       };
       ta.preflight.refreshPreflight();
+      ta.refresh.refreshSpotsUi(); // the spots row shows only for a palette that declares an ink
     } catch {
       /* stays as it was - never a fabricated empty palette */
     }

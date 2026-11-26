@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "sign",
-  "toolVersion": "1.0.2",
-  "toolVersionRange": "1.0.2",
+  "toolVersion": "1.1.1",
+  "toolVersionRange": "1.1.1",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,7 +10,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "b79c83b28b5748616f0c6ab685e44aa9039aa60a7b954558a4c9c3cb27cd2528",
+      "sha256": "ad9f044d1e31028d616069c2f1d8bb4796b1fd922c37f3f4aa12bc65062b08aa",
       "bytes": 1723
     },
     "reference/inputs.json": {

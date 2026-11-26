@@ -23,8 +23,11 @@
  *   3. every object store in the app's IndexedDB database, read from the
  *      database's own store list (bridge/db.ts creates them; nothing here names
  *      one), then any other database on the origin where the browser can list them;
- *   4. every Cache Storage cache on the origin (offline app, docs, pinned tools,
- *      installed tools, models, the share inbox);
+ *   4. every service worker registered on the origin, then every Cache Storage
+ *      cache (offline app, docs, pinned tools, installed tools, models, the share
+ *      inbox). The worker goes first, so it cannot fill a cache again while the
+ *      caches are emptied, and a worker left over from an older build can no
+ *      longer answer this origin's requests with files that build kept;
  *   5. every entry in the origin-private file system (file results, sequence
  *      audio, recorder and mux scratch);
  *   6. localStorage and sessionStorage. The whole origin is Lolly's, and the app
@@ -68,6 +71,10 @@ export interface ClearableCaches {
   keys(): Promise<string[]>;
   delete(name: string): Promise<boolean>;
 }
+/** The slice of ServiceWorkerContainer the clear uses. */
+export interface ClearableServiceWorkers {
+  getRegistrations(): Promise<ReadonlyArray<{ scope: string; unregister(): Promise<boolean> }>>;
+}
 /** The slice of an OPFS directory handle the clear uses. */
 export interface ClearableDirectory {
   keys(): AsyncIterable<string>;
@@ -103,6 +110,7 @@ export interface ClearAllEnv {
   clearPackStore(): Promise<void>;
   openAppDb(): Promise<ClearableDb | null>;
   indexedDB: ClearableIdbFactory | null;
+  serviceWorkers: ClearableServiceWorkers | null;
   caches: ClearableCaches | null;
   storageRoot(): Promise<ClearableDirectory | null>;
   localStorage: ClearableStorage | null;
@@ -114,6 +122,8 @@ export interface ClearAllReport {
   stores: string[];
   /** Other databases deleted. */
   databases: string[];
+  /** Scopes of the service workers unregistered. */
+  serviceWorkers: string[];
   caches: string[];
   /** Top-level OPFS entries removed. */
   files: string[];
@@ -125,6 +135,44 @@ export interface ClearAllReport {
   tabs: { seen: number; ready: number };
   /** One line per step that did not finish; the rest still ran. */
   errors: string[];
+  /** The label of each step that reported an error, in the order the steps ran:
+   *  'tabs', 'sync', 'pack-store', 'state', a shell clearer's name, 'indexeddb',
+   *  'databases', 'serviceWorkers', 'caches', 'opfs', 'localStorage', 'sessionStorage'. */
+  failedSteps: string[];
+}
+
+/** What a person is told is still on the device after a clear that did not finish. */
+export type UnclearedPart = 'app-files' | 'database' | 'offline' | 'files' | 'preferences';
+
+const PART_OF_STEP: Readonly<Record<string, UnclearedPart | null>> = {
+  // Nothing stays behind for these two. A tab that did not confirm it stopped is
+  // refused every later write all the same (lib/clear-signal.ts reads the marker
+  // before each one), and Sync's settings live in the app database, so a Sync step
+  // that failed leaves something only when the database step fails too.
+  tabs: null,
+  sync: null,
+  'pack-store': 'database',
+  indexeddb: 'database',
+  databases: 'database',
+  serviceWorkers: 'offline',
+  caches: 'offline',
+  opfs: 'files',
+  localStorage: 'preferences',
+  sessionStorage: 'preferences',
+};
+
+/**
+ * The parts of the device a clear left behind, once each, in the order it runs. Any
+ * step not listed above is 'state' or a shell's own clearer (lib/device-data-clearers.ts),
+ * which empty the files an app keeps outside the browser's storage.
+ */
+export function unclearedParts(report: Pick<ClearAllReport, 'failedSteps'>): UnclearedPart[] {
+  const parts: UnclearedPart[] = [];
+  for (const label of report.failedSteps) {
+    const part = Object.hasOwn(PART_OF_STEP, label) ? PART_OF_STEP[label] : 'app-files';
+    if (part && !parts.includes(part)) parts.push(part);
+  }
+  return parts;
 }
 
 /** Anything that may clear the state bridge's own saved sessions (the Tauri files). */
@@ -161,6 +209,7 @@ function browserEnv(): ClearAllEnv {
       return { objectStoreNames: db.objectStoreNames, transaction: (names, mode) => db.transaction(names, mode), close: () => db.close() };
     },
     indexedDB: g.indexedDB ?? null,
+    serviceWorkers: (globalThis.navigator as Navigator | undefined)?.serviceWorker ?? null,
     caches: g.caches ?? null,
     storageRoot: async () => {
       const storage = (globalThis.navigator as Navigator | undefined)?.storage;
@@ -240,9 +289,11 @@ async function clearAppDatabase(db: ClearableDb, errors: string[]): Promise<stri
  */
 export async function clearAllLollyData(opts: { state?: ClearableState; env?: Partial<ClearAllEnv> } = {}): Promise<ClearAllReport> {
   const env: ClearAllEnv = { ...browserEnv(), ...opts.env };
-  const report: ClearAllReport = { stores: [], databases: [], caches: [], files: [], localKeys: 0, sessionKeys: 0, cleared: [], tabs: { seen: 0, ready: 0 }, errors: [] };
+  const report: ClearAllReport = { stores: [], databases: [], serviceWorkers: [], caches: [], files: [], localKeys: 0, sessionKeys: 0, cleared: [], tabs: { seen: 0, ready: 0 }, errors: [], failedSteps: [] };
   const step = async (label: string, run: () => Promise<void>): Promise<void> => {
+    const before = report.errors.length;
     try { await run(); } catch (error) { report.errors.push(`${label}: ${String((error as Error)?.message ?? error)}`); }
+    if (report.errors.length > before) report.failedSteps.push(label);
   };
 
   // 0. Every other tab stops writing, and writes under way finish, before anything
@@ -299,7 +350,18 @@ async function clearEverything(
     });
   }
 
-  // 4. Cache Storage, every cache on the origin.
+  // 4. Every service worker on the origin, then every Cache Storage cache. An
+  //    unregistered worker still answers this page until it reloads, which the
+  //    caller does next; after that nothing on the origin is served by a worker.
+  const workers = env.serviceWorkers;
+  if (workers) {
+    await step('serviceWorkers', async () => {
+      for (const registration of await workers.getRegistrations()) {
+        if (await registration.unregister()) report.serviceWorkers.push(registration.scope);
+        else report.errors.push(`service worker ${registration.scope}: not unregistered`);
+      }
+    });
+  }
   const cacheStorage = env.caches;
   if (cacheStorage) {
     await step('caches', async () => {

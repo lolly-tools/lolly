@@ -22,9 +22,9 @@ import {
 } from '../lib/audio-dock-singleton.ts';
 import { getNeurospicy, setNeurospicyEnabled, stopNeurospicy, type NeurospicyHost } from '../lib/neurospicy.ts';
 import { flagEnabledSync } from '../feature-flags.ts';
-import { setNeuroDockCollapsed } from '../lib/neuro-dock-pref.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { wobblyActive } from '../lib/wobble.ts';
+import type { SharedViz } from '../lib/neuro-share.ts';
 
 let dockHandle: NeurospicyDockHandle | null = null;
 
@@ -92,20 +92,22 @@ export function hideNeuroDock(): void {
   releaseMusic();
 }
 
-/** Re-show + expand the music player - the "Show player" action for a mobile-hidden pill. */
-export function reopenNeuroDock(host: NeurospicyHost): void {
-  setNeuroDockCollapsed(false);
-  showNeuroDock(host);
-  audioDockController()?.setCollapse('full');
-  audioDockController()?.refresh();
-}
-
 /** Show the shared window in the EXPANDED (draggable + resizable) window - used by the
  *  ?neuro=viz demo capture (fullscreen needs a user gesture a capture doesn't have). */
 export function openNeuroDockExpanded(host: NeurospicyHost): void {
   showNeuroDock(host, { animateIn: false, forceExpanded: true });
   audioDockController()?.setCollapse('expanded');
   audioDockController()?.refresh();
+}
+
+/**
+ * Open the dock large on a moment someone shared (lib/neuro-share.ts), with the visualiser
+ * looking as they saw it, for this visit only.
+ */
+export function showSharedMoment(host: NeurospicyHost, look: SharedViz | undefined): void {
+  if (!flagEnabledSync('neurospicy') || !getNeurospicy().enabled) return;
+  openNeuroDockExpanded(host);
+  if (look) void ensureHandle(host).applySharedLook(look);
 }
 
 /** Show or hide the music source to match state: visible only when the feature flag is on

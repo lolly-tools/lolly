@@ -17,6 +17,7 @@ import {
 import { buildStudioScene } from '../engine/src/studio3d.ts';
 import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
 import { baseHost } from './helpers/host.ts';
+import { studioBarHarness } from './helpers/studio3d-bar.ts';
 
 const radius = (p: number[]) =>
   Math.hypot(
@@ -102,7 +103,8 @@ test('the real tool carries moved light positions through URL mode', async () =>
     keyPosition: { x: 2.5, y: 7, z: 1 },
     rimPosition: { x: -3, y: 2, z: -4 },
   });
-  assert.match(runtime.getHydrated(), /data-studio-lights/);
+  const live = Object.fromEntries(runtime.getModel().map((i) => [i.id, i.value]));
+  assert.ok((await studioBarHarness(live)).action('studio-lights'), 'a preset rig offers Move lights');
   const parsed = parseUrlState(serializeUrlState(runtime.getModel()), tool.manifest);
   const reopened = await createRuntime(tool, host, parsed.values);
   const values = Object.fromEntries(reopened.getModel().map((i) => [i.id, i.value]));

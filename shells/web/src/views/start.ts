@@ -45,6 +45,8 @@ import { onLayoutChange } from '../lib/layout-posture.ts';
 import { mountSplitView } from '../lib/split-panes.ts';
 import '../styles/parts/start-bar.css';
 import '../styles/parts/start-usage.css';
+import '../styles/parts/start-sound.css';
+import { mountSoundRoom } from '../lib/design-system/rooms/sound.ts';
 import '../styles/parts/start-skills.css';
 import { mountUsageRoom } from '../lib/design-system/rooms/usage.ts';
 import { mountSkillsRoom } from '../lib/design-system/rooms/skills.ts';
@@ -58,6 +60,7 @@ import { attachLangMenu, langFabHtml } from '../components/lang-menu.ts';
 import { t } from '../i18n.ts';
 import type { BrandTabKey } from '../lib/brand-editor.ts';
 import { activeDesignSystemRecord } from '../lib/design-system/active.ts';
+import { mountManagerActions } from '../lib/design-system/manager-actions.ts';
 import { hasPendingLogoFiles } from '../lib/design-system/pending-files.ts';
 import { SITE_MAX_URL_CHARS, detectSiteTransport } from '../lib/design-system/sources/website.ts';
 import { isStartArea, resolveStartRoute } from '../lib/design-system/start-route.ts';
@@ -68,6 +71,7 @@ import type { Tray } from '../lib/design-system/tray.ts';
 import { takePendingDesignSystemFile } from '../lib/drop-router.ts';
 import { escape as escapeText } from '../utils.ts';
 import type { PickerSource, StartHost } from './start/shared.ts';
+import { soundWashes } from './start/shared.ts';
 import type { StartCtx } from './start/context.ts';
 import { navigationOps } from './start/navigation.ts';
 import { feedbackOps } from './start/feedback.ts';
@@ -95,13 +99,19 @@ import { barOps } from './start/bar.ts';
 // foot-pinned panel this view renders itself, and parking its key on the same
 // attribute is exactly how the editor hides - the same trick `overview` uses.
 type RoomsArePanels =
-  Exclude<StartRoom, 'overview' | 'usage' | 'skills'> extends BrandTabKey
-    ? BrandTabKey extends Exclude<StartRoom, 'overview' | 'usage' | 'skills'>
+  Exclude<StartRoom, 'overview' | 'usage' | 'skills' | 'sound'> extends BrandTabKey
+    ? BrandTabKey extends Exclude<StartRoom, 'overview' | 'usage' | 'skills' | 'sound'>
       ? true
       : never
     : never;
 const ROOMS_ARE_PANELS: RoomsArePanels = true;
 void ROOMS_ARE_PANELS;
+
+/** A managed system shows its colour roles with no controls (plans/352). Its own chunk, so a read-only visit loads the table only when it is drawn. */
+function showReadOnlyColourRoles(viewEl: HTMLElement, doc: unknown): void {
+  const section = viewEl.querySelector<HTMLElement>('[data-colour-roles-readonly]');
+  if (section) void import('../lib/design-system/rooms/colour-roles.ts').then(m => { if (section.isConnected) m.mountColourRolesReadOnly(section, doc); });
+}
 
 export async function mountStart(viewEl: HTMLElement, host: StartHost, params = ''): Promise<void> {
   const start = {} as StartCtx;
@@ -169,20 +179,21 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
         <div class="start-back-row">${backPill}${homeFab}</div>
         <div class="gallery-topright">${langFabHtml()}</div>
         <header class="start-head">
-          <p class="start-eyebrow">${t('Brand')}</p>
           <h1 class="start-title">${t('This brand is set')}</h1>
           <p class="start-sub">${t('This build ships with a fixed brand. Explore its usage rules and examples below.')}</p>
         </header>
-        <section data-token-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
+        <section data-colour-roles-readonly></section><section data-token-readonly></section><section data-sound-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
       </div>`;
     attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
     start.navigation.wireBackPill();
     start.navigation.wireHomeFab();
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
+    showReadOnlyColourRoles(viewEl, tokenDoc);
     const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
+    const sound = mountSoundRoom(viewEl.querySelector<HTMLElement>('[data-sound-readonly]')!, { host, readonly: true, washes: soundWashes(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
     const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host, readonly: true });
-    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); skills.teardown(); workspace.teardown(); };
+    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { sound.teardown(); usage.teardown(); skills.teardown(); workspace.teardown(); };
     return;
   }
 
@@ -196,38 +207,40 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
         <div class="start-back-row">${backPill}${homeFab}</div>
         <div class="gallery-topright">${langFabHtml()}</div>
         <header class="start-head">
-          <p class="start-eyebrow">${t('Design system')}</p>
           <h1 class="start-title">${escapeText(active.label)}</h1>
-          <p class="start-sub">${t('This design system is read-only: its colours, type and logos are kept current from where it came. Make an editable copy to change them, or switch to another design system.')}</p>
+          <p class="start-sub" data-ds-readonly-line>${t('This design system is read-only: its colours, type and logos are kept current from where it came. Make an editable copy to change them, or switch to another design system.')}</p>
+          <p class="start-sub start-manager" data-ds-manager hidden></p>
           <p class="start-sub">
             <button type="button" class="be-btn" data-ds-fork>${t('Make an editable copy')}</button>
             <a class="be-btn" href="#/profile?focus=design-systems-section">${t('Switch')}</a>
           </p>
         </header>
-        <section data-token-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
+        <section data-colour-roles-readonly></section><section data-token-readonly></section><section data-sound-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
       </div>`;
     attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
     start.navigation.wireBackPill();
     start.navigation.wireHomeFab();
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
+    showReadOnlyColourRoles(viewEl, tokenDoc);
     const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
+    const sound = mountSoundRoom(viewEl.querySelector<HTMLElement>('[data-sound-readonly]')!, { host, readonly: true, washes: soundWashes(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
     const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host, readonly: true });
-    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); skills.teardown(); workspace.teardown(); };
+    // Someone the instance says can change this system gets the way in here, because
+    // a read-only system never reaches the rooms below.
+    const managerSlot = viewEl.querySelector<HTMLElement>('[data-ds-manager]')!;
+    const stopManager = mountManagerActions(managerSlot, viewEl.querySelector<HTMLElement>('[data-ds-readonly-line]')!, {
+      edit: () => { void start.brand.editForInstance((message) => { managerSlot.append(' ', message); }); },
+      publish: () => { void import('../lib/design-system/brand-page-sheet.ts').then(m => m.openBrandPageSheet(host)); },
+    });
+    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { stopManager(); sound.teardown(); usage.teardown(); skills.teardown(); workspace.teardown(); };
     viewEl.querySelector('[data-ds-fork]')?.addEventListener('click', async () => {
       const [{ createDesignSystem }, { switchDesignSystem }] = await Promise.all([
         import('../lib/design-system/manage.ts'),
         import('../lib/design-system/switch.ts'),
       ]);
-      const copy = await createDesignSystem(
-        host as unknown as Parameters<typeof createDesignSystem>[0],
-        { label: `${active.label} copy`, seedFrom: active.id }
-      );
-      await switchDesignSystem(
-        host as unknown as Parameters<typeof switchDesignSystem>[0],
-        copy.id,
-        { route: 'start' }
-      );
+      const copy = await createDesignSystem(host, { label: `${active.label} copy`, seedFrom: active.id });
+      await switchDesignSystem(host, copy.id, { route: 'start' });
     });
     return;
   }
@@ -269,6 +282,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     logos: t('Logos'),
     tokens: t('Tokens'),
     catalogue: t('Files'),
+    sound: t('Sound'),
     usage: t('Rules'),
     skills: t('Skills'),
     versions: t('Versions'),
@@ -290,6 +304,8 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   const overviewPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="overview"]')!; start.overviewPanel = overviewPanel;
   start.livePanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="live"]')!;
   start.boardState = null;
+  start.soundPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="sound"]')!;
+  start.sound = null;
   start.usagePanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="usage"]')!;
   start.usage = null;
   start.skillsPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="skills"]')!;
@@ -439,7 +455,9 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
 
   start.exporting.wireFontsExport();
 
+  start.instanceEdit = active?.instanceEdit ? active : null;
   start.brand.wireRecoveryAndVersions();
+  start.brand.wireInstanceEditLine();
 
   start.unsubTray = null as StartCtx['unsubTray'];
   /** Unsubscribe from the palette seam that re-asks the Colours beat (plan 182

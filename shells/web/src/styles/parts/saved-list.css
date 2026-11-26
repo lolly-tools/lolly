@@ -81,18 +81,9 @@
 
 .saved-row:hover { background: var(--ui-color-selection-surface); }
 
-/* date-time + size stamp + delete icon: dim at rest, full on hover. .session-size
-   and .saved-delete are now siblings of .saved-label (not nested inside it -
-   sessionRow()'s shared shape puts them after the meta block; they used to
-   inherit this fade for free by nesting), so all three need the rule now;
-   scoped to .saved-row so it doesn't touch the profile Storage manager's rows. */
-.saved-row:hover .saved-label, .saved-row:hover .session-size, .saved-row:hover .saved-delete { opacity: 1; }
-.saved-row:not(:hover) .saved-label, .saved-row:not(:hover) .session-size, .saved-row:not(:hover) .saved-delete { opacity: .5; }
-/* No hover on touch, so the delete icon needs to be reachable without it - the
-   label/size stay dimmed, they're not the tap target. */
-@media (hover: none) {
-  .saved-row:not(:hover) .saved-delete { opacity: 1; }
-}
+/* Date-time and size stamps dim at rest and read fully on hover. */
+.saved-row:hover .saved-label, .saved-row:hover .session-size { opacity: 1; }
+.saved-row:not(:hover) .saved-label, .saved-row:not(:hover) .session-size { opacity: .5; }
 
 .session-size {
   font-size: var(--fs-xs);
@@ -120,8 +111,6 @@
   .saved-list .saved-row:nth-child(n+11) { animation-delay: 0.34s; }
 }
 
-.saved-delete button:focus { opacity: 1 !important; }
-
 .saved-resume {
   position: absolute;
   inset: 0;
@@ -138,21 +127,4 @@
   position: relative;
   z-index: 1;
   margin-left: auto;
-  flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  background: transparent;
-  color: var(--ui-color-text-muted);
-  border: 1px solid transparent;
-  border-radius: var(--ui-radius-choice-round);
-  font-size: var(--fs-xs);
-  cursor: pointer;
-  transition: color var(--ui-motion-feedback), border-color var(--ui-motion-feedback), background var(--ui-motion-feedback);
-}
-
-.saved-delete:hover {
-  color: hsl(var(--destructive-text));
-  border-color: hsl(var(--destructive) / 0.5);
-  background: hsl(var(--destructive) / 0.08);
 }

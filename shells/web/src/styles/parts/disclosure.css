@@ -34,6 +34,51 @@
       the four inner cards' own classes, data-actions and per-format gating are
       completely unchanged; the wrapper only adds one more outer show/hide layer. */
 
+/* ── The default disclosure arrow ────────────────────────────────────────────
+   Every <summary> in the app's chrome draws the arrow that the section card
+   further down draws: two hairlines that point along the line when the section
+   is shut and down when it is open. No browser triangle and no text glyph.
+
+   The arrow follows the label. A head laid out as a full row sends the arrow to
+   the far end with `margin-inline-start: auto` on its own ::after. A head that
+   carries its own chevron element, and a summary that is a menu button, turn
+   this arrow off with `::after { content: none; }`.
+
+   A tool's own markup, the export stages and the docs pages are outside the
+   rule: a render is the person's output, and the docs draw their own. The
+   selector has no specificity beyond the pseudo-element, so any rule wins. */
+:where(summary):not(:where(.tool-canvas, #tool-content, .pro-export-canvas, .me-canvas, .me-scale, .docs-content, .docs-compact-nav) *) {
+  list-style: none;
+  cursor: pointer;
+}
+:where(summary):not(:where(.tool-canvas, #tool-content, .pro-export-canvas, .me-canvas, .me-scale, .docs-content, .docs-compact-nav) *)::-webkit-details-marker { display: none; }
+:where(summary):not(:where(.tool-canvas, #tool-content, .pro-export-canvas, .me-canvas, .me-scale, .docs-content, .docs-compact-nav) *)::after {
+  content: '';
+  display: inline-block;
+  flex: none;
+  width: calc(7px * var(--a11y-fs));
+  height: calc(7px * var(--a11y-fs));
+  margin-inline: var(--sp-4) var(--sp-1);
+  vertical-align: middle;
+  border-right: 1.25px solid currentColor;
+  border-bottom: 1.25px solid currentColor;
+  transform: translateY(-1px) rotate(-45deg);
+  transition: transform var(--dur-1) ease;
+  opacity: .75;
+  color: var(--ui-color-text-accent);
+}
+:where(details[open]) > :where(summary):not(:where(.tool-canvas, #tool-content, .pro-export-canvas, .me-canvas, .me-scale, .docs-content, .docs-compact-nav) *)::after {
+  transform: translateY(-2px) rotate(45deg);
+  color: var(--ui-color-text-muted);
+}
+:where(summary):not(:where(.tool-canvas, #tool-content, .pro-export-canvas, .me-canvas, .me-scale, .docs-content, .docs-compact-nav) *):dir(rtl)::after { transform: translateY(-1px) rotate(135deg); }
+:where(details[open]) > :where(summary):not(:where(.tool-canvas, #tool-content, .pro-export-canvas, .me-canvas, .me-scale, .docs-content, .docs-compact-nav) *):dir(rtl)::after { transform: translateY(-2px) rotate(45deg); }
+/* The page-level fold and the older card head rotate a chevron element, and a
+   summary drawn as a button is a menu that carries its own icon. */
+.section-card-summary::after,
+.plat-section-summary::after,
+summary.btn::after { content: none; }
+
 .plat-section {   /* platform.css - the shared <details> flavour's page-layout margin */
   margin: 0 0 1.1rem;
   border: 0;
@@ -60,8 +105,6 @@
   display: flex; align-items: center; gap: 1rem; border-radius: var(--ui-radius-panel);
   padding: 1.1rem 1.4rem;
 }
-.section-card-summary::-webkit-details-marker,
-.plat-section-summary::-webkit-details-marker { display: none; }
 .section-card-title,
 .plat-section-title {   /* platform.css */
   flex: 1 1 auto; margin: 0; text-align: left;
@@ -243,14 +286,14 @@ details.section-card > .section-card-summary > .section-card-value {
 .cmyk-icon, .audio-icon, .pdfpass-icon, .c2pa-icon, .print-icon, .protection-icon, .hdr-icon {
   width: var(--ui-size-icon-md);
   height: var(--ui-size-icon-md);
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
   opacity: .75;
   stroke-width: 1.5px;
 }
 
 details.section-card:has(> .section-card-body) > .section-card-summary:hover,
 .input-section-summary:hover {
-  color: hsl(var(--primary));
+  color: hsl(var(--primary-text));
   background-color: hsl(var(--background) / .1);
 }
 
@@ -272,8 +315,6 @@ details.section-card > .section-card-summary:focus-visible { outline: none; }
   overflow: visible;
 }
 
-.input-section-summary::-webkit-details-marker { display: none; }
-
 details.section-card:has(> .section-card-body) > .section-card-summary::after,
 .input-section-summary::after {
   content: '';
@@ -290,7 +331,7 @@ details.section-card:has(> .section-card-body) > .section-card-summary::after,
   transition: transform var(--dur-1) ease;
   flex-shrink: 0;
   opacity: .75;
-  color: var(--ui-color-action-primary);
+  color: var(--ui-color-text-accent);
 }
 
 
@@ -298,7 +339,9 @@ details.section-card:has(> .section-card-body) > .section-card-summary::after,
 details.section-card[open]:has(> .section-card-body) > .section-card-summary::after,
 .input-section[open] .input-section-summary::after {
   transform: rotate(45deg);
-  color: var(--ui-color-border-default);
+  /* Quieter than the shut arrow, and still plainly an arrow: in the border colour
+     the open section lost the one mark that says it folds. */
+  color: var(--ui-color-text-muted);
 }
 /* The caret is drawn, so it reads the same in every card; it points the other way
    in a right-to-left page, where a closed section opens towards the left. */
@@ -387,11 +430,23 @@ details.section-card > .section-card-body,
 }
 
 
+/* A section folded shut by lib/disclosure-motion.ts (a browser with no
+   interpolate-size) reads closed at once, for the page and for assistive
+   technology. Its body stays drawn until the fold has ended; the script then takes
+   this attribute off. */
+@supports selector(::details-content) {
+  :is(.input-section, details.section-card)[data-fold-closing]::details-content {
+    content-visibility: visible;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  :where(summary):not(:where(.tool-canvas, #tool-content, .pro-export-canvas, .me-canvas, .me-scale, .docs-content, .docs-compact-nav) *)::after,
   .input-section-summary::after,
   details.section-card > .section-card-summary::after { transition: none; }
 }
-html[data-a11y-motion="reduce"] details.section-card > .section-card-summary::after,
+html[data-a11y-motion="reduce"] :where(summary):not(:where(.tool-canvas, #tool-content, .pro-export-canvas, .me-canvas, .me-scale, .docs-content, .docs-compact-nav) *)::after,
+html[data-a11y-motion="reduce"] details.section-card > .section-card-summary::after { transition: none; }
 html[data-a11y-motion="reduce"] .input-section-summary::after { transition: none; }
 
 html[data-a11y-motion="reduce"] :is(.input-section, details.section-card)::details-content { transition: none; }

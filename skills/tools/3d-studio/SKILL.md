@@ -5,9 +5,9 @@ description: "Operate the Lolly 3D Studio tool (3d-studio) using its declared in
 
 # 3D Studio
 
-Tool ID: `3d-studio`. Tool version: `0.9.1`. Engine range: `>=1.205.0`.
+Tool ID: `3d-studio`. Tool version: `0.11.0`. Engine range: `>=1.205.0`.
 
-Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls.
+Turn SVG artwork and 3D models into images, alone or together in one scene. Shape materials, lighting, focus and shadows.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

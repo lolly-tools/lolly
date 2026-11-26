@@ -15,7 +15,7 @@ import { announce } from '../../a11y.ts';
 import { playSfx } from '../sfx.ts';
 import { COLOR_NOTATION_EXAMPLES, mountAddColor } from '../design-system/add-color.ts';
 import type { ColorEntry } from '../design-system/add-color.ts';
-import { assignRole, roleLabel } from '../design-system/roles.ts';
+import { assignRole, roleLabel, roleWords } from '../design-system/roles.ts';
 import { bindOp, type BrandEditorCtx } from './context.ts';
 
 /** Put the chip away. Called by the next add, by Dismiss, by either action
@@ -47,7 +47,7 @@ export const showPrimarySetChip = (bedit: BrandEditorCtx, name: string): void =>
   const { addedNameEl, addedPrimaryBtn, addedTuneBtn } = bedit;
   if (addedPrimaryBtn) addedPrimaryBtn.hidden = true;
   if (addedTuneBtn) addedTuneBtn.hidden = false;
-  if (addedNameEl) addedNameEl.textContent = tRaw('{role} is now {name}', { role: roleLabel('primary'), name });
+  if (addedNameEl) addedNameEl.textContent = tRaw('{role} is now {name}', { role: roleLabel('primary', roleWords(bedit.doc)), name });
   addedTuneBtn?.focus();
 };
 export const showAddedChip = (bedit: BrandEditorCtx, one: { path: string[]; name: string; hex: string }, primarySet = false): void => {
@@ -57,7 +57,11 @@ export const showAddedChip = (bedit: BrandEditorCtx, one: { path: string[]; name
   addedNameEl.textContent = one.name;
   // A previous chip may have ended in the primary-set state (the offer button
   // hidden) - a fresh add starts with both actions back.
-  if (addedPrimaryBtn) addedPrimaryBtn.hidden = false;
+  if (addedPrimaryBtn) {
+    addedPrimaryBtn.hidden = false;
+    const words = roleWords(bedit.doc);
+    addedPrimaryBtn.textContent = words.size ? tRaw('Use as {role}?', { role: roleLabel('primary', words) }) : t('Use as primary?');
+  }
   if (addedTuneBtn) addedTuneBtn.hidden = false;
   addedSw?.style.setProperty('--sw', one.hex || 'transparent');
   addedEl.hidden = false;
@@ -115,7 +119,7 @@ export const addColorEntries = (bedit: BrandEditorCtx, entries: ColorEntry[], re
     if (added.length === 1) {
       showAddedChip(bedit, first, tookPrimary);
       announce(tookPrimary
-        ? tRaw('{role} is now {name}', { role: roleLabel('primary'), name: first.name })
+        ? tRaw('{role} is now {name}', { role: roleLabel('primary', roleWords(bedit.doc)), name: first.name })
         : tRaw('{name} added', { name: first.name }));
     } else {
       announce(tRaw('{n} colours added', { n: added.length }));
@@ -169,7 +173,7 @@ export function wireAddedChip(bedit: BrandEditorCtx): void {
     // `.be-generate-cta` panel now, which the same repaint has just re-titled
     // after this colour, so the chip's remaining job is to say what happened.
     bedit.addColor.showPrimarySetChip(name);
-    announce(tRaw('{role} is now {name}', { role: roleLabel('primary'), name }));
+    announce(tRaw('{role} is now {name}', { role: roleLabel('primary', roleWords(bedit.doc)), name }));
   });
 }
 

@@ -144,22 +144,23 @@ test('emoji and emojifx are reserved params on every surface', () => {
 });
 
 test('a saved session carries the emoji stamp, and older records still open', () => {
-  // v4 added the recorded licence decisions (plan 253). The emoji stamp is a v3
-  // field and is unchanged by that, which is what the older records below check.
-  assert.equal(SESSION_FORMAT_VERSION, 4);
-  assert.equal(SESSION_READER_VERSION, 4);
-  assert.equal(sessionVersionStamp().formatVersion, 4);
+  // v4 added the recorded licence decisions (plan 253) and v5 the picture reference
+  // (plan 373). The emoji stamp is a v3 field and is unchanged by either, which is
+  // what the older records below check.
+  assert.equal(SESSION_FORMAT_VERSION, 5);
+  assert.equal(SESSION_READER_VERSION, 5);
+  assert.equal(sessionVersionStamp().formatVersion, 5);
 
   const data = { values: { heading: 'Hi' } };
   const warnings: string[] = [];
   const log = (level: 'warn' | 'info', message: string): void => { if (level === 'warn') warnings.push(message); };
 
   // A session written before the stamp existed opens unchanged and silently.
-  for (const formatVersion of [undefined, 1, 2, 3, 4]) {
+  for (const formatVersion of [undefined, 1, 2, 3, 4, 5]) {
     assert.deepEqual(migrateSessionRecord({ slot: 'a', data, formatVersion }, log), data);
   }
   assert.deepEqual(warnings, []);
-  migrateSessionRecord({ slot: 'a', data, formatVersion: 5 }, log);
+  migrateSessionRecord({ slot: 'a', data, formatVersion: 6 }, log);
   assert.equal(warnings.length, 1, 'a record from a newer build is reported, not refused');
 
   assert.deepEqual(sessionEmojiStamp({ emoji: { emoji: ' twemoji/color-starter@17.0.3 ', emojifx: ' mono ' } }), {

@@ -65,8 +65,6 @@
   "inputs.boxes.fields.weight.options.700": "Tučné",
   "inputs.boxes.fields.weight.options.800": "Extra tučné",
   "inputs.boxes.fields.font.label": "Písmo",
-  "inputs.boxes.fields.font.options.SUSE": "SUSE Sans",
-  "inputs.boxes.fields.font.options.SUSE Mono": "SUSE Mono",
   "inputs.boxes.fields.lineHeight.label": "Řádkování",
   "inputs.boxes.fields.tracking.label": "Prostrkání",
   "inputs.boxes.fields.ligatures.label": "Ligatury",

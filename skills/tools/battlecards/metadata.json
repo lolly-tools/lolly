@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "battlecards",
-  "toolVersion": "1.3.3",
-  "toolVersionRange": "1.3.3",
+  "toolVersion": "1.4.0",
+  "toolVersionRange": "1.4.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,12 +10,12 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "50a381a8ae64b577b53228cf054f16535ec42ecb0d79e0eea3c98fcf8b71af2c",
-      "bytes": 1715
+      "sha256": "476117a7fc584f858414940eca1697823f14f87fc617603249183196a9e63448",
+      "bytes": 1785
     },
     "reference/inputs.json": {
-      "sha256": "625cebfa0f8d7c17193c4e735a29b0738b0fc1de4ebabf18aaec2b3a28e6d408",
-      "bytes": 1859
+      "sha256": "5badda4f27116ab87f84cea58daf94ad4134b5c768f9a473906450e3705404f4",
+      "bytes": 3288
     }
   }
 }

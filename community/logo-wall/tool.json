@@ -2,7 +2,7 @@
   "id": "logo-wall",
   "name": "Logo Wall",
   "description": "Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall.",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "engineVersion": "^1.293.0",
   "status": "official",
   "category": "designer",
@@ -24,6 +24,7 @@
   "a11yLabel": "A grid of {{logos.length}} logos",
   "render": {
     "sectionIcons": {
+      "Treatment": "paintbrush",
       "Layout": "grid",
       "Vector ink": "droplet",
       "Step & repeat": "repeat",
@@ -285,6 +286,20 @@
       "section": "Step & repeat",
       "showIf": { "repeat": ["grid", "brick", "checker"] },
       "help": "How many rows the repeated wall stacks. Logos keep cycling in order, so neighbouring repeats stay varied. At another canvas size the wall stacks fewer or more rows to fill that shape."
+    },
+    {
+      "id": "ground",
+      "label": "Colour treatment",
+      "type": "select",
+      "default": "tint",
+      "options": [
+        {"value": "tint", "label": "Brand tint"},
+        {"value": "lead", "label": "Lead colour"},
+        {"value": "ink", "label": "Ink"},
+        {"value": "surface", "label": "Surface"}
+      ],
+      "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+      "section": "Treatment"
     }
   ]
 }

@@ -101,7 +101,7 @@ test('the entry is guarded against a double-click and a stale dialog', () => {
 });
 
 test('the editing toolbar offers both video actions, and never collides with "Trim margins"', () => {
-  const context = { ref: { source: 'user', type: 'video' }, cat: { actions: { choices: () => [], canConvert: () => false } }, canVideoGrade: true, canVideoTrim: true, trimmable: true } as unknown as DetailsCtx;
+  const context = { ref: { source: 'user', type: 'video' }, cat: { actions: { choices: () => [], canConvert: () => false, canOpen: () => false } }, canVideoGrade: true, canVideoTrim: true, trimmable: true } as unknown as DetailsCtx;
   const html = editingHtml(context);
   assert.match(html, /data-act="vid-grade"[\s\S]{0,300}?Grade…/, 'Grade… is offered on a video');
   assert.match(html, /data-act="vid-trim"[\s\S]{0,300}?Trim…/, 'Trim… too');

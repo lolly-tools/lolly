@@ -25,7 +25,8 @@ import { ENGINE_VERSION, decodeAssetVersion } from '@lolly/engine';
 import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 import type { BeamAssetRecord } from './beam-pack.ts';
 import { buildLollyFile, creatorFromProfile, type LollyLibraryAsset } from './lolly-pack.ts';
-import { packRights } from './redistribution.ts';
+import { packRights, UNREADABLE_RECORD } from './redistribution.ts';
+import { noticeUnrecorded } from './unrecorded-notice.ts';
 import { templateFileSlug } from './template-file.ts';
 import type { UserTemplate } from './user-templates.ts';
 
@@ -74,7 +75,7 @@ export async function shareTemplateAsLolly(host: HostV1, tpl: UserTemplate): Pro
         type: ref?.type ?? 'raster',
         format: ref?.format ?? '',
         label: typeof meta.name === 'string' ? meta.name : id,
-        ...packRights(meta),
+        ...(ref ? packRights(meta) : UNREADABLE_RECORD),
       };
     } catch {
       return null;
@@ -83,7 +84,7 @@ export async function shareTemplateAsLolly(host: HostV1, tpl: UserTemplate): Pro
 
   const profile = await host.profile.get().catch(() => null);
   const userAssets = await assets._exportUserAssets?.().catch(() => []) ?? [];
-  const { blob } = await buildLollyFile({
+  const { blob, summary } = await buildLollyFile({
     session: templateSessionOf(tpl),
     toolId: tpl.toolId,
     name: tpl.name,
@@ -98,4 +99,5 @@ export async function shareTemplateAsLolly(host: HostV1, tpl: UserTemplate): Pro
     engineVersion: ENGINE_VERSION,
   });
   await host.export.file(blob, { filename: templateLollyName(tpl) });
+  void noticeUnrecorded(summary.unrecorded);
 }

@@ -1,6 +1,7 @@
 {
   "lead": "Lolly",
   "cycle": [
+    { "word": "is sovereign", "slug": "content-sovereignty" },
     { "word": "is yours", "slug": "trust" },
     { "word": "is private", "slug": "privacy" },
     { "word": "is free", "slug": "faq" },

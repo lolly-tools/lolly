@@ -26,7 +26,7 @@ test('a palette colour input renders the colour field, with the leads source for
   const branch = SRC.match(/case 'palette-picker':([\s\S]*?)case 'asset-picker'/)?.[1] ?? '';
   assert.ok(branch, 'the control switch has a palette-picker branch');
   assert.doesNotMatch(branch, /stub/, 'the text-box stand-in is gone');
-  assert.match(branch, /return paletteFieldHtml\(id, input\);/);
+  assert.match(branch, /return paletteFieldHtml\(id, input, modelValues\[input\.id\]\);/);
   const { paletteFieldHtml } = await import('./tool-input-colours.ts');
   const { colorFieldHtml, LEADS_SWATCH_SOURCE } = await import('../components/color-field.ts');
   // These inputs declare no default, so each may be left empty and its field takes `auto`

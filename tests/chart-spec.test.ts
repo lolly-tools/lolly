@@ -181,7 +181,9 @@ test('the shipping hook emits one brand-aware document for WebGL and vector fall
   assert.equal(state.spec.theme.scene.material, 'glass');
   assert.equal(state.spec.motion.preset, 'orbit');
   assert.match(patch._threeFallback, /<polygon/);
-  assert.match(patch._threeFallback, /Vector 3-D view/);
+  assert.match(patch._threeFallback, /class="chart3d-vector"/);
+  assert.equal(state.scene.kind, 'surface', 'the scene plan travels with the state');
+  assert.equal(state.scene.marks[0].t, 'surface');
   assert.match(patch._a11yTable, /<table>/);
   assert.match(patch._a11yTable, /Demand surface/);
   assert.equal(validateShape(state.spec), true, JSON.stringify(validateShape.errors));
@@ -231,7 +233,8 @@ test('the shipping hook emits one brand-aware document for WebGL and vector fall
   assert.equal(cinematicState.spec.presentation.camera.projection, 'perspective');
   assert.equal(cinematicState.cfg.flightSeries, 'Demand');
   assert.match(cinematic._threeFallback, /<polyline/);
-  assert.match(cinematic._threeFallback, /Cinematic vector poster/);
+  assert.match(cinematic._threeFallback, /class="chart3d-vector"/);
+  assert.equal(cinematicState.scene.flight.series, 'Demand', 'the flight follows the named series');
   assert.equal(validateShape(cinematicState.spec), true, JSON.stringify(validateShape.errors));
   assert.equal(validateChartSpec(cinematicState.spec).ok, true);
 });
@@ -462,7 +465,7 @@ test('the beginner-facing chooser exposes branded styles, editorial statistics a
   const byId = new Map(starterTemplates.map((template) => [template.id, template]));
   assert.equal(byId.get('guided-chart')?.category, 'Start here');
   assert.equal(byId.get('guided-chart')?.values.chartIntent, 'auto');
-  assert.equal(byId.get('branded-presentations')?.category, 'Styles');
+  assert.equal(byId.get('branded-presentations-isometric')?.category, 'Styles');
   assert.equal(byId.get('scene-bars')?.values.sceneType, 'bar3d');
   assert.equal(byId.get('brand-terrain')?.values.sceneType, 'surface3d');
   assert.equal(byId.get('spatial-scatter')?.values.sceneType, 'scatter3d');
@@ -477,20 +480,23 @@ test('the beginner-facing chooser exposes branded styles, editorial statistics a
     assert.ok(byId.get(id)?.values.cinematicType, `${id} must select a cinematic form`);
     assert.ok(byId.get(id)?.values.flightSeries, `${id} must choose the camera-driving series`);
   }
-  for (const id of [
-    'editorial-dots',
-    'small-multiple-trends',
-    'regression-story',
-    'hexbin-density',
-    'candlestick-series',
-    'uncertainty-band',
-    'indexed-growth',
-    'distribution-lab',
-    'control-band',
-  ]) {
+  for (const id of ['candlestick-series', 'indexed-growth']) {
     assert.equal(byId.get(id)?.values.renderMode, 'statistical');
     assert.ok(byId.get(id)?.values.plotType, `${id} must select a statistical articulation`);
     assert.ok(byId.get(id)?.values.heading, `${id} must start as a usable editorial story`);
+  }
+});
+
+test('every starting template sets real inputs to real options', () => {
+  const inputs = new Map(manifest.inputs.map((input: any) => [input.id, input]));
+  for (const template of starterTemplates) {
+    for (const [key, value] of Object.entries(template.values as Record<string, unknown>)) {
+      const input: any = inputs.get(key);
+      assert.ok(input, `${template.id}: ${key} is not an input`);
+      if (input.options && typeof value === 'string') {
+        assert.ok(input.options.some((option: any) => option.value === value), `${template.id}: ${key} has no option ${value}`);
+      }
+    }
   }
 });
 

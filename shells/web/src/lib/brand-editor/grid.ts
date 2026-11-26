@@ -135,6 +135,7 @@ export const onKey = (bedit: BrandEditorCtx, e: KeyboardEvent): void => {
   // stopped, because this listener runs before the studio's own (which would
   // otherwise read the press as "leave the studio") and before the picker's.
   if (bedit.roleChips?.isOpen()) { e.preventDefault(); e.stopImmediatePropagation(); bedit.roleChips.close(true); return; }
+  if (bedit.rolesRoom?.isOpen()) { e.preventDefault(); e.stopImmediatePropagation(); bedit.rolesRoom.close(true); return; }
   if (editorEl && !editorEl.hidden) { e.stopImmediatePropagation(); bedit.swatchEditor.closeEditor(); return; }
   if (reviewEl && !reviewEl.hidden) { e.stopImmediatePropagation(); bedit.replace.hideReview(); return; }
   if (bedit.openBulkPanel) { e.stopImmediatePropagation(); bedit.palSelect.closeBulkMenu(); return; }
