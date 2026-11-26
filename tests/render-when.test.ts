@@ -19,7 +19,7 @@ type RenderBlock = Pick<RenderSpec, 'when'> & { formats: string[]; width: number
 const SET = { export: false, webPreview: true, actions: [] as string[] };
 const manifest = (when?: unknown, extra: Record<string, unknown> = {}) => ({
   id: 'two-modes', name: 'Two modes', version: '1.0.0', engineVersion: '>=1.356.0', status: 'community',
-  // `when` arrives as written in a manifest, malformed cases included, so the block is typed as the engine reads it.
+  // `when` arrives as written in a manifest, malformed cases included, so the block takes the engine's own type.
   render: { formats: ['svg', 'png'], width: 100, height: 100, actions: ['copy', 'download', 'save'], ...extra, ...(when === undefined ? {} : { when }) } as RenderBlock,
   inputs: [
     { id: 'mode', type: 'select', default: 'make', options: [{ value: 'make', label: 'Make' }, { value: 'scan', label: 'Scan' }, { value: 'read', label: 'Read' }] },
