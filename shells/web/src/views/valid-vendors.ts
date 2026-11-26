@@ -58,7 +58,7 @@ export function vendorChip(name: string, role: string, strength: VerifyStrength)
  */
 export function aiMakerChip(recorded: string, via: string, verified: boolean): string {
   const vendor = identifyVendor(recorded);
-  if (!vendor || vendor.kind !== 'ai') return '';
+  if (vendor?.kind !== 'ai') return '';
   const strength: VerifyStrength = via === 'credential' ? (verified ? 'signed' : 'unverified') : via === 'fingerprint' ? 'hint' : 'stated';
   return vendorChip(vendor.name, 'ai', strength);
 }
