@@ -156,6 +156,33 @@ test('native builds refuse a missing or incomplete MilkDrop artist pack', async 
   assert.doesNotThrow(() => check.writeBundle({}));
 });
 
+test('native builds leave the docs link-preview cards out of the embedded frontend', async t => {
+  const { pruneEmbeddedDownloads, assertDistState } = await import(new URL('../shells/tauri-shared/vite-embed.mjs', import.meta.url).href);
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-native-og-test-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  for (const sub of ['catalog/tools', 'tools/qr-code', 'viz-presets', 'info/og', 'info/shots']) {
+    mkdirSync(join(dir, sub), { recursive: true });
+  }
+  writeFileSync(join(dir, 'catalog/tools/index.json'), '{}');
+  writeFileSync(join(dir, 'tools/qr-code/tool.json'), '{}');
+  writeFileSync(join(dir, 'viz-presets/index.json'), JSON.stringify([{ id: 'geiss-collide' }]));
+  writeFileSync(join(dir, 'viz-presets/geiss-collide.json'), '{}');
+  writeFileSync(join(dir, 'info/og/about.png'), 'card');
+  writeFileSync(join(dir, 'info/about.html'), '<p>page</p>');
+  writeFileSync(join(dir, 'info/shots/design.svg'), '<svg/>');
+
+  const check = assertDistState({ outDirDefault: dir, mode: 'profile' });
+  assert.throws(() => check.writeBundle({}), /info\/og present/);
+
+  mkdirSync(join(dir, 'models'));
+  pruneEmbeddedDownloads({ outDirDefault: dir }).writeBundle({});
+  assert.equal(existsSync(join(dir, 'info/og')), false);
+  assert.equal(existsSync(join(dir, 'models')), false);
+  assert.equal(existsSync(join(dir, 'info/about.html')), true, 'the docs pages still embed');
+  assert.equal(existsSync(join(dir, 'info/shots/design.svg')), true, 'the docs screenshots still embed');
+  assert.doesNotThrow(() => check.writeBundle({}));
+});
+
 /** A minimal neutral dist: the files assertDistState needs before it reads the
  *  embedded asset index. */
 function neutralDist(dir: string, index: Record<string, unknown>): void {
