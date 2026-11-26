@@ -311,7 +311,9 @@ test('3D into 3D Studio: each lighting scene takes its nearest rig', () => {
     for (const [id, value] of Object.entries(THREE_D_SCENES[scene]!)) assert.equal(carried[id], value, `${scene}: ${id}`);
     assert.ok(['soft', 'dramatic', 'electric', 'warm'].includes(carried.studio as string), scene);
   }
-  assert.deepEqual([studio({ scene: 'natural' }).studio, studio({ scene: 'natural' }).environment], ['warm', 'window']);
+  // Natural and Bright studio were set by comparing the two pictures side by side.
+  assert.deepEqual([studio({ scene: 'natural' }).studio, studio({ scene: 'natural' }).environment, studio({ scene: 'natural' }).keyColor], ['soft', 'gallery', '#fff1dc']);
+  assert.deepEqual([studio({ scene: 'bright-studio' }).studio, studio({ scene: 'bright-studio' }).environment], ['soft', 'gallery']);
   assert.equal(studio({ scene: 'suse-green' }).keyColor, '#8ff0c0');
   assert.equal(studio({ scene: 'no-such-scene' }).studio, 'soft', 'an unknown scene takes the default one');
 });

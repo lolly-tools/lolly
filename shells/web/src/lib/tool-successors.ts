@@ -200,10 +200,12 @@ export const THREE_D_SCENES: Record<string, Values> = {
   'soft-glow': { studio: 'soft', environment: 'room' },
   // One white key and an even fill: Dramatic with the contrast turned well down.
   plain: { studio: 'dramatic', drama: 0.35, environment: 'room' },
-  // A warm sun under a cool sky: Warm tints the key, and the window environment is daylight.
-  natural: { studio: 'warm', drama: 0.5, environment: 'window' },
-  // A strong key with a clear fill and bright reflections: little contrast, softbox panels.
-  'bright-studio': { studio: 'dramatic', drama: 0.15, environment: 'softbox' },
+  // A warm sun under a cool sky. Seen side by side, Warm with the window environment came out dark
+  // orange; Soft with a faintly warm key in the gallery keeps the bright, warm picture.
+  natural: { studio: 'soft', environment: 'gallery', keyColor: '#fff1dc' },
+  // A strong key with a clear fill. Seen side by side, Dramatic was too dark and the studio
+  // environment cast green; Soft in the gallery keeps the bright, even picture.
+  'bright-studio': { studio: 'soft', environment: 'gallery' },
   // A hard key over a dark room: the most contrast Dramatic has. Its blue fill is not kept.
   'serious-studio': { studio: 'dramatic', drama: 1, environment: 'room' },
   // Coloured lights on a gradient: Electric is the one rig with a coloured fill. The magenta light is not kept.
