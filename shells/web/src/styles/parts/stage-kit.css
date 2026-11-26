@@ -299,6 +299,25 @@
   border-radius: var(--radius-round);
   background: var(--ui-color-action-primary);
 }
+/* A light's handle (3D Studio): round, in the light's own colour, at home outside the
+   frame as much as inside. The chosen light carries the selection ring. A light behind
+   the camera stands beyond the frame's edge and is drawn fainter. */
+.studio-light-handle {
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  background: var(--studio-light, var(--ui-color-selection-handle));
+}
+.studio-light-handle[data-selected] { outline: 2px solid var(--ui-color-selection-border); outline-offset: 2px; }
+.studio-light-handle[data-behind] { opacity: 0.6; }
+.studio-light-line {
+  stroke: var(--studio-light, var(--ui-color-selection-border));
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-opacity: 0.45;
+}
+.studio-light-line[data-selected] { stroke-opacity: 0.9; }
+.studio-light-line[data-behind] { stroke-opacity: 0.25; }
 .stage-kit-handle[data-cursor="grab"],
 .stage-kit-handle[data-cursor="grab"]::after { cursor: grab; }
 .stage-kit-handle[data-cursor="ns"],
