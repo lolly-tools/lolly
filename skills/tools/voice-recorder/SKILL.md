@@ -5,7 +5,7 @@ description: "Operate the Lolly Voice Recorder tool (voice-recorder) using its d
 
 # Voice Recorder
 
-Tool ID: `voice-recorder`. Tool version: `1.1.3`. Engine range: `^1.17.0`.
+Tool ID: `voice-recorder`. Tool version: `1.1.4`. Engine range: `^1.17.0`.
 
 Record a voice note with a live level meter and gentle coaching, then save it as MP3.
 

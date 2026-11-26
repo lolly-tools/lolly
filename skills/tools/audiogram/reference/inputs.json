@@ -602,6 +602,36 @@
     "help": "Adds a pulse on each detected beat. Has no effect on speech or ambient audio, where there is no steady tempo to find."
   },
   {
+    "id": "targetLevel",
+    "section": "Recording",
+    "label": "Target level",
+    "type": "select",
+    "default": "normal",
+    "help": "What counts as 'just right' for the coaching prompts.",
+    "options": [
+      {
+        "value": "soft",
+        "label": "Soft · close mic"
+      },
+      {
+        "value": "normal",
+        "label": "Normal · speech"
+      },
+      {
+        "value": "loud",
+        "label": "Loud · room"
+      }
+    ]
+  },
+  {
+    "id": "showTips",
+    "section": "Recording",
+    "label": "Coaching tips",
+    "type": "boolean",
+    "default": true,
+    "help": "Live prompts like 'get closer' or 'ease off'."
+  },
+  {
     "id": "captions",
     "section": "Captions",
     "label": "Captions",

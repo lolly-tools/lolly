@@ -5,7 +5,7 @@ description: "Operate the Lolly Audiogram tool (audiogram) using its declared in
 
 # Audiogram
 
-Tool ID: `audiogram`. Tool version: `2.8.0`. Engine range: `>=1.261.0 <2.0.0`.
+Tool ID: `audiogram`. Tool version: `2.9.0`. Engine range: `>=1.261.0 <2.0.0`.
 
 Turn a voice clip or song into a video in your design system's colours that moves with the sound.
 
@@ -30,6 +30,8 @@ Required host APIs: none. Device capabilities: none.
 | size | select |  |
 | start | number |  |
 | beat | boolean |  |
+| targetLevel | select |  |
+| showTips | boolean |  |
 | captions | boolean |  |
 | transcript | longtext |  |
 | autoCaption | boolean |  |

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-22T12:38:33.953Z",
+  "generatedAt": "2026-11-26T10:54:54.936Z",
   "tools": [
     {
       "id": "3d",
@@ -1036,7 +1036,7 @@
       "id": "audiogram",
       "name": "Audiogram",
       "description": "Turn a voice clip or song into a video in your design system's colours that moves with the sound.",
-      "version": "2.8.0",
+      "version": "2.9.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -13080,13 +13080,16 @@
       "id": "voice-recorder",
       "name": "Voice Recorder",
       "description": "Record a voice note with a live level meter and gentle coaching, then save it as MP3.",
-      "version": "1.1.3",
+      "version": "1.1.4",
       "status": "experimental",
       "category": "utility",
       "capabilities": [
         "microphone"
       ],
+      "listed": false,
       "galleryArt": "icon",
+      "deprecated": true,
+      "replacedBy": "audiogram",
       "tags": [
         "audio",
         "voice",
@@ -13114,140 +13117,110 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"9\" y=\"2\" width=\"6\" height=\"12\" rx=\"3\"/><path d=\"M5 10a7 7 0 0 0 14 0\"/><line x1=\"12\" y1=\"19\" x2=\"12\" y2=\"22\"/><line x1=\"8\" y1=\"22\" x2=\"16\" y2=\"22\"/></svg>",
       "preview": "/catalog/previews/voice-recorder.svg",
-      "featured": {
-        "order": 7,
-        "blurb": "Record a clean voice note with live level coaching"
-      },
       "i18n": {
         "ar": {
           "name": "مسجل الصوت",
-          "description": "سجل ملاحظة صوتية مع مقياس مستوى مباشر وإرشادات لطيفة، ثم احفظها بصيغة MP3.",
-          "blurb": "سجل ملاحظة صوتية نقية مع إرشاد مباشر للمستوى"
+          "description": "سجل ملاحظة صوتية مع مقياس مستوى مباشر وإرشادات لطيفة، ثم احفظها بصيغة MP3."
         },
         "bg": {
           "name": "Диктофон",
-          "description": "Запиши гласова бележка с индикатор на нивото на живо и ненатрапчиви насоки, а после я запази като MP3.",
-          "blurb": "Запиши чиста гласова бележка с насоки за нивото на живо"
+          "description": "Запиши гласова бележка с индикатор на нивото на живо и ненатрапчиви насоки, а после я запази като MP3."
         },
         "bn": {
           "name": "ভয়েস রেকর্ডার",
-          "description": "লাইভ লেভেল মিটার ও হালকা কোচিং সহ একটি ভয়েস নোট রেকর্ড করুন, তারপর MP3 হিসেবে সংরক্ষণ করুন।",
-          "blurb": "লাইভ লেভেল কোচিং সহ একটি পরিষ্কার ভয়েস নোট রেকর্ড করুন"
+          "description": "লাইভ লেভেল মিটার ও হালকা কোচিং সহ একটি ভয়েস নোট রেকর্ড করুন, তারপর MP3 হিসেবে সংরক্ষণ করুন।"
         },
         "cs": {
           "name": "Hlasový záznamník",
-          "description": "Nahraj hlasovou poznámku s živým ukazatelem hlasitosti a jemným koučováním, pak ji ulož jako MP3.",
-          "blurb": "Nahraj čistou hlasovou poznámku s živým vedením hlasitosti"
+          "description": "Nahraj hlasovou poznámku s živým ukazatelem hlasitosti a jemným koučováním, pak ji ulož jako MP3."
         },
         "de": {
           "name": "Sprachrekorder",
-          "description": "Nehmen Sie eine Sprachnotiz mit Live-Pegelanzeige und sanfter Anleitung auf und speichern Sie sie als MP3.",
-          "blurb": "Nehmen Sie eine saubere Sprachnotiz mit Live-Pegel-Coaching auf"
+          "description": "Nehmen Sie eine Sprachnotiz mit Live-Pegelanzeige und sanfter Anleitung auf und speichern Sie sie als MP3."
         },
         "es": {
           "name": "Grabadora de voz",
-          "description": "Graba una nota de voz con un medidor de nivel en vivo y una guía sutil, y guárdala como MP3.",
-          "blurb": "Graba una nota de voz nítida con guía de nivel en vivo"
+          "description": "Graba una nota de voz con un medidor de nivel en vivo y una guía sutil, y guárdala como MP3."
         },
         "fr": {
           "name": "Enregistreur vocal",
-          "description": "Enregistre une note vocale avec un indicateur de niveau en direct et des conseils en douceur, puis enregistre-la en MP3.",
-          "blurb": "Enregistre une note vocale nette avec un accompagnement de niveau en direct"
+          "description": "Enregistre une note vocale avec un indicateur de niveau en direct et des conseils en douceur, puis enregistre-la en MP3."
         },
         "hi": {
           "name": "वॉइस रिकॉर्डर",
-          "description": "लाइव लेवल मीटर और हल्की-फुल्की कोचिंग के साथ वॉइस नोट रिकॉर्ड करें, फिर उसे MP3 के रूप में सेव करें।",
-          "blurb": "लाइव लेवल कोचिंग के साथ साफ़ वॉइस नोट रिकॉर्ड करें"
+          "description": "लाइव लेवल मीटर और हल्की-फुल्की कोचिंग के साथ वॉइस नोट रिकॉर्ड करें, फिर उसे MP3 के रूप में सेव करें।"
         },
         "id": {
           "name": "Perekam Suara",
-          "description": "Rekam catatan suara dengan meteran level langsung dan panduan lembut, lalu simpan sebagai MP3.",
-          "blurb": "Rekam catatan suara yang jernih dengan panduan level langsung"
+          "description": "Rekam catatan suara dengan meteran level langsung dan panduan lembut, lalu simpan sebagai MP3."
         },
         "it": {
           "name": "Registratore vocale",
-          "description": "Registra una nota vocale con un misuratore di livello dal vivo e una guida discreta, poi salvala come MP3.",
-          "blurb": "Registra una nota vocale pulita con guida di livello in tempo reale"
+          "description": "Registra una nota vocale con un misuratore di livello dal vivo e una guida discreta, poi salvala come MP3."
         },
         "ja": {
           "name": "ボイスレコーダー",
-          "description": "リアルタイムのレベルメーターとやさしいコーチングを使ってボイスメモを録音し、MP3として保存できます。",
-          "blurb": "リアルタイムのレベルコーチングでクリアなボイスメモを録音できます。"
+          "description": "リアルタイムのレベルメーターとやさしいコーチングを使ってボイスメモを録音し、MP3として保存できます。"
         },
         "ko": {
           "name": "음성 녹음기",
-          "description": "실시간 레벨 미터와 부드러운 코칭으로 음성 메모를 녹음하고 MP3로 저장하세요.",
-          "blurb": "실시간 레벨 코칭으로 깔끔한 음성 메모를 녹음해요"
+          "description": "실시간 레벨 미터와 부드러운 코칭으로 음성 메모를 녹음하고 MP3로 저장하세요."
         },
         "ms": {
           "name": "Perakam Suara",
-          "description": "Rakam nota suara dengan meter aras langsung dan bimbingan lembut, kemudian simpan sebagai MP3.",
-          "blurb": "Rakam nota suara yang jernih dengan bimbingan aras langsung"
+          "description": "Rakam nota suara dengan meter aras langsung dan bimbingan lembut, kemudian simpan sebagai MP3."
         },
         "nl": {
           "name": "Spraakrecorder",
-          "description": "Neem een spraakbericht op met een live niveaumeter en zachte begeleiding, en sla het op als MP3.",
-          "blurb": "Neem een heldere spraakopname op met live niveaubegeleiding"
+          "description": "Neem een spraakbericht op met een live niveaumeter en zachte begeleiding, en sla het op als MP3."
         },
         "no": {
           "name": "Stemmeopptaker",
-          "description": "Spill inn en talemelding med nivåmåler i sanntid og skånsom veiledning, og lagre den som MP3.",
-          "blurb": "Spill inn en ren talemelding med nivåveiledning i sanntid"
+          "description": "Spill inn en talemelding med nivåmåler i sanntid og skånsom veiledning, og lagre den som MP3."
         },
         "pl": {
           "name": "Nagrywanie głosu",
-          "description": "Nagraj notatkę głosową z licznikiem poziomu na żywo i delikatnymi wskazówkami, a następnie zapisz jako MP3.",
-          "blurb": "Nagraj czystą notatkę głosową z pomocą wskaźnika poziomu na żywo"
+          "description": "Nagraj notatkę głosową z licznikiem poziomu na żywo i delikatnymi wskazówkami, a następnie zapisz jako MP3."
         },
         "pt": {
           "name": "Gravador de Voz",
-          "description": "Grave uma nota de voz com um medidor de nível ao vivo e dicas gentis, depois salve como MP3.",
-          "blurb": "Grave uma nota de voz limpa com orientação de nível ao vivo"
+          "description": "Grave uma nota de voz com um medidor de nível ao vivo e dicas gentis, depois salve como MP3."
         },
         "ro": {
           "name": "Înregistrator vocal",
-          "description": "Înregistrează o notă vocală cu un indicator de nivel live și îndrumări blânde, apoi salveaz-o ca MP3.",
-          "blurb": "Înregistrează o notă vocală clară, cu îndrumare live a nivelului"
+          "description": "Înregistrează o notă vocală cu un indicator de nivel live și îndrumări blânde, apoi salveaz-o ca MP3."
         },
         "sv": {
           "name": "Röstinspelare",
-          "description": "Spela in ett röstmeddelande med en nivåmätare i realtid och mjuk vägledning, spara sedan som MP3.",
-          "blurb": "Spela in ett rent röstmeddelande med nivåvägledning i realtid"
+          "description": "Spela in ett röstmeddelande med en nivåmätare i realtid och mjuk vägledning, spara sedan som MP3."
         },
         "tl": {
           "name": "Recorder ng Boses",
-          "description": "Mag-record ng voice note na may live na level meter at magiliw na coaching, tapos i-save bilang MP3.",
-          "blurb": "Mag-record ng malinis na voice note na may live na level coaching"
+          "description": "Mag-record ng voice note na may live na level meter at magiliw na coaching, tapos i-save bilang MP3."
         },
         "tr": {
           "name": "Ses Kaydedici",
-          "description": "Canlı seviye göstergesi ve yumuşak yönlendirmelerle bir ses notunu kayda al, ardından MP3 olarak kaydet.",
-          "blurb": "Canlı seviye rehberliğiyle temiz bir sesli not kaydet"
+          "description": "Canlı seviye göstergesi ve yumuşak yönlendirmelerle bir ses notunu kayda al, ardından MP3 olarak kaydet."
         },
         "uk": {
           "name": "Диктофон",
-          "description": "Запишіть голосову нотатку з індикатором рівня в реальному часі та м'якими підказками, потім збережіть як MP3.",
-          "blurb": "Записуйте чисту голосову нотатку з підказками рівня в реальному часі."
+          "description": "Запишіть голосову нотатку з індикатором рівня в реальному часі та м'якими підказками, потім збережіть як MP3."
         },
         "ur": {
           "name": "وائس ریکارڈر",
-          "description": "لائیو لیول میٹر اور نرم رہنمائی کے ساتھ ایک وائس نوٹ ریکارڈ کریں، پھر اسے MP3 کے طور پر محفوظ کریں۔",
-          "blurb": "لائیو لیول کوچنگ کے ساتھ صاف وائس نوٹ ریکارڈ کریں"
+          "description": "لائیو لیول میٹر اور نرم رہنمائی کے ساتھ ایک وائس نوٹ ریکارڈ کریں، پھر اسے MP3 کے طور پر محفوظ کریں۔"
         },
         "vi": {
           "name": "Ghi Âm Giọng Nói",
-          "description": "Ghi một đoạn ghi âm giọng nói với đồng hồ đo mức âm thanh trực tiếp và hướng dẫn nhẹ nhàng, sau đó lưu dưới dạng MP3.",
-          "blurb": "Ghi âm giọng nói rõ ràng với hướng dẫn mức âm thanh trực tiếp"
+          "description": "Ghi một đoạn ghi âm giọng nói với đồng hồ đo mức âm thanh trực tiếp và hướng dẫn nhẹ nhàng, sau đó lưu dưới dạng MP3."
         },
         "zh-hant": {
           "name": "語音錄音",
-          "description": "錄製語音備忘，搭配即時音量表與溫和的錄音提示，完成後另存為 MP3。",
-          "blurb": "搭配即時音量指引，錄製乾淨的語音備忘"
+          "description": "錄製語音備忘，搭配即時音量表與溫和的錄音提示，完成後另存為 MP3。"
         },
         "zh": {
           "name": "语音录制",
-          "description": "录制语音备忘录，带实时电平表和柔和的录音提示，并保存为 MP3。",
-          "blurb": "借助实时电平提示，录制清晰的语音备忘录"
+          "description": "录制语音备忘录，带实时电平表和柔和的录音提示，并保存为 MP3。"
         }
       }
     },
