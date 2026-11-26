@@ -573,7 +573,7 @@ From engine **1.262** the result carries a `report`, measured on the written byt
 
 ### `host.recorder`
 
-*Optional, v1.17; capability `microphone`, `camera` or `screen`.* Record the microphone (and optionally the camera or the screen) to a finished media Blob, plus a DOM-free **level meter** for a sound check before recording. The shell owns `getUserMedia` and `MediaRecorder`; the engine sees only plain numbers (`AudioLevel`) and finished Blobs. Recording prompts for a permission a shell may be unable to grant, so it **is** gated: declare `"microphone"` (and `"camera"` for video) in `capabilities`. The headless CLI provides no recorder. `voice-recorder` is the reference tool.
+*Optional, v1.17; capability `microphone`, `camera` or `screen`.* Record the microphone (and optionally the camera or the screen) to a finished media Blob, plus a DOM-free **level meter** for a sound check before recording. The shell owns `getUserMedia` and `MediaRecorder`; the engine sees only plain numbers (`AudioLevel`) and finished Blobs. Recording prompts for a permission a shell may be unable to grant, so it **is** gated: declare `"microphone"` (and `"camera"` for video) in `capabilities`. The headless CLI provides no recorder. `audiogram` is the reference tool for a microphone take, and the retired `voice-recorder` is the reference for an `onLevel` meter.
 
 ::: details `host.recorder` members
 | Member | Type | Notes |

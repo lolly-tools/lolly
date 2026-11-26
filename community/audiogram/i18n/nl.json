@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Story (9:16)",
   "inputs.accent.label": "Golfvormkleur",
   "inputs.ink.label": "Tekstkleur",
-  "inputs.bg.label": "Achtergrond"
+  "inputs.bg.label": "Achtergrond",
+  "inputs.targetLevel.label": "Doelniveau",
+  "inputs.targetLevel.help": "Wat als 'precies goed' geldt voor de begeleidingstips.",
+  "inputs.targetLevel.options.soft": "Zacht · dicht op de mic",
+  "inputs.targetLevel.options.normal": "Normale spraak",
+  "inputs.targetLevel.options.loud": "Luid · ruimte",
+  "inputs.showTips.label": "Begeleidingstips",
+  "inputs.showTips.help": "Live tips zoals 'kom dichterbij' of 'je clipt'."
 }

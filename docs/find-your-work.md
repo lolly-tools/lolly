@@ -108,7 +108,7 @@ In tools that save as you work, History keeps a copy of the discarded edits for 
 In the web app, every tool that makes a document saves as you work, such as Lolly Design, Lolly Chart, QR Code, Text and Lolly Sandbox. These tools do not:
 
 - tools that work on a file you bring, such as Redact, Sign or Convert Image, because Lolly never keeps a copy of that file;
-- tools that record from your camera, microphone or screen, such as Record, Lolly Screen Capture and Lolly Voice Recorder;
+- tools that record from your camera, microphone or screen, such as Record and Lolly Screen Capture;
 - a tool with nothing to change, such as Countdown.
 
 In the other tools, your first change files the work in **Projects** as if you had saved. Later changes are kept once the tool has finished drawing. An unsaved creation stays in Projects after you close the tab and reopens with its changes marked unsaved.

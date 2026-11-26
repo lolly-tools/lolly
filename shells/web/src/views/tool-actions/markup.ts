@@ -14,7 +14,7 @@ import { CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, OUTPUT_LICENCE_C
 import { durableSupport, liveCaptureSupport } from '../../bridge/format-support.js';
 import { helpTip } from '../../components/help-tip.js';
 import { t, tRaw } from '../../i18n.ts';
-import { getAudioTake, onAudioTakeChange, saveTakeMp3, saveTakeNative, takeNativeExt, takesAudioInput } from '../../lib/audio-take.ts';
+import { getAudioTake, onAudioTakeChange, saveTakeMp3, saveTakeNative, takeNameFrom, takeNativeExt, takesAudioInput } from '../../lib/audio-take.ts';
 import { exportAffordance, getExportPolicy } from '../../lib/export-policy.ts';
 import { icon } from '../../lib/icons.ts';
 import { escape as escapeText } from '../../utils.js';
@@ -1017,8 +1017,7 @@ export function paintBar(ta: ActionsCtx): void {
       const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-action]');
       const take = getAudioTake();
       if (!btn || !take) return;
-      const value = runtime.getModel().find(i => i.id === 'name')?.value;
-      const name = typeof value === 'string' ? value : undefined;
+      const name = takeNameFrom(runtime.getModel());
       if (btn.dataset.action === 'take-native') {
         void saveTakeNative(host, take, name);
         return;

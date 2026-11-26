@@ -2,7 +2,7 @@
 /** Where a retired tool's document opens in its successor (lib/tool-successors.ts). */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { flowChartToDesign, meetingPlannerToTimezone, successorHref } from './tool-successors.ts';
+import { flowChartToDesign, meetingPlannerToTimezone, successorHref, voiceRecorderToAudiogram } from './tool-successors.ts';
 
 test('a Meeting Planner document becomes Timezone places, with the host city first and as the clock', () => {
   const carried = meetingPlannerToTimezone({
@@ -87,4 +87,30 @@ test('the Design address holds the chart at Flow Chart\'s canvas size', () => {
   assert.ok(href.startsWith('#/tool/design?'));
   assert.deepEqual([params.get('width'), params.get('height'), params.get('background')], ['1600', '1000', '#ffffff']);
   assert.equal(JSON.parse(params.get('boxes')!).length, 5);
+});
+
+test('Voice Recorder into Audiogram: the name, card style, accent and coaching choices travel', () => {
+  assert.deepEqual(
+    voiceRecorderToAudiogram({ title: ' Standup notes ', targetLevel: 'soft', showTips: false, theme: 'light', accent: '#30ba78' }),
+    { title: 'Standup notes', bg: '#fafbfe', ink: '#11141f', accent: '#30ba78', targetLevel: 'soft', showTips: false },
+  );
+});
+
+test('Voice Recorder into Audiogram: an empty accent and an unknown value are left to Audiogram', () => {
+  assert.deepEqual(
+    voiceRecorderToAudiogram({ title: 'Voice note', targetLevel: 'shout', showTips: 'true', theme: 'dark', accent: '' }),
+    { title: 'Voice note', bg: '#11141f', ink: '#fafbfe', showTips: true },
+  );
+  assert.deepEqual(voiceRecorderToAudiogram({ theme: 'sepia' }), {}, 'a card style Voice Recorder never had carries no colours');
+  assert.deepEqual(voiceRecorderToAudiogram({}), { bg: '#11141f', ink: '#fafbfe' }, 'the card was dark unless told otherwise');
+});
+
+test('the Audiogram address is one its own manifest reads back', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { parseUrlState } = await import('../../../../engine/src/url-mode.ts');
+  const manifest = JSON.parse(await readFile(new URL('../../../../community/audiogram/tool.json', import.meta.url), 'utf8'));
+  const href = successorHref('voice-recorder', 'audiogram', { title: 'Standup notes', targetLevel: 'loud', showTips: false, theme: 'light', accent: '' });
+  assert.ok(href.startsWith('#/tool/audiogram?'));
+  const { values } = parseUrlState(href.split('?')[1]!, manifest);
+  assert.deepEqual(values, { title: 'Standup notes', bg: '#fafbfe', ink: '#11141f', targetLevel: 'loud', showTips: false });
 });

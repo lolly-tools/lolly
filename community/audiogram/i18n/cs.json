@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Story (9:16)",
   "inputs.accent.label": "Barva zvukové vlny",
   "inputs.ink.label": "Barva textu",
-  "inputs.bg.label": "Pozadí"
+  "inputs.bg.label": "Pozadí",
+  "inputs.targetLevel.label": "Cílová úroveň",
+  "inputs.targetLevel.help": "Co se počítá za „tak akorát“ pro koučovací tipy.",
+  "inputs.targetLevel.options.soft": "Tichý · mikrofon zblízka",
+  "inputs.targetLevel.options.normal": "Normální řeč",
+  "inputs.targetLevel.options.loud": "Hlasitý · místnost",
+  "inputs.showTips.label": "Koučovací tipy",
+  "inputs.showTips.help": "Živé tipy jako „přibliž se“ nebo „ořezáváš (clipping)“."
 }
