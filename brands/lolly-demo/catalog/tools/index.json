@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-22T12:38:33.953Z",
+  "generatedAt": "2026-11-26T10:05:52.054Z",
   "tools": [
     {
       "id": "3d",
@@ -147,7 +147,7 @@
       "id": "3d-studio",
       "name": "3D Studio",
       "description": "Turn SVG artwork and 3D models into images, alone or together in one scene. Shape materials, lighting, focus and shadows.",
-      "version": "0.11.0",
+      "version": "0.12.0",
       "status": "official",
       "category": "designer",
       "tags": [

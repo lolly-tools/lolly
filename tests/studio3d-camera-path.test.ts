@@ -480,3 +480,179 @@ test('Convert to keys hands the move over as editable rows', async () => {
   }
 });
 
+
+/**
+ * Orbit: one whole turn of the camera about the subject. It is the camera move the older
+ * 3D tool opened on, and it is a different picture from a Turntable: the subject, its
+ * lights and its backdrop keep their places and the camera goes round them. Like every
+ * move it is two keys and nothing else, so these tests read the keys and then sample the
+ * path the way a frame-driven export does.
+ */
+const ORBIT_VIEW = { azimuth: 25, elevation: 14, fov: 29, zoom: 1.2, panX: 0.3, panY: -0.2 };
+const orbitScene = (values: Record<string, unknown> = {}) =>
+  buildStudioScene({
+    version: 1,
+    values: { cameraMotion: 'orbit', camera: ORBIT_VIEW, focusDistance: 6, ...values },
+  });
+/** The camera's position as the shell computes it: on a sphere about the target. */
+function orbitPosition(pose: ReturnType<typeof studioCameraPose>): [number, number, number] {
+  const azimuth = (pose.azimuth * Math.PI) / 180,
+    elevation = (pose.elevation * Math.PI) / 180,
+    distance = 11.3 / pose.zoom;
+  return [
+    pose.target[0] + Math.sin(azimuth) * Math.cos(elevation) * distance,
+    pose.target[1] + Math.sin(elevation) * distance,
+    pose.target[2] + Math.cos(azimuth) * Math.cos(elevation) * distance,
+  ];
+}
+const apart = (a: number[], b: number[]) => Math.hypot(...a.map((n, i) => n - b[i]!));
+
+test('an orbit is one whole turn from the live view, with the height and distance held', () => {
+  const scene = orbitScene();
+  assert.equal(scene.cameraMotion!.kind, 'orbit');
+  assert.equal(studioCameraTravels(scene), true);
+  assert.equal(studioAnimated(scene), true);
+  const [first, last] = scene.cameraMotion!.keys;
+  assert.equal(scene.cameraMotion!.keys.length, 2);
+  assert.deepEqual([first!.at, first!.azimuth], [0, 25], 'it starts on the live view');
+  assert.deepEqual([last!.at, last!.azimuth], [1, 385], 'and ends one turn on, the angle rising');
+  for (const key of [first!, last!]) {
+    assert.equal(key.elevation, 14);
+    assert.equal(key.fov, 29);
+    assert.equal(key.zoom, 1.2);
+    assert.deepEqual(key.target, [0.3, 1.4, 0]);
+    assert.equal(key.focus, 6);
+  }
+  // The amount scales how far other moves go. A whole turn is a whole turn.
+  for (const cameraAmount of [0.25, 2])
+    assert.deepEqual(orbitScene({ cameraAmount }).cameraMotion!.keys, scene.cameraMotion!.keys);
+  // The widest live angles stay inside the range a saved key holds.
+  assert.equal(orbitScene({ camera: { azimuth: 180 } }).cameraMotion!.keys[1]!.azimuth, 540);
+  assert.equal(orbitScene({ camera: { azimuth: -180 } }).cameraMotion!.keys[1]!.azimuth, 180);
+  // An orthographic camera orbits as well: nothing here depends on the lens.
+  assert.equal(orbitScene({ projection: 'orthographic' }).cameraMotion!.keys.length, 2);
+  assert.deepEqual(
+    studioCameraPresetRows(scene).map((row) => [row.name, row.at, row.azimuth]),
+    [
+      ['Orbit 1', 0, 25],
+      ['Orbit 2', 100, 385],
+    ]
+  );
+});
+
+test('an orbit at constant speed turns evenly and stays on its circle', () => {
+  const scene = orbitScene({ cameraEase: 'linear', cameraLoop: true });
+  const frames = 120;
+  const rest = studioRestPose(scene);
+  const radius = apart(orbitPosition(rest), rest.target);
+  for (let i = 0; i < frames; i++) {
+    const pose = studioCameraPose(scene, i / frames);
+    assert.ok(Math.abs(pose.azimuth - (25 + (360 * i) / frames)) < 1e-9, `frame ${i} angle`);
+    assert.equal(pose.elevation, 14, `frame ${i} height`);
+    assert.equal(pose.zoom, 1.2, `frame ${i} distance`);
+    assert.equal(pose.fov, 29);
+    assert.equal(pose.focus, 6);
+    assert.deepEqual(pose.target, scene.cameraMotion!.keys[0]!.target);
+    assert.ok(apart(pose.target, rest.target) < 1e-9, `frame ${i} target`);
+    assert.ok(Math.abs(apart(orbitPosition(pose), pose.target) - radius) < 1e-9, `frame ${i} radius`);
+  }
+});
+
+test('a looping orbit has no doubled frame at the seam', () => {
+  for (const cameraEase of PRESET_EASES)
+    for (const frames of [24, 150, 900]) {
+      const scene = orbitScene({ cameraEase, cameraLoop: true });
+      const positions = Array.from({ length: frames }, (_, i) =>
+        orbitPosition(studioCameraPose(scene, i / frames))
+      );
+      const where = `${cameraEase}, ${frames} frames`;
+      // The clip's frames are 0 to frames - 1. The frame after the last is the first
+      // again, exactly, so the loop closes; the last one drawn is not the first, so the
+      // picture does not stand still for two frames where the clip repeats.
+      const first = studioCameraPose(scene, 0);
+      const wrapped = studioCameraPose(scene, 1);
+      assert.deepEqual({ ...wrapped, at: 0 }, first, `${where}: the loop closes on the first view`);
+      assert.ok(apart(positions[frames - 1]!, positions[0]!) > 1e-6, `${where}: last is not first`);
+      for (let i = 1; i < frames; i++)
+        assert.ok(
+          apart(positions[i]!, positions[i - 1]!) > 1e-9,
+          `${where}: frame ${i} moved on from frame ${i - 1}`
+        );
+      // The second time round draws the first time round.
+      for (const i of [0, 1, Math.floor(frames / 2), frames - 1])
+        assert.ok(
+          apart(orbitPosition(studioCameraPose(scene, 1 + i / frames)), positions[i]!) < 1e-9,
+          `${where}: frame ${i} of the second turn`
+        );
+    }
+  // At constant speed the step across the seam is the step everywhere else.
+  const scene = orbitScene({ cameraEase: 'linear', cameraLoop: true });
+  const step = (a: number, b: number) =>
+    apart(orbitPosition(studioCameraPose(scene, a)), orbitPosition(studioCameraPose(scene, b)));
+  assert.ok(Math.abs(step(23 / 24, 1) - step(0, 1 / 24)) < 1e-9);
+  assert.ok(Math.abs(step(23 / 24, 24 / 24) - step(11 / 24, 12 / 24)) < 1e-9);
+});
+
+test('an orbit without the loop turns once and holds the view it started on', () => {
+  const scene = orbitScene({ cameraEase: 'smooth' });
+  const start = orbitPosition(studioCameraPose(scene, 0));
+  assert.ok(apart(orbitPosition(studioCameraPose(scene, 0.5)), start) > 1, 'half way is the far side');
+  assert.equal(studioCameraPose(scene, 0.5).azimuth, 205, 'an eased turn is half done half way');
+  assert.ok(studioCameraPose(scene, 0.1).azimuth < 25 + 36, 'and it starts gently');
+  for (const time of [1, 1.5, 7]) {
+    const pose = studioCameraPose(scene, time);
+    assert.equal(pose.azimuth, 385, `held at ${time}`);
+    assert.ok(apart(orbitPosition(pose), start) < 1e-9, `the held view is the first view at ${time}`);
+  }
+});
+
+test('an orbit draws the same frames on every run', () => {
+  const values = { cameraEase: 'flow', cameraLoop: true, duration: 7.5 };
+  const sample = () => {
+    const scene = orbitScene(values);
+    return Array.from({ length: 225 }, (_, i) => studioCameraPose(scene, i / 225));
+  };
+  assert.deepEqual(sample(), sample());
+  assert.equal(JSON.stringify(orbitScene(values)), JSON.stringify(orbitScene(values)));
+  // Clip time: a ten second export of a five second orbit goes round twice.
+  const scene = orbitScene({ cameraEase: 'linear', cameraLoop: true, duration: 5 });
+  assert.ok(Math.abs(studioCameraPose(scene, 0.25, 10).azimuth - (25 + 180)) < 1e-9);
+  assert.ok(Math.abs(studioCameraPose(scene, 0.75, 10).azimuth - (25 + 180)) < 1e-9);
+});
+
+test('?cameraMotion=orbit opens an orbit, and a link without it draws as before', async () => {
+  const tool = await loadTool('3d-studio', (p) => readFile(join('community', p), 'utf8'));
+  const host = baseHost();
+  const option = tool.manifest.inputs
+    .find((input) => input.id === 'cameraMotion')!
+    .options!.find((o) => (typeof o === 'string' ? o : o.value) === 'orbit');
+  assert.deepEqual(option, { value: 'orbit', label: 'Orbit' });
+  const parsed = parseUrlState('cameraMotion=orbit&cameraLoop=1&cameraEase=linear', tool.manifest);
+  assert.equal(parsed.values.cameraMotion, 'orbit');
+  const runtime = await createRuntime(tool, host, parsed.values);
+  assert.match(runtime.getHydrated(), /data-clip-ms="5000"/, 'an orbit has a clip length');
+  const values = Object.fromEntries(runtime.getModel().map((i) => [i.id, i.value]));
+  const scene = buildStudioScene({ version: 1, values });
+  assert.equal(scene.cameraMotion!.kind, 'orbit');
+  // A move's keys hold three decimals, as every camera move's do, so the turn starts
+  // within a thousandth of a degree of the live view.
+  assert.ok(Math.abs(studioCameraPose(scene, 0.5).azimuth - (scene.camera.azimuth + 180)) < 1e-3);
+  assert.match(serializeUrlState(runtime.getModel()), /cameraMotion=orbit/);
+  runtime.destroy();
+
+  // The manifest's own defaults are untouched: a session or link that says nothing about
+  // the camera still holds the view it always held, at every moment of the clip.
+  const plain = await createRuntime(tool, host, {});
+  assert.match(plain.getHydrated(), /data-clip-ms="0"/);
+  const defaults = Object.fromEntries(plain.getModel().map((i) => [i.id, i.value]));
+  assert.equal(defaults.cameraMotion, 'still');
+  assert.equal(defaults.cameraLoop, false);
+  assert.equal(defaults.cameraEase, 'smooth');
+  const still = buildStudioScene({ version: 1, values: defaults });
+  assert.equal(still.cameraMotion!.kind, 'still');
+  assert.deepEqual(still.cameraMotion!.keys, []);
+  assert.equal(studioCameraTravels(still), false);
+  for (const time of [0, 0.3, 1, 4])
+    assert.deepEqual(studioCameraPose(still, time), studioRestPose(still));
+  plain.destroy();
+});
