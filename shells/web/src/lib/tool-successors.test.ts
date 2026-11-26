@@ -133,6 +133,8 @@ test('3D into 3D Studio: the sample model becomes a model source from the librar
   assert.deepEqual([studio().source, studio().modelAsset], ['model', 'lolly/3d/duck']);
   assert.equal(studio({ model: 'cat' }).modelAsset, 'lolly/3d/cat');
   assert.equal(studio({ model: 'something-else' }).modelAsset, 'lolly/3d/duck', '3D fell back to the duck too');
+  assert.equal(studio({ model: 'geeko-sitting' }).modelAsset, 'suse/model/geeko-sitting', "a brand's sample opens that brand's catalog model");
+  assert.equal(studio({ model: 'geeko' })['target.y'], 0.84, 'and the camera aims at its middle');
   // An upload lived in memory and is not a value, so nothing of the upload travels.
   assert.equal(JSON.stringify(studio({ modelUpload: { __file: true, url: 'blob:x' } })).includes('blob:'), false);
 });
