@@ -2,17 +2,17 @@
   "version": 1,
   "tool": {
     "id": "qr-code",
-    "version": "2.8.0",
-    "digest": "de55f7c57f592ad0427e4e5404233f30d7d4d886286f7ee63f00d684b5951814"
+    "version": "2.9.0",
+    "digest": "ac93cdefc219d14f6b123566c52f09e26692c95de964d65d8dec9be5ae6df30c"
   },
   "verdict": "resvg",
   "measured": {
-    "date": "2026-11-21",
+    "date": "2026-11-26",
     "profile": "lolly-demo",
-    "webShell": "e20c15820bb9de99e7181cc2e251829425c74da9",
+    "webShell": "48a2a6feb602adddc9fbbce745c40c309b39424e",
     "renderers": {
       "resvg": "2.6.2",
-      "engine": "1.349.0",
+      "engine": "1.356.0",
       "chromium": "153.0.8010.12"
     },
     "bands": {
