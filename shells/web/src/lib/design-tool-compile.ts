@@ -7,7 +7,7 @@ import { resolveVectorFont } from '../bridge/font-registry.ts';
 import { readFontEmbedding } from './font-utils.ts';
 import { redistribution } from './redistribution.ts';
 import { packageTextFonts } from './text-font-package.ts';
-import { instancePath } from './instance.ts';
+import { fetchMaybeInstance, instancePath } from './instance.ts';
 
 export class DesignPreparationError extends Error {
   layerId?: string; inputId?: string;
@@ -51,7 +51,7 @@ export async function prepareDesignTool(draft: DesignToolDraftV1, canvas: HTMLEl
     if (!['image', 'raster', 'vector'].includes(ref.type)) throw new Error('Use a still image for this tool.');
     const rights = redistribution((ref.meta ?? {}) as Record<string, unknown>);
     if (!ref.id.startsWith('user/') && !rights.travels && !options.preview && !options.include?.has(ref.id)) throw new Error('Review the source image’s inclusion rights before sharing.');
-    const response = await fetch(ref.url, {signal:options.signal});
+    const response = await fetchMaybeInstance(ref.url, {signal:options.signal});
     if (!response.ok) throw new Error('An image could not be read. Replace it before sharing.');
     const blob = await response.blob();
     if (!/^image\/(png|jpeg|webp|avif|svg\+xml)$/.test(blob.type)) throw new Error('Use PNG, JPEG, WebP, AVIF or SVG images.');
@@ -84,7 +84,7 @@ export async function prepareDesignTool(draft: DesignToolDraftV1, canvas: HTMLEl
       const face = await resolveVectorFont(style, `${node.textContent}ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`);
       if (face?.face && name && !['sans', 'mono', 'display'].includes(name) && face.face.family.toLowerCase() !== name.toLowerCase()) throw new Error('The original font is unavailable. Add it or choose an explicit replacement in Design.');
       if (!face || face.fallbacks?.length) throw new Error('Add a complete font file for this text before sharing.');
-      const response = await fetch(face.url, {signal:options.signal}); if (!response.ok) throw new Error('The font file could not be read.');
+      const response = await fetchMaybeInstance(face.url, {signal:options.signal}); if (!response.ok) throw new Error('The font file could not be read.');
       const bytes = new Uint8Array(await response.arrayBuffer());
       const permission = readFontEmbedding(bytes.slice().buffer);
       if (!['installable', 'editable'].includes(permission.permission) || permission.bitmapOnly) throw new Error('This font cannot be embedded for editing. Choose an editable font.');
@@ -159,8 +159,8 @@ export async function prepareDesignTool(draft: DesignToolDraftV1, canvas: HTMLEl
     }
   }
   const [source, styles] = await Promise.all([
-    fetch(instancePath('/tools/design/assets/rules-renderer.js'),{signal:options.signal}).then(r => { if (!r.ok) throw new Error('The tool compiler is unavailable.'); return r.text(); }),
-    fetch(instancePath('/tools/design/styles.css'),{signal:options.signal}).then(r => r.text()),
+    fetchMaybeInstance(instancePath('/tools/design/assets/rules-renderer.js'),{signal:options.signal}).then(r => { if (!r.ok) throw new Error('The tool compiler is unavailable.'); return r.text(); }),
+    fetchMaybeInstance(instancePath('/tools/design/styles.css'),{signal:options.signal}).then(r => r.text()),
   ]);
   // Capture only the inherited variables the renderer uses; recipient branding cannot alter them.
   const inherited = getComputedStyle(canvas);

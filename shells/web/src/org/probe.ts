@@ -422,11 +422,14 @@ export async function initOrgProbeFirst(): Promise<OrgState | null> {
 async function probeAndInit(): Promise<OrgState | null> {
   try {
     if (!knownManagedAi() && isRecentlyAbsent()) { finishAiProbe(false); return null; }
+    // The base the probe asks. initOrgWithAuth compares it with the base in use once
+    // the session is read, because catalog sync may set the instance aside meanwhile.
+    const askedOf = getInstanceBase();
     const { auth, absent } = await probeForBoot();
     if (!auth) { finishAiProbe(false); if (absent) rememberAbsent(); return null; }
     finishAiProbe(true);
     const org = await import('./index.ts');
-    return await org.initOrgWithAuth(auth);
+    return await org.initOrgWithAuth(auth, askedOf);
   } catch {
     return null;
   }

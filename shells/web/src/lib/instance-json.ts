@@ -17,7 +17,10 @@ export async function fetchWithin(path: string, init: RequestInit | undefined, t
     else outer.addEventListener('abort', cancel, { once: true });
   }
   try {
-    return { res: await instanceFetch(instancePath(path), ctrl ? { ...init, signal: ctrl.signal } : init), timedOut: false };
+    // The budget also goes to the native transport of the apps, which cannot be
+    // cancelled by a signal: the request then ends there at the same time.
+    const limits = timeoutMs === undefined ? undefined : { timeoutMs: Math.max(1, Math.ceil(timeoutMs)) };
+    return { res: await instanceFetch(instancePath(path), ctrl ? { ...init, signal: ctrl.signal } : init, limits), timedOut: false };
   } catch {
     return { res: null, timedOut };
   } finally {

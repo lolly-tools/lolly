@@ -32,7 +32,7 @@ import { historySettled } from '../lib/overlay-back.ts';
 import { flushAddressWrites } from '../lib/url-state.ts';
 import { mountModal } from './modal.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
-import { getInstanceBase, initInstanceBase, setInstanceBase, setInstanceCatalogKeyId, instanceFetch } from '../lib/instance.ts';
+import { getInstanceBase, initInstanceBase, setInstanceBase, setInstanceCatalogKeyId, instanceFetch, suspendedInstanceBase } from '../lib/instance.ts';
 import type { CompanionHost } from '../lib/design-system/companions.ts';
 import { askInstanceKeyId, shortKeyId } from '../catalog/instance-key.ts';
 import { validateInstanceUrl, probeConnection, isAccountInstance, workspaceAppUrl, type ProbeOutcome, type ProbedInstance, type UrlProblem } from '../lib/instance-probe.ts';
@@ -84,6 +84,7 @@ async function readCapped(resp: Response): Promise<ArrayBuffer> {
 }
 
 function probeErrorMessage(outcome: Extract<ProbeOutcome, { ok: false }>): string {
+  if (outcome.reason === 'busy') return t('That instance is busy. Try again in a moment.');
   if (outcome.reason === 'http') return t('That instance responded with an error ({status}).', { status: outcome.status });
   if (outcome.reason === 'parse') return t("Couldn't read that instance's response.");
   return t("That doesn't look like a Lolly catalogue (no tools list).");
@@ -106,8 +107,11 @@ type Step =
  * `start: 'connect'` opens straight at the address step, for a browser, where the
  * bundled choice means nothing; Back then closes the sheet.
  * `url` fills the address in, for a caller that already has the address the person typed.
+ * `check` starts the check of that address at once, in the apps only (in a browser the
+ * same button leaves the page), so the instance's key is on screen with no tap. The key
+ * is still accepted only by "Use this instance".
  */
-export function openInstanceSheet(host: Pick<HostV1, 'log'>, opts: { start?: 'connect'; url?: string } = {}): Promise<void> {
+export function openInstanceSheet(host: Pick<HostV1, 'log'>, opts: { start?: 'connect'; url?: string; check?: boolean } = {}): Promise<void> {
   const startAtConnect = opts.start === 'connect';
   return new Promise((resolve) => {
     let step: Step = startAtConnect ? { kind: 'connect', url: opts.url ?? '', probing: false } : { kind: 'choose' };
@@ -278,7 +282,8 @@ export function openInstanceSheet(host: Pick<HostV1, 'log'>, opts: { start?: 'co
         void (async () => {
           await initInstanceBase();
           if (!modal.el.isConnected) return;
-          if (getInstanceBase()) { await setInstanceBase(null); reloadOnClose = true; }
+          // An instance set aside for this page load is still the saved choice.
+          if (getInstanceBase() || suspendedInstanceBase()) { await setInstanceBase(null); reloadOnClose = true; }
           await useServerBrand();
           goImportStep();
         })();
@@ -386,6 +391,10 @@ export function openInstanceSheet(host: Pick<HostV1, 'log'>, opts: { start?: 'co
 
       if (act === 'import-done') { modal.close(); return; }
     });
+
+    if (startAtConnect && opts.check && opts.url && isTauriShell()) {
+      modal.el.querySelector<HTMLButtonElement>('[data-act="connect-probe"]')?.click();
+    }
 
     // 'change' bubbles (unlike 'input'), so this delegated listener survives
     // every repaint()'s innerHTML replacement same as the click listener above.

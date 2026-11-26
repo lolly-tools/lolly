@@ -40,6 +40,9 @@ export function validateInstanceUrl(input: string): UrlValidation {
 export type ProbeOutcome =
   | { ok: true; toolCount: number }
   | { ok: false; reason: 'http'; status: number }
+  /** The instance would not describe itself just now (too many requests, or a server
+   *  fault) and its catalog said nothing more: neither a refusal nor a plain fault. */
+  | { ok: false; reason: 'busy' }
   | { ok: false; reason: 'parse' }
   | { ok: false; reason: 'shape' };
 
@@ -94,21 +97,55 @@ export interface ProbedInstance {
   manifest: ManifestOutcome;
 }
 
-/** Public discovery first; private content is read only after sign-in. */
-export async function probeConnection(base: string): Promise<{ ok: true; instance: ProbedInstance } | Exclude<ProbeOutcome, { ok: true }>> {
+/** The pause before the one second try at the description, when the answer gave none. */
+const DESCRIPTION_RETRY_MS = 5000;
+/** The longest pause an answer's Retry-After is allowed to ask of the connect step. */
+const DESCRIPTION_RETRY_MAX_MS = 8000;
+
+/** How long a "too many requests" or "unavailable" answer asks to wait, bounded. */
+function retryDelayMs(response: Response): number {
+  const seconds = Number(response.headers.get('retry-after'));
+  const asked = Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : DESCRIPTION_RETRY_MS;
+  return Math.min(DESCRIPTION_RETRY_MAX_MS, asked);
+}
+
+/**
+ * Public discovery first; private content is read only after sign-in.
+ *
+ * A Work instance counts its description against the same small allowance as sign-in,
+ * so the read can be answered 429 by an instance that is perfectly well. That answer
+ * says nothing about what the instance is: it is asked once more after the pause the
+ * answer names. Should the description still be missing and the catalog refuse or
+ * limit the read, the outcome is `busy`. Reporting the catalog's 401 there would call
+ * a sign-in gated instance broken.
+ */
+export async function probeConnection(
+  base: string, wait: (ms: number) => Promise<void> = ms => new Promise(resolve => setTimeout(resolve, ms)),
+): Promise<{ ok: true; instance: ProbedInstance } | Exclude<ProbeOutcome, { ok: true }>> {
   let manifest: ManifestOutcome = { found: false };
-  try {
-    const response = await instanceFetch(`${base}/api/v1/instance`);
-    let body: unknown;
-    try { body = await response.json(); } catch { /* not a manifest */ }
-    manifest = shapeInstanceManifest(response.status, response.ok, body);
-  } catch { /* static deployments need only the catalog */ }
+  let unanswered = false;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const response = await instanceFetch(`${base}/api/v1/instance`);
+      unanswered = response.status === 429 || response.status >= 500;
+      if (unanswered && attempt === 0 && (response.status === 429 || response.status === 503)) {
+        await wait(retryDelayMs(response));
+        continue;
+      }
+      let body: unknown;
+      try { body = await response.json(); } catch { /* not a manifest */ }
+      manifest = shapeInstanceManifest(response.status, response.ok, body);
+    } catch { /* static deployments need only the catalog */ }
+    break;
+  }
   if (isAccountInstance(manifest)) return { ok: true, instance: { base, toolCount: null, manifest } };
   const response = await instanceFetch(`${base}/catalog/tools/index.json`);
   let body: unknown;
   try { body = await response.json(); } catch { /* shapeProbeResult reports the refusal */ }
   const outcome = shapeProbeResult(response.status, response.ok, body);
-  return outcome.ok ? { ok: true, instance: { base, toolCount: outcome.toolCount, manifest } } : outcome;
+  if (outcome.ok) return { ok: true, instance: { base, toolCount: outcome.toolCount, manifest } };
+  if (unanswered && outcome.reason === 'http' && [401, 403, 429].includes(outcome.status)) return { ok: false, reason: 'busy' };
+  return outcome;
 }
 
 /** Web accounts work at the workspace origin, with its own first-party cookie. */

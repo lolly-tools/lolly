@@ -272,6 +272,76 @@ test('a native shell\'s code sign-in on the gate has the same finger floor', asy
   }
 });
 
+test('an instance set aside while the session is read draws no gate and stops no catalog', async () => {
+  reset();
+  const { _setBaseForTests, suspendInstanceBase, getInstanceBase } = await import('../lib/instance.ts');
+  const { catalogRefused, resetCatalogAccessForTests } = await import('../lib/catalog-access.ts');
+  resetCatalogAccessForTests();
+  _setBaseForTests('https://work.example');
+  try {
+    // Catalog sync runs beside the probe. Here the catalog fails to verify, and the
+    // instance is set aside, between the config answer and the session answer.
+    router = (url) => {
+      if (url.includes('/api/auth/config')) return json({ mode: 'gated', provider: 'oidc', loginPath: '/login', instanceName: 'work.example' });
+      if (url.includes('/api/auth/session')) { suspendInstanceBase(); return new Response('', { status: 401 }); }
+      return new Response('', { status: 404 });
+    };
+    const state = await initOrg();
+    assert.equal(getInstanceBase(), '');
+    assert.equal(state, null, 'no control plane for this page load');
+    assert.equal(document.querySelector('.org-gate'), null, 'no gate for an instance the app is not using');
+    assert.equal(catalogRefused(), false, 'the bundled catalog is still read');
+    assert.equal(orgSession(), null);
+  } finally {
+    _setBaseForTests('');
+    resetCatalogAccessForTests();
+  }
+});
+
+test('in the apps the gate has a way out: the instance sheet, which Escape closes', async () => {
+  reset();
+  controlPlane({ mode: 'gated', session: 'none', auth: { instanceName: 'lolly.ing', inviteOnly: true } });
+  const w = window as unknown as { __TAURI_INTERNALS__?: unknown };
+  w.__TAURI_INTERNALS__ = { invoke: async () => null };
+  const dialogProto = dom.window.HTMLDialogElement.prototype as unknown as Record<string, unknown>;
+  const saved = { showModal: dialogProto.showModal, close: dialogProto.close };
+  dialogProto.showModal = function showModal(this: { open: boolean }): void { this.open = true; };
+  dialogProto.close = function close(this: { open: boolean }): void { this.open = false; };
+  try {
+    const state = await initOrg();
+    assert.equal(state?.gate, true);
+    const out = document.querySelector<HTMLButtonElement>('#org-gate-instance');
+    assert.ok(out, 'the gate offers the instance sheet');
+    assert.equal(out.textContent, 'Change instance');
+    assert.equal(out.style.minHeight, 'var(--ui-size-target)');
+    out.click();
+    for (let i = 0; i < 2000 && !document.querySelector(".instance-sheet"); i++) await new Promise(r => setTimeout(r, 5));
+    const sheet = document.querySelector<HTMLElement>('.instance-sheet');
+    assert.ok(sheet, 'the sheet Settings opens');
+    assert.ok(sheet.querySelector('[data-act="choose-bundled"]'), 'with the tools built into the app as a choice');
+    assert.ok(sheet.querySelector('[data-act="choose-connect"]'), 'and another instance');
+    assert.equal(out.disabled, true, 'one sheet at a time');
+    // Escape reaches a dialog as its cancel event.
+    sheet.dispatchEvent(new dom.window.Event('cancel'));
+    for (let i = 0; i < 2000 && document.querySelector('.instance-sheet'); i++) await new Promise(r => setTimeout(r, 5));
+    assert.equal(document.querySelector('.instance-sheet'), null);
+    assert.ok(document.querySelector('.org-gate'), 'closing the sheet leaves the gate');
+    for (let i = 0; i < 2000 && out.disabled; i++) await new Promise(r => setTimeout(r, 5));
+    assert.equal(out.disabled, false);
+  } finally {
+    delete w.__TAURI_INTERNALS__;
+    Object.assign(dialogProto, saved);
+  }
+});
+
+test('a browser\'s gate has no instance button: the page is the instance', async () => {
+  reset();
+  controlPlane({ mode: 'gated', session: 'none' });
+  await initOrg();
+  assert.ok(document.querySelector('.org-gate'));
+  assert.equal(document.querySelector('#org-gate-instance'), null);
+});
+
 // ── The gate says which workspace and which account to use (plan 74 M18) ────
 
 /** The gate card's heading and its lines of copy, as a person reads them. */

@@ -1001,7 +1001,8 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
         <h1 style="margin:0 0 .5rem;font-size:1.4rem;font-weight:750;letter-spacing:-.01em">${heading}</h1>
         ${lines.map((line, i) => `<p style="margin:0 0 ${i === lines.length - 1 ? '1.5rem' : '.5rem'};color:hsl(var(--muted-foreground));font-size:.95rem;line-height:1.55">${line}</p>`).join('')}
         ${action}
-        ${isTauriShell() ? '<div id="org-gate-device" style="margin-top:1.25rem"></div>' : ''}
+        ${isTauriShell() ? `<div id="org-gate-device" style="margin-top:1.25rem"></div>
+        <button type="button" class="btn btn--ghost" id="org-gate-instance" style="margin-top:.75rem;min-width:9rem;min-height:var(--ui-size-target)">${t('Change instance')}</button>` : ''}
       </div>
     </section>`;
   // Native shells get the device-code alternative: leaving the app shell to
@@ -1010,6 +1011,20 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
   // this shell in via any browser where the person already has a session.
   const slot = view.querySelector<HTMLElement>('#org-gate-device');
   if (slot) wireDeviceCodeSignIn(slot);
+  // The way out, in the apps. Boot stops at this gate before any route exists, so
+  // Settings cannot be reached: someone who cannot sign in (a mistyped address, an
+  // account that was removed) would otherwise have no way back to the tools built
+  // into the app. The button opens the same sheet Settings does. Choosing there
+  // reloads the app; closing the sheet leaves the gate as it was.
+  const change = view.querySelector<HTMLButtonElement>('#org-gate-instance');
+  change?.addEventListener('click', () => {
+    if (change.disabled) return;
+    change.disabled = true;
+    void import('../components/instance-sheet.ts')
+      .then(m => m.openInstanceSheet(getHostRef() ?? { log: (level, msg, data) => console.warn(`[org] ${level}: ${msg}`, data ?? '') }))
+      .catch(e => console.warn('[org] the instance sheet did not open', e))
+      .finally(() => { change.disabled = false; });
+  });
   // A view that painted before the probe answered is stopped here, in the same task.
   noteGateShown(view.querySelector('.org-gate'));
   // Local backups remain in authenticated Settings. A signed-out visitor cannot
@@ -1107,11 +1122,12 @@ export async function initOrg(): Promise<OrgState | null> {
 
     // Remember absence only on a definitive answer (see org/probe.ts's header):
     // a timeout or a 5xx is dormancy for this boot, not for the next six hours.
+    const askedOf = getInstanceBase();
     const { auth, absent } = await probeInstance();
     if (!auth) { finishAiProbe(false); if (absent) rememberAbsent(); return null; }
     finishAiProbe(true);
 
-    return await initOrgWithAuth(auth);
+    return await initOrgWithAuth(auth, askedOf);
   } catch (e) {
     console.warn('[org] init failed - proceeding without a control plane', e);
     return null;
@@ -1124,7 +1140,7 @@ export async function initOrg(): Promise<OrgState | null> {
  * when the answer was yes (plans/155 WP-3) - the dormant deployment never executes
  * a line of it. Same tolerance contract: it resolves, it does not throw to boot.
  */
-export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null> {
+export async function initOrgWithAuth(auth: AuthConfig, askedOf = getInstanceBase()): Promise<OrgState | null> {
   stopAiPolicyPolling();
   finishAiProbe(true);
   authState = auth;
@@ -1133,6 +1149,17 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
   unregisterAccountChip = null;
   try {
     session = await fetchSession();
+    // The instance `auth` came from (`askedOf`) is no longer the one in use: catalog
+    // sync runs beside this and sets an instance aside when its catalog does not
+    // verify (catalog/sync.ts). The app is then showing the tools built into it, and
+    // a gate for the other instance would ask the app's own origin to sign in, stop
+    // the bundled catalog and leave no way on. No control plane for this page load.
+    if (getInstanceBase() !== askedOf) {
+      session = null;
+      authState = null;
+      finishAiProbe(false);
+      return null;
+    }
     const isMember = session?.kind === 'member';
     setAgentInviteAvailability(isMember, auth.documentAgentPath);
     // A session change must withdraw the previous member's fixed targets before
