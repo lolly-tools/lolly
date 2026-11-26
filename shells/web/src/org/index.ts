@@ -1107,11 +1107,12 @@ export async function initOrg(): Promise<OrgState | null> {
 
     // Remember absence only on a definitive answer (see org/probe.ts's header):
     // a timeout or a 5xx is dormancy for this boot, not for the next six hours.
+    const askedOf = getInstanceBase();
     const { auth, absent } = await probeInstance();
     if (!auth) { finishAiProbe(false); if (absent) rememberAbsent(); return null; }
     finishAiProbe(true);
 
-    return await initOrgWithAuth(auth);
+    return await initOrgWithAuth(auth, askedOf);
   } catch (e) {
     console.warn('[org] init failed - proceeding without a control plane', e);
     return null;
@@ -1124,7 +1125,7 @@ export async function initOrg(): Promise<OrgState | null> {
  * when the answer was yes (plans/155 WP-3) - the dormant deployment never executes
  * a line of it. Same tolerance contract: it resolves, it does not throw to boot.
  */
-export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null> {
+export async function initOrgWithAuth(auth: AuthConfig, askedOf = getInstanceBase()): Promise<OrgState | null> {
   stopAiPolicyPolling();
   finishAiProbe(true);
   authState = auth;
@@ -1133,6 +1134,17 @@ export async function initOrgWithAuth(auth: AuthConfig): Promise<OrgState | null
   unregisterAccountChip = null;
   try {
     session = await fetchSession();
+    // The instance `auth` came from (`askedOf`) is no longer the one in use: catalog
+    // sync runs beside this and sets an instance aside when its catalog does not
+    // verify (catalog/sync.ts). The app is then showing the tools built into it, and
+    // a gate for the other instance would ask the app's own origin to sign in, stop
+    // the bundled catalog and leave no way on. No control plane for this page load.
+    if (getInstanceBase() !== askedOf) {
+      session = null;
+      authState = null;
+      finishAiProbe(false);
+      return null;
+    }
     const isMember = session?.kind === 'member';
     setAgentInviteAvailability(isMember, auth.documentAgentPath);
     // A session change must withdraw the previous member's fixed targets before

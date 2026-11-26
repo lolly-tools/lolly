@@ -243,8 +243,9 @@ let setAsideNoted = false;
  * and the tools built into the app are shown. Said once: the note leaves after a few
  * seconds or on a tap, because a note that stays covers the controls below. The state
  * stays readable on the root element for any surface that shows the state later.
+ * With `reconnect` (the apps), a tap or Enter on the note also calls it.
  */
-export function noteInstanceCatalogSetAside(instanceBase: string): void {
+export function noteInstanceCatalogSetAside(instanceBase: string, reconnect?: () => void): void {
   if (typeof document === 'undefined' || !document.body) return;
   document.documentElement.dataset.catalogInstance = 'set-aside';
   if (setAsideNoted) return;
@@ -258,7 +259,15 @@ export function noteInstanceCatalogSetAside(instanceBase: string): void {
   note.style.pointerEvents = 'auto';
   note.style.cursor = 'pointer';
   const dismiss = (): void => { note.remove(); };
-  note.addEventListener('click', dismiss, { once: true });
+  // In the apps the note is also the way back: a tap opens the connect step for this
+  // instance, where its key is shown and accepting it is the person's own choice.
+  let acted = false;
+  const act = (): void => { if (acted) return; acted = true; dismiss(); reconnect?.(); };
+  note.addEventListener('click', act, { once: true });
+  if (reconnect) {
+    note.tabIndex = 0;
+    note.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
+  }
   setTimeout(dismiss, SET_ASIDE_NOTE_MS);
 }
 

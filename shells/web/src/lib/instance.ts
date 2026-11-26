@@ -84,6 +84,9 @@ const INSTANCE_SESSION_KEY = 'instance-session';
 const INSTANCE_CATALOG_KEY = 'instance-catalog-key';
 
 let base = '';
+/** The 'profile' store opener. Replaced only by {@link _setProfileDbForTests}. */
+type ProfileDb = Pick<Awaited<ReturnType<typeof openDB>>, 'get' | 'put' | 'delete'>;
+let openProfileDb: () => Promise<ProfileDb> = openDB;
 let initPromise: Promise<void> | null = null;
 /** The install token riding x-lolly-client, or null (untagged - the default).
  *  Set ONLY by org/index.ts when a member session is confirmed: an anonymous
@@ -156,13 +159,19 @@ export function normalizeInstanceBase(url: string): string {
  */
 export async function setInstanceBase(url: string | null): Promise<void> {
   const next = url ? normalizeInstanceBase(url) : '';
-  const changedOrigin = instanceOrigin(next) !== instanceOrigin();
+  // The new choice is compared with the SAVED one. An instance set aside for this page
+  // load (suspendInstanceBase) is still the saved choice, though `base` reads '' while
+  // it is set aside: connecting to it again is the same instance, so the session the
+  // person signed in with, kept in storage, must stay.
+  const saved = base || suspended;
+  const changedOrigin = instanceOrigin(next) !== instanceOrigin(saved);
+  const resumed = !changedOrigin && !!suspended && !!next;
   if (changedOrigin) {
     instanceSession = null;
     installTag = null;
     instanceCatalogKey = null;
   }
-  const db = await openDB();
+  const db = await openProfileDb();
   if (changedOrigin) {
     await db.delete('profile', INSTANCE_CATALOG_KEY);
     await db.delete('profile', INSTANCE_SESSION_KEY);
@@ -171,6 +180,12 @@ export async function setInstanceBase(url: string | null): Promise<void> {
   if (next) await db.put('profile', next, INSTANCE_KEY);
   else await db.delete('profile', INSTANCE_KEY);
   base = next;
+  suspended = '';
+  // Setting the instance aside dropped the session from memory only. Read it back for
+  // the same instance; a failed read leaves the person signed out, never signed in.
+  if (resumed) {
+    try { instanceSession = storedSession(await db.get('profile', INSTANCE_SESSION_KEY)); } catch { instanceSession = null; }
+  }
   // Drop catalog/sync.ts's conditional-request validators (perf-hint ETags it
   // already keeps in localStorage - not tool state): they validate the PREVIOUS
   // base's copies, and a stale 304 against the new base would skip the first
@@ -186,6 +201,14 @@ export async function setInstanceBase(url: string | null): Promise<void> {
   } catch { /* storage unavailable - sync will just revalidate */ }
 }
 
+/** A stored session record, when it is well formed and belongs to the current instance. */
+function storedSession(sess: unknown): InstanceSession | null {
+  const record = sess as Partial<InstanceSession> | null;
+  return record && typeof record === 'object' && record.origin === instanceOrigin()
+    && typeof record.cookiePair === 'string' && /^lw_session=[^;\s]+$/.test(record.cookiePair)
+    ? { origin: record.origin!, cookiePair: record.cookiePair } : null;
+}
+
 /** Load the persisted base. Memoised; never throws (unreadable → bundled).
  *  Also initialises the instance-pack store (plans/131): catalog/sync.ts awaits
  *  this before its first fetch, so the pack overlay below is ready without any
@@ -193,19 +216,14 @@ export async function setInstanceBase(url: string | null): Promise<void> {
 export function initInstanceBase(): Promise<void> {
   initPromise ??= (async () => {
     try {
-      const db = await openDB();
+      const db = await openProfileDb();
       const stored = await db.get('profile', INSTANCE_KEY);
       if (typeof stored === 'string' && stored) base = normalizeInstanceBase(stored);
       // The native-shell session pair, if the device-code sign-in parked one -
       // loaded here so the org probe's very first request already carries it.
       const sess = await db.get('profile', INSTANCE_SESSION_KEY);
-      if (sess && typeof sess === 'object'
-        && sess.origin === instanceOrigin()
-        && typeof sess.cookiePair === 'string' && /^lw_session=[^;\s]+$/.test(sess.cookiePair)) {
-        instanceSession = { origin: sess.origin, cookiePair: sess.cookiePair };
-      } else if (sess) {
-        await db.delete('profile', INSTANCE_SESSION_KEY);
-      }
+      instanceSession = storedSession(sess);
+      if (sess && !instanceSession) await db.delete('profile', INSTANCE_SESSION_KEY);
       const accepted = await db.get('profile', INSTANCE_CATALOG_KEY);
       if (accepted && typeof accepted === 'object' && base
         && accepted.origin === instanceOrigin() && typeof accepted.keyId === 'string' && KEY_ID.test(accepted.keyId)) {
@@ -227,6 +245,18 @@ export function _setBaseForTests(value: string): void {
   base = value;
 }
 
+/** TEST-ONLY: stand in for the IndexedDB 'profile' store (null restores the real one)
+ *  and forget what this module holds in memory, as a fresh page load would. */
+export function _setProfileDbForTests(open: (() => Promise<ProfileDb>) | null): void {
+  openProfileDb = open ?? openDB;
+  base = '';
+  suspended = '';
+  instanceSession = null;
+  instanceCatalogKey = null;
+  installTag = null;
+  initPromise = null;
+}
+
 // ── Install identity (the org covenant's device half) ────────────────────────
 
 /**
@@ -244,7 +274,7 @@ export function setInstallTag(id: string | null): void {
 /** The persisted per-device install id, minted on first use. Callers gate WHEN
  *  to call this (member session only); this module only stores the value. */
 export async function ensureInstallId(): Promise<string> {
-  const db = await openDB();
+  const db = await openProfileDb();
   const stored = await db.get('profile', INSTALL_ID_KEY);
   if (typeof stored === 'string' && /^[A-Za-z0-9._-]{1,64}$/.test(stored)) return stored;
   const minted = crypto.randomUUID();
@@ -256,7 +286,7 @@ export async function ensureInstallId(): Promise<string> {
  *  if it ever re-enrolls - no identity carries across enrollments. */
 export async function clearInstallId(): Promise<void> {
   installTag = null;
-  try { await (await openDB()).delete('profile', INSTALL_ID_KEY); } catch { /* best-effort */ }
+  try { await (await openProfileDb()).delete('profile', INSTALL_ID_KEY); } catch { /* best-effort */ }
 }
 
 // ── The connected instance's catalog key (native shells) ─────────────────────
@@ -275,7 +305,7 @@ export async function setInstanceCatalogKeyId(keyId: string | null): Promise<voi
   instanceCatalogKey = origin && keyId && KEY_ID.test(keyId) ? { origin, keyId } : null;
   const accepted = instanceCatalogKey;
   try {
-    const db = await openDB();
+    const db = await openProfileDb();
     if (accepted) await db.put('profile', accepted, INSTANCE_CATALOG_KEY);
     else await db.delete('profile', INSTANCE_CATALOG_KEY);
   } catch { /* best-effort - the in-memory copy still serves this run */ }
@@ -311,7 +341,7 @@ export async function setInstanceSession(cookiePair: string | null, sourceBase =
     ? { origin, cookiePair } : null;
   const session = instanceSession;
   try {
-    const db = await openDB();
+    const db = await openProfileDb();
     if (session) await db.put('profile', session, INSTANCE_SESSION_KEY);
     else await db.delete('profile', INSTANCE_SESSION_KEY);
   } catch { /* best-effort - the in-memory copy still serves this run */ }

@@ -32,7 +32,7 @@ import { historySettled } from '../lib/overlay-back.ts';
 import { flushAddressWrites } from '../lib/url-state.ts';
 import { mountModal } from './modal.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
-import { getInstanceBase, initInstanceBase, setInstanceBase, setInstanceCatalogKeyId, instanceFetch } from '../lib/instance.ts';
+import { getInstanceBase, initInstanceBase, setInstanceBase, setInstanceCatalogKeyId, instanceFetch, suspendedInstanceBase } from '../lib/instance.ts';
 import type { CompanionHost } from '../lib/design-system/companions.ts';
 import { askInstanceKeyId, shortKeyId } from '../catalog/instance-key.ts';
 import { validateInstanceUrl, probeConnection, isAccountInstance, workspaceAppUrl, type ProbeOutcome, type ProbedInstance, type UrlProblem } from '../lib/instance-probe.ts';
@@ -278,7 +278,8 @@ export function openInstanceSheet(host: Pick<HostV1, 'log'>, opts: { start?: 'co
         void (async () => {
           await initInstanceBase();
           if (!modal.el.isConnected) return;
-          if (getInstanceBase()) { await setInstanceBase(null); reloadOnClose = true; }
+          // An instance set aside for this page load is still the saved choice.
+          if (getInstanceBase() || suspendedInstanceBase()) { await setInstanceBase(null); reloadOnClose = true; }
           await useServerBrand();
           goImportStep();
         })();

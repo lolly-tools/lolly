@@ -272,6 +272,32 @@ test('a native shell\'s code sign-in on the gate has the same finger floor', asy
   }
 });
 
+test('an instance set aside while the session is read draws no gate and stops no catalog', async () => {
+  reset();
+  const { _setBaseForTests, suspendInstanceBase, getInstanceBase } = await import('../lib/instance.ts');
+  const { catalogRefused, resetCatalogAccessForTests } = await import('../lib/catalog-access.ts');
+  resetCatalogAccessForTests();
+  _setBaseForTests('https://work.example');
+  try {
+    // Catalog sync runs beside the probe. Here the catalog fails to verify, and the
+    // instance is set aside, between the config answer and the session answer.
+    router = (url) => {
+      if (url.includes('/api/auth/config')) return json({ mode: 'gated', provider: 'oidc', loginPath: '/login', instanceName: 'work.example' });
+      if (url.includes('/api/auth/session')) { suspendInstanceBase(); return new Response('', { status: 401 }); }
+      return new Response('', { status: 404 });
+    };
+    const state = await initOrg();
+    assert.equal(getInstanceBase(), '');
+    assert.equal(state, null, 'no control plane for this page load');
+    assert.equal(document.querySelector('.org-gate'), null, 'no gate for an instance the app is not using');
+    assert.equal(catalogRefused(), false, 'the bundled catalog is still read');
+    assert.equal(orgSession(), null);
+  } finally {
+    _setBaseForTests('');
+    resetCatalogAccessForTests();
+  }
+});
+
 // ── The gate says which workspace and which account to use (plan 74 M18) ────
 
 /** The gate card's heading and its lines of copy, as a person reads them. */

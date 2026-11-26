@@ -38,6 +38,7 @@ import type { RenditionSpec } from '../../../../packages/core/src/delivery-v1.ts
 import type { CompanionHost } from '../lib/design-system/companions.ts';
 import { readCompanionAssets } from '../lib/design-system/asset-scope.ts';
 import { viewingAs } from '../org/view-as.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 
 /** One resolvable file for a catalog asset (an entry in an asset's `formats`).
  *  Structurally matches the bridge's AssetFormat so it flows into
@@ -343,7 +344,13 @@ export async function syncCatalog(
       if (isCatalogTrustFailure(e) && getInstanceBase()) {
         const setAside = suspendInstanceBase();
         host.log('warn', 'Instance catalog not trusted; using the bundled catalog', { instance: setAside, error: String(e) });
-        noteInstanceCatalogSetAside(setAside);
+        // In the apps a tap on the note opens the connect step with the address filled
+        // in, where the instance's key is shown before the person accepts it.
+        noteInstanceCatalogSetAside(setAside, isTauriShell() ? () => {
+          void import('../components/instance-sheet.ts')
+            .then(m => m.openInstanceSheet(host, { start: 'connect', url: setAside }))
+            .catch(error => host.log('warn', 'The connect step did not open', { error: String(error) }));
+        } : undefined);
         return syncCatalog(host, onAssetsReady, maintenanceGate, signInRequired);
       }
       noteCatalogIntegrityFailure(e);
