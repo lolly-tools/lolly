@@ -16,6 +16,7 @@ import { mountStageMotion } from '../../lib/stage-lod.ts';
 import { stageBottomReserve, stageSideReserve } from '../../lib/design-panel-layout.ts';
 import { hudClearance } from '../../lib/stage-hud-clearance.ts';
 import { carryMountState, willRemountForCollab } from '../../lib/collab-live-mount.ts';
+import { carryRenderMount, willRemountForRender } from '../tool-render-mode.ts';
 import { releaseTeamSessionOrigin } from '../../org/team-session-origin.ts';
 import type { ToolCollab } from '../tool-collab.ts';
 import { stopFrameFps } from '../../lib/frame-fps.ts';
@@ -1374,7 +1375,9 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     // reason we are being torn down, the live model crosses in memory instead. The
     // predicate is three comparisons and no allocation, which is the whole cost every
     // ordinary teardown pays for this.
-    if (willRemountForCollab(toolId)) {
+    // A mount replaced because its render settings changed (`render.when`) hands its
+    // values over the same way (views/tool-render-mode.ts).
+    if (willRemountForCollab(toolId) || willRemountForRender(toolId)) {
       const live: Record<string, unknown> = {};
       // `undefined` is skipped rather than carried: the carry is applied ON TOP of the
       // route, so a value the model does not hold would otherwise blank one the route
@@ -1382,6 +1385,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
       for (const item of runtime.getModel())
         if (item.value !== undefined) live[item.id] = item.value;
       carryMountState(toolId, slot ?? null, live);
+      carryRenderMount(toolId, slot ?? null, live, tview.dirtyParams);
     }
     // Latch first: the template chooser is un-awaited and outlives nothing else here,
     // so this is the ONLY thing that stops it landing on a torn-down runtime. Closing

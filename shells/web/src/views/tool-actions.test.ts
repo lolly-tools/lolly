@@ -205,7 +205,10 @@ function mount({
   experience = {},
   madeWith,
   privacy,
+  render,
 }: {
+  /** The render block in effect, as the engine's runtime answers (`render.when`). */
+  render?: (manifestRender: Record<string, unknown>) => Record<string, unknown>;
   seqMs: number | null /** A bed's own length stamped as data-clip-ms (the audiogram). */;
   clipMs?: number | null;
   videoDuration?: number;
@@ -276,6 +279,7 @@ function mount({
       setMadeWith: (on: boolean) => { madeWithOn = on; },
       madeWithPreview: async () => { madeWithReads++; return madeWith.preview; },
     } : {}),
+    ...(render ? { getRender: () => render(manifest.render) } : {}),
     getModel: () => live,
     setInput: async (id: string, value: unknown) => {
       inputWrites.push({ id, value });
@@ -389,6 +393,41 @@ function mount({
 
 /** Let the MutationObserver callback (a microtask) run. */
 const settle = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+
+// Render settings that follow an input (`render.when`): the bar is built from the block
+// in effect, so the mount after a mode flip holds the other mode's controls and none of
+// the first one's. The flip itself is a new mount (views/tool-render-mode.ts).
+test('the export bar is built from the render block in effect, not from the manifest block', () => {
+  const inputs = [{ id: 'mode', type: 'select' }];
+  const make = mount({ seqMs: null, formats: ['png', 'svg'], inputs, toolId: 'two-modes', render: (own) => own });
+  assert.ok(make.panel.querySelector('[data-action="format"]'), 'make mode: the format picker');
+  assert.ok(make.panel.querySelector('[data-action="download"]'), 'make mode: Download');
+  assert.ok(make.panel.querySelector('[data-action="copy"]'), 'make mode: Copy');
+  make.dispose();
+
+  // The same manifest, mounted while the keyed input holds the other value.
+  const scan = mount({ seqMs: null, formats: ['png', 'svg'], inputs, toolId: 'two-modes',
+    render: (own) => ({ ...own, export: false, webPreview: true, actions: [] }) });
+  assert.equal(scan.panel.innerHTML, '', 'scan mode: no bar, no sheet');
+  assert.equal(scan.panel.querySelector('[data-action="download"], [data-action="copy"], [data-action="format"], [data-action="save"]'), null);
+  scan.dispose();
+
+  // No export, the default actions: the document is still kept, so Save stays.
+  const kept = mount({ seqMs: null, formats: ['png', 'svg'], inputs, toolId: 'two-modes',
+    render: (own) => ({ ...own, export: false }) });
+  assert.ok(kept.panel.querySelector('[data-action="save"]'));
+  assert.equal(kept.panel.querySelector('[data-action="download"], [data-action="format"]'), null);
+  kept.dispose();
+});
+
+test('the actions under `set` choose the buttons of an exporting mode', () => {
+  const only = mount({ seqMs: null, formats: ['png'], toolId: 'two-modes',
+    render: (own) => ({ ...own, actions: ['download'] }) });
+  assert.ok(only.panel.querySelector('[data-action="download"]'));
+  assert.equal(only.panel.querySelector('[data-action="copy"]'), null);
+  assert.equal(only.panel.querySelector('[data-action="save"]'), null);
+  only.dispose();
+});
 
 test('the portable mount offers .lolly for a single-format tool and never sends that choice to the renderer', async () => {
   const h = mount({ seqMs: null, formats: ['png'], portable: true });

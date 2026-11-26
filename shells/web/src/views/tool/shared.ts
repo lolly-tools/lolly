@@ -30,6 +30,7 @@ import { isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks, spotsAsProce
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { agentGuidanceHost, agentInvitationHost } from '../../lib/agent-invitation-host.ts';
 import { partnerKitParam } from '../../lib/partner-kit-state.ts';
+import { renderInEffect } from '../tool-render-mode.ts';
 
 // ── The chosen emoji set, for every writer of this tool's URL ────────────────
 //
@@ -884,7 +885,7 @@ export function shareDialogOptions(
   // save, not now.
   const readDocument = (): ShareDocument => readToolDocument(runtime, exportScope, manifest);
   const device = deviceLink();
-  return { toolId, personalFields: personalShareFields(runtime.getModel()), baseParts: parts.filter(part => part !== 'format=lolly'), manifest,
+  return { toolId, personalFields: personalShareFields(runtime.getModel()), baseParts: parts.filter(part => part !== 'format=lolly'), manifest: { ...manifest, render: renderInEffect(runtime, manifest) },
     currentFormat: currentFormat === 'lolly' ? '' : currentFormat, fidelity, lolly, document: readDocument, ...(device ? { deviceLink: device } : {}) };
 }
 

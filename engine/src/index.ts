@@ -60,6 +60,7 @@ export {
   PSD_BLEND_TO_CSS, CSS_TO_PSD_BLEND, XCF_MODE_TO_CSS, psdBlendToCss, xcfModeToCss,
 } from './raster-layers.ts';
 export type { CssBlendMode, RasterLayer, LayeredRasterDoc, InflateFn } from './raster-layers.ts';
+export { resolveRender, renderWhenMatches, RENDER_WHEN_KEYS } from './render-when.ts';
 export { buildInputModel, summarizeInputs, CREDENTIAL_READABLE_TYPES, normalizeTableValue, deriveExportFilename, matchesShowIf, tokenRestoreRefsOf, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export type { TableValue, TableColumnEditor, ShowIf, InputWriteOptions } from './inputs.ts';
 export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams, parseSpots, parseTextSetting, parsePartnerKitParam, formatPartnerKitParam, readPartnerKitAttachment } from './url-mode.ts';

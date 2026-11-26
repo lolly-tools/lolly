@@ -67,6 +67,7 @@ import { setupOps } from './tool/setup.ts';
 import { openDocumentOps } from './tool/open-document.ts';
 import { stageKitOps } from './tool/stage-kit.ts';
 import { releasePageWatch } from '../lib/page-fallback-watch.ts';
+import { restoreRenderFocusOnArrival } from './tool-render-mode.ts';
 export type { IdentityStatus, EmbedDescribe, WebToolHost, ToolRuntime, PanelEl, PrintMarks, ExportDefaults, ActionsApi, ExportExperience, RunExportOpts } from './tool/shared.ts';
 
 
@@ -494,6 +495,16 @@ async function mountToolInto(
   tview.render.wireRenderLoop();
 
   await tview.setup.mountLiveControls();
+  // This mount replaced one because the input its render settings follow changed
+  // (views/tool-render-mode.ts). That change is an edit, the address is written from
+  // the inputs the person changed in either mount, and focus goes back to the control
+  // they were on, now that the inputs are drawn.
+  if (tview.renderMount) {
+    for (const id of tview.renderMount.edited) tview.dirtyParams.add(id);
+    tview.session.markUserDirty(tview.tool.manifest.render.when?.input);
+    tview.session.syncUrl();
+    restoreRenderFocusOnArrival(viewEl, () => tview.inputsEl, tview.renderMount.focusInput);
+  }
   if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
 
   // Emoji (plans/252): last, because it seeds from the link, the saved session

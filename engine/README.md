@@ -533,6 +533,7 @@ One row per module under `engine/src/` (the `index.ts` barrel excluded), in path
 | `rebrand-review.ts` | The review model of a renovation (plan 274 section 4): what the queue, the footer, the report drawer, the CLI `inspect` command and later the TUI show. | yes | `tests/rebrand-review.test.ts` | – |
 | `rebrand-structure.ts` | The structure matcher (plan 275 section 3): which layout of the library a source slide was drawn as, how sure the read is, and the one opt-in action that applies the reads across a deck (decision 28, Auto-match). | yes | `tests/rebrand-structure.test.ts` | – |
 | `rebrand-theme.ts` | Deck themes and a slide's own ground (plan 275 section 6), as ordinary plan edits. | yes | `tests/rebrand-theme.test.ts` | – |
+| `render-when.ts` | Render settings that follow one input's value (`render.when`). | yes | `tests/render-when.test.ts` | – |
 | `reword.ts` | Reword flagged text - the SEMANTIC half humanize.ts's header defers (plans/127). | yes | `tests/reword.test.ts` | – |
 | `riff-meta.ts` | WAV provenance tags: the RIFF LIST/INFO chunk. | yes | `tests/riff-meta.test.ts` | – |
 | `rights-attribution.ts` | Turns an attribution plan into readable credits, companion files, source ingredients and a measured receipt (plan 253). | yes | `tests/rights-attribution.test.ts` | – |
