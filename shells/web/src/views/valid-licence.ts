@@ -15,6 +15,8 @@ import { escape as esc } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { metadataLinkHtml } from './valid-links.ts';
+import { helpTip } from '../components/help-tip.ts';
+import { SECTION } from './valid-layout.ts';
 
 /** The same strength words the answer row uses. */
 const STRENGTH: Record<VerifyStrength, string> = {
@@ -150,16 +152,17 @@ function statementHtml(s: LicenceStatement): string {
 /** The band, first in the findings column. Always drawn, so an absence is visible. */
 export function licenceBandHtml(report: BandReport, meta: FileMetadata | undefined, fileName = ''): string {
   const band = licenceBand(report, meta, fileName);
-  const head = `<h3 class="vl-head">${icon('badgeCheck')}<span>${t('Licence')}</span></h3>`;
+  const tip = helpTip(t(SECTION.licence.tip));
+  const head = `<h3 class="vs-head">${icon('badgeCheck')}<span>${t('Licence')}</span>${tip.button}</h3>${tip.pop}`;
   const sources = band.sourceCount
     ? `<p class="vl-sources">${esc(tRaw(band.sourceCount === 1 ? '1 source: {list}' : '{n} sources: {list}', { n: band.sourceCount, list: band.sources.map((s) => `${s.count} ${s.name}`).join(', ') }))}</p>` : '';
   if (band.state === 'none') {
-    return `<section class="vl-band is-none" data-finding-section="licence" aria-label="${esc(t('Licence'))}">${head}
+    return `<section class="vl-band vs help-tip-host is-none" data-finding-section="licence" aria-label="${esc(t('Licence'))}">${head}
       <p class="vl-quiet">${t('No licence recorded. That does not mean free to use.')}</p>${sources}</section>`;
   }
   const who = band.creator || band.credit
     ? `<dl class="vl-who">${band.creator ? `<div><dt>${t('Creator')}</dt><dd>${esc(band.creator)}</dd></div>` : ''}${band.credit ? `<div><dt>${t('Credit line')}</dt><dd>${esc(band.credit)}</dd></div>` : ''}</dl>` : '';
-  return `<section class="vl-band is-${band.state}" data-finding-section="licence" aria-label="${esc(t('Licence'))}">${head}
+  return `<section class="vl-band vs help-tip-host is-${band.state}" data-finding-section="licence" aria-label="${esc(t('Licence'))}">${head}
     ${band.state === 'disagree' ? `<p class="vl-disagree">${t('Two statements disagree. Each is listed as recorded.')}</p>` : ''}
     <div class="vl-statements">${band.statements.slice(0, 6).map(statementHtml).join('')}</div>
     ${who}${sources}

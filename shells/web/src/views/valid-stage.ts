@@ -69,12 +69,18 @@ function setView(stage: HTMLElement, view: StageView): void {
 /** Which view shows a finding. Every finding that has no view of its own shows the asset. */
 const VIEW_FOR: Partial<Record<VerifyFindingId, StageView>> = { personal: 'map' };
 
-/** Show a finding on the stage of one report. Readers that draw on the asset hear the event. */
-export function showOnStage(result: HTMLElement, finding: VerifyFindingId): void {
+/**
+ * Show a finding on the stage of one report. Readers that draw on the asset hear
+ * the event. True when the stage now shows something for this finding.
+ */
+export function showOnStage(result: HTMLElement, finding: VerifyFindingId): boolean {
   const stage = result.querySelector<HTMLElement>('[data-stage]');
-  if (!stage) return;
-  setView(stage, VIEW_FOR[finding] ?? 'asset');
+  if (!stage) return false;
+  const view = VIEW_FOR[finding] ?? 'asset';
+  setView(stage, view);
   stage.dispatchEvent(new CustomEvent<StageShowDetail>(STAGE_SHOW_EVENT, { bubbles: true, detail: { finding, fileIndex: Number(stage.dataset.stage) } }));
+  // AI evidence draws on the asset; personal data does when the file records a place.
+  return finding === 'ai' || (view !== 'asset' && stage.dataset.stageView === view);
 }
 
 export function wireStage(root: HTMLElement): void {

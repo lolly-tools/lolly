@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Generator, software stack and rights evidence for Verify's expanded and collapsed reports. */
-import { licenceBandHtml } from './valid-licence.ts';
 import { softwareOrigins, normaliseLicence, licenceDisplayName } from '@lolly/engine';
 import type { FileMetadata, MetaField, SoftwareRole } from '@lolly/engine';
 import type { VerifyReport } from './valid-verdict.ts';
@@ -125,10 +124,6 @@ export function provenanceOverviewHtml(report: VerifyReport, meta?: FileMetadata
     ${facts.length ? `<dl class="valid-origin-facts">${facts.filter((f) => !['Creator', 'Creator website', 'Location'].includes(f.label)).map(({ label, evidence }) => `<div><dt>${icon('calendar')}${esc(t(label))}</dt><dd title="${esc(evidence.source)}"><span>${label === 'Location' && meta?.mapUrl ? metadataLinkHtml(meta.mapUrl, evidence.value) : metadataValueHtml(evidence.value.replace(/^(\d{4}):(\d{2}):(\d{2}) /, '$1-$2-$3 ').replace(/^(\d{4}-\d{2}-\d{2})T/, '$1 ').replace(/(\d\d:\d\d:\d\d)(?:\.000)?Z$/, '$1 UTC'))}</span>${kindsHtml([evidence])}</dd></div>`).join('')}</dl>` : ''}
   </div>`;
 }
-
-/** What leads Verify's findings column: the licence band, then the software that made the file. */
-export const columnLeadHtml = (report: VerifyReport, meta: FileMetadata | undefined, fileName: string): string =>
-  licenceBandHtml(report, meta, fileName) + provenanceOverviewHtml(report, meta, false);
 
 /** Compact evidence remains visible when a batch report is collapsed. */
 export function provenanceSummaryHtml(report: VerifyReport, meta?: FileMetadata): string {

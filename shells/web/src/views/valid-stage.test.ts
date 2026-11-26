@@ -51,7 +51,7 @@ test('a finding is shown on the stage: Personal data opens the map, every other 
   const heard: StageShowDetail[] = [];
   root.addEventListener(STAGE_SHOW_EVENT, (event) => { heard.push((event as CustomEvent<StageShowDetail>).detail); });
 
-  showOnStage(result, 'personal');
+  assert.equal(showOnStage(result, 'personal'), true, 'a recorded place is drawn on the stage');
   assert.equal(stage.dataset.stageView, 'map');
   assert.equal(pane('map').hidden, false);
   assert.equal(pane('asset').hidden, true);
@@ -70,7 +70,8 @@ test('a finding is shown on the stage: Personal data opens the map, every other 
 test('a stage with no map keeps showing the asset for a personal-data finding', (t) => {
   const { root, restore } = mount(stageHtml(photo, undefined, 0));
   t.after(restore);
-  showOnStage(root.querySelector<HTMLElement>('.valid-result')!, 'personal');
+  assert.equal(showOnStage(root.querySelector<HTMLElement>('.valid-result')!, 'personal'), false, 'nothing to draw without a place');
+  assert.equal(showOnStage(root.querySelector<HTMLElement>('.valid-result')!, 'licence'), false);
   assert.equal(root.querySelector<HTMLElement>('[data-stage]')!.dataset.stageView, 'asset');
   assert.equal(root.querySelector<HTMLElement>('[data-stage-pane="asset"]')!.hidden, false);
 });
@@ -78,10 +79,10 @@ test('a stage with no map keeps showing the asset for a personal-data finding', 
 test('the report draws the asset once, on the stage, and the findings beside it', () => {
   const read = (name: string) => readFileSync(new URL(name, import.meta.url), 'utf8');
   const view = read('./valid.ts');
-  assert.match(view, /class="vf-body">\s*\$\{stageHtml\(preview, meta, fileIndex\)\}\s*<div class="vf-column">/);
+  assert.match(view, /reportBodyHtml\(findings, \{\s*stage: stageHtml\(preview, meta, fileIndex\),/);
   assert.doesNotMatch(view, /mediaPreviewHtml/, 'the preview is the stage, not a second figure in the report');
   // A slot press shows its finding on the asset, and the AI evidence answers on the stage.
-  assert.match(read('./valid-findings.ts'), /showOnStage\(result, id as VerifyFindingId\)/);
+  assert.match(read('./valid-findings.ts'), /showOnStage\(result, id\)/);
   const forensics = read('./valid-forensics.ts');
   assert.match(forensics, /addEventListener\(STAGE_SHOW_EVENT, onStageShow\)/);
   assert.match(forensics, /host\.replaceChildren\(part\)/);

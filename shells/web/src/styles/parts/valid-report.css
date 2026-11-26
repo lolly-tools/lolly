@@ -64,13 +64,8 @@
   .vendor-chip-copy strong { overflow-wrap: anywhere; }
   .valid-ai-flag .vendor-chip { margin-bottom: var(--sp-2); }
   .valid-ai-flag .vendor-chip .vf-slot-strength { color: inherit; opacity: 0.85; }
-  /* These colours identify the software vendor recorded in the asset. */
-  .valid-vendor-mark[data-vendor="canva"] { color: #00aeb5; }
-  .valid-vendor-mark[data-vendor^="affinity"] { color: #ec7b51; }
-  .valid-vendor-mark[data-vendor="adobeindesign"] { color: #ef5284; }
-  .valid-vendor-mark[data-vendor="adobephotoshop"] { color: #36a9fc; }
-  .valid-vendor-mark[data-vendor="adobeillustrator"] { color: #e89127; }
-  .valid-vendor-mark[data-vendor="blender"] { color: #e87d0d; }
+  /* Marks draw in the design system's colours: ink everywhere, the accent for the product that leads. */
+  .is-primary > .valid-vendor-mark:not([data-vendor="lolly"]) { color: var(--ui-color-text-accent); }
   .valid-origin-facts { padding: var(--ui-space-panel); gap: var(--ui-space-panel); grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); }
   .valid-origin-facts:empty { display: none; }
   .valid-origin-facts dt { display: flex; align-items: center; gap: var(--sp-3); }

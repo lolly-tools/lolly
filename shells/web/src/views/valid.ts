@@ -71,14 +71,14 @@ import {isExpectedRow, pipStatusWord, scorecardModel, resolveState, sourceTypeLa
   stateTone, rightsReportOf, rightsSourceReport,
 } from './valid-verdict.ts';
 import type { Check, SignerIdentity, Signer, Claim, VerifyReport, Watermark, ScorecardItem } from './valid-verdict.ts';
-import { columnLeadHtml, provenanceSummaryHtml } from './valid-provenance.ts';
+import { provenanceOverviewHtml, provenanceSummaryHtml } from './valid-provenance.ts';
 import { pdfPreviewFor, pdfPageCountFor, type VerifyPreview as Preview } from './valid-preview.ts';
 import { softwareName } from '@lolly/engine';
 import { auxiliaryMetadataHtml } from './valid-auxiliary.ts';
 import { metadataValueHtml, metadataLinkHtml, metadataUrl, wireMetadataLinks, visibleLinkedTextHtml } from './valid-links.ts';
 import { wireVerifyActions } from './valid-actions.ts';
 import { evidenceHeadHtml, wireReportParts } from './valid-evidence.ts';
-import { stageHtml } from './valid-stage.ts'; import { lollyBlockHtml } from './valid-lolly.ts';
+import { stageHtml } from './valid-stage.ts'; import { lollyBlockHtml } from './valid-lolly.ts'; import { licenceBandHtml } from './valid-licence.ts'; import { reportBodyHtml } from './valid-layout.ts';
 import { intakeAltsHtml, wireIntakeAlts } from './valid-intake-alts.ts';
 // The C2PA 2.4 text-binding models - same pure-module rule as valid-verdict.ts.
 // The copy for every carrier state, the snippet cap, and the ONE url gate both
@@ -1692,7 +1692,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
   // pips and the lamp strip, which each said the same thing in its own way.
   const findings = findingsFor(report, meta, { watermark, seal, madeHere: !!mine, textSignals });
   const verdictWord = report.found || !noCredSignal ? t(state.title) : noCredSignal;
-  const aiBlock = `<div data-lamp-section="origin" data-finding-section="ai">
+  const aiBlock = `<div data-lamp-section="origin">
       ${aiFlagHtml(aiOrigin, makerHint, preview?.kind === 'audio', aiOrigin ? aiMakerChip(`${aiOrigin.vendor ?? ''} ${aiOrigin.credit ?? ''} ${makerHint}`, aiOrigin.via, report.state === 'valid') : '')}
       ${aiDisclosureHtml(report, identity)}
       <div data-lamp-section="signals">
@@ -1719,31 +1719,25 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
             ${report.found ? `<p class="vf-answer-sub">${sub}</p>` : ''}${identityLine}
           </div>
         </div>
-        ${findingsHtml(findings, fileIndex)}
+        ${findingsHtml(findings)}
       </section>
-      <div class="vf-body">
-      ${stageHtml(preview, meta, fileIndex)}
-      <div class="vf-column">
-      ${evidenceHeadHtml(findings, report, meta, fileName, fileIndex)}${columnLeadHtml(report, meta, fileName)}${lollyBlockHtml(report, { tool: recreate, imprint: !!watermark?.present })}
-      ${aiBlock}
-      ${stepsBlock ? `<div class="valid-journey-feature" data-lamp-section="provenance">${stepsBlock}</div>` : ''}
-      <div data-finding-section="personal">${contextCardsHtml(report, meta, false)}</div>
-      <div data-lamp-section="provenance" data-finding-section="credential"><span data-lamp-section="integrity"></span>${panelsBlock}</div>
-      ${askCred}
-      ${deepScanBlock(fileIndex, report.format, fileName)}
-      ${notesHtml(notes, fileIndex)}
-      ${claimPanelHtml(fileIndex, report.format, fileName, report.found)}
-      ${watermarkNote(watermark)}
-      ${imprintRescanBlock(fileIndex, report.format, fileName, !!watermark?.present, report.madeWithLolly)}
-      ${sealNoteHtml(seal)}
-      ${appendedPayloadHtml(meta, fileIndex)}
-      ${receiptHtml}
+      ${reportBodyHtml(findings, {
+        stage: stageHtml(preview, meta, fileIndex),
+        depth: evidenceHeadHtml(findings, report, meta, fileName, fileIndex),
+        licence: licenceBandHtml(report, meta, fileName),
+        madeWith: provenanceOverviewHtml(report, meta, false) + lollyBlockHtml(report, { tool: recreate, imprint: !!watermark?.present }),
+        ai: aiBlock,
+        personal: contextCardsHtml(report, meta, false),
+        credential: `${stepsBlock ? `<div class="valid-journey-feature" data-lamp-section="provenance">${stepsBlock}</div>` : ''}<div data-lamp-section="provenance"><span data-lamp-section="integrity"></span>${panelsBlock}</div>${askCred}${notesHtml(notes, fileIndex)}${claimPanelHtml(fileIndex, report.format, fileName, report.found)}`,
+        hidden: appendedPayloadHtml(meta, fileIndex),
+        marks: deepScanBlock(fileIndex, report.format, fileName) + watermarkNote(watermark) + imprintRescanBlock(fileIndex, report.format, fileName, !!watermark?.present, report.madeWithLolly) + sealNoteHtml(seal),
+        receipt: `${receiptHtml}
       ${report.found ? deviceNote(report.format === 'webm' || report.format === 'mkv'
     ? t("<strong>Checked entirely on this device</strong> - the file was not uploaded. WebM has no standardised C2PA container mapping yet, so this credential is Lolly's own Matroska attachment: only Lolly (here and via <code>lolly validate</code>) can read it - external C2PA viewers don't support WebM at all.")
     : identity
       ? tRaw("<strong>Checked entirely on this device</strong> - the file was not uploaded. The signer's identity was verified against the Lolly CA root pinned in this app (the same root <code>lolly validate --trust-anchor</code> uses). Validators that don't pin that root - {link}, or <code>c2patool</code> without <code>--trust_anchors</code> - still show the signer as an unknown source.", { link: '<a href="https://verify.contentauthenticity.org/" target="_blank" rel="noopener">verify.contentauthenticity.org</a>' })
-      : tRaw('<strong>Checked entirely on this device</strong> - the file was not uploaded. The same file on {link} reads the same, with the signer shown as an unknown source (there is no CA behind an on-device key - by design).', { link: '<a href="https://verify.contentauthenticity.org/" target="_blank" rel="noopener">verify.contentauthenticity.org</a>' })) : ''}
-      </div></div>
+      : tRaw('<strong>Checked entirely on this device</strong> - the file was not uploaded. The same file on {link} reads the same, with the signer shown as an unknown source (there is no CA behind an on-device key - by design).', { link: '<a href="https://verify.contentauthenticity.org/" target="_blank" rel="noopener">verify.contentauthenticity.org</a>' })) : ''}`,
+      })}
     </div>`;
 }
 

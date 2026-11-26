@@ -18,6 +18,7 @@ import { icon } from '../lib/icons.ts';
 import { segHtml, syncSeg, wireSeg } from '../lib/seg.ts';
 import { wireAddressRequests } from './valid-location.ts';
 import { wireVerifyPreviews } from './valid-preview.ts';
+import { wireHelpTips } from '../components/help-tip.ts';
 import { mountStageAudio, wireStageAudio } from './valid-stage-audio.ts';
 
 export type VerifyDepth = 'summary' | 'evidence';
@@ -117,6 +118,8 @@ export function applyDepth(root: HTMLElement, depth: VerifyDepth, fileAt: (index
   syncSeg(root, depth, 'data-verify-depth');
   for (const result of root.querySelectorAll<HTMLElement>('.valid-result')) {
     if (result.dataset.vfDepth === depth) continue;
+    // A report starts with the raw metadata closed in Summary: the sections above already say what matters.
+    if (!result.dataset.vfDepth && depth === 'summary') result.querySelectorAll<HTMLDetailsElement>('.vf-column details.valid-meta[open]').forEach((d) => { d.open = false; });
     result.dataset.vfDepth = depth;
     for (const block of result.querySelectorAll<HTMLElement>('[data-evidence-only]')) {
       block.hidden = depth !== 'evidence';
@@ -139,6 +142,7 @@ export function wireReportParts(root: HTMLElement, host: Pick<HostV1, 'clipboard
   wireVerifyPreviews(root, fileAt);
   wireAddressRequests(root);
   wireStageAudio(root);
+  wireHelpTips(root);
   root.addEventListener('click', (event) => {
     const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('[data-copy-evidence]') : null;
     if (!button) return;

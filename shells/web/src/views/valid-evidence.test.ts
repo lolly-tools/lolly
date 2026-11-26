@@ -54,7 +54,8 @@ test('Evidence opens every disclosure and reads the file; Summary closes only wh
   assert.equal(root.querySelector<HTMLElement>('.valid-result')!.dataset.vfDepth, 'evidence');
   assert.equal(root.querySelector<HTMLElement>('[data-evidence-only]')!.hidden, false);
   assert.equal(details('a').open, true);
-  await new Promise((resolve) => setTimeout(resolve, 20));
+  // The hash is read off the main path, so wait for the value and not for a fixed time.
+  for (let i = 0; i < 200 && !/^[0-9a-f]{64}$/.test(root.querySelector('[data-evidence-sha]')!.textContent ?? ''); i++) await new Promise((resolve) => setTimeout(resolve, 10));
   assert.equal(root.querySelector('[data-evidence-size]')!.textContent, '3 B (3 bytes)');
   assert.equal(root.querySelector('[data-evidence-sha]')!.textContent, '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81');
 

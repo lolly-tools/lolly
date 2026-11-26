@@ -75,6 +75,10 @@ export function wireForensicVerify(
     if (part && shows) host.replaceChildren(part);
     else { part?.remove(); host.replaceChildren(); }
     host.hidden = !shows;
+    // How many findings there are, so the page can stay quiet when there are none.
+    const count = String(states.get(panel)?.collection.report.findings.length ?? 0);
+    panel.dataset.forensicFindings = count;
+    host.dataset.forensicFindings = count;
     const media = host.parentElement?.querySelector<HTMLElement>('[data-stage-media]');
     if (media) media.hidden = shows;
   };

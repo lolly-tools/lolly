@@ -1,19 +1,8 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 @layer views {
-  /* Verify's body: the asset on a stage, the findings in a column beside it.
-     Under 1024px the stage sits on top and the findings follow in the page. */
-  .vf-body { display: grid; gap: var(--ui-space-page); grid-template-columns: minmax(0, 1fr); align-items: start; min-width: 0; }
-  .vf-column { display: grid; gap: var(--ui-space-panel); min-width: 0; }
-  @media (min-width: 1024px) {
-    .vf-body { grid-template-columns: minmax(0, 1.15fr) minmax(22rem, 1fr); }
-    .vf-stage {
-      position: sticky;
-      top: calc(var(--valid-actions-height, 5rem) + var(--ui-space-panel));
-      max-height: calc(100dvh - var(--valid-actions-height, 5rem) - var(--ui-space-panel) * 2);
-    }
-  }
-
+  /* The stage: the asset, first in the left column (valid-layout.css). */
   .vf-stage {
+    scroll-margin-top: calc(var(--valid-actions-height, 5rem) + var(--ui-space-panel));
     --vf-stage-fit: min(62dvh, 44rem);
     display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--sp-4);
     min-width: 0; min-height: 0;
@@ -76,21 +65,4 @@
   .vf-stage-caption strong { font-family: var(--ui-type-mono-family, ui-monospace, monospace); font-size: var(--ui-type-body); }
   .vf-stage-caption span { color: var(--ui-color-text-muted); font-size: var(--ui-type-label); }
   .vf-stage-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); }
-
-  /* In the column every section is one item wide. */
-  .vf-column .valid-origin-overview,
-  .vf-column .valid-context-cards,
-  .vf-column .valid-panels,
-  .vf-column .forensic-workspace { grid-template-columns: minmax(0, 1fr); }
-
-  /* One surface per region: the report is the card, so a section inside the column
-     is set apart by space and its heading, not by a card of its own. */
-  .vf-column { gap: var(--ui-space-page); }
-  .vf-column .valid-origin-overview,
-  .vf-column .valid-context-cards { gap: var(--ui-space-page); }
-  .vf-column .valid-origin-card {
-    padding: 0; border: 0; border-radius: 0;
-    background: none; box-shadow: none;
-  }
-  .vf-column .forensic { margin-block: 0; }
 }
