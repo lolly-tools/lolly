@@ -802,6 +802,7 @@ async function main(): Promise<void> {
       require: flags.require,
       metadata: isOn(flags.metadata),
       strict: g.strict,
+      verbose: g.verbose,
       trustAnchors: repeated['trust-anchor'],
       // --no-default-anchors: pinned roots only (contract section 12 O1). Absent = the
       // default set (Lolly CA root + the vendored C2PA list).

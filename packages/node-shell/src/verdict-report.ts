@@ -26,13 +26,17 @@
  *     MCP surface), and 'trusted'/'valid' both reading "Credential intact" with no
  *     separate "Verified" hero. The wording is `verdict-slugs.ts`'s, so the
  *     terminal line and the machine headline can never drift.
+ *   • verdictFindings - Verify's six findings (credential, made with, AI, licence,
+ *     personal data, hidden content) from the engine's `verifyFindings`, with the
+ *     placeholders filled and every string scrubbed. `findingLine` is the one line
+ *     each surface prints for a finding, so the three cannot word a slot differently.
  *
  * Every string returned is data, never a painted/Ink fragment: the shared piece
  * is the scrubbed content and the semantic tone, each shell owning its own skin.
  */
 
-import type { C2paReport, C2paVerdict } from '@lolly/engine';
-import { brandPageHost, rightsReportFromC2pa } from '@lolly/engine';
+import type { C2paReport, C2paVerdict, FileMetadata, VerifyEvidence, VerifyFindingId, VerifyFindingsInput, VerifyStrength, VerifyTone } from '@lolly/engine';
+import { brandPageHost, extractFileMetadata, fillFindingText, rightsReportFromC2pa, verifyFindings } from '@lolly/engine';
 import { VERDICT_SLUGS } from './verdict-slugs.ts';
 
 /**
@@ -285,4 +289,83 @@ export function verdictSources(report: C2paReport): VerdictSources | null {
     })),
     limits: rights.carried.limits.map(cleanControlChars),
   };
+}
+
+/** The label each finding prints under. The same words the web Verify view shows. */
+export const FINDING_LABELS: Record<VerifyFindingId, string> = {
+  credential: 'Credential',
+  'made-with': 'Made with',
+  ai: 'AI',
+  licence: 'Licence',
+  personal: 'Personal data',
+  hidden: 'Hidden content',
+};
+
+/** How strong a finding's evidence is, in words. A finding with nothing to weigh has no word. */
+export const FINDING_STRENGTH_WORDS: Record<VerifyStrength, string> = {
+  signed: 'Signed',
+  unverified: 'Credential, not verified',
+  stated: 'Stated in the file',
+  hint: 'Hint',
+  estimated: 'Estimated on this device',
+  none: '',
+};
+
+/** One finding as a Node surface prints and returns it: placeholders filled, strings scrubbed. */
+export interface VerdictFinding {
+  id: VerifyFindingId;
+  label: string;
+  /** The engine's stable code for the slot's state. */
+  state: string;
+  tone: VerifyTone;
+  strength: VerifyStrength;
+  /** The strength in words, or '' when there is nothing to weigh. */
+  strengthLabel: string;
+  /** A few words for the slot. */
+  word: string;
+  /** One sentence. */
+  detail: string;
+  names: string[];
+  evidence: VerifyEvidence[];
+}
+
+/**
+ * The file's own metadata for the findings, or undefined when the reader could not
+ * parse these bytes. The findings then say "Not read" for the slots that depend on
+ * the metadata, which is a different answer from "None found".
+ */
+export function verdictMetadata(bytes: Uint8Array): FileMetadata | undefined {
+  try { return extractFileMetadata(bytes); } catch { return undefined; }
+}
+
+/**
+ * Verify's six findings, always all six, in the engine's fixed order. The wording is
+ * the engine's, unchanged. An input the surface did not compute (a text analysis, a
+ * pixel scan, a SEAL result) is left absent, and the engine then says that check did
+ * not run. Every string is bytes from the file under inspection, so each is scrubbed.
+ */
+export function verdictFindings(input: VerifyFindingsInput): VerdictFinding[] {
+  return verifyFindings(input).map((f) => ({
+    id: f.id,
+    label: FINDING_LABELS[f.id],
+    state: f.state,
+    tone: f.tone,
+    strength: f.strength,
+    strengthLabel: FINDING_STRENGTH_WORDS[f.strength],
+    word: cleanControlChars(fillFindingText(f.word, f.vars)),
+    detail: cleanControlChars(fillFindingText(f.detail, f.vars)),
+    names: f.names.map(cleanControlChars),
+    evidence: f.evidence.map((e) => ({ label: cleanControlChars(e.label), value: cleanControlChars(e.value), source: cleanControlChars(e.source), strength: e.strength })),
+  }));
+}
+
+/** The one line a surface prints for a finding: `Label: word (strength)`. */
+export function findingLine(f: VerdictFinding): string {
+  return `${f.label}: ${f.word}${f.strengthLabel ? ` (${f.strengthLabel})` : ''}`;
+}
+
+/** Third-party pixel marks a deep scan decoded, by scheme name, as the findings take them. */
+export function findingMarks(scan: { scanned?: boolean; trustmark?: boolean; contentSeal?: boolean } | null | undefined): string[] {
+  if (!scan?.scanned) return [];
+  return [...(scan.trustmark ? ['Adobe TrustMark'] : []), ...(scan.contentSeal ? ['Meta Content Seal'] : [])];
 }
