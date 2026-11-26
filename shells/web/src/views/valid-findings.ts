@@ -20,7 +20,7 @@ const SLOT: Record<VerifyFindingId, { label: string; icon: IconName; section: st
   credential: { label: 'Credential', icon: 'seal', section: '[data-finding-section="credential"]' },
   'made-with': { label: 'Made with', icon: 'tool', section: '.valid-origin-software' },
   ai: { label: 'AI', icon: 'aiSpark', section: '[data-finding-section="ai"]' },
-  licence: { label: 'Licence', icon: 'badgeCheck', section: '.valid-origin-rights' },
+  licence: { label: 'Licence', icon: 'badgeCheck', section: '[data-finding-section="licence"]' },
   personal: { label: 'Personal data', icon: 'user', section: '.valid-meta, [data-finding-section="personal"]' },
   hidden: { label: 'Hidden content', icon: 'eye', section: '.valid-payload, [data-finding-section="hidden"]' },
 };

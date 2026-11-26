@@ -71,7 +71,7 @@ import {isExpectedRow, pipStatusWord, scorecardModel, resolveState, sourceTypeLa
   stateTone, rightsReportOf, rightsSourceReport,
 } from './valid-verdict.ts';
 import type { Check, SignerIdentity, Signer, Claim, VerifyReport, Watermark, ScorecardItem } from './valid-verdict.ts';
-import { provenanceOverviewHtml, provenanceSummaryHtml } from './valid-provenance.ts';
+import { columnLeadHtml, provenanceSummaryHtml } from './valid-provenance.ts';
 import { pdfPreviewFor, pdfPageCountFor, wireVerifyPreviews, type VerifyPreview as Preview } from './valid-preview.ts';
 import { softwareName } from '@lolly/engine';
 import { auxiliaryMetadataHtml } from './valid-auxiliary.ts';
@@ -1724,7 +1724,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
       <div class="vf-body">
       ${stageHtml(preview, meta, fileIndex)}
       <div class="vf-column">
-      ${provenanceOverviewHtml(report, meta)}
+      ${columnLeadHtml(report, meta, fileName)}
       ${aiBlock}
       ${stepsBlock ? `<div class="valid-journey-feature" data-lamp-section="provenance">${stepsBlock}</div>` : ''}
       <div data-finding-section="personal">${contextCardsHtml(report, meta, false)}</div>
@@ -3486,7 +3486,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
     if (!button) return;
     try {
       await host.clipboard.writeText(button.dataset.copyEvidence ?? '');
-      announce(t('Link copied'));
+      announce(button.dataset.copyDone ?? t('Link copied'));
     } catch { announce(t('Could not copy link')); }
   });
   reportEl.addEventListener('click', (e) => {

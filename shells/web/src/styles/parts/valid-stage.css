@@ -66,7 +66,6 @@
   .vf-column .valid-context-cards,
   .vf-column .valid-panels,
   .vf-column .forensic-workspace { grid-template-columns: minmax(0, 1fr); }
-  .vf-column .valid-origin-rights { order: -1; }
 
   /* One surface per region: the report is the card, so a section inside the column
      is set apart by space and its heading, not by a card of its own. */
