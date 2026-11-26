@@ -38,7 +38,7 @@ import { looksLikeDocxFile, DOCX_MIME } from '../lib/office-text.ts';
 import { contextCardsHtml, journeyEvidenceLabel } from './valid-context.ts';
 import { readVerifyMetadata } from './valid-read-metadata.ts';
 import { renderMetadata } from './valid-metadata.ts';
-import { vendorMark } from './valid-vendors.ts';
+import { aiMakerChip, vendorMark } from './valid-vendors.ts';
 import { checkingHtml, updateVerifyProgress } from './valid-progress.ts';
 import { configuredVerifyOptions } from './valid-verification.ts';
 import { escape } from '../utils.ts';
@@ -72,12 +72,13 @@ import {isExpectedRow, pipStatusWord, scorecardModel, resolveState, sourceTypeLa
 } from './valid-verdict.ts';
 import type { Check, SignerIdentity, Signer, Claim, VerifyReport, Watermark, ScorecardItem } from './valid-verdict.ts';
 import { provenanceOverviewHtml, provenanceSummaryHtml } from './valid-provenance.ts';
-import { pdfPreviewFor, pdfPageCountFor, mediaPreviewHtml, wireVerifyPreviews, type VerifyPreview as Preview } from './valid-preview.ts';
+import { pdfPreviewFor, pdfPageCountFor, type VerifyPreview as Preview } from './valid-preview.ts';
 import { softwareName } from '@lolly/engine';
 import { auxiliaryMetadataHtml } from './valid-auxiliary.ts';
 import { metadataValueHtml, metadataLinkHtml, metadataUrl, wireMetadataLinks, visibleLinkedTextHtml } from './valid-links.ts';
 import { wireVerifyActions } from './valid-actions.ts';
-import { wireAddressRequests } from './valid-location.ts';
+import { evidenceHeadHtml, wireReportParts } from './valid-evidence.ts';
+import { stageHtml } from './valid-stage.ts'; import { lollyBlockHtml } from './valid-lolly.ts'; import { licenceBandHtml } from './valid-licence.ts'; import { reportBodyHtml } from './valid-layout.ts';
 import { intakeAltsHtml, wireIntakeAlts } from './valid-intake-alts.ts';
 // The C2PA 2.4 text-binding models - same pure-module rule as valid-verdict.ts.
 // The copy for every carrier state, the snippet cap, and the ONE url gate both
@@ -402,7 +403,7 @@ const AI_FLAG_COPY = {
 // Matches the makers whose AI output carries Google's SynthID pixel watermark
 // (Gemini/Imagen/Veo - and "Nano Banana", Gemini's image-model brand).
 const SYNTHID_MAKERS = /google|gemini|imagen|veo|nano.?banana/i;
-function aiFlagHtml(origin: AiOrigin | undefined, makerHint = '', isAudio = false): string {
+function aiFlagHtml(origin: AiOrigin | undefined, makerHint = '', isAudio = false, makerChip = ''): string {
   if (!origin) return '';
   const c = AI_FLAG_COPY[origin.via][origin.kind];
   const likely = origin.via === 'fingerprint';
@@ -425,7 +426,7 @@ function aiFlagHtml(origin: AiOrigin | undefined, makerHint = '', isAudio = fals
       <span class="valid-ai-flag-text">
         <strong>${escape(t(c.title))}</strong>
         <span>${sub}</span>
-        ${origin.credit ? `<span class="valid-ai-flag-credit">“${escape(origin.credit)}”</span>` : ''}
+        ${makerChip}${origin.credit ? `<span class="valid-ai-flag-credit">“${escape(origin.credit)}”</span>` : ''}
         <span class="valid-ai-flag-note">${note}</span>
       </span>
       <span class="valid-ai-flag-tag" aria-hidden="true">${likely ? t('AI?') : t('AI')}</span>
@@ -1691,8 +1692,8 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
   // pips and the lamp strip, which each said the same thing in its own way.
   const findings = findingsFor(report, meta, { watermark, seal, madeHere: !!mine, textSignals });
   const verdictWord = report.found || !noCredSignal ? t(state.title) : noCredSignal;
-  const aiBlock = `<div data-lamp-section="origin" data-finding-section="ai">
-      ${aiFlagHtml(aiOrigin, makerHint, preview?.kind === 'audio')}
+  const aiBlock = `<div data-lamp-section="origin">
+      ${aiFlagHtml(aiOrigin, makerHint, preview?.kind === 'audio', aiOrigin ? aiMakerChip(`${aiOrigin.vendor ?? ''} ${aiOrigin.credit ?? ''} ${makerHint}`, aiOrigin.via, report.state === 'valid') : '')}
       ${aiDisclosureHtml(report, identity)}
       <div data-lamp-section="signals">
       ${forensicPanelHtml(fileIndex, aiOrigin ? [{ kind: aiOrigin.via === 'fingerprint' ? 'container-hint' : aiOrigin.kind, source: aiOrigin.via === 'fingerprint' ? 'container-signature' : aiOrigin.via, integrity: aiOrigin.via === 'credential' ? report.state === 'valid' ? 'verified' : 'unverified' : 'unsigned', scope: 'document' }] : [])}
@@ -1718,27 +1719,25 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
             ${report.found ? `<p class="vf-answer-sub">${sub}</p>` : ''}${identityLine}
           </div>
         </div>
-        ${findingsHtml(findings, fileIndex)}
+        ${findingsHtml(findings)}
       </section>
-      <div class="valid-origin-layout">${provenanceOverviewHtml(report, meta)}${mediaPreviewHtml(preview, fileIndex)}</div>
-      ${aiBlock}
-      ${stepsBlock ? `<div class="valid-journey-feature" data-lamp-section="provenance">${stepsBlock}</div>` : ''}
-      <div data-finding-section="personal">${contextCardsHtml(report, meta)}</div>
-      <div data-lamp-section="provenance" data-finding-section="credential"><span data-lamp-section="integrity"></span>${panelsBlock}</div>
-      ${askCred}
-      ${deepScanBlock(fileIndex, report.format, fileName)}
-      ${notesHtml(notes, fileIndex)}
-      ${claimPanelHtml(fileIndex, report.format, fileName, report.found)}
-      ${watermarkNote(watermark)}
-      ${imprintRescanBlock(fileIndex, report.format, fileName, !!watermark?.present, report.madeWithLolly)}
-      ${sealNoteHtml(seal)}
-      ${appendedPayloadHtml(meta, fileIndex)}
-      ${receiptHtml}
+      ${reportBodyHtml(findings, {
+        stage: stageHtml(preview, meta, fileIndex),
+        depth: evidenceHeadHtml(findings, report, meta, fileName, fileIndex),
+        licence: licenceBandHtml(report, meta, fileName),
+        madeWith: provenanceOverviewHtml(report, meta, false) + lollyBlockHtml(report, { tool: recreate, imprint: !!watermark?.present }),
+        ai: aiBlock,
+        personal: contextCardsHtml(report, meta, false),
+        credential: `${stepsBlock ? `<div class="valid-journey-feature" data-lamp-section="provenance">${stepsBlock}</div>` : ''}<div data-lamp-section="provenance"><span data-lamp-section="integrity"></span>${panelsBlock}</div>${askCred}${notesHtml(notes, fileIndex)}${claimPanelHtml(fileIndex, report.format, fileName, report.found)}`,
+        hidden: appendedPayloadHtml(meta, fileIndex),
+        marks: deepScanBlock(fileIndex, report.format, fileName) + watermarkNote(watermark) + imprintRescanBlock(fileIndex, report.format, fileName, !!watermark?.present, report.madeWithLolly) + sealNoteHtml(seal),
+        receipt: `${receiptHtml}
       ${report.found ? deviceNote(report.format === 'webm' || report.format === 'mkv'
     ? t("<strong>Checked entirely on this device</strong> - the file was not uploaded. WebM has no standardised C2PA container mapping yet, so this credential is Lolly's own Matroska attachment: only Lolly (here and via <code>lolly validate</code>) can read it - external C2PA viewers don't support WebM at all.")
     : identity
       ? tRaw("<strong>Checked entirely on this device</strong> - the file was not uploaded. The signer's identity was verified against the Lolly CA root pinned in this app (the same root <code>lolly validate --trust-anchor</code> uses). Validators that don't pin that root - {link}, or <code>c2patool</code> without <code>--trust_anchors</code> - still show the signer as an unknown source.", { link: '<a href="https://verify.contentauthenticity.org/" target="_blank" rel="noopener">verify.contentauthenticity.org</a>' })
-      : tRaw('<strong>Checked entirely on this device</strong> - the file was not uploaded. The same file on {link} reads the same, with the signer shown as an unknown source (there is no CA behind an on-device key - by design).', { link: '<a href="https://verify.contentauthenticity.org/" target="_blank" rel="noopener">verify.contentauthenticity.org</a>' })) : ''}
+      : tRaw('<strong>Checked entirely on this device</strong> - the file was not uploaded. The same file on {link} reads the same, with the signer shown as an unknown source (there is no CA behind an on-device key - by design).', { link: '<a href="https://verify.contentauthenticity.org/" target="_blank" rel="noopener">verify.contentauthenticity.org</a>' })) : ''}`,
+      })}
     </div>`;
 }
 
@@ -1752,39 +1751,8 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
 // credentials, then claim the file" is one surface. The signed file downloads and
 // the panel re-verifies in place so the viewer immediately sees their claim on the chain.
 
-/**
- * Licence options offered when claiming a file - mirrors community/claim
- * (option value = the exact string embedded as dc:rights, incl. the CC deed URL).
- *
- * The first option is empty and means exactly what it says: no public licence was
- * declared. It is NOT a retained-rights notice, which is the second option and
- * writes a notice of its own. Those are different facts about a file, and the
- * empty value used to be labelled as the second one, which said something the
- * claimant never chose (plan 253, section 9.3).
- */
-export const CLAIM_LICENCES: Array<{ value: string; label: string }> = [
-  { value: '', label: 'No public licence declared' },
-  { value: 'All rights reserved', label: 'All rights reserved - a retained-rights notice' },
-  { value: 'CC0 1.0 (Public Domain) · https://creativecommons.org/publicdomain/zero/1.0/', label: 'CC0 1.0 - Public Domain' },
-  { value: 'CC BY 4.0 · https://creativecommons.org/licenses/by/4.0/', label: 'CC BY 4.0 - Attribution' },
-  { value: 'CC BY-SA 4.0 · https://creativecommons.org/licenses/by-sa/4.0/', label: 'CC BY-SA 4.0 - Attribution-ShareAlike' },
-  { value: 'CC BY-ND 4.0 · https://creativecommons.org/licenses/by-nd/4.0/', label: 'CC BY-ND 4.0 - Attribution-NoDerivatives' },
-  { value: 'CC BY-NC 4.0 · https://creativecommons.org/licenses/by-nc/4.0/', label: 'CC BY-NC 4.0 - Attribution-NonCommercial' },
-  { value: 'CC BY-NC-SA 4.0 · https://creativecommons.org/licenses/by-nc-sa/4.0/', label: 'CC BY-NC-SA 4.0 - NonCommercial-ShareAlike' },
-  { value: 'CC BY-NC-ND 4.0 · https://creativecommons.org/licenses/by-nc-nd/4.0/', label: 'CC BY-NC-ND 4.0 - NonCommercial-NoDerivatives' },
-  { value: 'Public Domain Mark 1.0 · https://creativecommons.org/publicdomain/mark/1.0/', label: 'Public Domain Mark - already public domain' },
-];
-
-/**
- * What the claimant says their claim rests on. Signing records the sentence, not
- * a finding: uploading a file is not ownership of it, and a Lolly signature says
- * who asserted this and that the bytes match, never that the assertion is true.
- */
-export const CLAIM_BASIS: Array<{ value: string; label: string; sentence: string }> = [
-  { value: 'author', label: 'I created this work', sentence: 'Credentials added by the claimant, who asserts they created this work.' },
-  { value: 'contribution', label: 'I hold rights in my own contribution', sentence: 'Credentials added by the claimant, who asserts rights in their own contribution and not in the rest of the work.' },
-  { value: 'distribution', label: 'I am authorised to distribute this work', sentence: 'Credentials added by the claimant, who asserts they are authorised to distribute this work.' },
-];
+export { CLAIM_BASIS, CLAIM_LICENCES } from './valid-claim-options.ts';
+import { CLAIM_BASIS, CLAIM_LICENCES } from './valid-claim-options.ts';
 
 /**
  * What a stripped file no longer carries, said plainly, with the credit it used
@@ -3504,17 +3472,8 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
 
   wireLampScroll(reportEl);
   wireMetadataLinks(reportEl);
-  wireVerifyPreviews(reportEl, (index) => activeFiles[index]);
+  wireReportParts(reportEl, host, (index) => activeFiles[index]);
   wireVerifyActions(viewEl, reportEl);
-  wireAddressRequests(reportEl);
-  reportEl.addEventListener('click', async (event) => {
-    const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('[data-copy-evidence]') : null;
-    if (!button) return;
-    try {
-      await host.clipboard.writeText(button.dataset.copyEvidence ?? '');
-      announce(t('Link copied'));
-    } catch { announce(t('Could not copy link')); }
-  });
   reportEl.addEventListener('click', (e) => {
     const scoreToggle = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-score-toggle]');
     if (scoreToggle) {

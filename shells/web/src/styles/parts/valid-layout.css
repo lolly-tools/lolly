@@ -1,0 +1,86 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+@layer views {
+  /* Verify's report body: two columns of ranked sections. Left, what is in the
+     file (the asset, AI, personal data, hidden content). Right, where the file
+     came from (licence, made with, credential). */
+  .vf-body { display: grid; gap: var(--ui-space-page); grid-template-columns: minmax(0, 1fr); align-items: start; min-width: 0; }
+  .vf-column { display: grid; gap: var(--ui-space-page); align-content: start; min-width: 0; }
+  @media (min-width: 1024px) {
+    .vf-body { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+  }
+
+  /* One section. Three levels of type: the head, the finding's sentence, the detail. */
+  .vs { display: grid; gap: var(--sp-4); min-width: 0; position: relative; scroll-margin-top: calc(var(--valid-actions-height, 5rem) + var(--ui-space-panel)); }
+  .vs-head { display: flex; align-items: center; gap: var(--ui-space-control-inline); margin: 0; font-size: var(--ui-type-title); font-weight: 650; letter-spacing: var(--ui-type-tracking-tight); }
+  .vs-head > svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); flex: 0 0 auto; color: var(--ui-color-text-muted); }
+  .vs.is-warn .vs-head > svg { color: hsl(var(--vf-warn)); }
+  .vs.is-bad .vs-head > svg { color: hsl(var(--vf-fail)); }
+  .vs-lede { margin: 0; max-width: 62ch; font-size: var(--ui-type-body); }
+  .vs.is-quiet .vs-lede { color: var(--ui-color-text-muted); }
+  .vs-body { display: grid; gap: var(--ui-space-panel); min-width: 0; }
+  .vs-body:empty { display: none; }
+
+  /* Inside a section the old blocks are sub-blocks: no card of their own, a
+     smaller heading, and their explanatory notes live in the section's help tip. */
+  .vs .valid-origin-overview,
+  .vs .valid-context-cards,
+  .vs .valid-panels,
+  .vs .forensic-workspace { grid-template-columns: minmax(0, 1fr); gap: var(--ui-space-panel); }
+  .vs .valid-origin-card { padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+  .vs .valid-origin-card > h3,
+  .vs .valid-panel > h3,
+  .vs .forensic > h2 { font-size: var(--ui-type-body); font-weight: 600; margin-block: 0 var(--sp-3); }
+  .vs .valid-origin-software > h3,
+  .vs .valid-origin-note,
+  .vs .forensic-intro,
+  .vs .valid-ai-flag-note,
+  .vs .valid-origin-empty { display: none; }
+  .vs .forensic { margin-block: 0; padding-block: 0; border: 0; }
+
+  /* The AI declaration: one calm line with its maker, in the AI signal colour. */
+  .vs .valid-ai-flag { padding: var(--sp-5) var(--ui-space-panel); gap: var(--sp-5); box-shadow: none; }
+  .vs .valid-ai-flag::before, .vs .valid-ai-flag::after { content: none; }
+
+  /* Software and devices: a list of vendor rows, not cards. */
+  .vs .valid-origin-software { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
+  .vs .valid-software-badges { display: grid; gap: var(--sp-3); }
+  .vs .valid-software-badge,
+  .vs .valid-software-badge.is-primary { flex-direction: row; align-items: center; gap: var(--sp-4); padding: 0; border: 0; background: none; box-shadow: none; }
+  .vs .valid-software-badge strong,
+  .vs .valid-software-badge.is-primary strong { font-size: var(--ui-type-body); letter-spacing: 0; }
+  .vs .valid-software-badge .valid-vendor-mark,
+  .vs .is-primary > .valid-vendor-mark { width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs)); }
+  .vs .valid-vendor-copy { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1) var(--sp-3); }
+  .vs .valid-origin-label { margin: 0 0 var(--sp-2); }
+
+  /* The AI declaration says its sentence once: the section's own sentence above. */
+  .vs .valid-ai-flag-text > strong + span { display: none; }
+
+  /* With no writing or design clues, Summary shows only what could not be read.
+     Evidence shows the whole panel, coverage and method included. */
+  .valid-result:not([data-vf-depth="evidence"]) .forensic[data-forensic-findings="0"] > h2,
+  .valid-result:not([data-vf-depth="evidence"]) .forensic[data-forensic-findings="0"] [data-forensic-content] > :not(.forensic-coverage-notice):not(.forensic-notice) { display: none; }
+  /* The heat and region controls have nothing to switch until there is a finding. */
+  .vf-stage-forensic[data-forensic-findings="0"] .forensic-toolbar,
+  .vf-stage-forensic[data-forensic-findings="0"] .forensic-transcript { display: none; }
+  .vf-column .valid-meta-actions > span:first-child { display: none; }
+
+  /* Blocks that used to be cards sit flat in a column: the report is the surface. */
+  .vf-column .valid-meta,
+  .vf-column .valid-claim,
+  .vf-column .valid-receipt,
+  .vf-column .valid-wm,
+  .vf-column .forensic-coverage,
+  .vf-column .valid-origin-evidence,
+  .vf-column .valid-origin-facts,
+  .vf-column .valid-panel,
+  .vf-column .valid-note { padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+  .vf-column .valid-panel > summary,
+  .vf-column .valid-panel > h3 { padding-inline: 0; }
+  .vf-column .valid-panel-body { padding-inline: 0; }
+  /* A long list of recorded settings is capped in Summary; Evidence shows every row. */
+  .valid-result:not([data-vf-depth="evidence"]) .vf-column .valid-inputs dl { max-height: 11rem; overflow: auto; }
+
+  /* The page's own introduction steps aside once a report is on screen. */
+  .valid-layout:has(.valid-result) .plat-sub { display: none; }
+}
