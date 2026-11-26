@@ -11,9 +11,11 @@ import { test } from 'node:test';
 import { JSDOM } from 'jsdom';
 import { resolveRender } from '../../../../engine/src/render-when.ts';
 import {
-  carryRenderMount, renderInEffect, restoreRenderFocus, restoreRenderFocusOnArrival, takeRenderMount, watchRenderMode, willRemountForRender,
+  carryRenderMount, inputsOfMount, renderInEffect, restoreRenderFocus, restoreRenderFocusOnArrival, takeRenderMount, watchRenderMode, willRemountForRender,
 } from './tool-render-mode.ts';
 import { toolCanvasRole } from './tool-canvas-role.ts';
+import { recoveryNotice } from './tool-recovery-notice.ts';
+import { readFileSync } from 'node:fs';
 
 const render = {
   width: 600, height: 600, formats: ['svg', 'png'], actions: ['copy', 'download', 'save'],
@@ -212,4 +214,30 @@ test('focus on the keyed control is noted, and goes back to the chosen button af
   other.set('mode', 'scan');
   off2();
   assert.equal(takeRenderMount('two-modes')?.focusInput, null);
+});
+
+test('the inputs of a mount leave out the ones that belong to the other mode', () => {
+  const inputs = [
+    { id: 'mode', type: 'select' },
+    { id: 'url', type: 'url', showIf: { mode: 'make', payload: 'url' } },
+    { id: 'image', type: 'file', showIf: { mode: 'scan', source: 'image' } },
+    { id: 'note', type: 'text', showIf: { other: 'x' } },
+  ];
+  const two = { render: manifest.render, inputs };
+  // A condition on another input is not a mode: that input stays, shown or not.
+  assert.deepEqual(inputsOfMount(two, { mode: 'make', source: 'image' }).map(i => i.id), ['mode', 'url', 'note']);
+  assert.deepEqual(inputsOfMount(two, { mode: 'scan', source: 'camera' }).map(i => i.id), ['mode', 'image', 'note']);
+  const plain = { render: { ...manifest.render, when: undefined }, inputs };
+  assert.equal(inputsOfMount(plain, { mode: 'make' }), inputs, 'a tool with no `when` keeps its inputs, the same array');
+});
+
+test('QR Code making a code has no file input to drop on or to warn about; scanning has one', () => {
+  const qr = JSON.parse(readFileSync(new URL('../../../../community/qr-code/tool.json', import.meta.url), 'utf8'));
+  const values = (mode: string): Record<string, unknown> => ({ ...Object.fromEntries(qr.inputs.map((i: { id: string; default?: unknown }) => [i.id, i.default])), mode });
+  const making = inputsOfMount<{ id: string; type: string; showIf?: unknown }>(qr, values('make'));
+  const scanning = inputsOfMount<{ id: string; type: string; showIf?: unknown }>(qr, values('scan'));
+  assert.deepEqual(making.filter(i => i.type === 'file'), []);
+  assert.deepEqual(scanning.filter(i => i.type === 'file').map(i => i.id), ['scanImage']);
+  assert.equal(recoveryNotice({ manifest: { ...qr, inputs: [...making] }, automatic: true, canSave: true }), null, 'no notice about imported files while making a code');
+  assert.match(recoveryNotice({ manifest: { ...qr, inputs: [...scanning] }, automatic: true, canSave: true })!, /imported files are not kept/);
 });

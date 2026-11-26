@@ -365,7 +365,7 @@ A `LayerWrite` is `{ name, x, y, width, height, pixels, opacity?, blend?, visibl
 
 ### `host.scan`
 
-*Optional, v1.153.* Find machine-readable codes (QR, Data Matrix, Aztec, PDF417 and the 1D families) in one RGBA frame. The web shell uses the browser's `BarcodeDetector` where present and a zxing-wasm decoder otherwise; the CLI and TUI load zxing-wasm from disk. Pair it with `host.media` for a live viewfinder, or use it alone on a still image. The Scan tool (`scan-code`) is the reference.
+*Optional, v1.153.* Find machine-readable codes (QR, Data Matrix, Aztec, PDF417 and the 1D families) in one RGBA frame. The web shell uses the browser's `BarcodeDetector` where present and a zxing-wasm decoder otherwise; the CLI and TUI load zxing-wasm from disk. Pair it with `host.media` for a live viewfinder, or use it alone on a still image. QR Code's scan mode (`qr-code`) is the reference.
 
 | Method | Returns | Notes |
 |---|---|---|

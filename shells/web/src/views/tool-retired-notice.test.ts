@@ -47,3 +47,21 @@ test('Voice Recorder says it is part of Audiogram and carries the name and coach
   assert.deepEqual(Object.fromEntries(params), { title: 'Standup notes', bg: '#11141f', ink: '#fafbfe', targetLevel: 'soft', showTips: 'false' });
   off();
 });
+
+test('Scan says it is part of QR Code and opens scan mode on the same source', () => {
+  const body = dom.window.document.querySelector('.sidebar-body') as HTMLElement;
+  const opened: string[] = [];
+  const off = mountRetiredToolNotice({
+    body, toolId: 'scan-code', name: 'Scan', successorId: 'qr-code', successorName: 'QR Code',
+    values: () => ({ mode: 'paste', paste: 'https://example.com', image: null }),
+    open: (href) => opened.push(href),
+  });
+  const line = body.firstElementChild as HTMLElement;
+  assert.match(line.textContent ?? '', /Scan is now part of QR Code\./);
+  const go = line.querySelector('button') as HTMLButtonElement;
+  assert.equal(go.textContent, 'Open in QR Code');
+  go.click();
+  assert.ok(opened[0]!.startsWith('#/tool/qr-code?'));
+  assert.deepEqual(Object.fromEntries(new URLSearchParams(opened[0]!.split('?')[1])), { mode: 'scan', source: 'paste', scanText: 'https://example.com' });
+  off();
+});

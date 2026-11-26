@@ -1,5 +1,4 @@
 {
   "name": "Scan",
-  "description": "Lis les codes QR et codes-barres sur ton appareil. Copier est toujours la première action ; ouvrir, rejoindre ou ajouter reste un geste explicite et informé.",
-  "featured.blurb": "Lis n'importe quel code, en toute sécurité et hors ligne"
+  "description": "Lis les codes QR et codes-barres sur ton appareil. Copier est toujours la première action ; ouvrir, rejoindre ou ajouter reste un geste explicite et informé."
 }

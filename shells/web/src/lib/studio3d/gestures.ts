@@ -68,6 +68,7 @@ import {
   studioMode,
 } from './controls.ts';
 import { createStudioHandles } from './handles.ts';
+import { createStudioLightHandles } from './light-handles.ts';
 import { moveEdits, objectPlace, positionLimit, removeEdits, turnEdits } from './object-edit.ts';
 
 /** The pause after the last wheel event or key press before the view is saved. */
@@ -168,8 +169,11 @@ export function wireStudioGestures(entry: StudioControls): void {
   };
   // The selected object's handles, drawn after every preview frame (mount.ts).
   const handles = createStudioHandles(entry, redraw);
-  entry.drawHandles = handles.draw;
-  entry.clearHandles = handles.remove;
+  // The lights' handles stand in the same layer, where a light outside the frame is still in reach.
+  const lightHandles = createStudioLightHandles(entry, redraw);
+  entry.lightHandlesInLayer = lightHandles.active;
+  entry.drawHandles = () => { handles.draw(); lightHandles.draw(); };
+  entry.clearHandles = () => { handles.remove(); lightHandles.remove(); };
 
   function preview(view: StudioView): void {
     live = view;
@@ -249,6 +253,7 @@ export function wireStudioGestures(entry: StudioControls): void {
   /** Drop the gesture and its preview. A wheel or key view that only waited for its pause is kept. */
   function cancel(): void {
     handles.cancel();
+    lightHandles.cancel();
     // A view held through a handle drag waits like any other.
     const waiting = (saveTimer !== undefined || heldView) && !pointers.size && gesture === null;
     heldView = false;
@@ -346,7 +351,7 @@ export function wireStudioGestures(entry: StudioControls): void {
 
   canvas.addEventListener('pointerdown', (e) => {
     // A second finger on the canvas while a handle drags is left alone.
-    if (!editable() || handles.busy()) return;
+    if (!editable() || handles.busy() || lightHandles.busy()) return;
     if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 1) return;
     // A report of the last action gives way to the mode's own sentence.
     if (entry.status?.once && pointers.size === 0) note(entry, modeStatus(entry, studioMode(entry)), false);
@@ -646,7 +651,7 @@ export function wireStudioGestures(entry: StudioControls): void {
   canvas.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       // Escape drops a drag first, then leaves a mode, then clears the selection.
-      const dragging = gesture !== null || handles.busy();
+      const dragging = gesture !== null || handles.busy() || lightHandles.busy();
       cancel();
       if (dragging) return;
       if (studioMode(entry) !== 'orbit') setStudioMode(entry, 'orbit');

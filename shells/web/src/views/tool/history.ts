@@ -26,7 +26,7 @@ import { ICON_REDO, ICON_UNDO, isTextEditing, resolveTranscribeSpec } from './sh
 import { bindOp, type ToolViewCtx } from './context.ts';
 import { icon } from '../../lib/icons.ts';
 import { toolCanvasRole } from '../tool-canvas-role.ts';
-import { renderInEffect } from '../tool-render-mode.ts';
+import { inputsOfMount, renderInEffect } from '../tool-render-mode.ts';
 
 export const setDesignIntent = (tview: ToolViewCtx, intent: DesignIntent, pickDefault = false): void => {
   const { toolId } = tview;
@@ -443,7 +443,9 @@ export function wireHistory(tview: ToolViewCtx): void {
   // redact) gets the same canvas drop IN ADDITION to its sidebar file-picker, so a
   // file can land on the big surface without hunting for the sidebar control. Click
   // still only opens the picker via an explicit [data-file-pick] affordance.
-  const canvasFileInput = tview.tool.manifest.inputs?.find((i) => i.type === 'file') ?? null; tview.canvasFileInput = canvasFileInput as ToolViewCtx['canvasFileInput'];
+  // A `file` input that belongs to another mode of the tool (`render.when`) is not this
+  // mount's: QR Code's canvas takes no dropped file while it makes a code.
+  const canvasFileInput = inputsOfMount(tview.tool.manifest, Object.fromEntries(runtime.getModel().map((m) => [m.id, m.value]))).find((i) => i.type === 'file') ?? null; tview.canvasFileInput = canvasFileInput as ToolViewCtx['canvasFileInput'];
   // A sidebar tool with a `dropToAdd` blocks input (e.g. logo-wall) also turns its
   // canvas into a drop zone, so a pile of images can be dropped straight onto the
   // (usually empty) preview - not only onto the sidebar list. Canvas-layout file

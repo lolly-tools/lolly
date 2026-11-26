@@ -165,6 +165,8 @@ interface Entry {
   selected?: boolean;
   /** Place the selected object's handles on the frame just drawn; set by gestures.ts. */
   drawHandles?: () => void;
+  /** True when the lights' handles are drawn in the stage kit's layer; set by gestures.ts. */
+  lightHandlesInLayer?: () => boolean;
   /** Take the handles off the stage; set by gestures.ts. */
   clearHandles?: () => void;
   /**

@@ -25,7 +25,7 @@ import type { Lang, PlacedPictures } from '@lolly/engine';
 import { RONDO_ASSET_FORMAT, RondoSourceError, isRondoFileName, rondoFromFile, rondoSourceBytes } from '@lolly/engine';
 import { prerenderSongInputs } from '@lolly-tools/node-shell/audio';
 import type { InputValue } from '../../../engine/src/inputs.ts';
-import { syntheticInputs } from '../../../engine/src/inputs.ts';
+import { matchesShowIf, syntheticInputs } from '../../../engine/src/inputs.ts';
 import type { Runtime } from '../../../engine/src/runtime.ts';
 // NODE_FORMATS: the DOM-free/raster format split, shared with the TUI. Everything not
 // in it - raster, pdf, video - is produced by raster.ts (resvg fast path, else the
@@ -2722,7 +2722,14 @@ export async function showToolInputsCli(toolId: string, opts: { lang?: Lang; jso
   const tryArgs = dropInputs.length === 1 ? ' pictures/*.png' : exampleFlag;
   process.stdout.write(`\nTry it:\n  lolly ${tool.manifest.id}${tryArgs} --output=${tool.manifest.id}.${format}\n\n`);
 
-  const essentials = allInputs.filter(i => i.required || !i.showIf).slice(0, 8);
+  // A tool whose render settings follow one input (`render.when`) gates the inputs of
+  // each mode on that input. One gated on that alone, at the value the tool opens
+  // with, is listed as it was before the tool had modes.
+  const modeId = tool.manifest.render.when?.input;
+  const modeOpensAt = modeId ? allInputs.find(i => i.id === modeId)?.default : undefined;
+  const openGate = (i: typeof allInputs[number]): boolean => !!modeId && !!i.showIf && Object.keys(i.showIf).length === 1
+    && Object.hasOwn(i.showIf, modeId) && matchesShowIf(i.showIf, { [modeId]: modeOpensAt });
+  const essentials = allInputs.filter(i => i.required || !i.showIf || openGate(i)).slice(0, 8);
   const shown = opts.full ? allInputs : essentials;
   // Keep the long-standing `Inputs:` anchor for docs and shell parsers; the
   // human count/detail follows it instead of replacing it.

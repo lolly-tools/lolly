@@ -97,6 +97,8 @@ While the input `mode` holds `scan`, the keys under `set` replace the same keys 
 - `value` - one value, or a list of values, read the way [`showIf`](/info/tool-inputs.html) reads one pair. `"value": ["scan", "read"]` applies at either.
 - `set` - the keys to replace: `export`, `webPreview`, `actions`, and the live camera keys `live`, `liveFacing` and `liveCameraWhen`. The schema refuses any other key. The canvas size and the format list stay those of the tool. To narrow the formats by value, put `formats` on the options of a `select`.
 
+`qr-code` is the worked example. Its `mode` input opens on `make`, and its `when` block sets the reader's controls for `scan`, with `"live": false` in the block itself so the maker shows no camera control. Every input of one mode carries the mode in its `showIf`, so the other mode's inputs are never shown.
+
 There is one block, keyed on one input. A tool that needs a third set of controls is two tools.
 
 The engine works out the block in effect, and every shell reads that one answer (`runtime.getRender()`, or `resolveRender(render, values)` where there is no runtime). The web shell builds its frame from the answer: when the input changes the block in effect, the tool is mounted again at the same address with the values the person had, a picked file included. The export sheet, the action bar and the preview are then all built from the new answer. Undo history starts again at that point. The CLI, the terminal app and the MCP server draw a tool the same way whatever `export`, `webPreview` and `actions` hold, for every tool, so `lolly <tool> --mode=scan` renders as `lolly <tool>` does. Catalog listings, intents and the Batch grid have no values to read, so they use the tool's default.
@@ -124,7 +126,7 @@ In all five, the data stays flat and expressible as URL parameters, so the CLI a
 :::
 
 - `sidebar` - default `true`. Set `false` when the template edits its own inputs on the canvas (`sandbox`). The inputs stay in the synced input model (URL, saved sessions, collaboration, CLI) but get no sidebar, and a tool that exports keeps its export controls.
-- `webPreview` - default `false`. For a web-page tool with no export: the preview becomes a viewport that fills the pane's width, reflows when the pane resizes and scrolls, instead of a scaled artboard (`jump`, `scan-code`).
+- `webPreview` - default `false`. For a web-page tool with no export: the preview becomes a viewport that fills the pane's width, reflows when the pane resizes and scrolls, instead of a scaled artboard (`jump`, and `qr-code` in scan mode).
 - `urlSync` - default `true`. Set `false` to keep live edits out of the address bar. Explicit URL inputs and generated share links still work, and local recovery uses the session slot.
 - `denseSections` - `input.section` labels whose short controls the web sidebar lays out two to a row. The input model, URL encoding and every headless render are untouched. The grid falls back to one column on a narrow panel or with large text.
 - `sectionIcons` - maps an `input.section` label to a shell icon name, drawn before the label on the folded section head. A tool with many sections (`chart` declares seventeen) can then be scanned by glyph. Same contract as `denseSections`: an unknown icon name draws nothing, and the CLI and TUI ignore the map. Give each section an icon from the shell registry, keep a section's fields consecutive and put primary content before secondary settings. Translated section captions keep their icon and density.
@@ -138,7 +140,7 @@ These keys apply only to tools with an `onFrame` hook; others ignore them.
 - `liveDefault` - an animated SVG catalog asset the shell plays as a moving subject when no camera is in use (`filter`).
 - `live` - default `true`, engine v1.356. Set `false` to mount no camera controls although the tool has an `onFrame` hook. A tool whose hook serves one mode declares `live: false` and turns the controls on for that mode with `when.set`.
 - `liveFacing` - the camera that opens first: `user` (front, the default) or `environment` (rear).
-- `liveCameraWhen` - `{ input, value }`. Starts the camera while that input holds that value and stops it otherwise (`scan-code` in camera mode).
+- `liveCameraWhen` - `{ input, value }`. Starts the camera while that input holds that value and stops it otherwise (`qr-code` in scan mode, on the Camera source).
 
 ### Print and pages
 

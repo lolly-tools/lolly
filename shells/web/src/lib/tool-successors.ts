@@ -167,9 +167,29 @@ export function voiceRecorderToAudiogram(values: Values): Values {
   };
 }
 
+/** The three places Scan read a code from. */
+const SCAN_SOURCES = ['camera', 'image', 'paste'];
+
+/**
+ * Scan into QR Code. Scan is QR Code's scan mode, so the document opens there on the
+ * source it had: the camera, an image or pasted text. Pasted text travels as typed. A
+ * picked image is bytes in memory and not a value, so the image is chosen again.
+ * Pure, exported for tests.
+ */
+export function scanToQrCode(values: Values): Values {
+  const source = text(values.mode);
+  const pasted = typeof values.paste === 'string' ? values.paste : '';
+  return {
+    mode: 'scan',
+    source: SCAN_SOURCES.includes(source) ? source : 'camera',
+    ...(pasted.trim() ? { scanText: pasted } : {}),
+  };
+}
+
 const CARRY: Record<string, Carry> = {
   'meeting-planner': meetingPlannerToTimezone,
   'org-chart': flowChartToDesign,
+  'scan-code': scanToQrCode,
   'voice-recorder': voiceRecorderToAudiogram,
 };
 
