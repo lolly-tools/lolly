@@ -476,7 +476,18 @@ export const fileMetadataTarget: FuzzTarget = {
       pngChunk('iTXt', bytesOf('Comment\0\0\0en\0\0hello')),
       pngChunk('IEND', new Uint8Array(0)),
     ]);
-    return [tinyJpeg(), tinyPng(), pngWithText, tinyWebp(), tinySvg(), tiff, tinyGif(1)];
+    // The tag carriers read for rights statements (tag-readers.ts): ID3v2, Vorbis
+    // comments in FLAC and Ogg, Matroska tags, MP4 user data and Office property parts.
+    const office = storeZip([
+      { name: 'word/document.xml', bytes: bytesOf('<x/>') },
+      { name: 'docProps/core.xml', bytes: bytesOf('<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:rights>seed</dc:rights></cp:coreProperties>') },
+      { name: 'docProps/custom.xml', bytes: bytesOf('<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/custom-properties"><property name="License"><a>seed</a></property></Properties>') },
+    ]);
+    const tags = videoProvenanceTags({ tool: 'Fuzz', software: 'LollyFuzz' }, new Date(0));
+    return [
+      tinyJpeg(), tinyPng(), pngWithText, tinyWebp(), tinySvg(), tiff, tinyGif(1),
+      buildMp3(), buildFlac(), buildOpus(), buildWav(), embedWebmMeta(tinyWebm(), tags), embedMp4Meta(tinyMp4(), tags), office,
+    ];
   },
   // Contract: never throws, never hangs - a malformed block yields fewer fields.
   async invoke(bytes) { extractFileMetadata(bytes); },

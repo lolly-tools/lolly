@@ -147,6 +147,11 @@ export function xmlProvenanceFields(input: string): MetaField[] {
     ['xmpRights', 'http://ns.adobe.com/xap/1.0/rights/', 'UsageTerms', 'authorship', 'Usage terms'],
     ['xmpRights', 'http://ns.adobe.com/xap/1.0/rights/', 'WebStatement', 'authorship', 'Rights statement'],
     ['cc', 'http://creativecommons.org/ns#', 'license', 'authorship', 'Licence'],
+    // The namespace Creative Commons used before 2008; older Inkscape files carry this form.
+    ['cc', 'http://web.resource.org/cc/', 'license', 'authorship', 'Licence'],
+    // A flag and a contact address, not licence statements: each keeps a label of its own.
+    ['xmpRights', 'http://ns.adobe.com/xap/1.0/rights/', 'Marked', 'authorship', 'Rights marked'],
+    ['plus', 'http://ns.useplus.org/ldf/xmp/1.0/', 'LicensorURL', 'authorship', 'Licensor URL'],
     ['dc', 'http://purl.org/dc/elements/1.1/', 'source', 'description', 'Source'],
     ['dc', 'http://purl.org/dc/elements/1.1/', 'relation', 'description', 'Related resource'],
     ['cc', 'http://creativecommons.org/ns#', 'attributionName', 'authorship', 'Attribution name'],

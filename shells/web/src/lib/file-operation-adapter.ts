@@ -23,7 +23,9 @@ export async function describeFile(file: File, signal?: AbortSignal): Promise<Fi
   const jxl = isJxl(bytes) ? (await (await import('../bridge/jxl.ts')).runJxl({ operation: 'probe', bytes }, signal)).info : undefined;
   const dimensions = jxl ? { w: jxl.width, h: jxl.height } : imageDimensions(bytes, file.type);
   const rawFormat = jxl ? 'jxl' : sfntKind(bytes) ?? extractFileMetadata(bytes).format.toLowerCase();
-  const detected = ['unknown', 'binary', ''].includes(rawFormat) ? undefined : rawFormat;
+  // The metadata reader also reports these tag carriers, for their rights statements. A file of
+  // one of them keeps the format its name declares here, as before the reader knew them.
+  const detected = ['unknown', 'binary', '', 'mp3', 'flac', 'ogg', 'ogg vorbis', 'matroska', 'webm', 'docx', 'pptx'].includes(rawFormat) ? undefined : rawFormat;
   return { name: file.name, format: detected || file.name.split('.').pop()?.toLowerCase() || 'unknown', formatSource: detected ? 'detected' : 'declared', mime: file.type || 'application/octet-stream', size: file.size, sha256: await sha256Bytes(bytes), ...(dimensions ? { width: dimensions.w, height: dimensions.h } : {}) };
 }
 export async function runWebFileOperation(file: File, request: FileOperationRequestV1, signal?: AbortSignal, filename?: string) {
