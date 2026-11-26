@@ -552,6 +552,11 @@ var init_tool_schema = __esm({
               pattern: "^[a-z0-9]+(/[a-z0-9][a-z0-9-]*)+$",
               description: "For onFrame tools: catalog id of an ANIMATED SVG asset the shell plays as a live, no-camera source (an off-screen <img> of the animation, sampled into onFrame like a camera would be) so the tool can show off its effect on a moving subject without a webcam. The shell auto-plays it when present; a still export still captures the current frame. Ignored by tools without onFrame."
             },
+            live: {
+              type: "boolean",
+              default: true,
+              description: "For onFrame (live camera) tools: set false to mount no live camera controls (engine 1.356). For a tool whose onFrame hook serves one mode only, with render.when.set turning the controls on for that mode. Unset means on."
+            },
             liveFacing: {
               type: "string",
               enum: [
@@ -559,6 +564,104 @@ var init_tool_schema = __esm({
                 "environment"
               ],
               description: "For onFrame (live camera) tools: which camera to open by default - 'user' (front, the default) or 'environment' (rear). A code reader / document scanner wants 'environment'. The user can still flip front/rear from the live controls; this only sets the initial camera. Honoured where the shell can choose a facing; ignored on a single-camera device and by shells without a camera."
+            },
+            when: {
+              type: "object",
+              additionalProperties: false,
+              required: [
+                "input",
+                "value",
+                "set"
+              ],
+              properties: {
+                input: {
+                  type: "string",
+                  minLength: 1,
+                  description: "Id of a declared input whose value selects the render settings."
+                },
+                value: {
+                  description: "The input value at which `set` applies, or a list of such values. Read the way an input's showIf reads one pair.",
+                  oneOf: [
+                    {
+                      type: [
+                        "string",
+                        "number",
+                        "boolean"
+                      ]
+                    },
+                    {
+                      type: "array",
+                      minItems: 1,
+                      items: {
+                        type: [
+                          "string",
+                          "number",
+                          "boolean"
+                        ]
+                      }
+                    }
+                  ]
+                },
+                set: {
+                  type: "object",
+                  additionalProperties: false,
+                  minProperties: 1,
+                  properties: {
+                    export: {
+                      type: "boolean",
+                      description: "render.export while the condition holds."
+                    },
+                    webPreview: {
+                      type: "boolean",
+                      description: "render.webPreview while the condition holds."
+                    },
+                    actions: {
+                      type: "array",
+                      items: {
+                        type: "string",
+                        enum: [
+                          "copy",
+                          "download",
+                          "save",
+                          "share"
+                        ]
+                      },
+                      description: "render.actions while the condition holds."
+                    },
+                    live: {
+                      type: "boolean",
+                      description: "render.live while the condition holds."
+                    },
+                    liveFacing: {
+                      type: "string",
+                      enum: [
+                        "user",
+                        "environment"
+                      ],
+                      description: "render.liveFacing while the condition holds."
+                    },
+                    liveCameraWhen: {
+                      type: "object",
+                      additionalProperties: false,
+                      required: [
+                        "input",
+                        "value"
+                      ],
+                      properties: {
+                        input: {
+                          type: "string"
+                        },
+                        value: {
+                          type: "string"
+                        }
+                      },
+                      description: "render.liveCameraWhen while the condition holds."
+                    }
+                  },
+                  description: "The render keys that replace the tool's own while the condition holds: export, webPreview, actions and the live camera keys live, liveFacing and liveCameraWhen. No other key can be set."
+                }
+              },
+              description: "Render settings that follow one input's value (engine 1.356). While `input` holds `value`, the keys under `set` replace the same keys of this render block; at any other value the block is used as written. One block keyed on one input. The engine resolves it (resolveRender, runtime.getRender()), so every shell reads one answer. A tool that uses it needs engineVersion >=1.356.0."
             },
             liveCameraWhen: {
               type: "object",
@@ -3596,11 +3699,17 @@ function validateManifest(manifest) {
     if (input.tokenBindingsField && (input.type !== "blocks" || !input.fields?.some((field2) => field2.id === input.tokenBindingsField && (field2.type ?? "text") === "text"))) errors.push({ path: `/inputs/${index2}/tokenBindingsField`, message: "must name a declared text sub-field of this blocks input" });
   }
   if (ok3) errors.push(...assetOpenErrors(manifest));
+  if (ok3) errors.push(...renderWhenErrors(manifest));
   if (ok3) errors.push(...renditionOfErrors(manifest));
   return {
     valid: errors.length === 0,
     errors
   };
+}
+function renderWhenErrors(manifest) {
+  const keyed = manifest.render?.when?.input;
+  if (typeof keyed !== "string" || (manifest.inputs ?? []).some((input) => input.id === keyed)) return [];
+  return [{ path: "/render/when/input", message: "must be the id of a declared input" }];
 }
 function formatError(err) {
   const path = err.instancePath || "/";
@@ -4170,7 +4279,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.354.0";
+    ENGINE_VERSION = "1.356.0";
   }
 });
 
@@ -42207,6 +42316,31 @@ var init_bake = __esm({
   }
 });
 
+// engine/src/render-when.ts
+function renderWhenMatches(render2, values) {
+  const when = render2?.when;
+  if (!when || typeof when.input !== "string" || !when.input || when.value === void 0) return false;
+  if (!Object.hasOwn(values, when.input)) return false;
+  return matchesShowIf({ [when.input]: when.value }, values);
+}
+function resolveRender(render2, values) {
+  if (!renderWhenMatches(render2, values)) return render2;
+  const set = render2.when.set ?? {};
+  const resolved2 = { ...render2 };
+  for (const key2 of RENDER_WHEN_KEYS) {
+    if (Object.hasOwn(set, key2) && set[key2] !== void 0) resolved2[key2] = set[key2];
+  }
+  return resolved2;
+}
+var RENDER_WHEN_KEYS;
+var init_render_when = __esm({
+  "engine/src/render-when.ts"() {
+    "use strict";
+    init_inputs();
+    RENDER_WHEN_KEYS = ["export", "webPreview", "actions", "live", "liveFacing", "liveCameraWhen"];
+  }
+});
+
 // engine/src/captions.ts
 function groupWordsToCues(words4, opts = {}) {
   const maxChars = opts.maxChars ?? 42;
@@ -55629,6 +55763,8 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     const colorTarget = model2.some((i) => i.id === "editingRange" && i.value === "hdr") ? "rec2020" : "srgb";
     return { ...options2, colorTarget, ...writeTokenSet ? { tokenSet: writeTokenSet, refreshTokenLinks: true } : {} };
   }
+  let renderMatched = false;
+  let renderInEffect = tool.manifest.render;
   return {
     get tokenSelection() {
       return tokenSelection ? structuredClone(tokenSelection) : void 0;
@@ -55750,6 +55886,14 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       return lastRightsReceipt;
     },
     manifest: tool.manifest,
+    getRender() {
+      const matched = renderWhenMatches(tool.manifest.render, modelToValues(model2));
+      if (matched !== renderMatched) {
+        renderMatched = matched;
+        renderInEffect = resolveRender(tool.manifest.render, modelToValues(model2));
+      }
+      return renderInEffect;
+    },
     styles: tool.styles,
     // Asset refs (from a saved session / URL) that no longer resolve. The shell
     // reads this once after mount to surface a "left blank" notice.
@@ -57032,6 +57176,7 @@ var init_runtime = __esm({
     init_tool_url();
     init_bake();
     init_bytes();
+    init_render_when();
     init_asset_provider();
     init_captions();
     init_captions_ttml();
@@ -158361,6 +158506,7 @@ __export(src_exports, {
   RAMP_STEPS_MAX: () => RAMP_STEPS_MAX,
   RAMP_STEPS_MIN: () => RAMP_STEPS_MIN,
   REC2020_SOURCE: () => REC2020_SOURCE,
+  RENDER_WHEN_KEYS: () => RENDER_WHEN_KEYS,
   RESERVED: () => RESERVED,
   REVIEW_FIDELITIES: () => REVIEW_FIDELITIES,
   REVIEW_MESSAGES: () => REVIEW_MESSAGES,
@@ -159698,6 +159844,7 @@ __export(src_exports, {
   renderComparisonPage: () => renderComparisonPage,
   renderDocument: () => renderDocument,
   renderVectorPaint: () => renderVectorPaint,
+  renderWhenMatches: () => renderWhenMatches,
   renderZzfxm: () => renderZzfxm,
   reorderColourRoles: () => reorderColourRoles,
   reorderColourways: () => reorderColourways,
@@ -159727,6 +159874,7 @@ __export(src_exports, {
   resolvePresentInteractStops: () => resolvePresentInteractStops,
   resolveRanges: () => resolveRanges,
   resolveRebrandDesignSystem: () => resolveRebrandDesignSystem,
+  resolveRender: () => resolveRender,
   resolveTextStyle: () => resolveTextStyle,
   resolveTokenBinding: () => resolveTokenBinding,
   resolveTokenSelection: () => resolveTokenSelection,
@@ -160145,6 +160293,7 @@ var init_src2 = __esm({
     init_xcf();
     init_packbits();
     init_raster_layers();
+    init_render_when();
     init_inputs();
     init_url_mode();
     init_frame_address();

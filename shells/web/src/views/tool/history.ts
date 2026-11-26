@@ -26,6 +26,7 @@ import { ICON_REDO, ICON_UNDO, isTextEditing, resolveTranscribeSpec } from './sh
 import { bindOp, type ToolViewCtx } from './context.ts';
 import { icon } from '../../lib/icons.ts';
 import { toolCanvasRole } from '../tool-canvas-role.ts';
+import { renderInEffect } from '../tool-render-mode.ts';
 
 export const setDesignIntent = (tview: ToolViewCtx, intent: DesignIntent, pickDefault = false): void => {
   const { toolId } = tview;
@@ -251,7 +252,11 @@ export function wireHistory(tview: ToolViewCtx): void {
   const nativeW = tview.tool.manifest.render.width; tview.nativeW = nativeW;
   const nativeH = tview.tool.manifest.render.height; tview.nativeH = nativeH;
   const hasInputs = (tview.tool.manifest.inputs?.length ?? 0) > 0; tview.hasInputs = hasInputs;
-  const noExport = tview.tool.manifest.render.export === false; tview.noExport = noExport;
+  // The render block in effect for the values this mount starts with (`render.when`).
+  // The frame below is built from it once; views/tool-render-mode.ts mounts the view
+  // again when the keyed input changes the answer.
+  const render = renderInEffect(runtime, tview.tool.manifest); tview.renderAtMount = render;
+  const noExport = render.export === false; tview.noExport = noExport;
   // Whether /batch can run this template - the batch's own admission test, kept in
   // capabilities.ts so both halves of it live next to `toolSupport` rather than being
   // restated here (views/* must not pull in the pro/ folder, which owns its stylesheet).
@@ -271,7 +276,7 @@ export function wireHistory(tview: ToolViewCtx): void {
   // Whether this tool persists a saved session - drives the Save half of the
   // render pill. Mirrors renderActions: the default action set includes 'save',
   // and an explicit empty actions list (opted-out file utilities) excludes it.
-  const canSaveSession = (tview.tool.manifest.render.actions ?? ['copy', 'download', 'save']).includes(
+  const canSaveSession = (render.actions ?? ['copy', 'download', 'save']).includes(
     'save'
   ); tview.canSaveSession = canSaveSession;
   // An on-device transform tool (export:false with an explicit empty actions list,
@@ -280,7 +285,7 @@ export function wireHistory(tview: ToolViewCtx): void {
   // reads as broken chrome.
   const exportUiEmpty =
     noExport &&
-    ((Array.isArray(tview.tool.manifest.render.actions) && tview.tool.manifest.render.actions.length === 0) ||
+    ((Array.isArray(render.actions) && render.actions.length === 0) ||
       !hasInputs); tview.exportUiEmpty = exportUiEmpty;
   // Visitor page: `?nostage` on a NO-EXPORT tool. For these utilities the link
   // is the product (a jump page, a countdown), so a shared link opens as a plain
@@ -419,7 +424,7 @@ export function wireHistory(tview: ToolViewCtx): void {
   // fills the pane's width and REFLOWS as the pane resizes, so dragging the
   // sidebar edge is the browser-window test a visitor's device would give.
   const webDoc =
-    (tview.tool.manifest.render as { webPreview?: boolean }).webPreview === true &&
+    (render as { webPreview?: boolean }).webPreview === true &&
     noExport &&
     !chromeless &&
     !hideSidebar; tview.webDoc = webDoc;
@@ -464,7 +469,7 @@ export function wireHistory(tview: ToolViewCtx): void {
     : ''; tview.privacyBadge = privacyBadge;
 
   // Keep canvas controls in the accessibility tree.
-  const canvasRole = toolCanvasRole(tview.tool.manifest, runtime.hasExportFile, hideSidebar); tview.canvasRole = canvasRole;
+  const canvasRole = toolCanvasRole({ id: tview.tool.manifest.id, render }, runtime.hasExportFile, hideSidebar); tview.canvasRole = canvasRole;
 }
 
 type HistoryRegister = (sync: (canUndo: boolean, canRedo: boolean) => void) => void;

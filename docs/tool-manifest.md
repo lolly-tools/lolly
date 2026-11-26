@@ -74,6 +74,35 @@ Most `render` keys show up in the export popup: formats, page size and unit, the
 - `preview` - `{ format?, auto? }`. For a tool whose live canvas is a placeholder until an explicit, expensive render runs, such as a capture tool that screenshots a page in `beforeExport`. The shell adds a `[data-preview]` control, and `auto: true` renders one frame on load. `url-shot` declares one.
 - `video` - `{ wait?, duration? }` in seconds, default `1` and `5`. Capture timing when `webm`, `mp4`, `gif` or `apng` is among the formats (`lottie-digi-ad`).
 
+### Settings that follow an input (`when`)
+
+A tool with two modes can need different controls in each. A code maker exports a file and offers **Copy**, **Download** and **Save**. Its reader has nothing to export and shows a live page. `render.when` (engine v1.356) states the second set:
+
+```json
+"render": {
+  "width": 600, "height": 600,
+  "formats": ["svg", "png"],
+  "actions": ["copy", "download", "save"],
+  "when": {
+    "input": "mode",
+    "value": "scan",
+    "set": { "export": false, "webPreview": true, "actions": [] }
+  }
+}
+```
+
+While the input `mode` holds `scan`, the keys under `set` replace the same keys of the `render` block. At any other value the block is used as written, so the tool's own values are the default.
+
+- `input` - the id of a declared input. A manifest that keys the block on an undeclared input is refused when the tool loads.
+- `value` - one value, or a list of values, read the way [`showIf`](/info/tool-inputs.html) reads one pair. `"value": ["scan", "read"]` applies at either.
+- `set` - the keys to replace: `export`, `webPreview`, `actions`, and the live camera keys `live`, `liveFacing` and `liveCameraWhen`. The schema refuses any other key. The canvas size and the format list stay those of the tool. To narrow the formats by value, put `formats` on the options of a `select`.
+
+There is one block, keyed on one input. A tool that needs a third set of controls is two tools.
+
+The engine works out the block in effect, and every shell reads that one answer (`runtime.getRender()`, or `resolveRender(render, values)` where there is no runtime). The web shell builds its frame from the answer: when the input changes the block in effect, the tool is mounted again at the same address with the values the person had, a picked file included. The export sheet, the action bar and the preview are then all built from the new answer. Undo history starts again at that point. The CLI, the terminal app and the MCP server draw a tool the same way whatever `export`, `webPreview` and `actions` hold, for every tool, so `lolly <tool> --mode=scan` renders as `lolly <tool>` does. Catalog listings, intents and the Batch grid have no values to read, so they use the tool's default.
+
+Raise `engineVersion` to `>=1.356.0` for a tool that declares `when`: an older engine's schema refuses the key.
+
 ### Layout and sidebar
 
 `layout` decides what surrounds the canvas.
@@ -107,6 +136,7 @@ These keys apply only to tools with an `onFrame` hook; others ignore them.
 
 - `liveMaxEdge` - the longest edge, in pixels, of the camera frame handed to the hook. The shell scales the camera down to a small default suited to a vector trace. A raster effect (the `filter` tool's pixel-stretch) raises the value for sharper output. The shell never upscales past the native camera frame, and caps the value at its own ceiling. `liveMaxEdgeInput` points at a number input whose value overrides it, so resolution can be a slider that re-applies to the live stream.
 - `liveDefault` - an animated SVG catalog asset the shell plays as a moving subject when no camera is in use (`filter`).
+- `live` - default `true`, engine v1.356. Set `false` to mount no camera controls although the tool has an `onFrame` hook. A tool whose hook serves one mode declares `live: false` and turns the controls on for that mode with `when.set`.
 - `liveFacing` - the camera that opens first: `user` (front, the default) or `environment` (rear).
 - `liveCameraWhen` - `{ input, value }`. Starts the camera while that input holds that value and stops it otherwise (`scan-code` in camera mode).
 

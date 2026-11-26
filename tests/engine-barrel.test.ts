@@ -10,6 +10,8 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.356: render settings that follow one input's value (`render.when`).
+  'RENDER_WHEN_KEYS', 'renderWhenMatches', 'resolveRender',
   // Additive 1.345: audio metadata removal for Strip Hidden Data (M4A/MP4, WAV, MP3, FLAC, Ogg Opus).
   'AUDIO_STRIP_FORMATS', 'AudioInspection', 'AudioMetadataItem', 'AudioStripFormat', 'audioMetadataResidual',
   'inspectAudioMetadata', 'sniffAudioFormat', 'stripAudioMetadata',

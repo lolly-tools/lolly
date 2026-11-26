@@ -87,6 +87,8 @@ export interface ToolViewCtx {
   inputIds: string[];
   encLinkQuery: string | null;
   carriedMount: CarriedMountState;
+  /** Set when this mount replaced one whose render settings changed (`render.when`). */
+  renderMount: import('../tool-render-mode.ts').CarriedRenderMount | null;
   openedSession: { url: UrlState; values: Record<string, InputValue>; cursor?: RevisionCursor; emoji?: SessionEmojiStamp; };
   values: UrlState['values'];
   urlFormat: UrlState['format'];
@@ -185,6 +187,8 @@ export interface ToolViewCtx {
   nativeW: number;
   nativeH: number;
   hasInputs: boolean;
+  /** The `render` block in effect when this mount was built (`render.when`). */
+  renderAtMount: import('@lolly/engine').ToolManifest['render'];
   noExport: boolean;
   canBulk: boolean;
   bulkFilesId: string | null;
