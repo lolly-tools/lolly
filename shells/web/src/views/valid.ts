@@ -38,7 +38,7 @@ import { looksLikeDocxFile, DOCX_MIME } from '../lib/office-text.ts';
 import { contextCardsHtml, journeyEvidenceLabel } from './valid-context.ts';
 import { readVerifyMetadata } from './valid-read-metadata.ts';
 import { renderMetadata } from './valid-metadata.ts';
-import { vendorMark } from './valid-vendors.ts';
+import { aiMakerChip, vendorMark } from './valid-vendors.ts';
 import { checkingHtml, updateVerifyProgress } from './valid-progress.ts';
 import { configuredVerifyOptions } from './valid-verification.ts';
 import { escape } from '../utils.ts';
@@ -403,7 +403,7 @@ const AI_FLAG_COPY = {
 // Matches the makers whose AI output carries Google's SynthID pixel watermark
 // (Gemini/Imagen/Veo - and "Nano Banana", Gemini's image-model brand).
 const SYNTHID_MAKERS = /google|gemini|imagen|veo|nano.?banana/i;
-function aiFlagHtml(origin: AiOrigin | undefined, makerHint = '', isAudio = false): string {
+function aiFlagHtml(origin: AiOrigin | undefined, makerHint = '', isAudio = false, makerChip = ''): string {
   if (!origin) return '';
   const c = AI_FLAG_COPY[origin.via][origin.kind];
   const likely = origin.via === 'fingerprint';
@@ -426,7 +426,7 @@ function aiFlagHtml(origin: AiOrigin | undefined, makerHint = '', isAudio = fals
       <span class="valid-ai-flag-text">
         <strong>${escape(t(c.title))}</strong>
         <span>${sub}</span>
-        ${origin.credit ? `<span class="valid-ai-flag-credit">“${escape(origin.credit)}”</span>` : ''}
+        ${makerChip}${origin.credit ? `<span class="valid-ai-flag-credit">“${escape(origin.credit)}”</span>` : ''}
         <span class="valid-ai-flag-note">${note}</span>
       </span>
       <span class="valid-ai-flag-tag" aria-hidden="true">${likely ? t('AI?') : t('AI')}</span>
@@ -1693,7 +1693,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
   const findings = findingsFor(report, meta, { watermark, seal, madeHere: !!mine, textSignals });
   const verdictWord = report.found || !noCredSignal ? t(state.title) : noCredSignal;
   const aiBlock = `<div data-lamp-section="origin" data-finding-section="ai">
-      ${aiFlagHtml(aiOrigin, makerHint, preview?.kind === 'audio')}
+      ${aiFlagHtml(aiOrigin, makerHint, preview?.kind === 'audio', aiOrigin ? aiMakerChip(`${aiOrigin.vendor ?? ''} ${aiOrigin.credit ?? ''} ${makerHint}`, aiOrigin.via, report.state === 'valid') : '')}
       ${aiDisclosureHtml(report, identity)}
       <div data-lamp-section="signals">
       ${forensicPanelHtml(fileIndex, aiOrigin ? [{ kind: aiOrigin.via === 'fingerprint' ? 'container-hint' : aiOrigin.kind, source: aiOrigin.via === 'fingerprint' ? 'container-signature' : aiOrigin.via, integrity: aiOrigin.via === 'credential' ? report.state === 'valid' ? 'verified' : 'unverified' : 'unsigned', scope: 'document' }] : [])}

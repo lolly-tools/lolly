@@ -1,0 +1,939 @@
+[
+ {
+  "id": "adobe-firefly",
+  "name": "Adobe Firefly",
+  "kind": "ai",
+  "patterns": [
+   "\\bfirefly\\b"
+  ],
+  "mark": "adobe"
+ },
+ {
+  "id": "openai",
+  "name": "OpenAI",
+  "kind": "ai",
+  "patterns": [
+   "\\bopenai\\b|\\bchatgpt\\b|\\bdall.?e\\b|\\bopenai\\s+sora\\b|\\bsora\\s?\\d|\\bgpt-?(?:image|4o|5)"
+  ],
+  "mark": "openai"
+ },
+ {
+  "id": "google-gemini",
+  "name": "Google Gemini",
+  "kind": "ai",
+  "patterns": [
+   "\\bgemini\\b|\\bimagen\\s?\\d|\\bgoogle\\s+(?:imagen|veo)\\b|\\bveo\\s?\\d|nano.?banana"
+  ],
+  "mark": "googlegemini"
+ },
+ {
+  "id": "meta-ai",
+  "name": "Meta AI",
+  "kind": "ai",
+  "patterns": [
+   "\\bmeta\\s?ai\\b|imagined?\\s+with\\s+ai|made\\s+with\\s+ai\\b"
+  ],
+  "mark": "meta"
+ },
+ {
+  "id": "midjourney",
+  "name": "Midjourney",
+  "kind": "ai",
+  "patterns": [
+   "\\bmidjourney\\b"
+  ]
+ },
+ {
+  "id": "stability-ai",
+  "name": "Stability AI",
+  "kind": "ai",
+  "patterns": [
+   "\\bstability\\s?ai\\b|\\bstable\\s?diffusion\\b|\\bsdxl\\b|\\bdreamstudio\\b"
+  ]
+ },
+ {
+  "id": "black-forest-labs",
+  "name": "Black Forest Labs",
+  "kind": "ai",
+  "patterns": [
+   "black\\s?forest\\s?labs|\\bflux(?:\\.1|[ .-]1\\b|[ -](?:dev|pro|schnell|kontext))"
+  ]
+ },
+ {
+  "id": "anthropic",
+  "name": "Anthropic",
+  "kind": "ai",
+  "patterns": [
+   "\\banthropic\\b|\\bclaude\\s?(?:\\d|opus|sonnet|haiku|code|ai)\\b"
+  ],
+  "mark": "anthropic"
+ },
+ {
+  "id": "elevenlabs",
+  "name": "ElevenLabs",
+  "kind": "ai",
+  "patterns": [
+   "\\beleven\\s?labs\\b"
+  ]
+ },
+ {
+  "id": "suno",
+  "name": "Suno",
+  "kind": "ai",
+  "patterns": [
+   "\\bsuno\\b"
+  ],
+  "mark": "suno"
+ },
+ {
+  "id": "udio",
+  "name": "Udio",
+  "kind": "ai",
+  "patterns": [
+   "\\budio\\b"
+  ]
+ },
+ {
+  "id": "runway",
+  "name": "Runway",
+  "kind": "ai",
+  "patterns": [
+   "\\brunway(?:ml)?\\b"
+  ]
+ },
+ {
+  "id": "microsoft-designer",
+  "name": "Microsoft Designer",
+  "kind": "ai",
+  "patterns": [
+   "microsoft\\s+designer|bing\\s+image\\s+creator|\\bcopilot\\b"
+  ]
+ },
+ {
+  "id": "ideogram",
+  "name": "Ideogram",
+  "kind": "ai",
+  "patterns": [
+   "\\bideogram\\b"
+  ]
+ },
+ {
+  "id": "leonardo",
+  "name": "Leonardo AI",
+  "kind": "ai",
+  "patterns": [
+   "\\bleonardo[\\s.]?ai\\b"
+  ]
+ },
+ {
+  "id": "pika",
+  "name": "Pika Labs",
+  "kind": "ai",
+  "patterns": [
+   "\\bpika\\s?labs\\b|\\bpika\\.art\\b|\\bpika\\s?\\d"
+  ]
+ },
+ {
+  "id": "luma",
+  "name": "Luma AI",
+  "kind": "ai",
+  "patterns": [
+   "\\bluma\\s?(?:ai|labs|dream)\\b"
+  ]
+ },
+ {
+  "id": "kling",
+  "name": "Kling",
+  "kind": "ai",
+  "patterns": [
+   "\\bkling\\b"
+  ]
+ },
+ {
+  "id": "xai",
+  "name": "xAI",
+  "kind": "ai",
+  "patterns": [
+   "\\bxai\\b|\\bgrok\\b"
+  ]
+ },
+ {
+  "id": "mistral",
+  "name": "Mistral AI",
+  "kind": "ai",
+  "patterns": [
+   "\\bmistral\\b"
+  ]
+ },
+ {
+  "id": "hugging-face",
+  "name": "Hugging Face",
+  "kind": "ai",
+  "patterns": [
+   "hugging\\s?face|\\bdiffusers\\b"
+  ],
+  "mark": "huggingface"
+ },
+ {
+  "id": "nvidia",
+  "name": "NVIDIA",
+  "kind": "ai",
+  "patterns": [
+   "\\bnvidia\\b"
+  ],
+  "mark": "nvidia"
+ },
+ {
+  "id": "adobe-trustmark",
+  "name": "Adobe TrustMark",
+  "kind": "scheme",
+  "patterns": [
+   "\\btrustmark\\b"
+  ],
+  "mark": "adobe"
+ },
+ {
+  "id": "meta-content-seal",
+  "name": "Meta Content Seal",
+  "kind": "scheme",
+  "patterns": [
+   "content\\s?seal|video\\s?seal|stable\\s?signature"
+  ],
+  "mark": "meta"
+ },
+ {
+  "id": "google-synthid",
+  "name": "Google SynthID",
+  "kind": "scheme",
+  "patterns": [
+   "\\bsynthid\\b"
+  ],
+  "mark": "google"
+ },
+ {
+  "id": "seal",
+  "name": "SEAL",
+  "kind": "scheme",
+  "patterns": [
+   "^seal\\b|\\bseal\\s+signature\\b"
+  ]
+ },
+ {
+  "id": "lolly-ca",
+  "name": "Lolly CA",
+  "kind": "signer",
+  "patterns": [
+   "\\blolly\\s+ca\\b"
+  ]
+ },
+ {
+  "id": "truepic",
+  "name": "Truepic",
+  "kind": "signer",
+  "patterns": [
+   "\\btruepic\\b"
+  ]
+ },
+ {
+  "id": "digicert",
+  "name": "DigiCert",
+  "kind": "signer",
+  "patterns": [
+   "\\bdigicert\\b"
+  ]
+ },
+ {
+  "id": "google-pixel",
+  "name": "Google Pixel",
+  "kind": "device",
+  "patterns": [
+   "\\bpixel\\s?\\d|\\bgoogle\\s+pixel\\b"
+  ],
+  "mark": "google"
+ },
+ {
+  "id": "samsung",
+  "name": "Samsung",
+  "kind": "device",
+  "patterns": [
+   "\\bsamsung\\b|\\bgalaxy\\b|\\bSM-[A-Z]\\d"
+  ],
+  "mark": "samsung"
+ },
+ {
+  "id": "canon",
+  "name": "Canon",
+  "kind": "device",
+  "patterns": [
+   "\\bcanon\\b"
+  ]
+ },
+ {
+  "id": "nikon",
+  "name": "Nikon",
+  "kind": "device",
+  "patterns": [
+   "\\bnikon\\b"
+  ],
+  "mark": "nikon"
+ },
+ {
+  "id": "sony",
+  "name": "Sony",
+  "kind": "device",
+  "patterns": [
+   "\\bsony\\b|\\bILCE-|\\bDSC-"
+  ],
+  "mark": "sony"
+ },
+ {
+  "id": "leica",
+  "name": "Leica",
+  "kind": "device",
+  "patterns": [
+   "\\bleica\\b"
+  ],
+  "mark": "leica"
+ },
+ {
+  "id": "fujifilm",
+  "name": "Fujifilm",
+  "kind": "device",
+  "patterns": [
+   "\\bfuji(?:film)?\\b"
+  ],
+  "mark": "fujifilm"
+ },
+ {
+  "id": "panasonic",
+  "name": "Panasonic",
+  "kind": "device",
+  "patterns": [
+   "\\bpanasonic\\b|\\blumix\\b"
+  ],
+  "mark": "panasonic"
+ },
+ {
+  "id": "olympus",
+  "name": "OM System",
+  "kind": "device",
+  "patterns": [
+   "\\bolympus\\b|\\bom\\s?system\\b|\\bom\\s?digital\\b"
+  ]
+ },
+ {
+  "id": "hasselblad",
+  "name": "Hasselblad",
+  "kind": "device",
+  "patterns": [
+   "\\bhasselblad\\b"
+  ]
+ },
+ {
+  "id": "dji",
+  "name": "DJI",
+  "kind": "device",
+  "patterns": [
+   "\\bdji\\b"
+  ],
+  "mark": "dji"
+ },
+ {
+  "id": "gopro",
+  "name": "GoPro",
+  "kind": "device",
+  "patterns": [
+   "\\bgopro\\b"
+  ]
+ },
+ {
+  "id": "xiaomi",
+  "name": "Xiaomi",
+  "kind": "device",
+  "patterns": [
+   "\\bxiaomi\\b|\\bredmi\\b"
+  ],
+  "mark": "xiaomi"
+ },
+ {
+  "id": "huawei",
+  "name": "Huawei",
+  "kind": "device",
+  "patterns": [
+   "\\bhuawei\\b"
+  ],
+  "mark": "huawei"
+ },
+ {
+  "id": "oneplus",
+  "name": "OnePlus",
+  "kind": "device",
+  "patterns": [
+   "\\boneplus\\b"
+  ],
+  "mark": "oneplus"
+ },
+ {
+  "id": "canva",
+  "name": "Canva",
+  "kind": "software",
+  "patterns": [
+   "\\bcanva\\b"
+  ],
+  "mark": "canva"
+ },
+ {
+  "id": "affinity-publisher",
+  "name": "Affinity Publisher",
+  "kind": "software",
+  "patterns": [
+   "affinity\\s+publisher"
+  ],
+  "mark": "affinitypublisher"
+ },
+ {
+  "id": "affinity-designer",
+  "name": "Affinity Designer",
+  "kind": "software",
+  "patterns": [
+   "affinity\\s+designer"
+  ],
+  "mark": "affinitydesigner"
+ },
+ {
+  "id": "affinity-photo",
+  "name": "Affinity Photo",
+  "kind": "software",
+  "patterns": [
+   "affinity\\s+photo"
+  ],
+  "mark": "affinityphoto"
+ },
+ {
+  "id": "affinity",
+  "name": "Affinity",
+  "kind": "software",
+  "patterns": [
+   "\\baffinity\\b"
+  ],
+  "mark": "affinity"
+ },
+ {
+  "id": "adobe-indesign",
+  "name": "Adobe InDesign",
+  "kind": "software",
+  "patterns": [
+   "\\bindesign\\b"
+  ],
+  "mark": "adobeindesign"
+ },
+ {
+  "id": "adobe-illustrator",
+  "name": "Adobe Illustrator",
+  "kind": "software",
+  "patterns": [
+   "\\billustrator\\b"
+  ],
+  "mark": "adobeillustrator"
+ },
+ {
+  "id": "adobe-photoshop",
+  "name": "Adobe Photoshop",
+  "kind": "software",
+  "patterns": [
+   "\\bphotoshop\\b"
+  ],
+  "mark": "adobephotoshop"
+ },
+ {
+  "id": "adobe-lightroom",
+  "name": "Adobe Lightroom",
+  "kind": "software",
+  "patterns": [
+   "\\blightroom\\b"
+  ],
+  "mark": "adobelightroom"
+ },
+ {
+  "id": "adobe-premiere",
+  "name": "Adobe Premiere Pro",
+  "kind": "software",
+  "patterns": [
+   "\\bpremiere\\b"
+  ],
+  "mark": "adobepremierepro"
+ },
+ {
+  "id": "adobe-after-effects",
+  "name": "Adobe After Effects",
+  "kind": "software",
+  "patterns": [
+   "after\\s+effects"
+  ],
+  "mark": "adobeaftereffects"
+ },
+ {
+  "id": "adobe-audition",
+  "name": "Adobe Audition",
+  "kind": "software",
+  "patterns": [
+   "\\baudition\\b"
+  ],
+  "mark": "adobeaudition"
+ },
+ {
+  "id": "adobe-xd",
+  "name": "Adobe XD",
+  "kind": "software",
+  "patterns": [
+   "\\badobe\\s+xd\\b"
+  ],
+  "mark": "adobexd"
+ },
+ {
+  "id": "adobe-acrobat",
+  "name": "Adobe Acrobat",
+  "kind": "software",
+  "patterns": [
+   "\\bacrobat\\b|adobe\\s+pdf\\s+library|\\bdistiller\\b"
+  ],
+  "mark": "adobeacrobatreader"
+ },
+ {
+  "id": "adobe",
+  "name": "Adobe",
+  "kind": "software",
+  "patterns": [
+   "\\badobe\\b"
+  ],
+  "mark": "adobe"
+ },
+ {
+  "id": "inkscape",
+  "name": "Inkscape",
+  "kind": "software",
+  "patterns": [
+   "\\binkscape\\b"
+  ],
+  "mark": "inkscape"
+ },
+ {
+  "id": "gimp",
+  "name": "GIMP",
+  "kind": "software",
+  "patterns": [
+   "\\bgimp\\b"
+  ],
+  "mark": "gimp"
+ },
+ {
+  "id": "krita",
+  "name": "Krita",
+  "kind": "software",
+  "patterns": [
+   "\\bkrita\\b"
+  ],
+  "mark": "krita"
+ },
+ {
+  "id": "figma",
+  "name": "Figma",
+  "kind": "software",
+  "patterns": [
+   "\\bfigma\\b"
+  ],
+  "mark": "figma"
+ },
+ {
+  "id": "penpot",
+  "name": "Penpot",
+  "kind": "software",
+  "patterns": [
+   "\\bpenpot\\b"
+  ],
+  "mark": "penpot"
+ },
+ {
+  "id": "blender",
+  "name": "Blender",
+  "kind": "software",
+  "patterns": [
+   "\\bblender\\b"
+  ],
+  "mark": "blender"
+ },
+ {
+  "id": "sketchup",
+  "name": "SketchUp",
+  "kind": "software",
+  "patterns": [
+   "\\bsketchup\\b"
+  ],
+  "mark": "sketchup"
+ },
+ {
+  "id": "sketch",
+  "name": "Sketch",
+  "kind": "software",
+  "patterns": [
+   "\\bsketch\\b"
+  ],
+  "mark": "sketch"
+ },
+ {
+  "id": "audacity",
+  "name": "Audacity",
+  "kind": "software",
+  "patterns": [
+   "\\baudacity\\b"
+  ],
+  "mark": "audacity"
+ },
+ {
+  "id": "davinci-resolve",
+  "name": "DaVinci Resolve",
+  "kind": "software",
+  "patterns": [
+   "\\bdavinci\\b|blackmagic"
+  ],
+  "mark": "davinciresolve"
+ },
+ {
+  "id": "capcut",
+  "name": "CapCut",
+  "kind": "software",
+  "patterns": [
+   "\\bcapcut\\b"
+  ]
+ },
+ {
+  "id": "procreate",
+  "name": "Procreate",
+  "kind": "software",
+  "patterns": [
+   "\\bprocreate\\b"
+  ]
+ },
+ {
+  "id": "pixelmator",
+  "name": "Pixelmator",
+  "kind": "software",
+  "patterns": [
+   "\\bpixelmator\\b"
+  ]
+ },
+ {
+  "id": "darktable",
+  "name": "darktable",
+  "kind": "software",
+  "patterns": [
+   "\\bdarktable\\b"
+  ]
+ },
+ {
+  "id": "scribus",
+  "name": "Scribus",
+  "kind": "software",
+  "patterns": [
+   "\\bscribus\\b"
+  ]
+ },
+ {
+  "id": "photopea",
+  "name": "Photopea",
+  "kind": "software",
+  "patterns": [
+   "\\bphotopea\\b"
+  ],
+  "mark": "photopea"
+ },
+ {
+  "id": "coreldraw",
+  "name": "CorelDRAW",
+  "kind": "software",
+  "patterns": [
+   "\\bcorel\\s?draw\\b|\\bcorel\\b"
+  ],
+  "mark": "coreldraw"
+ },
+ {
+  "id": "autodesk",
+  "name": "Autodesk",
+  "kind": "software",
+  "patterns": [
+   "\\bautodesk\\b|\\bautocad\\b|\\b3ds\\s?max\\b"
+  ],
+  "mark": "autodesk"
+ },
+ {
+  "id": "cinema-4d",
+  "name": "Cinema 4D",
+  "kind": "software",
+  "patterns": [
+   "cinema\\s?4d"
+  ],
+  "mark": "cinema4d"
+ },
+ {
+  "id": "houdini",
+  "name": "Houdini",
+  "kind": "software",
+  "patterns": [
+   "\\bhoudini\\b"
+  ],
+  "mark": "houdini"
+ },
+ {
+  "id": "unity",
+  "name": "Unity",
+  "kind": "software",
+  "patterns": [
+   "\\bunity\\s?(?:editor|technologies|\\d)|^unity$"
+  ],
+  "mark": "unity"
+ },
+ {
+  "id": "unreal-engine",
+  "name": "Unreal Engine",
+  "kind": "software",
+  "patterns": [
+   "unreal\\s?engine"
+  ],
+  "mark": "unrealengine"
+ },
+ {
+  "id": "godot",
+  "name": "Godot",
+  "kind": "software",
+  "patterns": [
+   "\\bgodot\\b"
+  ],
+  "mark": "godotengine"
+ },
+ {
+  "id": "rive",
+  "name": "Rive",
+  "kind": "software",
+  "patterns": [
+   "\\brive\\s?(?:app|editor)\\b|^rive\\b"
+  ],
+  "mark": "rive"
+ },
+ {
+  "id": "kdenlive",
+  "name": "Kdenlive",
+  "kind": "software",
+  "patterns": [
+   "\\bkdenlive\\b"
+  ],
+  "mark": "kdenlive"
+ },
+ {
+  "id": "apple-keynote",
+  "name": "Keynote",
+  "kind": "software",
+  "patterns": [
+   "\\bkeynote\\b"
+  ],
+  "mark": "apple"
+ },
+ {
+  "id": "microsoft-powerpoint",
+  "name": "Microsoft PowerPoint",
+  "kind": "software",
+  "patterns": [
+   "\\bpowerpoint\\b"
+  ]
+ },
+ {
+  "id": "microsoft-word",
+  "name": "Microsoft Word",
+  "kind": "software",
+  "patterns": [
+   "microsoft\\S?\\s+(?:office\\s+)?word\\b|\\bword\\s+for\\s+(?:mac|windows|microsoft)"
+  ]
+ },
+ {
+  "id": "microsoft-excel",
+  "name": "Microsoft Excel",
+  "kind": "software",
+  "patterns": [
+   "\\bexcel\\b"
+  ]
+ },
+ {
+  "id": "microsoft",
+  "name": "Microsoft",
+  "kind": "software",
+  "patterns": [
+   "\\bmicrosoft\\b|\\bwindows\\s+photo"
+  ]
+ },
+ {
+  "id": "google-docs",
+  "name": "Google Docs",
+  "kind": "software",
+  "patterns": [
+   "google\\s+docs"
+  ],
+  "mark": "googledocs"
+ },
+ {
+  "id": "google-slides",
+  "name": "Google Slides",
+  "kind": "software",
+  "patterns": [
+   "google\\s+slides"
+  ],
+  "mark": "googleslides"
+ },
+ {
+  "id": "libreoffice",
+  "name": "LibreOffice",
+  "kind": "software",
+  "patterns": [
+   "\\blibreoffice\\b"
+  ],
+  "mark": "libreoffice"
+ },
+ {
+  "id": "obs-studio",
+  "name": "OBS Studio",
+  "kind": "software",
+  "patterns": [
+   "obs\\s+studio"
+  ],
+  "mark": "obsstudio"
+ },
+ {
+  "id": "wordpress",
+  "name": "WordPress",
+  "kind": "software",
+  "patterns": [
+   "\\bwordpress\\b"
+  ],
+  "mark": "wordpress"
+ },
+ {
+  "id": "typst",
+  "name": "Typst",
+  "kind": "software",
+  "patterns": [
+   "\\btypst\\b"
+  ],
+  "mark": "typst"
+ },
+ {
+  "id": "latex",
+  "name": "LaTeX",
+  "kind": "software",
+  "patterns": [
+   "\\b(?:pdf|xe|lua)?(?:la)?tex\\b|\\btex\\s?live\\b"
+  ],
+  "mark": "latex"
+ },
+ {
+  "id": "instagram",
+  "name": "Instagram",
+  "kind": "software",
+  "patterns": [
+   "\\binstagram\\b"
+  ],
+  "mark": "instagram"
+ },
+ {
+  "id": "tiktok",
+  "name": "TikTok",
+  "kind": "software",
+  "patterns": [
+   "\\btiktok\\b"
+  ],
+  "mark": "tiktok"
+ },
+ {
+  "id": "ffmpeg",
+  "name": "FFmpeg",
+  "kind": "software",
+  "patterns": [
+   "\\bffmpeg\\b|\\blavf|\\blavc"
+  ],
+  "mark": "ffmpeg"
+ },
+ {
+  "id": "gstreamer",
+  "name": "GStreamer",
+  "kind": "software",
+  "patterns": [
+   "\\bgstreamer\\b"
+  ],
+  "mark": "gstreamer"
+ },
+ {
+  "id": "imagemagick",
+  "name": "ImageMagick",
+  "kind": "software",
+  "patterns": [
+   "\\bimagemagick\\b"
+  ]
+ },
+ {
+  "id": "ghostscript",
+  "name": "Ghostscript",
+  "kind": "software",
+  "patterns": [
+   "\\bghostscript\\b"
+  ]
+ },
+ {
+  "id": "handbrake",
+  "name": "HandBrake",
+  "kind": "software",
+  "patterns": [
+   "\\bhandbrake\\b"
+  ]
+ },
+ {
+  "id": "exiftool",
+  "name": "ExifTool",
+  "kind": "software",
+  "patterns": [
+   "\\bexiftool\\b"
+  ]
+ },
+ {
+  "id": "android",
+  "name": "Android",
+  "kind": "device",
+  "patterns": [
+   "\\bandroid\\b"
+  ],
+  "mark": "android"
+ },
+ {
+  "id": "apple",
+  "name": "Apple",
+  "kind": "device",
+  "patterns": [
+   "\\bapple\\b|\\biphone\\b|\\bipad\\b|\\bios\\b|\\bmacos\\b|\\bmac\\s?os\\b|\\bquicktime\\b"
+  ],
+  "mark": "apple"
+ },
+ {
+  "id": "google",
+  "name": "Google",
+  "kind": "software",
+  "patterns": [
+   "\\bgoogle\\b"
+  ],
+  "mark": "google"
+ },
+ {
+  "id": "meta",
+  "name": "Meta",
+  "kind": "software",
+  "patterns": [
+   "\\bmeta\\s+platforms\\b|\\bfacebook\\b|^meta$"
+  ],
+  "mark": "meta"
+ }
+]
