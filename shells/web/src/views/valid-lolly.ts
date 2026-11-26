@@ -9,7 +9,7 @@
  */
 import { readDesignRecord } from '../../../../engine/src/metadata.ts';
 import '../styles/parts/valid-lolly.css';
-import { escape as esc } from '../utils.ts';
+import { escape as esc, safeHref } from '../utils.ts';
 import { docsHref, t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { LOLLY_MARK_SVG } from '../lib/lolly-mark.ts';
@@ -32,6 +32,13 @@ export interface LollyBlockOptions {
 }
 
 const text = (value: unknown): string => (typeof value === 'string' ? value.slice(0, 256).replace(/\p{Cc}/gu, ' ').trim() : '');
+
+/** A link to a docs page. The address is built here from a fixed slug, and still passes the scheme guard. */
+function docsLink(slug: string, label: string): string {
+  const href = docsHref(slug);
+  // nosemgrep: lolly-href-escape-is-not-scheme-validation - docsHref() builds this address from a fixed slug, and safeHref() has passed the result
+  return safeHref(href) ? `<a class="vlb-link" href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}</a>` : esc(label);
+}
 
 const row = (label: string, body: string): string => `<div><dt>${t(label)}</dt><dd>${body}</dd></div>`;
 
@@ -64,6 +71,6 @@ export function lollyBlockHtml(report: LollyBlockReport, opts: LollyBlockOptions
   return `<section class="vlb" data-finding-section="lolly" aria-label="${esc(heading)}">
     <h3 class="vlb-head"><span class="vlb-mark" aria-hidden="true">${LOLLY_MARK_SVG}</span><span>${esc(heading)}</span></h3>
     ${rows.length ? `<dl class="vlb-rows">${rows.join('')}</dl>` : ''}
-    <ul class="vlb-features">${features.map((f) => `<li><a class="vlb-link" href="${esc(docsHref(f.slug))}" target="_blank" rel="noopener">${esc(f.label)}</a></li>`).join('')}</ul>
+    <ul class="vlb-features">${features.map((f) => `<li>${docsLink(f.slug, f.label)}</li>`).join('')}</ul>
   </section>`;
 }
