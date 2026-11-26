@@ -80,7 +80,7 @@
 
   /* Where a slot's "Show the detail" lands. */
   .vf-flash { animation: vf-flash calc(var(--dur-3) * 4) var(--ease-out) 1; scroll-margin-top: calc(var(--chrome-h) + var(--sp-7)); }
-  @keyframes vf-flash { from { box-shadow: 0 0 0 3px hsl(var(--ring) / .55); } to { box-shadow: 0 0 0 3px hsl(var(--ring) / 0); } }
+  @keyframes vf-flash { from { outline: 3px solid hsl(var(--ring) / .55); outline-offset: 2px; } to { outline: 3px solid hsl(var(--ring) / 0); outline-offset: 2px; } }
   @media (prefers-reduced-motion: reduce) { .vf-flash { animation: none; } .vf-slot { transition: none; } }
   html[data-a11y-motion="reduce"] .vf-flash { animation: none; }
   html[data-a11y-motion="reduce"] .vf-slot { transition: none; }
