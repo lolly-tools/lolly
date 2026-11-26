@@ -49,8 +49,14 @@ for (const [name, profile] of Object.entries(profiles)) {
       t.diagnostic(`${name} was baked before bakes recorded their source; run pnpm run build:gallery-covers --profile=${name}`);
       return;
     }
-    assert.equal(
-      baked.source.fingerprint, coverSourceFingerprint(readBrandAssetIndex(roots).assets),
+    // Two profiles can share one catalog, and one catalog holds one bake. The bake is in date
+    // when it was drawn from the tokens of this profile or of a mounted profile that shares
+    // the catalog; the profile it was not drawn for draws its covers live.
+    const sharing = Object.entries(profiles)
+      .filter(([, other]) => other.catalog === profile.catalog && [...other.tools, other.catalog].every((r) => existsSync(join(ROOT, r))))
+      .map(([other]) => coverSourceFingerprint(readBrandAssetIndex(contentRoots({ profile: other })).assets));
+    assert.ok(
+      sharing.includes(baked.source.fingerprint),
       `the design system's tokens changed after the bake, so no visitor is shown these covers. Run: pnpm run build:gallery-covers --profile=${name}`,
     );
   });
