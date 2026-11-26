@@ -45,6 +45,18 @@ export function takesAudioInput(model: readonly { id: string; type?: string }[])
   return model.some(input => input.id === 'audio' && input.type === 'asset');
 }
 
+/**
+ * The name a saved take is filed under: the tool's `name` input, or its `title`
+ * (Voice Recorder's "Name" input has the id `title`). Undefined when neither holds text.
+ */
+export function takeNameFrom(model: readonly { id: string; value?: unknown }[]): string | undefined {
+  for (const id of ['name', 'title']) {
+    const value = model.find(input => input.id === id)?.value;
+    if (typeof value === 'string' && value.trim()) return value;
+  }
+  return undefined;
+}
+
 /** Replaces any previous subscriber; pass null to unsubscribe. */
 export function onAudioTakeChange(cb: (() => void) | null): void {
   listener = cb;

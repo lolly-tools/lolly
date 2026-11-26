@@ -28,3 +28,22 @@ test('the line says where the tool went and opens this document there', () => {
   off();
   assert.equal(body.querySelector('#retired-tool-notice'), null, 'the line leaves with the tool');
 });
+
+test('Voice Recorder says it is part of Audiogram and carries the name and coaching choices', () => {
+  const body = dom.window.document.querySelector('.sidebar-body') as HTMLElement;
+  const opened: string[] = [];
+  const off = mountRetiredToolNotice({
+    body, toolId: 'voice-recorder', name: 'Voice Recorder', successorId: 'audiogram', successorName: 'Audiogram',
+    values: () => ({ title: 'Standup notes', targetLevel: 'soft', showTips: false, theme: 'dark', accent: '' }),
+    open: (href) => opened.push(href),
+  });
+  const line = body.firstElementChild as HTMLElement;
+  assert.match(line.textContent ?? '', /Voice Recorder is now part of Audiogram\./);
+  const go = line.querySelector('button') as HTMLButtonElement;
+  assert.equal(go.textContent, 'Open in Audiogram');
+  go.click();
+  const params = new URLSearchParams(opened[0]!.split('?')[1]);
+  assert.ok(opened[0]!.startsWith('#/tool/audiogram?'));
+  assert.deepEqual(Object.fromEntries(params), { title: 'Standup notes', bg: '#11141f', ink: '#fafbfe', targetLevel: 'soft', showTips: 'false' });
+  off();
+});

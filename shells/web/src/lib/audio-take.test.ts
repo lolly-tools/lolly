@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { HostV1 } from '../../../../engine/src/bridge/host-v1.ts';
-import { saveTakeNative, takeFilename } from './audio-take.ts';
+import { saveTakeNative, takeFilename, takeNameFrom } from './audio-take.ts';
 
 test('take names use the export filename slug and signed suffix', () => {
   assert.equal(takeFilename('webm', false, '  Café / Meeting: Notes  '), 'cafe-meeting-notes.webm');
@@ -41,3 +41,10 @@ test('a tool with an asset input called audio takes the recording as that input'
   assert.equal(takesAudioInput([{ id: 'audio', type: 'boolean' }]), false, 'an input that only shares the id does not count');
 });
 
+
+test('a take is filed under the tool\'s name input, or its title', () => {
+  assert.equal(takeNameFrom([{ id: 'name', value: 'Memo' }, { id: 'title', value: 'Card' }]), 'Memo');
+  assert.equal(takeNameFrom([{ id: 'title', value: 'Standup notes' }, { id: 'theme', value: 'dark' }]), 'Standup notes', 'Voice Recorder');
+  assert.equal(takeNameFrom([{ id: 'title', value: '  ' }]), undefined);
+  assert.equal(takeNameFrom([{ id: 'title', value: 7 }]), undefined);
+});
