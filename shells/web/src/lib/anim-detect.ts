@@ -134,6 +134,20 @@ export function svgLoopMs(markup: string): number {
   return lcm * 10;
 }
 
+const CLIP_MS_RE = /\bdata-clip-ms\s*=\s*["'](\d+(?:\.\d+)?)["']/i;
+
+/**
+ * How long a piece that plays once and holds lasts, in ms, read off its root; 0 when the
+ * root does not say. A loop reports itself through {@link svgLoopMs}. A one-shot entrance
+ * repeats nothing, so a tool writes the length as `data-clip-ms` on the stage, exactly as
+ * a tool with a bed does, and the SVG walker carries the value onto the file's root.
+ */
+export function svgClipMs(markup: string): number {
+  const root = /<svg\b[^>]*>/i.exec(markup ?? '')?.[0] ?? '';
+  const ms = Number(CLIP_MS_RE.exec(root)?.[1]);
+  return ms > 0 && ms <= MAX_LOOP_MS ? ms : 0;
+}
+
 /**
  * Classify an asset-input value by its metadata alone (no fetch):
  *   - { kind, url } - playable now (video always; raster only when the runtime
