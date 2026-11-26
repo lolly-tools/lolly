@@ -60,15 +60,24 @@ test('in the apps a tap or Enter on the note opens the way back, once', async ()
   assert.equal(opened, 1, 'the note acts once');
 });
 
+test('the note can be shown once more, as the way back after the connect step was closed', () => {
+  assert.equal(document.getElementById('lolly-instance-set-aside'), null);
+  let opened = 0;
+  noteInstanceCatalogSetAside('https://lolly.example.org/team', () => { opened++; }, true);
+  const note = document.getElementById('lolly-instance-set-aside');
+  assert.ok(note, 'shown again');
+  note.dispatchEvent(new dom.window.Event('click'));
+  assert.equal(opened, 1);
+});
+
 test('sync sets the instance aside only on a trust failure and tries the bundled catalog once', () => {
   const source = readFileSync(new URL('./sync.ts', import.meta.url), 'utf8');
   const branch = source.slice(source.indexOf('if (isCatalogTrustFailure(e) && getInstanceBase())'));
   assert.ok(branch.length < source.length, 'the fallback branch is present');
   const body = branch.slice(0, branch.indexOf('noteCatalogIntegrityFailure(e)'));
   assert.match(body, /suspendInstanceBase\(\)/);
-  assert.match(body, /noteInstanceCatalogSetAside\(setAside, isTauriShell\(\) \? /);
-  // In the apps the note opens the connect step for that instance, address filled in.
-  assert.match(body, /openInstanceSheet\(\{ log: [^}]+\}, \{ start: 'connect', url: setAside \}\)/);
+  // The note, and in the apps the connect step, come from one call.
+  assert.match(body, /offerSetAsideInstance\(setAside, /);
   assert.match(body, /return syncCatalog\(host, onAssetsReady, maintenanceGate, signInRequired\)/);
   // The retry runs with no instance in use, so a second refusal cannot loop.
   assert.match(readFileSync(new URL('../lib/instance.ts', import.meta.url), 'utf8'), /if \(was\) \{ suspended = was; base = ''; instanceSession = null; \}/);

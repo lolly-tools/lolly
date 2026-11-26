@@ -244,15 +244,18 @@ let setAsideNoted = false;
  * seconds or on a tap, because a note that stays covers the controls below. The state
  * stays readable on the root element for any surface that shows the state later.
  * With `reconnect` (the apps), a tap or Enter on the note also calls `reconnect`.
+ * `again` shows the note once more, for the apps after the connect step was closed.
  */
-export function noteInstanceCatalogSetAside(instanceBase: string, reconnect?: () => void): void {
+export function noteInstanceCatalogSetAside(instanceBase: string, reconnect?: () => void, again = false): void {
   if (typeof document === 'undefined' || !document.body) return;
   document.documentElement.dataset.catalogInstance = 'set-aside';
-  if (setAsideNoted) return;
+  if (setAsideNoted && !again) return;
   setAsideNoted = true;
   let host = instanceBase;
   try { host = new URL(instanceBase).host; } catch { /* keep the raw value */ }
   const id = 'lolly-instance-set-aside';
+  // A fresh element, so an earlier note's timer cannot take this one away early.
+  if (again) document.getElementById(id)?.remove();
   trustBadge(id, `${host} is signed with a key this app has not accepted. Showing the tools built into this app. Connect to it again in Settings to accept its key.`);
   const note = document.getElementById(id);
   if (!note) return;

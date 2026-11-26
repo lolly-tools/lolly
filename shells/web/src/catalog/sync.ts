@@ -21,7 +21,7 @@
 
 import { AssetChecksumError } from '../bridge/assets.ts';
 import { duringAssetSync } from '../lib/asset-sync.ts';
-import { assertToolIndexIntegrity, catalogVerificationRequired, catalogVerificationAvailable, getCatalogSnapshot, isCatalogTrustFailure, noteCatalogIntegrityFailure, noteInstanceCatalogSetAside } from './integrity.ts';
+import { assertToolIndexIntegrity, catalogVerificationRequired, catalogVerificationAvailable, getCatalogSnapshot, isCatalogTrustFailure, noteCatalogIntegrityFailure } from './integrity.ts';
 import { currentLang, t } from '../i18n.ts';
 import { pinnedAssetIds, refreshPinnedToolFiles } from '../lib/offline-pins.ts';
 import { setBrandTrustedSites } from '../lib/trusted-sites.ts';
@@ -38,7 +38,7 @@ import type { RenditionSpec } from '../../../../packages/core/src/delivery-v1.ts
 import type { CompanionHost } from '../lib/design-system/companions.ts';
 import { readCompanionAssets } from '../lib/design-system/asset-scope.ts';
 import { viewingAs } from '../org/view-as.ts';
-import { isTauriShell } from '../lib/instance-choice.ts';
+import { offerSetAsideInstance } from '../lib/instance-set-aside-prompt.ts';
 
 /** One resolvable file for a catalog asset (an entry in an asset's `formats`).
  *  Structurally matches the bridge's AssetFormat so it flows into
@@ -344,14 +344,9 @@ export async function syncCatalog(
       if (isCatalogTrustFailure(e) && getInstanceBase()) {
         const setAside = suspendInstanceBase();
         host.log('warn', 'Instance catalog not trusted; using the bundled catalog', { instance: setAside, error: String(e) });
-        // In the apps a tap on the note opens the connect step with the address filled
-        // in, where the person sees the instance's key before accepting that key.
-        noteInstanceCatalogSetAside(setAside, isTauriShell() ? () => {
-          void import('../components/instance-sheet.ts')
-            // The sheet only logs, so it is handed the sync's own log and nothing else.
-            .then(m => m.openInstanceSheet({ log: (level, msg, ctx) => host.log(level, msg, ctx as Record<string, unknown> | undefined) }, { start: 'connect', url: setAside }))
-            .catch(error => host.log('warn', 'The connect step did not open', { error: String(error) }));
-        } : undefined);
+        // The note, and in the apps the connect step, where the person sees the
+        // instance's key before accepting that key (lib/instance-set-aside-prompt.ts).
+        void offerSetAsideInstance(setAside, (level, msg, ctx) => host.log(level, msg, ctx as Record<string, unknown> | undefined));
         return syncCatalog(host, onAssetsReady, maintenanceGate, signInRequired);
       }
       noteCatalogIntegrityFailure(e);

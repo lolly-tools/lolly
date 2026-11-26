@@ -1002,7 +1002,7 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
         ${lines.map((line, i) => `<p style="margin:0 0 ${i === lines.length - 1 ? '1.5rem' : '.5rem'};color:hsl(var(--muted-foreground));font-size:.95rem;line-height:1.55">${line}</p>`).join('')}
         ${action}
         ${isTauriShell() ? `<div id="org-gate-device" style="margin-top:1.25rem"></div>
-        <button type="button" class="btn btn--ghost" id="org-gate-instance" style="margin-top:.75rem;min-width:9rem;min-height:var(--ui-size-target)">${t('Lolly instance')}</button>` : ''}
+        <button type="button" class="btn btn--ghost" id="org-gate-instance" style="margin-top:.75rem;min-width:9rem;min-height:var(--ui-size-target)">${t('Change instance')}</button>` : ''}
       </div>
     </section>`;
   // Native shells get the device-code alternative: leaving the app shell to

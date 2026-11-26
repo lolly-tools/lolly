@@ -107,8 +107,11 @@ type Step =
  * `start: 'connect'` opens straight at the address step, for a browser, where the
  * bundled choice means nothing; Back then closes the sheet.
  * `url` fills the address in, for a caller that already has the address the person typed.
+ * `check` starts the check of that address at once, in the apps only (in a browser the
+ * same button leaves the page), so the instance's key is on screen with no tap. The key
+ * is still accepted only by "Use this instance".
  */
-export function openInstanceSheet(host: Pick<HostV1, 'log'>, opts: { start?: 'connect'; url?: string } = {}): Promise<void> {
+export function openInstanceSheet(host: Pick<HostV1, 'log'>, opts: { start?: 'connect'; url?: string; check?: boolean } = {}): Promise<void> {
   const startAtConnect = opts.start === 'connect';
   return new Promise((resolve) => {
     let step: Step = startAtConnect ? { kind: 'connect', url: opts.url ?? '', probing: false } : { kind: 'choose' };
@@ -388,6 +391,10 @@ export function openInstanceSheet(host: Pick<HostV1, 'log'>, opts: { start?: 'co
 
       if (act === 'import-done') { modal.close(); return; }
     });
+
+    if (startAtConnect && opts.check && opts.url && isTauriShell()) {
+      modal.el.querySelector<HTMLButtonElement>('[data-act="connect-probe"]')?.click();
+    }
 
     // 'change' bubbles (unlike 'input'), so this delegated listener survives
     // every repaint()'s innerHTML replacement same as the click listener above.

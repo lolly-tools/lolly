@@ -312,7 +312,7 @@ test('in the apps the gate has a way out: the instance sheet, which Escape close
     assert.equal(state?.gate, true);
     const out = document.querySelector<HTMLButtonElement>('#org-gate-instance');
     assert.ok(out, 'the gate offers the instance sheet');
-    assert.equal(out.textContent, 'Lolly instance');
+    assert.equal(out.textContent, 'Change instance');
     assert.equal(out.style.minHeight, 'var(--ui-size-target)');
     out.click();
     for (let i = 0; i < 2000 && !document.querySelector(".instance-sheet"); i++) await new Promise(r => setTimeout(r, 5));
@@ -323,10 +323,10 @@ test('in the apps the gate has a way out: the instance sheet, which Escape close
     assert.equal(out.disabled, true, 'one sheet at a time');
     // Escape reaches a dialog as its cancel event.
     sheet.dispatchEvent(new dom.window.Event('cancel'));
-    for (let i = 0; i < 100 && document.querySelector('.instance-sheet'); i++) await new Promise(r => setTimeout(r, 5));
+    for (let i = 0; i < 2000 && document.querySelector('.instance-sheet'); i++) await new Promise(r => setTimeout(r, 5));
     assert.equal(document.querySelector('.instance-sheet'), null);
     assert.ok(document.querySelector('.org-gate'), 'closing the sheet leaves the gate');
-    for (let i = 0; i < 100 && out.disabled; i++) await new Promise(r => setTimeout(r, 5));
+    for (let i = 0; i < 2000 && out.disabled; i++) await new Promise(r => setTimeout(r, 5));
     assert.equal(out.disabled, false);
   } finally {
     delete w.__TAURI_INTERNALS__;
