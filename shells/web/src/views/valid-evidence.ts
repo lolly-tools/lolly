@@ -18,6 +18,7 @@ import { icon } from '../lib/icons.ts';
 import { segHtml, syncSeg, wireSeg } from '../lib/seg.ts';
 import { wireAddressRequests } from './valid-location.ts';
 import { wireVerifyPreviews } from './valid-preview.ts';
+import { mountStageAudio, wireStageAudio } from './valid-stage-audio.ts';
 
 export type VerifyDepth = 'summary' | 'evidence';
 const DEPTH_KEY = 'lolly-verify-depth';
@@ -131,11 +132,13 @@ export function applyDepth(root: HTMLElement, depth: VerifyDepth, fileAt: (index
 
 /**
  * Wire the parts of a report that need the file or the clipboard: previews,
- * address requests, the copy buttons and the depth switch.
+ * address requests, the copy buttons, the depth switch and the waveform of a
+ * sound file.
  */
-export function wireReportParts(root: HTMLElement, host: Pick<HostV1, 'clipboard'>, fileAt: (index: number) => File | undefined): void {
+export function wireReportParts(root: HTMLElement, host: Pick<HostV1, 'clipboard' | 'audio'>, fileAt: (index: number) => File | undefined): void {
   wireVerifyPreviews(root, fileAt);
   wireAddressRequests(root);
+  wireStageAudio(root);
   root.addEventListener('click', (event) => {
     const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('[data-copy-evidence]') : null;
     if (!button) return;
@@ -152,6 +155,11 @@ export function wireReportParts(root: HTMLElement, host: Pick<HostV1, 'clipboard
     },
   });
   // A report drawn after the choice was made takes the same depth.
-  if (typeof MutationObserver === 'function') new MutationObserver(() => applyDepth(root, readDepth(), fileAt)).observe(root, { childList: true });
-  applyDepth(root, readDepth(), fileAt);
+  // Reports are drawn into a list under the root, so the whole subtree is watched;
+  // one pass per burst of changes, and each step skips what it has already done.
+  let queued = false;
+  const settle = (): void => { queued = false; applyDepth(root, readDepth(), fileAt); mountStageAudio(root, host, fileAt); };
+  const later = (): void => { if (!queued) { queued = true; queueMicrotask(settle); } };
+  if (typeof MutationObserver === 'function') new MutationObserver(later).observe(root, { childList: true, subtree: true });
+  settle();
 }
