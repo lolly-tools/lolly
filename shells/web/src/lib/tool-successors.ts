@@ -357,6 +357,8 @@ export function threeDToStudio(values: Values): Values {
     duration,
     playClip: flag(values.playClip, true),
     clipIndex: Math.round(clamp(num(values.clipIndex, 0), 0, 12)),
+  };
+}
 
 /** The three places Scan read a code from. */
 const SCAN_SOURCES = ['camera', 'image', 'paste'];
