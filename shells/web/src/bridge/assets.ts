@@ -1549,7 +1549,7 @@ function pickFormat(meta: AssetMetaRecord, requested?: string): AssetFormat {
   if (meta.type === 'raster') return meta.formats.find(f => /^(png|webp|jpe?g|gif|avif|heic|heif|tiff?|jxl)$/i.test(f.format)) ?? meta.formats[0]!;
   // A lottie entry carries the animation (json) plus a static poster variant;
   // tools always want the animation regardless of listing order.
-  if (meta.type === 'model') return meta.formats.find(f => /^(glb|stl|3mf)$/i.test(f.format)) ?? meta.formats[0]!;
+  if (meta.type === 'model') return meta.formats.find(f => /^(glb|gltf|stl|3mf)$/i.test(f.format)) ?? meta.formats[0]!;
   if (meta.type === 'lottie') return meta.formats.find(f => f.format === 'json') ?? meta.formats[0]!;
   // A video entry may ship a still poster alongside the clip; always resolve to the
   // clip (a <video> needs the real container), regardless of listing order.

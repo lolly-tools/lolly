@@ -17,7 +17,7 @@
  * whichever map claimed it last. Every primitive carries POSITION, NORMAL, TEXCOORD_0 and
  * TANGENT, so GLTFLoader keeps the authored material objects rather than cloning them for
  * derived tangents. No compression extension is used: the studio refuses Draco, Meshopt and
- * KTX2 (shells/web/src/lib/studio3d/source.ts, inspectGlb).
+ * KTX2 (shells/web/src/lib/gltf-container.ts, inspectGlb).
  *
  * Nothing here reads the clock or a random source, so every call returns the same bytes.
  */

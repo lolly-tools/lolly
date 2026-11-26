@@ -153,12 +153,16 @@ function sourceFrom(
   words?: { text: unknown; settings: NonNullable<StudioSourceV1['text']> }
 ): StudioSourceV1 {
   const kind = choice(kindValue, ['artwork', 'model', 'primitive', 'text'] as const, 'primitive');
-  const requestedFormat = choice(modelFormatValue, ['auto', 'glb', 'stl', '3mf'] as const, 'auto');
-  const modelFormat =
+  const requestedFormat = choice(
+    modelFormatValue,
+    ['auto', 'glb', 'gltf', 'stl', '3mf'] as const,
+    'auto'
+  );
+  const namedFormat =
     requestedFormat === 'auto'
       ? choice(
           picked.format,
-          ['glb', 'stl', '3mf'] as const,
+          ['glb', 'gltf', 'stl', '3mf'] as const,
           [picked.name, picked.url].some((name) => /\.3mf(?:$|[?#])/i.test(name))
             ? '3mf'
             : [picked.name, picked.url].some((name) => /\.stl(?:$|[?#])/i.test(name))
@@ -166,6 +170,9 @@ function sourceFrom(
               : 'glb'
         )
       : requestedFormat;
+  // A .gltf and a .glb are one model format in two containers. The recipe keeps the one
+  // kind, `glb`, and the shell reads which container it was handed from the bytes.
+  const modelFormat = namedFormat === 'gltf' ? 'glb' : namedFormat;
   if (kind === 'text') {
     const text = String(words?.text ?? '')
       .replace(/\r/g, '')

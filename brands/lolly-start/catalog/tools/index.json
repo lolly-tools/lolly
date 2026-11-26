@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-22T12:38:32.997Z",
+  "generatedAt": "2026-11-26T10:05:49.082Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -13494,7 +13494,7 @@
       "id": "3d-studio",
       "name": "3D Studio",
       "description": "Turn SVG artwork and 3D models into images, alone or together in one scene. Shape materials, lighting, focus and shadows.",
-      "version": "0.11.0",
+      "version": "0.12.0",
       "status": "official",
       "category": "designer",
       "tags": [

@@ -6,6 +6,7 @@ import { loadThreeMf } from './three-mf.ts';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { SVGLoader } from 'three/addons/loaders/SVGLoader.js';
 import { extrudeStudioShape, studioChordTolerance } from './geometry.ts';
+import { inspectedGlb, MODEL_MAX_BYTES } from '../gltf-container.ts';
 import { makeGeomApi } from '../../../../../engine/src/geom-api.ts';
 import type { GeomAPI } from '@lolly-tools/core/host-v1';
 import type {
@@ -95,7 +96,7 @@ function useDefaultGeometry(): Promise<void> {
     .catch(() => { defaultGeometry = undefined; });
   return defaultGeometry;
 }
-const MAX_BYTES = 32 * 1024 * 1024;
+const MAX_BYTES = MODEL_MAX_BYTES;
 const MAX_TRIANGLES = 1_000_000;
 const ALLOWED = new Set([
   'svg',
@@ -344,37 +345,6 @@ function computeStlNormals(geometry: THREE.BufferGeometry): boolean {
   return true;
 }
 
-function inspectGlb(bytes: Uint8Array): void {
-  if (bytes.byteLength < 20) throw new Error('The GLB file is incomplete.');
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  if (
-    view.getUint32(0, true) !== 0x46546c67 ||
-    view.getUint32(4, true) !== 2 ||
-    view.getUint32(8, true) !== bytes.length ||
-    view.getUint32(16, true) !== 0x4e4f534a
-  )
-    throw new Error('Use a self-contained glTF 2.0 binary (.glb) model.');
-  const length = view.getUint32(12, true);
-  if (length > 2_000_000 || length + 20 > bytes.length)
-    throw new Error('The GLB manifest is invalid or too large.');
-  const json = JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + length))) as {
-    buffers?: { uri?: string }[];
-    images?: { uri?: string }[];
-    extensionsRequired?: string[];
-  };
-  for (const item of [...(json.buffers || []), ...(json.images || [])])
-    if (item.uri && !item.uri.startsWith('data:'))
-      throw new Error(
-        'This GLB links external files. Embed its textures and buffers before importing.'
-      );
-  if (
-    json.extensionsRequired?.some((e) =>
-      ['KHR_draco_mesh_compression', 'EXT_meshopt_compression', 'KHR_texture_basisu'].includes(e)
-    )
-  )
-    throw new Error('Export this model without Draco, Meshopt or KTX2 compression.');
-}
-
 export async function loadStudioSource(
   scene: StudioSceneV1,
   read: StudioRead,
@@ -458,14 +428,18 @@ export async function loadStudioSource(
             'This STL carried no facet normals; the studio computed them from the triangles.'
           );
       } else {
-        inspectGlb(bytes);
+        // A .glb as uploaded, or a self-contained .gltf rewritten as one; both inspected.
+        const glb = inspectedGlb(bytes);
         const manager = new THREE.LoadingManager();
         manager.setURLModifier((url) => {
           if (!/^(data:|blob:)/.test(url))
             throw new Error('External model resources are not supported.');
           return url;
         });
-        const gltf = await new GLTFLoader(manager).parseAsync(bytes.slice().buffer, '');
+        const gltf = await new GLTFLoader(manager).parseAsync(
+          glb === bytes ? bytes.slice().buffer : (glb.buffer as ArrayBuffer),
+          ''
+        );
         raw.add(gltf.scene);
         if (gltf.animations.length)
           info.warnings.push(
