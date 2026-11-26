@@ -14,6 +14,7 @@ import { vendorMark } from './valid-vendors.ts';
 import { metadataValueHtml } from './valid-links.ts';
 import type { VerifyReport, Watermark } from './valid-verdict.ts';
 import type { TextSignalPanel } from './valid-text.ts';
+import { showOnStage } from './valid-stage.ts';
 
 const SLOT: Record<VerifyFindingId, { label: string; icon: IconName; section: string }> = {
   credential: { label: 'Credential', icon: 'seal', section: '[data-finding-section="credential"]' },
@@ -130,6 +131,9 @@ export function wireFindings(root: HTMLElement): void {
       const wasOpen = slot.getAttribute('aria-expanded') === 'true';
       box.querySelectorAll<HTMLElement>('[data-finding]').forEach((b) => { b.setAttribute('aria-expanded', String(b === slot && !wasOpen)); });
       box.querySelectorAll<HTMLElement>('[data-finding-pane]').forEach((pane) => { pane.hidden = wasOpen || pane.dataset.findingPane !== id; });
+      // The same press shows the finding on the asset.
+      const result = slot.closest<HTMLElement>('.valid-result');
+      if (result && !wasOpen) showOnStage(result, id as VerifyFindingId);
       return;
     }
     const jump = el?.closest<HTMLElement>('[data-finding-jump]');

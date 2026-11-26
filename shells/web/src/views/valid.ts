@@ -72,12 +72,13 @@ import {isExpectedRow, pipStatusWord, scorecardModel, resolveState, sourceTypeLa
 } from './valid-verdict.ts';
 import type { Check, SignerIdentity, Signer, Claim, VerifyReport, Watermark, ScorecardItem } from './valid-verdict.ts';
 import { provenanceOverviewHtml, provenanceSummaryHtml } from './valid-provenance.ts';
-import { pdfPreviewFor, pdfPageCountFor, mediaPreviewHtml, wireVerifyPreviews, type VerifyPreview as Preview } from './valid-preview.ts';
+import { pdfPreviewFor, pdfPageCountFor, wireVerifyPreviews, type VerifyPreview as Preview } from './valid-preview.ts';
 import { softwareName } from '@lolly/engine';
 import { auxiliaryMetadataHtml } from './valid-auxiliary.ts';
 import { metadataValueHtml, metadataLinkHtml, metadataUrl, wireMetadataLinks, visibleLinkedTextHtml } from './valid-links.ts';
 import { wireVerifyActions } from './valid-actions.ts';
 import { wireAddressRequests } from './valid-location.ts';
+import { stageHtml, wireStage } from './valid-stage.ts';
 import { intakeAltsHtml, wireIntakeAlts } from './valid-intake-alts.ts';
 // The C2PA 2.4 text-binding models - same pure-module rule as valid-verdict.ts.
 // The copy for every carrier state, the snippet cap, and the ONE url gate both
@@ -1720,10 +1721,13 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
         </div>
         ${findingsHtml(findings, fileIndex)}
       </section>
-      <div class="valid-origin-layout">${provenanceOverviewHtml(report, meta)}${mediaPreviewHtml(preview, fileIndex)}</div>
+      <div class="vf-body">
+      ${stageHtml(preview, meta, fileIndex)}
+      <div class="vf-column">
+      ${provenanceOverviewHtml(report, meta)}
       ${aiBlock}
       ${stepsBlock ? `<div class="valid-journey-feature" data-lamp-section="provenance">${stepsBlock}</div>` : ''}
-      <div data-finding-section="personal">${contextCardsHtml(report, meta)}</div>
+      <div data-finding-section="personal">${contextCardsHtml(report, meta, false)}</div>
       <div data-lamp-section="provenance" data-finding-section="credential"><span data-lamp-section="integrity"></span>${panelsBlock}</div>
       ${askCred}
       ${deepScanBlock(fileIndex, report.format, fileName)}
@@ -1739,6 +1743,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
     : identity
       ? tRaw("<strong>Checked entirely on this device</strong> - the file was not uploaded. The signer's identity was verified against the Lolly CA root pinned in this app (the same root <code>lolly validate --trust-anchor</code> uses). Validators that don't pin that root - {link}, or <code>c2patool</code> without <code>--trust_anchors</code> - still show the signer as an unknown source.", { link: '<a href="https://verify.contentauthenticity.org/" target="_blank" rel="noopener">verify.contentauthenticity.org</a>' })
       : tRaw('<strong>Checked entirely on this device</strong> - the file was not uploaded. The same file on {link} reads the same, with the signer shown as an unknown source (there is no CA behind an on-device key - by design).', { link: '<a href="https://verify.contentauthenticity.org/" target="_blank" rel="noopener">verify.contentauthenticity.org</a>' })) : ''}
+      </div></div>
     </div>`;
 }
 
@@ -3507,6 +3512,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
   wireVerifyPreviews(reportEl, (index) => activeFiles[index]);
   wireVerifyActions(viewEl, reportEl);
   wireAddressRequests(reportEl);
+  wireStage(reportEl);
   reportEl.addEventListener('click', async (event) => {
     const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('[data-copy-evidence]') : null;
     if (!button) return;
