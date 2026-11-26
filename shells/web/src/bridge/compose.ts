@@ -30,7 +30,7 @@ import { renderRowToBlob } from '../pro/render-export.ts';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import type { Unit } from '../../../../engine/src/units.ts';
 import { getTool } from './tool-loader.ts';
-import { svgLoopMs, svgMarkupAnimated } from '../lib/anim-detect.ts';
+import { svgClipMs, svgLoopMs, svgMarkupAnimated } from '../lib/anim-detect.ts';
 import { childSelection, savedTokenSelection } from '../lib/theme-choices.ts';
 
 // Child render formats that make sense as an image dropped into a picker slot.
@@ -210,6 +210,8 @@ export function createComposeAPI(host: HostV1) {
       // The subset of `formats` that carries movement - the picker uses it to show a
       // still poster while the (slow) motion file encodes only on commit.
       motion,
+      // A tool that lays itself out for the canvas can take the shape it is placed in.
+      followsCanvasSize: r.tool.manifest.render?.followsCanvasSize === true,
       width: r.state.width ?? null,
       height: r.state.height ?? null,
       unit: r.state.unit ?? null,
@@ -325,8 +327,8 @@ async function motionMeta(blob: Blob, fmt: string): Promise<{ animated?: true; d
   if (normFmt(fmt) !== 'svg') return {};
   const text = await blob.text().catch(() => '');
   if (!svgMarkupAnimated(text)) return {};
-  const loop = svgLoopMs(text);
-  return { animated: true, ...(loop > 0 ? { durationMs: loop } : {}) };
+  const length = svgLoopMs(text) || svgClipMs(text);
+  return { animated: true, ...(length > 0 ? { durationMs: length } : {}) };
 }
 
 // Convert a blob: URL to a self-contained data: URL (see renderUrl). Falls back to

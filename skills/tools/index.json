@@ -1200,8 +1200,8 @@
     {
       "version": 1,
       "toolId": "quote-card",
-      "toolVersion": "1.0.0",
-      "toolVersionRange": "1.0.0",
+      "toolVersion": "1.1.0",
+      "toolVersionRange": "1.1.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1209,12 +1209,12 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "44084f2e39c15c9a65d9fbf8bf4e4c82086770c468aabb2e3afb0c684ffc1d77",
-          "bytes": 1631
+          "sha256": "722ec5fcfd25153bf0da3da5778a5cabed195792575d8f89abc1bc1cb04a623f",
+          "bytes": 1859
         },
         "reference/inputs.json": {
-          "sha256": "b561d7dbfa3f831193c83d4e8dcb6ef14dd5465339318ee976f06ad66aca111c",
-          "bytes": 1246
+          "sha256": "9d1b7f876ff7e028a84fa0d12bf28126a6c9424a80a9f1fad305730b5e4d4558",
+          "bytes": 3125
         }
       },
       "path": "quote-card/SKILL.md"

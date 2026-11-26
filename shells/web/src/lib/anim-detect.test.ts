@@ -8,7 +8,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { svgMarkupAnimated, precheckAnimatedRef, svgLoopMs } from './anim-detect.ts';
+import { svgClipMs, svgMarkupAnimated, precheckAnimatedRef, svgLoopMs } from './anim-detect.ts';
 
 // ── svgMarkupAnimated ────────────────────────────────────────────────────────
 
@@ -98,4 +98,15 @@ test('svgLoopMs: nothing that repeats forever means no loop', () => {
 test('svgLoopMs: parts that never realign report the longest part, not an absurd length', () => {
   const m = '<svg><animateTransform dur="9.97s" repeatCount="indefinite"/><animateTransform dur="7.03s" repeatCount="indefinite"/></svg>';
   assert.equal(svgLoopMs(m), 9970);
+});
+
+// ── svgClipMs ────────────────────────────────────────────────────────────────
+
+test('a piece that plays once says how long it is on its root', () => {
+  assert.equal(svgClipMs('<?xml version="1.0"?>\n<svg xmlns="x" width="4" data-clip-ms="3730"><g/></svg>'), 3730);
+  assert.equal(svgClipMs('<svg xmlns="x"><g/></svg>'), 0, 'a root that does not say');
+  assert.equal(svgClipMs('<svg xmlns="x"><svg data-clip-ms="900"/></svg>'), 0, 'only the root speaks for the file');
+  assert.equal(svgClipMs('<svg data-clip-ms="0"/>'), 0);
+  assert.equal(svgClipMs('<svg data-clip-ms="99999999"/>'), 0, 'past any usable clip');
+  assert.equal(svgClipMs(''), 0);
 });
