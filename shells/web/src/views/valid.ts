@@ -72,12 +72,12 @@ import {isExpectedRow, pipStatusWord, scorecardModel, resolveState, sourceTypeLa
 } from './valid-verdict.ts';
 import type { Check, SignerIdentity, Signer, Claim, VerifyReport, Watermark, ScorecardItem } from './valid-verdict.ts';
 import { columnLeadHtml, provenanceSummaryHtml } from './valid-provenance.ts';
-import { pdfPreviewFor, pdfPageCountFor, wireVerifyPreviews, type VerifyPreview as Preview } from './valid-preview.ts';
+import { pdfPreviewFor, pdfPageCountFor, type VerifyPreview as Preview } from './valid-preview.ts';
 import { softwareName } from '@lolly/engine';
 import { auxiliaryMetadataHtml } from './valid-auxiliary.ts';
 import { metadataValueHtml, metadataLinkHtml, metadataUrl, wireMetadataLinks, visibleLinkedTextHtml } from './valid-links.ts';
 import { wireVerifyActions } from './valid-actions.ts';
-import { wireAddressRequests } from './valid-location.ts';
+import { evidenceHeadHtml, wireReportParts } from './valid-evidence.ts';
 import { stageHtml } from './valid-stage.ts'; import { lollyBlockHtml } from './valid-lolly.ts';
 import { intakeAltsHtml, wireIntakeAlts } from './valid-intake-alts.ts';
 // The C2PA 2.4 text-binding models - same pure-module rule as valid-verdict.ts.
@@ -1724,7 +1724,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
       <div class="vf-body">
       ${stageHtml(preview, meta, fileIndex)}
       <div class="vf-column">
-      ${columnLeadHtml(report, meta, fileName)}${lollyBlockHtml(report, { tool: recreate, imprint: !!watermark?.present })}
+      ${evidenceHeadHtml(findings, report, meta, fileName, fileIndex)}${columnLeadHtml(report, meta, fileName)}${lollyBlockHtml(report, { tool: recreate, imprint: !!watermark?.present })}
       ${aiBlock}
       ${stepsBlock ? `<div class="valid-journey-feature" data-lamp-section="provenance">${stepsBlock}</div>` : ''}
       <div data-finding-section="personal">${contextCardsHtml(report, meta, false)}</div>
@@ -3478,17 +3478,8 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
 
   wireLampScroll(reportEl);
   wireMetadataLinks(reportEl);
-  wireVerifyPreviews(reportEl, (index) => activeFiles[index]);
+  wireReportParts(reportEl, host, (index) => activeFiles[index]);
   wireVerifyActions(viewEl, reportEl);
-  wireAddressRequests(reportEl);
-  reportEl.addEventListener('click', async (event) => {
-    const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('[data-copy-evidence]') : null;
-    if (!button) return;
-    try {
-      await host.clipboard.writeText(button.dataset.copyEvidence ?? '');
-      announce(button.dataset.copyDone ?? t('Link copied'));
-    } catch { announce(t('Could not copy link')); }
-  });
   reportEl.addEventListener('click', (e) => {
     const scoreToggle = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-score-toggle]');
     if (scoreToggle) {
