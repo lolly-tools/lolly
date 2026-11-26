@@ -2,7 +2,7 @@
 /** Where a retired tool's document opens in its successor (lib/tool-successors.ts). */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { flowChartToDesign, meetingPlannerToTimezone, successorHref, THREE_D_SCENES, threeDRotation, threeDToStudio, voiceRecorderToAudiogram } from './tool-successors.ts';
+import { flowChartToDesign, meetingPlannerToTimezone, successorHref, THREE_D_SCENES, threeDRotation, threeDToStudio, voiceRecorderToAudiogram, scanToQrCode } from './tool-successors.ts';
 
 test('a Meeting Planner document becomes Timezone places, with the host city first and as the clock', () => {
   const carried = meetingPlannerToTimezone({
@@ -343,3 +343,29 @@ function defaultOf(manifest: { inputs: { id: string; default?: unknown; fields?:
   const input = manifest.inputs.find((i) => i.id === id)!;
   return field ? input.fields?.find((f) => f.id === field)?.default : input.default;
 }
+
+test('Scan into QR Code: scan mode on the same source, with pasted text as typed', () => {
+  assert.deepEqual(scanToQrCode({ mode: 'paste', paste: ' WIFI:S:Cafe;T:WPA;P:pw;; ' }), { mode: 'scan', source: 'paste', scanText: ' WIFI:S:Cafe;T:WPA;P:pw;; ' });
+  assert.deepEqual(scanToQrCode({ mode: 'camera', paste: '' }), { mode: 'scan', source: 'camera' });
+  assert.deepEqual(scanToQrCode({}), { mode: 'scan', source: 'camera' }, 'Scan opened on the camera');
+  assert.deepEqual(scanToQrCode({ mode: 'make' }), { mode: 'scan', source: 'camera' }, 'a source Scan never had is the camera');
+});
+
+test('Scan into QR Code: a picked image is not carried, and the source stays Image', () => {
+  const picked = { __file: true, name: 'poster.png', mime: 'image/png', size: 9, bytes: new Uint8Array([1]) };
+  assert.deepEqual(scanToQrCode({ mode: 'image', image: picked, paste: '' }), { mode: 'scan', source: 'image' });
+});
+
+test('the QR Code address is one its own manifest reads back, in scan mode', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { parseUrlState } = await import('../../../../engine/src/url-mode.ts');
+  const { resolveRender } = await import('../../../../engine/src/render-when.ts');
+  const manifest = JSON.parse(await readFile(new URL('../../../../community/qr-code/tool.json', import.meta.url), 'utf8'));
+  const href = successorHref('scan-code', 'qr-code', { mode: 'paste', paste: 'https://example.com/a?b=1&c=2' });
+  assert.ok(href.startsWith('#/tool/qr-code?'));
+  const { values } = parseUrlState(href.split('?')[1]!, manifest);
+  assert.deepEqual(values, { mode: 'scan', source: 'paste', scanText: 'https://example.com/a?b=1&c=2' });
+  const render = resolveRender(manifest.render, values);
+  assert.equal(render.export, false, 'the address lands on the reader, with no export');
+  assert.deepEqual(render.actions, []);
+});

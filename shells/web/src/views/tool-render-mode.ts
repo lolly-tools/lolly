@@ -17,6 +17,7 @@
  *
  * What does not cross: the undo stack, which belongs to a mount.
  */
+import { matchesShowIf } from '@lolly/engine';
 import type { ToolManifest } from '@lolly/engine';
 
 type Render = ToolManifest['render'];
@@ -39,6 +40,27 @@ export interface CarriedRenderMount {
   readonly focusInput: string | null;
   /** The inputs the person had changed, which the address is written from. */
   readonly edited: readonly string[];
+}
+
+/**
+ * The inputs that belong to this mount. A tool whose render settings follow an input is
+ * mounted once per value of that input, so an input whose `showIf` asks for another
+ * value of the keyed input cannot be shown for the life of the mount. The view leaves
+ * such an input out of what it offers by type: a `file` input of the other mode is not
+ * a drop target on the canvas and is not what the recovery notice speaks of. A tool
+ * with no `when` gets its inputs back as they are, the same array.
+ */
+export function inputsOfMount<T extends { showIf?: unknown }>(
+  manifest: { render: Render; inputs?: readonly T[] }, values: Record<string, unknown>,
+): readonly T[] {
+  const inputs = manifest.inputs ?? [];
+  const keyed = typeof manifest.render.when?.input === 'string' ? manifest.render.when.input : null;
+  if (!keyed) return inputs;
+  return inputs.filter((input) => {
+    const showIf = input.showIf as Record<string, unknown> | undefined;
+    if (!showIf || typeof showIf !== 'object' || !Object.hasOwn(showIf, keyed)) return true;
+    return matchesShowIf({ [keyed]: showIf[keyed] } as Parameters<typeof matchesShowIf>[0], values);
+  });
 }
 
 let armed: { toolId: string; focusInput: string | null } | null = null;

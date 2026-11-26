@@ -1,5 +1,4 @@
 {
   "name": "Scan",
-  "description": "Leia códigos QR e códigos de barras no dispositivo. Copiar é sempre a primeira ação; abrir, entrar ou adicionar é um toque explícito e informado.",
-  "featured.blurb": "Leia qualquer código, com segurança e offline"
+  "description": "Leia códigos QR e códigos de barras no dispositivo. Copiar é sempre a primeira ação; abrir, entrar ou adicionar é um toque explícito e informado."
 }

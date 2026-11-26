@@ -1,5 +1,4 @@
 {
   "name": "Skanowanie",
-  "description": "Odczytuj kody QR i kody kreskowe na urządzeniu. Kopiowanie jest zawsze pierwszą czynnością; otwarcie, dołączenie lub dodanie to jawne, świadome dotknięcie.",
-  "featured.blurb": "Odczytaj dowolny kod, bezpiecznie i offline"
+  "description": "Odczytuj kody QR i kody kreskowe na urządzeniu. Kopiowanie jest zawsze pierwszą czynnością; otwarcie, dołączenie lub dodanie to jawne, świadome dotknięcie."
 }

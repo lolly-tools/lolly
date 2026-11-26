@@ -1151,8 +1151,8 @@
     {
       "version": 1,
       "toolId": "qr-code",
-      "toolVersion": "2.8.0",
-      "toolVersionRange": "2.8.0",
+      "toolVersion": "2.9.0",
+      "toolVersionRange": "2.9.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1161,12 +1161,12 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "8484aba6474a3b04be34c07108057f83992ba5ebe2cc7e578040dab8c101042a",
-          "bytes": 2769
+          "sha256": "bb5643e1af7b0607fef7cd70c30182a114d0d7329c43e6ff7e9dc5afe16d1632",
+          "bytes": 2897
         },
         "reference/inputs.json": {
-          "sha256": "33c4f6941c035b66d9dd35363137afdfb9c32888776b34f8da9da2b8b9a057be",
-          "bytes": 19397
+          "sha256": "73795c073a82bea4ccd8801d292213ad18583a46c9794e820ac40574cbd0bfab",
+          "bytes": 22412
         },
         "reference/examples.json": {
           "sha256": "d9ef3f05b657da5d09d55c1a2d56ad5e3dc955400513c6ca974a7413e1329587",
@@ -1332,8 +1332,8 @@
     {
       "version": 1,
       "toolId": "scan-code",
-      "toolVersion": "0.1.3",
-      "toolVersionRange": "0.1.3",
+      "toolVersion": "0.1.4",
+      "toolVersionRange": "0.1.4",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1341,7 +1341,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "3fb8ff4c30d417adfa417988b234b27a8c4a61d2fbbbf634f76402d81bd13e1f",
+          "sha256": "187d215d117d4171a9f0e1a746b84e75fe8c74adcc13956f4a9c5c5cf5e7451c",
           "bytes": 1527
         },
         "reference/inputs.json": {

