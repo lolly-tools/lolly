@@ -462,7 +462,7 @@ export async function mountToolStudio(
         current.ready &&
         !canvas.__lollyFrameDriven &&
         current.options.setInput !== undefined &&
-        studioAnimated(current.recipe) &&
+        (studioAnimated(current.recipe) || current.handle.playsClip) &&
         now - last > 50
       ) {
         last = now;
@@ -507,6 +507,12 @@ export async function mountToolStudio(
     });
     if (generation !== entry.generation || options.isCurrent?.() === false) return;
     entry.ready = true;
+    // The tool's hook writes a clip length when a loop, a light or the camera moves. Whether
+    // a model file holds a baked clip is only known here, once the file has loaded, so a
+    // model that plays one states the length the same way and the export sheet's Duration
+    // follows.
+    if (entry.handle.playsClip && !(Number(marker.dataset.clipMs) > 0))
+      marker.dataset.clipMs = String(Math.round(recipe.motion.seconds * 1000));
     syncStudioControls(entry);
     entry.render('preview');
     status(entry, '', 'ready');

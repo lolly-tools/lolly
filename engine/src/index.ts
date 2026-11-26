@@ -1054,7 +1054,7 @@ export type { CompiledDesignTool } from './design-tool/compiler.ts';
 export { compileSessionTool } from './design-tool/session-compiler.ts';
 export type { SessionToolSource } from './design-tool/session-compiler.ts';
 export { designExportSize, assertDesignValues } from './design-tool/policy.ts';
-export { buildStudioScene, studioFinish, STUDIO_FINISHES, studioTime, studioAnimated, studioLightMotion } from './studio3d.ts';
+export { buildStudioScene, studioFinish, STUDIO_FINISHES, studioTime, studioAnimated, studioLightMotion, studioWantsClip, studioClipSeconds, studioClipSampleTimes, STUDIO_CLIP_INDEX_MAX, STUDIO_CLIP_BOUND_STEPS } from './studio3d.ts';
 export { studioActiveIndex, studioActiveValues, studioCameraEdit, studioFocusEdit, studioCollectionRows, studioCollectionSize, studioSubjectIds, studioSubjectEdit, studioSheetSize, STUDIO_COLLECTION_LIMIT, STUDIO_SHEET_PIXELS } from './studio3d-collection.ts';
 export { studioCameraPose, studioRestPose, studioCameraTravels, studioCameraKeyFromView, studioAddCameraKey, studioCameraFromKey, STUDIO_CAMERA_KEY_LIMIT } from './studio3d-camera-path.ts';
 export { studioOrbitLight, studioScaleLightDistance, studioPlaceableLights, studioLightEdit, STUDIO_LIGHT_TARGET, STUDIO_LIGHT_RANGE, STUDIO_PRESET_LIGHT_POSITIONS, STUDIO_KEY_CARD_OFFSET } from './studio3d-lights.ts';

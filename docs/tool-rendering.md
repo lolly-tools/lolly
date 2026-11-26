@@ -51,7 +51,7 @@ The web sidebar adds an **Insert emoji** button to plain text, long text and pla
 
 ### Canvas tools: readiness, the frame clock and GPU rendering
 
-A template may paint into a `<canvas>` instead of markup, as `3d`, `synth`, `gradient` and `spatial-photo` do. The export reads that canvas back as pixels, so three contracts keep exports correct:
+A template may paint into a `<canvas>` instead of markup, as `synth`, `gradient`, `spatial-photo` and the retired `3d` do. The export reads that canvas back as pixels, so three contracts keep exports correct:
 
 | Contract | What to do | Without it |
 | --- | --- | --- |

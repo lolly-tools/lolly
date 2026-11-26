@@ -10,6 +10,8 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.357: baked animation clips in 3D Studio (clip time and the bounds sample times).
+  'STUDIO_CLIP_BOUND_STEPS', 'STUDIO_CLIP_INDEX_MAX', 'studioClipSampleTimes', 'studioClipSeconds', 'studioWantsClip',
   // Additive 1.356: render settings that follow one input's value (`render.when`).
   'RENDER_WHEN_KEYS', 'renderWhenMatches', 'resolveRender',
   // Additive 1.345: audio metadata removal for Strip Hidden Data (M4A/MP4, WAV, MP3, FLAC, Ogg Opus).

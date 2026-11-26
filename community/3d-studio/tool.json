@@ -1,7 +1,7 @@
 {
   "id": "3d-studio",
   "name": "3D Studio",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "engineVersion": ">=1.355.0",
   "status": "official",
   "singleInstance": true,
@@ -3137,6 +3137,40 @@
       "help": "How much of the loop the subject sits still at the end, as a fraction of it. At 0 the move starts again as soon as it finishes."
     },
     {
+      "id": "playClip",
+      "label": "Play model animation",
+      "type": "boolean",
+      "default": false,
+      "section": "Motion",
+      "showIf": {
+        "source": [
+          "model",
+          "collection",
+          "arrangement"
+        ]
+      },
+      "help": "Plays the animation clip saved inside a GLB or glTF model, when the file holds one. The clip runs at its own speed and repeats for the length of the loop. A model you choose starts with this on."
+    },
+    {
+      "id": "clipIndex",
+      "label": "Clip",
+      "type": "number",
+      "default": 0,
+      "section": "Motion",
+      "min": 0,
+      "max": 12,
+      "step": 1,
+      "showIf": {
+        "source": [
+          "model",
+          "collection",
+          "arrangement"
+        ],
+        "playClip": true
+      },
+      "help": "Which of the model's clips to play, counting from zero. Info on the preview lists how many the file holds."
+    },
+    {
       "id": "cameraMotion",
       "label": "Camera",
       "type": "select",
@@ -3393,6 +3427,14 @@
             "crane",
             "orbit"
           ]
+        },
+        {
+          "source": [
+            "model",
+            "collection",
+            "arrangement"
+          ],
+          "playClip": true
         }
       ]
     },

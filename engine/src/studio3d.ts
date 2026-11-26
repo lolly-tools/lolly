@@ -270,6 +270,13 @@ export function buildStudioScene(input: unknown): StudioSceneV1 {
         text: v.words,
         settings: textSettings(v),
       });
+  // A baked clip plays on every glTF model in the scene. A recipe that does not ask for one
+  // carries no `clip` at all, so a document saved before clips could play builds as before.
+  if (enabled(v.playClip)) {
+    const clip = { index: Math.round(number(v.clipIndex, 0, 0, STUDIO_CLIP_INDEX_MAX)) };
+    for (const each of [source, ...objects.map((object) => object.source)])
+      if (each.kind === 'glb') each.clip = clip;
+  }
   const primary = color(v.colorA, '#38b98a'),
     secondary = color(v.colorB, '#173d37');
   const keyColor = color(v.keyColor, '#d9fff1'),
@@ -587,6 +594,52 @@ export function studioLightMotion(
         ? 1 - (1 - Math.cos(phase * 2 * Math.PI)) * motion.amount * 0.35
         : 1,
   };
+}
+
+/** The highest clip number a recipe may ask for; the shell wraps it round the clips a file holds. */
+export const STUDIO_CLIP_INDEX_MAX = 255;
+/** How many equal steps a clip is divided into when its bounds are measured (one more sample than steps). */
+export const STUDIO_CLIP_BOUND_STEPS = 24;
+
+/** True when the recipe asks a glTF model to play a baked clip. Whether the file holds one is the shell's to say. */
+export function studioWantsClip(scene: StudioSceneV1): boolean {
+  return [scene.source, ...(scene.objects ?? []).map((object) => object.source)].some(
+    (source) => source.kind === 'glb' && !!source.clip
+  );
+}
+
+/**
+ * Where a baked clip `length` seconds long stands at loop time `time` (0 to 1 of the clip
+ * being exported). The clip runs at its own speed from the start of the export and repeats
+ * at its own length, so the answer is the seconds elapsed, wrapped into 0 up to but not
+ * including `length`. It reads the export clock and the recipe and nothing else: no wall
+ * clock, no frame counter and no earlier frame, so the same inputs give the same pose on
+ * every run. A clip with no length holds its only pose.
+ */
+export function studioClipSeconds(
+  scene: StudioSceneV1,
+  time: number,
+  clipSeconds: number | undefined,
+  length: number
+): number {
+  if (!Number.isFinite(length) || length <= 0) return 0;
+  const elapsed = Number.isFinite(time)
+    ? Math.max(0, time) * (clipSeconds && clipSeconds > 0 ? clipSeconds : scene.motion.seconds)
+    : 0;
+  const wrapped = elapsed - Math.floor(elapsed / length) * length;
+  return wrapped >= 0 && wrapped < length ? wrapped : 0;
+}
+
+/**
+ * The moments a clip is posed at when its bounds are measured: the start, the end and the
+ * equal steps between. The same list for the same length on every host, so the bounds, and
+ * with them the size and the floor contact of an animated model, never depend on which
+ * frame happened to be drawn first.
+ */
+export function studioClipSampleTimes(length: number, steps = STUDIO_CLIP_BOUND_STEPS): number[] {
+  if (!Number.isFinite(length) || length <= 0) return [0];
+  const count = Math.max(1, Math.min(240, Math.round(steps)));
+  return Array.from({ length: count + 1 }, (_, i) => (i / count) * length);
 }
 
 export function studioTime(scene: StudioSceneV1, time: number, clipSeconds?: number): number {

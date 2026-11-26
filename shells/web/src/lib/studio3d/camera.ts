@@ -13,6 +13,7 @@ import type {
   StudioPoseV1,
   StudioSceneV1,
 } from '../../../../../packages/core/src/studio3d-v1.ts';
+import { studioBox } from './clip.ts';
 import { studioCamera } from './stage.ts';
 
 /** The height of the surface a grounded subject stands on: the pedestal's top, or the floor. */
@@ -67,7 +68,7 @@ function placeObject(
     spec.transform.scale * pose.scale[2]
   );
   object.position.set(0, 0, 0);
-  const bounds = new THREE.Box3().setFromObject(object);
+  const bounds = studioBox(object);
   object.position.set(
     spec.transform.position[0],
     (spec.grounded ? -bounds.min.y + studioFloorHeight(recipe) : 0) + spec.transform.position[1] + pose.lift,
@@ -122,7 +123,7 @@ export function placeStudioScene(
   const boxes: StudioObjectBox[] = placed
     .filter(({ spec }) => spec.visible)
     .map(({ object, spec }) => {
-      const bounds = new THREE.Box3().setFromObject(object);
+      const bounds = studioBox(object);
       return {
         id: spec.id,
         name: spec.name,
@@ -149,7 +150,7 @@ export function fitStudioObject(
   recipe: StudioSceneV1,
   aspect: number
 ): { zoom: number; target: THREE.Vector3 } {
-  const box = new THREE.Box3().setFromObject(object),
+  const box = studioBox(object),
     target = box.getCenter(new THREE.Vector3());
   const camera = studioCamera(recipe, aspect),
     inverse = camera.quaternion.clone().invert();

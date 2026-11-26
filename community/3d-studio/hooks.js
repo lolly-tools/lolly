@@ -298,6 +298,17 @@ async function compute(model, changedId) {
       for (const [key, value] of Object.entries(pair))
         if (values[key] !== value) patch[key] = values[key] = value;
   }
+  // A model chosen now starts with its saved animation playing, because a model that has a
+  // clip and stands frozen looks broken. A document made before clips could play never
+  // came through here with its model, so it carries no playClip and keeps the pose the
+  // file was imported in.
+  if (
+    changedId === 'modelAsset' &&
+    values.source === 'model' &&
+    values.modelAsset &&
+    values.playClip !== true
+  )
+    patch.playClip = values.playClip = true;
   const overrides = changedId ? studioOverridesAfter(values, changedId) : null;
   if (overrides !== null) {
     patch.studioOverrides = overrides;

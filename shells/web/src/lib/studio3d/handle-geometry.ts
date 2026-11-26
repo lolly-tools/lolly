@@ -9,6 +9,7 @@
  * the caller multiplies by the canvas's box on the page; the canvas itself is never read.
  */
 import * as THREE from 'three';
+import { studioBox } from './clip.ts';
 
 /** A turn by the ring snaps to this many degrees. */
 export const STUDIO_TURN_SNAP = 15;
@@ -70,7 +71,7 @@ export interface StudioFootprint {
  */
 export function studioFootprint(object: THREE.Object3D, floor: number): StudioFootprint | null {
   object.updateMatrixWorld(true);
-  const box = new THREE.Box3().setFromObject(object);
+  const box = studioBox(object);
   if (box.isEmpty()) return null;
   const center = new THREE.Vector3((box.min.x + box.max.x) / 2, floor, (box.min.z + box.max.z) / 2);
   const diagonal = Math.hypot(box.max.x - box.min.x, box.max.z - box.min.z) / 2;
