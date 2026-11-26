@@ -1058,5 +1058,82 @@
     "showIf": {
       "mode": "make"
     }
+  },
+  {
+    "id": "motion",
+    "label": "Motion",
+    "type": "select",
+    "default": "none",
+    "display": "segmented",
+    "help": "Video, GIF and SVG play the code fading in from its corners, then hold the finished code still so a phone can scan the clip. Placed in Design, the picture plays on the timeline. PNG, PDF and other stills always show the finished code.",
+    "options": [
+      {
+        "value": "none",
+        "label": "None",
+        "formats": [
+          "svg",
+          "penpot",
+          "png",
+          "jpeg",
+          "webp",
+          "avif",
+          "tiff",
+          "pdf",
+          "pdf-cmyk",
+          "cmyk-tiff",
+          "eps",
+          "eps-cmyk",
+          "dxf",
+          "emf",
+          "svgz",
+          "wmf",
+          "bmp",
+          "jxl",
+          "jxl-lossless"
+        ]
+      },
+      {
+        "value": "rings",
+        "label": "Fade in",
+        "formats": [
+          "svg",
+          "penpot",
+          "png",
+          "jpeg",
+          "webp",
+          "avif",
+          "tiff",
+          "pdf",
+          "pdf-cmyk",
+          "cmyk-tiff",
+          "eps",
+          "eps-cmyk",
+          "dxf",
+          "emf",
+          "svgz",
+          "wmf",
+          "bmp",
+          "jxl",
+          "jxl-lossless",
+          "mp4",
+          "webm",
+          "gif",
+          "apng",
+          "webp-anim"
+        ]
+      }
+    ],
+    "showIf": {
+      "mode": "make",
+      "payload": [
+        "url",
+        "text",
+        "vcard",
+        "wifi",
+        "event",
+        "geo"
+      ],
+      "symbology": "qr"
+    }
   }
 ]

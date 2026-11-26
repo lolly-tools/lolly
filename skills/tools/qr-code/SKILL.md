@@ -5,13 +5,13 @@ description: "Operate the Lolly QR Code tool (qr-code) using its declared inputs
 
 # QR Code
 
-Tool ID: `qr-code`. Tool version: `2.9.0`. Engine range: `^1.356.0`.
+Tool ID: `qr-code`. Tool version: `2.10.0`. Engine range: `^1.356.0`.
 
 Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 - plus retail and logistics barcodes from EAN-13 to MaxiCode.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 
-Declared output formats: svg, penpot, png, jpeg, webp, avif, tiff, pdf, pdf-cmyk, cmyk-tiff, eps, eps-cmyk, dxf, emf, svgz, wmf, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
+Declared output formats: svg, penpot, png, jpeg, webp, avif, tiff, pdf, pdf-cmyk, cmyk-tiff, eps, eps-cmyk, dxf, emf, mp4, webm, gif, apng, webp-anim, svgz, wmf, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
 
 Required host APIs: none. Device capabilities: none.
 
@@ -69,6 +69,7 @@ Required host APIs: none. Device capabilities: none.
 | frame | select |  |
 | frameText | text |  |
 | transparentBg | boolean |  |
+| motion | select |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

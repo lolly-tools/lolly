@@ -484,6 +484,16 @@
    ]
   },
   {
+   "name": "qr-code-motion-label",
+   "tool": "qr-code",
+   "aim": "motion on with a call to action: the covers rest at opacity 0, so the still is the finished code",
+   "args": [
+    "--url=https://lolly.tools",
+    "--motion=rings",
+    "--frame=label"
+   ]
+  },
+  {
    "name": "qr-code-radial-dots-leaf",
    "tool": "qr-code",
    "aim": "two-colour fill (solid bands per module), dot modules, leaf eyes",

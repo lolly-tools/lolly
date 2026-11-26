@@ -1,5 +1,5 @@
 {{#if (eq mode "scan")}}
-<div class="sc" data-mode="{{source}}">
+<div class="sc" data-mode="{{source}}"{{#if qrAlertStyle}} style="{{qrAlertStyle}}"{{/if}}>
 
   {{#if (eq source "camera")}}
   <div class="sc-viewfinder" aria-label="Camera viewfinder">
@@ -128,19 +128,82 @@
 </div>
 {{else}}
 {{{svgContent}}}
-{{#if qrHasWarnings}}
-<div class="qr-scan-warn" data-export-hide role="status">
-  <span class="qr-scan-warn__h">⚠ Scannability</span>
-  <ul>{{#each qrWarnings}}<li>{{this}}</li>{{/each}}</ul>
+{{#if qrNotes}}
+<div class="qr-notes" data-export-hide>
+  {{#if qrHasWarnings}}
+  <div class="qr-scan-warn" role="status"{{#if qrAlertStyle}} style="{{qrAlertStyle}}"{{/if}}>
+    <span class="qr-scan-warn__h">⚠ Scannability</span>
+    <ul>{{#each qrWarnings}}<li>{{this}}</li>{{/each}}</ul>
+  </div>
+  {{/if}}
+  {{#if qrLiveScanFail}}
+  <div class="qr-scan-warn qr-scan-warn--live" role="status"{{#if qrAlertStyle}} style="{{qrAlertStyle}}"{{/if}}>
+    <span class="qr-scan-warn__h">⚠ This styling may not scan</span>
+    <p>A test decode of the rendered code came back empty. Reduce the logo, raise contrast, or simplify the module shape.</p>
+  </div>
+  {{/if}}
+  {{#if qrEclRaised}}
+  <p class="qr-scan-info" role="status">Error correction was raised to High automatically so the logo stays scannable.</p>
+  {{/if}}
+  {{#if qrMotion}}
+  <button type="button" class="qr-play">{{qrPlayLabel}}</button>
+  {{/if}}
 </div>
 {{/if}}
-{{#if qrLiveScanFail}}
-<div class="qr-scan-warn qr-scan-warn--live" data-export-hide role="status">
-  <span class="qr-scan-warn__h">⚠ This styling may not scan</span>
-  <p>A test decode of the rendered code came back empty. Reduce the logo, raise contrast, or simplify the module shape.</p>
-</div>
-{{/if}}
-{{#if qrEclRaised}}
-<p class="qr-scan-info" data-export-hide role="status">Error correction was raised to High automatically so the logo stays scannable.</p>
+{{#if qrMotion}}
+<script>
+(function () {
+  /* Re-runs on every paint, so `var` only and nothing on window. The code's
+     animations live in its own markup (hooks.js). This script decides when the
+     preview shows them: once when Motion is switched on, again on request, never
+     on a keystroke and never by itself for someone who asked for reduced motion.
+     At every other moment the animations sit at their end, which is the finished
+     code. */
+  var cs = document.currentScript;
+  var stage = cs && cs.parentNode;
+  var svg = stage && stage.querySelector ? stage.querySelector('svg[data-qr-motion]') : null;
+  if (!svg || typeof svg.getAnimations !== 'function') return;
+  function all() { return svg.isConnected ? svg.getAnimations({ subtree: true }) : []; }
+  function finish() { all().forEach(function (a) { try { a.finish(); } catch (e) { /* already at rest */ } }); }
+  function play() { all().forEach(function (a) { a.currentTime = 0; a.play(); }); }
+  function reduced() {
+    try {
+      return matchMedia('(prefers-reduced-motion: reduce)').matches ||
+        document.documentElement.getAttribute('data-a11y-motion') === 'reduce';
+    } catch (e) { return false; }
+  }
+
+  /* Export. The shell finds this clock on a canvas (bridge/frame-clock.ts). The
+     canvas is 0 x 0, paints nothing and is made here, so a shell that runs no
+     script still sees the code as the only thing drawn. A clip is t in [0, 1) of
+     `clipSec` seconds. A still has no clip length and always gets the finished
+     code, even when the preview is part way through. */
+  var clock = stage.querySelector('canvas.qr-clock');
+  if (!clock) {
+    clock = document.createElement('canvas');
+    clock.className = 'qr-clock';
+    clock.width = 0;
+    clock.height = 0;
+    clock.setAttribute('aria-hidden', 'true');
+    clock.style.cssText = 'position:absolute;width:0;height:0';
+    stage.appendChild(clock);
+  }
+  clock.__lollyFrameRender = function (t, clipSec) {
+    if (!(clipSec > 0)) { finish(); return; }
+    var ms = Math.min(1, Math.max(0, t)) * clipSec * 1000;
+    all().forEach(function (a) { a.pause(); a.currentTime = ms; });
+  };
+  clock.__lollyFrameRender.stillPose = true;
+
+  var button = stage.querySelector('.qr-play');
+  if (button) button.addEventListener('click', function (e) { e.stopPropagation(); if (!clock.__lollyFrameDriven) play(); });
+  var key = '{{qrMotionKey}}';
+  var inView = !!svg.closest('#tool-canvas, #tool-content');
+  var fresh = stage.__qrMotionPlayed !== key;
+  stage.__qrMotionPlayed = key;
+  if (inView && fresh && !reduced() && !clock.__lollyFrameDriven) return;
+  finish();
+})();
+</script>
 {{/if}}
 {{/if}}

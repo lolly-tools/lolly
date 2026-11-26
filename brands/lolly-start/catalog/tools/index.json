@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-26T16:52:07.600Z",
+  "generatedAt": "2026-11-26T23:18:43.938Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -272,7 +272,7 @@
       "id": "qr-code",
       "name": "QR Code",
       "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 - plus retail and logistics barcodes from EAN-13 to MaxiCode.",
-      "version": "2.9.0",
+      "version": "2.10.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -288,7 +288,8 @@
         "gs1",
         "datamatrix",
         "shipping",
-        "packaging"
+        "packaging",
+        "motion"
       ],
       "added": "2026-07-08",
       "formats": [
@@ -305,7 +306,12 @@
         "eps",
         "eps-cmyk",
         "dxf",
-        "emf"
+        "emf",
+        "mp4",
+        "webm",
+        "gif",
+        "apng",
+        "webp-anim"
       ],
       "width": 600,
       "height": 600,
