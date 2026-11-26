@@ -118,7 +118,14 @@ export function studioCameraTravels(scene: StudioSceneV1): boolean {
 }
 
 /** The camera moves that are made from the live view rather than authored key by key. */
-export const STUDIO_CAMERA_PRESETS = ['sweep', 'pushin', 'dolly', 'reveal', 'crane'] as const;
+export const STUDIO_CAMERA_PRESETS = [
+  'sweep',
+  'pushin',
+  'dolly',
+  'reveal',
+  'crane',
+  'orbit',
+] as const;
 export type StudioCameraPreset = (typeof STUDIO_CAMERA_PRESETS)[number];
 /** Every value the Camera select offers, in the order it offers them. */
 export const STUDIO_CAMERA_MOTIONS = ['still', 'keys', ...STUDIO_CAMERA_PRESETS] as const;
@@ -131,6 +138,7 @@ const PRESET_NAMES: Record<StudioCameraPreset, string> = {
   dolly: 'Dolly',
   reveal: 'Reveal',
   crane: 'Crane',
+  orbit: 'Orbit',
 };
 
 /** How far the shell puts the camera from the target at zoom 1 (shells/web stage.ts). */
@@ -181,7 +189,7 @@ export function studioIsCameraPreset(kind: string): kind is StudioCameraPreset {
  * The keys a camera move is made of, drawn from the live view. `amount` (0.25 to 2)
  * scales the sweep angle, the push, the crane and the reveal's arc. An orthographic
  * camera ignores the field of view, so a dolly zoom under one makes no keys at all and
- * the camera holds still.
+ * the camera holds still. An orbit is always one whole turn, so the amount leaves it alone.
  */
 export function studioCameraPreset(
   kind: StudioCameraPreset,
@@ -233,6 +241,13 @@ export function studioCameraPreset(
         }),
         presetKey(view, 1, {}),
       ];
+    case 'orbit':
+      // One whole turn about the target, from the live view and back to the same view,
+      // with the elevation and the distance held. The turn is two keys 360 degrees
+      // apart, so the evaluator interpolates the angle itself: no frame inside the clip
+      // repeats the first, and the frame after the last is the first again. The angle
+      // rises, which is the direction the older 3D tool's orbit went.
+      return [presetKey(view, 0, {}), presetKey(view, 1, { azimuth: view.azimuth + 360 })];
   }
 }
 

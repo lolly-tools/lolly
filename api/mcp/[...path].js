@@ -4170,7 +4170,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.354.0";
+    ENGINE_VERSION = "1.355.0";
   }
 });
 
@@ -137719,6 +137719,8 @@ function studioCameraPreset(kind, view, amount = 1) {
         }),
         presetKey(view, 1, {})
       ];
+    case "orbit":
+      return [presetKey(view, 0, {}), presetKey(view, 1, { azimuth: view.azimuth + 360 })];
   }
 }
 function studioCameraKeyFromView(values) {
@@ -137784,7 +137786,14 @@ var init_studio3d_camera_path = __esm({
       const n7 = Number(value2);
       return Number.isFinite(n7) ? Math.round(n7 * 1e3) / 1e3 : fallback;
     };
-    STUDIO_CAMERA_PRESETS = ["sweep", "pushin", "dolly", "reveal", "crane"];
+    STUDIO_CAMERA_PRESETS = [
+      "sweep",
+      "pushin",
+      "dolly",
+      "reveal",
+      "crane",
+      "orbit"
+    ];
     STUDIO_CAMERA_MOTIONS = ["still", "keys", ...STUDIO_CAMERA_PRESETS];
   }
 });
@@ -138340,12 +138349,17 @@ function textSettings(v) {
 }
 function sourceFrom2(kindValue, picked, modelFormatValue, primitiveValue, where, allowEmpty = false, words4) {
   const kind = choice2(kindValue, ["artwork", "model", "primitive", "text"], "primitive");
-  const requestedFormat = choice2(modelFormatValue, ["auto", "glb", "stl", "3mf"], "auto");
-  const modelFormat = requestedFormat === "auto" ? choice2(
+  const requestedFormat = choice2(
+    modelFormatValue,
+    ["auto", "glb", "gltf", "stl", "3mf"],
+    "auto"
+  );
+  const namedFormat = requestedFormat === "auto" ? choice2(
     picked.format,
-    ["glb", "stl", "3mf"],
+    ["glb", "gltf", "stl", "3mf"],
     [picked.name, picked.url].some((name) => /\.3mf(?:$|[?#])/i.test(name)) ? "3mf" : [picked.name, picked.url].some((name) => /\.stl(?:$|[?#])/i.test(name)) ? "stl" : "glb"
   ) : requestedFormat;
+  const modelFormat = namedFormat === "gltf" ? "glb" : namedFormat;
   if (kind === "text") {
     const text14 = String(words4?.text ?? "").replace(/\r/g, "").split("\n").map((line2) => line2.trim()).join("\n").trim().slice(0, 200);
     if (!text14 && !allowEmpty) throw new Error(`${where}Type the words to set.`);
