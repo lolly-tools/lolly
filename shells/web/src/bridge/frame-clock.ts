@@ -252,3 +252,42 @@ export async function posedFrame<T>(node: Element, ms: number, screenshot: (() =
     return capture();
   }
 }
+
+// ── The page's own animations around a capture ───────────────────────────────
+// A capture pauses the page's CSS animations to pose each frame. A video is encoded
+// after its last frame is taken, and Chrome's video encoder gives no output while the
+// page keeps repainting an expensive animation at export size. Measured with no Lolly
+// code on the page, a drifting SVG with a noise filter drawn 1600 px wide: 0 of 24
+// frames out of the encoder in 40 s, for AV1 and H.264, smooth or noisy frames, a
+// small or large video; 24 of 24 in under a second with the animation paused or the
+// drawing 800 px wide. So a caller with an encode still to run keeps the animations
+// paused and resumes them when the file is made.
+
+/**
+ * End a capture's hold on the animations it paused. Resumes exactly those, at once,
+ * unless `hold` is set; either way returns the resume, which plays each animation one
+ * time however often it is called. An element that left the page throws on play(),
+ * which changes nothing.
+ */
+export function releaseScrubbed(scrubbed: Set<Animation>, hold = false): () => void {
+  const paused = [...scrubbed];
+  scrubbed.clear();
+  const resume = (): void => { for (const a of paused.splice(0)) { try { a.play(); } catch { /* gone */ } } };
+  if (!hold) resume();
+  return resume;
+}
+
+/** Where a render leaves the resume of the animations it is holding. */
+export interface PageHold { resume: () => void }
+
+/**
+ * Wrap a render that holds the page's animations through its encode: whatever the
+ * render does, including throw, the animations run again when it settles.
+ */
+export function holdingPage<A extends unknown[], T>(render: (page: PageHold, ...args: A) => Promise<T>): (...args: A) => Promise<T> {
+  return async (...args: A): Promise<T> => {
+    const page: PageHold = { resume: () => {} };
+    try { return await render(page, ...args); }
+    finally { page.resume(); }
+  };
+}

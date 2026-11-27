@@ -171,3 +171,39 @@ test('frame(): every clock call of a clip carries its length and size, in the re
   });
   } finally { g.HTMLCanvasElement = savedCanvas; }
 });
+
+// A video is encoded after its last frame is taken, and Chrome's encoder gives no output
+// while the page repaints an expensive animation. So a caller with an encode still to run
+// keeps the animations the capture paused, and gets the way to resume them.
+test('dispose can hold the animations the capture paused, and hands back the resume', async () => {
+  await withNeutralGlobals(async () => {
+    const { lib } = fakeDomToImage();
+    __setDomToImageForTest(lib);
+    const animation = (playState: string) => {
+      const a = { playState, currentTime: 0, plays: 0, pause() { a.playState = 'paused'; }, play() { a.plays++; a.playState = 'running'; } };
+      return a;
+    };
+    try {
+      const running = animation('running');
+      const alreadyPaused = animation('paused');
+      const node = fakeNode({ getAnimations: () => [running, alreadyPaused] });
+      const src = await createFrameSource(node, { width: 200, height: 150, wait: 0, duration: 4 });
+      await src.frame(0.5, 4);
+      assert.equal(running.playState, 'paused', 'the capture pauses a running animation to pose the frame');
+      assert.equal(running.currentTime, 2000);
+      const resume = src.dispose({ holdAnimations: true });
+      assert.equal(running.plays, 0, 'held: nothing runs while the encode is still to come');
+      resume();
+      assert.equal(running.plays, 1, 'resumed when the caller says the file is made');
+      assert.equal(alreadyPaused.plays, 0, 'an animation the page had paused is left paused');
+      resume();
+      assert.equal(running.plays, 1, 'resuming twice plays nothing twice');
+
+      const again = animation('running');
+      const plain = await createFrameSource(fakeNode({ getAnimations: () => [again] }), { width: 200, height: 150, wait: 0, duration: 4 });
+      await plain.frame(0.25, 4);
+      plain.dispose();
+      assert.equal(again.plays, 1, 'a plain dispose resumes at once, as it always did');
+    } finally { __setDomToImageForTest(null); }
+  });
+});

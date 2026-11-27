@@ -78,7 +78,7 @@
     "id": "color5",
     "label": "Colour 5",
     "type": "color",
-    "default": "{color.spectrum.amber}",
+    "default": "#f2a65a",
     "showIf": {
       "count": [
         5,
@@ -91,7 +91,7 @@
     "id": "color6",
     "label": "Colour 6",
     "type": "color",
-    "default": "{color.spectrum.blue}",
+    "default": "#5b8def",
     "showIf": {
       "count": [
         6

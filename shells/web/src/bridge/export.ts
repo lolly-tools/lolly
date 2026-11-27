@@ -80,7 +80,7 @@ import { printSeparation } from '../lib/cmyk-separation.ts';
 import { rgbaToCmyk } from './export-cmyk-raster.ts';
 import type { EmbedResolution } from '../lib/press-profile-embed.ts';
 import { _host, dropInlinedCredentials, canvasToBlob, imprintCanvas, exportDims, getDomToImage, swapBlobUrls, thumbnailClone, fontMetricsPx, MAX_RASTER_PX, makeRoundedFill, setExportHost, foldIngredientSinks, printMarkNames, memberIngredientOpts } from './export-shared.ts';
-import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame } from './frame-clock.ts';
+import { beginFrameClock, renderFrameAt, endFrameClock, withStillHold, posedFrame, releaseScrubbed, holdingPage, type PageHold } from './frame-clock.ts';
 import { isTopTailStage, isRecordStage } from './export-shared.ts';
 import type { WebHost, ExportOpts, ExportDims, ImprintState, Rgba } from './export-shared.ts';
 import { renderSvgFromHtml, withEntrancesHeld, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFromImg, imprintEmbedCanvas, isPaintSkipped, inlinePicture, recordDrawnPictures, recordFramePictures, rotationPivot, rasterizePosedNodeToDataUrl, effectSpillCss, detectUnsupportedCss, rasterizeNodeToDataUrl, firstCssUrl, cssUrlToHref, bakeImageFilter, mergeDeco, decoFlags, pdfInlineNonText, type Deco } from './export-svg-walker.ts';
@@ -4100,7 +4100,7 @@ function hideLiveCanvases(live: HTMLCanvasElement[]): () => void {
 
 // Exported for the co-located frame-source test (direct-canvas short-circuit +
 // hang-safe fall-through). Shipping callers reach it through the render functions below.
-export async function createFrameSource(node: Element, opts: ExportOpts & { frameBg?: string } = {}): Promise<{ width: number; height: number; frame(t?: number, clipSec?: number): Promise<HTMLCanvasElement>; dispose(): void }> {
+export async function createFrameSource(node: Element, opts: ExportOpts & { frameBg?: string } = {}): Promise<{ width: number; height: number; frame(t?: number, clipSec?: number): Promise<HTMLCanvasElement>; dispose(hold?: { holdAnimations?: boolean }): () => void }> {
   const lib = await getDomToImage();
   const { width: nodeW, height: nodeH } = node.getBoundingClientRect();
   // CSS animations the per-frame scrub pauses, resumed in dispose() - without
@@ -4332,15 +4332,14 @@ export async function createFrameSource(node: Element, opts: ExportOpts & { fram
       }
       return fast ? composeFrame(fast) : lib.toCanvas(node, dtoOpts);
     },
-    dispose() {
+    dispose(hold?: { holdAnimations?: boolean }): () => void {
       endFrameClock(frameClock);
       watcher?.disconnect();
       if (fast) { releaseFast(fast); fast = null; }
-      // Resume exactly the animations the scrub paused - an element that left
-      // the DOM mid-export throws on play(), which changes nothing.
-      for (const a of scrubbedAnims) { try { a.play(); } catch { /* gone */ } }
-      scrubbedAnims.clear();
       restore();
+      // Resume the animations the scrub paused, or keep them paused for a caller
+      // that still has an encode to run (frame-clock.ts releaseScrubbed says why).
+      return releaseScrubbed(scrubbedAnims, hold?.holdAnimations);
     },
   };
 }
@@ -4522,7 +4521,8 @@ async function encodeVideoWithWebCodecs(
   return withVideoMeta(new Blob([buffer], { type }), type, o.meta ?? null);
 }
 
-export async function renderVideo(node: Element, opts: ExportOpts, preferred: string): Promise<Blob> {
+// The page's animations stay paused from the last captured frame until the file is made.
+export const renderVideo = holdingPage(async (page: PageHold, node: Element, opts: ExportOpts, preferred: string): Promise<Blob> => {
   // Audio (opts.audio = { id?, url }) is resolved up front so a bad track fails
   // fast - before the slow Phase 1 capture - and degrades to silent + warning.
   // Pass the clip length so any fade-out lands at the end of the replay.
@@ -4660,7 +4660,7 @@ export async function renderVideo(node: Element, opts: ExportOpts, preferred: st
     audio?.stop();
     throw err;
   } finally {
-    source.dispose();
+    page.resume = source.dispose({ holdAnimations: true });
   }
 
   // Fast path: encode the buffered frames (and, for an audio export, an offline-
@@ -4824,7 +4824,7 @@ export async function renderVideo(node: Element, opts: ExportOpts, preferred: st
     }
     pump();
   });
-}
+});
 
 // ── Live capture ("Record live") ─────────────────────────────────────────────
 // Records the on-screen preview through a screen share so the clip's frame pacing

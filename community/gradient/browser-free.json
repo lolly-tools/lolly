@@ -3,13 +3,13 @@
   "tool": {
     "id": "gradient",
     "version": "1.4.0",
-    "digest": "20e891dcf5f4c7364a6c41033a7ab2048d8026f944fb5b5e10d4c2292c807fba"
+    "digest": "8b96a031613170dc0193d966d8b3723b32727b999566b7bf5f29b8dd0af2dc99"
   },
   "verdict": "resvg",
   "measured": {
     "date": "2026-11-27",
     "profile": "lolly-demo",
-    "webShell": "d1f0b75234c872276bc8bd3a4bd72714326442bd",
+    "webShell": "fbbab6ff515574881b845cb2f7cba6b761b28ec4",
     "renderers": {
       "resvg": "2.6.2",
       "engine": "1.357.0",

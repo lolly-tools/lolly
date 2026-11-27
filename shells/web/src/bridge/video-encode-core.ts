@@ -127,6 +127,32 @@ async function containerBlob(target: MuxTarget, type: string): Promise<Blob> {
   return new Blob([target.buffer as ArrayBuffer], { type });
 }
 
+/** How long an encoder may hold queued frames without giving one back before the export fails. */
+export const ENCODER_STALL_MS = 30_000;
+export const ENCODER_STALL_MESSAGE = 'The browser stopped encoding the video, so no file was made. Export again, or choose GIF.';
+
+/**
+ * Flush an encoder, and fail when the encoder has stopped. A browser's encoder can sit
+ * on its whole queue for minutes while something else has the graphics process busy,
+ * and `flush()` then never settles, so the export never ended and never said why. The
+ * clock restarts with every frame the encoder gives back: a slow encode is left alone,
+ * and only one that gives nothing for `stallMs` is given up on.
+ */
+export async function flushOrStall(flush: () => Promise<void>, outputs: () => number, stallMs = ENCODER_STALL_MS, everyMs = 1000): Promise<void> {
+  let seen = outputs();
+  let since = Date.now();
+  let timer: ReturnType<typeof setInterval> | undefined;
+  const stalled = new Promise<never>((_resolve, reject) => {
+    timer = setInterval(() => {
+      const now = outputs();
+      if (now !== seen) { seen = now; since = Date.now(); return; }
+      if (Date.now() - since >= stallMs) reject(new Error(ENCODER_STALL_MESSAGE));
+    }, everyMs);
+  });
+  try { await Promise.race([flush(), stalled]); }
+  finally { clearInterval(timer); }
+}
+
 /** Encode frames (+ optional audio) and mux → { muxed bytes, container MIME }. Throws on
  *  any encoder error. Identical logic to the former inline loop in export.ts. */
 export async function encodeMuxWebCodecs(
@@ -138,8 +164,10 @@ export async function encodeMuxWebCodecs(
   const { muxer, target } = await defaultMuxerFactory(pick, o);
 
   let encErr: unknown = null;
+  let given = 0;                                  // frames the encoder has given back
   const encoder = new VideoEncoder({
     output: (chunk, metadata) => {
+      given++;
       try {
         // HDR: force-set (not ??=) the full colorSpace struct so mediabunny's
         // colorSpaceIsComplete always fires and writes a colr/nclx box. Chromium omits
@@ -175,7 +203,8 @@ export async function encodeMuxWebCodecs(
     frame.close();
     if (encoder.encodeQueueSize > 20) await new Promise<void>((r) => setTimeout(r, 0));
   }
-  await encoder.flush();
+  try { await flushOrStall(() => encoder.flush(), () => given); }
+  catch (e) { try { encoder.close(); } catch { /* already closed */ } throw e; }
   encoder.close();
 
   if (a && !encErr) {

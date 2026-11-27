@@ -817,8 +817,8 @@
           "bytes": 2638
         },
         "reference/inputs.json": {
-          "sha256": "cc2bb796d9eab6cc931102855594b16b9ce22beab73e3ac7c503856af4cb68b5",
-          "bytes": 19862
+          "sha256": "2a222a11114ed8a54a3cab39fa0ec643a5b6666d12119aa7ae2bd7e881b9fceb",
+          "bytes": 19833
         },
         "reference/examples.json": {
           "sha256": "ebfd67b0222a91cc53cf29402080f6ad91f4bd0324d8b8831c918100475c5de0",
