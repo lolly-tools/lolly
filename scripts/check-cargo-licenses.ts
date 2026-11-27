@@ -55,6 +55,7 @@ const LOCKFILES = [
   'packages/node-shell/wasm/indd/Cargo.lock',
   'packages/node-shell/wasm/camera-raw/Cargo.lock',
   'packages/node-shell/wasm/affinity/Cargo.lock',
+  'packages/node-shell/wasm/woff2-kernel/Cargo.lock',
   'crates/lolly-render-node/Cargo.lock',
 ];
 

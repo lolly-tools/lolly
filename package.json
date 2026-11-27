@@ -195,6 +195,7 @@
     "build:dxf": "node scripts/build-dxf.ts",
     "build:audio-dsp": "node scripts/build-audio-dsp.ts",
     "build:camera-raw": "node scripts/build-camera-raw.ts",
+    "build:woff2-kernel": "node scripts/build-woff2-kernel.ts",
     "build:indd": "node scripts/build-indd.ts",
     "build:affinity": "node scripts/build-affinity.ts",
     "fetch:adobe-corpus": "node scripts/adobe-corpus.ts --fetch",

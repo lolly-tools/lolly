@@ -138,6 +138,14 @@
       "owner": "packages/node-shell"
     },
     {
+      "id": "woff2-kernel-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/woff2-kernel",
+      "lockfile": "packages/node-shell/wasm/woff2-kernel/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
+    },
+    {
       "id": "geometry-kernel-cargo",
       "ecosystem": "cargo",
       "directory": "packages/node-shell/wasm/geometry-kernel",

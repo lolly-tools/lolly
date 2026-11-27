@@ -39015,8 +39015,8 @@ function hydrate(templateSource, values, { raw = false, data } = {}) {
     compileCache.set(key2, cached2);
     return cached2.compiled(values, runOpts);
   }
-  const compiled3 = Handlebars.compile(templateSource, { noEscape: raw });
-  const output = compiled3(values, runOpts);
+  const compiled4 = Handlebars.compile(templateSource, { noEscape: raw });
+  const output = compiled4(values, runOpts);
   const bytes2 = (key2.length + templateSource.length) * 2;
   if (bytes2 <= COMPILE_CACHE_SOURCE_BYTES) {
     while (compileCache.size && (compileCache.size >= COMPILE_CACHE_MAX || compileCacheBytes + bytes2 > COMPILE_CACHE_SOURCE_BYTES)) {
@@ -39024,7 +39024,7 @@ function hydrate(templateSource, values, { raw = false, data } = {}) {
       compileCacheBytes -= compileCache.get(oldest).bytes;
       compileCache.delete(oldest);
     }
-    compileCache.set(key2, { compiled: compiled3, bytes: bytes2 });
+    compileCache.set(key2, { compiled: compiled4, bytes: bytes2 });
     compileCacheBytes += bytes2;
   }
   return output;
@@ -67526,7 +67526,7 @@ function finiteContour(c) {
 }
 function buildOffset(c, d, opts) {
   const tol = opts.tol ?? DEFAULT_TOL2;
-  const join40 = opts.join ?? "miter";
+  const join41 = opts.join ?? "miter";
   const miterLimit = opts.miterLimit ?? DEFAULT_MITER_LIMIT;
   const seq = [];
   const corners3 = [];
@@ -67555,7 +67555,7 @@ function buildOffset(c, d, opts) {
     const pivot = corners3[i] ?? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     const t0 = cur.dirEnd ?? endTangent2(cur.curve);
     const t1 = next2.dirStart ?? startTangent2(next2.curve);
-    out.push(...joinPieces(a, b, pivot, t0, t1, d, join40, miterLimit));
+    out.push(...joinPieces(a, b, pivot, t0, t1, d, join41, miterLimit));
   }
   return out;
 }
@@ -68438,7 +68438,7 @@ function hbSystem(pts, wrap3, startTh, endTh, ths) {
   const a = new Array(m2).fill(0);
   const b = new Array(m2).fill(1);
   const c = new Array(m2).fill(0);
-  const join40 = (k, prevIx, nextIx) => {
+  const join41 = (k, prevIx, nextIx) => {
     const prev = segs[prevIx], next2 = segs[nextIx];
     const j = hbJoin(prev, next2);
     r5[k] = j.r;
@@ -68447,10 +68447,10 @@ function hbSystem(pts, wrap3, startTh, endTh, ths) {
     c[k] = j.dB * -next2.d01;
   };
   if (wrap3) {
-    for (let k = 0; k < m2; k++) join40(k, (k - 1 + m2) % m2, k);
+    for (let k = 0; k < m2; k++) join41(k, (k - 1 + m2) % m2, k);
     return { r: r5, a, b, c, segs };
   }
-  for (let k = 1; k < m2 - 1; k++) join40(k, k - 1, k);
+  for (let k = 1; k < m2 - 1; k++) join41(k, k - 1, k);
   const first = segs[0];
   if (startTh !== null) {
     r5[0] = mod2pi3(ths[0] - startTh);
@@ -72234,9 +72234,9 @@ function createHookWorkerCore(port, opts = {}) {
       let compileError;
       try {
         run3.host = buildHost(msg3.runId, msg3, run3);
-        const compiled3 = compile2(run3.host, msg3.hooksSource);
-        run3.mod = compiled3.mod;
-        inRealmOnlyDeclared = compiled3.inRealmOnlyDeclared;
+        const compiled4 = compile2(run3.host, msg3.hooksSource);
+        run3.mod = compiled4.mod;
+        inRealmOnlyDeclared = compiled4.inRealmOnlyDeclared;
         declared = WORKER_HOOK_NAMES.filter((n7) => run3.mod[n7] != null);
       } catch (e) {
         compileError = e.message;
@@ -83071,7 +83071,7 @@ function clusterLeaves(idx, boxes2, gapScale = 1, sizeRatio = Infinity) {
     }
     return i;
   };
-  const join40 = (a, b) => {
+  const join41 = (a, b) => {
     const ra = find2(a), rb = find2(b);
     if (ra !== rb) parent[ra] = rb;
   };
@@ -83088,7 +83088,7 @@ function clusterLeaves(idx, boxes2, gapScale = 1, sizeRatio = Infinity) {
         const [lo, hi] = area2(ba) < area2(bb) ? [area2(ba), area2(bb)] : [area2(bb), area2(ba)];
         if (hi > lo * sizeRatio) continue;
       }
-      if (boxesOverlap2(grown, bb)) join40(a, b);
+      if (boxesOverlap2(grown, bb)) join41(a, b);
     }
   }
   const byRoot = /* @__PURE__ */ new Map();
@@ -84862,13 +84862,13 @@ function cleanAudioPcm(input, sampleRate, opts = {}) {
   const right = channels[1] ?? left;
   const [headL, headR] = limiter.process(left, right);
   const [tailL, tailR] = limiter.flush();
-  const join40 = (a, b) => {
+  const join41 = (a, b) => {
     const out = new Float32Array(a.length + b.length);
     out.set(a);
     out.set(b, a.length);
     return out;
   };
-  const limited3 = [join40(headL, tailL), join40(headR, tailR)];
+  const limited3 = [join41(headL, tailL), join41(headR, tailR)];
   channels = channels.length === 1 ? [limited3[0]] : limited3;
   if (limiter.engaged()) operations.push("Limited true peak to -1 dBTP");
   return {
@@ -89975,7 +89975,7 @@ function paintPad(paint2, paths, notes) {
     return v;
   };
   const cap = word(paint2.strokeCap, CAPS2, "strokeCap", "round");
-  const join40 = word(paint2.strokeJoin, JOINS2, "strokeJoin", "round");
+  const join41 = word(paint2.strokeJoin, JOINS2, "strokeJoin", "round");
   const headStart = word(paint2.headStart, HEADS, "headStart", "none");
   const headEnd = word(paint2.headEnd, HEADS, "headEnd", "none");
   const asked = [headStart, headEnd].filter((h) => h !== "none");
@@ -89987,7 +89987,7 @@ function paintPad(paint2, paths, notes) {
     else headReach = pathHeadSize(sw) * 0.7 + sw / 2;
     if (asked.includes("bar")) notes.push("a bar head has no PowerPoint line end, so a .pptx leaves it off");
   }
-  const reach2 = Math.max(cap === "square" ? Math.SQRT2 / 2 : 0.5, join40 === "miter" ? MITER_LIMIT / 2 : 0.5);
+  const reach2 = Math.max(cap === "square" ? Math.SQRT2 / 2 : 0.5, join41 === "miter" ? MITER_LIMIT / 2 : 0.5);
   return Math.ceil(Math.max(stroke && sw > 0 ? sw * reach2 : 0, headReach));
 }
 function designPathPlacement(geometry3, opts = {}) {
@@ -109500,7 +109500,7 @@ function cluster(items2) {
     }
     return i;
   };
-  const join40 = (a, b) => {
+  const join41 = (a, b) => {
     const ra = find2(a), rb = find2(b);
     if (ra !== rb) parent[ra] = rb;
   };
@@ -109510,7 +109510,7 @@ function cluster(items2) {
     const a = expand(items2[i].rect, gap);
     for (let j = i + 1; j < items2.length; j++) {
       if (find2(i) === find2(j)) continue;
-      if (overlaps(a, items2[j].rect)) join40(i, j);
+      if (overlaps(a, items2[j].rect)) join41(i, j);
     }
   }
   const collect4 = () => {
@@ -109547,7 +109547,7 @@ function cluster(items2) {
           if (find2(ra) === find2(rb)) continue;
           const reach2 = Math.min(diagonal(rectA), diagonal(rectB)) * GROUP_REACH;
           if (gapBetween(rectA, rectB) <= Math.max(gap, reach2)) {
-            join40(ra, rb);
+            join41(ra, rb);
             merged = true;
           }
         }
@@ -122414,9 +122414,9 @@ function svgItemsOf(svgText, parseXml, opts = {}) {
     if (rule === "evenodd" || rule === "nonzero") own5.fillRule = rule;
     const cap = get4("stroke-linecap");
     if (cap === "butt" || cap === "round" || cap === "square") own5.cap = cap;
-    const join40 = get4("stroke-linejoin");
-    if (join40 === "miter" || join40 === "round" || join40 === "bevel") own5.join = join40;
-    else if (join40 === "miter-clip" || join40 === "arcs") own5.join = "miter";
+    const join41 = get4("stroke-linejoin");
+    if (join41 === "miter" || join41 === "round" || join41 === "bevel") own5.join = join41;
+    else if (join41 === "miter-clip" || join41 === "arcs") own5.join = "miter";
     const dash = get4("stroke-dasharray");
     if (dash !== void 0) {
       const list4 = dash === "none" ? [] : dash.split(/[\s,]+/).map((v) => lengthOf(v, own5.fontSize)).filter((v) => v !== void 0 && v >= 0);
@@ -124717,7 +124717,7 @@ function pourItems(placements, mode3) {
     while (parent[at] !== at) at = parent[at];
     return at;
   };
-  const join40 = (a, b) => {
+  const join41 = (a, b) => {
     const ra = find2(a);
     const rb = find2(b);
     if (ra !== rb) parent[Math.max(ra, rb)] = Math.min(ra, rb);
@@ -124729,17 +124729,17 @@ function pourItems(placements, mode3) {
       const ba = boxOf7(a);
       const bb = boxOf7(b);
       if (mode3 === "rows") {
-        if (spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) join40(i, j);
+        if (spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) join41(i, j);
       } else if (mode3 === "columns") {
-        if (spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5) join40(i, j);
+        if (spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5) join41(i, j);
       } else {
         const [upper, lower3, top, bottom] = ba.y0 <= bb.y0 ? [a, b, ba, bb] : [b, a, bb, ba];
         const gap = bottom.y0 - top.y1;
-        if (lower3 !== upper && isLabelText(upper) && !isMarkerText(upper) && !isMarkerText(lower3) && (lower3.text ?? "").trim().length > (upper.text ?? "").trim().length * 1.5 && spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5 && gap > -0.25 * (top.y1 - top.y0) && gap <= 1.5 * (top.y1 - top.y0)) join40(i, j);
+        if (lower3 !== upper && isLabelText(upper) && !isMarkerText(upper) && !isMarkerText(lower3) && (lower3.text ?? "").trim().length > (upper.text ?? "").trim().length * 1.5 && spanOverlap(ba.x0, ba.x1, bb.x0, bb.x1) >= 0.5 && gap > -0.25 * (top.y1 - top.y0) && gap <= 1.5 * (top.y1 - top.y0)) join41(i, j);
         const marker = isMarkerText(a) ? ba : isMarkerText(b) ? bb : void 0;
         if (marker && spanOverlap(ba.y0, ba.y1, bb.y0, bb.y1) >= 0.5) {
           const across = Math.max(ba.x0, bb.x0) - Math.min(ba.x1, bb.x1);
-          if (across <= 2 * Math.max(marker.x1 - marker.x0, marker.y1 - marker.y0)) join40(i, j);
+          if (across <= 2 * Math.max(marker.x1 - marker.x0, marker.y1 - marker.y0)) join41(i, j);
         }
       }
     }
@@ -137815,7 +137815,7 @@ async function compileLearningModule(input, releaseId, resolve8, hash, onProgres
     for (const block of lesson.blocks) {
       checkCancelled();
       onProgress?.(`Preparing ${lesson.title}`);
-      const compiled3 = {
+      const compiled4 = {
         id: block.id,
         kind: block.kind,
         text: block.richText ? learningRichTextPlain(block.richText) : block.text,
@@ -137825,8 +137825,8 @@ async function compileLearningModule(input, releaseId, resolve8, hash, onProgres
         decorative: block.decorative,
         transcript: block.transcript
       };
-      if (options2.preview && block.kind === "text" && !compiled3.text?.trim())
-        compiled3.previewIssue = "This text block is empty. Add your explanation in the editor.";
+      if (options2.preview && block.kind === "text" && !compiled4.text?.trim())
+        compiled4.previewIssue = "This text block is empty. Add your explanation in the editor.";
       try {
         if (!["text", "quiz"].includes(block.kind)) {
           let parts;
@@ -137840,7 +137840,7 @@ async function compileLearningModule(input, releaseId, resolve8, hash, onProgres
           }
           if (!parts.length || block.kind !== "slides" && parts.length !== 1)
             throw new Error(`${lesson.title}: the source returned an unexpected number of files.`);
-          compiled3.files = [];
+          compiled4.files = [];
           for (const part of parts) {
             const mime2 = part.mime.split(";")[0].toLowerCase();
             const family2 = block.kind === "slides" ? "image" : block.kind;
@@ -137850,13 +137850,13 @@ async function compileLearningModule(input, releaseId, resolve8, hash, onProgres
                 `${lesson.title}: unsupported ${block.kind} format ${mime2}. Export a supported media file first.`
               );
             checkSignature(part.bytes, mime2);
-            compiled3.files.push(await add4(part.bytes, mime2, extension));
+            compiled4.files.push(await add4(part.bytes, mime2, extension));
           }
         }
         if (block.captions?.trim()) {
           if (!/^WEBVTT(?:\s|$)/.test(block.captions.trimStart()))
             throw new Error(`${lesson.title}: captions must start with WEBVTT.`);
-          compiled3.captionFile = await add4(
+          compiled4.captionFile = await add4(
             new TextEncoder().encode(block.captions),
             "text/vtt",
             "vtt"
@@ -137865,9 +137865,9 @@ async function compileLearningModule(input, releaseId, resolve8, hash, onProgres
       } catch (error2) {
         checkCancelled();
         if (!options2.preview) throw error2;
-        compiled3.previewIssue = error2 instanceof Error ? error2.message : "This content is unavailable.";
+        compiled4.previewIssue = error2 instanceof Error ? error2.message : "This content is unavailable.";
       }
-      blocks.push(compiled3);
+      blocks.push(compiled4);
     }
     lessons.push({
       id: lesson.id,
@@ -146297,13 +146297,13 @@ function deleteTextStory(snapshot, id3) {
   current.frames = current.frames.filter((frame) => frame.storyId !== id3);
   return admitted2(current);
 }
-function linkTextFrames(snapshot, sourceId, targetId, join40, fresh) {
+function linkTextFrames(snapshot, sourceId, targetId, join41, fresh) {
   const current = admitted2(snapshot), source = owner2(current, sourceId), target2 = owner2(current, targetId);
   if (source.id === target2.id) throw new TextSourceError("thread-cycle", "These frames already belong to the same story.");
   const affected = [...source.frameIds, ...target2.frameIds];
   mutable(current, affected);
   if (current.frames.some((frame) => affected.includes(frame.id) && frame.mode === "path")) throw new TextSourceError("thread-path", "Detach text from its path before linking frames.");
-  if ((target2.source || target2.frameIds.length > 1) && !join40) throw new TextSourceError("join-required", "Preview and join these stories to retain both sources.");
+  if ((target2.source || target2.frameIds.length > 1) && !join41) throw new TextSourceError("join-required", "Preview and join these stories to retain both sources.");
   if (target2.frameIds[0] !== targetId) throw new TextSourceError("thread-target", "Choose the first frame of the target story.");
   let merged = source;
   if (target2.source) {
@@ -152945,7 +152945,7 @@ function inkAbove(image, area2, under, lineHeight, threshold, maxLines) {
 function outlinedBoxes(regions) {
   const tolX = OUTLINE_TOLERANCE * regions.width;
   const tolY = OUTLINE_TOLERANCE * regions.height;
-  const join40 = (horizontal) => {
+  const join41 = (horizontal) => {
     const parts = regions.regions.filter((r5) => r5.kind === "rule" && r5.evidence.orientation === (horizontal ? "horizontal" : "vertical")).map((r5) => ({
       from: horizontal ? r5.box.x : r5.box.y,
       to: horizontal ? r5.box.x + r5.box.w : r5.box.y + r5.box.h,
@@ -152975,8 +152975,8 @@ function outlinedBoxes(regions) {
     }
     return out;
   };
-  const rows2 = join40(true);
-  const cols = join40(false);
+  const rows2 = join41(true);
+  const cols = join41(false);
   const found = [];
   for (const top of rows2) {
     for (const bottom of rows2) {
@@ -170870,7 +170870,7 @@ async function compileDeck(input) {
     appliedUnreviewed = answered.touched.map((id3) => ({ id: id3, review: before.get(id3) ?? "unreviewed" }));
     plan = appliedUnreviewed.length > 0 ? { ...answered.plan, revision: input.plan.revision + 1 } : answered.plan;
   }
-  const compiled3 = compileRenovated({
+  const compiled4 = compileRenovated({
     source: input.source,
     plan,
     master: system.input.master,
@@ -170880,11 +170880,11 @@ async function compileDeck(input) {
     opts: { ...compileSystemOpts(system.input), applyUnreviewed: input.applyUnreviewed ?? false, applyNeedsAttention: input.applyNeedsAttention ?? false },
     ...input.census ? { census: input.census } : {}
   });
-  if (appliedUnreviewed.length > 0) compiled3.report = markAppliedUnreviewed(compiled3.report, appliedUnreviewed);
-  compiled3.report = withAutoMatchEntries(compiled3.report, plan, system.input.master, input.source);
-  return { compiled: compiled3, report: compiled3.report, plan, appliedUnreviewed, autoMatched };
+  if (appliedUnreviewed.length > 0) compiled4.report = markAppliedUnreviewed(compiled4.report, appliedUnreviewed);
+  compiled4.report = withAutoMatchEntries(compiled4.report, plan, system.input.master, input.source);
+  return { compiled: compiled4, report: compiled4.report, plan, appliedUnreviewed, autoMatched };
 }
-function outcomeCounts(plan, compiled3) {
+function outcomeCounts(plan, compiled4) {
   const kept2 = /* @__PURE__ */ new Set();
   for (const slide of plan.slides) {
     if (!slide.include) continue;
@@ -170897,14 +170897,14 @@ function outcomeCounts(plan, compiled3) {
   return {
     pending: pending6,
     attention,
-    unresolvedObjects: compiled3.report.counts.objects.unresolved,
+    unresolvedObjects: compiled4.report.counts.objects.unresolved,
     unresolvedColours,
-    tray: compiled3.tray.length
+    tray: compiled4.tray.length
   };
 }
-function outcomeOf3(plan, compiled3) {
+function outcomeOf3(plan, compiled4) {
   if (openPendingIds(plan).length > 0) return "needs-review";
-  const counts = outcomeCounts(plan, compiled3);
+  const counts = outcomeCounts(plan, compiled4);
   return counts.unresolvedObjects === 0 && counts.unresolvedColours === 0 && counts.tray === 0 ? "ready" : "needs-review";
 }
 function structuralPlanProblems(doc) {
@@ -170948,17 +170948,17 @@ async function planProblems(doc) {
   planValidator ??= loadPlanValidator();
   return (await planValidator)(doc);
 }
-function compiledRows(compiled3) {
-  return compiled3.frames.flatMap((frame) => frame.layers.map((layer) => ({ ...layer })));
+function compiledRows(compiled4) {
+  return compiled4.frames.flatMap((frame) => frame.layers.map((layer) => ({ ...layer })));
 }
-function designSessionFromCompiled(compiled3, opts) {
+function designSessionFromCompiled(compiled4, opts) {
   const classOfLayer = /* @__PURE__ */ new Map();
-  for (const entry2 of compiled3.report.entries) {
+  for (const entry2 of compiled4.report.entries) {
     if (entry2.layerId && entry2.class && !classOfLayer.has(entry2.layerId)) classOfLayer.set(entry2.layerId, entry2.class);
   }
   const mediaRefs = [];
   const boxes2 = [];
-  for (const frame of compiled3.frames) {
+  for (const frame of compiled4.frames) {
     const placeholders = new Set(frame.placeholderLayerIds);
     const furniture = new Set(frame.furnitureLayerIds);
     for (const layer of frame.layers) {
@@ -170979,7 +170979,7 @@ function designSessionFromCompiled(compiled3, opts) {
       boxes2.push(row);
     }
   }
-  const first = compiled3.frames[0];
+  const first = compiled4.frames[0];
   const values = {
     boxes: boxes2,
     __toolId: DESIGN_TOOL_ID,
@@ -170990,11 +170990,11 @@ function designSessionFromCompiled(compiled3, opts) {
     ...first && first.width > 0 && first.height > 0 ? { __export_width: String(first.width), __export_height: String(first.height), __export_unit: "px" } : {},
     [REBRAND_HANDOFF_KEY]: {
       projectId: opts.projectId,
-      planRevision: compiled3.planRevision,
-      source: { ...compiled3.source },
+      planRevision: compiled4.planRevision,
+      source: { ...compiled4.source },
       idsKept: true,
-      lineage: compiled3.lineage,
-      report: compiled3.report
+      lineage: compiled4.lineage,
+      report: compiled4.report
     }
   };
   if (opts.toolVersion) values.__toolVersion = opts.toolVersion;
@@ -178100,6 +178100,18 @@ var init_text_shape = __esm({
   }
 });
 
+// packages/node-shell/src/woff2-kernel.ts
+function compileWoff2Kernel(wasm) {
+  return WebAssembly.compile(wasm);
+}
+var MAX_RESULT;
+var init_woff2_kernel = __esm({
+  "packages/node-shell/src/woff2-kernel.ts"() {
+    "use strict";
+    MAX_RESULT = 30 * 1024 * 1024;
+  }
+});
+
 // packages/node-shell/src/woff2.ts
 var woff2_exports = {};
 __export(woff2_exports, {
@@ -178274,6 +178286,17 @@ function woff2Slots(limit3) {
     signal?.addEventListener("abort", abort, { once: true });
   });
 }
+function webKernelModule() {
+  webModule ??= (async () => {
+    const response = await fetch(new URL("../wasm/woff2-kernel/woff2-kernel.wasm", import.meta.url));
+    if (!response.ok) throw new Error(`the decoder module did not load (HTTP ${response.status})`);
+    return compileWoff2Kernel(new Uint8Array(await response.arrayBuffer()));
+  })().catch((error2) => {
+    webModule = void 0;
+    throw new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: error2 });
+  });
+  return webModule;
+}
 async function decodeWoff2(bytes2, options2 = {}) {
   const maxOutputBytes = Math.min(options2.maxOutputBytes ?? WOFF2_LIMITS.maxOutputBytes, WOFF2_LIMITS.maxOutputBytes);
   const facts2 = preflightWoff2(bytes2, { ...WOFF2_LIMITS, maxOutputBytes });
@@ -178289,10 +178312,11 @@ async function decodeWoff2(bytes2, options2 = {}) {
   checkSfntOutput(out, facts2, maxOutputBytes);
   return out;
 }
-var WOFF2_LIMITS, Woff2Error, WOFF2_SIGNATURE, TTC_FLAVOR, SFNT_FLAVORS, GLYF_INDEX, LOCA_INDEX, GLYF_TAG, LOCA_TAG, HEADER_BYTES, round45, sizeText, Reader2, registeredRunner, WOFF2_TIMEOUT_MS, WOFF2_WORKER_LIMIT, webSlot, webWorkerRunner, runInWebWorker;
+var WOFF2_LIMITS, Woff2Error, WOFF2_SIGNATURE, TTC_FLAVOR, SFNT_FLAVORS, GLYF_INDEX, LOCA_INDEX, GLYF_TAG, LOCA_TAG, HEADER_BYTES, round45, sizeText, Reader2, registeredRunner, WOFF2_TIMEOUT_MS, WOFF2_WORKER_LIMIT, webSlot, webModule, webWorkerRunner, runInWebWorker;
 var init_woff2 = __esm({
   "packages/node-shell/src/woff2.ts"() {
     "use strict";
+    init_woff2_kernel();
     WOFF2_LIMITS = Object.freeze({
       /** The largest WOFF2 file read: the font upload limit. */
       maxInputBytes: 32 * 1024 * 1024,
@@ -178374,14 +178398,15 @@ var init_woff2 = __esm({
     WOFF2_WORKER_LIMIT = 4;
     webSlot = woff2Slots(WOFF2_WORKER_LIMIT);
     webWorkerRunner = async (bytes2, options2) => {
+      const module = await webKernelModule();
       const release = await webSlot(options2.signal);
       try {
-        return await runInWebWorker(bytes2, options2);
+        return await runInWebWorker(module, bytes2, options2);
       } finally {
         release();
       }
     };
-    runInWebWorker = (bytes2, { timeoutMs, signal }) => new Promise((resolve8, reject) => {
+    runInWebWorker = (module, bytes2, { timeoutMs, signal }) => new Promise((resolve8, reject) => {
       signal?.throwIfAborted();
       const worker = new Worker(new URL("./woff2-decode.worker.ts", import.meta.url), { type: "module" });
       let settled = false;
@@ -178403,7 +178428,7 @@ var init_woff2 = __esm({
       };
       worker.onmessage = ({ data }) => finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: data.error ?? "no reply" }), data.out);
       const copy = bytes2.slice();
-      worker.postMessage(copy, [copy.buffer]);
+      worker.postMessage({ module, bytes: copy }, [copy.buffer]);
     });
   }
 });
@@ -178559,6 +178584,8 @@ var init_text_composition = __esm({
 
 // packages/node-shell/src/woff2-node.ts
 import { existsSync as existsSync7 } from "node:fs";
+import { readFile as readFile9 } from "node:fs/promises";
+import { join as join13 } from "node:path";
 import { fileURLToPath as fileURLToPath5 } from "node:url";
 import { Worker as Worker3 } from "node:worker_threads";
 function workerUrl() {
@@ -178568,35 +178595,53 @@ function workerUrl() {
   }
   throw new Woff2Error("decode-failed", "The WOFF2 decoder is missing from this installation, so the font was not decoded.");
 }
+async function readKernel() {
+  try {
+    return new Uint8Array(await readFile9(new URL("../wasm/woff2-kernel/woff2-kernel.wasm", import.meta.url)));
+  } catch (error2) {
+    if (error2.code !== "ENOENT") throw error2;
+    return new Uint8Array(await readFile9(join13(repoRoot(), "packages/node-shell/wasm/woff2-kernel/woff2-kernel.wasm")));
+  }
+}
+function kernelModule() {
+  compiled2 ??= readKernel().then(compileWoff2Kernel).catch((error2) => {
+    compiled2 = void 0;
+    throw new Woff2Error("decode-failed", "The WOFF2 decoder is missing from this installation, so the font was not decoded.", { cause: error2 });
+  });
+  return compiled2;
+}
 function useNodeWoff2Runner() {
   setWoff2Runner(nodeWoff2Runner);
 }
-var nodeSlot, nodeWoff2Runner, runInThread;
+var compiled2, nodeSlot, nodeWoff2Runner, runInThread;
 var init_woff2_node = __esm({
   "packages/node-shell/src/woff2-node.ts"() {
     "use strict";
+    init_repo_root();
+    init_woff2_kernel();
     init_woff2();
     nodeSlot = woff2Slots(WOFF2_WORKER_LIMIT);
     nodeWoff2Runner = async (bytes2, options2) => {
+      const module = await kernelModule();
       const release = await nodeSlot(options2.signal);
       try {
-        return await runInThread(bytes2, options2);
+        return await runInThread(module, bytes2, options2);
       } finally {
         release();
       }
     };
-    runInThread = (bytes2, { timeoutMs, signal }) => new Promise((resolve8, reject) => {
+    runInThread = (module, bytes2, { timeoutMs, signal }) => new Promise((resolve8, reject) => {
       signal?.throwIfAborted();
       const copy = bytes2.slice();
       let worker;
       try {
         worker = new Worker3(workerUrl(), {
-          workerData: copy,
+          workerData: { module, bytes: copy },
           transferList: [copy.buffer],
           env: {},
           execArgv: [],
           // Kept off this process's stdout, which is the payload (CLI) or the JSON-RPC
-          // channel (MCP over stdio); the decoder prints to stderr when it aborts.
+          // channel (MCP over stdio).
           stdout: true,
           stderr: true
         });
@@ -178627,9 +178672,9 @@ var init_woff2_node = __esm({
 });
 
 // packages/node-shell/src/text.ts
-import { readFile as readFile9, readdir as readdir3 } from "node:fs/promises";
+import { readFile as readFile10, readdir as readdir3 } from "node:fs/promises";
 import { existsSync as existsSync8 } from "node:fs";
-import { join as join13 } from "node:path";
+import { join as join14 } from "node:path";
 import { fileURLToPath as fileURLToPath6 } from "node:url";
 async function loadHarfBuzz() {
   if (!_hb) _hb = await import("harfbuzzjs");
@@ -178654,14 +178699,14 @@ async function loadFontBytes(fontUrl, repoRoot2) {
     filePath = fileURLToPath6(fontUrl);
   } else if (fontUrl.startsWith("/")) {
     const roots2 = rootsFor3(repoRoot2);
-    filePath = (roots2 ? contentUrlFile(fontUrl, roots2) : null) ?? join13(repoRoot2, fontUrl.slice(1));
+    filePath = (roots2 ? contentUrlFile(fontUrl, roots2) : null) ?? join14(repoRoot2, fontUrl.slice(1));
     if (!existsSync8(filePath) && fontUrl.startsWith("/fonts/")) {
-      filePath = join13(repoRoot2, "shells", "web", "public", fontUrl.slice(1));
+      filePath = join14(repoRoot2, "shells", "web", "public", fontUrl.slice(1));
     }
   } else {
-    filePath = join13(repoRoot2, fontUrl);
+    filePath = join14(repoRoot2, fontUrl);
   }
-  return new Uint8Array(await readFile9(filePath));
+  return new Uint8Array(await readFile10(filePath));
 }
 async function loadFace(fontUrl, repoRoot2) {
   const key2 = JSON.stringify([repoRoot2, fontUrl]);
@@ -178752,7 +178797,7 @@ function fontDirs2(root2) {
   const roots2 = rootsFor3(root2);
   const dirs = [];
   if (roots2) dirs.push({ abs: catalogFile("fonts/ttf", roots2), url: "/catalog/fonts/ttf/" });
-  dirs.push({ abs: join13(root2, "shells", "web", "public", "fonts"), url: "/fonts/" });
+  dirs.push({ abs: join14(root2, "shells", "web", "public", "fonts"), url: "/fonts/" });
   return dirs;
 }
 function parseFontStem(stem2) {
@@ -178993,13 +179038,13 @@ var init_text3 = __esm({
 });
 
 // packages/node-shell/src/browsers.ts
-import { join as join16 } from "node:path";
+import { join as join17 } from "node:path";
 import { existsSync as existsSync10 } from "node:fs";
 import { homedir as homedir2 } from "node:os";
 function playwrightUserCacheDir(env = process.env, platform = process.platform, home = homedir2()) {
-  if (platform === "darwin") return join16(home, "Library", "Caches", "ms-playwright");
-  if (platform === "win32") return join16(env.LOCALAPPDATA || join16(home, "AppData", "Local"), "ms-playwright");
-  return join16(env.XDG_CACHE_HOME || join16(home, ".cache"), "ms-playwright");
+  if (platform === "darwin") return join17(home, "Library", "Caches", "ms-playwright");
+  if (platform === "win32") return join17(env.LOCALAPPDATA || join17(home, "AppData", "Local"), "ms-playwright");
+  return join17(env.XDG_CACHE_HOME || join17(home, ".cache"), "ms-playwright");
 }
 function resolveBrowsersDir() {
   if (process.env.PLAYWRIGHT_BROWSERS_PATH) return process.env.PLAYWRIGHT_BROWSERS_PATH;
@@ -179064,8 +179109,8 @@ var init_browsers = __esm({
     init_repo_root();
     init_webgpu_launch();
     init_canvas_launch();
-    INSTALL_BROWSERS_DIR = join16(repoRoot(), ".browsers");
-    SIBLING_BROWSERS_DIR = join16(repoRoot(), "services", "mcp", ".browsers");
+    INSTALL_BROWSERS_DIR = join17(repoRoot(), ".browsers");
+    SIBLING_BROWSERS_DIR = join17(repoRoot(), "services", "mcp", ".browsers");
     BrowserError = class extends Error {
     };
     browserPromise = null;
@@ -179212,7 +179257,7 @@ var init_ocr_math = __esm({
 });
 
 // packages/node-shell/src/ml/ocr.ts
-import { readFile as readFile12 } from "node:fs/promises";
+import { readFile as readFile13 } from "node:fs/promises";
 async function load2(id3) {
   const existing2 = loadedByModel.get(id3);
   if (existing2) return existing2;
@@ -179224,7 +179269,7 @@ async function load2(id3) {
     refuseMissing("ocr", info?.name ?? id3, OCR_MODEL_BYTES[id3] ?? 0);
   }
   const p = (async () => {
-    const dict = await readFile12(modelPath("ocr", files.dict), "utf8");
+    const dict = await readFile13(modelPath("ocr", files.dict), "utf8");
     const lines = dict.split(/\r?\n/).filter((l) => l.length > 0);
     const charset = ["", ...lines, " "];
     const [det, rec2] = await Promise.all([
@@ -179573,7 +179618,7 @@ async function createPdfA11yKernel(wasm) {
       new Uint8Array(api.memory.buffer, pointer2, bytes2.length).set(bytes2);
       const status = api.pdf_a11y_run(pointer2, bytes2.length, OP_CHECK);
       const length2 = api.pdf_a11y_result_len(), at = api.pdf_a11y_result_ptr();
-      if (length2 > MAX_RESULT2 || at + length2 > api.memory.buffer.byteLength) throw new PdfAccessibilityError("damaged", "The accessibility check returned an oversized answer, so the file was not checked.");
+      if (length2 > MAX_RESULT3 || at + length2 > api.memory.buffer.byteLength) throw new PdfAccessibilityError("damaged", "The accessibility check returned an oversized answer, so the file was not checked.");
       const text14 = new TextDecoder().decode(new Uint8Array(api.memory.buffer, at, length2).slice());
       if (status !== 0) {
         const m2 = REFUSAL.exec(text14);
@@ -179634,12 +179679,12 @@ async function createPdfA11yKernel(wasm) {
     return retired;
   } };
 }
-var PDF_A11Y_MAX_BYTES, MAX_RESULT2, OP_CHECK, OP_REDACT, STATUSES2, PdfAccessibilityError, PdfKeepTextError, isObject4, REFUSAL, KEEP_TEXT_REFUSAL;
+var PDF_A11Y_MAX_BYTES, MAX_RESULT3, OP_CHECK, OP_REDACT, STATUSES2, PdfAccessibilityError, PdfKeepTextError, isObject4, REFUSAL, KEEP_TEXT_REFUSAL;
 var init_pdf_a11y = __esm({
   "packages/node-shell/src/pdf-a11y.ts"() {
     "use strict";
     PDF_A11Y_MAX_BYTES = 256 * 1024 * 1024;
-    MAX_RESULT2 = 20 * 1024 * 1024;
+    MAX_RESULT3 = 20 * 1024 * 1024;
     OP_CHECK = 1;
     OP_REDACT = 2;
     STATUSES2 = /* @__PURE__ */ new Set(["passed", "failed", "manual", "skipped"]);
@@ -179671,13 +179716,13 @@ __export(pdf_a11y_node_exports, {
   checkPdfAccessibility: () => checkPdfAccessibility,
   loadPdfA11yKernel: () => loadPdfA11yKernel
 });
-import { readFile as readFile13 } from "node:fs/promises";
-import { join as join17 } from "node:path";
+import { readFile as readFile14 } from "node:fs/promises";
+import { join as join18 } from "node:path";
 async function loadPdfA11yKernel() {
   if (pending4 && (await pending4.catch(() => void 0))?.retired) pending4 = void 0;
-  pending4 ??= readFile13(new URL("../wasm/pdf-a11y/pdf-a11y.wasm", import.meta.url)).catch((error2) => {
+  pending4 ??= readFile14(new URL("../wasm/pdf-a11y/pdf-a11y.wasm", import.meta.url)).catch((error2) => {
     if (error2.code !== "ENOENT") throw error2;
-    return readFile13(join17(repoRoot(), "packages/node-shell/wasm/pdf-a11y/pdf-a11y.wasm"));
+    return readFile14(join18(repoRoot(), "packages/node-shell/wasm/pdf-a11y/pdf-a11y.wasm"));
   }).then((bytes2) => createPdfA11yKernel(new Uint8Array(bytes2))).catch((error2) => {
     pending4 = void 0;
     throw error2;
@@ -180101,18 +180146,18 @@ var init_pdf_redact_keep = __esm({
 
 // packages/node-shell/src/state-dir.ts
 import { homedir as homedir3 } from "node:os";
-import { join as join19 } from "node:path";
+import { join as join20 } from "node:path";
 import { existsSync as existsSync11 } from "node:fs";
 function desktopAppDataDir(env = process.env, probe = {}) {
   const platform = probe.platform ?? process.platform;
   const home = probe.home ?? homedir3();
-  if (platform === "darwin") return join19(home, "Library", "Application Support", DESKTOP_APP_IDENTIFIER);
+  if (platform === "darwin") return join20(home, "Library", "Application Support", DESKTOP_APP_IDENTIFIER);
   if (platform === "win32") {
     const appdata = env.APPDATA?.trim();
-    return appdata ? join19(appdata, DESKTOP_APP_IDENTIFIER) : null;
+    return appdata ? join20(appdata, DESKTOP_APP_IDENTIFIER) : null;
   }
   const xdg = env.XDG_DATA_HOME?.trim();
-  return join19(xdg || join19(home, ".local", "share"), DESKTOP_APP_IDENTIFIER);
+  return join20(xdg || join20(home, ".local", "share"), DESKTOP_APP_IDENTIFIER);
 }
 function resolveStateDir(env = process.env, onNote = (m2) => process.stderr.write(m2), probe = {}) {
   const fresh = env.LOLLY_STATE_DIR?.trim();
@@ -180129,7 +180174,7 @@ function resolveStateDir(env = process.env, onNote = (m2) => process.stderr.writ
   const app = desktopAppDataDir(env, probe);
   if (app && exists(app)) return { dir: app, explicit: false, deprecated: false, source: "app", shared: true };
   const home = probe.home ?? homedir3();
-  return { dir: join19(home, ".lolly"), explicit: false, deprecated: false, source: "default", shared: false };
+  return { dir: join20(home, ".lolly"), explicit: false, deprecated: false, source: "default", shared: false };
 }
 var deprecationNoted, DESKTOP_APP_IDENTIFIER, stateDir;
 var init_state_dir = __esm({
@@ -180905,10 +180950,10 @@ function invalid2(message2) {
 }
 async function createGeometryClipping(bytes2, mathBackend = "retained") {
   if (mathBackend !== "retained") invalid2("Unknown clipping maths backend.");
-  const compiled3 = await WebAssembly.compile(bytes2);
-  if (WebAssembly.Module.imports(compiled3).length !== 0)
+  const compiled4 = await WebAssembly.compile(bytes2);
+  if (WebAssembly.Module.imports(compiled4).length !== 0)
     throw new GeometryKernelError("internal", "The clipping module has an unexpected host import.");
-  const api = (await WebAssembly.instantiate(compiled3, {})).exports;
+  const api = (await WebAssembly.instantiate(compiled4, {})).exports;
   if (!(api.memory instanceof WebAssembly.Memory) || [
     "geom_alloc",
     "geom_free",
@@ -181050,15 +181095,15 @@ var init_geometry_clipping = __esm({
 
 // packages/node-shell/src/geometry-wasm-node.ts
 import { existsSync as existsSync13 } from "node:fs";
-import { readFile as readFile18 } from "node:fs/promises";
-import { dirname as dirname6, join as join23 } from "node:path";
+import { readFile as readFile19 } from "node:fs/promises";
+import { dirname as dirname6, join as join24 } from "node:path";
 import { fileURLToPath as fileURLToPath10 } from "node:url";
 async function readGeometryWasm(name) {
   const adjacent = fileURLToPath10(new URL(`../wasm/geometry-kernel/${name}`, import.meta.url));
-  if (existsSync13(adjacent)) return readFile18(adjacent);
+  if (existsSync13(adjacent)) return readFile19(adjacent);
   for (let dir = dirname6(adjacent); ; dir = dirname6(dir)) {
-    const candidate = join23(dir, "packages/node-shell/wasm/geometry-kernel", name);
-    if (existsSync13(candidate)) return readFile18(candidate);
+    const candidate = join24(dir, "packages/node-shell/wasm/geometry-kernel", name);
+    if (existsSync13(candidate)) return readFile19(candidate);
     if (dirname6(dir) === dir) break;
   }
   throw new Error(`The geometry kernel ${name} is not installed.`);
@@ -181091,11 +181136,11 @@ function coordinate2(value2) {
 }
 async function createGeometryFitting(bytes2, mathBackend = "portable") {
   if (mathBackend !== "portable") invalid3("Unknown fitting maths backend.");
-  const compiled3 = await WebAssembly.compile(bytes2);
-  if (WebAssembly.Module.imports(compiled3).length !== 0)
+  const compiled4 = await WebAssembly.compile(bytes2);
+  if (WebAssembly.Module.imports(compiled4).length !== 0)
     throw new GeometryKernelError("internal", "The fitting module has an unexpected host import.");
   const names = ["sin", "cos", "acos", "cbrt", "atan2"];
-  const instance = await WebAssembly.instantiate(compiled3, {});
+  const instance = await WebAssembly.instantiate(compiled4, {});
   const api = instance.exports;
   if (!(api.memory instanceof WebAssembly.Memory) || [
     "geom_alloc",
@@ -181319,24 +181364,24 @@ __export(fonts_exports, {
   createNodeFontsAPI: () => createNodeFontsAPI
 });
 import { existsSync as existsSync14 } from "node:fs";
-import { readFile as readFile19 } from "node:fs/promises";
-import { dirname as dirname7, join as join24 } from "node:path";
+import { readFile as readFile20 } from "node:fs/promises";
+import { dirname as dirname7, join as join25 } from "node:path";
 import { fileURLToPath as fileURLToPath11 } from "node:url";
 function skeraPath() {
   const adjacent = fileURLToPath11(new URL("../wasm/skera/skera.wasm", import.meta.url));
   if (existsSync14(adjacent)) return adjacent;
   for (let dir = dirname7(adjacent); dirname7(dir) !== dir; dir = dirname7(dir)) {
-    const candidate = join24(dir, "packages/node-shell/wasm/skera/skera.wasm");
+    const candidate = join25(dir, "packages/node-shell/wasm/skera/skera.wasm");
     if (existsSync14(candidate)) return candidate;
   }
   throw new Error("The font subset runtime is not installed.");
 }
 function skeraModule() {
-  compiled2 ??= Promise.resolve().then(() => readFile19(skeraPath())).then((bytes2) => WebAssembly.compile(bytes2)).catch((error2) => {
-    compiled2 = void 0;
+  compiled3 ??= Promise.resolve().then(() => readFile20(skeraPath())).then((bytes2) => WebAssembly.compile(bytes2)).catch((error2) => {
+    compiled3 = void 0;
     throw error2;
   });
-  return compiled2;
+  return compiled3;
 }
 function createNodeFontsAPI() {
   return createFontsAPI({
@@ -181348,7 +181393,7 @@ function createNodeFontsAPI() {
     }
   });
 }
-var compiled2;
+var compiled3;
 var init_fonts2 = __esm({
   "packages/node-shell/src/fonts.ts"() {
     "use strict";
@@ -181385,7 +181430,7 @@ function createGridcraftCalcRunner(module) {
       new Uint8Array(module2.memory.buffer, pointer2, request3.length).set(request3);
       const status = module2.gridcraft_calc_run(pointer2, request3.length, operation);
       const length2 = module2.gridcraft_calc_result_len(), at = module2.gridcraft_calc_result_ptr();
-      if (length2 > MAX_RESULT3 || at + length2 > module2.memory.buffer.byteLength) throw new Error("The calculation module returned an oversized response.");
+      if (length2 > MAX_RESULT4 || at + length2 > module2.memory.buffer.byteLength) throw new Error("The calculation module returned an oversized response.");
       const out = new Uint8Array(module2.memory.buffer, at, length2).slice();
       if (status !== 0) throw new Error(new TextDecoder().decode(out));
       return out;
@@ -181401,12 +181446,12 @@ function createGridcraftCalcRunner(module) {
     }
   };
 }
-var MAX_REQUEST2, MAX_RESULT3, MAX_RETAINED_MEMORY;
+var MAX_REQUEST2, MAX_RESULT4, MAX_RETAINED_MEMORY;
 var init_gridcraft_calc = __esm({
   "packages/node-shell/src/gridcraft-calc.ts"() {
     "use strict";
     MAX_REQUEST2 = 16 * 1024 * 1024;
-    MAX_RESULT3 = 40 * 1024 * 1024;
+    MAX_RESULT4 = 40 * 1024 * 1024;
     MAX_RETAINED_MEMORY = 256 * 1024 * 1024;
   }
 });
@@ -181419,12 +181464,12 @@ __export(gridcraft_calc_node_exports, {
   xlsxRecalc: () => xlsxRecalc
 });
 import { randomInt } from "node:crypto";
-import { readFile as readFile20 } from "node:fs/promises";
-import { join as join25 } from "node:path";
+import { readFile as readFile21 } from "node:fs/promises";
+import { join as join26 } from "node:path";
 function loadCalcEngine() {
-  pending5 ??= readFile20(new URL("../wasm/gridcraft-calc/gridcraft-calc.wasm", import.meta.url)).catch((error2) => {
+  pending5 ??= readFile21(new URL("../wasm/gridcraft-calc/gridcraft-calc.wasm", import.meta.url)).catch((error2) => {
     if (error2.code !== "ENOENT") throw error2;
-    return readFile20(join25(repoRoot(), "packages/node-shell/wasm/gridcraft-calc/gridcraft-calc.wasm"));
+    return readFile21(join26(repoRoot(), "packages/node-shell/wasm/gridcraft-calc/gridcraft-calc.wasm"));
   }).then((bytes2) => compileGridcraftCalc(new Uint8Array(bytes2))).then((module) => createCalcEngine(createGridcraftCalcRunner(module), () => ({ now: Date.now(), seed: randomInt(2 ** 32) }))).catch((error2) => {
     pending5 = void 0;
     throw error2;
@@ -181471,7 +181516,7 @@ __export(text_measure_exports, {
   textMeasureSpecOfRow: () => textMeasureSpecOfRow
 });
 import { existsSync as existsSync15, readdirSync as readdirSync2, readFileSync as readFileSync10 } from "node:fs";
-import { join as join26 } from "node:path";
+import { join as join27 } from "node:path";
 function firstFamily2(value2) {
   if (typeof value2 !== "string") return void 0;
   const first = value2.split(",")[0]?.trim().replace(/^['"]|['"]$/g, "").trim();
@@ -181512,7 +181557,7 @@ function measureFontsFromTokens(doc, theme) {
 function variableFaces(root2) {
   const hit = variableCache.get(root2);
   if (hit) return hit;
-  const dir = join26(root2, "shells", "web", "public", "fonts");
+  const dir = join27(root2, "shells", "web", "public", "fonts");
   const faces = [];
   if (existsSync15(dir)) {
     for (const name of readdirSync2(dir)) {
@@ -181524,7 +181569,7 @@ function variableFaces(root2) {
   return faces;
 }
 function fontFile(url, root2) {
-  if (url.startsWith("/fonts/")) return join26(root2, "shells", "web", "public", url.slice(1));
+  if (url.startsWith("/fonts/")) return join27(root2, "shells", "web", "public", url.slice(1));
   if (url.startsWith("/catalog/")) {
     try {
       return contentUrlFile(url, contentRoots({ root: root2 }));
@@ -181722,15 +181767,15 @@ var init_layout_kernel = __esm({
 
 // packages/node-shell/src/layout-kernel-node.ts
 import { existsSync as existsSync16 } from "node:fs";
-import { readFile as readFile21 } from "node:fs/promises";
-import { dirname as dirname8, join as join27 } from "node:path";
+import { readFile as readFile22 } from "node:fs/promises";
+import { dirname as dirname8, join as join28 } from "node:path";
 import { fileURLToPath as fileURLToPath12 } from "node:url";
 async function loadLayoutKernel() {
   const adjacent = fileURLToPath12(new URL("../wasm/layout-kernel/layout-kernel.wasm", import.meta.url));
-  if (existsSync16(adjacent)) return createLayoutKernel(new Uint8Array(await readFile21(adjacent)));
+  if (existsSync16(adjacent)) return createLayoutKernel(new Uint8Array(await readFile22(adjacent)));
   for (let dir = dirname8(adjacent); ; dir = dirname8(dir)) {
-    const candidate = join27(dir, "packages/node-shell/wasm/layout-kernel/layout-kernel.wasm");
-    if (existsSync16(candidate)) return createLayoutKernel(new Uint8Array(await readFile21(candidate)));
+    const candidate = join28(dir, "packages/node-shell/wasm/layout-kernel/layout-kernel.wasm");
+    if (existsSync16(candidate)) return createLayoutKernel(new Uint8Array(await readFile22(candidate)));
     if (dirname8(dir) === dir) break;
   }
   throw new Error("The layout kernel is not installed.");
@@ -181858,21 +181903,21 @@ __export(emoji_exports, {
   EMOJI_PACK_TAG: () => EMOJI_PACK_TAG,
   createNodeEmojiAPI: () => createNodeEmojiAPI
 });
-import { readFile as readFile22, stat as stat4 } from "node:fs/promises";
+import { readFile as readFile23, stat as stat4 } from "node:fs/promises";
 import { resolve as resolve3, sep } from "node:path";
 import { gunzip as gunzip2 } from "node:zlib";
 import { promisify } from "node:util";
 async function bundleText(file) {
   try {
     if ((await stat4(file)).size > BUNDLE_MAX_BYTES) return null;
-    return await readFile22(file, "utf8");
+    return await readFile23(file, "utf8");
   } catch (error2) {
     if (error2.code !== "ENOENT") return null;
   }
   try {
     const compressed = `${file}.gz`;
     if ((await stat4(compressed)).size > BUNDLE_MAX_BYTES) return null;
-    const bytes2 = await inflateBundle(await readFile22(compressed), { maxOutputLength: BUNDLE_MAX_BYTES });
+    const bytes2 = await inflateBundle(await readFile23(compressed), { maxOutputLength: BUNDLE_MAX_BYTES });
     return bytes2.toString("utf8");
   } catch {
     return null;
@@ -181909,7 +181954,7 @@ async function jsdomParser() {
 async function createNodeEmojiAPI(options2 = {}) {
   const parseXml = options2.parseXml ?? await jsdomParser();
   const catalogDir = options2.catalogDir;
-  const loadIndex2 = async () => catalogDir ? JSON.parse(await readFile22(`${catalogDir.replace(/\/+$/, "")}/assets/index.json`, "utf8")) : readAssetIndex();
+  const loadIndex2 = async () => catalogDir ? JSON.parse(await readFile23(`${catalogDir.replace(/\/+$/, "")}/assets/index.json`, "utf8")) : readAssetIndex();
   const bundles = /* @__PURE__ */ new Map();
   let listed2 = null;
   async function entries() {
@@ -182057,7 +182102,7 @@ var init_release_fonts = __esm({
 // packages/node-shell/src/desktop-renderer.ts
 import { constants, existsSync as existsSync17, accessSync, statSync as statSync4, lstatSync, openSync as openSync2, fstatSync as fstatSync2, readSync as readSync2, closeSync as closeSync2 } from "node:fs";
 import { homedir as homedir4, tmpdir } from "node:os";
-import { basename as basename3, delimiter, join as join28 } from "node:path";
+import { basename as basename3, delimiter, join as join29 } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 import { connect } from "node:net";
 function rendererPreference(value2 = process.env.LOLLY_RENDERER) {
@@ -182079,24 +182124,24 @@ function rendererOrder(preference, available) {
 function desktopExecutableCandidates(platform = process.platform, env = process.env, userHome = homedir4()) {
   const explicit = env.LOLLY_DESKTOP_BIN ? [env.LOLLY_DESKTOP_BIN] : [];
   if (platform === "darwin") {
-    const bundles = ["/Applications/Lolly.app", join28(userHome, "Applications", "Lolly.app")];
+    const bundles = ["/Applications/Lolly.app", join29(userHome, "Applications", "Lolly.app")];
     return [
       ...explicit,
-      ...bundles.flatMap((app) => ["lolly-desktop", "Lolly"].map((bin) => join28(app, "Contents", "MacOS", bin)))
+      ...bundles.flatMap((app) => ["lolly-desktop", "Lolly"].map((bin) => join29(app, "Contents", "MacOS", bin)))
     ];
   }
   if (platform === "win32") {
-    const local2 = env.LOCALAPPDATA || join28(userHome, "AppData", "Local");
+    const local2 = env.LOCALAPPDATA || join29(userHome, "AppData", "Local");
     const programs = env.ProgramFiles || "C:\\Program Files";
     const dirs = [
-      join28(local2, "Lolly"),
-      join28(local2, "Programs", "Lolly"),
-      join28(programs, "Lolly"),
+      join29(local2, "Lolly"),
+      join29(local2, "Programs", "Lolly"),
+      join29(programs, "Lolly"),
       ...windowsInstallLocations(env)
     ];
     return [
       ...explicit,
-      ...dirs.flatMap((dir) => ["Lolly.exe", "lolly-desktop.exe"].map((bin) => join28(dir, bin))),
+      ...dirs.flatMap((dir) => ["Lolly.exe", "lolly-desktop.exe"].map((bin) => join29(dir, bin))),
       ...pathCandidates(["Lolly.exe", "lolly-desktop.exe", "lolly.exe"], platform, env)
     ];
   }
@@ -182104,9 +182149,9 @@ function desktopExecutableCandidates(platform = process.platform, env = process.
     ...explicit,
     ...env.APPIMAGE ? [env.APPIMAGE] : [],
     ...["lolly-desktop", "lolly", "Lolly"].flatMap((bin) => [
-      join28(userHome, ".local", "bin", bin),
-      join28("/usr/bin", bin),
-      join28("/app/bin", bin)
+      join29(userHome, ".local", "bin", bin),
+      join29("/usr/bin", bin),
+      join29("/app/bin", bin)
     ]),
     ...pathCandidates(["lolly-desktop", "Lolly", "lolly"], platform, env)
   ];
@@ -182117,7 +182162,7 @@ function pathCandidates(names, platform, env) {
   const sep3 = platform === "win32" ? ";" : delimiter;
   const out = [];
   for (const dir of raw.split(sep3).filter(Boolean).slice(0, 64)) {
-    for (const name of names) out.push(join28(dir, name));
+    for (const name of names) out.push(join29(dir, name));
   }
   return out;
 }
@@ -182180,7 +182225,7 @@ function renderServerPath(probe = {}) {
   const override = env.LOLLY_RENDER_SERVER?.trim();
   if (override) return override;
   const dir = probe.dataDir === void 0 ? desktopAppDataDir(env) : probe.dataDir;
-  return dir ? join28(dir, "render.json") : null;
+  return dir ? join29(dir, "render.json") : null;
 }
 function processAlive(pid) {
   try {
@@ -182440,7 +182485,7 @@ var init_desktop_renderer = __esm({
 // packages/node-shell/src/lolly-render.ts
 import { existsSync as existsSync18 } from "node:fs";
 import { createRequire as createRequire7 } from "node:module";
-import { join as join29 } from "node:path";
+import { join as join30 } from "node:path";
 function cargoLibrary() {
   if (process.platform === "win32") return "lolly_render_node.dll";
   return process.platform === "darwin" ? "liblolly_render_node.dylib" : "liblolly_render_node.so";
@@ -182489,7 +182534,7 @@ function find(env) {
     if (!("binding" in found)) {
       let local2 = null;
       try {
-        local2 = join29(repoRoot(), "crates", "lolly-render-node", "target", "release", cargoLibrary());
+        local2 = join30(repoRoot(), "crates", "lolly-render-node", "target", "release", cargoLibrary());
       } catch {
       }
       const result = local2 ? loadFile(local2) : { reason: "this is not a Lolly checkout, so there is no local build" };
@@ -182594,7 +182639,7 @@ __export(design_still_exports, {
   roundedFrameClips: () => roundedFrameClips
 });
 import { existsSync as existsSync19 } from "node:fs";
-import { join as join30 } from "node:path";
+import { join as join31 } from "node:path";
 import { inflateSync as inflateSync3 } from "node:zlib";
 function designRasterChoice(env = process.env) {
   const raw = env[DESIGN_RASTER_ENV];
@@ -182609,8 +182654,8 @@ function browserTierState() {
   } catch {
     return { available: true };
   }
-  const dist2 = process.env.LOLLY_WEB_DIST || join30(repoRoot(), "shells", "web", "dist");
-  const webShell = Boolean(process.env.LOLLY_WEB_BASE) || existsSync19(join30(dist2, "index.html"));
+  const dist2 = process.env.LOLLY_WEB_DIST || join31(repoRoot(), "shells", "web", "dist");
+  const webShell = Boolean(process.env.LOLLY_WEB_BASE) || existsSync19(join31(dist2, "index.html"));
   const chromium = browserInstalled();
   if (preference !== "desktop" && chromium && webShell) return { available: true };
   if (preference !== "chromium" && (readRenderServer() || desktopInstalled())) return { available: true };
@@ -182950,8 +182995,8 @@ async function drawWithLollyRender(req, page3) {
     await req.exportSvg(page3, {
       convertPaths: true,
       ingredientSink: ingredients,
-      drawingSink: (compiled3) => {
-        drawing = compiled3;
+      drawingSink: (compiled4) => {
+        drawing = compiled4;
       }
     });
   } catch (error2) {
@@ -185372,11 +185417,11 @@ var init_trust_anchors = __esm({
 });
 
 // packages/node-shell/src/enrollment-trust.ts
-import { readFile as readFile23 } from "node:fs/promises";
+import { readFile as readFile24 } from "node:fs/promises";
 async function loadEnrollmentTrust(env = process.env) {
   const path = env.LOLLY_ENROLLMENT_TRUST;
   if (!path) return null;
-  const bytes2 = await readFile23(expandHome(path));
+  const bytes2 = await readFile24(expandHome(path));
   if (bytes2.length > 2e5) throw new Error("Managed identity trust file exceeds its limit");
   const trust = parseEnrollmentTrustBundle(bytes2.toString("utf8"));
   const files = JSON.parse(env.LOLLY_ENROLLMENT_CRLS || "{}");
@@ -185384,7 +185429,7 @@ async function loadEnrollmentTrust(env = process.env) {
   const crls = /* @__PURE__ */ Object.create(null);
   for (const [issuer, path2] of Object.entries(files)) {
     if (!trust.issuers.has(issuer) || typeof path2 !== "string" || !path2.length) throw new Error("Managed identity CRL configuration is invalid");
-    const bytes3 = await readFile23(expandHome(path2));
+    const bytes3 = await readFile24(expandHome(path2));
     if (bytes3.length > 1500 * 1024) throw new Error("Managed identity CRL file exceeds its limit");
     crls[issuer] = bytes3.includes("-----BEGIN X509 CRL-----") ? pemToDer(bytes3.toString("utf8")) : new Uint8Array(bytes3);
   }
@@ -185407,7 +185452,7 @@ __export(signing_identity_exports, {
   describeIdentity: () => describeIdentity,
   resolveSigningIdentity: () => resolveSigningIdentity
 });
-import { readFile as readFile24 } from "node:fs/promises";
+import { readFile as readFile25 } from "node:fs/promises";
 import { createPrivateKey, createPublicKey, webcrypto } from "node:crypto";
 function readCertChain(bytes2, source) {
   const text14 = bytes2.toString("latin1");
@@ -185594,7 +185639,7 @@ function sameBytes4(a, b) {
 }
 async function readSecret(path, code, flag) {
   try {
-    return await readFile24(expandHome(path));
+    return await readFile25(expandHome(path));
   } catch (e) {
     throw new SigningIdentityError(`${flag}: cannot read "${path}" (${firstLine(e.message)}).`, code);
   }
@@ -185775,11 +185820,11 @@ import { execFile } from "node:child_process";
 import { promisify as promisify2 } from "node:util";
 import { mkdtemp, writeFile as writeFile4, rm as rm3 } from "node:fs/promises";
 import { tmpdir as tmpdir2 } from "node:os";
-import { join as join32 } from "node:path";
+import { join as join33 } from "node:path";
 async function inspectMotionBytes(bytes2, target2 = {}, binaries = { probe: "ffprobe", decode: "ffmpeg" }, options2 = {}) {
   options2.signal?.throwIfAborted();
   if (!bytes2.length || bytes2.length > 256 * 1024 * 1024) throw new Error("Motion inspection accepts 1 byte to 256 MiB.");
-  const directory = await mkdtemp(join32(tmpdir2(), "lolly-motion-check-")), path = join32(directory, "delivery");
+  const directory = await mkdtemp(join33(tmpdir2(), "lolly-motion-check-")), path = join33(directory, "delivery");
   const facts2 = {}, checks = [];
   try {
     await writeFile4(path, bytes2);
@@ -185875,7 +185920,7 @@ import { execFile as execFile2 } from "node:child_process";
 import { promisify as promisify3 } from "node:util";
 import { mkdtemp as mkdtemp2, writeFile as writeFile5, rm as rm4 } from "node:fs/promises";
 import { tmpdir as tmpdir3 } from "node:os";
-import { join as join33 } from "node:path";
+import { join as join34 } from "node:path";
 async function collectProductionMotion(bytes2, contract2, signal, binaries = { probe: "ffprobe", decode: "ffmpeg" }) {
   signal?.throwIfAborted();
   const facts2 = { limitations: ["motion-appearance-between-samples-unmeasured", "decoded-rgb8-not-hdr-or-cross-device-conformance", "encoded-pixels-do-not-prove-text-or-chart-semantics"] };
@@ -185891,7 +185936,7 @@ async function collectProductionMotion(bytes2, contract2, signal, binaries = { p
     facts2.limitations.push("unsupported-motion-container");
     return facts2;
   }
-  const directory = await mkdtemp2(join33(tmpdir3(), "lolly-production-motion-")), path = join33(directory, "delivery");
+  const directory = await mkdtemp2(join34(tmpdir3(), "lolly-production-motion-")), path = join34(directory, "delivery");
   try {
     await writeFile5(path, bytes2);
     const { stdout } = await run2(binaries.probe, ["-v", "error", "-protocol_whitelist", "file,pipe", "-show_streams", "-show_format", "-of", "json", path], { signal, timeout: 3e4, maxBuffer: 2 * 1024 * 1024 });
@@ -186018,15 +186063,15 @@ var init_production_motion = __esm({
 
 // packages/node-shell/src/production-pdf.ts
 import { execFile as execFile3 } from "node:child_process";
-import { mkdtemp as mkdtemp3, readFile as readFile27, rm as rm5, writeFile as writeFile6 } from "node:fs/promises";
+import { mkdtemp as mkdtemp3, readFile as readFile28, rm as rm5, writeFile as writeFile6 } from "node:fs/promises";
 import { tmpdir as tmpdir4 } from "node:os";
-import { join as join34 } from "node:path";
+import { join as join35 } from "node:path";
 import { promisify as promisify4 } from "node:util";
 async function collectProductionPdf(bytes2, contract2, signal) {
   const facts2 = { format: "pdf", limitations: ["pdf-print-colour-and-overprint-unchecked", "pdf-font-identity-unchecked"] };
-  const dir = await mkdtemp3(join34(tmpdir4(), "lolly-production-"));
+  const dir = await mkdtemp3(join35(tmpdir4(), "lolly-production-"));
   try {
-    const file = join34(dir, "input.pdf");
+    const file = join35(dir, "input.pdf");
     await writeFile6(file, bytes2);
     const opts = { encoding: "utf8", timeout: 1e4, maxBuffer: 2 * 1024 * 1024, signal, env: { ...process.env, LC_ALL: "C" } };
     const { stdout } = await exec("pdfinfo", ["-box", "-f", "1", "-l", "100", file], opts);
@@ -186057,8 +186102,8 @@ async function collectProductionPdf(bytes2, contract2, signal) {
     if (contract2.comparison || contract2.alpha !== "any") {
       if (pages !== 1 || !facts2.width || !facts2.height || Math.ceil(facts2.width) * Math.ceil(facts2.height) > PRODUCTION_MAX_PIXELS) facts2.limitations.push("pdf-pixel-budget-or-multiple-pages");
       else {
-        await exec("pdftoppm", ["-f", "1", "-singlefile", "-cropbox", "-scale-dimension-before-rotation", "-r", "96", "-png", file, join34(dir, "page")], opts);
-        const raster = await productionRaster(new Uint8Array(await readFile27(join34(dir, "page.png"))), signal);
+        await exec("pdftoppm", ["-f", "1", "-singlefile", "-cropbox", "-scale-dimension-before-rotation", "-r", "96", "-png", file, join35(dir, "page")], opts);
+        const raster = await productionRaster(new Uint8Array(await readFile28(join35(dir, "page.png"))), signal);
         facts2.pixels = raster.pixels;
         facts2.opaque = raster.opaque;
       }
@@ -186252,9 +186297,9 @@ __export(webshell_render_exports, {
   transformViaWebShell: () => transformViaWebShell
 });
 import { createServer as createServer2 } from "node:http";
-import { readFile as readFile30, stat as stat7 } from "node:fs/promises";
+import { readFile as readFile31, stat as stat7 } from "node:fs/promises";
 import { existsSync as existsSync23, writeFileSync as writeFileSync2 } from "node:fs";
-import { join as join36, resolve as resolve7, extname as extname3, normalize as normalize3 } from "node:path";
+import { join as join37, resolve as resolve7, extname as extname3, normalize as normalize3 } from "node:path";
 async function webShellBase2() {
   const remote = process.env.LOLLY_WEB_BASE;
   if (remote) return remote.replace(/\/$/, "");
@@ -186288,8 +186333,8 @@ function activeContentResponse(urlPath) {
   }
 }
 function serveDist2() {
-  const dist2 = process.env.LOLLY_WEB_DIST || join36(repoRoot(), "shells", "web", "dist");
-  if (!existsSync23(join36(dist2, "index.html"))) {
+  const dist2 = process.env.LOLLY_WEB_DIST || join37(repoRoot(), "shells", "web", "dist");
+  if (!existsSync23(join37(dist2, "index.html"))) {
     throw new BrowserError(
       `No built web shell at ${dist2}. Run \`pnpm run build:web\` (or set LOLLY_WEB_DIST to a prebuilt shell / LOLLY_WEB_BASE to a running one). Raster/PDF/video export needs it; svg and data formats render without it.`
     );
@@ -186311,9 +186356,9 @@ function serveDist2() {
         return;
       }
       if (!live2 && (urlPath === "/" || !existsSync23(filePath) || !(await stat7(filePath)).isFile())) {
-        filePath = join36(root2, "index.html");
+        filePath = join37(root2, "index.html");
       }
-      const data = await readFile30(filePath);
+      const data = await readFile31(filePath);
       res.setHeader("Content-Type", MIME4[extname3(filePath)] ?? "application/octet-stream");
       res.setHeader("Cache-Control", "no-store");
       res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
@@ -186428,7 +186473,7 @@ function startDebug() {
         ...network.length ? network.map((l) => `  ${l}`) : ["  (nothing)"],
         ""
       ];
-      const path = tierBDebugConfig.outPath ? `${tierBDebugConfig.outPath}.tier-b-debug.log` : join36(process.cwd(), `lolly-tier-b-debug-${label5.replace(/[^a-z0-9.-]+/gi, "-")}.log`);
+      const path = tierBDebugConfig.outPath ? `${tierBDebugConfig.outPath}.tier-b-debug.log` : join37(process.cwd(), `lolly-tier-b-debug-${label5.replace(/[^a-z0-9.-]+/gi, "-")}.log`);
       try {
         writeFileSync2(path, lines.join("\n"), "utf8");
         writtenPath = path;
@@ -186570,7 +186615,7 @@ async function transformViaWebShell({ toolId, fileInputId: fileInputId2, file, q
     }
     const path = await outcome.d.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
-    const bytes2 = new Uint8Array(await readFile30(path));
+    const bytes2 = new Uint8Array(await readFile31(path));
     const filename = outcome.d.suggestedFilename() || file.name;
     await outcome.d.delete().catch(() => {
     });
@@ -186622,7 +186667,7 @@ async function renderViaChromiumShell(toolId, query2, format, dims = {}) {
     debug.step("read the downloaded bytes");
     const path = await download.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
-    const bytes2 = new Uint8Array(await readFile30(path));
+    const bytes2 = new Uint8Array(await readFile31(path));
     await download.delete().catch(() => {
     });
     dims.onProductionInputs?.(observeInputs(bytes2));
@@ -186696,7 +186741,7 @@ async function renderVideoViaScreenshot(toolId, query2, format, dims = {}) {
     debug.step("read the downloaded bytes");
     const path = await download.path();
     if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
-    const bytes2 = new Uint8Array(await readFile30(path));
+    const bytes2 = new Uint8Array(await readFile31(path));
     await download.delete().catch(() => {
     });
     return { bytes: bytes2, mime: MIME4["." + format.toLowerCase()] ?? "application/octet-stream" };
@@ -186741,7 +186786,7 @@ async function renderToolPackageViaWebShell(bytes2, toolId, query2, format, prod
     const download = await downloading;
     const path = await download.path();
     if (!path) throw new BrowserError("The tool produced no output file.");
-    const rendered = new Uint8Array(await readFile30(path));
+    const rendered = new Uint8Array(await readFile31(path));
     production.onProductionInputs?.(observeInputs(rendered));
     return rendered;
   } finally {
@@ -186847,7 +186892,7 @@ async function exportOpenedSession(page3, base, query2, format, dims, debug, lab
     }
     const path = await download.path();
     if (!path) throw new BrowserError(`The ${format} export of ${label5} yielded no file.`);
-    const out = new Uint8Array(await readFile30(path));
+    const out = new Uint8Array(await readFile31(path));
     const filename = download.suggestedFilename();
     await download.delete().catch(() => {
     });
@@ -186899,8 +186944,8 @@ function fitsDesktopRequest(toolUrl) {
 }
 function assertDurableEncoder(dims, remote) {
   if (!dims.durable || remote) return;
-  const dist2 = process.env.LOLLY_WEB_DIST || join36(repoRoot(), "shells", "web", "dist");
-  const model2 = join36(dist2, "models", "trustmark", "encoder_Q.onnx");
+  const dist2 = process.env.LOLLY_WEB_DIST || join37(repoRoot(), "shells", "web", "dist");
+  const model2 = join37(dist2, "models", "trustmark", "encoder_Q.onnx");
   if (!existsSync23(model2)) {
     throw new BrowserError(
       `The durable credential needs the TrustMark encoder model, which isn't in the built web shell (${model2}). Rebuild it with \`pnpm run build:web\` (the model ships in shells/web/public), or export without --durable.`
@@ -188757,7 +188802,7 @@ var init_check = __esm({
 });
 
 // packages/node-shell/src/compose-photo-surface.ts
-import { readFile as readFile31 } from "node:fs/promises";
+import { readFile as readFile32 } from "node:fs/promises";
 function mimeOf2(bytes2) {
   if (bytes2[0] === 255 && bytes2[1] === 216) return "image/jpeg";
   if (bytes2[0] === 137 && bytes2[1] === 80 && bytes2[2] === 78 && bytes2[3] === 71) return "image/png";
@@ -188893,7 +188938,7 @@ async function markInks(id3) {
     const svg = (entry2?.formats ?? []).find((f) => String(f.format).toLowerCase() === "svg" && f.url);
     const file = svg?.url ? contentUrlFile2(svg.url) : null;
     if (!file) return null;
-    const colours2 = extractSvgColors(await readFile31(file, "utf8"));
+    const colours2 = extractSvgColors(await readFile32(file, "utf8"));
     if (!colours2.length) return ["#000000"];
     const lums = colours2.map((c) => hexLuminance(c)).filter((l) => l !== null);
     if (lums.length && (Math.max(...lums) + 0.05) / (Math.min(...lums) + 0.05) >= 3) return null;
@@ -189006,7 +189051,7 @@ __export(design_compose_exports, {
   resolveComposeMaster: () => resolveComposeMaster,
   suggestCompose: () => suggestCompose
 });
-import { readFile as readFile32 } from "node:fs/promises";
+import { readFile as readFile33 } from "node:fs/promises";
 function parseComposeSize(value2) {
   const m2 = /^\s*(\d+)\s*[x×X]\s*(\d+)\s*$/.exec(value2);
   if (!m2) return null;
@@ -189018,7 +189063,7 @@ function parseComposeSize(value2) {
 async function readJsonFile(path, code, what) {
   let text14;
   try {
-    text14 = await readFile32(path, "utf8");
+    text14 = await readFile33(path, "utf8");
   } catch (err) {
     throw new DesignComposeError(code, `${what} ${path} could not be read: ${err.message}`);
   }
@@ -190332,7 +190377,7 @@ init_production_browser();
 init_export_wait();
 init_export_lock();
 init_open_session();
-import { readFile as readFile28, stat as stat6 } from "node:fs/promises";
+import { readFile as readFile29, stat as stat6 } from "node:fs/promises";
 import { existsSync as existsSync21 } from "node:fs";
 
 // shells/cli/src/bridge.ts
@@ -190353,7 +190398,7 @@ async function prepareJxlAsset(ref2, bytes2) {
 
 // shells/cli/src/bridge.ts
 init_asset_bytes();
-import { readFile as readFile25 } from "node:fs/promises";
+import { readFile as readFile26 } from "node:fs/promises";
 
 // packages/node-shell/src/public-http.ts
 import { lookup } from "node:dns/promises";
@@ -191419,14 +191464,14 @@ init_text3();
 // packages/node-shell/src/audio.ts
 init_src2();
 init_content_roots();
-import { readFile as readFile11 } from "node:fs/promises";
+import { readFile as readFile12 } from "node:fs/promises";
 import { fileURLToPath as fileURLToPath8 } from "node:url";
-import { isAbsolute, join as join15 } from "node:path";
+import { isAbsolute, join as join16 } from "node:path";
 
 // packages/node-shell/src/audio-dsp-node.ts
 init_repo_root();
-import { readFile as readFile10 } from "node:fs/promises";
-import { join as join14 } from "node:path";
+import { readFile as readFile11 } from "node:fs/promises";
+import { join as join15 } from "node:path";
 
 // packages/node-shell/src/audio-dsp.ts
 var OP_METER_OPEN = 1;
@@ -191438,7 +191483,7 @@ var OP_FX_FLUSH = 6;
 var OP_SYNC = 7;
 var OP_CLOSE = 8;
 var MAX_REQUEST = 160 * 1024 * 1024;
-var MAX_RESULT = 160 * 1024 * 1024;
+var MAX_RESULT2 = 160 * 1024 * 1024;
 var ALIGN_MAX_SAMPLES = 12 * 1024 * 1024;
 var CHUNK_FRAMES = 24e4;
 function isApi2(e) {
@@ -191476,7 +191521,7 @@ async function createAudioDspKernel(wasm) {
       api.audio_dsp_free(pointer2);
     }
     const length2 = api.audio_dsp_result_len(), from = api.audio_dsp_result_ptr();
-    if (length2 > MAX_RESULT || from + length2 > api.memory.buffer.byteLength) throw new Error("The audio module returned an oversized response.");
+    if (length2 > MAX_RESULT2 || from + length2 > api.memory.buffer.byteLength) throw new Error("The audio module returned an oversized response.");
     const out = new Uint8Array(api.memory.buffer, from, length2).slice();
     if (status !== 0) throw new Error(dec.decode(out));
     if (out.length < 4) throw new Error("The audio module returned a malformed response.");
@@ -191593,9 +191638,9 @@ async function createAudioDspKernel(wasm) {
 // packages/node-shell/src/audio-dsp-node.ts
 var pending3;
 function loadAudioDspKernel() {
-  pending3 ??= readFile10(new URL("../wasm/audio-dsp/audio-dsp.wasm", import.meta.url)).catch((error2) => {
+  pending3 ??= readFile11(new URL("../wasm/audio-dsp/audio-dsp.wasm", import.meta.url)).catch((error2) => {
     if (error2.code !== "ENOENT") throw error2;
-    return readFile10(join14(repoRoot(), "packages/node-shell/wasm/audio-dsp/audio-dsp.wasm"));
+    return readFile11(join15(repoRoot(), "packages/node-shell/wasm/audio-dsp/audio-dsp.wasm"));
   }).then((bytes2) => createAudioDspKernel(new Uint8Array(bytes2))).catch((error2) => {
     pending3 = void 0;
     throw error2;
@@ -192016,11 +192061,11 @@ async function bytesOf2(src, repoRoot2, readSource2) {
     if (!res.ok) throw new Error(`audio: fetch failed (${res.status})`);
     return new Uint8Array(await res.arrayBuffer());
   }
-  if (url.startsWith("file:")) return new Uint8Array(await readFile11(fileURLToPath8(url)));
+  if (url.startsWith("file:")) return new Uint8Array(await readFile12(fileURLToPath8(url)));
   const roots2 = url.startsWith("/") ? rootsFor4(repoRoot2) : void 0;
   const content2 = roots2 ? contentUrlFile(url, roots2) : null;
-  const path = content2 ?? (isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join15(repoRoot2, url.replace(/^\//, "")));
-  return new Uint8Array(await readFile11(path));
+  const path = content2 ?? (isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join16(repoRoot2, url.replace(/^\//, "")));
+  return new Uint8Array(await readFile12(path));
 }
 async function songOf(src, repoRoot2, readSource2) {
   const bytes2 = await bytesOf2(src, repoRoot2, readSource2);
@@ -194259,9 +194304,9 @@ init_resvg_admission();
 init_session();
 init_src2();
 import { readFileSync as readFileSync8 } from "node:fs";
-import { readFile as readFile14 } from "node:fs/promises";
+import { readFile as readFile15 } from "node:fs/promises";
 import { createRequire as createRequire5 } from "node:module";
-import { isAbsolute as isAbsolute2, join as join18 } from "node:path";
+import { isAbsolute as isAbsolute2, join as join19 } from "node:path";
 import { fileURLToPath as fileURLToPath9 } from "node:url";
 
 // packages/node-shell/src/tts-blend.ts
@@ -194427,10 +194472,10 @@ var FAMILY_DIR = {
   whisper: WHISPER_MODEL_ID
 };
 function modelFilePath(modelsDir, family2, rel) {
-  return join18(modelsDir, FAMILY_DIR[family2], rel);
+  return join19(modelsDir, FAMILY_DIR[family2], rel);
 }
 function missingModelFiles(modelsDir, family2, only) {
-  return missingPinnedFiles(join18(modelsDir, FAMILY_DIR[family2]), SPEECH_MODEL_FILES[family2], only);
+  return missingPinnedFiles(join19(modelsDir, FAMILY_DIR[family2]), SPEECH_MODEL_FILES[family2], only);
 }
 function mb(bytes2) {
   return `${(bytes2 / (1024 * 1024)).toFixed(1)} MB`;
@@ -194441,7 +194486,7 @@ function missingModelError(family2, modelsDir, missing, consentBytes) {
   const head2 = bySize.slice(0, 3).join(", ");
   const more = bySize.length > 3 ? `, and ${bySize.length - 3} more` : "";
   const err = new Error(
-    `speech: the ${family2} model is not on this machine - missing ${head2}${more} under ${join18(modelsDir, FAMILY_DIR[family2])}. It is a one-time ${mb(consentBytes)} (${consentBytes} bytes) download: run  lolly models fetch ${family2}`
+    `speech: the ${family2} model is not on this machine - missing ${head2}${more} under ${join19(modelsDir, FAMILY_DIR[family2])}. It is a one-time ${mb(consentBytes)} (${consentBytes} bytes) download: run  lolly models fetch ${family2}`
   );
   return Object.assign(err, { modelMissing: family2, kind: "MODEL_NOT_STAGED" });
 }
@@ -194562,9 +194607,9 @@ async function bytesOf3(src, root2) {
     if (!res.ok) throw new Error(`speech: audio fetch failed (${res.status})`);
     return new Uint8Array(await res.arrayBuffer());
   }
-  if (url.startsWith("file:")) return new Uint8Array(await readFile14(fileURLToPath9(url)));
-  const path = isAbsolute2(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join18(root2, url.replace(/^\//, ""));
-  return new Uint8Array(await readFile14(path));
+  if (url.startsWith("file:")) return new Uint8Array(await readFile15(fileURLToPath9(url)));
+  const path = isAbsolute2(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join19(root2, url.replace(/^\//, ""));
+  return new Uint8Array(await readFile15(path));
 }
 function resampleMono(pcm, from, to) {
   if (from === to || pcm.length === 0) return pcm;
@@ -194838,7 +194883,7 @@ function createNodeSpeechAPI(opts = {}) {
 }
 
 // packages/node-shell/src/scan.ts
-import { readFile as readFile15 } from "node:fs/promises";
+import { readFile as readFile16 } from "node:fs/promises";
 import { createRequire as createRequire6 } from "node:module";
 import { readBarcodes, prepareZXingModule } from "zxing-wasm/reader";
 var ZXING_TO_BD = {
@@ -194879,7 +194924,7 @@ function ensureModule() {
     prepared2 = (async () => {
       const require2 = createRequire6(import.meta.url);
       const wasmPath = require2.resolve("zxing-wasm/reader/zxing_reader.wasm");
-      const bytes2 = await readFile15(wasmPath);
+      const bytes2 = await readFile16(wasmPath);
       prepareZXingModule({ overrides: { wasmBinary: bytes2.buffer.slice(bytes2.byteOffset, bytes2.byteOffset + bytes2.byteLength) } });
     })().catch((e) => {
       prepared2 = null;
@@ -194948,33 +194993,33 @@ init_state_dir();
 init_fs_token();
 init_session_record();
 init_session_preview();
-import { mkdir as mkdir2, readdir as readdir4, readFile as readFile16, rm as rm2, writeFile as writeFile2, rename as rename2, stat as stat3 } from "node:fs/promises";
-import { join as join20 } from "node:path";
+import { mkdir as mkdir2, readdir as readdir4, readFile as readFile17, rm as rm2, writeFile as writeFile2, rename as rename2, stat as stat3 } from "node:fs/promises";
+import { join as join21 } from "node:path";
 import { randomUUID as randomUUID2 } from "node:crypto";
 var SESSION_SUBDIR = "saved-state";
 function sessionPicturePath(stateDir2, ref2) {
-  return join20(sessionsDir(stateDir2), "previews", `${ref2.key}.${previewFileExt(ref2.type)}`);
+  return join21(sessionsDir(stateDir2), "previews", `${ref2.key}.${previewFileExt(ref2.type)}`);
 }
 function sessionsDir(stateDir2) {
-  return join20(stateDir2, SESSION_SUBDIR);
+  return join21(stateDir2, SESSION_SUBDIR);
 }
 function sessionFilePath(stateDir2, slot) {
-  return join20(sessionsDir(stateDir2), `${encodeFsToken(slot)}.json`);
+  return join21(sessionsDir(stateDir2), `${encodeFsToken(slot)}.json`);
 }
 async function readSessionRecord(stateDir2, slot) {
   try {
-    const raw = JSON.parse(await readFile16(sessionFilePath(stateDir2, slot), "utf8"));
+    const raw = JSON.parse(await readFile17(sessionFilePath(stateDir2, slot), "utf8"));
     const record49 = normalise5(raw);
     return record49 ? withFoundPicture(stateDir2, record49) : null;
   } catch {
     return null;
   }
 }
-var linkFile = (stateDir2, workKey) => join20(sessionsDir(stateDir2), "previews", previewLinkName(workKey));
+var linkFile = (stateDir2, workKey) => join21(sessionsDir(stateDir2), "previews", previewLinkName(workKey));
 async function withFoundPicture(stateDir2, record49) {
   if (!mayHaveLostPicture(record49)) return record49;
   try {
-    const ref2 = readPreviewLink(await readFile16(linkFile(stateDir2, await sessionWorkKey(record49.data)), "utf8"), record49.slot);
+    const ref2 = readPreviewLink(await readFile17(linkFile(stateDir2, await sessionWorkKey(record49.data)), "utf8"), record49.slot);
     if (ref2 && (await stat3(sessionPicturePath(stateDir2, ref2))).isFile()) return { ...record49, thumb: null, preview: ref2 };
   } catch {
   }
@@ -194983,10 +195028,10 @@ async function withFoundPicture(stateDir2, record49) {
 async function writeLink(stateDir2, slot, data, ref2) {
   try {
     const path = linkFile(stateDir2, await sessionWorkKey(data));
-    const prior = await readFile16(path, "utf8").catch(() => null);
+    const prior = await readFile17(path, "utf8").catch(() => null);
     const text14 = withPreviewLink(prior, slot, ref2);
     if (prior === text14) return;
-    await mkdir2(join20(sessionsDir(stateDir2), "previews"), { recursive: true });
+    await mkdir2(join21(sessionsDir(stateDir2), "previews"), { recursive: true });
     const temp = `${path}.${randomUUID2()}.tmp`;
     try {
       await writeFile2(temp, text14, { mode: 384, flag: "wx" });
@@ -194999,7 +195044,7 @@ async function writeLink(stateDir2, slot, data, ref2) {
 }
 async function loadSessionData(stateDir2, slot) {
   try {
-    const raw = JSON.parse(await readFile16(sessionFilePath(stateDir2, slot), "utf8"));
+    const raw = JSON.parse(await readFile17(sessionFilePath(stateDir2, slot), "utf8"));
     return migrateSessionRecord(raw);
   } catch {
     return null;
@@ -195097,13 +195142,13 @@ function normalise5(raw) {
 }
 
 // packages/node-shell/src/design-systems.ts
-import { basename as basename2, join as join21 } from "node:path";
-import { mkdir as mkdir3, readFile as readFile17, rename as rename3, writeFile as writeFile3 } from "node:fs/promises";
+import { basename as basename2, join as join22 } from "node:path";
+import { mkdir as mkdir3, readFile as readFile18, rename as rename3, writeFile as writeFile3 } from "node:fs/promises";
 init_state_dir();
 var FORMAT = 1;
 var INDEX_FILE = "design-systems.json";
 var emptyRegistry = () => ({ format: FORMAT, active: null, startSeen: false, systems: [] });
-var indexPath = () => join21(resolveStateDir().dir, INDEX_FILE);
+var indexPath = () => join22(resolveStateDir().dir, INDEX_FILE);
 function safeRegistry(value2) {
   if (!value2 || typeof value2 !== "object") return emptyRegistry();
   const v = value2;
@@ -195116,7 +195161,7 @@ function safeRegistry(value2) {
 }
 async function readRegistry() {
   try {
-    return safeRegistry(JSON.parse(await readFile17(indexPath(), "utf8")));
+    return safeRegistry(JSON.parse(await readFile18(indexPath(), "utf8")));
   } catch {
     return emptyRegistry();
   }
@@ -195129,7 +195174,7 @@ async function readActiveDesignSystemTokens() {
   const active = await activeNodeDesignSystem();
   if (!active?.tokensFile) return null;
   try {
-    return JSON.parse(await readFile17(join21(resolveStateDir().dir, active.tokensFile), "utf8"));
+    return JSON.parse(await readFile18(join22(resolveStateDir().dir, active.tokensFile), "utf8"));
   } catch {
     return null;
   }
@@ -195143,7 +195188,7 @@ init_text_bidi();
 init_content_roots();
 init_fallback_fonts();
 import { existsSync as existsSync12, readFileSync as readFileSync9 } from "node:fs";
-import { join as join22 } from "node:path";
+import { join as join23 } from "node:path";
 var listed = /* @__PURE__ */ new Map();
 function diskFallbackPacks(roots2 = contentRoots()) {
   const key2 = roots2.assetRoots.map((r5) => r5.dir).join("\0");
@@ -195151,7 +195196,7 @@ function diskFallbackPacks(roots2 = contentRoots()) {
   if (hit) return hit;
   const entries = [];
   for (const shared of roots2.assetRoots) {
-    const path = join22(shared.dir, "index.json");
+    const path = join23(shared.dir, "index.json");
     if (!existsSync12(path)) continue;
     try {
       entries.push(...JSON.parse(readFileSync9(path, "utf8")).assets ?? []);
@@ -195548,7 +195593,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
     return bytes2;
   };
   async function readHostedSource(source, allowedTypes = PUBLIC_IMAGE_TYPES) {
-    if (source.startsWith("/catalog/")) return bounded3(new Uint8Array(await readFile25(assetFilePath(source))));
+    if (source.startsWith("/catalog/")) return bounded3(new Uint8Array(await readFile26(assetFilePath(source))));
     if (/^data:/i.test(source)) return bounded3(decodeDataUrl2(source));
     return (await fetchPublicBytes(source, { allowedTypes })).bytes;
   }
@@ -195583,7 +195628,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       if (source instanceof Uint8Array) return source;
       if (typeof source === "object" && "arrayBuffer" in source) return new Uint8Array(await source.arrayBuffer());
       if (typeof source !== "string") return host.assets.bytes(source);
-      if (source.startsWith("/catalog/")) return new Uint8Array(await readFile25(assetFilePath(source)));
+      if (source.startsWith("/catalog/")) return new Uint8Array(await readFile26(assetFilePath(source)));
       if (publicOnlyAssets) return readHostedSource(source);
       const response = await fetch(source);
       if (!response.ok) throw new Error(`Could not read HDR source (${response.status}).`);
@@ -195619,7 +195664,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
         ours = [];
       }
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("icon-themes"));
-      const theirs = pal ? parseIconThemesDoc(JSON.parse(await readFile25(assetFilePath(pal.formats[0].url), "utf8"))) : [];
+      const theirs = pal ? parseIconThemesDoc(JSON.parse(await readFile26(assetFilePath(pal.formats[0].url), "utf8"))) : [];
       return [...ours, ...theirs.filter((t) => !ours.some((o) => o.id === t.id))];
     })().catch(() => []);
     return iconThemesCache;
@@ -195634,7 +195679,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
         ours = [];
       }
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("photo-treatments"));
-      const theirs = pal ? parsePhotoTreatmentsDoc(JSON.parse(await readFile25(assetFilePath(pal.formats[0].url), "utf8"))) : [];
+      const theirs = pal ? parsePhotoTreatmentsDoc(JSON.parse(await readFile26(assetFilePath(pal.formats[0].url), "utf8"))) : [];
       return [...ours, ...theirs.filter((t) => !ours.some((o) => o.id === t.id))];
     })().catch(() => []);
     return photoTreatmentsCache;
@@ -195650,7 +195695,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
         const meta = assetById.get(lutId);
         const fmt6 = meta?.formats.find((f) => f.format === "cube") ?? meta?.formats[0];
         if (!fmt6) return null;
-        return parseLutText(await readFile25(assetFilePath(fmt6.url), "utf8"), lutId);
+        return parseLutText(await readFile26(assetFilePath(fmt6.url), "utf8"), lutId);
       })().catch(() => null);
       lutReads.set(lutId, pending6);
     }
@@ -195686,7 +195731,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
   const tokensAssets = assetIndex2.assets.filter((a) => a.type === "tokens");
   const headTokensId = pickHeadAssetId(tokensAssets.map((a) => a.id));
   const headTokensAsset3 = tokensAssets.find((a) => a.id === headTokensId) ?? null;
-  const readAssetDoc = async (asset2) => JSON.parse(await readFile25(assetFilePath(asset2.formats[0].url), "utf8"));
+  const readAssetDoc = async (asset2) => JSON.parse(await readFile26(assetFilePath(asset2.formats[0].url), "utf8"));
   let tokensDocCache = null;
   let tokensDocRevision = "";
   let tokensDocSystem = null;
@@ -195926,7 +195971,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       if (shipped) {
         const file = contentUrlFile(id3);
         if (!file) throw new Error(`Tool asset not found: ${id3}`);
-        const bytes2 = await readFile25(file);
+        const bytes2 = await readFile26(file);
         return { source: "remote", id: id3, type: shipped.type, format: shipped.format, url: `data:${shipped.mime};base64,${bytes2.toString("base64")}`, meta: { name: shipped.file } };
       }
       if (/^data:/i.test(id3)) {
@@ -195962,7 +196007,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       const fmt6 = opts.format ? meta.formats.find((f) => f.format === opts.format) : meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
       if (!fmt6) throw new Error(`Asset format unavailable: ${baseId} (${opts.format})`);
       const localPath2 = assetFilePath(fmt6.url);
-      let buf = await readFile25(localPath2);
+      let buf = await readFile26(localPath2);
       let extraMeta = { name: meta.name, tags: meta.tags };
       if (meta.type === "palette" && fmt6.format === "json") {
         try {
@@ -196227,13 +196272,13 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
         const drawingSink = opts.drawingSink;
         if (typeof drawingSink === "function") {
           const { designOpsDrawingNode: designOpsDrawingNode2 } = await Promise.resolve().then(() => (init_design_ops_svg(), design_ops_svg_exports));
-          const compiled3 = await designOpsDrawingNode2(node, opts, host, { repoRoot: REPO_ROOT2 });
-          if (compiled3 && "drawing" in compiled3) {
-            await noteDesignOps(opts, compiled3.ingredients);
-            drawingSink(compiled3.drawing);
+          const compiled4 = await designOpsDrawingNode2(node, opts, host, { repoRoot: REPO_ROOT2 });
+          if (compiled4 && "drawing" in compiled4) {
+            await noteDesignOps(opts, compiled4.ingredients);
+            drawingSink(compiled4.drawing);
             return new Blob([], { type: "image/svg+xml" });
           }
-          if (compiled3) designOpsReason = compiled3.reason;
+          if (compiled4) designOpsReason = compiled4.reason;
         } else {
           const { designOpsSvgNode: designOpsSvgNode2 } = await Promise.resolve().then(() => (init_design_ops_svg(), design_ops_svg_exports));
           const page3 = await designOpsSvgNode2(node, opts, host, { repoRoot: REPO_ROOT2 });
@@ -196912,9 +196957,9 @@ function withHost(profile2, fn, opts = {}) {
 // services/mcp/src/webshell.ts
 import { createServer } from "node:http";
 import { spawn as spawn2 } from "node:child_process";
-import { readFile as readFile26, stat as stat5 } from "node:fs/promises";
+import { readFile as readFile27, stat as stat5 } from "node:fs/promises";
 import { existsSync as existsSync20 } from "node:fs";
-import { join as join31, resolve as resolve4, extname, normalize as normalize2 } from "node:path";
+import { join as join32, resolve as resolve4, extname, normalize as normalize2 } from "node:path";
 
 // services/mcp/src/egress.ts
 import { lookup as lookup2 } from "node:dns/promises";
@@ -197035,18 +197080,18 @@ async function webShellBase() {
 }
 function webShellReady(env = process.env) {
   if (env.LOLLY_WEB_BASE) return true;
-  return existsSync20(join31(env.LOLLY_WEB_DIST || join31(REPO_ROOT, "shells", "web", "dist"), "index.html"));
+  return existsSync20(join32(env.LOLLY_WEB_DIST || join32(REPO_ROOT, "shells", "web", "dist"), "index.html"));
 }
 async function buildAndServe() {
-  const dist2 = process.env.LOLLY_WEB_DIST || join31(REPO_ROOT, "shells", "web", "dist");
-  if (!existsSync20(join31(dist2, "index.html"))) {
-    if (!existsSync20(join31(REPO_ROOT, "shells", "web", "package.json"))) {
+  const dist2 = process.env.LOLLY_WEB_DIST || join32(REPO_ROOT, "shells", "web", "dist");
+  if (!existsSync20(join32(dist2, "index.html"))) {
+    if (!existsSync20(join32(REPO_ROOT, "shells", "web", "package.json"))) {
       throw new Error(
         `No built web shell at ${dist2}. Set LOLLY_WEB_DIST to a prebuilt shell, or LOLLY_WEB_BASE to a running one. Tier-B (pdf/video/HTML-raster) needs it; SVG/data formats render without it.`
       );
     }
     await buildWebShell();
-    if (!existsSync20(join31(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
+    if (!existsSync20(join32(dist2, "index.html"))) throw new Error(`Web shell build produced no ${dist2}/index.html`);
   }
   return serveDist(dist2);
 }
@@ -197072,9 +197117,9 @@ function serveDist(dist2) {
         return;
       }
       if (urlPath === "/" || !existsSync20(filePath) || !(await stat5(filePath)).isFile()) {
-        filePath = join31(root2, "index.html");
+        filePath = join32(root2, "index.html");
       }
-      const data = await readFile26(filePath);
+      const data = await readFile27(filePath);
       res.setHeader("Content-Type", MIME3[extname(filePath)] ?? "application/octet-stream");
       res.setHeader("Cache-Control", "no-store");
       res.end(data);
@@ -197600,7 +197645,7 @@ async function readBoundedDownload(filename) {
   if (info.size > MAX_BROWSER_OUTPUT_BYTES) {
     throw new RenderError(`Browser export exceeds the ${MAX_BROWSER_OUTPUT_BYTES}-byte output limit.`);
   }
-  return new Uint8Array(await readFile28(filename));
+  return new Uint8Array(await readFile29(filename));
 }
 function browserLaunchArgs(env = process.env) {
   return [
@@ -198240,7 +198285,7 @@ init_src();
 init_content_roots();
 init_state_dir();
 import { existsSync as existsSync22, readFileSync as readFileSync11 } from "node:fs";
-import { isAbsolute as isAbsolute3, join as join35, resolve as resolve5 } from "node:path";
+import { isAbsolute as isAbsolute3, join as join36, resolve as resolve5 } from "node:path";
 var PRESET_ASSET_TAGS = ["slides", "rebrand-preset"];
 var PRESET_FILE_VERSION = 1;
 var PERSONAL_PRESETS_FILE = "rebrand-presets.json";
@@ -198435,7 +198480,7 @@ function packPresetFiles(roots2) {
   });
 }
 function personalPresetsFile(opts = {}) {
-  return opts.personalFile ?? join35(stateDir(opts.env ?? process.env), PERSONAL_PRESETS_FILE);
+  return opts.personalFile ?? join36(stateDir(opts.env ?? process.env), PERSONAL_PRESETS_FILE);
 }
 function listPresets(opts = {}) {
   const presets = [];
@@ -200245,11 +200290,11 @@ async function planStage(args, ctx) {
   });
   checkSlides(planned.source, ctx);
   checkCompileRequest(deck, planned.plan, ctx);
-  const { compiled: compiled3 } = await compileDeck({ source: planned.source, census: planned.census, plan: planned.plan, system: planned.system });
+  const { compiled: compiled4 } = await compileDeck({ source: planned.source, census: planned.census, plan: planned.plan, system: planned.system });
   const summary = planSummary(planned.plan, planned.source, planned.census);
   const queue2 = reviewQueue(planned.plan, planned.census, planned.source);
-  const counts = outcomeCounts(planned.plan, compiled3);
-  const outcome = outcomeOf3(planned.plan, compiled3);
+  const counts = outcomeCounts(planned.plan, compiled4);
+  const outcome = outcomeOf3(planned.plan, compiled4);
   const flattened = flattenedFacts(planned.flattened);
   const hash = planned.source.source.hash;
   const plan = deliverPlan(planned.plan, resourceUri(hash, `${deck.stem}.plan.json`), ctx);
@@ -200261,17 +200306,17 @@ async function planStage(args, ctx) {
     waiting: waitingOf(counts),
     summary,
     queue: { total: queue2.length, shown: Math.min(queue2.length, PLAN_QUEUE_SHOWN), items: queue2.slice(0, PLAN_QUEUE_SHOWN).map(queueRecord) },
-    report: compiled3.report.counts,
+    report: compiled4.report.counts,
     planDelivery: plan.delivery,
     ...plan.inline ? { plan: plan.inline } : {},
     ...flattened ? { flattened } : {},
-    ...autoMatch ? { autoMatched: autoMatchedFacts(autoMatch, compiled3.report) } : {}
+    ...autoMatch ? { autoMatched: autoMatchedFacts(autoMatch, compiled4.report) } : {}
   };
   const files = [
     ...plan.block ? [plan.block] : [],
-    jsonResource(resourceUri(hash, `${deck.stem}.plan.report.json`), compiled3.report)
+    jsonResource(resourceUri(hash, `${deck.stem}.plan.report.json`), compiled4.report)
   ];
-  const matchedNote = autoMatch ? ` ${autoMatchedSentence(compiled3.report)}` : "";
+  const matchedNote = autoMatch ? ` ${autoMatchedSentence(compiled4.report)}` : "";
   const sentence = `Planned ${deck.name}: ${summary.slides.included} of ${summary.slides.total} slides, keep ${summary.objects.keep}, replace ${summary.objects.replace}, remove ${summary.objects.remove}; ${waitingSentence(counts)}, so the outcome is ${outcome}.${matchedNote}${flattened ? ` ${String(flattened.note)}` : ""}`;
   return success(sentence, structured, files, ctx);
 }
@@ -200313,9 +200358,9 @@ async function compileStage(args, ctx) {
     ...autoMatch ? { autoMatch } : {},
     author: "agent"
   });
-  const compiled3 = result.compiled;
+  const compiled4 = result.compiled;
   const toolVersion = await designToolVersion2();
-  const session = designSessionFromCompiled(compiled3, {
+  const session = designSessionFromCompiled(compiled4, {
     label: read.source.source.title || deck.stem,
     projectId: `mcp:${read.source.source.instanceId}`,
     ...toolVersion ? { toolVersion } : {}
@@ -200334,7 +200379,7 @@ async function compileStage(args, ctx) {
     try {
       const { rasterizeSvgToPng: rasterizeSvgToPng2 } = await Promise.resolve().then(() => (init_raster3(), raster_exports));
       const pptx = await compiledDeckToPptx({
-        compiled: compiled3,
+        compiled: compiled4,
         system: resolved2.system,
         media: read.media,
         resolveCatalog: (ref2) => catalogAssetBytes(ref2),
@@ -200373,8 +200418,8 @@ async function compileStage(args, ctx) {
       files.push(answered.block);
     }
   }
-  const counts = outcomeCounts(result.plan, compiled3);
-  const outcome = outcomeOf3(result.plan, compiled3);
+  const counts = outcomeCounts(result.plan, compiled4);
+  const outcome = outcomeOf3(result.plan, compiled4);
   const summary = planSummary(result.plan, read.source, read.census);
   const flattened = flattenedFacts(read.flattened);
   const structured = {
@@ -200539,7 +200584,7 @@ async function callRebrand(args, env = process.env, limits = rebrandLimitsFor(en
 // packages/node-shell/src/look.ts
 init_src2();
 init_raster_child();
-import { readFile as readFile29 } from "node:fs/promises";
+import { readFile as readFile30 } from "node:fs/promises";
 import { extname as extname2, resolve as resolve6, sep as sep2 } from "node:path";
 import { fileURLToPath as fileURLToPath13 } from "node:url";
 var B642 = /^[A-Za-z0-9+/]*={0,2}$/;
@@ -200601,7 +200646,7 @@ async function cleanRef(value2, roots2, depth) {
   const mime2 = IMAGE_TYPES[extname2(full).toLowerCase()];
   if (!mime2) return "";
   try {
-    const bytes2 = await readFile29(full);
+    const bytes2 = await readFile30(full);
     if (bytes2.length > MAX_INLINE_BYTES) return "";
     if (mime2 === "image/svg+xml") {
       if (depth >= MAX_NESTING) return "";
@@ -205636,9 +205681,9 @@ function isFileTransform(manifest) {
 init_file_v1();
 init_delivery_v1();
 import { createHash as createHash16, createHmac, randomUUID as randomUUID3 } from "node:crypto";
-import { mkdtemp as mkdtemp4, readFile as readFile33, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
+import { mkdtemp as mkdtemp4, readFile as readFile34, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
-import { join as join37 } from "node:path";
+import { join as join38 } from "node:path";
 var RESULT_LINK_THRESHOLD = 1024 * 1024;
 var RESULT_TTL_SEC = 300;
 var OWNER_LIMIT = 64 * 1024 * 1024;
@@ -205706,8 +205751,8 @@ var ResultFiles = class {
     try {
       const base = new URL(origin);
       const expires = Math.floor(this.now() / 1e3) + this.lifetimeSeconds;
-      this.directory ??= mkdtemp4(join37(tmpdir5(), "lolly-mcp-results-"));
-      file = join37(await this.directory, id3);
+      this.directory ??= mkdtemp4(join38(tmpdir5(), "lolly-mcp-results-"));
+      file = join38(await this.directory, id3);
       await writeFile7(file, bytes2, { flag: "wx", mode: 384 });
       const digest2 = createHash16("sha256").update(bytes2).digest("hex");
       const dt = await signDeliveryToken({ v: 1, kid: "mcp1", exp: expires, cls: "person-private" }, path, { canonicalHost: base.host, subject: owner3 }, await this.key(base.host, secret));
@@ -205737,7 +205782,7 @@ var ResultFiles = class {
     const host = new URL(origin).host;
     const status = await verifyDeliveryToken(token2, path, { canonicalHost: host, cls: "person-private", pattern: PATH_PATTERN, subject: owner3, maxSkewSec: 0 }, /* @__PURE__ */ new Map([["mcp1", await this.key(host, secret)]]), Math.floor(this.now() / 1e3));
     if (status !== "ok") return null;
-    const bytes2 = await readFile33(entry2.file);
+    const bytes2 = await readFile34(entry2.file);
     if (bytes2.byteLength !== entry2.size || createHash16("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
     if (entry2.expires <= Math.floor(this.now() / 1e3)) return null;
     return { bytes: bytes2, mime: entry2.mime, name: entry2.name, etag: `"${entry2.sha256}"` };
@@ -206517,9 +206562,9 @@ async function callTool(name, args, holdResult) {
           const resolved2 = await resolveInputs(toolId, tool.manifest, args);
           const validation = validateToolInputs(tool.manifest, resolved2.inputs);
           if (!validation.ok) return invalidInputs(validation);
-          const compiled3 = await withHost({}, async (_dom, host) => compileDocument(tool, resolved2.inputs, { host }));
-          if (name === "lolly_compile") return textOnly2(JSON.stringify({ ...compiled3, validation, ...resolved2.motion ? { motion: { times: resolved2.motion.times, changes: resolved2.motion.changes, detached: resolved2.motion.detached } } : {}, ...resolved2.template ? { template: resolved2.template } : {}, ...resolved2.authoring ? { authoring: resolved2.authoring } : {} }, null, 2));
-          document2 = compiled3.document;
+          const compiled4 = await withHost({}, async (_dom, host) => compileDocument(tool, resolved2.inputs, { host }));
+          if (name === "lolly_compile") return textOnly2(JSON.stringify({ ...compiled4, validation, ...resolved2.motion ? { motion: { times: resolved2.motion.times, changes: resolved2.motion.changes, detached: resolved2.motion.detached } } : {}, ...resolved2.template ? { template: resolved2.template } : {}, ...resolved2.authoring ? { authoring: resolved2.authoring } : {} }, null, 2));
+          document2 = compiled4.document;
         }
         return textOnly2(JSON.stringify(name === "lolly_inspect" ? inspectCompiledDocument(document2) : measureDocument(document2), null, 2));
       }
@@ -206922,8 +206967,8 @@ function readProductionReference(value2) {
 init_design_brief();
 init_colour_roles();
 init_design_brief2();
-import { readFile as readFile34 } from "node:fs/promises";
-import { join as join38 } from "node:path";
+import { readFile as readFile35 } from "node:fs/promises";
+import { join as join39 } from "node:path";
 init_brand_skill_v1();
 init_src2();
 init_schema();
@@ -206956,7 +207001,7 @@ async function tokensResource(uri) {
   const tokenUrl = tokenAsset2.formats[0].url;
   const tokenPath = contentUrl(tokenUrl);
   if (!tokenPath) throw new Error(`Tokens asset ${tokenAsset2.id}: ${tokenUrl} is not in this profile's catalog.`);
-  const doc = JSON.parse(await readFile34(tokenPath, "utf8"));
+  const doc = JSON.parse(await readFile35(tokenPath, "utf8"));
   return { uri, mimeType: "application/json", text: JSON.stringify(tokensListing(doc), null, 2) };
 }
 function tokensListing(doc) {
@@ -206994,7 +207039,7 @@ async function previewResource(uri, id3) {
     if (!file) continue;
     const mimeType = PREVIEW_TYPES2[url.slice(url.lastIndexOf(".") + 1)];
     try {
-      const bytes2 = await readFile34(file);
+      const bytes2 = await readFile35(file);
       return mimeType === "image/svg+xml" ? { uri, mimeType, text: bytes2.toString("utf8") } : { uri, mimeType, blob: bytes2.toString("base64") };
     } catch {
     }
@@ -207049,12 +207094,12 @@ async function readResource(uri) {
     const skill = await brandSkillResource(uri);
     if (skill) return skill;
   }
-  if (uri === "lolly://skill") return { uri, mimeType: "text/markdown", text: await readFile34(join38(REPO_ROOT, "skills/lolly/SKILL.md"), "utf8") };
+  if (uri === "lolly://skill") return { uri, mimeType: "text/markdown", text: await readFile35(join39(REPO_ROOT, "skills/lolly/SKILL.md"), "utf8") };
   const sharedSkillMatch = /^lolly:\/\/skill\/((?:reference|examples)\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:md|json))$/.exec(uri);
   if (sharedSkillMatch) return {
     uri,
     mimeType: uri.endsWith(".json") ? "application/json" : "text/markdown",
-    text: await readFile34(join38(REPO_ROOT, "skills/lolly", sharedSkillMatch[1]), "utf8")
+    text: await readFile35(join39(REPO_ROOT, "skills/lolly", sharedSkillMatch[1]), "utf8")
   };
   const skillMatch = /^lolly:\/\/tool\/([a-z0-9-]+)\/skill$/.exec(uri);
   if (skillMatch) {
@@ -207090,7 +207135,7 @@ async function readResource(uri) {
 // services/mcp/src/file-resources.ts
 import { mkdtemp as mkdtemp5, writeFile as writeFile8, unlink as unlink2, rm as rm7 } from "node:fs/promises";
 import { tmpdir as tmpdir6 } from "node:os";
-import { join as join39 } from "node:path";
+import { join as join40 } from "node:path";
 import { randomUUID as randomUUID4 } from "node:crypto";
 
 // packages/node-shell/src/file-operations.ts
@@ -207360,8 +207405,8 @@ var PrivateFileResources = class {
     const id3 = randomUUID4();
     let path;
     try {
-      this.directory ??= mkdtemp5(join39(tmpdir6(), "lolly-private-files-"));
-      path = join39(await this.directory, id3);
+      this.directory ??= mkdtemp5(join40(tmpdir6(), "lolly-private-files-"));
+      path = join40(await this.directory, id3);
       const facts2 = await describeOperationFile(file);
       await writeFile8(path, Buffer.from(await file.arrayBuffer()), { flag: "wx", mode: 384 });
       const ref2 = { id: id3, version: facts2.sha256, role, facts: facts2, ...source ? { derivedFrom: { id: source.ref.id, version: source.ref.version, sha256: source.ref.facts.sha256 } } : {} };

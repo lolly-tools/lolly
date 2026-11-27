@@ -354,6 +354,7 @@ addCargoCrates('packages/node-shell/wasm/audio-dsp/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/indd/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/camera-raw/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/affinity/Cargo.lock');
+addCargoCrates('packages/node-shell/wasm/woff2-kernel/Cargo.lock');
 // The lolly-render Node binding and the core crate it links (plan 371 M3b).
 addCargoCrates('crates/lolly-render-node/Cargo.lock');
 

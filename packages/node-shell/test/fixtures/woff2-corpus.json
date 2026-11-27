@@ -1,5 +1,5 @@
 {
-  "about": "SHA-256 of the sfnt bytes woff2-encoder 2.0.0 (google/woff2 4721483, Brotli 1.0.3) returns for every public WOFF2 font in the tree. Any decoder that replaces it must return the same bytes.",
+  "about": "SHA-256 of the sfnt bytes the original decoder, woff2-encoder 2.0.0 (google/woff2 4721483, Brotli 1.0.3), returned for every public WOFF2 font in the tree. The Rust decoder that replaced it (packages/node-shell/wasm/woff2-kernel) returns the same bytes, and any later decoder must too.",
   "fonts": {
     "community/fallback-fonts/noto-sans-arabic.woff2": {
       "bytes": 503172,

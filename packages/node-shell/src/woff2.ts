@@ -2,40 +2,36 @@
 /**
  * The one place Lolly turns a WOFF2 file into sfnt bytes, for the web app and Node alike.
  *
- * The decoder is still `woff2-encoder/decompress`: Google's woff2 C++ library with
- * Brotli 1.0.3, compiled to WebAssembly. Brotli 1.0.3 to 1.2.0 carry CVE-2026-111497,
- * an out-of-bounds write in the decoder's block-switch handling, and a WOFF2 file is
- * a Brotli stream the sender wrote. Until a memory-safe decoder replaces the module,
- * every caller goes through `decodeWoff2`, which:
+ * The decoder is `wasm/woff2-kernel` (woff2-kernel.ts): the `wuff` crate, a Rust port of Google's
+ * woff2 library, with `brotli-decompressor`, Dropbox's pure-Rust Brotli decoder, compiled
+ * to WebAssembly from Rust with no unsafe code in the decoding path. It replaced
+ * `woff2-encoder/decompress` (Google's C++ library with Brotli 1.0.3, in the range of
+ * CVE-2026-111497) and returns the same bytes for every public WOFF2 font in the tree
+ * (test/fixtures/woff2-corpus.json). Every caller goes through `decodeWoff2`, which:
  *
  * - reads the WOFF2 header and table directory first (`preflightWoff2`) with the same
- *   rules the C++ reader applies, and refuses before the decoder runs when the file
- *   is malformed, declares a decoded size (totalSfntSize) past the limit, or would
- *   need more memory than the decoder's own 30 MiB output ceiling. The decoder
- *   allocates its whole Brotli target up front, from the directory, at up to 100
- *   times the file size;
- * - runs each decode in its own worker with a fresh copy of the module, ended after
+ *   rules google/woff2 applies, and refuses before the decoder runs when the file is
+ *   malformed, declares a decoded size (totalSfntSize) past the limit, or would need
+ *   more than 30 MiB of decompressed tables, or more than 100 times the file size;
+ * - runs each decode in its own worker with a fresh instance of the module, ended after
  *   the one font or when the time limit passes: a Web Worker in browsers
- *   (`woff2-decode.worker.ts`), a worker thread in Node (`woff2-node.ts` registers
- *   that runner), at most four at once. With one shared module, a crafted 11 MB
- *   file grew it by about 1 GB for the rest of the session, and repeated larger ones
- *   stopped every later WOFF2 decode in the process; a damaged heap could also have
- *   changed a later font's bytes. Each instance now ends with its font. Where no
- *   worker can start, the font is refused: nothing decodes in the page or process;
+ *   (`woff2-decode.worker.ts`), a worker thread in Node (`woff2-node.ts` registers that
+ *   runner), at most four at once. The module is compiled once per page or process and
+ *   handed to each worker; the instance, and the memory a font was decoded in, ends with
+ *   the font. Where no worker can start, the font is refused: nothing decodes in the
+ *   page or process;
  * - checks what comes back (`checkSfntOutput`): an sfnt or collection header whose
- *   table records lie inside the returned bytes, no longer than the declared size
- *   or the end of the last table, with nothing but zeros after that table;
- * - keeps the decoder behind one module, so replacing it touches this file and the
- *   two worker entries.
+ *   table records lie inside the returned bytes, no longer than the declared size or
+ *   the end of the last table, with nothing but zeros after that table;
+ * - keeps the decoder behind one module, so replacing it touches woff2-kernel.ts and
+ *   the two worker entries.
  *
- * What it cannot do: the Brotli stream itself is only read by the decoder, so this
- * does not stop the CVE's out-of-bounds write. That write stays inside the worker's
- * copy of the module's linear memory, and can change the output of that one decode.
- * Callers treat the output as untrusted input to their own font readers, as they
+ * Callers still treat the output as untrusted input to their own font readers, as they
  * would a TTF a person uploaded.
  */
+import { compileWoff2Kernel } from './woff2-kernel.ts';
 
-/** The decoder's own ceilings (google/woff2 `kDefaultMaxSize` and its plausible ratio). */
+/** The decoder's ceilings: the module's own 30 MiB, and google/woff2's plausible ratio. */
 export const WOFF2_LIMITS = Object.freeze({
   /** The largest WOFF2 file read: the font upload limit. */
   maxInputBytes: 32 * 1024 * 1024,
@@ -64,10 +60,10 @@ export interface Woff2Facts {
   collection: boolean;
   numTables: number;
   /**
-   * The header's totalSfntSize. The spec makes the value advisory, but woff2-encoder
-   * 2.0.0 sizes its output buffer from the value (up to 30 MiB), so the value bounds
-   * what comes back: at least that many bytes, and more only when the font's own
-   * tables run past the value.
+   * The header's totalSfntSize. The spec makes the value advisory; the decoder writes
+   * the rebuilt tables, each padded to four bytes, so for a well-formed font the output
+   * is exactly this long, and the output check refuses anything longer than this or the
+   * padded end of the last table.
    */
   totalSfntSize: number;
   /** The Brotli target size: the sum of every table's stored length. */
@@ -213,8 +209,8 @@ export function preflightWoff2(bytes: Uint8Array, limits: Woff2Limits = WOFF2_LI
     }
   }
 
-  // Memory: the decoder allocates the Brotli target and the header area before it
-  // reads a byte of Brotli. Refuse what it could not hold rather than let it try.
+  // Memory: the decoder allocates the Brotli target before it reads a byte of Brotli.
+  // Refuse what the decoder would not hold rather than start a worker for the file.
   if (uncompressedSize > length * limits.maxRatio) throw new Woff2Error('too-large', 'This WOFF2 font declares more data than its size allows.');
   if (uncompressedSize > limits.maxOutputBytes || headerBytes > limits.maxOutputBytes) {
     throw new Woff2Error('too-large', `This WOFF2 font expands past ${sizeText(limits.maxOutputBytes)}.`);
@@ -291,6 +287,12 @@ export interface Woff2RunOptions {
 }
 export type Woff2Runner = (bytes: Uint8Array, options: Woff2RunOptions) => Promise<Uint8Array>;
 
+/** What a decode worker is given: the compiled decoder module and the one font. */
+export interface Woff2WorkerRequest {
+  module: WebAssembly.Module;
+  bytes: Uint8Array;
+}
+
 /** What a decode worker posts back: the sfnt bytes, or the decoder's error text. */
 export interface Woff2WorkerReply {
   out?: Uint8Array;
@@ -304,14 +306,14 @@ export function setWoff2Runner(runner: Woff2Runner | undefined): void {
   registeredRunner = runner;
 }
 
-/** The longest one decode may take, counted from the worker's start. The largest public font in the tree takes about 0.25 s. */
+/** The longest one decode may take, counted from the worker's start. The largest public font in the tree takes under 0.1 s. */
 export const WOFF2_TIMEOUT_MS = 20_000;
 
 /**
  * At most this many decode workers at once. A page can ask for every face of a document
- * together; each worker holds its own copy of the module and up to the font's decoded
- * size, so a document with 40 faces would otherwise hold 40 of them in memory at once.
- * Each worker still decodes one font and ends.
+ * together; each worker holds its own instance of the module and up to the font's
+ * decoded size, so a document with 40 faces would otherwise hold 40 of them in memory at
+ * once. Each worker still decodes one font and ends.
  */
 export const WOFF2_WORKER_LIMIT = 4;
 
@@ -339,13 +341,32 @@ export function woff2Slots(limit: number): (signal?: AbortSignal) => Promise<() 
 
 const webSlot = woff2Slots(WOFF2_WORKER_LIMIT);
 
+let webModule: Promise<WebAssembly.Module> | undefined;
+/**
+ * The decoder module, fetched and compiled once per page (compiling is asynchronous and
+ * leaves the main thread free). The bundler emits the .wasm as a hashed asset beside the
+ * chunk, which the service worker caches with the rest of the app.
+ */
+function webKernelModule(): Promise<WebAssembly.Module> {
+  webModule ??= (async () => {
+    const response = await fetch(new URL('../wasm/woff2-kernel/woff2-kernel.wasm', import.meta.url));
+    if (!response.ok) throw new Error(`the decoder module did not load (HTTP ${response.status})`);
+    return compileWoff2Kernel(new Uint8Array(await response.arrayBuffer()));
+  })().catch((error: unknown) => {
+    webModule = undefined;
+    throw new Woff2Error('decode-failed', 'This WOFF2 font could not be decoded.', { cause: error });
+  });
+  return webModule;
+}
+
 /** Browsers: one module Web Worker per decode, ended when the font comes back or time runs out. */
 const webWorkerRunner: Woff2Runner = async (bytes, options) => {
+  const module = await webKernelModule();
   const release = await webSlot(options.signal);
-  try { return await runInWebWorker(bytes, options); } finally { release(); }
+  try { return await runInWebWorker(module, bytes, options); } finally { release(); }
 };
 
-const runInWebWorker: Woff2Runner = (bytes, { timeoutMs, signal }) => new Promise((resolve, reject) => {
+const runInWebWorker = (module: WebAssembly.Module, bytes: Uint8Array, { timeoutMs, signal }: Woff2RunOptions): Promise<Uint8Array> => new Promise((resolve, reject) => {
   signal?.throwIfAborted();
   const worker = new Worker(new URL('./woff2-decode.worker.ts', import.meta.url), { type: 'module' });
   let settled = false;
@@ -363,7 +384,7 @@ const runInWebWorker: Woff2Runner = (bytes, { timeoutMs, signal }) => new Promis
   worker.onerror = (event) => { event.preventDefault(); finish(new Woff2Error('decode-failed', 'This WOFF2 font could not be decoded.', { cause: event.message || 'the decoder worker did not start' })); };
   worker.onmessage = ({ data }: MessageEvent<Woff2WorkerReply>) => finish(new Woff2Error('decode-failed', 'This WOFF2 font could not be decoded.', { cause: data.error ?? 'no reply' }), data.out);
   const copy = bytes.slice();
-  worker.postMessage(copy, [copy.buffer]);
+  worker.postMessage({ module, bytes: copy } satisfies Woff2WorkerRequest, [copy.buffer]);
 });
 
 export interface DecodeWoff2Options {
