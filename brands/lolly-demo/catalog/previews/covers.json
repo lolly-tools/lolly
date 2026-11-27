@@ -20,7 +20,7 @@
    }
   },
   "darkroom": {
-   "version": "2.6.0",
+   "version": "2.7.0",
    "light": {
     "templateId": "warm-portrait",
     "file": "/catalog/previews/covers/darkroom.light.webp"
@@ -31,7 +31,7 @@
    }
   },
   "filter": {
-   "version": "1.7.0",
+   "version": "1.8.0",
    "light": {
     "templateId": "colour-scanlines",
     "file": "/catalog/previews/covers/filter.light.webp"

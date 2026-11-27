@@ -549,7 +549,7 @@
     "label": "Light",
     "section": "Ink",
     "type": "color",
-    "default": "#bff1ea",
+    "default": "",
     "showIf": {
       "effect": "scanline",
       "sc_colorSource": "tones"
@@ -560,7 +560,8 @@
     "label": "Mid",
     "section": "Ink",
     "type": "color",
-    "default": "#008878",
+    "default": "",
+    "help": "Leave Light, Mid and Shade empty for a ramp of the design system's lead colour. Set Mid alone and the other two follow.",
     "showIf": {
       "effect": "scanline",
       "sc_colorSource": "tones"
@@ -571,7 +572,7 @@
     "label": "Shade",
     "section": "Ink",
     "type": "color",
-    "default": "#01564a",
+    "default": "",
     "showIf": {
       "effect": "scanline",
       "sc_colorSource": "tones"
@@ -2282,7 +2283,7 @@
     "section": "Overlay",
     "type": "boolean",
     "default": false,
-    "help": "A gently-animated name card that draws in over the footage. Uses your profile name & headshot."
+    "help": "A name card that draws in over the footage, from your profile name and headshot. A GIF, APNG or video export plays it in, holds and plays it out."
   },
   {
     "id": "ltTheme",
@@ -2438,5 +2439,16 @@
     "min": 1,
     "max": 8000,
     "group": "export"
+  },
+  {
+    "id": "ovClear",
+    "label": "Clear background",
+    "section": "Overlay",
+    "type": "boolean",
+    "default": false,
+    "help": "Leave the picture out, so the logo and name card stand alone. PNG, WebP, GIF and APNG keep the ground clear; video sits on the surface colour.",
+    "showIf": {
+      "noFilter": true
+    }
   }
 ]

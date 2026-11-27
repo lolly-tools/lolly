@@ -1,4 +1,4 @@
-<div class="bs-wrap">
+<div class="bs-wrap"{{#if wipe}} data-clip-ms="{{wipeClipMs}}"{{/if}}>
   <svg xmlns="http://www.w3.org/2000/svg" class="bs-svg" viewBox="0 0 {{width}} {{height}}" width="{{width}}" height="{{height}}"
        preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;">
     {{#if outSrc}}
@@ -28,11 +28,21 @@
     <line data-bs-seam x1="0" y1="0" x2="0" y2="0" stroke="#ffffff" stroke-width="2" stroke-opacity="0.92" stroke-linecap="butt"/>
     {{/if}}{{/if}}
     {{else}}
-    <rect width="{{width}}" height="{{height}}" fill="#101018"/>
+    <!-- The empty state sits on the design system's surface, in its muted ink. The
+         literals answer only where a system gives neither. -->
+    <rect width="{{width}}" height="{{height}}" fill="{{default _emptyGround "#101018"}}"/>
     <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
-          font-family="{{default _fontBrand "SUSE, sans-serif"}}" font-size="34" fill="#9ca3af">{{default note "Choose an image to grade"}}</text>
+          font-family="{{default _fontBrand "SUSE, sans-serif"}}" font-size="34" fill="{{default _emptyInk "#9ca3af"}}">{{default note "Choose an image to grade"}}</text>
     {{/if}}
   </svg>
+  {{#if wipe}}
+  <!-- Before and after wipe: the untouched picture over the graded one, cut back by
+       a seam that crosses once. Drawn on a canvas by the wipe script below, which
+       the export clock drives frame by frame. At rest the canvas is empty and
+       hidden, so a still shows the graded picture alone. -->
+  <canvas class="bs-wipe" data-bs-wipe data-wipe-ms="{{wipeMs}}" data-wipe-curve="{{wipeCurve}}" data-wipe-before="{{beforeSrc}}" width="2" height="2" aria-hidden="true"></canvas>
+  <button type="button" class="bs-chip bs-wipe-replay" data-bs-wipe-replay data-export-hide>Replay</button>
+  {{/if}}
 
   <!-- Screen-only chrome: excluded from EVERY export via data-export-hide. -->
   <div class="bs-hud" data-export-hide aria-hidden="true">
@@ -241,6 +251,112 @@
   drag(moveGrip, 'move');
   drag(rotGrip, 'rot');
   apply();
+})();
+</script>
+<script>
+/* Before and after wipe. One pass: the seam starts at the left edge with the
+   untouched picture across the whole frame, crosses to the right on the design
+   system's curve and leaves the graded picture. Three drivers share one draw:
+   - the export clock (__lollyFrameRender), which gives a clip's frames their exact
+     time and, with no clip length, the finished still;
+   - the preview, which plays once when the option is turned on and again from
+     Replay, and stays at rest under reduced motion;
+   - rest, the graded picture alone.
+   State lives on the stable container, because each paint replaces this DOM and
+   runs this script again. IIFE + var for the same reason. */
+(function () {
+  var me = document.currentScript;
+  var root = me && me.parentNode; if (!root || !root.querySelector) return;
+  var st = root.__bsWipe || (root.__bsWipe = { on: false, start: 0, raf: 0 });
+  if (st.raf) { cancelAnimationFrame(st.raf); st.raf = 0; }
+  var wrap = root.querySelector('.bs-wrap');
+  var cv = wrap && wrap.querySelector('canvas[data-bs-wipe]');
+  if (!cv) { st.on = false; return; }
+
+  var ms = parseFloat(cv.getAttribute('data-wipe-ms')) || 1400;
+  var c = (cv.getAttribute('data-wipe-curve') || '').split(',').map(Number);
+  if (c.length !== 4 || c.some(function (v) { return !isFinite(v); })) c = [0.2, 0, 0, 1];
+  // y of cubic-bezier(c) at x = p, by bisection on the curve's x.
+  function ease(p) {
+    if (p <= 0) return 0;
+    if (p >= 1) return 1;
+    var lo = 0, hi = 1, u = p;
+    for (var i = 0; i < 24; i++) {
+      u = (lo + hi) / 2;
+      var x = 3 * (1 - u) * (1 - u) * u * c[0] + 3 * (1 - u) * u * u * c[2] + u * u * u;
+      if (x < p) lo = u; else hi = u;
+    }
+    return 3 * (1 - u) * (1 - u) * u * c[1] + 3 * (1 - u) * u * u * c[3] + u * u * u;
+  }
+
+  // The decoded "before" picture is kept between paints, so an export stage that
+  // mounts after the preview draws its first frame without waiting on a decode.
+  var src = cv.getAttribute('data-wipe-before') || '';
+  var kept = window.__bsWipeImg;
+  var img = kept && kept.src === src ? kept.img : new Image();
+  var pending = null;
+  function ready() { return img.complete && img.naturalWidth > 0; }
+  function size() {
+    if (cv.width !== img.naturalWidth) cv.width = img.naturalWidth;
+    if (cv.height !== img.naturalHeight) cv.height = img.naturalHeight;
+  }
+  // p 0: the untouched picture everywhere. p 1: nothing, the graded picture shows.
+  function draw(p) {
+    if (!ready()) { pending = p; return; }
+    size();
+    var w = cv.width, h = cv.height, ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, w, h);
+    if (p >= 1) return;
+    var x = p * w;
+    ctx.drawImage(img, x / w * img.naturalWidth, 0, img.naturalWidth - x / w * img.naturalWidth, img.naturalHeight, x, 0, w - x, h);
+    if (p > 0) {
+      var lw = Math.max(1.5, w / 450);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+      ctx.fillRect(x - lw / 2, 0, lw, h);
+    }
+  }
+  if (!ready()) {
+    img.onload = function () { if (pending !== null) { var p = pending; pending = null; draw(p); } };
+    if (img.src !== src) img.src = src;
+    window.__bsWipeImg = { src: src, img: img };
+  }
+
+  function rest() { st.start = 0; draw(1); cv.style.display = 'none'; }
+
+  var clock = function (t, clipSec) {
+    if (st.raf) { cancelAnimationFrame(st.raf); st.raf = 0; }
+    if (!(clipSec > 0)) { rest(); return; }
+    cv.style.display = '';
+    draw(ease(t * clipSec * 1000 / ms));
+  };
+  clock.stillPose = true;
+  cv.__lollyFrameRender = clock;
+
+  function tick() {
+    st.raf = 0;
+    if (cv.__lollyFrameDriven) return;
+    var el = performance.now() - st.start;
+    if (el >= ms) { rest(); return; }
+    cv.style.display = '';
+    draw(ease(el / ms));
+    st.raf = requestAnimationFrame(tick);
+  }
+  function calm() {
+    return (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+      || document.documentElement.getAttribute('data-a11y-motion') === 'reduce';
+  }
+  function play() { if (calm()) { rest(); return; } st.start = performance.now(); tick(); }
+
+  // Only a canvas the person can see plays by itself. An export or preview stage
+  // parked off screen stays at rest until its clock is driven.
+  var r = wrap.getBoundingClientRect();
+  var onScreen = r.width > 0 && r.right > 0 && r.left < innerWidth && r.bottom > 0 && r.top < innerHeight;
+  var replay = wrap.querySelector('[data-bs-wipe-replay]');
+  if (replay) replay.addEventListener('click', function (e) { e.preventDefault(); play(); });
+
+  if (!st.on && onScreen) { st.on = true; play(); }
+  else if (st.start && performance.now() - st.start < ms && onScreen && !calm()) tick();
+  else rest();
 })();
 </script>
 <script>

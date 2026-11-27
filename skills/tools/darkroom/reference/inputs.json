@@ -2024,5 +2024,16 @@
     "min": 1,
     "max": 8000,
     "group": "export"
+  },
+  {
+    "id": "wipe",
+    "label": "Before and after wipe",
+    "section": "View",
+    "type": "boolean",
+    "default": false,
+    "help": "A clip that opens on the untouched picture, then a seam crosses once and leaves the graded one. Export it as WebM, MP4, GIF or APNG. A still export shows the graded picture.",
+    "showIf": {
+      "splitPreview": false
+    }
   }
 ]
