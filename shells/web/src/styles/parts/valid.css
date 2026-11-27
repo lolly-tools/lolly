@@ -734,33 +734,9 @@
    .valid-wm entirely (see watermarkNote/trustmarkNoteHtml in views/valid.ts). */
 .valid-deepscan { margin-top: var(--ui-space-panel); display: flex; flex-direction: column; align-items: flex-start; gap: var(--ui-space-control-inline); }
 
-/* Batch consent banner - the one-time "enable deep scan" offer at the top of the
-   report. After one click the detectors download once and every file is scanned
-   automatically; on later visits (models cached) this never appears. Understated
-   (a soft neutral card, not the loud violet AI banner) - it's an optional extra. */
-.valid-deepscan-banner {
-  display: flex; align-items: center; gap: var(--sp-6);
-  margin-bottom: var(--ui-space-panel); padding: var(--sp-6) var(--ui-space-panel);
-  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-panel);
-  background: color-mix(in srgb, var(--ui-color-surface-muted) 35%, transparent);
-}
-.valid-deepscan-banner-ic { flex: 0 0 auto; display: inline-flex; color: var(--ui-color-text-muted); }
-.valid-deepscan-banner-ic svg { width: 1.4rem; height: 1.4rem; }
-.valid-deepscan-banner-text { display: grid; gap: var(--sp-1); min-width: 0; }
-.valid-deepscan-banner-text strong { font-size: calc(0.92rem * var(--a11y-fs)); }
-.valid-deepscan-banner-text span { font-size: var(--ui-type-body); color: var(--ui-color-text-muted); }
-.valid-deepscan-enable {
-  flex: 0 0 auto; margin-left: auto;
-  font-size: var(--ui-type-body); padding: var(--ui-space-control-inline) var(--ui-space-panel); border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-text-default); color: var(--ui-color-surface-canvas); border: 0; font-weight: 600;
-}
-.valid-deepscan-enable:hover:not(:disabled) { opacity: 0.9; }
-.valid-deepscan-enable:disabled { opacity: 0.6; cursor: default; }
-
-/* Download-progress bar for the "Enable" click - hidden until a real fetch is
-   in flight (views/valid.ts's enableDeepScan). Same width-driven-fill idiom as
-   .storage-bar-wrap/.storage-bar-fill (profile page), just taller and inside the
-   banner's text column. `.is-indeterminate` covers BOTH the brief gap before the
+/* Download-progress bar for the watermark scan's row - hidden until a real fetch
+   is in flight (views/valid.ts's enableDeepScan). Same width-driven-fill idiom as
+   .storage-bar-wrap/.storage-bar-fill (profile page), just taller. `.is-indeterminate` covers BOTH the brief gap before the
    first chunk arrives and a Content-Length-less response - a sliding highlight
    rather than a fabricated percentage. */
 .valid-deepscan-progress {
@@ -784,57 +760,6 @@
 @media (prefers-reduced-motion: reduce) {
   .valid-deepscan-progress.is-indeterminate .valid-deepscan-progress-fill { animation: none; opacity: 0.5; }
 }
-
-/* AI declarations retain their violet signal colour and use brand elevation. */
-.valid-ai-flag {
-  position: relative; isolation: isolate; overflow: hidden;
-  display: flex; align-items: center; gap: var(--ui-space-panel);
-  padding: var(--ui-space-panel);
-  border-radius: var(--ui-radius-panel);
-  border: 1px solid hsl(var(--vf-ai-1) / 0.65);
-  color: hsl(0 0% 100%);
-  background: linear-gradient(115deg, hsl(var(--vf-ai-1)), hsl(var(--vf-ai-2)));
-  box-shadow: var(--ui-elevation-panel);
-  animation: none;
-}
-/* Sheen bar that sweeps across every few seconds. */
-.valid-ai-flag::after {
-  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background: linear-gradient(105deg, transparent 32%, hsl(0 0% 100% / 0.3) 48%, transparent 64%);
-  transform: translateX(-120%);
-  animation: valid-ai-sheen 3.6s ease-in-out infinite;
-}
-.valid-ai-flag > * { position: relative; z-index: 1; }
-.valid-ai-flag-ic { flex: 0 0 auto; display: inline-flex; }
-.valid-ai-flag-ic svg {
-  width: 2rem; height: 2rem; stroke-width: 1.7;
-  animation: valid-ai-twinkle 2.2s ease-in-out infinite;
-}
-.valid-ai-flag-text { display: grid; gap: var(--sp-1); min-width: 0; }
-.valid-ai-flag-text strong { font-size: calc(1.02rem * var(--a11y-fs)); letter-spacing: -0.01em; }
-.valid-ai-flag-text span { font-size: var(--ui-type-body); color: hsl(0 0% 100% / 0.9); }
-.valid-ai-flag-tag {
-  flex: 0 0 auto; margin-left: auto; align-self: flex-start;
-  font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.09em;
-  padding: var(--sp-2) var(--ui-space-control-inline); border-radius: var(--ui-radius-pill);
-  background: hsl(0 0% 100% / 0.22); border: 1px solid hsl(0 0% 100% / 0.45);
-}
-@keyframes valid-ai-sheen { 0% { transform: translateX(-120%); } 55%, 100% { transform: translateX(120%); } }
-@keyframes valid-ai-twinkle {
-  0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
-  50%      { opacity: 0.78; transform: scale(1.12) rotate(8deg); }
-}
-/* The "likely" (pipeline-fingerprint) tier is deliberately calmer than a
-   declaration: same violet identity, none of the motion, a softer lift. */
-.valid-ai-flag--likely { animation: none; box-shadow: var(--ui-elevation-panel); }
-.valid-ai-flag--likely::after { display: none; }
-.valid-ai-flag--likely .valid-ai-flag-ic svg { animation: none; }
-/* Credit line ("Made with Google AI") + the invisible-watermark note inside the
-   AI banner - the note reads as a quieter footnote under the main claim. */
-.valid-ai-flag-credit { font-size: var(--ui-type-body); font-style: italic; color: hsl(0 0% 100% / 0.95); }
-.valid-ai-flag-note { margin-top: var(--sp-3); font-size: calc(0.76rem * var(--a11y-fs)); color: hsl(0 0% 100% / 0.82); }
-.valid-ai-flag-note strong { color: hsl(0 0% 100%); }
-.valid-ai-flag-note a { color: inherit; font-weight: 700; text-decoration: underline; }
 
 /* In-pixel watermark signals live in the hero scorecard as pips, not as hero
    badges: the Lolly Imprint (detected on-device) is a green pass pip; SynthID /
@@ -868,19 +793,8 @@
 .valid-wm--warn { border-color: hsl(var(--vf-warn) / 0.4); background: hsl(var(--vf-warn) / 0.08); }
 .valid-wm--warn .valid-wm-ic { background: hsl(var(--vf-warn) / 0.22); color: hsl(30 75% 30%); }
 
-/* Neutral action variant - the opt-in "check for a resized Imprint" (Tier 2 pixel
-   search) prompt, shown when the automatic pass (Tier 0 + Tier 1) found no Imprint.
-   Neutral-toned (no verdict has been reached yet) with a right-aligned trigger; on
-   a hit the whole block is replaced by the standard pass-tinted .valid-wm note. */
-.valid-wm--action { border-color: var(--ui-color-border-default); background: color-mix(in srgb, var(--ui-color-surface-muted) 40%, transparent); align-items: center; }
-.valid-wm--action .valid-wm-ic { background: color-mix(in srgb, var(--ui-color-text-muted) 16%, transparent); color: var(--ui-color-text-muted); }
-.valid-wm-rescan { flex: 0 0 auto; align-self: center; white-space: nowrap; }
+/* The line under the resized-Imprint search when nothing was recovered. */
 .valid-wm-rescan-miss { display: block; margin-top: var(--sp-3); font-size: var(--ui-type-label); color: var(--ui-color-text-muted); }
-@media (max-width: 639px) {
-  .valid-wm--action { flex-wrap: wrap; }
-  .valid-wm--action .valid-wm-text { flex: 1 1 12rem; }
-  .valid-wm--action .valid-wm-rescan { margin-left: auto; white-space: normal; max-width: 100%; }
-}
 
 /* Appended-payload View/Download actions - reuses .valid-clean-link's quiet
    inline-text-button styling rather than adding a new button treatment, and
@@ -1447,13 +1361,9 @@ box-shadow: var(--ui-elevation-control);
   .valid-hero-icon::after,
   .valid-score-pip,
   .valid-check,
-  .valid-check::after,
-  .valid-ai-flag,
-  .valid-ai-flag::after,
-  .valid-ai-flag-ic svg {
+  .valid-check::after {
     animation: none !important;
   }
-  .valid-ai-flag::after { display: none; }
   .valid-check { opacity: 1; translate: none; }
   .valid-check::after { display: none; }
 }
@@ -1583,8 +1493,8 @@ box-shadow: var(--ui-elevation-control);
 .valid-note--warn .valid-note-ic { background: hsl(var(--vf-warn) / 0.22); color: hsl(30 75% 30%); }
 
 /* section 18.28 ai-disclosure - the shared GEN-AI violet (--vf-ai-*, tokens.css), the
-   same family as the catalog's GEN-AI pill and the /verify AI banner, because it
-   is the same subject. Quieter than .valid-ai-flag on purpose: that one reports
+   same family as the catalog's GEN-AI pill and the /verify AI row, because it
+   is the same subject. Quieter than .vs-ai on purpose: that one reports
    a declaration of AI-generated CONTENT, this one records which model the signer
    says was involved. */
 .valid-aidecl {

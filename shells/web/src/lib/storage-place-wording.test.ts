@@ -186,7 +186,7 @@ const KEPT: Array<[file: string, sentence: string]> = [
   ['components/rate-cards-manager.ts', 'Drop the rate card your printer gave you. Lolly multiplies its numbers by quantities it counted - it never invents a price. Nothing leaves this device.'],
   ['views/tsig-model-note.ts', 'Downloads the on-device detector once (~{mb} MB). The text never leaves this device.'],
   ['lib/upscale-job.ts', 'Upscaling isn’t available on this device.'],
-  ['views/valid.ts', 'Search for a Lolly Imprint after cropping or resizing. Runs on this device.'],
+  ['views/valid-rows.ts', 'Search for a Lolly Imprint after cropping or resizing. Runs on this device.'],
   ['views/profile-sync.ts', 'Leave this empty unless you do not trust the place you sync to. With a passphrase, your data is encrypted on this device before upload, and every device needs the same passphrase. If it is lost, the synced copies cannot be opened.'],
   ['views/privacy-notice.ts', 'Your designs and files stay on this device - no tracking, no analytics.'],
 ];

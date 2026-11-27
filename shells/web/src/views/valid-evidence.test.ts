@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import type { FileMetadata, VerifyFinding } from '@lolly/engine';
-import { applyDepth, evidenceHeadHtml, findingsJson, recordedTimes } from './valid-evidence.ts';
+import { applyDepth, depthSwitchHtml, evidenceFileHtml, findingsJson, recordedTimes } from './valid-evidence.ts';
 
 const meta = { format: 'jpeg', fields: [
   { label: 'Created', value: '2026:11:01 09:30:00', group: 'timestamps', source: 'EXIF DateTimeOriginal' },
@@ -27,18 +27,19 @@ test('findings are copied as filled words, with no placeholders left', () => {
   assert.equal(copied.findings[0]!.detail, 'Declared terms: CC BY 4.0.');
 });
 
-test('the head starts in Summary, says when the name and the bytes disagree, and escapes the file name', () => {
-  const html = evidenceHeadHtml([finding], report, meta, 'photo.png', 4);
-  assert.match(html, /data-verify-depth="summary" aria-pressed="true"/);
+test('the switch starts in Summary; the file block says when the name and the bytes disagree, and escapes the file name', () => {
+  assert.match(depthSwitchHtml(), /^<div class="ve-head">.*data-verify-depth="summary" aria-pressed="true"/s);
+  const html = evidenceFileHtml([finding], report, meta, 'photo.png', 4);
+  assert.doesNotMatch(html, /data-verify-depth/, 'the switch is its own part, first in the report body');
   assert.match(html, /data-evidence-only data-evidence-file="4"[^>]* hidden>/);
   assert.match(html, /The name ends in \.png/);
   assert.match(html, /Times the file records/);
-  assert.doesNotMatch(evidenceHeadHtml([finding], report, meta, 'photo.JPG', 0), /The name ends in/);
-  assert.doesNotMatch(evidenceHeadHtml([], {}, undefined, '<img src=x>.jpg', 0), /<img/);
+  assert.doesNotMatch(evidenceFileHtml([finding], report, meta, 'photo.JPG', 0), /The name ends in/);
+  assert.doesNotMatch(evidenceFileHtml([], {}, undefined, '<img src=x>.jpg', 0), /<img/);
 });
 
 test('Evidence opens every disclosure and reads the file; Summary closes only what Evidence opened', async (t) => {
-  const dom = new JSDOM(`<body><div id="report"><div class="valid-result"><div class="vf-column">${evidenceHeadHtml([finding], report, meta, 'photo.jpg', 0)}
+  const dom = new JSDOM(`<body><div id="report"><div class="valid-result">${depthSwitchHtml()}<div class="vf-column">${evidenceFileHtml([finding], report, meta, 'photo.jpg', 0)}
     <details id="a"><summary>a</summary></details><details id="b" open><summary>b</summary></details></div></div></div></body>`);
   const originals = new Map<string, PropertyDescriptor | undefined>();
   for (const key of ['window', 'document', 'HTMLElement', 'Element', 'Node']) {

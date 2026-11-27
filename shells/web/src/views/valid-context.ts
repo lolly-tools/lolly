@@ -8,6 +8,7 @@ import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { metadataUrl, metadataLinkHtml, contactUrl, contactLinkHtml, metadataValueHtml } from './valid-links.ts';
 import { hasHashVerdict, hashFailed } from './valid-verdict.ts';
+import { licenceBand } from './valid-licence.ts';
 
 interface Contact { name: string; source: string; role: string; values: string[]; }
 export interface RecordedLink { url: string; sources: string[]; }
@@ -75,15 +76,29 @@ export function locationCardHtml(meta?: FileMetadata, withMap = true): string {
   return `<section class="valid-origin-card valid-location-card"><h3>${icon('mapPin')}<span>${t('Recorded location')}</span><small>${t('EXIF')}</small></h3>${withMap ? renderLocator(gps.lat, gps.lon) : ''}<div class="valid-location-caption"><strong>${gps.lat.toFixed(5)}, ${gps.lon.toFixed(5)}</strong><div class="valid-location-actions">${meta.mapUrl ? metadataLinkHtml(meta.mapUrl, t('Open map')) : ''}<button type="button" class="btn" data-request-address data-lat="${gps.lat.toFixed(5)}" data-lon="${gps.lon.toFixed(5)}">${icon('mapPin')}<span>${t('Request address')}</span></button></div></div><p class="valid-origin-note">${t('Precise location from editable metadata. Map displayed offline.')}</p></section>`;
 }
 
+/** An address without its scheme, "www." or closing slash, so two spellings of one page compare equal. */
+const samePage = (url: string): string => url.replace(/^https?:\/\/(?:www\.)?/i, '').replace(/\/$/, '').toLowerCase();
+
+/**
+ * People, the recorded place and links, each said once. The Licence section
+ * already shows the creator and the address of the licence text, so a creator
+ * with no contact details and a link to that same address are left out here.
+ * '' when nothing remains.
+ */
 export function contextCardsHtml(report: VerifyReport, meta?: FileMetadata, withMap = true): string {
-  const contacts = recordedContacts(report, meta);
-  const links = recordedLinks(meta);
+  const band = licenceBand(report, meta);
+  const credited = band.state === 'none' ? '' : band.creator;
+  const read = new Set(band.statements.map((s) => s.url).filter(Boolean).map(samePage));
+  const contacts = recordedContacts(report, meta).filter((c) => !(c.role === t('Creator') && c.name === credited && !c.values.length));
+  const links = recordedLinks(meta).filter((link) => !read.has(samePage(link.url)));
   const row = (link: RecordedLink): string => {
     const url = new URL(link.url);
     return `<li><span class="valid-link-icon" aria-hidden="true">${icon('link')}</span><div>${metadataLinkHtml(link.url, url.host)}<span class="valid-recorded-path">${esc(url.pathname + url.search + url.hash)}</span><small>${esc(link.sources.join(' · '))}</small></div><button type="button" class="btn valid-icon-button" data-copy-evidence="${esc(link.url)}" aria-label="${esc(t('Copy link'))}" title="${esc(t('Copy link'))}">${icon('duplicate')}</button></li>`;
   };
+  const place = locationCardHtml(meta, withMap);
+  if (!contacts.length && !place && !links.length) return '';
   return `<div class="valid-context-cards">${contacts.length ? `<section class="valid-origin-card valid-people"><h3>${icon('users')}<span>${t('People & contacts')}</span></h3><div class="valid-contact-grid">${contacts.map((c) => `<article class="valid-contact"><span class="valid-contact-avatar" aria-hidden="true">${icon(c.role === t('Signer') ? 'seal' : 'user')}</span><div><span class="valid-origin-label">${esc(c.role)}</span><strong>${esc(c.name)}</strong><small>${esc(c.source)}</small>${c.values.length ? `<ul>${[...new Set(c.values)].slice(0, 12).map((v) => `<li>${contactValue(v)}</li>`).join('')}</ul>` : ''}</div></article>`).join('')}</div></section>` : ''}
-    ${locationCardHtml(meta, withMap)}
+    ${place}
     ${links.length ? `<section class="valid-origin-card valid-recorded-links"><h3>${icon('link')}<span>${t('Links in this file')}</span><small>${links.length}</small></h3><p class="valid-origin-note">${t('Unverified destinations. Review before opening.')}</p><ul class="valid-link-list">${links.slice(0, 4).map(row).join('')}</ul>${links.length > 4 ? `<details class="valid-more-links"><summary>${icon('link')}<span>${t('Show {n} more links', { n: links.length - 4 })}</span>${icon('chevronDown')}</summary><ul class="valid-link-list">${links.slice(4).map(row).join('')}</ul></details>` : ''}</section>` : ''}
   </div>`;
 }

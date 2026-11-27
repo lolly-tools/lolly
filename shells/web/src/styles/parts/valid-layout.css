@@ -5,16 +5,25 @@
      came from (licence, made with, credential). */
   .vf-body { display: grid; gap: var(--ui-space-page); grid-template-columns: minmax(0, 1fr); align-items: start; min-width: 0; }
   .vf-column { display: grid; gap: var(--ui-space-page); align-content: start; min-width: 0; }
+  /* The Summary and Evidence switch comes first. Beside the stage it heads the
+     right column, on one line with the stage's own Asset and Map switch. */
+  .vf-body > .ve-head { display: flex; justify-content: flex-end; }
   @media (min-width: 1024px) {
-    .vf-body { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+    .vf-body { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-rows: auto 1fr; }
+    .vf-body > .vf-col-asset { grid-column: 1; grid-row: 1 / span 2; }
+    .vf-body > .ve-head { grid-column: 2; grid-row: 1; padding-block-start: var(--sp-4); }
+    .vf-body > .vf-col-origin { grid-column: 2; grid-row: 2; }
   }
 
-  /* One section. Three levels of type: the head, the finding's sentence, the detail. */
+  /* One section: the head with the strength of its evidence, then the evidence. */
   .vs { display: grid; gap: var(--sp-4); min-width: 0; position: relative; scroll-margin-top: calc(var(--valid-actions-height, 5rem) + var(--ui-space-panel)); }
   .vs-head { display: flex; align-items: center; gap: var(--ui-space-control-inline); margin: 0; font-size: var(--ui-type-title); font-weight: 650; letter-spacing: var(--ui-type-tracking-tight); }
   .vs-head > svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); flex: 0 0 auto; color: var(--ui-color-text-muted); }
   .vs.is-warn .vs-head > svg { color: hsl(var(--vf-warn)); }
   .vs.is-bad .vs-head > svg { color: hsl(var(--vf-fail)); }
+  .vs[data-finding-section="ai"]:not(.is-quiet) .vs-head > svg { color: hsl(var(--vf-ai-1)); }
+  /* How strong the section's evidence is, said once, at the end of the head's line. */
+  .vs-head > .vf-slot-strength { margin-inline-start: auto; padding-inline-start: var(--sp-4); font-weight: 400; letter-spacing: 0; text-align: end; }
   .vs-lede { margin: 0; max-width: 62ch; font-size: var(--ui-type-body); }
   .vs.is-quiet .vs-lede { color: var(--ui-color-text-muted); }
   .vs-body { display: grid; gap: var(--ui-space-panel); min-width: 0; }
@@ -33,13 +42,44 @@
   .vs .valid-origin-software > h3,
   .vs .valid-origin-note,
   .vs .forensic-intro,
-  .vs .valid-ai-flag-note,
   .vs .valid-origin-empty { display: none; }
   .vs .forensic { margin-block: 0; padding-block: 0; border: 0; }
+  /* The notice's own control is the report's ordinary button, like the checks under Hidden content. */
+  .vs .forensic-coverage-notice > .btn:not(.btn--primary):not(:disabled) { background: var(--ui-color-surface-canvas); border: transparent; box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control); }
 
-  /* The AI declaration: one calm line with its maker, in the AI signal colour. */
-  .vs .valid-ai-flag { padding: var(--sp-5) var(--ui-space-panel); gap: var(--sp-5); box-shadow: none; }
-  .vs .valid-ai-flag::before, .vs .valid-ai-flag::after { content: none; }
+  /* The AI declaration: a row of the AI section, first under the asset. The AI
+     colour tints the glyph and two hairlines; nothing is filled. */
+  .vs-ai { display: flex; align-items: start; gap: var(--sp-4); min-width: 0; padding-block: var(--sp-5); border-block: 1px solid hsl(var(--vf-ai-1) / 0.4); }
+  .vs-ai-glyph { display: inline-flex; flex: 0 0 auto; color: hsl(var(--vf-ai-1)); }
+  .vs-ai-glyph svg { width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); }
+  .vs-ai-copy { display: grid; gap: var(--sp-2); min-width: 0; }
+  .vs-ai-copy p { margin: 0; }
+  .vs-ai-line { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-5); }
+  .vs-ai-line > strong { font-size: var(--ui-type-title); font-weight: 650; letter-spacing: var(--ui-type-tracking-tight); }
+  .vs-ai-credit { font-style: italic; overflow-wrap: anywhere; }
+  .vs-ai-more { max-width: 68ch; color: var(--ui-color-text-muted); font-size: var(--ui-type-label); }
+  .vs-ai-more[hidden] { display: none; }
+  .vs-ai-more strong { color: var(--ui-color-text-default); }
+
+  /* Evidence rows: what was found, the value as recorded, the field it came from. */
+  .vs-rows { margin: 0; display: grid; gap: var(--sp-4) var(--ui-space-panel); grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr)); }
+  .vs-rows > div { display: grid; gap: var(--sp-1); min-width: 0; }
+  .vs-rows dt { color: var(--ui-color-text-muted); font-size: var(--ui-type-label); }
+  .vs-rows dd { margin: 0; overflow-wrap: anywhere; }
+  .vs-rows .vs-source { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-3); color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); }
+
+  /* A check the reader starts by hand: the control, then what the check costs. */
+  .vs-action { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5); min-width: 0; }
+  .vs-action > .btn { display: inline-flex; align-items: center; gap: var(--sp-2); flex: 0 0 auto; max-width: 100%; white-space: normal; text-align: start; }
+  .vs-action > .btn svg { width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); flex: 0 0 auto; }
+  .vs-action-note { flex: 1 1 14rem; margin: 0; min-width: 0; color: var(--ui-color-text-muted); font-size: var(--ui-type-label); }
+  .vs-action .valid-deepscan-progress, .vs-action-result { flex: 1 1 100%; }
+  .vs-action-result:empty { display: none; }
+  /* The watermark scan asks for a download, so its row waits until the view offers
+     the scan. Once pressed, only that row stays and carries the progress. */
+  .vs-action[data-deepscan-banner] { display: none; }
+  [data-deepscan-offer="offer"] .vs-action[data-deepscan-banner],
+  [data-deepscan-offer="busy"] .vs-action[data-deepscan-banner].is-running { display: flex; }
 
   /* Software and devices: a list of vendor rows, not cards. */
   .vs .valid-origin-software { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
@@ -53,13 +93,10 @@
   .vs .valid-vendor-copy { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-1) var(--sp-3); }
   .vs .valid-origin-label { margin: 0 0 var(--sp-2); }
 
-  /* The AI declaration says its sentence once: the section's own sentence above. */
-  .vs .valid-ai-flag-text > strong + span { display: none; }
-
   /* With no writing or design clues, Summary shows only what could not be read.
      Evidence shows the whole panel, coverage and method included. */
   .valid-result:not([data-vf-depth="evidence"]) .forensic[data-forensic-findings="0"] > h2,
-  .valid-result:not([data-vf-depth="evidence"]) .forensic[data-forensic-findings="0"] [data-forensic-content] > :not(.forensic-coverage-notice):not(.forensic-notice) { display: none; }
+  .valid-result:not([data-vf-depth="evidence"]) .forensic[data-forensic-findings="0"] [data-forensic-content] > :not(.forensic-coverage-notice):not(.forensic-notice):not(.forensic-progress) { display: none; }
   /* The heat and region controls have nothing to switch until there is a finding. */
   .vf-stage-forensic[data-forensic-findings="0"] .forensic-toolbar,
   .vf-stage-forensic[data-forensic-findings="0"] .forensic-transcript { display: none; }
@@ -78,6 +115,8 @@
   .vf-column .valid-panel > summary,
   .vf-column .valid-panel > h3 { padding-inline: 0; }
   .vf-column .valid-panel-body { padding-inline: 0; }
+  /* A long address in the assertion log wraps inside a narrow column. */
+  .vf-column .valid-check-text, .vf-column .valid-check-text > * { min-width: 0; overflow-wrap: anywhere; }
   /* A long list of recorded settings is capped in Summary; Evidence shows every row. */
   .valid-result:not([data-vf-depth="evidence"]) .vf-column .valid-inputs dl { max-height: 11rem; overflow: auto; }
 

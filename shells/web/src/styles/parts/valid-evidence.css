@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 @layer views {
-  /* Verify's depth switch and the block Evidence adds at the head of the column. */
-  .ve-head { display: flex; justify-content: flex-end; }
+  /* The block Evidence adds at the head of the origin column. The switch itself is placed by valid-layout.css. */
   .ve-extra { display: grid; gap: var(--sp-5); min-width: 0; }
   .ve-extra[hidden] { display: none; }
   .ve-facts { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--sp-4) var(--ui-space-panel); }
@@ -21,6 +20,5 @@
   .ve-actions .btn { display: inline-flex; align-items: center; gap: var(--sp-2); }
   /* In Evidence the receipt of what ran leads the column, since coverage comes first. */
   .valid-result[data-vf-depth="evidence"] .vf-column > .valid-receipt { order: -1; }
-  .valid-result[data-vf-depth="evidence"] .vf-column > .ve-head { order: -3; }
   .valid-result[data-vf-depth="evidence"] .vf-column > .ve-extra { order: -2; }
 }

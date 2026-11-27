@@ -167,7 +167,7 @@ test('item 4: will-change is released to auto, but the virtualised data-grid kee
 
 test('item 5: ambient animation pauses, but spinners/progress/recording keep running', () => {
   assert.match(CSS_NO_COMMENTS, /animation-play-state: paused !important/, 'ambient decorations idle');
-  assert.match(CSS_NO_COMMENTS, /\.valid-ai-flag/, 'e.g. the verify AI-flag pulse is paused');
+  assert.match(CSS_NO_COMMENTS, /\.valid-hero-icon/, 'e.g. the verify verdict icon pulse is paused');
   // Loading/progress/recording motion must never be paused - none of these appear in the sheet.
   // (export-shutter is deliberately NOT here: its will-change is released, but its transient
   // export animation is left running - so the class DOES appear, in the will-change block only.)

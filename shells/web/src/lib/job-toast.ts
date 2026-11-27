@@ -205,7 +205,9 @@ function structureSig(jobs: readonly Job[]): string {
   return `${expanded ? 'E' : 'C'}|${jobs.map(j => `${j.id}:${j.status}:${isIndef(j) ? 'i' : 'd'}:${j.cancellable ? 'x' : ''}`).join(',')}`;
 }
 
-function render(jobs: readonly Job[]): void {
+function render(all: readonly Job[]): void {
+  // A quiet job reports in its own view (lib/jobs.ts StartJobOpts.quiet).
+  const jobs = all.filter(j => !j.quiet);
   if (!root) return;
   maybeRequestPermission(jobs);
   fireCompletionNotices(jobs);

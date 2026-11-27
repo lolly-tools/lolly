@@ -28,6 +28,25 @@ test('a known licence leads with its marks, plain conditions, where it was found
   assert.match(html, /Share adaptations under the same licence\./);
   assert.match(html, /Stated in the file/);
   assert.match(html, /Declared terms\. Permission to reuse is not verified\./);
+  // The strength is said once, beside the heading. A source under the heading carries only where it was found.
+  assert.equal(html.match(/Stated in the file/g)?.length, 1);
+  assert.match(html, /<span class="vf-slot-strength is-stated">Stated in the file<\/span><\/h3>/);
+  assert.match(html, /<li><span class="vl-source">XMP\/RDF cc:license<\/span><\/li>/);
+});
+
+test('a source weaker or stronger than the heading still states its own strength', () => {
+  const file = meta([{ label: 'Licence', value: 'https://creativecommons.org/licenses/by/4.0/', source: 'XMP/RDF cc:license' }]);
+  const signed = { ...none, found: true, state: 'valid' as const, rights: 'CC-BY-4.0', checks: [{ id: 'hash', ok: true }] };
+  const html = licenceBandHtml(signed as never, file, 'photo.jpg');
+  const head = /<h3 class="vs-head">.*?<\/h3>/s.exec(html)![0];
+  const rows = [...html.matchAll(/<li>(.*?)<\/li>/g)].map((m) => m[1]!).filter((row) => row.includes('vl-source'));
+  assert.ok(rows.length >= 2, 'the credential and the metadata are both listed');
+  const headWords = /vf-slot-strength is-(\w+)/.exec(head)![1];
+  for (const row of rows) {
+    const own = /vf-slot-strength is-(\w+)/.exec(row)?.[1];
+    assert.notEqual(own, headWords, 'a row never repeats the heading');
+  }
+  assert.ok(rows.some((row) => /vf-slot-strength is-stated/.test(row)), 'the metadata source says it is only stated');
 });
 
 test('two different licences are a disagreement, listed side by side, with no credit line to copy', () => {

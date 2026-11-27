@@ -5,12 +5,12 @@
  * The model is the engine's `verifyFindings`, so every shell gives the same answer.
  */
 import { verifyFindings } from '@lolly/engine';
-import type { FileMetadata, VerifyFinding, VerifyFindingId, VerifyFindingsInput, VerifyStrength } from '@lolly/engine';
+import type { FileMetadata, VerifyFinding, VerifyFindingId, VerifyFindingsInput } from '@lolly/engine';
 import '../styles/parts/valid-findings.css';
 import { escape as esc } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon, type IconName } from '../lib/icons.ts';
-import { vendorMark } from './valid-vendors.ts';
+import { strengthHtml, vendorMark } from './valid-vendors.ts';
 import type { VerifyReport, Watermark } from './valid-verdict.ts';
 import type { TextSignalPanel } from './valid-text.ts';
 import { showOnStage, wireStage } from './valid-stage.ts';
@@ -22,15 +22,6 @@ const SLOT: Record<VerifyFindingId, { label: string; icon: IconName }> = {
   licence: { label: 'Licence', icon: 'badgeCheck' },
   personal: { label: 'Personal data', icon: 'user' },
   hidden: { label: 'Hidden content', icon: 'eye' },
-};
-
-const STRENGTH: Record<VerifyStrength, string> = {
-  signed: 'Signed',
-  unverified: 'Credential, not verified',
-  stated: 'Stated in the file',
-  hint: 'Hint',
-  estimated: 'Estimated on this device',
-  none: '',
 };
 
 export interface FindingsExtras {
@@ -77,11 +68,10 @@ function marksHtml(finding: VerifyFinding): string {
 
 function slotHtml(finding: VerifyFinding): string {
   const slot = SLOT[finding.id];
-  const strength = STRENGTH[finding.strength];
   return `<li><button type="button" class="vf-slot is-${finding.tone}" data-finding="${finding.id}" data-finding-state="${esc(finding.state)}" title="${esc(tRaw(finding.detail, finding.vars))}">
     <span class="vf-slot-label">${icon(slot.icon)}<span>${t(slot.label)}</span></span>
     <span class="vf-slot-word">${marksHtml(finding)}<strong>${esc(word(finding))}</strong></span>
-    ${strength ? `<span class="vf-slot-strength is-${finding.strength}">${t(strength)}</span>` : ''}
+    ${strengthHtml(finding.strength)}
   </button></li>`;
 }
 
