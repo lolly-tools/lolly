@@ -427,7 +427,7 @@ export async function installGoogleFont(
  * The person's own active system takes the face. While the shipped system is active,
  * an install is the first edit of the design system, and an edit there starts the
  * person's copy and makes it active (installUserTokens, the write path for every
- * edit), so the face lands in that copy. A locked system takes no fonts of the
+ * edit), so the face is stored in that copy. A locked system takes no fonts of the
  * person's, and neither does a shipped one under a brand lock: the face goes to the
  * default system's folder, as before. So does every install on a host with no
  * registry.

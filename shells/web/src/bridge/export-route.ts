@@ -80,7 +80,7 @@ async function gpuPixels(node: Element, opts: ExportOpts, deps: StillRouteDeps, 
   // Pictures read while compiling may carry credentials; they join the export's only if this route draws the page.
   const ingredients: NonNullable<ExportOpts['_ingredientSink']> = [];
   const compileOpts: ExportOpts = { ...opts, convertPaths: true, ...(opts._ingredientSink ? { _ingredientSink: ingredients } : {}) };
-  const instant = liveStillInstant([node]);
+  const instant = await liveStillInstant([node]);
   if ('reason' in instant) return { reasons: [instant.reason] };
   const { designPageDrawing } = await import('../../../../engine/src/design-page-svg.ts');
   const drawing = await designPageDrawing(values, frameId, pageHost(node, compileOpts, text, assets), { dpi: size.dpi, at: instant.at });

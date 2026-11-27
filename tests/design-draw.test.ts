@@ -473,6 +473,10 @@ test('the instant follows the renderer: set-aside clips close up, open-ended row
   assert.deepEqual(opIds(open, { at: 6 }), ['ground']);
   const elsewhere = [{ id: 'late', kind: 'box', x: 0, y: 0, w: 5, h: 5, frame: 'other', lane: 'seq', start: 6, dur: 4 }] as DesignBoxRowV1[];
   assert.deepEqual(opIds(open, { at: 7, timeline: [...open, ...elsewhere] }), ['ground', 'tail']);
+  // A hidden row carries no time, so it does not lengthen the sequence an open-ended row runs to.
+  const hiddenLong = timedPage([{ id: 'tail', kind: 'box', x: 0, y: 0, w: 5, h: 5, bg: '#00ff00', frame: 'scene', start: 1 },
+    { id: 'long', kind: 'box', x: 0, y: 0, w: 5, h: 5, bg: '#00ff00', frame: 'scene', start: 0, dur: 10, hidden: true }]);
+  assert.deepEqual(opIds(hiddenLong, { at: 6 }), ['ground']);
   // With timing but no duration anywhere, the sequence is five seconds long.
   const lone = [{ id: 'f', kind: 'frame', x: 0, y: 0, w: 10, h: 10 }, { id: 'a', kind: 'box', x: 0, y: 0, w: 5, h: 5, bg: '#000000', start: 2 }] as DesignBoxRowV1[];
   assert.deepEqual(designRowInstants(lone, 4.9)(lone[1]!), 'shown');
@@ -494,6 +498,15 @@ test('a row part way through its enter or exit at the instant is a finding, not 
   handover[3] = { ...handover[3]!, enter: 'fade' };
   assert.deepEqual(compileDesignDraw(handover, { width: 400, height: 300 }, { at: 3.1 }).findings,
     [{ id: 'hook', feature: 'timed-transition' }, { id: 'cta', feature: 'timed-transition' }]);
+  // A lone fade-out has no clip to hand over to: past its end it is simply gone.
+  const lone = timedPage();
+  lone[3] = { ...lone[3]!, exit: 'fade' };
+  assert.deepEqual(compileDesignDraw(lone, { width: 400, height: 300 }, { at: 6.1 }).findings, []);
+  // Text that arrives a word at a time with no enter of its own still moves until the last unit is in.
+  const typed = timedPage();
+  typed[2] = { ...typed[2]!, kind: 'text', text: 'one two three', split: 'word', stagger: 200 };
+  assert.deepEqual(designRowInstants(typed, 0.1)(typed[2]!), 'moving');
+  assert.deepEqual(designRowInstants(typed, 2.5)(typed[2]!), 'shown');
   // A sequenced frame is a scene; a still of one off its span is not the clock's to draw.
   const scene = timedPage();
   scene[0] = { ...scene[0]!, lane: 'seq', start: 2, dur: 2 };

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The oldest Node that Lolly's terminal shells accept, and the refusal they give below it.
+ * The oldest Node that Lolly's terminal shells accept, and the refusal they give below that floor.
  *
  * Node ships its own Brotli decoder, native code outside any WebAssembly sandbox, and
  * `fetch` uses it on every response sent with `Content-Encoding: br`. CVE-2026-111497,
  * an out-of-bounds write in that decoder, is fixed in Node 22.23.4, 24.22.1 and 26.12.1
  * (security releases of 2026-10-20 and 2026-10-21). Lines 23 and 25 ended without a fix.
  * `NODE_ENGINES` is the `engines.node` range of every package that runs Lolly on Node, and
- * tests/node-patch-level.test.ts holds each package file to it.
+ * tests/node-patch-level.test.ts holds each package file to that range.
  *
  * A Node inside the range can still be a distribution build linked against an older shared
  * libbrotli. Nothing at run time tells such a build from a patched one:
@@ -46,7 +46,7 @@ export function nodeMeetsFloor(version: string): boolean {
 }
 
 /**
- * The refusal for `version`, or null when Lolly runs on it. A version string that does
+ * The refusal for `version`, or null when Lolly runs on that release. A version string that does
  * not parse is let through: Node always reports a parsable one, and a refusal on a string
  * this function cannot read would be a guess.
  */

@@ -130078,37 +130078,54 @@ function timeNumber(value2) {
 function designRowInstants(timeline, atSeconds) {
   const timed = (row) => rowStr2(row, "lane") === "seq" || timeNumber(row.start) !== null;
   const ignored = (row) => designBool(row.ignored, false);
+  const hidden5 = (row) => designBool(row.hidden, false) || row.__offPage === true;
   const startS = (row) => clampTime(timeNumber(row.start) ?? 0, 0, MAX_TIME_S);
   const durS = (row) => {
     const d = timeNumber(row.dur);
     return d === null ? null : clampTime(d, 0.1, MAX_TIME_S);
   };
-  const spans = timeline.filter((row) => ignored(row) && rowStr2(row, "lane") === "seq" && durS(row) !== null).map((row) => ({ s: startS(row), d: durS(row) }));
-  const playedS = (row) => {
-    const s = startS(row);
-    if (rowStr2(row, "lane") !== "seq") return s;
-    let removed = 0;
-    for (const span of spans) if (span.s < s - 1e-6) removed += span.d;
-    return Math.max(0, s - removed);
+  const playedFrom = (rows2) => {
+    const spans = rows2.filter((row) => ignored(row) && rowStr2(row, "lane") === "seq" && durS(row) !== null).map((row) => ({ s: startS(row), d: durS(row) }));
+    return (row) => {
+      const s = startS(row);
+      if (rowStr2(row, "lane") !== "seq" || rowStr2(row, "kind") === "frame") return s;
+      let removed = 0;
+      for (const span2 of spans) if (span2.s < s - 1e-6) removed += span2.d;
+      return Math.max(0, s - removed);
+    };
   };
-  const playing = timeline.filter((row) => timed(row) && !ignored(row));
+  const playedS = playedFrom(timeline);
+  const stage = timeline.filter((row) => !hidden5(row));
+  const stagePlayed = playedFrom(stage);
+  const playing = stage.filter((row) => timed(row) && !ignored(row));
   const bounded3 = playing.filter((row) => durS(row) !== null);
-  const seqMs = bounded3.length ? Math.round(Math.max(...bounded3.map((row) => (playedS(row) + durS(row)) * 1e3))) : playing.length ? 5e3 : 0;
+  const seqMs = bounded3.length ? Math.round(Math.max(...bounded3.map((row) => (stagePlayed(row) + durS(row)) * 1e3))) : playing.length ? 5e3 : 0;
   const t = atSeconds * 1e3;
   const transitionMs = (row, key2) => Math.round(clampTime(timeNumber(row[key2]) ?? 400, 100, 3e3));
-  return (row) => {
-    if (!timed(row)) return "shown";
-    if (ignored(row)) return "off";
+  const span = (row) => {
     const start = Math.round(playedS(row) * 1e3);
     const d = durS(row);
     const dur = d === null ? null : Math.round(d * 1e3);
-    const end = dur !== null ? start + dur : Math.max(start, seqMs > 0 ? seqMs : start);
+    return { start, dur, end: dur !== null ? start + dur : Math.max(start, seqMs > 0 ? seqMs : start) };
+  };
+  const tail = /* @__PURE__ */ new Map();
+  const clips2 = stage.filter((row) => !ignored(row) && timed(row) && (rowStr2(row, "lane") === "seq" || rowStr2(row, "kind") === "frame") && span(row).dur !== null).map((row, index2) => ({ row, index: index2, ...span(row) })).sort((a, b) => a.start - b.start || a.index - b.index);
+  for (let i = 0; i + 1 < clips2.length; i++) {
+    const a = clips2[i], b = clips2[i + 1];
+    if (rowStr2(a.row, "exit") !== "fade" || rowStr2(b.row, "enter") !== "fade" || Math.abs(a.end - b.start) > 1) continue;
+    tail.set(a.row, Math.min(transitionMs(a.row, "exitMs"), transitionMs(b.row, "enterMs"), b.dur));
+  }
+  return (row) => {
+    if (!timed(row)) return "shown";
+    if (ignored(row)) return "off";
+    const { start, dur, end } = span(row);
     const throughout = dur === null && !(seqMs > 0);
-    const exit = TRANSITIONS.has(rowStr2(row, "exit")) && dur !== null;
-    if (!throughout && (t < start || t >= end)) return exit && rowStr2(row, "exit") === "fade" && t >= end && t < end + transitionMs(row, "exitMs") ? "moving" : "off";
-    const units2 = SPLIT_TIERS.has(rowStr2(row, "split")) ? clampTime(timeNumber(row.stagger) ?? 60, 0, 2e3) * Math.min([...rowStr2(row, "text")].length, 240) : 0;
-    if (TRANSITIONS.has(rowStr2(row, "enter")) && t - start < transitionMs(row, "enterMs") + units2) return "moving";
-    if (exit && !throughout && end - t < transitionMs(row, "exitMs") + units2) return "moving";
+    if (!throughout && (t < start || t >= end)) return t >= end && t < end + (tail.get(row) ?? 0) ? "moving" : "off";
+    const split = SPLIT_TIERS.has(rowStr2(row, "split")) && rowStr2(row, "kind") !== "frame";
+    const stagger = split ? Math.round(clampTime(timeNumber(row.stagger) ?? 60, 0, 2e3)) * Math.max(0, Math.min([...rowStr2(row, "text")].length, 240) - 1) : 0;
+    const enterMs = TRANSITIONS.has(rowStr2(row, "enter")) ? transitionMs(row, "enterMs") : 0;
+    if ((enterMs > 0 || stagger > 0) && t - start < enterMs + stagger) return "moving";
+    if (TRANSITIONS.has(rowStr2(row, "exit")) && dur !== null && end - t < transitionMs(row, "exitMs") + stagger) return "moving";
     return "shown";
   };
 }
