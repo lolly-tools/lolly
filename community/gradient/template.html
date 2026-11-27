@@ -1129,6 +1129,52 @@ function mgmPaintMesh(d, W, H, patches, n) {
     fieldColours = (cfg.colors || []).length;
     var store = canvasRoot || wrap;
 
+    /* A one-shot picture (a template thumbnail, a batch row, a still for
+       Multi-edit) is taken as soon as the page goes quiet, and the shader's
+       first frame can come later than that: the library and its noise texture
+       load first. So an off-screen render says it has a ready signal and gives
+       the signal once the field has mounted, which is when its chosen moment
+       has been painted. The live canvas needs none and sets nothing: the flag
+       is one value for the whole page, and only an off-screen render reads it
+       straight away. Where the shader cannot run, the wash is the picture, and
+       the signal comes a moment after the library has loaded, or after
+       FIELD_READY_MS if the library never does. Once the picture is taken and
+       the stage has left the page, the WebGL context is handed back. */
+    if (canvasRoot && canvasRoot.dataset && canvasRoot.dataset.lollyOffscreen !== undefined) {
+      var FIELD_READY_MS = 4000;
+      var began = Date.now();
+      window.__toolHasReadySignal = true;
+      var said = 0;
+      var say = function () {
+        try { document.dispatchEvent(new CustomEvent('tool:ready')); } catch (e) { /* no listener */ }
+        /* The flag is still up when nobody has started listening yet, so the
+           signal is given again until someone has taken the flag down. */
+        if (window.__toolHasReadySignal && ++said < 200) setTimeout(say, 50);
+      };
+      var handBack = function () {
+        if (document.contains(wrap)) { setTimeout(handBack, 400); return; }
+        var left = store.__mgFieldMount;
+        if (!left) return;
+        var lose = left.gl && left.gl.getExtension ? left.gl.getExtension('WEBGL_lose_context') : null;
+        try { left.dispose(); } catch (e) { /* already gone */ }
+        if (lose) lose.loseContext();
+        store.__mgFieldMount = null;
+      };
+      var loaded = 0;
+      var watch = function () {
+        if (!store.__mgFieldMount && Date.now() - began < FIELD_READY_MS && document.contains(wrap)) {
+          /* The library and its noise texture are in and still nothing has
+             mounted: this browser has no WebGL2, and the wash is the picture. */
+          var up = window.PaperShaders && (!window.__bdNoise || window.__bdNoise.complete);
+          if (up && !loaded) loaded = Date.now();
+          if (!up || Date.now() - loaded < 250) { setTimeout(watch, 30); return; }
+        }
+        say();
+        handBack();
+      };
+      setTimeout(watch, 0);
+    }
+
     /* Original, stateless fields inspired by Flexi's flowing, folded MilkDrop
        imagery. No feedback buffer or audio dependency: any exported frame can
        be sought directly. The colour treatment follows Neurospicy's viz-stock

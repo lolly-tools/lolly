@@ -22,6 +22,7 @@ function fakeStore() {
   const real = { ...previewSeams };
   previewSeams.cached = async (key) => { calls.cached++; return kept.get(key) ?? null; };
   previewSeams.store = async (key, picture) => { calls.stored++; const src = `data:${picture.ref.type},stored`; kept.set(key, src); return src; };
+  previewSeams.formats = async (_toolId, _values, formats) => formats;
   previewSeams.render = async () => {
     calls.renders++;
     await new Promise(r => setTimeout(r, 5));
@@ -107,4 +108,22 @@ test('a store with no look at all answers a read at once, without looking anythi
     await storedFeaturedVariant(host, 'demo', ['svg'], { headline: 'later visit' });
     assert.equal(store.calls.cached, 1, 'a store with looks in it is read');
   } finally { previewSeams.empty = async () => false; checkLookStore(); previewSeams.empty = real; store.restore(); }
+});
+
+test('a look is drawn in a format its own values can export, not the first the tool lists', async () => {
+  const store = fakeStore();
+  const drawn: string[] = [];
+  try {
+    previewSeams.render = async (_host, _toolId, format) => {
+      drawn.push(format);
+      const bytes = new Uint8Array([1]);
+      return { ref: { key: 'a'.repeat(32), type: format === 'svg' ? 'image/svg+xml' : 'image/webp', width: 10, height: 10, route: 'export-raster' }, bytes } as never;
+    };
+    // The tool lists SVG first; this look's method narrows the list to raster.
+    previewSeams.formats = async (_toolId, values, formats) => ((values as { mode?: string }).mode === 'field' ? formats?.filter((f) => f !== 'svg') : formats);
+    const tool = ['svg', 'png', 'webm'];
+    await renderFeaturedVariant(host, 'demo', tool, 0, { mode: 'field', effect: 'god-rays' }, 'template');
+    await renderFeaturedVariant(host, 'demo', tool, 1, { mode: 'blend' }, 'template');
+    assert.deepEqual(drawn, ['png', 'svg'], 'the raster-only look is drawn as PNG, the vector look stays SVG');
+  } finally { store.restore(); }
 });
