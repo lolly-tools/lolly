@@ -111,7 +111,7 @@ export function updateFullParam(tview: ToolViewCtx, shouldBeFull: boolean): void
 
 export function fitCanvas(tview: ToolViewCtx): void {
   if (tview.stageZoom?.isSuspended()) return;
-  const { canvasEl, nativeH, nativeW, outerEl, pagedDoc, pagesMode, sidebarEl, stageEl, visitorPage } = tview;
+  const { canvasEl, nativeH, nativeW, outerEl, pagedDoc, pagesMode, stageEl, visitorPage } = tview;
   if (visitorPage) return; // a visitor page flows as a document - never scaled to fit
   if (!canvasEl || !outerEl) return;
   if (tview.stageZoom?.isZoomed()) return; // preserve pan/zoom across window/sidebar resize
@@ -132,11 +132,7 @@ export function fitCanvas(tview: ToolViewCtx): void {
   // sizes AND centres the canvas within the area the sheet leaves visible - not
   // behind it. getBoundingClientRect is the border-box (padding-independent), so
   // the scale math stays stable as we set the padding.
-  let topPad = 0;
-  if (sidebarEl && isPhoneLayout()) {
-    const sheetBottom = sidebarEl.getBoundingClientRect().bottom;
-    topPad = Math.max(0, Math.min(stageRect.height, sheetBottom - stageRect.top));
-  }
+  const topPad = sheetOverlap(tview, stageRect);
   const padPx = topPad ? `${topPad}px` : '';
   if (stageEl.style.paddingTop !== padPx) stageEl.style.paddingTop = padPx; // guard the ResizeObserver
 
@@ -206,9 +202,23 @@ export function resetView(tview: ToolViewCtx): void {
 // correctly). Height grows via CSS (#tool-canvas + its root are height:auto here), so
 // adding a page just makes the surface taller. `zoom` is neutralised during export
 // (exportUnscaled) so each page still prints at its true, unscaled page size.
+/** How far the phone controls sheet covers the top of the stage, in px. 0 off a phone. */
+function sheetOverlap(tview: ToolViewCtx, stageRect: DOMRect): number {
+  const { sidebarEl } = tview;
+  if (!sidebarEl || !isPhoneLayout()) return 0;
+  return Math.max(0, Math.min(stageRect.height, sidebarEl.getBoundingClientRect().bottom - stageRect.top));
+}
 export function fitPagedDoc(tview: ToolViewCtx): void {
-  const { canvasEl, nativeW, stageEl, webDoc } = tview;
+  const { canvasEl, nativeW, outerEl, stageEl, webDoc } = tview;
   if (!canvasEl) return;
+  // The scroll surface fills the stage, and on a phone the controls sheet covers the top
+  // of the stage. Start the surface at the sheet's edge, as fitCanvas pads a single
+  // canvas, so the top of the page (a scan result, the first page) is not under the sheet.
+  if (outerEl) {
+    const top = sheetOverlap(tview, stageEl.getBoundingClientRect());
+    const topPx = top ? `${Math.round(top)}px` : '';
+    if (outerEl.style.top !== topPx) outerEl.style.top = topPx;
+  }
   // A web-page preview never zooms: the canvas IS the viewport, CSS gives it
   // the pane's full width and the content reflows there like a real page.
   if (webDoc) {
@@ -1080,7 +1090,8 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     // Wait out the 0.34s height settle so it measures the final sheet position.
     const sheet = setupMobileSheet(layout, sidebarEl, sheetGrip, {
       onChange: (snap) => {
-        if (snap === 'peek') setTimeout(tview.stageLayout.fitCanvas, 360);
+        // A paged or web-page surface scrolls under the sheet's edge, so it follows every snap.
+        if (snap === 'peek' || tview.pagedDoc) setTimeout(tview.stageLayout.fitCanvas, 360);
       },
     });
     // A warning under an input the sheet is not showing gets one chip on the sheet's edge.

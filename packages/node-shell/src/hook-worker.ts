@@ -126,9 +126,6 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
     // customization hook never finishes linking on Node 22, and hooks.js needs
     // nothing from them. Type stripping is a default, not a flag.
     const worker = new Worker(threadUrl, { env: {}, stdout: false, stderr: false, execArgv: [], workerData: { geometryBackend: geometryBackendOf(host.geom), geometryStrict: geometrySelectionIsStrict(host.geom) } });
-    // A thread must never keep the owning process alive on its own: the CLI
-    // exits when the render is written, worker or not.
-    worker.unref();
     const mount: Mount = { host, allowedRpc: new Set(), worker, invokes: new Map() };
     const hostShape: HostShape = introspectHost(host);
     if (strict) delete hostShape.capture;
@@ -159,6 +156,11 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
       worker.on('error', (err: unknown) => { clearTimeout(timer); const e = new NodeHookIsolationError(`hook thread crashed: ${err instanceof Error ? err.message : String(err)}`); reject(e); teardown(mount, e); });
       worker.on('exit', (code) => { if (code !== 0) teardown(mount, new NodeHookIsolationError(`hook thread exited (${code})`)); });
     });
+    // A thread must never keep the owning process alive on its own: the CLI
+    // exits when the render is written, worker or not. This comes AFTER the
+    // listeners above, because adding a 'message' listener refs the thread's port
+    // again, and an unref made before that point is undone.
+    worker.unref();
 
     worker.postMessage({
       t: 'init', runId,

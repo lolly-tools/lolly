@@ -163,6 +163,37 @@ test('Pages signs the chosen page of the first PDF under the new input ids', asy
   } finally { runtime.destroy(); }
 });
 
+test('a PDF the credential cannot be added to still gets its visible signature, and the person is told first', async () => {
+  const tool = await load('pages');
+  const seen: { stamp?: any; previewed?: Uint8Array } = {};
+  const logged: string[] = [];
+  let attempts = 0;
+  const base = signHost(seen) as any;
+  const host = {
+    ...base,
+    log: (level: string, message: string) => { logged.push(`${level}: ${message}`); },
+    c2pa: { sign: async () => { attempts++; throw new Error('C2PA embed: PDF uses a cross-reference stream (PDF 1.5+); cannot attach'); }, readIngredients: async () => [] },
+  };
+  const pdf = fileRef(new Uint8Array([37, 80, 68, 70, 45, 49, 46, 55, 10, 1]), 'contract.pdf');
+  const runtime = await createRuntime(tool, host, { operation: 'sign', source: [pdf], signatureInk: 'M10,10L100,80', seal: true } as never);
+  try {
+    // The first download saves nothing and says what happened and what to do.
+    await assert.rejects(() => runtime.exportFile(), /^Error: The Content Credential could not be added to this PDF\. Download again for the signed PDF without one, or turn Add Content Credential off\.$/);
+    assert.equal(attempts, 1);
+    assert.ok(logged.some((line) => /^warn: pages: the Content Credential could not be added/.test(line)));
+    // The next download of the same file is the visible signature alone: the stamped bytes, untouched.
+    const stampedBefore = seen.stamp;
+    const result = await runtime.exportFile() as any;
+    assert.equal(attempts, 1, 'the credential is not tried again on the download the person was told about');
+    assert.equal(result.filename, 'contract-signed.pdf');
+    assert.deepEqual([...result.bytes], [9], 'the stamped bytes, with nothing added');
+    assert.ok(stampedBefore, 'the signature was placed both times');
+    // A later download tries the credential again, so a file is never quietly left without one.
+    await assert.rejects(() => runtime.exportFile(), /could not be added/);
+    assert.equal(attempts, 2);
+  } finally { runtime.destroy(); }
+});
+
 test('Sign shows whose name the credential records, and only when one is recorded', async () => {
   const tool = await load('pages');
   const pdf = fileRef(new Uint8Array([37, 80, 68, 70, 45, 49, 46, 55, 10, 1]), 'contract.pdf');

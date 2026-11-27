@@ -44,14 +44,23 @@ export function markers(s: State, project: (p: number[]) => number[] | null, act
     const order = drawn++;
     out += `<g data-place-index="${i}" aria-label="${esc(p.label)}"${deal ? motionMark(s, 'tz-deal', order) : ''}><circle cx="${x}" cy="${y}" r="${focused ? 20 : 14}" fill="${p.color}" opacity=".35"/><circle cx="${x}" cy="${y}" r="${focused ? 8 : 6}" fill="${p.color}" stroke="${c.background}" stroke-width="2"/>`;
     if (s.inputs.showLabels !== false) {
-      let ly = y - 15;
-      while (taken.some((a) => Math.abs(a[0] - x) < 130 && Math.abs(a[1] - ly) < size * 2.2))
-        ly += size * 2.5;
-      taken.push([x, ly]);
       const label = lines(p.label, 22)[0] || '',
         width = Math.max(label.length, (p.localTime || '').length) * size * 0.62 + 22,
         goLeft = x > layout(s).map.w / layout(s).unit - width - 22,
         lx = goLeft ? x - width - 12 : x + 12;
+      // A label moves down while it sits on one already placed. Two pins close together
+      // are caught by their distance; two pins further apart whose label boxes still
+      // meet (a long label reaching the next pin's label) are caught by the boxes.
+      let ly = y - 15;
+      while (
+        taken.some(
+          (a) =>
+            (Math.abs(a[0] - x) < 130 && Math.abs(a[1] - ly) < size * 2.2) ||
+            (lx < a[2] + a[3] + 4 && a[2] < lx + width + 4 && Math.abs(a[1] - ly) < size * 2.2)
+        )
+      )
+        ly += size * 2.5;
+      taken.push([x, ly, lx, width]);
       out +=
         `<path d="M${x},${y} L${goLeft ? lx + width : lx},${ly + 9}" stroke="${p.color}" stroke-width="1.6"/><rect x="${lx}" y="${ly - 17}" width="${width}" height="${size * 2.6}" rx="5" fill="${c.background}"/>` +
         text(lx + 10, ly, label, size, c.ink, 'font-weight="600"') +

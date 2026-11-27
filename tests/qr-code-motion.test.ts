@@ -172,8 +172,18 @@ test('each warning is a notice under the input that causes it, and nothing is dr
   assert.match((await notices({ color: '#cccccc', background: '#ffffff' })).color!.text, /^Low contrast \(1\.6:1\)\. .*darken the modules/);
   assert.match((await notices({ eyeColor: '#dddddd', background: '#ffffff' })).eyeColor!.text, /darken the eyes/);
   assert.match((await notices({ fill: 'gradient', color: '#0c322c', color2: '#eef7ee', background: '#ffffff' })).color2!.text, /darken the second colour/);
-  // The logo check keeps its place in the hooks, but the 32% size limit sits under its threshold, so no size raises that line today.
-  assert.equal((await notices({ logo: 'lolly/logo/primary', logoScale: 32 })).logoScale, undefined);
+  // The logo is counted on the symbol: the default plate is quiet, a large one warns and
+  // one past what error correction can rebuild is an error. Padding counts as the plate does.
+  const logo = { logo: 'lolly/logo/primary' };
+  assert.equal((await notices({ ...logo })).logoScale, undefined);
+  assert.equal((await notices({ ...logo, logoScale: 32, logoPad: 0 })).logoScale, undefined);
+  const near = (await notices({ ...logo, logoScale: 32, logoPad: 1 })).logoScale!;
+  assert.equal(near.tone, 'warning');
+  assert.match(near.text, /^The logo uses about 88% of what error correction can rebuild/);
+  const past = (await notices({ ...logo, logoScale: 32, logoPad: 2 })).logoScale!;
+  assert.equal(past.tone, 'error');
+  assert.match(past.text, /^The logo hides more of the code than error correction can rebuild/);
+  assert.equal((await notices({ ...logo, logoScale: 8, logoPad: 4, url: 'https://lolly.tools' })).logoScale!.tone, 'error', 'a small mark with a wide ring on a small code');
 
   // Fixed, a barcode and scan mode: the set is empty again.
   assert.deepEqual(await notices({}), {});
@@ -322,4 +332,28 @@ test('the hooks touch nothing a Worker lacks', () => {
   const { clean, realmBound } = analyseIsolation(hooksSource);
   assert.ok(clean, JSON.stringify(realmBound));
   assert.equal(tool.manifest.isolate, true);
+});
+
+test('the logo count walks the symbol as the encoder lays it out, for every version and level', () => {
+  const qr = new Function(`${hooksSource}\nreturn { QRRSBlock, _qbLogoLoad };`)() as {
+    QRRSBlock: { getRSBlocks(type: number, level: number): Array<{ totalCount: number; dataCount: number }> };
+    _qbLogoLoad(model: { moduleCount: number; typeNumber: number; errorCorrectLevel: number }, logo: { scale: number; pad: number; shape: string }): { hidden: number; capacity: number; total: number; worst: number; dataModules: number };
+  };
+  // Remainder bits per version (ISO/IEC 18004, table 1): data modules = codewords * 8 + these.
+  const REMAINDER = [0, 7, 7, 7, 7, 7, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0];
+  for (let type = 1; type <= 40; type++) for (const level of [0, 1, 2, 3]) {
+    const blocks = qr.QRRSBlock.getRSBlocks(type, level);
+    const total = blocks.reduce((sum, b) => sum + b.totalCount, 0);
+    const none = qr._qbLogoLoad({ moduleCount: 17 + 4 * type, typeNumber: type, errorCorrectLevel: level }, { scale: 0, pad: 0, shape: 'square' });
+    assert.equal(none.total, total, `version ${type}`);
+    assert.equal(none.dataModules, total * 8 + REMAINDER[type - 1]!, `version ${type} data modules`);
+    assert.equal(none.capacity, blocks.reduce((sum, b) => sum + Math.floor((b.totalCount - b.dataCount) / 2), 0));
+  }
+  // A plate over the whole symbol hides every codeword; a circle hides fewer than its square.
+  const model = { moduleCount: 29, typeNumber: 3, errorCorrectLevel: 2 };
+  const all = qr._qbLogoLoad(model, { scale: 1, pad: 0, shape: 'square' });
+  assert.equal(all.hidden, all.total);
+  assert.ok(all.worst > 1);
+  const square = qr._qbLogoLoad(model, { scale: 0.32, pad: 1, shape: 'square' }), circle = qr._qbLogoLoad(model, { scale: 0.32, pad: 1, shape: 'circle' });
+  assert.ok(circle.hidden < square.hidden && circle.hidden > 0);
 });

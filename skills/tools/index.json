@@ -803,8 +803,8 @@
     {
       "version": 1,
       "toolId": "gradient",
-      "toolVersion": "1.4.0",
-      "toolVersionRange": "1.4.0",
+      "toolVersion": "1.4.1",
+      "toolVersionRange": "1.4.1",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -813,7 +813,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "a94dbe5b09c33ba79b96252cb68ae027f44c0fe9cb717eaf5551884abfd8feea",
+          "sha256": "e09e1416241db4d70b45e0d692b3d745cac92e5fade39ac3531327d5c3df7154",
           "bytes": 2638
         },
         "reference/inputs.json": {
@@ -1048,8 +1048,8 @@
     {
       "version": 1,
       "toolId": "pages",
-      "toolVersion": "1.2.0",
-      "toolVersionRange": "1.2.0",
+      "toolVersion": "1.2.1",
+      "toolVersionRange": "1.2.1",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1057,7 +1057,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "9766060d40ef0bff465cdb18c65a68a11f4522127dfb34646f6f22507803c259",
+          "sha256": "fa8a743621dc815a0ddffc7a94bd04fc34526364ac45725f46b81db5ec48cc32",
           "bytes": 2005
         },
         "reference/inputs.json": {
@@ -1151,8 +1151,8 @@
     {
       "version": 1,
       "toolId": "qr-code",
-      "toolVersion": "2.12.0",
-      "toolVersionRange": "2.12.0",
+      "toolVersion": "2.12.1",
+      "toolVersionRange": "2.12.1",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1161,7 +1161,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "e455b7ac839918a6dddf1a33875b5306623a214530a8f2c016bc37e1ed3d0788",
+          "sha256": "198761f6d899b35707b9f8bdc515ad048ee8a23ebc0c09d5de5834d8f75b8237",
           "bytes": 2954
         },
         "reference/inputs.json": {
@@ -1621,8 +1621,8 @@
     {
       "version": 1,
       "toolId": "timezone",
-      "toolVersion": "1.3.0",
-      "toolVersionRange": "1.3.0",
+      "toolVersion": "1.3.1",
+      "toolVersionRange": "1.3.1",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1631,7 +1631,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "6dec12cd83cc306ffc4676bfe7e27480ec8a48b2ce536fba950374f1390b26bb",
+          "sha256": "83d52cc4f8ceedacabe19e2f90445c9b32cdee659df2d1a731aef219dbd17cb5",
           "bytes": 2619
         },
         "reference/inputs.json": {

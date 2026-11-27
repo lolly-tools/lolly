@@ -2,17 +2,17 @@
   "version": 1,
   "tool": {
     "id": "gradient",
-    "version": "1.4.0",
-    "digest": "8b96a031613170dc0193d966d8b3723b32727b999566b7bf5f29b8dd0af2dc99"
+    "version": "1.4.1",
+    "digest": "6d4373e8679472a5d17abc594c2177c2fde9296201d3d394bec211bd1ec87c4e"
   },
   "verdict": "resvg",
   "measured": {
     "date": "2026-11-27",
     "profile": "lolly-demo",
-    "webShell": "fbbab6ff515574881b845cb2f7cba6b761b28ec4",
+    "webShell": "f534b765291226c9b00f6c575043204a5dd88492",
     "renderers": {
       "resvg": "2.6.2",
-      "engine": "1.357.0",
+      "engine": "1.358.0",
       "chromium": "153.0.8010.12"
     },
     "bands": {

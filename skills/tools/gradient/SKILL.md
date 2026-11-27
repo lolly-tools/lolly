@@ -5,7 +5,7 @@ description: "Operate the Lolly Gradient tool (gradient) using its declared inpu
 
 # Gradient
 
-Tool ID: `gradient`. Tool version: `1.4.0`. Engine range: `^1.0.0`.
+Tool ID: `gradient`. Tool version: `1.4.1`. Engine range: `^1.0.0`.
 
 Six ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp, Flow and Field, which has sixteen GPU effects. Export stills or video loops.
 

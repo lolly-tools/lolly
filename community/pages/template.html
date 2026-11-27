@@ -1,7 +1,7 @@
 <main class="utility"><div class="pages-root" data-operation="{{operation}}" data-pages="{{pagesText}}" data-total-pages="{{totalPages}}" data-file-count="{{fileCount}}">
   {{#unless hasFile}}<section class="empty">
     <h1>{{#if isPageOp}}Drop PDFs or images here{{else}}Drop a PDF here{{/if}}</h1>
-    <label class="field"><span>Action</span><select class="field-select" data-input-id="operation">
+    <div class="field help-tip-host"><span class="field-label"><label for="pages-action">Action</label><button type="button" class="help-tip-btn" aria-label="What this action does" aria-expanded="false" aria-controls="pages-tip-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button></span><select class="field-select" id="pages-action" data-input-id="operation">
       <option value="reorder" {{#if (eq operation "reorder")}}selected{{/if}}>Reorder / combine</option>
       <option value="rotate" {{#if (eq operation "rotate")}}selected{{/if}}>Rotate</option>
       <option value="extract" {{#if (eq operation "extract")}}selected{{/if}}>Extract</option>
@@ -10,7 +10,7 @@
       <option value="split" {{#if (eq operation "split")}}selected{{/if}}>Split</option>
       <option value="compress" {{#if (eq operation "compress")}}selected{{/if}}>Compress</option>
       <option value="sign" {{#if (eq operation "sign")}}selected{{/if}}>Sign</option>
-    </select></label>
+    </select><span class="help-tip-pop" id="pages-tip-action" hidden>{{#if isCompress}}Compress shrinks a PDF by recompressing its images: text and vector graphics stay as they are, and a digital signature in the PDF stops verifying once the file is saved again.{{/if}}{{#if isSign}}Sign places your signature on a page, with an optional Content Credential or password lock.{{/if}}{{#if isPageOp}}1-based pages and ranges, for example 1-3,7,10-. Reorder accepts a new sequence such as 3,1-2, or drag the previews. Rotate, Extract and Delete also take a press on a preview. Each comma-separated range becomes a PDF when splitting.{{/if}}<button type="button" class="close-btn close-btn--sm close-btn--inherit help-tip-close" tabindex="-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>
     <button class="btn btn--primary" type="button" data-file-pick>{{#if isPageOp}}Choose files…{{else}}Choose a PDF…{{/if}}</button>
   </section>{{/unless}}
   {{#if hasFile}}<section class="panel">
@@ -20,7 +20,7 @@
     </header>
 
     <section class="controls" aria-label="Operation settings">
-      <label class="field"><span>Action</span><select class="field-select" data-input-id="operation">
+      <div class="field help-tip-host"><span class="field-label"><label for="pages-action">Action</label><button type="button" class="help-tip-btn" aria-label="What this action does" aria-expanded="false" aria-controls="pages-tip-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button></span><select class="field-select" id="pages-action" data-input-id="operation">
         <option value="reorder" {{#if (eq operation "reorder")}}selected{{/if}}>Reorder / combine</option>
         <option value="rotate" {{#if (eq operation "rotate")}}selected{{/if}}>Rotate</option>
         <option value="extract" {{#if (eq operation "extract")}}selected{{/if}}>Extract</option>
@@ -29,7 +29,7 @@
         <option value="split" {{#if (eq operation "split")}}selected{{/if}}>Split</option>
         <option value="compress" {{#if (eq operation "compress")}}selected{{/if}}>Compress</option>
         <option value="sign" {{#if (eq operation "sign")}}selected{{/if}}>Sign</option>
-      </select></label>
+      </select><span class="help-tip-pop" id="pages-tip-action" hidden>{{#if isCompress}}Compress shrinks a PDF by recompressing its images: text and vector graphics stay as they are, and a digital signature in the PDF stops verifying once the file is saved again.{{/if}}{{#if isSign}}Sign places your signature on a page, with an optional Content Credential or password lock.{{/if}}{{#if isPageOp}}1-based pages and ranges, for example 1-3,7,10-. Reorder accepts a new sequence such as 3,1-2, or drag the previews. Rotate, Extract and Delete also take a press on a preview. Each comma-separated range becomes a PDF when splitting.{{/if}}<button type="button" class="close-btn close-btn--sm close-btn--inherit help-tip-close" tabindex="-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>
       {{#if isPageOp}}<label class="field field--grow"><span>{{selectionLabel}}</span><input class="field-input" data-input-id="pages" type="text" value="{{pagesText}}"></label>
       {{#if isRotate}}<label class="field"><span>Turn</span><select class="field-select" data-input-id="rotation">
         <option value="90" {{#if (eq rotationText "90")}}selected{{/if}}>90° clockwise</option>
