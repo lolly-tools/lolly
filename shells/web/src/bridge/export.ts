@@ -2059,7 +2059,10 @@ export async function signFreshC2pa(host: HostV1, bytes: Uint8Array, format: str
     actions.splice(1, 0, { action: 'c2pa.redacted', description: o.description || 'Covered content removed and the file rebuilt' });
   }
 
-  const stamped = await signAndEmbedC2pa(new Blob([bytes as BlobPart]), format, {
+  // The embedder extends a classic cross-reference table. A PDF saved with object
+  // streams (what host.pdf.stamp writes) is saved again in the classic form first.
+  const { classicPdfForStamp } = await import('@lolly-tools/node-shell/pdf-classic');
+  const stamped = await signAndEmbedC2pa(new Blob([await classicPdfForStamp(bytes, format) as BlobPart]), format, {
     title: o.title || meta.tool,
     software: meta.software,
     environment: c2paEnvironment(format, { meta } as ExportOpts),

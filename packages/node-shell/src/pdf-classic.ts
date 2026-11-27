@@ -11,9 +11,16 @@
  * encrypted, comes back unchanged, and every other format is not looked at.
  */
 
+/** Bytes as one character each, without a Node API, so the web shell can load this module too. */
+function latin1(bytes: Uint8Array): string {
+  let out = '';
+  for (let i = 0; i < bytes.length; i++) out += String.fromCharCode(bytes[i]!);
+  return out;
+}
+
 /** Where the last `startxref` points, or null when there is none. */
 function lastCrossReference(pdf: Uint8Array): number | null {
-  const tail = Buffer.from(pdf.subarray(Math.max(0, pdf.length - 2048))).toString('latin1');
+  const tail = latin1(pdf.subarray(Math.max(0, pdf.length - 2048)));
   const found = [...tail.matchAll(/startxref\s+(\d+)/g)].at(-1);
   return found ? Number(found[1]) : null;
 }
@@ -21,7 +28,7 @@ function lastCrossReference(pdf: Uint8Array): number | null {
 function hasClassicTable(pdf: Uint8Array): boolean {
   const at = lastCrossReference(pdf);
   if (at === null || at >= pdf.length) return true; // Not ours to judge: the embedder reports a broken file.
-  return Buffer.from(pdf.subarray(at, at + 16)).toString('latin1').trimStart().startsWith('xref');
+  return latin1(pdf.subarray(at, at + 16)).trimStart().startsWith('xref');
 }
 
 /** `pdf` ready for the embedder. Bytes of any other format pass straight through. */
