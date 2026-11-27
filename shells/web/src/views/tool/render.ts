@@ -37,6 +37,7 @@ import type { Box } from '../free-canvas-math.ts';
 import { armAutoCopy, resolveCanvasAnnotations } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
 import { notePagePainted } from '../../lib/page-fallback-watch.ts';
+import { ensureMotionTokens } from '../../lib/motion-tokens.ts';
 
 /**
  * The Design scene enhancer, once it has been loaded. Module scope rather than a context
@@ -304,6 +305,8 @@ export function paint(tview: ToolViewCtx): void {
         tview.studioPending = (tview.studioModule
           ? Promise.resolve(tview.studioModule)
           : import('../../lib/studio3d/mount.ts').then(m => (tview.studioModule = m)))
+          // A camera easing may follow the design system's curves, so they are read first.
+          .then(m => ensureMotionTokens(tview.host).then(() => m))
           .then(m => m.mountToolStudio(tview.contentEl, {
             isCurrent: () => gen === tview.renderGen,
             read: async (url, signal) => {
