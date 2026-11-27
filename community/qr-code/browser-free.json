@@ -2,17 +2,17 @@
   "version": 1,
   "tool": {
     "id": "qr-code",
-    "version": "2.9.0",
-    "digest": "ac93cdefc219d14f6b123566c52f09e26692c95de964d65d8dec9be5ae6df30c"
+    "version": "2.10.0",
+    "digest": "cd1b846df47ae0ee499d7100dd704ec48a0b404c8b43f72da138ad8a6497c217"
   },
   "verdict": "resvg",
   "measured": {
     "date": "2026-11-26",
     "profile": "lolly-demo",
-    "webShell": "48a2a6feb602adddc9fbbce745c40c309b39424e",
+    "webShell": "d1f0b75234c872276bc8bd3a4bd72714326442bd",
     "renderers": {
       "resvg": "2.6.2",
-      "engine": "1.356.0",
+      "engine": "1.357.0",
       "chromium": "153.0.8010.12"
     },
     "bands": {
@@ -31,6 +31,16 @@
         "--url=https://lolly.tools"
       ],
       "result": "inside"
+    },
+    {
+      "name": "qr-code-motion-label",
+      "args": [
+        "--url=https://lolly.tools",
+        "--motion=rings",
+        "--frame=label"
+      ],
+      "result": "refused",
+      "detail": "text the outliner left live (a character no face here covers), which resvg sets in other faces than the browser; the drawing animates, and the browser draws a moment of the animation where resvg draws it still; rectangles with snapped edges (crispEdges) between whole pixels, which resvg rounds a pixel apart from the browser"
     },
     {
       "name": "qr-code-radial-dots-leaf",

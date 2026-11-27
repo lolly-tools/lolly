@@ -1,15 +1,30 @@
-/* Editor-only scannability feedback (plans/162 Part 3). These blocks carry
-   data-export-hide, so they never reach the exported PNG/SVG/PDF (the CLI's
-   rootSvgOf skips them; the web raster path detaches them) - they are guidance
-   while designing, not part of the asset. A full colour wash (not a single-edge
-   rail) marks them, per the house rule on radiused elements. */
+/* Editor-only notes over the foot of the canvas: scannability warnings, the
+   error-correction note and the button that replays the motion. The block carries
+   data-export-hide, so it never reaches a file (the CLI's root SVG rule skips it and
+   the web export detaches it). It lies over the canvas because the code fills the
+   whole canvas and the canvas clips what follows. A full colour wash (not a
+   single-edge rail) marks a warning, per the house rule on radiused elements. */
+
+.qr-notes {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
 
 .qr-scan-warn {
-  margin-top: 12px;
+  align-self: stretch;
   padding: 10px 12px;
   border-radius: 10px;
-  background: #fff5f5;
-  color: #7a1f12;
+  /* The design system's alert roles, measured and set by the hooks. The literals
+     stand where a system has none. */
+  background: var(--qr-alert-card, #fff5f5);
+  color: var(--qr-alert-ink, #7a1f12);
   font: 13px/1.45 var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
 }
 
@@ -33,10 +48,37 @@
 }
 
 .qr-scan-info {
-  margin: 8px 0 0;
+  align-self: stretch;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--brand-surface, #ffffff);
   font: 12px/1.45 var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
-  color: #6b6b6b;
+  color: var(--brand-muted, #6b6b6b);
 }
+
+/* Replays the motion in the preview. Never part of a file. */
+.qr-play {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--brand-surface, #ffffff);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-text, #1a1a1a) 14%, transparent);
+  color: var(--brand-text, #1a1a1a);
+  font: 600 13px/1.45 var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+  cursor: pointer;
+}
+.qr-play::before {
+  content: '';
+  border-style: solid;
+  border-width: 5px 0 5px 8px;
+  border-color: transparent transparent transparent currentColor;
+}
+.qr-play:focus-visible { outline: 2px solid var(--brand-primary, #30ba78); outline-offset: 2px; }
 
 /* Scan mode (moved from community/scan-code, plans/162 Part 2). Reader UI: a viewfinder region and a results
    card. Warnings use a full colour wash, never a single-edge rail (house rule
@@ -45,7 +87,15 @@
 
 .sc {
   font: 15px/1.5 var(--font-brand, system-ui, -apple-system, "Segoe UI", sans-serif);
-  color: #1a1a1a;
+  /* Inks and grounds come from the design system as pairs, so the panel reads in
+     a light theme and a dark one. The literals are the unbranded fallback. */
+  --sc-ink: var(--brand-text, #1a1a1a);
+  --sc-muted: var(--brand-muted, #6b6b6b);
+  --sc-ground: var(--brand-surface, #ffffff);
+  --sc-panel: color-mix(in srgb, var(--sc-ink) 5%, var(--sc-ground));
+  --sc-control: color-mix(in srgb, var(--sc-ink) 11%, var(--sc-ground));
+  --sc-mono: var(--font-mono, ui-monospace, Menlo, Consolas, monospace);
+  color: var(--sc-ink);
   max-width: 480px;
   margin: 0 auto;
   padding: 12px;
@@ -99,13 +149,13 @@
 .sc-empty {
   padding: 28px 16px;
   text-align: center;
-  color: #6b6b6b;
-  background: #f4f3f0;
+  color: var(--sc-muted);
+  background: var(--sc-panel);
   border-radius: 14px;
 }
 
 .sc-result {
-  background: #f7f6f3;
+  background: var(--sc-panel);
   border-radius: 16px;
   padding: 16px;
   display: flex;
@@ -118,23 +168,23 @@
   font-size: 14px;
   padding: 3px 10px;
   border-radius: 999px;
-  background: #0c322c;
-  color: #fff;
+  background: var(--sc-ink);
+  color: var(--sc-ground);
 }
 .sc-fmt {
-  font: 11px ui-monospace, Menlo, Consolas, monospace;
-  color: #6b6b6b;
+  font: 11px var(--sc-mono);
+  color: var(--sc-muted);
 }
 
 .sc-value {
-  font: 14px ui-monospace, Menlo, Consolas, monospace;
+  font: 14px var(--sc-mono);
   word-break: break-all;
-  background: #fff;
+  background: var(--sc-ground);
   border-radius: 10px;
   padding: 10px 12px;
 }
-.sc-value--secret { color: #7a1f12; }
-.sc-punycode { font: 12px ui-monospace, monospace; color: #6b6b6b; margin-top: 4px; }
+.sc-value--secret { color: var(--qr-alert-ink, #7a1f12); }
+.sc-punycode { font: 12px var(--sc-mono); color: var(--sc-muted); margin-top: 4px; }
 
 .sc-fields { display: flex; flex-direction: column; gap: 2px; }
 .sc-field {
@@ -142,15 +192,16 @@
   gap: 10px;
   align-items: baseline;
   padding: 6px 0;
-  border-bottom: 1px solid #eceae5;
+  border-bottom: 1px solid var(--brand-edge, #eceae5);
 }
 .sc-field:last-child { border-bottom: 0; }
-.sc-field__k { flex: 0 0 34%; color: #6b6b6b; font-size: 13px; }
+.sc-field__k { flex: 0 0 34%; color: var(--sc-muted); font-size: 13px; }
 .sc-field__v { flex: 1; word-break: break-word; }
-.sc-field--secret .sc-field__v { font-family: ui-monospace, monospace; }
+.sc-field--secret .sc-field__v { font-family: var(--sc-mono); }
 .sc-reveal {
   border: 0;
-  background: #e9e7e1;
+  background: var(--sc-control);
+  color: inherit;
   border-radius: 8px;
   padding: 3px 10px;
   font-size: 12px;
@@ -159,8 +210,8 @@
 
 /* A full wash - the code carries a risk worth reading before acting. */
 .sc-warn {
-  background: #fff5f0;
-  color: #7a2a12;
+  background: var(--qr-alert-card, #fff5f0);
+  color: var(--qr-alert-ink, #7a2a12);
   border-radius: 12px;
   padding: 12px 14px;
   font-size: 13px;
@@ -179,11 +230,11 @@
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  background: #e9e7e1;
-  color: #1a1a1a;
+  background: var(--sc-control);
+  color: var(--sc-ink);
   display: inline-flex;
   align-items: center;
 }
-.sc-btn--primary { background: #0c322c; color: #fff; }
+.sc-btn--primary { background: var(--sc-ink); color: var(--sc-ground); }
 
-.sc-foot { font-size: 12px; color: #8a8a8a; margin: 0; }
+.sc-foot { font-size: 12px; color: var(--sc-muted); margin: 0; }

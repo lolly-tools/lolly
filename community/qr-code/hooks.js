@@ -430,29 +430,105 @@ function _qbIsBranded(args) {
 async function _qbLiveScan(svgContent, expected, host) {
   try {
     if (!host || !host.scan || typeof host.scan.detect !== 'function') return null;
-    if (!host.raster || typeof host.raster.canRaster !== 'function' || !host.raster.canRaster()) return null;
-    if (typeof OffscreenCanvas === 'undefined') return null;
-    // A concrete size so the rasteriser has intrinsic dimensions (the code SVG
-    // is authored at 100%/viewBox). 512 is plenty for a phone-camera-grade decode.
-    var svg = String(svgContent).replace('width="100%" height="100%"', 'width="512" height="512"');
-    var src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-    var bmp = await host.raster.decode(src);
-    if (!bmp || !bmp.width) return null;
-    var w = bmp.width, h = bmp.height;
-    var cv = new OffscreenCanvas(w, h);
-    var ctx = cv.getContext('2d');
-    if (!ctx) return null;
-    ctx.fillStyle = '#ffffff';           // flatten (a transparent-bg code needs a field)
-    ctx.fillRect(0, 0, w, h);
-    ctx.drawImage(bmp, 0, 0);
-    var img = ctx.getImageData(0, 0, w, h);
-    var hits = await host.scan.detect({ data: img.data, width: w, height: h }, { formats: ['qr_code'] });
+    var img = await _qbCodePixels(svgContent, host);
+    if (!img) return null;
+    var hits = await host.scan.detect({ data: img.data, width: img.width, height: img.height }, { formats: ['qr_code'] });
     if (!hits || !hits.length) return 'fail';
     if (expected && hits[0].rawValue !== expected) return 'fail';
     return 'ok';
   } catch (e) {
     return null; // our own failure is never the user's warning
   }
+}
+
+// The finished code as pixels on a white field (a transparent code needs one).
+// The shell rasterises the SVG where the hooks run in the page. From a hook Worker
+// the shell refuses host.raster.decode, and the Worker draws the code itself.
+async function _qbCodePixels(svgContent, host) {
+  if (typeof OffscreenCanvas === 'undefined') return null;
+  var bmp = null;
+  if (host.raster && typeof host.raster.canRaster === 'function' && host.raster.canRaster()) {
+    // A concrete size so the rasteriser has intrinsic dimensions (the code SVG
+    // is authored at 100%/viewBox). 512 is plenty for a phone-camera-grade decode.
+    var svg = String(svgContent).replace('width="100%" height="100%"', 'width="512" height="512"');
+    try { bmp = await host.raster.decode('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)); }
+    catch (e) { bmp = null; }
+  }
+  if (!bmp || !bmp.width) return _qbDrawCode(String(svgContent));
+  var w = bmp.width, h = bmp.height;
+  var cv = new OffscreenCanvas(w, h);
+  var ctx = cv.getContext('2d');
+  if (!ctx) return null;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(bmp, 0, 0);
+  return ctx.getImageData(0, 0, w, h);
+}
+
+function _qbAttr(tag, name) {
+  var m = new RegExp('(?:^|\\s)' + name + '="([^"]*)"').exec(tag);
+  return m ? m[1] : null;
+}
+
+// A Worker cannot decode an SVG, so the code is drawn again from the markup this
+// file wrote: filled rects, paths and circles, the frame's translate and a logo
+// the Worker can decode. A cover at rest (opacity 0), strokes and words are left
+// out, and none of those lies over the modules. A logo it cannot decode (an SVG
+// mark) leaves its plate empty, which hides the same modules from a scanner.
+async function _qbDrawCode(svg) {
+  if (typeof Path2D !== 'function') return null;
+  var box = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg);
+  if (!box) return null;
+  var w = Math.round(Number(box[1])), h = Math.round(Number(box[2]));
+  if (!(w > 0 && h > 0) || w * h > 4000000) return null;
+  var cv = new OffscreenCanvas(w, h);
+  var ctx = cv.getContext('2d');
+  if (!ctx) return null;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  var moved = [];       // one entry per open <g>: whether it translated
+  var skip = '';        // the element whose contents are being passed over
+  var re = /<(\/?)([a-zA-Z]+)([^>]*)>/g, m;
+  while ((m = re.exec(svg))) {
+    var closing = m[1] === '/', name = m[2], tag = m[3];
+    if (skip) { if (closing && name === skip) skip = ''; continue; }
+    if (name === 'style' || name === 'defs' || name === 'text') { if (!closing) skip = name; continue; }
+    if (name === 'g') {
+      if (closing) { if (moved.pop()) ctx.restore(); continue; }
+      var t = /translate\(([-\d.]+)[ ,]+([-\d.]+)\)/.exec(_qbAttr(tag, 'transform') || '');
+      moved.push(!!t);
+      if (t) { ctx.save(); ctx.translate(Number(t[1]), Number(t[2])); }
+      continue;
+    }
+    if (closing || _qbAttr(tag, 'opacity') === '0') continue;
+    if (name === 'image') {
+      var data = /^data:image\/(?:png|jpeg|webp);base64,(.+)$/.exec(_qbAttr(tag, 'href') || '');
+      if (!data || typeof createImageBitmap !== 'function' || typeof atob !== 'function') continue;
+      try {
+        var raw = atob(data[1]), bytes = new Uint8Array(raw.length);
+        for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+        var logo = await createImageBitmap(new Blob([bytes]));
+        var side = Number(_qbAttr(tag, 'width')), fit = Math.min(side / logo.width, side / logo.height);
+        ctx.drawImage(logo, Number(_qbAttr(tag, 'x')) + (side - logo.width * fit) / 2,
+          Number(_qbAttr(tag, 'y')) + (side - logo.height * fit) / 2, logo.width * fit, logo.height * fit);
+      } catch (e) { /* the plate stays empty */ }
+      continue;
+    }
+    var fill = _qbAttr(tag, 'fill');
+    if (fill == null) { var st = /fill:\s*([^;]+)/.exec(_qbAttr(tag, 'style') || ''); fill = st ? st[1].trim() : '#000000'; }
+    if (fill === 'none') continue;
+    ctx.fillStyle = fill;
+    if (name === 'rect') {
+      ctx.fillRect(Number(_qbAttr(tag, 'x')), Number(_qbAttr(tag, 'y')), Number(_qbAttr(tag, 'width')), Number(_qbAttr(tag, 'height')));
+    } else if (name === 'path') {
+      ctx.fill(new Path2D(_qbAttr(tag, 'd') || ''), _qbAttr(tag, 'fill-rule') === 'evenodd' ? 'evenodd' : 'nonzero');
+    } else if (name === 'circle') {
+      ctx.beginPath();
+      ctx.arc(Number(_qbAttr(tag, 'cx')), Number(_qbAttr(tag, 'cy')), Number(_qbAttr(tag, 'r')), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  return ctx.getImageData(0, 0, w, h);
 }
 
 // grad = { stops:[hex…], type:'linear'|'radial', angle:deg } or null (solid).
@@ -568,7 +644,7 @@ function _qbRenderBranded(modules, length, xsize, ysize, options, shape, eyeShap
 var _QB_FRAMES = ['none', 'label', 'badge', 'arrow'];
 function _qbFrame(v) { return _QB_FRAMES.indexOf(v) >= 0 ? v : 'none'; }
 
-function _qbFrameWrap(body, W, H, frame, text, color, bg, esc) {
+function _qbFrameWrap(body, W, H, frame, text, color, bg, esc, rise) {
   text = (text == null ? '' : String(text)).trim();
   var M = frame === 'badge' ? 46 : 0;          // card margin
   var cap = text ? 96 : 0;                      // caption band
@@ -583,6 +659,8 @@ function _qbFrameWrap(body, W, H, frame, text, color, bg, esc) {
   }
   out += '<g transform="translate(' + M + ',' + M + ')">' + body + '</g>';
   var ty = M + H + gap + cap * 0.5;
+  // With motion the arrow and the words are one group, so they rise together.
+  if (rise && text) out += '<g style="' + rise + '">';
   if (frame === 'arrow' && text) {
     var ax = oW / 2, ay = M + H + gap * 0.4, aw = 26, ah = 16;
     out += '<path d="M' + _qbN(ax - aw) + ',' + _qbN(ay) + ' L' + _qbN(ax) + ',' + _qbN(ay + ah)
@@ -594,7 +672,87 @@ function _qbFrameWrap(body, W, H, frame, text, color, bg, esc) {
     out += '<text x="' + _qbN(oW / 2) + '" y="' + _qbN(ty) + '" text-anchor="middle" dominant-baseline="middle"'
       + ' font-family="' + _QB_FONT + '" font-size="46" font-weight="700" fill="' + color + '">' + esc(text) + '</text>';
   }
+  if (rise && text) out += '</g>';
   return { w: oW, h: oH, content: out };
+}
+
+// ─── Motion ──────────────────────────────────────────────────────────────────
+// Opt-in. The code fades in outward from its three finder eyes, the call to
+// action rises in, and then the finished code holds still long enough to scan.
+//
+// The modules are not regrouped or redrawn. Covers in the background colour lie
+// over the finished code and lift one after another, each leaving a larger
+// square around every eye uncovered. A cover at rest has opacity 0, written as
+// an attribute, so the finished file is the same code as with motion off in
+// every renderer, including the ones that play nothing.
+//
+// The animations are CSS on the elements, with their keyframes in the file, so
+// the SVG plays by itself, a Design timeline can seek through the clip, and a
+// video export samples the same moments. Where nothing can seek (the file as a
+// picture in a page) the last rule takes the animations away and the code is
+// finished.
+var _QB_HOLD_MS = 2400;        // over two seconds of finished code, after frame rounding
+var _QB_LONG_MS = 700;         // used where the design system gives no motion
+var _QB_MEDIUM_MS = 400;
+var _QB_EASE = 'cubic-bezier(0.05,0.7,0.1,1)';
+var _QB_RISE_PX = 16;          // about a third of the call to action's 46 unit type
+// A cover starts at .999, not 1. The web shell's frame capture copies only the
+// styles that differ from an element's defaults, so a cover at exactly 1 would be
+// captured at its attribute, 0, and the first frames of a clip would show the
+// finished code.
+var _QB_MOTION_CSS = '@keyframes qr-lift{from{opacity:.999}}'
+  + '@keyframes qr-fade{from{opacity:0}}'
+  + '@keyframes qr-rise{from{opacity:0;transform:translateY(' + _QB_RISE_PX + 'px)}}'
+  + '@media (scripting:none){[data-qr-motion] *{animation:none!important}}';
+
+function _qbMotionTiming(m) {
+  var longMs = m && m.longMs > 0 ? Math.round(m.longMs) : _QB_LONG_MS;
+  var mediumMs = m && m.mediumMs > 0 ? Math.round(m.mediumMs) : _QB_MEDIUM_MS;
+  return { longMs: longMs, mediumMs: mediumMs, ease: (m && m.ease) || _QB_EASE };
+}
+
+// How long the piece is: the modules, then the call to action if there is one, then the hold.
+function _qbClipMs(timing, hasLabel) {
+  return timing.longMs + (hasLabel ? timing.mediumMs : 0) + _QB_HOLD_MS;
+}
+
+function _qbPoly(points) {
+  var d = '';
+  for (var i = 0; i < points.length; i++) d += (i ? 'L' : 'M') + _qbN(points[i][0]) + ',' + _qbN(points[i][1]);
+  return d + 'Z';
+}
+
+// The covers for a code `length` modules wide drawn at `s` units a module inside
+// `pad` quiet modules, on a W by H field of colour `bg`.
+function _qbMotionCovers(length, s, pad, W, H, timing, bg) {
+  // At most eleven steps out from the eyes, so a large code stays a small file.
+  // The smallest QR symbol is 21 modules wide, so there are always steps to take.
+  var per = Math.max(1, Math.ceil((length - 7) / 11));
+  var steps = Math.ceil((length - 7) / per);
+  var liftMs = Math.round(timing.longMs * 0.4);
+  var near = (3.5 + pad) * s, far = (length - 3.5 + pad) * s;
+  var field = _qbPoly([[0, 0], [W, 0], [W, H], [0, H]]);
+  var out = '';
+  for (var k = 0; k <= steps; k++) {
+    var d = field;
+    if (k > 0) {
+      // What this cover leaves open: a square around each eye, as one outline once they meet.
+      var half = (3.5 + (k - 1) * per) * s;
+      var a0 = Math.max(0, near - half), a1 = Math.min(W, near + half);
+      var b0 = Math.max(0, far - half), b1 = Math.min(W, far + half);
+      if (a1 < b0) {
+        d += _qbPoly([[a0, a0], [a1, a0], [a1, a1], [a0, a1]])
+          + _qbPoly([[b0, a0], [b1, a0], [b1, a1], [b0, a1]])
+          + _qbPoly([[a0, b0], [a1, b0], [a1, b1], [a0, b1]]);
+      } else {
+        d += _qbPoly([[a0, a0], [b1, a0], [b1, a1], [a1, a1], [a1, b1], [a0, b1]]);
+      }
+    }
+    var delay = Math.round(k * (timing.longMs - liftMs) / steps);
+    out += '<path d="' + d + '" fill="' + bg + '" fill-rule="evenodd" opacity="0" shape-rendering="crispEdges"'
+      + ' style="animation:qr-lift ' + liftMs + 'ms linear ' + delay + 'ms both"/>';
+  }
+  return out;
 }
 
 QRCode.prototype.svg = function(opt) {
@@ -676,9 +834,25 @@ QRCode.prototype.svg = function(opt) {
   // frame is 'none' (default) outW/outH/content are the untouched 600×600 code,
   // so an unframed render is byte-identical.
   var _frame = _qbFrame(options.frame);
+  // Motion (opt-in): covers go over the modules, and nothing about the modules changes.
+  var _timing = options.motion ? _qbMotionTiming(options.motion) : null;
+  var _rootAttrs = '';
+  var _rise = '';
+  if (_timing) {
+    var _hasLabel = _frame !== 'none' && String(options.frameText == null ? '' : options.frameText).trim() !== '';
+    if (options.background === 'none') {
+      // Nothing to cover a transparent code with, so the code fades in as one piece.
+      modrect = '<g style="animation:qr-fade ' + _timing.longMs + 'ms linear 0ms both">' + modrect + '</g>';
+    } else {
+      modrect += _qbMotionCovers(length, xsize, options.padding, width, height, _timing, options.background);
+    }
+    defs = '<style>' + _QB_MOTION_CSS + '</style>' + defs;
+    _rise = 'transform-box:fill-box;transform-origin:center;animation:qr-rise ' + _timing.mediumMs + 'ms ' + _timing.ease + ' ' + _timing.longMs + 'ms both';
+    _rootAttrs = ' data-qr-motion="" data-clip-ms="' + _qbClipMs(_timing, _hasLabel) + '"';
+  }
   var outW = width, outH = height, content = defs + bgrect + modrect;
   if (_frame !== 'none') {
-    var fr = _qbFrameWrap(content, width, height, _frame, options.frameText, options.color, options.background, _esc);
+    var fr = _qbFrameWrap(content, width, height, _frame, options.frameText, options.color, options.background, _esc, _rise);
     outW = fr.w; outH = fr.h; content = fr.content;
   }
 
@@ -689,7 +863,7 @@ QRCode.prototype.svg = function(opt) {
       svg += content + '</svg>';
       break;
     case 'svg-viewbox':
-      svg += '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" viewBox="0 0 ' + outW + ' ' + outH + '">' + EOL;
+      svg += '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" viewBox="0 0 ' + outW + ' ' + outH + '"' + _rootAttrs + '>' + EOL;
       svg += content + '</svg>';
       break;
     case 'g':
@@ -717,9 +891,9 @@ function _esc(s) {
 // it, and the QR silently blanks with no explanation.
 function _errorSvg(note) {
   return '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" viewBox="0 0 600 600">'
-    + '<rect x="0" y="0" width="600" height="600" fill="#fff5f5"/>'
-    + '<text x="300" y="286" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="28" font-weight="700" fill="#bd3314">QR code unavailable</text>'
-    + '<text x="300" y="326" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="20" fill="#111111">' + _esc(note) + '</text>'
+    + '<rect x="0" y="0" width="600" height="600" fill="' + _qbAlert.card + '"/>'
+    + '<text x="300" y="286" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="28" font-weight="700" fill="' + _qbAlert.title + '">QR code unavailable</text>'
+    + '<text x="300" y="326" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="20" fill="' + _qbAlert.body + '">' + _esc(note) + '</text>'
     + '</svg>';
 }
 
@@ -1023,6 +1197,7 @@ function compute(args, host) {
         bg:          _transparentBg ? '#ffffff' : bg,
         frame:       args.frame,         // WP-J - 'none' unless a frame is chosen
         frameText:   args.frameText,
+        motion:      args._motion || null,   // set by _run only when Motion is on
         width:       600,
         height:      600,
         pretty:      false,
@@ -1037,6 +1212,7 @@ function compute(args, host) {
         qrWarnings: scanWarnings, // WP-K1 - pure scannability warnings (editor-only)
         qrHasWarnings: scanWarnings.length > 0,
       };
+      if (args._motion) { result.qrMotion = true; result.qrPlayLabel = _QB_PLAY_LABEL; }
     } catch (err) {
       var msg = (err && err.message) ? err.message : 'Could not generate QR code';
       var note = /too long|overflow/i.test(msg)
@@ -1396,19 +1572,19 @@ function errorSvg(note, hint) {
   var y = 140;
   for (var i = 0; i < lines.length; i++) {
     body += '<text x="300" y="' + (y + i * PANEL_LINE) + '" text-anchor="middle" font-family="' + _QB_FONT + '" '
-      + 'font-size="17" fill="#111111">' + _esc(lines[i]) + '</text>';
+      + 'font-size="17" fill="' + _qbAlert.body + '">' + _esc(lines[i]) + '</text>';
   }
   var last = y + (lines.length - 1) * PANEL_LINE;
   if (hint) {
     last += 36;
     body += '<text x="300" y="' + last + '" text-anchor="middle" font-family="' + _QB_MONO
-      + '" font-size="17" fill="#111111">' + _esc(hint) + '</text>';
+      + '" font-size="17" fill="' + _qbAlert.body + '">' + _esc(hint) + '</text>';
   }
   var h = Math.max(260, last + 60);
   return '<svg class="bc-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + PANEL_W + ' ' + h + '" '
     + 'preserveAspectRatio="xMidYMid meet" role="img" aria-label="Barcode unavailable">'
-    + '<rect x="0" y="0" width="' + PANEL_W + '" height="' + h + '" rx="12" fill="#fff5f5"/>'
-    + '<text x="300" y="96" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="26" font-weight="700" fill="#bd3314">Barcode unavailable</text>'
+    + '<rect x="0" y="0" width="' + PANEL_W + '" height="' + h + '" rx="12" fill="' + _qbAlert.card + '"/>'
+    + '<text x="300" y="96" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="26" font-weight="700" fill="' + _qbAlert.title + '">Barcode unavailable</text>'
     + body
     + '</svg>';
 }
@@ -1495,8 +1671,8 @@ var SYMBOLOGIES = ['auto', 'ean13', 'ean8', 'upca', 'code128'];
 function _fail(note, hint, kind) {
   return {
     svgContent: errorSvg(note, hint),
-    bgHex: '#fff5f5',
-    inkHex: '#111111',
+    bgHex: _qbAlert.card,
+    inkHex: _qbAlert.body,
     bcError: note,
     bcHint: hint || '',
     bcSymbology: kind,
@@ -1696,19 +1872,19 @@ var computeBwip = (function () {
     var y = 140;
     for (var i = 0; i < lines.length; i++) {
       body += '<text x="300" y="' + (y + i * 26) + '" text-anchor="middle" font-family="' + _QB_FONT + '" '
-        + 'font-size="17" fill="#111111">' + _esc(lines[i]) + '</text>';
+        + 'font-size="17" fill="' + _qbAlert.body + '">' + _esc(lines[i]) + '</text>';
     }
     var last = y + (lines.length - 1) * 26;
     if (hint) {
       last += 36;
       body += '<text x="300" y="' + last + '" text-anchor="middle" font-family="' + _QB_MONO + '" '
-        + 'font-size="17" fill="#111111">' + _esc(hint) + '</text>';
+        + 'font-size="17" fill="' + _qbAlert.body + '">' + _esc(hint) + '</text>';
     }
     var h = Math.max(260, last + 60);
     return '<svg class="bc-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 ' + h + '" '
       + 'preserveAspectRatio="xMidYMid meet" role="img" aria-label="Code unavailable">'
-      + '<rect x="0" y="0" width="600" height="' + h + '" rx="12" fill="#fff5f5"/>'
-      + '<text x="300" y="96" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="26" font-weight="700" fill="#bd3314">Code unavailable</text>'
+      + '<rect x="0" y="0" width="600" height="' + h + '" rx="12" fill="' + _qbAlert.card + '"/>'
+      + '<text x="300" y="96" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="26" font-weight="700" fill="' + _qbAlert.title + '">Code unavailable</text>'
       + body
       + '</svg>';
   }
@@ -1874,8 +2050,8 @@ var computeBwip = (function () {
   function _fail(note, hint, sym) {
     return {
       svgContent: errorSvg(note, hint),
-      bgHex: '#fff5f5',
-      inkHex: '#111111',
+      bgHex: _qbAlert.card,
+      inkHex: _qbAlert.body,
       bcError: note,
       bcHint: hint || '',
       bcSymbology: sym,
@@ -2056,6 +2232,97 @@ async function brandFonts(host) {
   return out;
 }
 // === /lolly:shared brandFonts ===
+
+// ─── The design system's alert colours and motion ────────────────────────────
+// The error panels and the warning cards take the system's alert roles, and the
+// motion takes its durations and curve. Each has the value this tool always drew
+// as its fallback, so a host with no tokens draws what it drew before.
+var _QB_PLAY_LABEL = 'Play motion';
+var _QB_CLIP_FORMATS = ['mp4', 'webm', 'gif', 'apng', 'webp-anim'];
+var _qbMotionOn = false;
+var _qbMotionSeq = 0;
+var _QB_ALERT = { card: '#fff5f5', title: '#bd3314', body: '#111111', css: '' };
+var _qbAlert = _QB_ALERT;
+
+function _qbHex6(v) {
+  if (typeof v !== 'string') return '';
+  var h = v.trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(h)) return h;
+  if (/^#[0-9a-f]{8}$/.test(h)) return h.slice(0, 7);
+  if (/^#[0-9a-f]{3}$/.test(h)) return '#' + h[1] + h[1] + h[2] + h[2] + h[3] + h[3];
+  return '';
+}
+
+// The first candidate that clears `min` on `ground`, else whichever came closest.
+function _qbReadable(candidates, ground, min) {
+  var best = '', bestScore = -1;
+  for (var i = 0; i < candidates.length; i++) {
+    if (!candidates[i]) continue;
+    var score = _qbContrast(candidates[i], ground);
+    if (score == null) continue;
+    if (score >= min) return candidates[i];
+    if (score > bestScore) { best = candidates[i]; bestScore = score; }
+  }
+  return best;
+}
+
+function _qbDurationMs(v) {
+  var n = null, unit = 'ms';
+  if (typeof v === 'number') n = v;
+  else if (typeof v === 'string') {
+    var m = /^\s*(\d+(?:\.\d+)?|\.\d+)\s*(ms|s)\s*$/i.exec(v);
+    if (m) { n = Number(m[1]); unit = m[2].toLowerCase(); }
+  } else if (v && typeof v === 'object' && typeof v.value === 'number') {
+    n = v.value;
+    unit = v.unit === 's' ? 's' : 'ms';
+  }
+  if (n === null || !(n > 0)) return 0;
+  return Math.min(4000, unit === 's' ? n * 1000 : n);
+}
+
+function _qbCurveCss(value) {
+  var v = value;
+  if (v && typeof v === 'object' && !Array.isArray(v) && Array.isArray(v.timingFunction)) v = v.timingFunction;
+  if (!Array.isArray(v) || v.length !== 4) return '';
+  for (var i = 0; i < 4; i++) if (typeof v[i] !== 'number' || !Number.isFinite(v[i])) return '';
+  if (v[0] < 0 || v[0] > 1 || v[2] < 0 || v[2] > 1) return '';
+  return 'cubic-bezier(' + v.join(',') + ')';
+}
+
+async function _qbToken(host, ref) {
+  if (!host || !host.tokens || !host.tokens.resolve) return null;
+  try { return await host.tokens.resolve(ref); } catch (e) { return null; }
+}
+
+// The alert card and the inks that read on that card. The title is large type, so
+// 3:1 is enough. The body and the warning cards are small type and need 4.5:1.
+async function _qbReadAlert(host) {
+  var card = _qbHex6(await _qbToken(host, '{color.role.alert-card}'));
+  var ink = _qbHex6(await _qbToken(host, '{color.role.alert-ink}'));
+  if (!card || !ink) return _QB_ALERT;
+  var text = _qbHex6(await _qbToken(host, '{color.semantic.text}'));
+  var body = _qbReadable([text, ink, '#111111', '#ffffff'], card, 4.5);
+  var small = _qbReadable([ink, body], card, 4.5);
+  return {
+    card: card,
+    title: _qbReadable([ink, body], card, 3),
+    body: body,
+    css: '--qr-alert-card:' + card + ';--qr-alert-ink:' + small,
+  };
+}
+
+async function _qbReadMotion(host) {
+  return {
+    longMs: _qbDurationMs(await _qbToken(host, '{motion.duration.long}')),
+    mediumMs: _qbDurationMs(await _qbToken(host, '{motion.duration.medium}')),
+    ease: _qbCurveCss(await _qbToken(host, '{motion.curve.emphasised}')),
+  };
+}
+
+// The alert colours for the cards the stylesheet draws, when the system gave them.
+function _qbWithAlert(result) {
+  return result ? Object.assign({}, result, { qrAlertStyle: _qbAlert.css }) : result;
+}
 
 // ═══ Scan mode (moved from community/scan-code) ═══════════════════════════════
 // Everything from here to the matching end line is the code reader: QR Code's
@@ -2449,7 +2716,13 @@ function _scOnInit({ model, host }) {
   var vm = (args.source === 'paste' && _scStr(args.scanText)) ? _scResult(classify(args.scanText, 'manual')) : _scResult(_scScanned);
   vm.scanCameraReady = _scCamReady(host);
   vm.scanNotice = '';
-  return vm;
+  return _scWithAlert(vm, host);
+}
+
+// The reader's warning card takes the design system's alert role, as the maker's does.
+async function _scWithAlert(vm, host) {
+  _qbAlert = await _qbReadAlert(host);
+  return _qbWithAlert(vm);
 }
 
 async function _scOnInput({ model, host }) {
@@ -2476,7 +2749,7 @@ async function _scOnInput({ model, host }) {
   if (!vm) vm = _scResult(_scScanned);
   vm.scanCameraReady = _scCamReady(host);
   vm.scanNotice = notice;
-  return vm;
+  return _scWithAlert(vm, host);
 }
 
 // Camera: the runtime hands one RGBA frame per tick (throttled; overlapping frames
@@ -2620,6 +2893,13 @@ async function _run(model, host) {
   // In the args so every memo key changes with the design system's faces.
   args._fontBrand = fonts.brand;
   args._fontMono = fonts.mono;
+  _qbAlert = await _qbReadAlert(host);
+  // In the args for the same reason: an error panel is drawn in these colours.
+  if (_qbAlert.css) args._alert = _qbAlert.css + ';' + _qbAlert.title + ';' + _qbAlert.body;
+  return _qbWithAlert(await _runMake(args, host));
+}
+
+async function _runMake(args, host) {
   if (BARCODE_KINDS.indexOf(args.payload) >= 0) {
     args.symbology = args.payload;   // computeBarcode reads args.symbology (folded barcode, plans/147 T7a)
     return computeBarcode(args);
@@ -2630,7 +2910,13 @@ async function _run(model, host) {
   if (MATRIX_SHAPES.indexOf(args.symbology) >= 0) return computeBwip(args);
   try {
     args._logoUrl = await _qbLogoUrl(args.logo, host);   // WP-I - '' when no logo/shell support
+    // Motion belongs to the QR symbol, whose three eyes it starts from.
+    if (args.motion === 'rings') args._motion = await _qbReadMotion(host);
+    // The preview plays once each time Motion is switched on, so each switch gets a number.
+    if (args._motion && !_qbMotionOn) _qbMotionSeq++;
+    _qbMotionOn = !!args._motion;
     var result = compute(args, host);
+    if (result && result.qrMotion) result = Object.assign({}, result, { qrMotionKey: _qbMotionSeq, qrNotes: true });
     // WP-K2: the generator consuming the reader. For a BRANDED code, rasterise
     // the finished SVG and ask host.scan to decode it - the belt to WP-K1's pure
     // validators. Progressive enhancement: absent host.scan/host.raster (CLI,
@@ -2642,6 +2928,10 @@ async function _run(model, host) {
       if (live) {
         result = Object.assign({}, result, { qrLiveScan: live, qrLiveScanFail: live === 'fail' });
       }
+    }
+    // Anything the canvas says under the code: a warning, a note, the replay button.
+    if (result && !result.qrNotes && (result.qrHasWarnings || result.qrLiveScanFail || result.qrEclRaised)) {
+      result = Object.assign({}, result, { qrNotes: true });
     }
     return result;
   } catch (err) {
@@ -2695,5 +2985,15 @@ function beforeExport({ model, format, opts }) {
   var alphaFormats = ['png', 'webp', 'avif'];
   if (_transparentBg && alphaFormats.includes(format)) {
     opts.background = 'transparent';
+  }
+  // A clip is a full frame, and a code with a call to action is taller than the
+  // frame is wide. The space left at the sides takes the code's own background.
+  if (_QB_CLIP_FORMATS.indexOf(format) >= 0 && opts && opts.background == null) {
+    var bg = null;
+    for (var i = 0; i < (model || []).length; i++) {
+      if (model[i].id === 'transparentBg' && model[i].value) return;
+      if (model[i].id === 'background') bg = _qbColour(model[i].value, '');
+    }
+    if (bg) opts.background = bg;
   }
 }

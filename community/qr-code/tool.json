@@ -3,7 +3,7 @@
   "name": "QR Code",
   "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 - plus retail and logistics barcodes from EAN-13 to MaxiCode.",
   "a11yLabel": "{{#if (eq mode \"scan\")}}{{default a11yScan \"Code reader\"}}{{else}}Scannable code holding {{default qrSummary \"nothing yet\"}}{{/if}}",
-  "version": "2.9.0",
+  "version": "2.10.0",
   "engineVersion": "^1.356.0",
   "status": "official",
   "category": "everyone",
@@ -20,7 +20,8 @@
     "gs1",
     "datamatrix",
     "shipping",
-    "packaging"
+    "packaging",
+    "motion"
   ],
   "featured": {
     "order": 6,
@@ -136,7 +137,12 @@
       "eps",
       "eps-cmyk",
       "dxf",
-      "emf"
+      "emf",
+      "mp4",
+      "webm",
+      "gif",
+      "apng",
+      "webp-anim"
     ],
     "actions": [
       "copy",
@@ -165,6 +171,10 @@
           "value": "camera"
         }
       }
+    },
+    "video": {
+      "wait": 0,
+      "duration": 3
     }
   },
   "inputs": [
@@ -1223,6 +1233,83 @@
       "help": "Remove the background fill so alpha-supporting formats (PNG/WebP/SVG) keep transparency.",
       "showIf": {
         "mode": "make"
+      }
+    },
+    {
+      "id": "motion",
+      "label": "Motion",
+      "type": "select",
+      "default": "none",
+      "display": "segmented",
+      "help": "Video, GIF and SVG play the code fading in from its corners, then hold the finished code still so a phone can scan the clip. Placed in Design, the picture plays on the timeline. PNG, PDF and other stills always show the finished code.",
+      "options": [
+        {
+          "value": "none",
+          "label": "None",
+          "formats": [
+            "svg",
+            "penpot",
+            "png",
+            "jpeg",
+            "webp",
+            "avif",
+            "tiff",
+            "pdf",
+            "pdf-cmyk",
+            "cmyk-tiff",
+            "eps",
+            "eps-cmyk",
+            "dxf",
+            "emf",
+            "svgz",
+            "wmf",
+            "bmp",
+            "jxl",
+            "jxl-lossless"
+          ]
+        },
+        {
+          "value": "rings",
+          "label": "Fade in",
+          "formats": [
+            "svg",
+            "penpot",
+            "png",
+            "jpeg",
+            "webp",
+            "avif",
+            "tiff",
+            "pdf",
+            "pdf-cmyk",
+            "cmyk-tiff",
+            "eps",
+            "eps-cmyk",
+            "dxf",
+            "emf",
+            "svgz",
+            "wmf",
+            "bmp",
+            "jxl",
+            "jxl-lossless",
+            "mp4",
+            "webm",
+            "gif",
+            "apng",
+            "webp-anim"
+          ]
+        }
+      ],
+      "showIf": {
+        "mode": "make",
+        "payload": [
+          "url",
+          "text",
+          "vcard",
+          "wifi",
+          "event",
+          "geo"
+        ],
+        "symbology": "qr"
       }
     }
   ],

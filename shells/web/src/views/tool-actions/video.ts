@@ -224,8 +224,10 @@ export function setFormat(ta: ActionsCtx, fmt: string): void {
 export function setFormats(ta: ActionsCtx, allowed: string[]): void {
   const { formatEl, formatPicker, formats, manifest } = ta;
   if (!formatEl) return;
-  const allow = new Set(allowed.map((f) => (f === 'jpeg' ? 'jpg' : f)));
-  let narrowed = formats.filter((f) => allow.has(f) || f === 'lolly' && canExportLolly(manifest.id));
+  // Both spellings of JPEG meet as one, whichever the manifest and the option use.
+  const plain = (f: string): string => (f === 'jpeg' ? 'jpg' : f);
+  const allow = new Set(allowed.map(plain));
+  let narrowed = formats.filter((f) => allow.has(plain(f)) || f === 'lolly' && canExportLolly(manifest.id));
   if (!narrowed.length) narrowed = formats; // never render an empty selector
   const cur = formatEl.value;
   const next = narrowed.includes(cur) ? cur : narrowed[0]!;
