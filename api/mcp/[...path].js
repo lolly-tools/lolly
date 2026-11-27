@@ -3769,6 +3769,1338 @@ var init_derived_formats = __esm({
   }
 });
 
+// packages/core/src/delivery-v1.ts
+function age(value2, fallback, ceiling) {
+  if (value2 === void 0) return fallback;
+  if (!Number.isSafeInteger(value2) || value2 < 0) throw new TypeError("Invalid delivery age");
+  return Math.min(value2, ceiling);
+}
+function cachePolicy(cls, opts = {}) {
+  let cacheControl = PRIVATE, cdnCacheControl = "no-store";
+  const status = opts.status ?? 200;
+  if (status < 400) {
+    switch (cls) {
+      case "public-immutable":
+        if ([200, 206, 304].includes(status)) {
+          cacheControl = "public, max-age=31536000, s-maxage=31536000, immutable, no-transform";
+          cdnCacheControl = "max-age=31536000, no-transform";
+        }
+        break;
+      case "public-revalidate":
+        cacheControl = "public, max-age=0, s-maxage=0, must-revalidate, no-transform";
+        cdnCacheControl = "max-age=0, must-revalidate, no-transform";
+        break;
+      case "public-bounded": {
+        const a = age(opts.boundedAgeSec, 3600, 3600);
+        const shared = opts.boundedAgeSec === void 0 ? 86400 : a;
+        const stale = opts.boundedAgeSec === void 0 ? ", stale-while-revalidate=604800" : "";
+        cacheControl = `public, max-age=${a}, s-maxage=${shared}${stale}, no-transform`;
+        cdnCacheControl = `max-age=${shared}${stale}, no-transform`;
+        break;
+      }
+      case "link":
+        cacheControl = `private, max-age=${age(opts.boundedAgeSec, 300, 300)}, no-transform`;
+        break;
+      case "instance-private":
+        cacheControl = opts.boundedAgeSec === void 0 ? "private, no-cache, no-transform" : `private, max-age=${age(opts.boundedAgeSec, 300, 300)}, no-transform`;
+        break;
+      case "person-private":
+        break;
+      default:
+        break;
+    }
+  }
+  return {
+    cacheControl,
+    cdnCacheControl,
+    // Fastly must not see an overriding public Surrogate-Control on a private response.
+    ...cacheControl.startsWith("public,") ? { surrogateControl: cdnCacheControl } : {},
+    validator: opts.signed && cls === "public-bounded" ? "weak" : "strong",
+    ...opts.tokenBearing ? { referrerPolicy: "no-referrer" } : {}
+  };
+}
+function tag(prefix, value2) {
+  const result = `${prefix}_${value2}`;
+  if (!PREFIXES.has(prefix) || !TAG_VALUE.test(value2) || result.length > 80) throw new TypeError("Invalid delivery tag");
+  return result;
+}
+function renderTags(tags3, style) {
+  if (style !== "comma" && style !== "space") throw new TypeError("Invalid tag style");
+  if (tags3.length > 12) throw new RangeError("Too many delivery tags");
+  for (const value2 of tags3) {
+    if (value2?.[1] !== "_" || tag(value2[0], value2.slice(2)) !== value2) throw new TypeError("Invalid delivery tag");
+  }
+  const result = [...new Set(tags3)].join(style === "comma" ? "," : " ");
+  if (result.length > 1e3) throw new RangeError("Delivery tag header exceeds budget");
+  return result;
+}
+function canonicalDeliveryPath(path, pattern) {
+  if (!path.startsWith("/") || path.includes("//") || /[%\\?#]/.test(path) || [...path].some((c) => c.charCodeAt(0) <= 32 || c.charCodeAt(0) >= 127) || path.split("/").some((p) => p === "." || p === "..")) return null;
+  const match = new RegExp(pattern.source, pattern.flags.replace(/[gy]/g, "")).exec(path);
+  return match && match.index === 0 && match[0] === path ? path : null;
+}
+function validHost(host) {
+  if (!host || host !== host.toLowerCase() || /[|\s/?#@\\]/.test(host)) return false;
+  try {
+    return new URL(`https://${host}`).host === host;
+  } catch {
+    return false;
+  }
+}
+function validContext(ctx) {
+  return validHost(ctx.canonicalHost) && (ctx.subject === void 0 || /^[0-9a-f]{64}$/.test(ctx.subject));
+}
+function validClaims(c) {
+  return c.v === 1 && /^[a-z0-9_-]{1,32}$/.test(c.kid) && Number.isSafeInteger(c.exp) && c.exp > 0 && ["link", "instance-private", "person-private"].includes(c.cls);
+}
+function tokenMessage(c, path, ctx) {
+  return new TextEncoder().encode(`lolly-dt1|${ctx.canonicalHost}|${path}|${c.exp}|${c.cls}${ctx.subject === void 0 ? "" : `|${ctx.subject}`}`).buffer;
+}
+function base64url(bytes2) {
+  return btoa(String.fromCharCode(...bytes2)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function signDeliveryToken(c, path, ctx, key2) {
+  if (!validClaims(c) || !validContext(ctx) || !canonicalDeliveryPath(path, /^\/.+$/)) throw new TypeError("Invalid delivery token scope");
+  const signature2 = await crypto.subtle.sign("HMAC", key2, tokenMessage(c, path, ctx));
+  return `1.${c.kid}.${c.exp}.${base64url(new Uint8Array(signature2))}`;
+}
+async function verifyDeliveryToken(token2, path, ctx, keys2, now2) {
+  if (!validContext(ctx) || !canonicalDeliveryPath(path, ctx.pattern) || !["link", "instance-private", "person-private"].includes(ctx.cls)) return "scope";
+  if (!Number.isFinite(now2) || !Number.isSafeInteger(ctx.maxSkewSec) || ctx.maxSkewSec < 0 || ctx.maxSkewSec > 60) return "bad";
+  const match = /^1\.([a-z0-9_-]{1,32})\.([1-9][0-9]{0,15})\.([A-Za-z0-9_-]{43})$/.exec(token2);
+  if (!match) return "bad";
+  const c = { v: 1, kid: match[1], exp: Number(match[2]), cls: ctx.cls };
+  const key2 = keys2.get(c.kid);
+  if (!validClaims(c) || !key2) return "bad";
+  try {
+    const raw = Uint8Array.from(atob(match[3].replace(/-/g, "+").replace(/_/g, "/") + "="), (ch) => ch.charCodeAt(0));
+    if (base64url(raw) !== match[3] || !await crypto.subtle.verify("HMAC", key2, raw.buffer, tokenMessage(c, path, ctx))) return "bad";
+    return now2 >= c.exp + ctx.maxSkewSec ? "expired" : "ok";
+  } catch {
+    return "bad";
+  }
+}
+var PRIVATE, PREFIXES, TAG_VALUE;
+var init_delivery_v1 = __esm({
+  "packages/core/src/delivery-v1.ts"() {
+    "use strict";
+    PRIVATE = "private, no-store, max-age=0, no-transform";
+    PREFIXES = /* @__PURE__ */ new Set(["x", "r", "t", "e", "c", "a", "h", "u", "k", "p", "f", "s", "b", "o", "y"]);
+    TAG_VALUE = /^[a-z0-9!#$%&'*+.^_`|~-]+$/;
+  }
+});
+
+// packages/core/src/file-v1.ts
+function safeFileName(name, fallback = "file") {
+  const clean2 = (value2) => value2.normalize("NFC").replace(/\\/g, "/").split("/").pop().replace(/[\u0000-\u001f\u007f-\u009f<>:"|?*]/g, "-").replace(/[\u202a-\u202e\u2066-\u2069]/g, "").trim().replace(/[. ]+$/, "");
+  let base = clean2(name) || clean2(fallback) || "file";
+  if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(base)) base = `_${base}`;
+  const encoder5 = new TextEncoder();
+  if (encoder5.encode(base).length > 220) {
+    const dot = base.lastIndexOf(".");
+    const ext = dot > 0 && base.length - dot <= 16 ? base.slice(dot) : "";
+    const chars = [...ext ? base.slice(0, dot) : base];
+    while (chars.length && encoder5.encode(chars.join("") + ext).length > 220) chars.pop();
+    base = chars.join("") + ext;
+  }
+  return base;
+}
+var FILE_CONTRACT_VERSION;
+var init_file_v1 = __esm({
+  "packages/core/src/file-v1.ts"() {
+    "use strict";
+    FILE_CONTRACT_VERSION = 1;
+  }
+});
+
+// packages/core/src/file-operation-v1.ts
+import { Ajv as Ajv2 } from "ajv";
+function assertFileOperationRequest(value2) {
+  if (!requestValidator(value2)) throw new Error(`Invalid file operation: ${ajv2.errorsText(requestValidator.errors)}`);
+}
+function assertFileOperationReport(value2) {
+  if (!reportValidator(value2)) throw new Error(`Invalid file report: ${ajv2.errorsText(reportValidator.errors)}`);
+  const report4 = value2;
+  if (report4.state === "succeeded" && !report4.outputs.length) throw new Error("A successful file report needs an output.");
+  if (["failed", "cancelled"].includes(report4.state) && report4.outputs.length) throw new Error("An unsuccessful single operation cannot claim outputs.");
+}
+async function executeFileOperationV1(input, request3, adapter, context = {}) {
+  assertFileOperationRequest(request3);
+  const report4 = { version: 1, operation: request3.operation, state: "failed", inputs: [], outputs: [], options: { ...request3.options, target: request3.target }, changes: [], findings: [], metadata: "not-checked", execution: context.execution ?? "device" };
+  try {
+    context.signal?.throwIfAborted();
+    const original = await adapter.describe(input, context.signal);
+    report4.inputs = [original];
+    Object.assign(report4, adapter.effects(original, request3));
+    const output = await adapter.execute(input, request3, context.signal);
+    context.signal?.throwIfAborted();
+    const produced = await adapter.describe(output, context.signal);
+    context.signal?.throwIfAborted();
+    report4.outputs = [produced];
+    report4.state = "succeeded";
+    report4.changes = [`${original.format.toUpperCase()} \u2192 ${produced.format.toUpperCase()}`, `${original.size} \u2192 ${produced.size} bytes`];
+    if (original.width && produced.width) report4.changes.push(`${original.width} \xD7 ${original.height} \u2192 ${produced.width} \xD7 ${produced.height} pixels`);
+    assertFileOperationReport(report4);
+    return { output, report: report4 };
+  } catch (error2) {
+    report4.outputs = [];
+    report4.state = context.signal?.aborted ? "cancelled" : "failed";
+    report4.findings.push({ code: report4.state === "cancelled" ? "operation-cancelled" : "operation-failed", severity: "error", message: (error2 instanceof Error ? error2.message : String(error2)).slice(0, 4096) });
+    try {
+      assertFileOperationReport(report4);
+    } catch {
+      report4.inputs = [];
+      report4.metadata = "not-checked";
+      report4.changes = [];
+      report4.findings = [{ code: "adapter-contract-error", severity: "error", message: "The adapter returned invalid facts or findings. No output has been accepted." }];
+      assertFileOperationReport(report4);
+    }
+    return { report: report4 };
+  }
+}
+var text, options, facts, fileOperationRequestSchemaV1, fileOperationReportSchemaV1, ajv2, requestValidator, reportValidator;
+var init_file_operation_v1 = __esm({
+  "packages/core/src/file-operation-v1.ts"() {
+    "use strict";
+    init_file_v1();
+    text = { type: "string", maxLength: 4096 };
+    options = { type: "object", maxProperties: 64, propertyNames: { maxLength: 80, pattern: "^(?!__proto__$|constructor$|prototype$)[a-zA-Z][a-zA-Z0-9_.-]*$" }, additionalProperties: { anyOf: [text, { type: "number" }, { type: "boolean" }] } };
+    facts = { type: "object", additionalProperties: false, required: ["name", "format", "mime", "size"], properties: {
+      name: text,
+      format: { type: "string", maxLength: 80 },
+      formatSource: { enum: ["detected", "declared"] },
+      mime: { type: "string", maxLength: 255 },
+      size: { type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER },
+      sha256: { type: "string", pattern: "^[a-f0-9]{64}$" },
+      width: { type: "integer", minimum: 1 },
+      height: { type: "integer", minimum: 1 },
+      durationMs: { type: "number", minimum: 0 },
+      pages: { type: "integer", minimum: 0 }
+    } };
+    fileOperationRequestSchemaV1 = {
+      $id: "https://lolly.tools/schemas/file-operation-request-v1",
+      type: "object",
+      additionalProperties: false,
+      required: ["version", "operation", "target", "options"],
+      properties: {
+        version: { const: 1 },
+        operation: { type: "string", pattern: "^[a-z][a-z0-9.-]{0,63}$" },
+        target: { type: "string", pattern: "^[a-z][a-z0-9-]{0,31}$" },
+        options
+      }
+    };
+    fileOperationReportSchemaV1 = {
+      $id: "https://lolly.tools/schemas/file-operation-report-v1",
+      type: "object",
+      additionalProperties: false,
+      required: ["version", "operation", "state", "inputs", "outputs", "options", "changes", "findings", "metadata", "execution"],
+      properties: {
+        version: { const: FILE_CONTRACT_VERSION },
+        operation: text,
+        state: { enum: ["succeeded", "partially_succeeded", "failed", "cancelled"] },
+        inputs: { type: "array", maxItems: 200, items: facts },
+        outputs: { type: "array", maxItems: 200, items: facts },
+        options: { ...options, maxProperties: 65 },
+        changes: { type: "array", maxItems: 400, items: text },
+        findings: { type: "array", maxItems: 400, items: { type: "object", additionalProperties: false, required: ["code", "severity", "message"], properties: {
+          code: { type: "string", maxLength: 100 },
+          severity: { enum: ["info", "warning", "error"] },
+          message: text
+        } } },
+        metadata: { enum: ["preserved", "removed", "changed", "not-checked"] },
+        execution: { enum: ["device", "instance"] }
+      }
+    };
+    ajv2 = new Ajv2({ allErrors: true, strict: false, strictNumbers: true });
+    requestValidator = ajv2.compile(fileOperationRequestSchemaV1);
+    reportValidator = ajv2.compile(fileOperationReportSchemaV1);
+  }
+});
+
+// packages/core/src/host-v1/apis.ts
+function presentApis(host) {
+  if (!host) return [];
+  return HOST_V1_OPTIONAL_APIS.filter((name) => host[name] !== void 0 && host[name] !== null);
+}
+function missingRequires(requires, host) {
+  if (!requires?.length) return [];
+  const present = new Set(presentApis(host));
+  return requires.filter((name) => !present.has(name));
+}
+var HOST_V1_OPTIONAL_APIS;
+var init_apis = __esm({
+  "packages/core/src/host-v1/apis.ts"() {
+    "use strict";
+    HOST_V1_OPTIONAL_APIS = [
+      "net",
+      "tokens",
+      "text",
+      "pdf",
+      "pptx",
+      "capture",
+      "compose",
+      "media",
+      "scan",
+      "lift",
+      "keyframes",
+      "recorder",
+      "audio",
+      "codec",
+      "layers",
+      "upscale",
+      "matte",
+      "ocr",
+      "speech",
+      "viz",
+      "color",
+      "images",
+      "raster",
+      "geom",
+      "connectors",
+      "c2pa",
+      "prepare",
+      "compare",
+      "textTools",
+      "emoji",
+      "models",
+      "layout",
+      "fonts",
+      "calc"
+    ];
+  }
+});
+
+// packages/core/src/host-v1/text-tools.ts
+var init_text_tools = __esm({
+  "packages/core/src/host-v1/text-tools.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/asset-ref.ts
+var init_asset_ref = __esm({
+  "packages/core/src/host-v1/asset-ref.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/assets.ts
+var init_assets = __esm({
+  "packages/core/src/host-v1/assets.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/audio.ts
+var init_audio = __esm({
+  "packages/core/src/host-v1/audio.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/c2pa.ts
+var init_c2pa = __esm({
+  "packages/core/src/host-v1/c2pa.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/calc.ts
+var init_calc = __esm({
+  "packages/core/src/host-v1/calc.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/capture.ts
+var init_capture = __esm({
+  "packages/core/src/host-v1/capture.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/clipboard.ts
+var init_clipboard = __esm({
+  "packages/core/src/host-v1/clipboard.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/codec.ts
+var init_codec = __esm({
+  "packages/core/src/host-v1/codec.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/color.ts
+var init_color = __esm({
+  "packages/core/src/host-v1/color.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/compose.ts
+var init_compose = __esm({
+  "packages/core/src/host-v1/compose.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/connectors.ts
+var init_connectors = __esm({
+  "packages/core/src/host-v1/connectors.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/emoji.ts
+var init_emoji = __esm({
+  "packages/core/src/host-v1/emoji.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/export.ts
+var init_export = __esm({
+  "packages/core/src/host-v1/export.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/fonts.ts
+var init_fonts = __esm({
+  "packages/core/src/host-v1/fonts.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/geom.ts
+var init_geom = __esm({
+  "packages/core/src/host-v1/geom.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/host.ts
+var init_host = __esm({
+  "packages/core/src/host-v1/host.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/images.ts
+var init_images = __esm({
+  "packages/core/src/host-v1/images.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/keyframes.ts
+var init_keyframes = __esm({
+  "packages/core/src/host-v1/keyframes.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/layers.ts
+var init_layers = __esm({
+  "packages/core/src/host-v1/layers.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/lift.ts
+var init_lift = __esm({
+  "packages/core/src/host-v1/lift.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/matte.ts
+var init_matte = __esm({
+  "packages/core/src/host-v1/matte.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/media.ts
+var init_media = __esm({
+  "packages/core/src/host-v1/media.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/models.ts
+var init_models = __esm({
+  "packages/core/src/host-v1/models.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/net.ts
+var init_net = __esm({
+  "packages/core/src/host-v1/net.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/ocr.ts
+var init_ocr = __esm({
+  "packages/core/src/host-v1/ocr.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/pdf.ts
+var init_pdf = __esm({
+  "packages/core/src/host-v1/pdf.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/pptx.ts
+var init_pptx = __esm({
+  "packages/core/src/host-v1/pptx.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/profile.ts
+var init_profile = __esm({
+  "packages/core/src/host-v1/profile.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/prepare.ts
+var init_prepare = __esm({
+  "packages/core/src/host-v1/prepare.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/compare.ts
+var init_compare = __esm({
+  "packages/core/src/host-v1/compare.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/raster.ts
+var init_raster = __esm({
+  "packages/core/src/host-v1/raster.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/recorder.ts
+var init_recorder = __esm({
+  "packages/core/src/host-v1/recorder.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/scan.ts
+var init_scan = __esm({
+  "packages/core/src/host-v1/scan.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/speech.ts
+var init_speech = __esm({
+  "packages/core/src/host-v1/speech.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/state.ts
+var init_state = __esm({
+  "packages/core/src/host-v1/state.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/text.ts
+var init_text = __esm({
+  "packages/core/src/host-v1/text.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/tokens.ts
+var TOKEN_AXIS_KINDS, KNOWN_FINISH_KINDS;
+var init_tokens = __esm({
+  "packages/core/src/host-v1/tokens.ts"() {
+    "use strict";
+    TOKEN_AXIS_KINDS = Object.freeze(["mode", "colourway", "expression", "medium", "contrast", "density", "campaign", "brand"]);
+    KNOWN_FINISH_KINDS = [
+      "foil",
+      "emboss",
+      "deboss",
+      "spot-uv",
+      "soft-touch",
+      "cut",
+      "crease",
+      "perforate"
+    ];
+  }
+});
+
+// packages/core/src/host-v1/upscale.ts
+var init_upscale = __esm({
+  "packages/core/src/host-v1/upscale.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/viz.ts
+var init_viz = __esm({
+  "packages/core/src/host-v1/viz.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1/layout.ts
+var init_layout = __esm({
+  "packages/core/src/host-v1/layout.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/host-v1.ts
+var init_host_v1 = __esm({
+  "packages/core/src/host-v1.ts"() {
+    "use strict";
+    init_apis();
+    init_text_tools();
+    init_asset_ref();
+    init_assets();
+    init_audio();
+    init_c2pa();
+    init_calc();
+    init_capture();
+    init_clipboard();
+    init_codec();
+    init_color();
+    init_compose();
+    init_connectors();
+    init_emoji();
+    init_export();
+    init_fonts();
+    init_geom();
+    init_host();
+    init_images();
+    init_keyframes();
+    init_layers();
+    init_lift();
+    init_matte();
+    init_media();
+    init_models();
+    init_net();
+    init_ocr();
+    init_pdf();
+    init_pptx();
+    init_profile();
+    init_prepare();
+    init_compare();
+    init_raster();
+    init_recorder();
+    init_scan();
+    init_speech();
+    init_state();
+    init_text();
+    init_tokens();
+    init_upscale();
+    init_viz();
+    init_layout();
+  }
+});
+
+// packages/core/src/preflight.ts
+var SEVERITY_RANK;
+var init_preflight = __esm({
+  "packages/core/src/preflight.ts"() {
+    "use strict";
+    SEVERITY_RANK = { error: 0, warn: 1, info: 2 };
+  }
+});
+
+// packages/core/src/money.ts
+function minorUnitExponent(currency, locale) {
+  return exponentOf(currencyFormatter(currency, locale), currency);
+}
+function exponentOf(fmt6, currency) {
+  const exp = fmt6.resolvedOptions().maximumFractionDigits;
+  if (typeof exp !== "number") throw new CurrencyError(currency);
+  return exp;
+}
+function currencyFormatter(currency, locale) {
+  if (typeof currency !== "string" || currency.length === 0) throw new CurrencyError(currency);
+  try {
+    return new Intl.NumberFormat(locale ?? void 0, { style: "currency", currency });
+  } catch (e) {
+    throw new CurrencyError(currency, e);
+  }
+}
+function monetaryFigure(minorUnits, currency) {
+  if (!Number.isSafeInteger(minorUnits)) throw new MinorUnitError(minorUnits);
+  return { minorUnits, currency, exponent: minorUnitExponent(currency) };
+}
+var CurrencyError, MinorUnitError;
+var init_money = __esm({
+  "packages/core/src/money.ts"() {
+    "use strict";
+    CurrencyError = class extends Error {
+      currency;
+      constructor(currency, cause) {
+        super(
+          `Unusable currency code ${JSON.stringify(currency)}. A currency must come from the rate card; there is no default and no fallback symbol.`
+        );
+        this.name = "CurrencyError";
+        this.currency = currency;
+        if (cause !== void 0) this.cause = cause;
+      }
+    };
+    MinorUnitError = class extends Error {
+      minorUnits;
+      constructor(minorUnits) {
+        super(
+          `Money must be integer minor units; got ${minorUnits}. A non-integer amount means a float leaked into a subtotal.`
+        );
+        this.name = "MinorUnitError";
+        this.minorUnits = minorUnits;
+      }
+    };
+  }
+});
+
+// packages/core/src/define-tool.ts
+var INPUT_NOTICES_KEY, INPUT_NOTICE_TONES, INPUT_NOTICE_TEXT_MAX;
+var init_define_tool = __esm({
+  "packages/core/src/define-tool.ts"() {
+    "use strict";
+    INPUT_NOTICES_KEY = "inputNotices";
+    INPUT_NOTICE_TONES = ["info", "warning", "error"];
+    INPUT_NOTICE_TEXT_MAX = 240;
+  }
+});
+
+// packages/core/src/chart-v1.ts
+var CHART_SPEC_VERSION;
+var init_chart_v1 = __esm({
+  "packages/core/src/chart-v1.ts"() {
+    "use strict";
+    CHART_SPEC_VERSION = 1;
+  }
+});
+
+// packages/core/src/design-v1.ts
+function finite(value2, fallback = 0) {
+  const n7 = typeof value2 === "string" && value2.trim() !== "" ? Number(value2) : value2;
+  return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
+}
+function text2(value2) {
+  return typeof value2 === "string" ? value2 : "";
+}
+function assetId(value2) {
+  if (typeof value2 === "string" && value2) return value2;
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return void 0;
+  const ref2 = value2;
+  if (typeof ref2.id === "string" && ref2.id) return ref2.id;
+  if (typeof ref2.url === "string" && ref2.url) return ref2.url;
+  return void 0;
+}
+function boundsOf(row) {
+  return {
+    x: finite(row.x),
+    y: finite(row.y),
+    width: finite(row.w),
+    height: finite(row.h),
+    rotation: finite(row.rot)
+  };
+}
+function contains(outer, inner) {
+  if (outer.rotation || inner.rotation) return true;
+  const epsilon = 0.01;
+  return inner.x >= outer.x - epsilon && inner.y >= outer.y - epsilon && inner.x + inner.width <= outer.x + outer.width + epsilon && inner.y + inner.height <= outer.y + outer.height + epsilon;
+}
+function finding(findings, id3, severity, path, message2, refs = {}) {
+  findings.push({ id: id3, severity, path, message: message2, ...refs });
+}
+function inspectDesignV1(boxes2, opts = {}) {
+  const findings = [];
+  if (!Array.isArray(boxes2)) {
+    finding(findings, "design.boxes.invalid", "error", "/boxes", "Boxes must be an array.");
+    return finish([], [], findings, opts);
+  }
+  const layers = [];
+  const rows2 = /* @__PURE__ */ new Map();
+  const seen = /* @__PURE__ */ new Set();
+  boxes2.forEach((value2, index2) => {
+    const path = `/boxes/${index2}`;
+    if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) {
+      finding(findings, "design.layer.invalid", "error", path, "A layer must be an object.");
+      return;
+    }
+    const row = value2;
+    const id3 = text2(row.id).trim();
+    const rawKind = text2(row.kind) || "box";
+    const kind = KINDS.has(rawKind) ? rawKind : "unknown";
+    if (!id3) {
+      finding(
+        findings,
+        "design.layer.id-missing",
+        "error",
+        `${path}/id`,
+        "Every layer needs a stable id."
+      );
+    } else if (seen.has(id3)) {
+      finding(
+        findings,
+        "design.layer.id-duplicate",
+        "error",
+        `${path}/id`,
+        `Layer id "${id3}" is duplicated.`,
+        { layerId: id3 }
+      );
+    } else {
+      seen.add(id3);
+      rows2.set(id3, row);
+    }
+    if (kind === "unknown") {
+      finding(
+        findings,
+        "design.layer.kind-unknown",
+        "error",
+        `${path}/kind`,
+        `Unknown layer kind "${rawKind}".`,
+        id3 ? { layerId: id3 } : {}
+      );
+    }
+    const bounds = boundsOf(row);
+    if (bounds.width <= 0 || bounds.height <= 0) {
+      finding(
+        findings,
+        "design.layer.dimension-invalid",
+        "error",
+        path,
+        "Layer width and height must be greater than zero.",
+        id3 ? { layerId: id3 } : {}
+      );
+    }
+    const start = finite(row.start);
+    const duration = finite(row.dur);
+    const timed = row.start !== void 0 || row.dur !== void 0 || text2(row.lane) !== "";
+    const layer = {
+      id: id3,
+      index: index2,
+      kind,
+      name: text2(row.name).trim(),
+      bounds,
+      ...text2(row.frame) ? { artboardId: text2(row.frame) } : {},
+      zIndex: finite(row.z, index2),
+      hidden: row.hidden === true,
+      locked: row.locked === true,
+      ...kind === "text" ? { text: text2(row.text) } : {},
+      ...["image", "audio", "camera", "webcam"].includes(kind) && assetId(row.image) ? { assetId: assetId(row.image) } : {},
+      // A 3D scene box reads its `scene` field and raises nothing: an empty scene is
+      // a new, unedited box, not a fault, and the assets it references live inside
+      // the query rather than in `image` (engine/src/design-scene.ts reads them out).
+      ...kind === "3d" && text2(row.scene) ? { scene: text2(row.scene) } : {},
+      ...kind === "web" && text2(row.web).trim() ? { web: text2(row.web).trim() } : {},
+      ...timed ? {
+        timing: {
+          start,
+          duration,
+          end: start + duration,
+          ...text2(row.lane) ? { lane: text2(row.lane) } : {}
+        }
+      } : {}
+    };
+    layers.push(layer);
+    if (kind === "text" && !text2(row.text).trim() && !text2(row.textStory)) {
+      finding(
+        findings,
+        "design.text.empty",
+        "warn",
+        `${path}/text`,
+        "Text layer is empty.",
+        id3 ? { layerId: id3 } : {}
+      );
+    }
+    if (kind === "image" && !assetId(row.image)) {
+      finding(
+        findings,
+        "design.image.empty",
+        "warn",
+        `${path}/image`,
+        "Image layer has no asset.",
+        id3 ? { layerId: id3 } : {}
+      );
+    }
+    if (kind === "web" && !text2(row.web).trim()) {
+      finding(findings, "design.web.empty", "warn", `${path}/web`, "Web page layer has no link.", id3 ? { layerId: id3 } : {});
+    } else if (kind === "web" && !assetId(row.image)) {
+      finding(findings, "design.web.no-poster", "info", `${path}/image`, "Web page layer has no poster; exports show a card naming the site.", id3 ? { layerId: id3 } : {});
+    }
+  });
+  const artboardLayers = layers.filter((layer) => layer.kind === "frame");
+  const artboardIds = new Set(artboardLayers.map((layer) => layer.id).filter(Boolean));
+  const children2 = /* @__PURE__ */ new Map();
+  for (const id3 of artboardIds) children2.set(id3, []);
+  for (const layer of layers) {
+    if (layer.kind === "frame" || !layer.artboardId) continue;
+    const parent = layers.find(
+      (candidate) => candidate.id === layer.artboardId && candidate.kind === "frame"
+    );
+    if (!parent) {
+      finding(
+        findings,
+        "design.layer.artboard-missing",
+        "error",
+        `/boxes/${layer.index}/frame`,
+        `Layer references missing artboard "${layer.artboardId}".`,
+        { layerId: layer.id, artboardId: layer.artboardId }
+      );
+      continue;
+    }
+    children2.get(parent.id)?.push(layer.id);
+    if (!contains(parent.bounds, layer.bounds)) {
+      finding(
+        findings,
+        "design.layer.outside-artboard",
+        "warn",
+        `/boxes/${layer.index}`,
+        `Layer extends outside artboard "${parent.name || parent.id}".`,
+        { layerId: layer.id, artboardId: parent.id }
+      );
+    }
+  }
+  const artboards = artboardLayers.map((layer) => {
+    const row = rows2.get(layer.id) ?? {};
+    const childLayerIds = children2.get(layer.id) ?? [];
+    if (!layer.name) {
+      finding(
+        findings,
+        "design.artboard.unnamed",
+        "warn",
+        `/boxes/${layer.index}/name`,
+        "Artboard has no name.",
+        { layerId: layer.id, artboardId: layer.id }
+      );
+    }
+    if (!childLayerIds.length) {
+      finding(
+        findings,
+        "design.artboard.empty",
+        "warn",
+        `/boxes/${layer.index}`,
+        `Artboard "${layer.name || layer.id}" is empty.`,
+        { layerId: layer.id, artboardId: layer.id }
+      );
+    }
+    return {
+      id: layer.id,
+      name: layer.name,
+      order: finite(row.order, layer.index),
+      bounds: layer.bounds,
+      childLayerIds,
+      clipChildren: row.clipChildren !== false
+    };
+  }).sort((a, b) => a.order - b.order || a.bounds.x - b.bounds.x || a.id.localeCompare(b.id));
+  const looseLayerIds = layers.filter((layer) => layer.kind !== "frame" && !layer.artboardId).map((layer) => layer.id).filter(Boolean);
+  if (artboards.length) {
+    for (const id3 of looseLayerIds) {
+      const layer = layers.find((item2) => item2.id === id3);
+      finding(
+        findings,
+        "design.layer.unassigned",
+        "info",
+        `/boxes/${layer.index}/frame`,
+        "Layer is not assigned to an artboard.",
+        { layerId: id3 }
+      );
+    }
+  }
+  return finish(layers, artboards, findings, opts, looseLayerIds);
+}
+function finish(layers, artboards, findings, opts, looseLayerIds = []) {
+  void opts.width;
+  void opts.height;
+  const errors = findings.filter((item2) => item2.severity === "error").length;
+  const warnings2 = findings.filter((item2) => item2.severity === "warn").length;
+  return {
+    version: DESIGN_DOCUMENT_VERSION,
+    valid: errors === 0,
+    summary: {
+      artboards: artboards.length,
+      layers: layers.filter((layer) => layer.kind !== "frame").length,
+      hiddenLayers: layers.filter((layer) => layer.hidden).length,
+      timedLayers: layers.filter((layer) => layer.timing).length,
+      duration: layers.reduce((max, layer) => Math.max(max, layer.timing?.end ?? 0), 0),
+      errors,
+      warnings: warnings2
+    },
+    artboards,
+    layers,
+    looseLayerIds,
+    findings,
+    requiresMount: REQUIRES_MOUNT
+  };
+}
+var DESIGN_DOCUMENT_VERSION, DESIGN_LAYER_KINDS, KINDS, REQUIRES_MOUNT;
+var init_design_v1 = __esm({
+  "packages/core/src/design-v1.ts"() {
+    "use strict";
+    DESIGN_DOCUMENT_VERSION = 1;
+    DESIGN_LAYER_KINDS = [
+      "box",
+      "text",
+      "image",
+      "path",
+      "audio",
+      "camera",
+      "frame",
+      "3d",
+      "web",
+      "webcam",
+      "group"
+    ];
+    KINDS = new Set(DESIGN_LAYER_KINDS);
+    REQUIRES_MOUNT = ["text-overflow", "computed-contrast", "resolved-fonts"];
+  }
+});
+
+// packages/core/src/rebrand-v1.ts
+function isArchetypeRef(value2) {
+  return typeof value2 === "string" && STRUCTURE_ID_PATTERN.test(value2);
+}
+function isKnownArchetypeId(value2) {
+  return typeof value2 === "string" && ARCHETYPE_IDS.includes(value2);
+}
+var REBRAND_REFERENCE_DPI, PLACEHOLDER_TYPES, VECTOR_ITEMS_MAX, VECTOR_ITEMS_MAX_CHARS, VECTOR_DECK_ITEMS_MAX, OBJECT_CLASSES, PLAN_ACTIONS, REVIEW_STATES, ARCHETYPE_ROLES, ARCHETYPE_IDS, STRUCTURE_ID_PATTERN, PROJECT_THUMB_SVG_MAX, REBRAND_ERROR_CODES;
+var init_rebrand_v1 = __esm({
+  "packages/core/src/rebrand-v1.ts"() {
+    "use strict";
+    REBRAND_REFERENCE_DPI = 96;
+    PLACEHOLDER_TYPES = ["title", "ctrTitle", "subTitle", "body", "ftr", "sldNum", "dt", "pic"];
+    VECTOR_ITEMS_MAX = 2e3;
+    VECTOR_ITEMS_MAX_CHARS = 1048576;
+    VECTOR_DECK_ITEMS_MAX = 2e4;
+    OBJECT_CLASSES = [
+      "template-furniture",
+      "decoration",
+      "logo-candidate",
+      "known-logo",
+      "recurring-text",
+      "page-number",
+      "footer",
+      "date",
+      "title",
+      "subtitle",
+      "body",
+      "chart",
+      "screenshot",
+      "photo",
+      "table",
+      "diagram",
+      "unknown"
+    ];
+    PLAN_ACTIONS = ["keep", "replace", "remove"];
+    REVIEW_STATES = ["unreviewed", "accepted", "needs-attention"];
+    ARCHETYPE_ROLES = ["title", "subtitle", "body", "visual", "data", "caption", "number", "label", "quote", "attribution"];
+    ARCHETYPE_IDS = [
+      "title",
+      "section",
+      "content",
+      "two-column",
+      "split",
+      "visual",
+      "full-image",
+      "quote",
+      "big-number",
+      "main-point",
+      "agenda",
+      "table"
+    ];
+    STRUCTURE_ID_PATTERN = /^[a-z][a-z0-9-]{1,40}$/;
+    PROJECT_THUMB_SVG_MAX = 16 * 1024;
+    REBRAND_ERROR_CODES = [
+      "source.unreadable",
+      "source.too-large",
+      "source.encrypted",
+      "plan.hash-mismatch",
+      "plan.revision-stale",
+      "plan.invalid",
+      "design-system.master-missing",
+      "design-system.logo-missing",
+      "ocr.unavailable",
+      "compile.unresolved-objects",
+      "export.failed",
+      "storage.quota"
+    ];
+  }
+});
+
+// packages/core/src/live-v1.ts
+var LIVE_PROTOCOL, LIVE_LIMITS;
+var init_live_v1 = __esm({
+  "packages/core/src/live-v1.ts"() {
+    "use strict";
+    LIVE_PROTOCOL = "live-v1";
+    LIVE_LIMITS = {
+      /** Largest request frame, in bytes. */
+      maxRequestBytes: 4 * 1024 * 1024,
+      /** Largest reply frame, in bytes (a `look` SVG with embedded pictures). */
+      maxReplyBytes: 16 * 1024 * 1024,
+      /** Operations plus patches in one `document.apply`. */
+      maxEditsPerApply: 500,
+      /** `document.apply` calls a second, averaged over a few seconds. */
+      maxAppliesPerSecond: 10,
+      /** A connection with no request for this long is closed. */
+      idleMs: 30 * 60 * 1e3,
+      /** Wrong pairing codes before a web bridge stops listening. */
+      maxCodeAttempts: 3
+    };
+  }
+});
+
+// packages/core/src/text-v1.ts
+var init_text_v1 = __esm({
+  "packages/core/src/text-v1.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/slide-master-v1.ts
+function findArchetype(master, id3) {
+  return master.archetypes.find((a) => a.id === id3);
+}
+function roleFontSize(master, role, style) {
+  if (style && typeof style.fontSize === "number") return style.fontSize;
+  const scale = master.typeScale;
+  switch (role) {
+    case "title":
+      return scale.title;
+    case "subtitle":
+      return scale.subtitle;
+    case "caption":
+      return scale.caption;
+    case "number":
+      return scale.number;
+    case "label":
+      return scale.label;
+    case "attribution":
+      return scale.caption;
+    case "quote":
+      return scale.title;
+    default:
+      return scale.body;
+  }
+}
+var init_slide_master_v1 = __esm({
+  "packages/core/src/slide-master-v1.ts"() {
+    "use strict";
+  }
+});
+
+// packages/core/src/content-inventory-v1.ts
+var CONTENT_INVENTORY_VERSION, INVENTORY_SOURCE_KINDS, TEXT_LAYER_MODEL;
+var init_content_inventory_v1 = __esm({
+  "packages/core/src/content-inventory-v1.ts"() {
+    "use strict";
+    CONTENT_INVENTORY_VERSION = "lolly/content-inventory-v1";
+    INVENTORY_SOURCE_KINDS = ["pptx", "pdf", "psd"];
+    TEXT_LAYER_MODEL = "pdf-text-layer";
+  }
+});
+
+// packages/core/src/read-extract-v1.ts
+var READ_EXTRACT_VERSION, EXTRACT_BLOCK_KINDS;
+var init_read_extract_v1 = __esm({
+  "packages/core/src/read-extract-v1.ts"() {
+    "use strict";
+    READ_EXTRACT_VERSION = "lolly/read-extract-v1";
+    EXTRACT_BLOCK_KINDS = ["text", "table", "chart", "picture", "notes"];
+  }
+});
+
+// packages/core/src/design-package-v1.ts
+var DESIGN_PACKAGE_FORMAT, DESIGN_PACKAGE_VERSION, DESIGN_PACKAGE_ERROR_CODES;
+var init_design_package_v1 = __esm({
+  "packages/core/src/design-package-v1.ts"() {
+    "use strict";
+    DESIGN_PACKAGE_FORMAT = "lolly-package";
+    DESIGN_PACKAGE_VERSION = 1;
+    DESIGN_PACKAGE_ERROR_CODES = [
+      "input.unsupported",
+      "input.unreadable",
+      "authoring.invalid",
+      "asset.invalid",
+      "asset.not-image",
+      "media.mismatch",
+      "media.missing",
+      "reference.unknown",
+      "path.invalid",
+      "export.failed"
+    ];
+  }
+});
+
+// packages/core/src/intent-v1.ts
+var INTENT_RESOLUTION_FORMAT, INTENT_RESOLUTION_VERSION, VISUAL_INTENT_VERSION, INTENT_VOCABULARY_VERSION, INTENT_PURPOSES, INTENT_PURPOSE_MEANINGS, INTENT_ROLES, INTENT_SURFACE_UNITS, INTENT_SURFACES, INTENT_LIMITS, INTENT_FREE_TEXT_FIELDS, TOOL_INTENTS_FILE, TOOL_INTENTS_VERSION, INTENT_FITS, INTENT_PURPOSE_NEEDED;
+var init_intent_v1 = __esm({
+  "packages/core/src/intent-v1.ts"() {
+    "use strict";
+    INTENT_RESOLUTION_FORMAT = "lolly-intent-resolution";
+    INTENT_RESOLUTION_VERSION = 1;
+    VISUAL_INTENT_VERSION = 1;
+    INTENT_VOCABULARY_VERSION = 2;
+    INTENT_PURPOSES = [
+      "announce",
+      "compare",
+      "demonstrate",
+      "direct",
+      "explain",
+      "identify",
+      "invite",
+      "offer",
+      "present",
+      "promote",
+      "recognise",
+      "report",
+      "schedule"
+    ];
+    INTENT_PURPOSE_MEANINGS = Object.freeze({
+      announce: "Tell people that something has happened or is about to.",
+      compare: "Set options, values or results side by side so a reader can weigh them.",
+      demonstrate: "Show how something looks or works, as a mock-up or a framed example.",
+      direct: "Send a reader somewhere: to a place, a room or a link.",
+      explain: "Help a reader understand a subject or a set of numbers.",
+      identify: "Say who someone is and how to reach them.",
+      invite: "Ask a reader to attend something and give them the time and place.",
+      offer: "Say what is on offer and what it costs.",
+      present: "Carry a talk or a meeting, slide by slide.",
+      promote: "Bring a reader to a page, a product or an idea.",
+      recognise: "Honour a person, an achievement or the people behind something.",
+      report: "State results or progress over a period.",
+      schedule: "Say when things happen."
+    });
+    INTENT_ROLES = Object.freeze({
+      address: ["text"],
+      awarddate: ["date"],
+      awardtopic: ["text"],
+      bgImage: ["asset"],
+      body: ["longtext", "text"],
+      company: ["text"],
+      cta: ["text"],
+      currency: ["select"],
+      data: ["longtext", "table", "blocks"],
+      email: ["text"],
+      eventEnd: ["datetime-local"],
+      eventLocation: ["text"],
+      eventName: ["text"],
+      eventStart: ["datetime-local"],
+      firstname: ["text"],
+      heading: ["text"],
+      headshot: ["asset"],
+      image: ["asset"],
+      jobTitle: ["text"],
+      lastname: ["text"],
+      /** The partner's mark in a co-branded piece: the guest's logo, never the lead brand's
+       *  (vocabulary 2, Lolly Work plan 82 M7). The lead brand's own logo is not a role,
+       *  because the design system supplies the look. */
+      partnerMark: ["asset"],
+      phone: ["text"],
+      recipient: ["text"],
+      sender: ["text"],
+      sourceAuthor: ["text"],
+      subheading: ["text"],
+      url: ["url", "text"]
+    });
+    INTENT_SURFACE_UNITS = ["px", "mm", "cm", "in", "pt"];
+    INTENT_SURFACES = Object.freeze([
+      { id: "slide", width: 1920, height: 1080, unit: "px", medium: "screen" },
+      { id: "screen", width: 1600, height: 1e3, unit: "px", medium: "screen" },
+      { id: "social-landscape", width: 1200, height: 628, unit: "px", medium: "screen" },
+      { id: "social-square", width: 1080, height: 1080, unit: "px", medium: "screen" },
+      { id: "social-portrait", width: 1080, height: 1350, unit: "px", medium: "screen" },
+      { id: "story", width: 1080, height: 1920, unit: "px", medium: "screen" },
+      { id: "banner", width: 1200, height: 400, unit: "px", medium: "screen" },
+      { id: "a4-portrait", width: 210, height: 297, unit: "mm", medium: "print" },
+      { id: "a4-landscape", width: 297, height: 210, unit: "mm", medium: "print" },
+      { id: "a3-portrait", width: 297, height: 420, unit: "mm", medium: "print" },
+      { id: "a3-landscape", width: 420, height: 297, unit: "mm", medium: "print" },
+      { id: "a2-portrait", width: 420, height: 594, unit: "mm", medium: "print" },
+      { id: "a2-landscape", width: 594, height: 420, unit: "mm", medium: "print" },
+      { id: "a1-portrait", width: 594, height: 841, unit: "mm", medium: "print" },
+      { id: "letter-portrait", width: 8.5, height: 11, unit: "in", medium: "print" },
+      { id: "letter-landscape", width: 11, height: 8.5, unit: "in", medium: "print" },
+      { id: "business-card", width: 85, height: 55, unit: "mm", medium: "print" }
+    ]);
+    INTENT_LIMITS = Object.freeze({
+      /** UTF-16 units in `prompt`. Enough for a request typed at an agent, not for a brief. */
+      promptChars: 2e3,
+      /** UTF-16 units in each of occasion, audience and region. */
+      freeTextChars: 200,
+      /** Entries in `surfaces`. */
+      surfaces: 32,
+      /** Keys in `content`. The vocabulary is smaller; this bounds what is read before refusing the rest. */
+      contentKeys: 64,
+      /** Nesting depth of a content value. */
+      depth: 16,
+      /** UTF-16 units of the whole request once serialised. */
+      totalChars: 2 * 1024 * 1024,
+      /** UTF-16 units of one tool's `intents.json`. */
+      toolIntentsChars: 64 * 1024,
+      /** Pixels on one side of a sized surface, and its equal in other units once converted. */
+      sidePx: 1e5
+    });
+    INTENT_FREE_TEXT_FIELDS = ["occasion", "audience", "region"];
+    TOOL_INTENTS_FILE = "intents.json";
+    TOOL_INTENTS_VERSION = 1;
+    INTENT_FITS = ["declared", "option", "follows", "natural"];
+    INTENT_PURPOSE_NEEDED = "intent.purpose-needed";
+  }
+});
+
+// packages/core/src/design-compose-v1.ts
+var DESIGN_COMPOSE_TRANSITIONS;
+var init_design_compose_v1 = __esm({
+  "packages/core/src/design-compose-v1.ts"() {
+    "use strict";
+    DESIGN_COMPOSE_TRANSITIONS = ["slide", "fade", "morph", "flight"];
+  }
+});
+
+// packages/core/src/index.ts
+var init_src = __esm({
+  "packages/core/src/index.ts"() {
+    "use strict";
+    init_delivery_v1();
+    init_file_operation_v1();
+    init_host_v1();
+    init_apis();
+    init_preflight();
+    init_money();
+    init_define_tool();
+    init_chart_v1();
+    init_design_v1();
+    init_rebrand_v1();
+    init_rebrand_v1();
+    init_rebrand_v1();
+    init_live_v1();
+    init_text_v1();
+    init_slide_master_v1();
+    init_content_inventory_v1();
+    init_read_extract_v1();
+    init_design_package_v1();
+    init_design_compose_v1();
+  }
+});
+
 // engine/src/canonical-json.ts
 function canonicalJson(value2) {
   if (value2 === null || typeof value2 !== "object") {
@@ -4279,7 +5611,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.357.0";
+    ENGINE_VERSION = "1.358.0";
   }
 });
 
@@ -4490,7 +5822,7 @@ var init_skill_frontmatter_v1 = __esm({
 function isToolSkillReference(path) {
   return /^skill\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(md|json)$/.test(path);
 }
-function text(value2) {
+function text3(value2) {
   return value2.replace(/[\r\n|`]/g, " ");
 }
 function bytes(value2) {
@@ -4503,21 +5835,21 @@ function generateToolSkill(manifest) {
     references.push("reference/examples.json");
     files["reference/examples.json"] = JSON.stringify(manifest.examples, null, 2) + "\n";
   }
-  const rows2 = manifest.inputs.map((input) => `| ${text(input.id)} | ${text(input.type)} | ${text(input.urlKey ?? "")} |`);
+  const rows2 = manifest.inputs.map((input) => `| ${text3(input.id)} | ${text3(input.type)} | ${text3(input.urlKey ?? "")} |`);
   const markdown = [
     "---",
     `name: lolly-${manifest.id.slice(0, 58)}`,
     `description: ${JSON.stringify(`Operate the Lolly ${manifest.name} tool (${manifest.id}) using its declared inputs and supported output formats.`)}`,
     "---",
     "",
-    `# ${text(manifest.name)}`,
+    `# ${text3(manifest.name)}`,
     "",
     `Tool ID: \`${manifest.id}\`. Tool version: \`${manifest.version}\`. Engine range: \`${manifest.engineVersion}\`.`,
     "",
-    ...manifest.description ? [text(manifest.description), ""] : [],
+    ...manifest.description ? [text3(manifest.description), ""] : [],
     "Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.",
     "",
-    `Declared output formats: ${(manifest.render.formats ?? []).map(text).join(", ") || "none"}. The connected surface may support a subset; check its capabilities.`,
+    `Declared output formats: ${(manifest.render.formats ?? []).map(text3).join(", ") || "none"}. The connected surface may support a subset; check its capabilities.`,
     "",
     `Required host APIs: ${(manifest.requires ?? []).join(", ") || "none"}. Device capabilities: ${(manifest.capabilities ?? []).join(", ") || "none"}.`,
     "",
@@ -4761,6 +6093,12 @@ async function loadTool(toolId, fetchFile, opts = {}) {
     throw new ToolLoadError(`Manifest for "${toolId}" failed validation`, errors);
   }
   const manifest = parsed;
+  if ((manifest.inputs ?? []).some((input) => input.id === INPUT_NOTICES_KEY)) {
+    throw new ToolLoadError(
+      `"${toolId}" declares an input with the id "${INPUT_NOTICES_KEY}", which is reserved for hook notices`,
+      []
+    );
+  }
   if (manifest.id !== toolId) {
     throw new ToolLoadError(
       `Manifest id "${manifest.id}" doesn't match directory "${toolId}"`,
@@ -4874,6 +6212,7 @@ var init_loader = __esm({
     "use strict";
     init_validate();
     init_derived_formats();
+    init_src();
     init_catalog_integrity();
     init_version();
     init_semver_range();
@@ -8389,20 +9728,20 @@ function resolveChartTheme(brand = {}, style = "brand-default", overrides = {}) 
     }
   };
 }
-function finding(findings, id3, severity, message2, path) {
+function finding2(findings, id3, severity, message2, path) {
   findings.push({ id: id3, severity, message: message2, ...path ? { path } : {} });
 }
 function validateChartSpec(spec) {
   const findings = [];
   if (!spec || typeof spec !== "object") {
-    finding(findings, "chart.spec.type", "error", "Chart spec must be an object.");
+    finding2(findings, "chart.spec.type", "error", "Chart spec must be an object.");
     return { ok: false, findings };
   }
   const s = spec;
   if (s.version !== 1)
-    finding(findings, "chart.spec.version", "error", "Unsupported chart spec version.", "version");
+    finding2(findings, "chart.spec.version", "error", "Unsupported chart spec version.", "version");
   if (!Array.isArray(s.datasets) || !s.datasets.length)
-    finding(
+    finding2(
       findings,
       "chart.dataset.missing",
       "error",
@@ -8410,7 +9749,7 @@ function validateChartSpec(spec) {
       "datasets"
     );
   if (!Array.isArray(s.series) || !s.series.length)
-    finding(
+    finding2(
       findings,
       "chart.series.missing",
       "error",
@@ -8421,9 +9760,9 @@ function validateChartSpec(spec) {
   const fieldsByDataset = /* @__PURE__ */ new Map();
   for (const [di, dataset] of (s.datasets ?? []).entries()) {
     if (!ID.test(dataset.id || ""))
-      finding(findings, "chart.dataset.id", "error", "Dataset id is invalid.", `datasets.${di}.id`);
+      finding2(findings, "chart.dataset.id", "error", "Dataset id is invalid.", `datasets.${di}.id`);
     if (datasetIds.has(dataset.id))
-      finding(
+      finding2(
         findings,
         "chart.dataset.duplicate",
         "error",
@@ -8434,7 +9773,7 @@ function validateChartSpec(spec) {
     const fieldIds = /* @__PURE__ */ new Set();
     for (const [fi, field2] of (dataset.fields ?? []).entries()) {
       if (!ID.test(field2.id || ""))
-        finding(
+        finding2(
           findings,
           "chart.field.id",
           "error",
@@ -8442,7 +9781,7 @@ function validateChartSpec(spec) {
           `datasets.${di}.fields.${fi}.id`
         );
       if (fieldIds.has(field2.id))
-        finding(
+        finding2(
           findings,
           "chart.field.duplicate",
           "error",
@@ -8453,7 +9792,7 @@ function validateChartSpec(spec) {
     }
     fieldsByDataset.set(dataset.id, fieldIds);
     if ((dataset.rows?.length ?? 0) > 1e5)
-      finding(
+      finding2(
         findings,
         "chart.rows.limit",
         "error",
@@ -8464,9 +9803,9 @@ function validateChartSpec(spec) {
   const seriesIds = /* @__PURE__ */ new Set();
   for (const [si, series] of (s.series ?? []).entries()) {
     if (!ID.test(series.id || ""))
-      finding(findings, "chart.series.id", "error", "Series id is invalid.", `series.${si}.id`);
+      finding2(findings, "chart.series.id", "error", "Series id is invalid.", `series.${si}.id`);
     if (seriesIds.has(series.id))
-      finding(
+      finding2(
         findings,
         "chart.series.duplicate",
         "error",
@@ -8475,7 +9814,7 @@ function validateChartSpec(spec) {
       );
     seriesIds.add(series.id);
     if (!datasetIds.has(series.dataset)) {
-      finding(
+      finding2(
         findings,
         "chart.series.dataset",
         "error",
@@ -8487,7 +9826,7 @@ function validateChartSpec(spec) {
     const fields2 = fieldsByDataset.get(series.dataset) ?? /* @__PURE__ */ new Set();
     for (const [channel5, encoding] of Object.entries(series.channels ?? {})) {
       if (encoding && !fields2.has(encoding.field))
-        finding(
+        finding2(
           findings,
           "chart.channel.field",
           "error",
@@ -8496,7 +9835,7 @@ function validateChartSpec(spec) {
         );
     }
     if ((series.mark === "bar3d" || series.mark === "line3d" || series.mark === "ribbon3d" || series.mark === "scatter3d" || series.mark === "surface3d" || series.mark === "mesh3d" || series.mark === "volume3d") && !series.channels.z) {
-      finding(
+      finding2(
         findings,
         "chart.channel.z",
         "error",
@@ -8506,7 +9845,7 @@ function validateChartSpec(spec) {
     }
   }
   if (!s.accessibility?.title?.trim())
-    finding(
+    finding2(
       findings,
       "chart.a11y.title",
       "error",
@@ -8514,7 +9853,7 @@ function validateChartSpec(spec) {
       "accessibility.title"
     );
   if (!s.accessibility?.description?.trim())
-    finding(
+    finding2(
       findings,
       "chart.a11y.description",
       "error",
@@ -8522,7 +9861,7 @@ function validateChartSpec(spec) {
       "accessibility.description"
     );
   if (s.accessibility?.colourOnly && (s.series?.length ?? 0) > 1)
-    finding(
+    finding2(
       findings,
       "chart.a11y.colour-only",
       "warning",
@@ -8530,7 +9869,7 @@ function validateChartSpec(spec) {
       "accessibility.colourOnly"
     );
   if (s.presentation?.dimension === 3 && s.presentation.exportFidelity === "vector") {
-    finding(
+    finding2(
       findings,
       "chart.export.3d-vector",
       "info",
@@ -8572,1326 +9911,6 @@ var init_chart_spec = __esm({
     init_clamp();
     HEX = /^#[0-9a-f]{6}$/i;
     ID = /^[a-zA-Z][a-zA-Z0-9._-]{0,127}$/;
-  }
-});
-
-// packages/core/src/delivery-v1.ts
-function age(value2, fallback, ceiling) {
-  if (value2 === void 0) return fallback;
-  if (!Number.isSafeInteger(value2) || value2 < 0) throw new TypeError("Invalid delivery age");
-  return Math.min(value2, ceiling);
-}
-function cachePolicy(cls, opts = {}) {
-  let cacheControl = PRIVATE, cdnCacheControl = "no-store";
-  const status = opts.status ?? 200;
-  if (status < 400) {
-    switch (cls) {
-      case "public-immutable":
-        if ([200, 206, 304].includes(status)) {
-          cacheControl = "public, max-age=31536000, s-maxage=31536000, immutable, no-transform";
-          cdnCacheControl = "max-age=31536000, no-transform";
-        }
-        break;
-      case "public-revalidate":
-        cacheControl = "public, max-age=0, s-maxage=0, must-revalidate, no-transform";
-        cdnCacheControl = "max-age=0, must-revalidate, no-transform";
-        break;
-      case "public-bounded": {
-        const a = age(opts.boundedAgeSec, 3600, 3600);
-        const shared = opts.boundedAgeSec === void 0 ? 86400 : a;
-        const stale = opts.boundedAgeSec === void 0 ? ", stale-while-revalidate=604800" : "";
-        cacheControl = `public, max-age=${a}, s-maxage=${shared}${stale}, no-transform`;
-        cdnCacheControl = `max-age=${shared}${stale}, no-transform`;
-        break;
-      }
-      case "link":
-        cacheControl = `private, max-age=${age(opts.boundedAgeSec, 300, 300)}, no-transform`;
-        break;
-      case "instance-private":
-        cacheControl = opts.boundedAgeSec === void 0 ? "private, no-cache, no-transform" : `private, max-age=${age(opts.boundedAgeSec, 300, 300)}, no-transform`;
-        break;
-      case "person-private":
-        break;
-      default:
-        break;
-    }
-  }
-  return {
-    cacheControl,
-    cdnCacheControl,
-    // Fastly must not see an overriding public Surrogate-Control on a private response.
-    ...cacheControl.startsWith("public,") ? { surrogateControl: cdnCacheControl } : {},
-    validator: opts.signed && cls === "public-bounded" ? "weak" : "strong",
-    ...opts.tokenBearing ? { referrerPolicy: "no-referrer" } : {}
-  };
-}
-function tag(prefix, value2) {
-  const result = `${prefix}_${value2}`;
-  if (!PREFIXES.has(prefix) || !TAG_VALUE.test(value2) || result.length > 80) throw new TypeError("Invalid delivery tag");
-  return result;
-}
-function renderTags(tags3, style) {
-  if (style !== "comma" && style !== "space") throw new TypeError("Invalid tag style");
-  if (tags3.length > 12) throw new RangeError("Too many delivery tags");
-  for (const value2 of tags3) {
-    if (value2?.[1] !== "_" || tag(value2[0], value2.slice(2)) !== value2) throw new TypeError("Invalid delivery tag");
-  }
-  const result = [...new Set(tags3)].join(style === "comma" ? "," : " ");
-  if (result.length > 1e3) throw new RangeError("Delivery tag header exceeds budget");
-  return result;
-}
-function canonicalDeliveryPath(path, pattern) {
-  if (!path.startsWith("/") || path.includes("//") || /[%\\?#]/.test(path) || [...path].some((c) => c.charCodeAt(0) <= 32 || c.charCodeAt(0) >= 127) || path.split("/").some((p) => p === "." || p === "..")) return null;
-  const match = new RegExp(pattern.source, pattern.flags.replace(/[gy]/g, "")).exec(path);
-  return match && match.index === 0 && match[0] === path ? path : null;
-}
-function validHost(host) {
-  if (!host || host !== host.toLowerCase() || /[|\s/?#@\\]/.test(host)) return false;
-  try {
-    return new URL(`https://${host}`).host === host;
-  } catch {
-    return false;
-  }
-}
-function validContext(ctx) {
-  return validHost(ctx.canonicalHost) && (ctx.subject === void 0 || /^[0-9a-f]{64}$/.test(ctx.subject));
-}
-function validClaims(c) {
-  return c.v === 1 && /^[a-z0-9_-]{1,32}$/.test(c.kid) && Number.isSafeInteger(c.exp) && c.exp > 0 && ["link", "instance-private", "person-private"].includes(c.cls);
-}
-function tokenMessage(c, path, ctx) {
-  return new TextEncoder().encode(`lolly-dt1|${ctx.canonicalHost}|${path}|${c.exp}|${c.cls}${ctx.subject === void 0 ? "" : `|${ctx.subject}`}`).buffer;
-}
-function base64url(bytes2) {
-  return btoa(String.fromCharCode(...bytes2)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-async function signDeliveryToken(c, path, ctx, key2) {
-  if (!validClaims(c) || !validContext(ctx) || !canonicalDeliveryPath(path, /^\/.+$/)) throw new TypeError("Invalid delivery token scope");
-  const signature2 = await crypto.subtle.sign("HMAC", key2, tokenMessage(c, path, ctx));
-  return `1.${c.kid}.${c.exp}.${base64url(new Uint8Array(signature2))}`;
-}
-async function verifyDeliveryToken(token2, path, ctx, keys2, now2) {
-  if (!validContext(ctx) || !canonicalDeliveryPath(path, ctx.pattern) || !["link", "instance-private", "person-private"].includes(ctx.cls)) return "scope";
-  if (!Number.isFinite(now2) || !Number.isSafeInteger(ctx.maxSkewSec) || ctx.maxSkewSec < 0 || ctx.maxSkewSec > 60) return "bad";
-  const match = /^1\.([a-z0-9_-]{1,32})\.([1-9][0-9]{0,15})\.([A-Za-z0-9_-]{43})$/.exec(token2);
-  if (!match) return "bad";
-  const c = { v: 1, kid: match[1], exp: Number(match[2]), cls: ctx.cls };
-  const key2 = keys2.get(c.kid);
-  if (!validClaims(c) || !key2) return "bad";
-  try {
-    const raw = Uint8Array.from(atob(match[3].replace(/-/g, "+").replace(/_/g, "/") + "="), (ch) => ch.charCodeAt(0));
-    if (base64url(raw) !== match[3] || !await crypto.subtle.verify("HMAC", key2, raw.buffer, tokenMessage(c, path, ctx))) return "bad";
-    return now2 >= c.exp + ctx.maxSkewSec ? "expired" : "ok";
-  } catch {
-    return "bad";
-  }
-}
-var PRIVATE, PREFIXES, TAG_VALUE;
-var init_delivery_v1 = __esm({
-  "packages/core/src/delivery-v1.ts"() {
-    "use strict";
-    PRIVATE = "private, no-store, max-age=0, no-transform";
-    PREFIXES = /* @__PURE__ */ new Set(["x", "r", "t", "e", "c", "a", "h", "u", "k", "p", "f", "s", "b", "o", "y"]);
-    TAG_VALUE = /^[a-z0-9!#$%&'*+.^_`|~-]+$/;
-  }
-});
-
-// packages/core/src/file-v1.ts
-function safeFileName(name, fallback = "file") {
-  const clean2 = (value2) => value2.normalize("NFC").replace(/\\/g, "/").split("/").pop().replace(/[\u0000-\u001f\u007f-\u009f<>:"|?*]/g, "-").replace(/[\u202a-\u202e\u2066-\u2069]/g, "").trim().replace(/[. ]+$/, "");
-  let base = clean2(name) || clean2(fallback) || "file";
-  if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(base)) base = `_${base}`;
-  const encoder5 = new TextEncoder();
-  if (encoder5.encode(base).length > 220) {
-    const dot = base.lastIndexOf(".");
-    const ext = dot > 0 && base.length - dot <= 16 ? base.slice(dot) : "";
-    const chars = [...ext ? base.slice(0, dot) : base];
-    while (chars.length && encoder5.encode(chars.join("") + ext).length > 220) chars.pop();
-    base = chars.join("") + ext;
-  }
-  return base;
-}
-var FILE_CONTRACT_VERSION;
-var init_file_v1 = __esm({
-  "packages/core/src/file-v1.ts"() {
-    "use strict";
-    FILE_CONTRACT_VERSION = 1;
-  }
-});
-
-// packages/core/src/file-operation-v1.ts
-import { Ajv as Ajv2 } from "ajv";
-function assertFileOperationRequest(value2) {
-  if (!requestValidator(value2)) throw new Error(`Invalid file operation: ${ajv2.errorsText(requestValidator.errors)}`);
-}
-function assertFileOperationReport(value2) {
-  if (!reportValidator(value2)) throw new Error(`Invalid file report: ${ajv2.errorsText(reportValidator.errors)}`);
-  const report4 = value2;
-  if (report4.state === "succeeded" && !report4.outputs.length) throw new Error("A successful file report needs an output.");
-  if (["failed", "cancelled"].includes(report4.state) && report4.outputs.length) throw new Error("An unsuccessful single operation cannot claim outputs.");
-}
-async function executeFileOperationV1(input, request3, adapter, context = {}) {
-  assertFileOperationRequest(request3);
-  const report4 = { version: 1, operation: request3.operation, state: "failed", inputs: [], outputs: [], options: { ...request3.options, target: request3.target }, changes: [], findings: [], metadata: "not-checked", execution: context.execution ?? "device" };
-  try {
-    context.signal?.throwIfAborted();
-    const original = await adapter.describe(input, context.signal);
-    report4.inputs = [original];
-    Object.assign(report4, adapter.effects(original, request3));
-    const output = await adapter.execute(input, request3, context.signal);
-    context.signal?.throwIfAborted();
-    const produced = await adapter.describe(output, context.signal);
-    context.signal?.throwIfAborted();
-    report4.outputs = [produced];
-    report4.state = "succeeded";
-    report4.changes = [`${original.format.toUpperCase()} \u2192 ${produced.format.toUpperCase()}`, `${original.size} \u2192 ${produced.size} bytes`];
-    if (original.width && produced.width) report4.changes.push(`${original.width} \xD7 ${original.height} \u2192 ${produced.width} \xD7 ${produced.height} pixels`);
-    assertFileOperationReport(report4);
-    return { output, report: report4 };
-  } catch (error2) {
-    report4.outputs = [];
-    report4.state = context.signal?.aborted ? "cancelled" : "failed";
-    report4.findings.push({ code: report4.state === "cancelled" ? "operation-cancelled" : "operation-failed", severity: "error", message: (error2 instanceof Error ? error2.message : String(error2)).slice(0, 4096) });
-    try {
-      assertFileOperationReport(report4);
-    } catch {
-      report4.inputs = [];
-      report4.metadata = "not-checked";
-      report4.changes = [];
-      report4.findings = [{ code: "adapter-contract-error", severity: "error", message: "The adapter returned invalid facts or findings. No output has been accepted." }];
-      assertFileOperationReport(report4);
-    }
-    return { report: report4 };
-  }
-}
-var text2, options, facts, fileOperationRequestSchemaV1, fileOperationReportSchemaV1, ajv2, requestValidator, reportValidator;
-var init_file_operation_v1 = __esm({
-  "packages/core/src/file-operation-v1.ts"() {
-    "use strict";
-    init_file_v1();
-    text2 = { type: "string", maxLength: 4096 };
-    options = { type: "object", maxProperties: 64, propertyNames: { maxLength: 80, pattern: "^(?!__proto__$|constructor$|prototype$)[a-zA-Z][a-zA-Z0-9_.-]*$" }, additionalProperties: { anyOf: [text2, { type: "number" }, { type: "boolean" }] } };
-    facts = { type: "object", additionalProperties: false, required: ["name", "format", "mime", "size"], properties: {
-      name: text2,
-      format: { type: "string", maxLength: 80 },
-      formatSource: { enum: ["detected", "declared"] },
-      mime: { type: "string", maxLength: 255 },
-      size: { type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER },
-      sha256: { type: "string", pattern: "^[a-f0-9]{64}$" },
-      width: { type: "integer", minimum: 1 },
-      height: { type: "integer", minimum: 1 },
-      durationMs: { type: "number", minimum: 0 },
-      pages: { type: "integer", minimum: 0 }
-    } };
-    fileOperationRequestSchemaV1 = {
-      $id: "https://lolly.tools/schemas/file-operation-request-v1",
-      type: "object",
-      additionalProperties: false,
-      required: ["version", "operation", "target", "options"],
-      properties: {
-        version: { const: 1 },
-        operation: { type: "string", pattern: "^[a-z][a-z0-9.-]{0,63}$" },
-        target: { type: "string", pattern: "^[a-z][a-z0-9-]{0,31}$" },
-        options
-      }
-    };
-    fileOperationReportSchemaV1 = {
-      $id: "https://lolly.tools/schemas/file-operation-report-v1",
-      type: "object",
-      additionalProperties: false,
-      required: ["version", "operation", "state", "inputs", "outputs", "options", "changes", "findings", "metadata", "execution"],
-      properties: {
-        version: { const: FILE_CONTRACT_VERSION },
-        operation: text2,
-        state: { enum: ["succeeded", "partially_succeeded", "failed", "cancelled"] },
-        inputs: { type: "array", maxItems: 200, items: facts },
-        outputs: { type: "array", maxItems: 200, items: facts },
-        options: { ...options, maxProperties: 65 },
-        changes: { type: "array", maxItems: 400, items: text2 },
-        findings: { type: "array", maxItems: 400, items: { type: "object", additionalProperties: false, required: ["code", "severity", "message"], properties: {
-          code: { type: "string", maxLength: 100 },
-          severity: { enum: ["info", "warning", "error"] },
-          message: text2
-        } } },
-        metadata: { enum: ["preserved", "removed", "changed", "not-checked"] },
-        execution: { enum: ["device", "instance"] }
-      }
-    };
-    ajv2 = new Ajv2({ allErrors: true, strict: false, strictNumbers: true });
-    requestValidator = ajv2.compile(fileOperationRequestSchemaV1);
-    reportValidator = ajv2.compile(fileOperationReportSchemaV1);
-  }
-});
-
-// packages/core/src/host-v1/apis.ts
-function presentApis(host) {
-  if (!host) return [];
-  return HOST_V1_OPTIONAL_APIS.filter((name) => host[name] !== void 0 && host[name] !== null);
-}
-function missingRequires(requires, host) {
-  if (!requires?.length) return [];
-  const present = new Set(presentApis(host));
-  return requires.filter((name) => !present.has(name));
-}
-var HOST_V1_OPTIONAL_APIS;
-var init_apis = __esm({
-  "packages/core/src/host-v1/apis.ts"() {
-    "use strict";
-    HOST_V1_OPTIONAL_APIS = [
-      "net",
-      "tokens",
-      "text",
-      "pdf",
-      "pptx",
-      "capture",
-      "compose",
-      "media",
-      "scan",
-      "lift",
-      "keyframes",
-      "recorder",
-      "audio",
-      "codec",
-      "layers",
-      "upscale",
-      "matte",
-      "ocr",
-      "speech",
-      "viz",
-      "color",
-      "images",
-      "raster",
-      "geom",
-      "connectors",
-      "c2pa",
-      "prepare",
-      "compare",
-      "textTools",
-      "emoji",
-      "models",
-      "layout",
-      "fonts",
-      "calc"
-    ];
-  }
-});
-
-// packages/core/src/host-v1/text-tools.ts
-var init_text_tools = __esm({
-  "packages/core/src/host-v1/text-tools.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/asset-ref.ts
-var init_asset_ref = __esm({
-  "packages/core/src/host-v1/asset-ref.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/assets.ts
-var init_assets = __esm({
-  "packages/core/src/host-v1/assets.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/audio.ts
-var init_audio = __esm({
-  "packages/core/src/host-v1/audio.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/c2pa.ts
-var init_c2pa = __esm({
-  "packages/core/src/host-v1/c2pa.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/calc.ts
-var init_calc = __esm({
-  "packages/core/src/host-v1/calc.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/capture.ts
-var init_capture = __esm({
-  "packages/core/src/host-v1/capture.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/clipboard.ts
-var init_clipboard = __esm({
-  "packages/core/src/host-v1/clipboard.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/codec.ts
-var init_codec = __esm({
-  "packages/core/src/host-v1/codec.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/color.ts
-var init_color = __esm({
-  "packages/core/src/host-v1/color.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/compose.ts
-var init_compose = __esm({
-  "packages/core/src/host-v1/compose.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/connectors.ts
-var init_connectors = __esm({
-  "packages/core/src/host-v1/connectors.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/emoji.ts
-var init_emoji = __esm({
-  "packages/core/src/host-v1/emoji.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/export.ts
-var init_export = __esm({
-  "packages/core/src/host-v1/export.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/fonts.ts
-var init_fonts = __esm({
-  "packages/core/src/host-v1/fonts.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/geom.ts
-var init_geom = __esm({
-  "packages/core/src/host-v1/geom.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/host.ts
-var init_host = __esm({
-  "packages/core/src/host-v1/host.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/images.ts
-var init_images = __esm({
-  "packages/core/src/host-v1/images.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/keyframes.ts
-var init_keyframes = __esm({
-  "packages/core/src/host-v1/keyframes.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/layers.ts
-var init_layers = __esm({
-  "packages/core/src/host-v1/layers.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/lift.ts
-var init_lift = __esm({
-  "packages/core/src/host-v1/lift.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/matte.ts
-var init_matte = __esm({
-  "packages/core/src/host-v1/matte.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/media.ts
-var init_media = __esm({
-  "packages/core/src/host-v1/media.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/models.ts
-var init_models = __esm({
-  "packages/core/src/host-v1/models.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/net.ts
-var init_net = __esm({
-  "packages/core/src/host-v1/net.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/ocr.ts
-var init_ocr = __esm({
-  "packages/core/src/host-v1/ocr.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/pdf.ts
-var init_pdf = __esm({
-  "packages/core/src/host-v1/pdf.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/pptx.ts
-var init_pptx = __esm({
-  "packages/core/src/host-v1/pptx.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/profile.ts
-var init_profile = __esm({
-  "packages/core/src/host-v1/profile.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/prepare.ts
-var init_prepare = __esm({
-  "packages/core/src/host-v1/prepare.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/compare.ts
-var init_compare = __esm({
-  "packages/core/src/host-v1/compare.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/raster.ts
-var init_raster = __esm({
-  "packages/core/src/host-v1/raster.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/recorder.ts
-var init_recorder = __esm({
-  "packages/core/src/host-v1/recorder.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/scan.ts
-var init_scan = __esm({
-  "packages/core/src/host-v1/scan.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/speech.ts
-var init_speech = __esm({
-  "packages/core/src/host-v1/speech.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/state.ts
-var init_state = __esm({
-  "packages/core/src/host-v1/state.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/text.ts
-var init_text = __esm({
-  "packages/core/src/host-v1/text.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/tokens.ts
-var TOKEN_AXIS_KINDS, KNOWN_FINISH_KINDS;
-var init_tokens = __esm({
-  "packages/core/src/host-v1/tokens.ts"() {
-    "use strict";
-    TOKEN_AXIS_KINDS = Object.freeze(["mode", "colourway", "expression", "medium", "contrast", "density", "campaign", "brand"]);
-    KNOWN_FINISH_KINDS = [
-      "foil",
-      "emboss",
-      "deboss",
-      "spot-uv",
-      "soft-touch",
-      "cut",
-      "crease",
-      "perforate"
-    ];
-  }
-});
-
-// packages/core/src/host-v1/upscale.ts
-var init_upscale = __esm({
-  "packages/core/src/host-v1/upscale.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/viz.ts
-var init_viz = __esm({
-  "packages/core/src/host-v1/viz.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1/layout.ts
-var init_layout = __esm({
-  "packages/core/src/host-v1/layout.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/host-v1.ts
-var init_host_v1 = __esm({
-  "packages/core/src/host-v1.ts"() {
-    "use strict";
-    init_apis();
-    init_text_tools();
-    init_asset_ref();
-    init_assets();
-    init_audio();
-    init_c2pa();
-    init_calc();
-    init_capture();
-    init_clipboard();
-    init_codec();
-    init_color();
-    init_compose();
-    init_connectors();
-    init_emoji();
-    init_export();
-    init_fonts();
-    init_geom();
-    init_host();
-    init_images();
-    init_keyframes();
-    init_layers();
-    init_lift();
-    init_matte();
-    init_media();
-    init_models();
-    init_net();
-    init_ocr();
-    init_pdf();
-    init_pptx();
-    init_profile();
-    init_prepare();
-    init_compare();
-    init_raster();
-    init_recorder();
-    init_scan();
-    init_speech();
-    init_state();
-    init_text();
-    init_tokens();
-    init_upscale();
-    init_viz();
-    init_layout();
-  }
-});
-
-// packages/core/src/preflight.ts
-var SEVERITY_RANK;
-var init_preflight = __esm({
-  "packages/core/src/preflight.ts"() {
-    "use strict";
-    SEVERITY_RANK = { error: 0, warn: 1, info: 2 };
-  }
-});
-
-// packages/core/src/money.ts
-function minorUnitExponent(currency, locale) {
-  return exponentOf(currencyFormatter(currency, locale), currency);
-}
-function exponentOf(fmt6, currency) {
-  const exp = fmt6.resolvedOptions().maximumFractionDigits;
-  if (typeof exp !== "number") throw new CurrencyError(currency);
-  return exp;
-}
-function currencyFormatter(currency, locale) {
-  if (typeof currency !== "string" || currency.length === 0) throw new CurrencyError(currency);
-  try {
-    return new Intl.NumberFormat(locale ?? void 0, { style: "currency", currency });
-  } catch (e) {
-    throw new CurrencyError(currency, e);
-  }
-}
-function monetaryFigure(minorUnits, currency) {
-  if (!Number.isSafeInteger(minorUnits)) throw new MinorUnitError(minorUnits);
-  return { minorUnits, currency, exponent: minorUnitExponent(currency) };
-}
-var CurrencyError, MinorUnitError;
-var init_money = __esm({
-  "packages/core/src/money.ts"() {
-    "use strict";
-    CurrencyError = class extends Error {
-      currency;
-      constructor(currency, cause) {
-        super(
-          `Unusable currency code ${JSON.stringify(currency)}. A currency must come from the rate card; there is no default and no fallback symbol.`
-        );
-        this.name = "CurrencyError";
-        this.currency = currency;
-        if (cause !== void 0) this.cause = cause;
-      }
-    };
-    MinorUnitError = class extends Error {
-      minorUnits;
-      constructor(minorUnits) {
-        super(
-          `Money must be integer minor units; got ${minorUnits}. A non-integer amount means a float leaked into a subtotal.`
-        );
-        this.name = "MinorUnitError";
-        this.minorUnits = minorUnits;
-      }
-    };
-  }
-});
-
-// packages/core/src/chart-v1.ts
-var CHART_SPEC_VERSION;
-var init_chart_v1 = __esm({
-  "packages/core/src/chart-v1.ts"() {
-    "use strict";
-    CHART_SPEC_VERSION = 1;
-  }
-});
-
-// packages/core/src/design-v1.ts
-function finite(value2, fallback = 0) {
-  const n7 = typeof value2 === "string" && value2.trim() !== "" ? Number(value2) : value2;
-  return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
-}
-function text3(value2) {
-  return typeof value2 === "string" ? value2 : "";
-}
-function assetId(value2) {
-  if (typeof value2 === "string" && value2) return value2;
-  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return void 0;
-  const ref2 = value2;
-  if (typeof ref2.id === "string" && ref2.id) return ref2.id;
-  if (typeof ref2.url === "string" && ref2.url) return ref2.url;
-  return void 0;
-}
-function boundsOf(row) {
-  return {
-    x: finite(row.x),
-    y: finite(row.y),
-    width: finite(row.w),
-    height: finite(row.h),
-    rotation: finite(row.rot)
-  };
-}
-function contains(outer, inner) {
-  if (outer.rotation || inner.rotation) return true;
-  const epsilon = 0.01;
-  return inner.x >= outer.x - epsilon && inner.y >= outer.y - epsilon && inner.x + inner.width <= outer.x + outer.width + epsilon && inner.y + inner.height <= outer.y + outer.height + epsilon;
-}
-function finding2(findings, id3, severity, path, message2, refs = {}) {
-  findings.push({ id: id3, severity, path, message: message2, ...refs });
-}
-function inspectDesignV1(boxes2, opts = {}) {
-  const findings = [];
-  if (!Array.isArray(boxes2)) {
-    finding2(findings, "design.boxes.invalid", "error", "/boxes", "Boxes must be an array.");
-    return finish([], [], findings, opts);
-  }
-  const layers = [];
-  const rows2 = /* @__PURE__ */ new Map();
-  const seen = /* @__PURE__ */ new Set();
-  boxes2.forEach((value2, index2) => {
-    const path = `/boxes/${index2}`;
-    if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) {
-      finding2(findings, "design.layer.invalid", "error", path, "A layer must be an object.");
-      return;
-    }
-    const row = value2;
-    const id3 = text3(row.id).trim();
-    const rawKind = text3(row.kind) || "box";
-    const kind = KINDS.has(rawKind) ? rawKind : "unknown";
-    if (!id3) {
-      finding2(
-        findings,
-        "design.layer.id-missing",
-        "error",
-        `${path}/id`,
-        "Every layer needs a stable id."
-      );
-    } else if (seen.has(id3)) {
-      finding2(
-        findings,
-        "design.layer.id-duplicate",
-        "error",
-        `${path}/id`,
-        `Layer id "${id3}" is duplicated.`,
-        { layerId: id3 }
-      );
-    } else {
-      seen.add(id3);
-      rows2.set(id3, row);
-    }
-    if (kind === "unknown") {
-      finding2(
-        findings,
-        "design.layer.kind-unknown",
-        "error",
-        `${path}/kind`,
-        `Unknown layer kind "${rawKind}".`,
-        id3 ? { layerId: id3 } : {}
-      );
-    }
-    const bounds = boundsOf(row);
-    if (bounds.width <= 0 || bounds.height <= 0) {
-      finding2(
-        findings,
-        "design.layer.dimension-invalid",
-        "error",
-        path,
-        "Layer width and height must be greater than zero.",
-        id3 ? { layerId: id3 } : {}
-      );
-    }
-    const start = finite(row.start);
-    const duration = finite(row.dur);
-    const timed = row.start !== void 0 || row.dur !== void 0 || text3(row.lane) !== "";
-    const layer = {
-      id: id3,
-      index: index2,
-      kind,
-      name: text3(row.name).trim(),
-      bounds,
-      ...text3(row.frame) ? { artboardId: text3(row.frame) } : {},
-      zIndex: finite(row.z, index2),
-      hidden: row.hidden === true,
-      locked: row.locked === true,
-      ...kind === "text" ? { text: text3(row.text) } : {},
-      ...["image", "audio", "camera", "webcam"].includes(kind) && assetId(row.image) ? { assetId: assetId(row.image) } : {},
-      // A 3D scene box reads its `scene` field and raises nothing: an empty scene is
-      // a new, unedited box, not a fault, and the assets it references live inside
-      // the query rather than in `image` (engine/src/design-scene.ts reads them out).
-      ...kind === "3d" && text3(row.scene) ? { scene: text3(row.scene) } : {},
-      ...kind === "web" && text3(row.web).trim() ? { web: text3(row.web).trim() } : {},
-      ...timed ? {
-        timing: {
-          start,
-          duration,
-          end: start + duration,
-          ...text3(row.lane) ? { lane: text3(row.lane) } : {}
-        }
-      } : {}
-    };
-    layers.push(layer);
-    if (kind === "text" && !text3(row.text).trim() && !text3(row.textStory)) {
-      finding2(
-        findings,
-        "design.text.empty",
-        "warn",
-        `${path}/text`,
-        "Text layer is empty.",
-        id3 ? { layerId: id3 } : {}
-      );
-    }
-    if (kind === "image" && !assetId(row.image)) {
-      finding2(
-        findings,
-        "design.image.empty",
-        "warn",
-        `${path}/image`,
-        "Image layer has no asset.",
-        id3 ? { layerId: id3 } : {}
-      );
-    }
-    if (kind === "web" && !text3(row.web).trim()) {
-      finding2(findings, "design.web.empty", "warn", `${path}/web`, "Web page layer has no link.", id3 ? { layerId: id3 } : {});
-    } else if (kind === "web" && !assetId(row.image)) {
-      finding2(findings, "design.web.no-poster", "info", `${path}/image`, "Web page layer has no poster; exports show a card naming the site.", id3 ? { layerId: id3 } : {});
-    }
-  });
-  const artboardLayers = layers.filter((layer) => layer.kind === "frame");
-  const artboardIds = new Set(artboardLayers.map((layer) => layer.id).filter(Boolean));
-  const children2 = /* @__PURE__ */ new Map();
-  for (const id3 of artboardIds) children2.set(id3, []);
-  for (const layer of layers) {
-    if (layer.kind === "frame" || !layer.artboardId) continue;
-    const parent = layers.find(
-      (candidate) => candidate.id === layer.artboardId && candidate.kind === "frame"
-    );
-    if (!parent) {
-      finding2(
-        findings,
-        "design.layer.artboard-missing",
-        "error",
-        `/boxes/${layer.index}/frame`,
-        `Layer references missing artboard "${layer.artboardId}".`,
-        { layerId: layer.id, artboardId: layer.artboardId }
-      );
-      continue;
-    }
-    children2.get(parent.id)?.push(layer.id);
-    if (!contains(parent.bounds, layer.bounds)) {
-      finding2(
-        findings,
-        "design.layer.outside-artboard",
-        "warn",
-        `/boxes/${layer.index}`,
-        `Layer extends outside artboard "${parent.name || parent.id}".`,
-        { layerId: layer.id, artboardId: parent.id }
-      );
-    }
-  }
-  const artboards = artboardLayers.map((layer) => {
-    const row = rows2.get(layer.id) ?? {};
-    const childLayerIds = children2.get(layer.id) ?? [];
-    if (!layer.name) {
-      finding2(
-        findings,
-        "design.artboard.unnamed",
-        "warn",
-        `/boxes/${layer.index}/name`,
-        "Artboard has no name.",
-        { layerId: layer.id, artboardId: layer.id }
-      );
-    }
-    if (!childLayerIds.length) {
-      finding2(
-        findings,
-        "design.artboard.empty",
-        "warn",
-        `/boxes/${layer.index}`,
-        `Artboard "${layer.name || layer.id}" is empty.`,
-        { layerId: layer.id, artboardId: layer.id }
-      );
-    }
-    return {
-      id: layer.id,
-      name: layer.name,
-      order: finite(row.order, layer.index),
-      bounds: layer.bounds,
-      childLayerIds,
-      clipChildren: row.clipChildren !== false
-    };
-  }).sort((a, b) => a.order - b.order || a.bounds.x - b.bounds.x || a.id.localeCompare(b.id));
-  const looseLayerIds = layers.filter((layer) => layer.kind !== "frame" && !layer.artboardId).map((layer) => layer.id).filter(Boolean);
-  if (artboards.length) {
-    for (const id3 of looseLayerIds) {
-      const layer = layers.find((item2) => item2.id === id3);
-      finding2(
-        findings,
-        "design.layer.unassigned",
-        "info",
-        `/boxes/${layer.index}/frame`,
-        "Layer is not assigned to an artboard.",
-        { layerId: id3 }
-      );
-    }
-  }
-  return finish(layers, artboards, findings, opts, looseLayerIds);
-}
-function finish(layers, artboards, findings, opts, looseLayerIds = []) {
-  void opts.width;
-  void opts.height;
-  const errors = findings.filter((item2) => item2.severity === "error").length;
-  const warnings2 = findings.filter((item2) => item2.severity === "warn").length;
-  return {
-    version: DESIGN_DOCUMENT_VERSION,
-    valid: errors === 0,
-    summary: {
-      artboards: artboards.length,
-      layers: layers.filter((layer) => layer.kind !== "frame").length,
-      hiddenLayers: layers.filter((layer) => layer.hidden).length,
-      timedLayers: layers.filter((layer) => layer.timing).length,
-      duration: layers.reduce((max, layer) => Math.max(max, layer.timing?.end ?? 0), 0),
-      errors,
-      warnings: warnings2
-    },
-    artboards,
-    layers,
-    looseLayerIds,
-    findings,
-    requiresMount: REQUIRES_MOUNT
-  };
-}
-var DESIGN_DOCUMENT_VERSION, DESIGN_LAYER_KINDS, KINDS, REQUIRES_MOUNT;
-var init_design_v1 = __esm({
-  "packages/core/src/design-v1.ts"() {
-    "use strict";
-    DESIGN_DOCUMENT_VERSION = 1;
-    DESIGN_LAYER_KINDS = [
-      "box",
-      "text",
-      "image",
-      "path",
-      "audio",
-      "camera",
-      "frame",
-      "3d",
-      "web",
-      "webcam",
-      "group"
-    ];
-    KINDS = new Set(DESIGN_LAYER_KINDS);
-    REQUIRES_MOUNT = ["text-overflow", "computed-contrast", "resolved-fonts"];
-  }
-});
-
-// packages/core/src/rebrand-v1.ts
-function isArchetypeRef(value2) {
-  return typeof value2 === "string" && STRUCTURE_ID_PATTERN.test(value2);
-}
-function isKnownArchetypeId(value2) {
-  return typeof value2 === "string" && ARCHETYPE_IDS.includes(value2);
-}
-var REBRAND_REFERENCE_DPI, PLACEHOLDER_TYPES, VECTOR_ITEMS_MAX, VECTOR_ITEMS_MAX_CHARS, VECTOR_DECK_ITEMS_MAX, OBJECT_CLASSES, PLAN_ACTIONS, REVIEW_STATES, ARCHETYPE_ROLES, ARCHETYPE_IDS, STRUCTURE_ID_PATTERN, PROJECT_THUMB_SVG_MAX, REBRAND_ERROR_CODES;
-var init_rebrand_v1 = __esm({
-  "packages/core/src/rebrand-v1.ts"() {
-    "use strict";
-    REBRAND_REFERENCE_DPI = 96;
-    PLACEHOLDER_TYPES = ["title", "ctrTitle", "subTitle", "body", "ftr", "sldNum", "dt", "pic"];
-    VECTOR_ITEMS_MAX = 2e3;
-    VECTOR_ITEMS_MAX_CHARS = 1048576;
-    VECTOR_DECK_ITEMS_MAX = 2e4;
-    OBJECT_CLASSES = [
-      "template-furniture",
-      "decoration",
-      "logo-candidate",
-      "known-logo",
-      "recurring-text",
-      "page-number",
-      "footer",
-      "date",
-      "title",
-      "subtitle",
-      "body",
-      "chart",
-      "screenshot",
-      "photo",
-      "table",
-      "diagram",
-      "unknown"
-    ];
-    PLAN_ACTIONS = ["keep", "replace", "remove"];
-    REVIEW_STATES = ["unreviewed", "accepted", "needs-attention"];
-    ARCHETYPE_ROLES = ["title", "subtitle", "body", "visual", "data", "caption", "number", "label", "quote", "attribution"];
-    ARCHETYPE_IDS = [
-      "title",
-      "section",
-      "content",
-      "two-column",
-      "split",
-      "visual",
-      "full-image",
-      "quote",
-      "big-number",
-      "main-point",
-      "agenda",
-      "table"
-    ];
-    STRUCTURE_ID_PATTERN = /^[a-z][a-z0-9-]{1,40}$/;
-    PROJECT_THUMB_SVG_MAX = 16 * 1024;
-    REBRAND_ERROR_CODES = [
-      "source.unreadable",
-      "source.too-large",
-      "source.encrypted",
-      "plan.hash-mismatch",
-      "plan.revision-stale",
-      "plan.invalid",
-      "design-system.master-missing",
-      "design-system.logo-missing",
-      "ocr.unavailable",
-      "compile.unresolved-objects",
-      "export.failed",
-      "storage.quota"
-    ];
-  }
-});
-
-// packages/core/src/live-v1.ts
-var LIVE_PROTOCOL, LIVE_LIMITS;
-var init_live_v1 = __esm({
-  "packages/core/src/live-v1.ts"() {
-    "use strict";
-    LIVE_PROTOCOL = "live-v1";
-    LIVE_LIMITS = {
-      /** Largest request frame, in bytes. */
-      maxRequestBytes: 4 * 1024 * 1024,
-      /** Largest reply frame, in bytes (a `look` SVG with embedded pictures). */
-      maxReplyBytes: 16 * 1024 * 1024,
-      /** Operations plus patches in one `document.apply`. */
-      maxEditsPerApply: 500,
-      /** `document.apply` calls a second, averaged over a few seconds. */
-      maxAppliesPerSecond: 10,
-      /** A connection with no request for this long is closed. */
-      idleMs: 30 * 60 * 1e3,
-      /** Wrong pairing codes before a web bridge stops listening. */
-      maxCodeAttempts: 3
-    };
-  }
-});
-
-// packages/core/src/text-v1.ts
-var init_text_v1 = __esm({
-  "packages/core/src/text-v1.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/slide-master-v1.ts
-function findArchetype(master, id3) {
-  return master.archetypes.find((a) => a.id === id3);
-}
-function roleFontSize(master, role, style) {
-  if (style && typeof style.fontSize === "number") return style.fontSize;
-  const scale = master.typeScale;
-  switch (role) {
-    case "title":
-      return scale.title;
-    case "subtitle":
-      return scale.subtitle;
-    case "caption":
-      return scale.caption;
-    case "number":
-      return scale.number;
-    case "label":
-      return scale.label;
-    case "attribution":
-      return scale.caption;
-    case "quote":
-      return scale.title;
-    default:
-      return scale.body;
-  }
-}
-var init_slide_master_v1 = __esm({
-  "packages/core/src/slide-master-v1.ts"() {
-    "use strict";
-  }
-});
-
-// packages/core/src/content-inventory-v1.ts
-var CONTENT_INVENTORY_VERSION, INVENTORY_SOURCE_KINDS, TEXT_LAYER_MODEL;
-var init_content_inventory_v1 = __esm({
-  "packages/core/src/content-inventory-v1.ts"() {
-    "use strict";
-    CONTENT_INVENTORY_VERSION = "lolly/content-inventory-v1";
-    INVENTORY_SOURCE_KINDS = ["pptx", "pdf", "psd"];
-    TEXT_LAYER_MODEL = "pdf-text-layer";
-  }
-});
-
-// packages/core/src/read-extract-v1.ts
-var READ_EXTRACT_VERSION, EXTRACT_BLOCK_KINDS;
-var init_read_extract_v1 = __esm({
-  "packages/core/src/read-extract-v1.ts"() {
-    "use strict";
-    READ_EXTRACT_VERSION = "lolly/read-extract-v1";
-    EXTRACT_BLOCK_KINDS = ["text", "table", "chart", "picture", "notes"];
-  }
-});
-
-// packages/core/src/design-package-v1.ts
-var DESIGN_PACKAGE_FORMAT, DESIGN_PACKAGE_VERSION, DESIGN_PACKAGE_ERROR_CODES;
-var init_design_package_v1 = __esm({
-  "packages/core/src/design-package-v1.ts"() {
-    "use strict";
-    DESIGN_PACKAGE_FORMAT = "lolly-package";
-    DESIGN_PACKAGE_VERSION = 1;
-    DESIGN_PACKAGE_ERROR_CODES = [
-      "input.unsupported",
-      "input.unreadable",
-      "authoring.invalid",
-      "asset.invalid",
-      "asset.not-image",
-      "media.mismatch",
-      "media.missing",
-      "reference.unknown",
-      "path.invalid",
-      "export.failed"
-    ];
-  }
-});
-
-// packages/core/src/intent-v1.ts
-var INTENT_RESOLUTION_FORMAT, INTENT_RESOLUTION_VERSION, VISUAL_INTENT_VERSION, INTENT_VOCABULARY_VERSION, INTENT_PURPOSES, INTENT_PURPOSE_MEANINGS, INTENT_ROLES, INTENT_SURFACE_UNITS, INTENT_SURFACES, INTENT_LIMITS, INTENT_FREE_TEXT_FIELDS, TOOL_INTENTS_FILE, TOOL_INTENTS_VERSION, INTENT_FITS, INTENT_PURPOSE_NEEDED;
-var init_intent_v1 = __esm({
-  "packages/core/src/intent-v1.ts"() {
-    "use strict";
-    INTENT_RESOLUTION_FORMAT = "lolly-intent-resolution";
-    INTENT_RESOLUTION_VERSION = 1;
-    VISUAL_INTENT_VERSION = 1;
-    INTENT_VOCABULARY_VERSION = 2;
-    INTENT_PURPOSES = [
-      "announce",
-      "compare",
-      "demonstrate",
-      "direct",
-      "explain",
-      "identify",
-      "invite",
-      "offer",
-      "present",
-      "promote",
-      "recognise",
-      "report",
-      "schedule"
-    ];
-    INTENT_PURPOSE_MEANINGS = Object.freeze({
-      announce: "Tell people that something has happened or is about to.",
-      compare: "Set options, values or results side by side so a reader can weigh them.",
-      demonstrate: "Show how something looks or works, as a mock-up or a framed example.",
-      direct: "Send a reader somewhere: to a place, a room or a link.",
-      explain: "Help a reader understand a subject or a set of numbers.",
-      identify: "Say who someone is and how to reach them.",
-      invite: "Ask a reader to attend something and give them the time and place.",
-      offer: "Say what is on offer and what it costs.",
-      present: "Carry a talk or a meeting, slide by slide.",
-      promote: "Bring a reader to a page, a product or an idea.",
-      recognise: "Honour a person, an achievement or the people behind something.",
-      report: "State results or progress over a period.",
-      schedule: "Say when things happen."
-    });
-    INTENT_ROLES = Object.freeze({
-      address: ["text"],
-      awarddate: ["date"],
-      awardtopic: ["text"],
-      bgImage: ["asset"],
-      body: ["longtext", "text"],
-      company: ["text"],
-      cta: ["text"],
-      currency: ["select"],
-      data: ["longtext", "table", "blocks"],
-      email: ["text"],
-      eventEnd: ["datetime-local"],
-      eventLocation: ["text"],
-      eventName: ["text"],
-      eventStart: ["datetime-local"],
-      firstname: ["text"],
-      heading: ["text"],
-      headshot: ["asset"],
-      image: ["asset"],
-      jobTitle: ["text"],
-      lastname: ["text"],
-      /** The partner's mark in a co-branded piece: the guest's logo, never the lead brand's
-       *  (vocabulary 2, Lolly Work plan 82 M7). The lead brand's own logo is not a role,
-       *  because the design system supplies the look. */
-      partnerMark: ["asset"],
-      phone: ["text"],
-      recipient: ["text"],
-      sender: ["text"],
-      sourceAuthor: ["text"],
-      subheading: ["text"],
-      url: ["url", "text"]
-    });
-    INTENT_SURFACE_UNITS = ["px", "mm", "cm", "in", "pt"];
-    INTENT_SURFACES = Object.freeze([
-      { id: "slide", width: 1920, height: 1080, unit: "px", medium: "screen" },
-      { id: "screen", width: 1600, height: 1e3, unit: "px", medium: "screen" },
-      { id: "social-landscape", width: 1200, height: 628, unit: "px", medium: "screen" },
-      { id: "social-square", width: 1080, height: 1080, unit: "px", medium: "screen" },
-      { id: "social-portrait", width: 1080, height: 1350, unit: "px", medium: "screen" },
-      { id: "story", width: 1080, height: 1920, unit: "px", medium: "screen" },
-      { id: "banner", width: 1200, height: 400, unit: "px", medium: "screen" },
-      { id: "a4-portrait", width: 210, height: 297, unit: "mm", medium: "print" },
-      { id: "a4-landscape", width: 297, height: 210, unit: "mm", medium: "print" },
-      { id: "a3-portrait", width: 297, height: 420, unit: "mm", medium: "print" },
-      { id: "a3-landscape", width: 420, height: 297, unit: "mm", medium: "print" },
-      { id: "a2-portrait", width: 420, height: 594, unit: "mm", medium: "print" },
-      { id: "a2-landscape", width: 594, height: 420, unit: "mm", medium: "print" },
-      { id: "a1-portrait", width: 594, height: 841, unit: "mm", medium: "print" },
-      { id: "letter-portrait", width: 8.5, height: 11, unit: "in", medium: "print" },
-      { id: "letter-landscape", width: 11, height: 8.5, unit: "in", medium: "print" },
-      { id: "business-card", width: 85, height: 55, unit: "mm", medium: "print" }
-    ]);
-    INTENT_LIMITS = Object.freeze({
-      /** UTF-16 units in `prompt`. Enough for a request typed at an agent, not for a brief. */
-      promptChars: 2e3,
-      /** UTF-16 units in each of occasion, audience and region. */
-      freeTextChars: 200,
-      /** Entries in `surfaces`. */
-      surfaces: 32,
-      /** Keys in `content`. The vocabulary is smaller; this bounds what is read before refusing the rest. */
-      contentKeys: 64,
-      /** Nesting depth of a content value. */
-      depth: 16,
-      /** UTF-16 units of the whole request once serialised. */
-      totalChars: 2 * 1024 * 1024,
-      /** UTF-16 units of one tool's `intents.json`. */
-      toolIntentsChars: 64 * 1024,
-      /** Pixels on one side of a sized surface, and its equal in other units once converted. */
-      sidePx: 1e5
-    });
-    INTENT_FREE_TEXT_FIELDS = ["occasion", "audience", "region"];
-    TOOL_INTENTS_FILE = "intents.json";
-    TOOL_INTENTS_VERSION = 1;
-    INTENT_FITS = ["declared", "option", "follows", "natural"];
-    INTENT_PURPOSE_NEEDED = "intent.purpose-needed";
-  }
-});
-
-// packages/core/src/design-compose-v1.ts
-var DESIGN_COMPOSE_TRANSITIONS;
-var init_design_compose_v1 = __esm({
-  "packages/core/src/design-compose-v1.ts"() {
-    "use strict";
-    DESIGN_COMPOSE_TRANSITIONS = ["slide", "fade", "morph", "flight"];
-  }
-});
-
-// packages/core/src/index.ts
-var init_src = __esm({
-  "packages/core/src/index.ts"() {
-    "use strict";
-    init_delivery_v1();
-    init_file_operation_v1();
-    init_host_v1();
-    init_apis();
-    init_preflight();
-    init_money();
-    init_chart_v1();
-    init_design_v1();
-    init_rebrand_v1();
-    init_rebrand_v1();
-    init_rebrand_v1();
-    init_live_v1();
-    init_text_v1();
-    init_slide_master_v1();
-    init_content_inventory_v1();
-    init_read_extract_v1();
-    init_design_package_v1();
-    init_design_compose_v1();
   }
 });
 
@@ -11621,12 +11640,52 @@ function deriveExportFilename(manifest, values) {
   }
   return parts.length ? parts.join("-").slice(0, 80).replace(/-+$/, "") : null;
 }
-var DEFAULT_FILE_MAX_BYTES, SUMMARISABLE_TYPES, TEXT_VALUE_CAP, CREDENTIAL_READABLE_TYPES;
+function readInputNotices(raw, inputIds) {
+  const unknown2 = [];
+  const invalid4 = [];
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { notices: NO_NOTICES, unknown: unknown2, invalid: invalid4 };
+  const out = {};
+  let any = false;
+  for (const id3 of Object.keys(raw).sort()) {
+    const entry2 = raw[id3];
+    if (entry2 == null) continue;
+    if (!inputIds.has(id3)) {
+      unknown2.push(id3);
+      continue;
+    }
+    const { tone, text: text14 } = typeof entry2 === "object" ? entry2 : {};
+    if (typeof text14 !== "string" || !INPUT_NOTICE_TONES.includes(tone)) {
+      invalid4.push(id3);
+      continue;
+    }
+    let clean2 = text14.replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]+/g, " ").trim();
+    if (clean2.length > INPUT_NOTICE_TEXT_MAX) {
+      clean2 = clean2.slice(0, INPUT_NOTICE_TEXT_MAX);
+      const last = clean2.charCodeAt(clean2.length - 1);
+      if (last >= 55296 && last <= 56319) clean2 = clean2.slice(0, -1);
+    }
+    if (!clean2) {
+      invalid4.push(id3);
+      continue;
+    }
+    out[id3] = Object.freeze({ tone, text: clean2 });
+    any = true;
+  }
+  return { notices: any ? Object.freeze(out) : NO_NOTICES, unknown: unknown2, invalid: invalid4 };
+}
+function sameInputNotices(a, b) {
+  if (a === b) return true;
+  const ka = Object.keys(a);
+  if (ka.length !== Object.keys(b).length) return false;
+  return ka.every((id3) => b[id3] !== void 0 && b[id3].tone === a[id3].tone && b[id3].text === a[id3].text);
+}
+var DEFAULT_FILE_MAX_BYTES, SUMMARISABLE_TYPES, TEXT_VALUE_CAP, CREDENTIAL_READABLE_TYPES, NO_NOTICES;
 var init_inputs = __esm({
   "engine/src/inputs.ts"() {
     "use strict";
     init_tokens2();
     init_css_color();
+    init_src();
     init_bytes();
     init_token_block_bindings();
     DEFAULT_FILE_MAX_BYTES = 100 * 1024 * 1024;
@@ -11644,6 +11703,7 @@ var init_inputs = __esm({
     ]);
     TEXT_VALUE_CAP = 4e3;
     CREDENTIAL_READABLE_TYPES = /* @__PURE__ */ new Set(["select", "number", "boolean", "color"]);
+    NO_NOTICES = Object.freeze({});
   }
 });
 
@@ -55300,6 +55360,25 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   model2 = await resolveAssetRefs(model2, host, droppedAssets, composeStack, tool.manifest.id);
   if (tool.manifest.designTool) assertDesignValues(tool.manifest.designTool, modelToValues(model2));
   let extras = {};
+  let notices = readInputNotices(null, inputIds).notices;
+  const noticeComplaints = /* @__PURE__ */ new Set();
+  const complainOnce = (kind, ids2, say2) => {
+    for (const id3 of ids2) {
+      if (noticeComplaints.has(`${kind}:${id3}`)) continue;
+      noticeComplaints.add(`${kind}:${id3}`);
+      host.log("warn", `${INPUT_NOTICES_KEY}: "${id3}" ${say2}`, { toolId: tool.manifest.id });
+    }
+  };
+  const mergePatch = (m2, e, patch, ids2) => {
+    const raw = patch && typeof patch === "object" ? patch[INPUT_NOTICES_KEY] : void 0;
+    if (raw !== void 0) {
+      const read = readInputNotices(raw, inputIds);
+      complainOnce("unknown", read.unknown, "is not an input of this tool, so its notice is not shown");
+      complainOnce("invalid", read.invalid, "needs { tone: info | warning | error, text }, so its notice is not shown");
+      if (!sameInputNotices(notices, read.notices)) notices = read.notices;
+    }
+    return mergePatchValues(m2, e, patch, ids2);
+  };
   let hookRunSeq = 0;
   let outstandingSeq = 0;
   const settleWaiters = [];
@@ -55371,7 +55450,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   }
   const listeners = /* @__PURE__ */ new Set();
   const emit = () => {
-    const state = { model: model2, hydrated: getHydrated() };
+    const state = { model: model2, hydrated: getHydrated(), notices };
     listeners.forEach((fn) => fn(state));
   };
   const applyLatePatch = (patch) => {
@@ -55773,6 +55852,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       return ignoredTokenChoices.map((choice3) => ({ ...choice3 }));
     },
     getModel: () => model2,
+    getNotices: () => notices,
     getHydrated,
     getHydratedString,
     getHydratedText,
@@ -56133,7 +56213,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     },
     subscribe(fn) {
       listeners.add(fn);
-      fn({ model: model2, hydrated: getHydrated() });
+      fn({ model: model2, hydrated: getHydrated(), notices });
       return () => listeners.delete(fn);
     },
     whenSettled() {
@@ -57133,7 +57213,7 @@ function withTimeout2(promise, ms, toolId) {
     );
   });
 }
-function mergePatch(model2, extras, patch, inputIds) {
+function mergePatchValues(model2, extras, patch, inputIds) {
   if (!patch || typeof patch !== "object") return { model: model2, extras };
   const ids2 = inputIds ?? new Set(model2.map((i) => i.id));
   const newExtras = { ...extras };
@@ -57141,6 +57221,7 @@ function mergePatch(model2, extras, patch, inputIds) {
   let hasModelPatch = false;
   for (const [k, v] of Object.entries(patch)) {
     if (v === void 0) continue;
+    if (k === INPUT_NOTICES_KEY) continue;
     if (ids2.has(k)) {
       modelPatch[k] = v;
       hasModelPatch = true;
@@ -57167,6 +57248,7 @@ var init_runtime = __esm({
     init_rights_evaluate();
     init_rights_profiles();
     init_inputs();
+    init_src();
     init_template();
     init_metadata();
     init_tokens2();
@@ -158825,6 +158907,9 @@ __export(src_exports, {
   IMPRINT_CONTAINER_FORMATS: () => IMPRINT_CONTAINER_FORMATS,
   IMPRINT_FORMATS: () => IMPRINT_FORMATS,
   IMSC11_TEXT_PROFILE: () => IMSC11_TEXT_PROFILE,
+  INPUT_NOTICES_KEY: () => INPUT_NOTICES_KEY,
+  INPUT_NOTICE_TEXT_MAX: () => INPUT_NOTICE_TEXT_MAX,
+  INPUT_NOTICE_TONES: () => INPUT_NOTICE_TONES,
   INTENT_PROMPT_NOTE: () => INTENT_PROMPT_NOTE,
   INTENT_RECORD_CODES: () => INTENT_RECORD_CODES,
   INTENT_RULES_VERSION: () => INTENT_RULES_VERSION,
@@ -160293,6 +160378,7 @@ __export(src_exports, {
   readFileDesignRecord: () => readFileDesignRecord,
   readHostMotionTokens: () => readHostMotionTokens,
   readIdmlSpreads: () => readIdmlSpreads,
+  readInputNotices: () => readInputNotices,
   readLicenceExpression: () => readLicenceExpression,
   readLollyDurable: () => readLollyDurable,
   readMotionTokens: () => readMotionTokens,
@@ -160413,6 +160499,7 @@ __export(src_exports, {
   runProductionRepairs: () => runProductionRepairs,
   runTextTool: () => runTextTool,
   safeColor: () => safeColor,
+  sameInputNotices: () => sameInputNotices,
   sampleBilinear: () => sampleBilinear,
   sampleCurve: () => sampleCurve,
   sampleDisc: () => sampleDisc,
@@ -160794,6 +160881,8 @@ var init_src2 = __esm({
     init_raster_layers();
     init_render_when();
     init_inputs();
+    init_inputs();
+    init_src();
     init_url_mode();
     init_frame_address();
     init_present_interact();

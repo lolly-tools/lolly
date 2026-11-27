@@ -821,4 +821,6 @@ Hooks can also run in a Worker:
 
 Verified built-ins and visibly unsigned development tools can still reach the page realm, and for verified built-ins the signed catalog is the trust boundary. See the [Threat model](/info/threat-model.html#trust-boundaries).
 
+A hook result can also put a message under an input through the reserved `inputNotices` key (engine `1.358`). The key is part of the hook result, not a method of `host`: see [Put a message under an input](/info/tool-hooks.html#put-a-message-under-an-input).
+
 Async hook results are time-boxed, and a late `onInit` or `onInput` result can still apply. [Tool hooks](/info/tool-hooks.html) covers the budgets, the late-result rule and how export hooks fail. `afterExport`, the cleanup guarantee, is always awaited and its errors are only logged. `onFrame` and `onLevel` run once per frame or level sample and are not time-boxed; the runtime drops a sample if the previous one is still rendering.

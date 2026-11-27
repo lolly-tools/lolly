@@ -185,7 +185,7 @@ test('a hook that sets an input and a notice in one result does both', async () 
 
 // ─── budgets and late apply: the same rules as any patch ─────────────────────
 
-test('late apply: a raced-out onInput still sets its notice when it lands; a superseded one never does', async () => {
+test('late apply: a raced-out onInput still sets its notice when it arrives; a superseded one never does', async () => {
   setBudgets({ onInput: 15 });
   try {
     const { host } = logHost();

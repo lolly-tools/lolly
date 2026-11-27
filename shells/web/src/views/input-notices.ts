@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Input notices in the sidebar (engine 1.358). A hook can say something about an
- * input (`inputNotices` in its result), and the line is drawn here, under that
- * input's control, in the look of the row's fine print (`.input-notice`).
+ * input (`inputNotices` in its result), and this module draws that message under
+ * the input's control, in the look of the row's fine print (`.input-notice`).
  *
  * This is a pass over the panel that is already on the page, not part of the
  * panel's markup: the panel skips its rebuild on most keystrokes, and a notice
@@ -20,7 +20,7 @@ type Notices = Readonly<Record<string, Notice>>;
 
 const NOTE_CLASS = 'input-notice--hook';
 const MARK_CLASS = 'input-section-mark';
-/** The same controls help-tip.ts describes, so a notice lands on the element a help tip would. */
+/** The same controls help-tip.ts describes, so a notice describes the element a help tip would. */
 const CONTROL_SEL = 'input:not(.is-upgraded), select, textarea, [data-field-id]:not(.is-upgraded), [data-input-id]:not(.is-upgraded), [role="slider"]';
 const RANK = { info: 1, warning: 2, error: 3 } as const;
 
@@ -37,7 +37,8 @@ function rowOf(panel: HTMLElement, inputId: string): HTMLElement | null {
 }
 
 function describe(row: HTMLElement, id: string, on: boolean): void {
-  const control = row.querySelector<HTMLElement>(CONTROL_SEL);
+  // A colour row's field is a hidden input behind the swatch button, and the button is what takes focus.
+  const control = row.querySelector<HTMLElement>('.color-trigger') ?? row.querySelector<HTMLElement>(CONTROL_SEL);
   if (!control) return;
   const ids = (control.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean).filter((x) => x !== id);
   if (on) ids.push(id);
@@ -62,7 +63,7 @@ export function applyInputNotices(panel: HTMLElement, notices: Notices | undefin
     if (!note) {
       note = document.createElement('span');
       note.className = `input-notice ${NOTE_CLASS}`;
-      // Out of the wrapping label's accessible name. aria-describedby still reads it.
+      // Out of the wrapping label's accessible name. aria-describedby still reads the text.
       note.setAttribute('aria-hidden', 'true');
       row.append(note);
     }
@@ -101,9 +102,12 @@ export function applyInputNotices(panel: HTMLElement, notices: Notices | undefin
     if (mark.getAttribute('aria-label') !== words) { mark.setAttribute('aria-label', words); mark.title = words; }
   }
 
-  // Say what is new or changed, once. A notice that went away is not announced.
-  const before = spoken.get(panel) ?? new Map<string, string>();
-  const fresh = [...shown].filter(([inputId, line]) => before.get(inputId) !== line).map(([, line]) => line);
+  // Say what is new or changed, once. A notice that went away is not announced, and
+  // neither is what a panel opens with: the page is still announcing its own arrival,
+  // and each line is read as its control's description on focus.
+  const before = spoken.get(panel);
   spoken.set(panel, shown);
+  if (!before) return;
+  const fresh = [...shown].filter(([inputId, line]) => before.get(inputId) !== line).map(([, line]) => line);
   if (fresh.length) announce(fresh.join(' '));
 }

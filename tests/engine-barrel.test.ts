@@ -1672,6 +1672,16 @@ const EXPECTED: readonly string[] = [
   'MotionCheck',
   'MotionFacts',
   'MotionTarget',
+  // Input notices (1.358): a hook result's `inputNotices` key.
+  'readInputNotices',
+  'sameInputNotices',
+  'InputNoticeMap',
+  'INPUT_NOTICES_KEY',
+  'INPUT_NOTICE_TONES',
+  'INPUT_NOTICE_TEXT_MAX',
+  'InputNotice',
+  'InputNotices',
+  'InputNoticeTone',
 ];
 
 function barrelNames(): string[] {
