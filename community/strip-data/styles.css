@@ -261,6 +261,9 @@
   color: var(--u-muted);
 }
 .exif-clean-state .exif-download { margin-top: var(--u-gap); }
+/* A PDF that is already digitally signed: one muted line above the button, with only the two words "digitally signed" in the alert ink. */
+.exif-signed { margin: 0 0 var(--u-gap-s); }
+.exif-signed strong { font-weight: 600; color: var(--u-danger); }
 
 /* PDF accessibility checks: the list is always open, because the wording is the point. */
 .exif-a11y { margin-top: var(--u-pad); }

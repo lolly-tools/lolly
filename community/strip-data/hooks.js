@@ -2246,6 +2246,52 @@ async function pdfChecks(host, bytes) {
   }
 }
 
+
+// === lolly:shared signedPdf - generated from community/_shared/signed-pdf.js; edit there and run pnpm run sync:shared ===
+// A tool that saves a PDF again breaks a digital signature made over the old
+// bytes. The shell's analysis (host.pdf.analyze) reports a filled signature
+// field as a "Digital signature" finding; an empty signature field is not one.
+// Each tool shows one sentence above its download button and logs the same
+// sentence on export, which is how the command line prints the warning.
+function signedPdfFound(findings) {
+  return (findings || []).some(function (x) { return x && x.label === 'Digital signature'; });
+}
+// `names` holds the signed files the tool saves again, `loaded` the number of
+// files loaded. One file loaded reads "This PDF"; several give the file names.
+function signedPdfSentence(names, loaded) {
+  if (!names || !names.length) return '';
+  if (names.length === 1) {
+    return (loaded === 1 ? 'This PDF' : names[0]) + ' is digitally signed: its signature will not verify on the saved copy, and the original file is not changed.';
+  }
+  return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]
+    + ' are digitally signed: their signatures will not verify on the saved copy, and the original files are not changed.';
+}
+// What the template draws: the sentence in muted ink around the two words
+// "digitally signed", which the template sets in the alert ink.
+function signedPdfLine(note) {
+  var mark = 'digitally signed', at = note ? note.indexOf(mark) : -1;
+  if (at < 0) return { signedNote: '', signedLead: '', signedRest: '' };
+  return { signedNote: note, signedLead: note.slice(0, at), signedRest: note.slice(at + mark.length) };
+}
+// The findings list still lists the signature. The consequence is left to the
+// line above the button, so the point is made once.
+function signedPdfFindings(findings) {
+  return (findings || []).map(function (x) {
+    if (!x || x.label !== 'Digital signature') return x;
+    return Object.assign({}, x, { detail: String(x.detail || '').replace(/ - re-saving this file invalidates it$/, '') });
+  });
+}
+// === /lolly:shared signedPdf ===
+
+// Whether a PDF's bytes carry a filled signature, kept from the report so the
+// export does not analyse the file a second time.
+const _signedPdf = new WeakMap();
+async function pdfSigned(host, bytes) {
+  if (_signedPdf.has(bytes)) return _signedPdf.get(bytes);
+  if (!host || !host.pdf || typeof host.pdf.analyze !== 'function') return false;
+  try { return signedPdfFound((await host.pdf.analyze(bytes)).findings); } catch (e) { return false; }
+}
+
 async function patch({ model, host }) {
   const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
   const f = inputs.source;
@@ -2254,7 +2300,7 @@ async function patch({ model, host }) {
     hasFile: false, supported: false, pdfUnavailable: false, unreadable: false, unreadableNote: '', inspectOnly: false, findings: [], nothingFound: false,
     officeMetadata: false, officeProperties: [], propertySelected: false, properties: [],
     fileName: '', fileSize: '', kind: '', metaSummary: '', cleanSize: '',
-    tailNote: '', cleanNote: '',
+    tailNote: '', cleanNote: '', signedNote: '', signedLead: '', signedRest: '',
   };
   if (!f || !f.bytes) { officeSourceKey = ''; return blank; }
 
@@ -2277,6 +2323,9 @@ async function patch({ model, host }) {
     let findings = [];
     try { ({ findings } = await host.pdf.analyze(f.bytes)); } catch (e) { findings = []; }
     const a11y = await pdfChecks(host, f.bytes);
+    const signed = signedPdfFound(findings);
+    _signedPdf.set(f.bytes, signed);
+    if (signed) findings = signedPdfFindings(findings);
     return {
       ...base,
       ...a11y,
@@ -2285,7 +2334,9 @@ async function patch({ model, host }) {
       findings,
       nothingFound: findings.length === 0,
       cleanSize: '', // a re-save's size isn't meaningful to preview, so it's omitted
-      tailNote: 'Your PDF is re-saved without its metadata - the pages are preserved; document info and XMP packets are removed. Attachments, form values and scripts remain. (A re-save isn\'t byte-for-byte and invalidates any digital signature.)',
+      // A signed PDF has its own line above the button, so the general clause about signatures is left out.
+      tailNote: 'Your PDF is re-saved without its metadata - the pages are preserved; document info and XMP packets are removed. Attachments, form values and scripts remain. ' + (signed ? '(A re-save isn\'t byte-for-byte.)' : '(A re-save isn\'t byte-for-byte and invalidates any digital signature.)'),
+      ...signedPdfLine(signed ? signedPdfSentence([f.name || 'document.pdf'], 1) : ''),
       cleanNote: 'You can still download a re-saved copy below.',
       metaSummary: findings.length
         ? `Found ${findings.length} embedded item${findings.length > 1 ? 's' : ''}. Document info and XMP are removed; other document content remains.`
@@ -2350,6 +2401,8 @@ async function exportFile({ model, host }) {
   if (isPdf(f.bytes)) {
     if (!host || !host.pdf) throw new Error('PDF cleaning isn\'t available in this app.');
     const { bytes } = await host.pdf.strip(f.bytes);
+    // The same sentence for the log, which is how the command line prints the warning. The file is saved either way.
+    if (await pdfSigned(host, f.bytes) && typeof host.log === 'function') host.log('warn', signedPdfSentence([f.name || 'document.pdf'], 1));
     return { bytes, mime: 'application/pdf', filename: cleanName(f.name) };
   }
 

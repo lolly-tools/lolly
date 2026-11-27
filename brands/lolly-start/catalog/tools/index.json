@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-27T11:00:11.744Z",
+  "generatedAt": "2026-11-27T11:48:19.844Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -849,7 +849,7 @@
       "id": "strip-data",
       "name": "Strip Hidden Data",
       "description": "Remove metadata from images, audio and PDFs, and selected DOCX properties, and inspect other Office hidden content, on your device.",
-      "version": "1.5.1",
+      "version": "1.5.2",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -2763,7 +2763,7 @@
       "id": "redact",
       "name": "Redact",
       "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device.",
-      "version": "1.8.1",
+      "version": "1.8.2",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -12176,7 +12176,7 @@
       "id": "pages",
       "name": "Pages",
       "description": "Reorder, rotate, extract, delete, merge or split PDF pages, compress or sign a PDF, or turn images into a PDF, on your device.",
-      "version": "1.2.3",
+      "version": "1.2.4",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",

@@ -292,6 +292,7 @@
                   <p class="u-quiet rd-note">The notes above still apply. Open this tool in the Lolly web app to produce the redacted copy.</p>
                 </div>
               {{else}}
+                {{#if signedNote}}<p class="u-quiet rd-signed" data-signed-note>{{signedLead}}<strong>digitally signed</strong>{{signedRest}}</p>{{/if}}
                 {{#if isPdfKind}}
                   {{#unless hasBars}}
                     <button type="button" class="btn btn--primary rd-download" data-export-file disabled>Draw a bar over what should go first</button>
@@ -364,6 +365,26 @@
        without the channel fall back to the ordinary commit - a stray history
        entry is a far smaller problem than an unmeasured bar. */
     var quietFn = (canvasRoot && canvasRoot.__lollyCommitQuiet) || commitFn;
+
+    /* The signed-PDF line is read out once. Each paint replaces the stage, so
+       the words go into a status region of their own only when they differ
+       from the words last read out. */
+    var signedLine = wrap.querySelector('[data-signed-note]');
+    var signedWords = signedLine ? signedLine.textContent : '';
+    if (canvasRoot) {
+      if (!signedWords) delete canvasRoot.__redactSignedSaid;
+      else if (canvasRoot.__redactSignedSaid !== signedWords) {
+        var said = document.createElement('span');
+        said.className = 'visually-hidden';
+        said.setAttribute('role', 'status');
+        wrap.appendChild(said);
+        setTimeout(function () {
+          if (!said.isConnected) return;
+          said.textContent = signedWords;
+          canvasRoot.__redactSignedSaid = signedWords;
+        }, 150);
+      }
+    }
 
     function alive() { return document.contains(wrap); }
 

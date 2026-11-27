@@ -660,6 +660,9 @@ svg.rd-img * {
   flex-wrap: wrap;
   gap: var(--u-gap-s) var(--u-gap);
 }
+/* A PDF that is already digitally signed: one muted line above the button, on a row of its own, with only the two words "digitally signed" in the alert ink. */
+.utility .rd-signed { flex: 0 0 100%; }
+.rd-signed strong { font-weight: 600; color: var(--u-danger); }
 .rd-download { flex: none; }
 .rd-download.is-busy { opacity: 0.7; cursor: progress; }
 .rd-download.is-error { background: var(--u-danger-fill); color: var(--u-on-danger); }
