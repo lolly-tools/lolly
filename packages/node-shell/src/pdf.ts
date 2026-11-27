@@ -695,7 +695,9 @@ export async function stampPdf(bytes: Uint8Array, opts: PdfStampOpts): Promise<P
   // A visual signature must not leave editable field appearances floating over
   // the stamped page. XFA was refused above; AcroForm fields can be flattened.
   try { doc.getForm().flatten(); } catch { /* no AcroForm, or already flat */ }
-  const out = await doc.save({ useObjectStreams: true, updateFieldAppearances: false });
+  // `classic` is for a caller that will attach a Content Credential, which needs a
+  // classic cross-reference table. Every other stamp keeps the compact form.
+  const out = await doc.save({ useObjectStreams: opts.classic !== true, updateFieldAppearances: false });
   return { bytes: out, pages: doc.getPageCount(), stamps };
 }
 

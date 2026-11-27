@@ -567,16 +567,18 @@ async function signExport(ctx) {
   var images = [{ bytes: r.signature.bytes, page: page, x: l.x, y: l.y, width: l.width, height: l.height }];
   if (r.initials && l.initials) images.push(Object.assign({ bytes: r.initials.bytes, page: page }, l.initials));
   var texts = l.date ? [{ page: page, text: l.date.text, x: l.date.x, y: l.date.y, size: l.date.size }] : [];
-  var stamped = null;
+  // A Content Credential attaches to a classic cross-reference table, so the stamp is
+  // saved in that form when one is asked for. Without a credential the file is saved as before.
+  var stamped = null, classic = !!v.seal;
   if (l.date && l.date.outline) {
     // The date as outlines in the design system's face, its baseline one size below the
     // top of its box, where stamped text puts it. A host older than stamped paths
     // ignores them and counts fewer stamps, so the date then goes in as text after all.
     var path = { page: page, x: l.date.x, y: l.date.y + l.date.size, d: l.date.outline.d, color: '#141414' };
-    stamped = await host.pdf.stamp(f.bytes, { images: images, texts: [], paths: [path] });
+    stamped = await host.pdf.stamp(f.bytes, { images: images, texts: [], paths: [path], classic: classic });
     if (!stamped || stamped.stamps !== images.length + 1) stamped = null;
   }
-  if (!stamped) stamped = await host.pdf.stamp(f.bytes, { images: images, texts: texts });
+  if (!stamped) stamped = await host.pdf.stamp(f.bytes, { images: images, texts: texts, classic: classic });
   var bytes = stamped.bytes, signer = await profileName(host);
   if (v.seal) {
     if (!host.c2pa || typeof host.c2pa.sign !== 'function') throw new Error('Content Credentials are not available in this app; turn the credential off or use a supported shell.');
