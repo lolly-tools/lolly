@@ -935,6 +935,28 @@ test('redact (e2e): PDF without host.pdf renders the unavailable branch', async 
   assert.match(rt.getHydrated(), /PDF redaction isn't available here\./);
 });
 
+// The canvas keeps its safety statements when the layout changes. The re-read
+// promise stays on screen in the action row, and the limits stay one press away
+// behind a tip whose label is always visible. Neither may sit over the page.
+test('redact (e2e): the re-read promise and the limits survive on the working surface', async () => {
+  const rt = await createRuntime(redactTool(), pdfHost({ pdf: { pages: async () => TWO_PAGES } }), {
+    source: fileRef('doc.pdf', 'application/pdf', PDF_SRC),
+  });
+  const html = rt.getHydrated();
+  assert.match(html, /<p class="u-quiet rd-gate">Re-read and checked before it downloads\. If a check fails, nothing downloads\.<\/p>/);
+  assert.match(html, /<span class="rd-limits-label">What will not be removed<button type="button" class="help-tip-btn"[^>]*aria-controls="rd-tip-limits"/);
+  const limits = /<span class="help-tip-pop rd-limits" id="rd-tip-limits" hidden>([\s\S]*?)<button/.exec(html)?.[1] ?? '';
+  for (const promise of [
+    /A bar destroys only the pixels it covers\./,
+    /cannot detect or remove them/,
+    /A bar's width can still hint at the length of what it hides\./,
+    /tracking dots from colour laser printers/,
+    /There is no blur or pixelate option on purpose\./,
+  ]) assert.match(limits, promise);
+  assert.doesNotMatch(html, /rd-toast/, 'a note is a line under the toolbar, never a card over the page');
+  assert.doesNotMatch(html, /data-file-pick/, 'the sidebar file field is the one place to replace the file');
+});
+
 test('redact (e2e): PDF pages render as frames in point space with the no-bars button disabled', async () => {
   const rt = await createRuntime(redactTool(), pdfHost({ pdf: { pages: async () => TWO_PAGES } }), {
     source: fileRef('doc.pdf', 'application/pdf', PDF_SRC),
@@ -955,7 +977,7 @@ test('redact (e2e): PDF pages render as frames in point space with the no-bars b
   assert.match(html, /class="rd-stage" data-bars="\[\]" data-presets="/);
   assert.match(html, /data-geom="\{&quot;inflate&quot;:2/);
   // No bars yet: the download button is really disabled, with guidance as label.
-  assert.match(html, /<button type="button" class="rd-download" data-export-file disabled>Draw a bar over what should go first<\/button>/);
+  assert.match(html, /<button type="button" class="btn btn--primary rd-download" data-export-file disabled>Draw a bar over what should go first<\/button>/);
 });
 
 test('redact (e2e): exportFile through the runtime returns verified SVG bytes', async () => {
@@ -2184,8 +2206,8 @@ test('redact (e2e): a multi-page PDF scrolls inside the stage with a page indica
   // A quiet cue plus two buttons - a page frame sets touch-action:none, so a
   // finger on the page draws a bar and cannot scroll the list.
   assert.match(html, /<span class="rd-pagenow" data-page-now aria-live="polite">Page 1 of 3<\/span>/);
-  assert.match(html, /<button type="button" class="rd-rail-btn" data-page-step="-1"/);
-  assert.match(html, /<button type="button" class="rd-rail-btn" data-page-step="1"/);
+  assert.match(html, /<button type="button" class="btn btn--ghost u-tool rd-rail-btn" data-page-step="-1"/);
+  assert.match(html, /<button type="button" class="btn btn--ghost u-tool rd-rail-btn" data-page-step="1"/);
 });
 
 test('redact (e2e): a single-page PDF gets no page navigation it does not need', async () => {

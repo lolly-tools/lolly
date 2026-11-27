@@ -1,45 +1,36 @@
-<div class="an">
+<div class="an utility">
   <div class="an-stage"
        data-marks="{{marksJson}}"
        data-geom="{{geomJson}}"
        data-anchors="{{anchorsJson}}"
        data-source-key="{{sourceKey}}"{{#if pending}} data-pending="1"{{/if}}>
 
-    <!-- TOP DOCK: what is loaded, and which mark the next drag draws. -->
-    <div class="an-dock an-dock-top" data-export-hide>
-      <div class="an-head">
-        {{#if hasFile}}
-          <span class="an-file" title="{{fileName}}">{{fileName}}</span>
-          <span class="an-size">{{fileSize}}</span>
-          <button type="button" class="an-pick" data-file-pick>Replace</button>
-        {{else}}
-          <span class="an-file">No picture yet - marks are drawn on a placeholder screen</span>
-          <button type="button" class="an-pick" data-file-pick>Choose a picture…</button>
-        {{/if}}
-      </div>
+    <!-- TOOLBAR: which mark the next drag draws. The sidebar's file field
+         holds the picture's name and the one place to replace the file. -->
+    <div class="an-dock an-dock-top help-tip-host" data-export-hide>
       <div class="an-rail" role="toolbar" aria-label="Mark tools">
-        <div class="an-rail-group" data-rail-kinds>
-          <button type="button" class="an-rail-btn" data-kind="arrow" aria-pressed="true" title="Drag from the tail to the point">
+        <div class="view-seg an-rail-group" role="group" aria-label="Mark" data-rail-kinds>
+          <button type="button" class="view-seg-btn an-rail-btn" data-kind="arrow" aria-pressed="true" title="Drag from the tail to the point">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18 18 6"/><path d="M11 6h7v7"/></svg>
             <span>Arrow</span>
           </button>
-          <button type="button" class="an-rail-btn" data-kind="box" aria-pressed="false" title="Drag a rectangle around something">
+          <button type="button" class="view-seg-btn an-rail-btn" data-kind="box" aria-pressed="false" title="Drag a rectangle around something">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2"/></svg>
             <span>Box</span>
           </button>
-          <button type="button" class="an-rail-btn" data-kind="pin" aria-pressed="false" title="Tap to drop the next numbered step">
+          <button type="button" class="view-seg-btn an-rail-btn" data-kind="pin" aria-pressed="false" title="Tap to drop the next numbered step">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M10.5 9.5 12 8.6V16"/></svg>
             <span>Step</span>
           </button>
-          <button type="button" class="an-rail-btn" data-kind="callout" aria-pressed="false" title="Drag a label box, then type into its row">
+          <button type="button" class="view-seg-btn an-rail-btn" data-kind="callout" aria-pressed="false" title="Drag a label box, then type into its row">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-4 4v-4H4z"/></svg>
             <span>Callout</span>
           </button>
-          <button type="button" class="an-rail-btn" data-kind="highlight" aria-pressed="false" title="Drag a translucent wash over a line">
+          <button type="button" class="view-seg-btn an-rail-btn" data-kind="highlight" aria-pressed="false" title="Drag a translucent wash over a line">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19h16"/><path d="M7 15 15 7l3 3-8 8z"/></svg>
             <span>Highlight</span>
           </button>
-          <button type="button" class="an-rail-btn" data-kind="spotlight" aria-pressed="false" title="Dim everything except this rectangle">
+          <button type="button" class="view-seg-btn an-rail-btn" data-kind="spotlight" aria-pressed="false" title="Dim everything except this rectangle">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg>
             <span>Spotlight</span>
           </button>
@@ -53,22 +44,24 @@
                unchanged. -->
           <div class="an-rail-group" data-ocr-group>
             {{#if ocrPending}}
-              <button type="button" class="an-rail-btn is-busy" data-ocr-cancel title="Stop reading this picture">
+              <button type="button" class="btn btn--ghost u-tool an-rail-btn is-busy" data-ocr-cancel title="Stop reading this picture">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/></svg>
                 <span>Reading…</span>
               </button>
             {{else}}
-              <button type="button" class="an-rail-btn" data-ocr-run title="Read the text in this picture on your device and offer each line as a place to put a mark">
+              <button type="button" class="btn btn--ghost u-tool an-rail-btn" data-ocr-run title="Read the text in this picture on your device and offer each line as a place to put a mark">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
                 <span>Snap to text</span>
               </button>
             {{/if}}
             {{#if hasAnchors}}
-              <button type="button" class="an-rail-btn" data-anchors-clear title="Hide the text anchors">Clear {{anchorCount}}</button>
+              <button type="button" class="btn btn--ghost u-tool an-rail-btn" data-anchors-clear title="Hide the text anchors">Clear {{anchorCount}}</button>
             {{/if}}
           </div>
         {{/if}}
+        <button type="button" class="help-tip-btn" aria-label="How to draw and edit marks" aria-expanded="false" aria-controls="an-tip-marks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button>
       </div>
+      <span class="help-tip-pop" id="an-tip-marks" hidden>Drag on the picture to draw the armed mark, drag a mark to move it, drag its corner dot to resize, tap its cross to take it off. Callout and step words are typed in the Marks rows in the sidebar.{{#if hasAnchors}} {{anchorCount}} text line{{#if anchorPlural}}s were{{else}} was{{/if}} found: click one to put the armed mark on it. An anchor is a suggestion, never a mark.{{/if}}<button type="button" class="close-btn close-btn--sm close-btn--inherit help-tip-close" tabindex="-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
     </div>
 
     <!-- VIEWPORT: the picture, the overlay, and the invisible handles layer. -->
@@ -110,31 +103,24 @@
       </div>
     </div>
 
-    <!-- BOTTOM DOCK: what the marks amount to, and the download. -->
-    <div class="an-dock an-dock-bottom" data-export-hide>
-      <p class="an-hint">
-        {{#if hasMarks}}{{markCount}} mark{{#if markPlural}}s{{/if}}.{{else}}No marks yet.{{/if}}
-        Drag on the picture to draw the armed mark, drag a mark to move it, drag its corner dot to resize, tap its cross to take it off. Callout and step words are typed in the Marks rows in the sidebar.
-        {{#if hasAnchors}} {{anchorCount}} text line{{#if anchorPlural}}s were{{else}} was{{/if}} found: click one to put the armed mark on it. An anchor is a suggestion, never a mark.{{/if}}
-      </p>
-      {{#if ocrError}}<p class="an-note">{{ocrError}}</p>{{/if}}
-      {{#if ocrRead}}{{#unless hasAnchors}}<p class="an-note">No text was recognised in this picture. Keep placing marks by hand.</p>{{/unless}}{{/if}}
-      <div class="an-foot">
-        {{#if hasFile}}
-          {{#if hasMarks}}
-            <button type="button" class="an-download" data-export-file data-busy-label="Drawing…">{{downloadLabel}}</button>
-          {{else}}
-            <!-- Nothing to draw yet. Downloading here would hand back a
-                 re-encoded copy of the person's own file, which is a quiet
-                 quality loss on a JPEG and no use to anyone. Redact holds the
-                 same line with its bars. -->
-            <button type="button" class="an-download" disabled>Add a mark to download a copy</button>
-          {{/if}}
+    <!-- ACTION: the one button, with a quiet line for what a text read found. -->
+    <div class="an-dock an-foot" data-export-hide>
+      {{#if hasFile}}
+        {{#if hasMarks}}
+          <button type="button" class="btn btn--primary an-download" data-export-file data-busy-label="Drawing…">{{downloadLabel}}</button>
         {{else}}
-          <button type="button" class="an-download" data-file-pick>Choose a picture to annotate</button>
+          <!-- Nothing to draw yet. Downloading here would hand back a
+               re-encoded copy of the person's own file, which is a quiet
+               quality loss on a JPEG and no use to anyone. Redact holds the
+               same line with its bars. -->
+          <button type="button" class="btn btn--primary an-download" disabled>Add a mark to download a copy</button>
         {{/if}}
-        <span class="an-privacy">Your picture is annotated in this browser and never uploaded.</span>
-      </div>
+      {{else}}
+        <button type="button" class="btn btn--primary an-download" data-file-pick>Choose a picture to annotate</button>
+        <p class="u-quiet an-note">Marks are drawn on a placeholder screen until you choose a picture.</p>
+      {{/if}}
+      {{#if ocrError}}<p class="u-quiet an-note" role="status">{{ocrError}}</p>{{/if}}
+      {{#if ocrRead}}{{#unless hasAnchors}}<p class="u-quiet an-note" role="status">No text was recognised in this picture. Keep placing marks by hand.</p>{{/unless}}{{/if}}
     </div>
   </div>
 </div>

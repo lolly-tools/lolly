@@ -1,31 +1,144 @@
-/* Annotate - a workspace, not a poster. The chrome follows the app's core theme
-   switcher (light / dark / suse) exactly as redact's does: every hue is an app
-   design token on <html data-theme> (tokens.css), which inherits into the scoped
-   tool canvas, with a light-theme fallback so the sheet stays valid in a shell
-   that ships no tokens. The DRAWING takes none of its colour from here - the
-   marks are painted from the `accent` input, resolved in hooks.js with its own
-   literal fallback, so the preview and the downloaded file can never disagree
-   about a colour. */
-.an {
-  --an-bg:    var(--background, 0 0% 98%);
-  --an-fg:    var(--foreground, 224 71% 4%);
-  --an-muted: var(--muted-foreground, 215 20% 38%);
-  --an-card:  var(--card, 0 0% 100%);
-  --an-bd:    var(--border, 214 28% 84%);
-  --an-fill:  var(--muted, 210 40% 96%);
-  --an-brand: var(--primary, 171 62% 12%);
-  --an-brandfg: var(--primary-foreground, 0 0% 100%);
+/* Utility UI: the look Redact, Strip Hidden Data and Annotate share with Pages
+   and Sign. The shell's own primitives draw the controls (.btn, .view-seg,
+   .help-tip-*, .close-btn), and every colour, size, radius and duration below
+   is a --ui-* token with a portable fallback, so the canvas follows the theme
+   switch at once and stays valid in a shell that ships no tokens. The --ut-*
+   triples are those fallbacks. The --u-* names are the tokens this sheet reads,
+   kept short so a rule stays readable. The block is the same in all three
+   tools. */
+.utility {
+  --ut-bg:      var(--background, 0 0% 98%);
+  --ut-fg:      var(--foreground, 224 71% 4%);
+  --ut-muted:   var(--muted-foreground, 215 20% 38%);
+  --ut-card:    var(--card, 0 0% 100%);
+  --ut-bd:      var(--border, 214 28% 84%);
+  --ut-fill:    var(--muted, 210 40% 96%);
+  --ut-brand:   var(--primary, 171 62% 12%);
+  --ut-brandfg: var(--primary-foreground, 0 0% 100%);
+  --ut-warn:    var(--destructive, 0 72% 51%);
 
-  position: relative;
+  --u-canvas:     var(--ui-color-surface-canvas, hsl(var(--ut-bg)));
+  --u-surface:    var(--ui-color-surface-raised, hsl(var(--ut-card)));
+  --u-fill:       var(--ui-color-surface-muted, hsl(var(--ut-fill)));
+  --u-text:       var(--ui-color-text-default, hsl(var(--ut-fg)));
+  --u-muted:      var(--ui-color-text-muted, hsl(var(--ut-muted)));
+  --u-line:       var(--ui-color-border-default, hsl(var(--ut-bd)));
+  --u-accent:     var(--ui-color-action-primary, hsl(var(--ut-brand)));
+  --u-on-accent:  var(--ui-color-action-on-primary, hsl(var(--ut-brandfg)));
+  --u-accent-text: var(--ui-color-text-accent, hsl(var(--ut-brand)));
+  --u-danger:     color-mix(in oklab, var(--ui-color-status-danger, hsl(var(--ut-warn))), var(--ui-color-text-default, hsl(var(--ut-fg))) 30%);
+  --u-danger-fill: hsl(var(--ut-warn));
+  --u-on-danger:  hsl(var(--destructive-foreground, 0 0% 100%));
+  --u-focus:      var(--ui-color-focus-ring, hsl(var(--ut-brand)));
+  --u-gap:        var(--ui-space-control-inline, 12px);
+  --u-gap-s:      var(--ui-space-control-block, 8px);
+  --u-gap-xs:     var(--sp-2, 4px);
+  --u-pad:        var(--ui-space-panel, 20px);
+  --u-r-control:  var(--ui-radius-control, 8px);
+  --u-r-panel:    var(--ui-radius-panel, 12px);
+  --u-r-card:     var(--ui-radius-card, 16px);
+  --u-fast:       var(--ui-motion-feedback, 120ms);
+  --u-caption:    var(--ui-type-caption, 12px);
+  --u-body:       var(--ui-type-body, 14px);
+  --u-title:      var(--ui-type-title, 18px);
+  --u-heading:    var(--ui-type-heading, 28px);
+  --u-mono:       var(--ui-type-mono-family, ui-monospace, monospace);
+
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
-  min-height: 100%;
+  padding: var(--u-pad);
+  background: var(--u-canvas);
+  color: var(--u-text);
+  font-family: var(--ui-type-ui-family, system-ui, sans-serif);
+  font-size: var(--u-body);
+  line-height: 1.5;
+  /* The shell measures a canvas with wrapping off. Words here wrap. */
+  white-space: normal;
+}
+/* A quiet line of help or status. */
+.utility .u-quiet {
+  margin: 0;
+  font-size: var(--u-caption);
+  line-height: 1.45;
+  color: var(--u-muted);
+}
+/* The shell's segmented control and buttons, sized for a toolbar line. */
+.utility .view-seg { flex: none; gap: 0; }
+.utility .view-seg-btn,
+.utility .u-tool {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--u-gap-xs);
+  padding: var(--u-gap-xs) var(--u-gap-s);
+  font-size: var(--u-caption);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.utility .view-seg-btn svg,
+.utility .u-tool svg {
+  flex: none;
+  width: var(--ui-size-icon-sm, 14px);
+  height: var(--ui-size-icon-sm, 14px);
+}
+.utility .view-seg-btn:focus-visible,
+.utility .u-reveal-cb:focus-visible ~ .u-reveal {
+  outline: 2px solid var(--u-focus);
+  outline-offset: 2px;
+}
+/* The fold arrow is the section card's hairline arrow, never a triangle. */
+.utility .u-arrow {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-inline-start: var(--u-gap-xs);
+  border-right: 1.25px solid currentColor;
+  border-bottom: 1.25px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--u-fast) ease;
+}
+.utility .u-reveal-cb:checked ~ .u-reveal .u-arrow { transform: translateY(-2px) rotate(45deg); }
+/* A checkbox that stays in the tab order while its label is the visible control. */
+.utility .u-reveal-cb {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.utility .u-reveal {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--u-caption);
+  font-weight: 600;
+  color: var(--u-accent-text);
+  cursor: pointer;
+  user-select: none;
+}
+.utility .u-reveal-hide,
+.utility .u-reveal-cb:checked ~ .u-reveal .u-reveal-show { display: none; }
+.utility .u-reveal-cb:checked ~ .u-reveal .u-reveal-hide { display: inline; }
+/* A help tip opens under the whole line that holds its button. */
+.utility .help-tip-host { position: relative; }
+.utility .help-tip-btn { margin-left: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .utility .u-arrow { transition: none; }
+}
+
+/* ── Annotate: a workspace, not a poster ──
+   The DRAWING takes none of its colour from here: the marks are painted from
+   the accent input, resolved in hooks.js with its own literal fallback, so the
+   preview and the downloaded file can never disagree about a colour. */
+.an {
+  position: relative;
   display: flex;
-  box-sizing: border-box;
-  padding: 16px;
-  font-family: var(--font-brand, "SUSE", ui-sans-serif, system-ui, sans-serif);
-  color: hsl(var(--an-fg));
-  background: hsl(var(--an-bg));
+  min-height: 100%;
+  padding: var(--u-gap);
 }
 
 .an-stage {
@@ -34,82 +147,23 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
-  gap: 10px;
+  gap: var(--u-gap-s);
 }
 
-/* ── Docks ── */
-.an-dock {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 0 0 auto;
-}
-
-.an-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-}
-.an-file {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 600;
-}
-.an-size { color: hsl(var(--an-muted)); }
-
-.an-pick {
-  margin-left: auto;
-  flex: 0 0 auto;
-  padding: 5px 12px;
-  border: 1px solid hsl(var(--an-bd));
-  border-radius: 999px;
-  background: hsl(var(--an-card));
-  color: inherit;
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
-}
-.an-pick:hover { background: hsl(var(--an-fill)); }
-
+/* ── Toolbar and action: one line each, no box around a group ── */
+.an-dock { flex: 0 0 auto; }
 .an-rail {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: var(--u-gap-s) var(--u-gap);
 }
 .an-rail-group {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px;
-  border: 1px solid hsl(var(--an-bd));
-  border-radius: 10px;
-  background: hsl(var(--an-card));
+  gap: var(--u-gap-s);
 }
-.an-rail-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 9px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-size: 12px;
-  line-height: 1;
-  cursor: pointer;
-}
-.an-rail-btn svg { width: 16px; height: 16px; }
-.an-rail-btn:hover { background: hsl(var(--an-fill)); }
-.an-rail-btn[aria-pressed="true"] {
-  background: hsl(var(--an-brand));
-  color: hsl(var(--an-brandfg));
-}
-.an-rail-btn.is-busy { color: hsl(var(--an-muted)); }
+.an-rail-btn.is-busy { color: var(--u-muted); cursor: progress; }
 
 /* ── Viewport ── */
 .an-viewport {
@@ -139,10 +193,10 @@
   width: min(100%, calc(var(--an-frameview, 520px) * var(--an-ar, 1.6)));
   max-width: 100%;
   align-self: center;
-  border-radius: 6px;
+  border-radius: var(--u-r-control);
   overflow: hidden;
-  background: hsl(var(--an-fill));
-  box-shadow: 0 1px 3px hsl(var(--an-fg) / 0.14);
+  background: var(--u-fill);
+  box-shadow: var(--ui-elevation-control, 0 1px 3px color-mix(in srgb, var(--u-text) 14%, transparent));
   touch-action: none;
   cursor: crosshair;
 }
@@ -184,18 +238,18 @@
   cursor: move;
   border-radius: 3px;
 }
-.an-hit:hover { box-shadow: 0 0 0 1px hsl(var(--an-brand) / 0.55); }
+.an-hit:hover { box-shadow: 0 0 0 1px color-mix(in srgb, var(--u-accent) 55%, transparent); }
 
 .an-del,
 .an-grip {
   position: absolute;
   pointer-events: auto;
   padding: 0;
-  border: 1px solid hsl(var(--an-card));
-  background: hsl(var(--an-fg));
+  border: 1px solid var(--u-surface);
+  background: var(--u-text);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 120ms ease;
+  transition: opacity var(--u-fast) ease;
 }
 .an-del {
   top: -9px;
@@ -212,7 +266,7 @@
   top: 7.5px;
   width: 10px;
   height: 2px;
-  background: hsl(var(--an-card));
+  background: var(--u-surface);
 }
 .an-del::before { transform: rotate(45deg); }
 .an-del::after { transform: rotate(-45deg); }
@@ -240,12 +294,12 @@
   position: absolute;
   pointer-events: auto;
   padding: 0;
-  border: 2px dotted hsl(var(--an-brand) / 0.85);
+  border: 2px dotted color-mix(in srgb, var(--u-accent) 85%, transparent);
   border-radius: 3px;
-  background: hsl(var(--an-brand) / 0.08);
+  background: color-mix(in srgb, var(--u-accent) 8%, transparent);
   cursor: copy;
 }
-.an-anchor:hover { background: hsl(var(--an-brand) / 0.2); }
+.an-anchor:hover { background: color-mix(in srgb, var(--u-accent) 20%, transparent); }
 
 /* Live feedback during a drag. Removed on release; the committed mark is drawn
    by the overlay. */
@@ -263,45 +317,24 @@
   border: 0;
 }
 
-/* ── Bottom dock ── */
-.an-hint,
-.an-note {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.45;
-  color: hsl(var(--an-muted));
-}
-.an-note { color: hsl(var(--an-fg)); }
-
+/* ── Action ── */
 .an-foot {
   display: flex;
   align-items: center;
-  gap: 12px;
   flex-wrap: wrap;
-}
-.an-download {
-  padding: 9px 16px;
-  border: 0;
-  border-radius: 999px;
-  background: hsl(var(--an-brand));
-  color: hsl(var(--an-brandfg));
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.an-download:hover { filter: brightness(1.08); }
-.an-download[disabled] {
-  background: hsl(var(--an-fill));
-  color: hsl(var(--an-muted));
-  cursor: default;
-  filter: none;
+  gap: var(--u-gap-s) var(--u-gap);
 }
 .an-download.is-busy { opacity: 0.7; cursor: progress; }
-.an-download.is-error { background: hsl(var(--destructive, 0 72% 51%)); }
-.an-privacy {
-  font-size: 12px;
-  color: hsl(var(--an-muted));
+.an-download.is-error { background: var(--u-danger-fill); color: var(--u-on-danger); }
+.an-note { flex: 1 1 16rem; min-width: 0; }
+
+/* Every control on the picture shows the shared focus ring. */
+.an-hit:focus-visible,
+.an-del:focus-visible,
+.an-grip:focus-visible,
+.an-anchor:focus-visible {
+  outline: 2px solid var(--u-focus);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {

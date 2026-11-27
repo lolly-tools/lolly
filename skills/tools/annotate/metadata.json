@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "annotate",
-  "toolVersion": "1.1.2",
-  "toolVersionRange": "1.1.2",
+  "toolVersion": "1.1.3",
+  "toolVersionRange": "1.1.3",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "24649a1937732524fb57d90d10db050d83d2c492ff61de79d26c8a5dc0cf9b74",
+      "sha256": "cdbb05b2aba96fdb01746aa675975b8e09e58cac97023995e82754906decd24f",
       "bytes": 1868
     },
     "reference/inputs.json": {
