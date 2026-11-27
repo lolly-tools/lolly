@@ -38,6 +38,17 @@ export interface Palette {
   body: string;
   display: string;
   mono: string;
+  /** The design system's own warning colours for a marked hour, where the theme reads them. */
+  alert?: { night: string; edge: string };
+}
+/** The reveal's timing in ms, from the design system's motion tokens. */
+export interface Reveal {
+  /** What deals in: the cards of the times table, or the pins when there is no table. */
+  target: 'cards' | 'pins';
+  unitMs: number;
+  staggerMs: number;
+  ease: string;
+  clipMs: number;
 }
 export interface State {
   inputs: Inputs;
@@ -48,6 +59,8 @@ export interface State {
   view: View;
   width: number;
   height: number;
+  /** Set while the motion is the reveal and there is a place to deal in. */
+  reveal?: Reveal;
 }
 export const clamp = (n: number, a: number, b: number) => Math.max(a, Math.min(b, n));
 export const num = (v: any, f: number) => (v !== '' && v != null && Number.isFinite(+v) ? +v : f);
@@ -280,6 +293,82 @@ export function font(v: any, fallback: string) {
     .trim();
   return s || fallback;
 }
+const DARK_INK = '#132629',
+  LIGHT_INK = '#f3f4ee';
+/** WCAG contrast between two hex colours. */
+export function contrast(a: string, b: string) {
+  const lum = (c: string) =>
+    [1, 3, 5].reduce((n, i, j) => {
+      const v = parseInt(c.slice(i, i + 2), 16) / 255;
+      return n + (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4) * [0.2126, 0.7152, 0.0722][j];
+    }, 0);
+  const la = lum(a),
+    lb = lum(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+/** A duration token as ms, or 0 when the system has none. */
+function durationMs(v: any): number {
+  let n = 0,
+    unit = 'ms';
+  if (typeof v === 'number') n = v;
+  else if (typeof v === 'string') {
+    const m = /^\s*(\d+(?:\.\d+)?|\.\d+)\s*(ms|s)\s*$/i.exec(v);
+    if (m) {
+      n = +m[1];
+      unit = m[2].toLowerCase();
+    }
+  } else if (v && typeof v.value === 'number') {
+    n = v.value;
+    unit = v.unit === 's' ? 's' : 'ms';
+  }
+  return n > 0 ? Math.min(4000, unit === 's' ? n * 1000 : n) : 0;
+}
+/** A curve token as a CSS easing, or '' when the system has none. */
+function curveCss(value: any): string {
+  const v = Array.isArray(value?.timingFunction) ? value.timingFunction : value;
+  if (!Array.isArray(v) || v.length !== 4 || v.some((n) => typeof n !== 'number' || !Number.isFinite(n)))
+    return '';
+  if (v[0] < 0 || v[0] > 1 || v[2] < 0 || v[2] > 1) return '';
+  return 'cubic-bezier(' + v.map((n) => Math.round(n * 1000) / 1000).join(',') + ')';
+}
+/** The reveal for this document, or undefined when nothing would deal in. The rows
+ *  take about a second between them however many there are, and the finished picture
+ *  then holds long enough to find a city in: two seconds at least. */
+export async function revealOf(host: any, inputs: Inputs, places: Place[]): Promise<Reveal | undefined> {
+  if (inputs.motion !== 'reveal') return undefined;
+  const cards = inputs.composition !== 'map' && places.length > 0;
+  const count = cards
+    ? places.length
+    : places.filter((p) => !p.error && p.longitude !== null && p.latitude !== null).length;
+  if (!count) return undefined;
+  const read = async (ref: string) => {
+    try {
+      return host?.tokens ? await host.tokens.resolve(ref) : null;
+    } catch {
+      return null;
+    }
+  };
+  const unitMs = Math.round(durationMs(await read('{motion.duration.medium}')) || 400),
+    ease = curveCss(await read('{motion.curve.emphasised}')) || 'cubic-bezier(0.05,0.7,0.1,1)',
+    staggerMs = count > 1 ? Math.min(120, Math.floor(600 / (count - 1))) : 0,
+    // The last time label starts half a unit after its row and takes a unit to arrive.
+    end = (count - 1) * staggerMs + Math.round(unitMs * 1.5);
+  return {
+    target: cards ? 'cards' : 'pins',
+    unitMs,
+    staggerMs,
+    ease,
+    clipMs: end + clamp(count * 500, 2000, 6000),
+  };
+}
+/** The mark that keeps one part's entrance: its keyframes, length, curve and start.
+ *  Empty unless the document's motion is the reveal, so every other picture is unchanged. */
+export function motionMark(s: State, name: 'tz-deal' | 'tz-settle', index: number): string {
+  const r = s.reveal;
+  if (!r) return '';
+  const at = index * r.staggerMs + (name === 'tz-settle' ? Math.round(r.unitMs / 2) : 0);
+  return ` data-svg-motion="${name} ${r.unitMs}ms ${r.ease} ${at}ms"`;
+}
 export async function brand(host: any, inputs: Inputs): Promise<Palette> {
   const tokens = host?.tokens;
   const resolve = async (path: string) => {
@@ -289,6 +378,15 @@ export async function brand(host: any, inputs: Inputs): Promise<Palette> {
       return null;
     }
   };
+  const bold = inputs.theme === 'brand';
+  // Only the design system theme reads these, so the other themes ask for nothing new.
+  const [textToken, alertInk, alertTint] = bold
+    ? await Promise.all([
+        resolve('color.semantic.text'),
+        resolve('color.role.alert-ink'),
+        resolve('color.role.alert-tint'),
+      ])
+    : [null, null, null];
   const [primary, secondary, body, display, mono, swatches] = await Promise.all([
     resolve('color.semantic.primary'),
     resolve('color.semantic.secondary'),
@@ -306,8 +404,13 @@ export async function brand(host: any, inputs: Inputs): Promise<Palette> {
     }
   };
   const anchor = toHex(inputs.accent) || toHex(primary) || '#8bb6ac';
-  const light = inputs.theme === 'paper' || inputs.theme === 'minimal',
-    bold = inputs.theme === 'brand';
+  const light = inputs.theme === 'paper' || inputs.theme === 'minimal';
+  // The system's text colour where it reads on the ground, else the plainer of the two inks.
+  const readable = (on: string) => {
+    const text = toHex(textToken);
+    if (text && contrast(text, on) >= 4.5) return text;
+    return contrast(on, DARK_INK) > contrast(on, LIGHT_INK) ? DARK_INK : LIGHT_INK;
+  };
   const luminance = (c: string) =>
     [1, 3, 5].reduce(
       (n, i, j) => n + (parseInt(c.slice(i, i + 2), 16) / 255) * [0.2126, 0.7152, 0.0722][j],
@@ -332,17 +435,29 @@ export async function brand(host: any, inputs: Inputs): Promise<Palette> {
     .filter((c, i, a) => c && a.indexOf(c) === i)
     .map((c) => visible(c!)) as string[];
   if (colors.length < 3) colors.push(mix(accent, '#ffffff', 0.3), mix(accent, '#657f9f', 0.5));
+  // The design system theme keeps its ground: the accent, deepened.
+  const autoBackground = bold
+    ? mix(accent, '#10151c', 0.42)
+    : light
+      ? mix(accent, '#ffffff', 0.96)
+      : mix(accent, '#050c13', 0.93);
+  const background = hex(inputs.background) || autoBackground;
   const auto = {
-    background: bold
-      ? mix(accent, '#10151c', 0.42)
-      : light
-        ? mix(accent, '#ffffff', 0.96)
-        : mix(accent, '#050c13', 0.93),
-    ink: light ? '#132629' : '#f3f4ee',
+    background: autoBackground,
+    ink: bold ? readable(background) : light ? DARK_INK : LIGHT_INK,
   };
-  const background = hex(inputs.background) || auto.background;
   const ink = hex(inputs.ink) || auto.ink;
+  // A marked hour is large type, so both warning colours have to reach 3:1 on the
+  // ground unmixed. Where either does not, both marks stay the fixed red and amber,
+  // and the two are always a pair.
+  const night = toHex(alertInk),
+    edge = toHex(alertTint);
+  const alert =
+    night && edge && night !== edge && contrast(night, background) >= 3 && contrast(edge, background) >= 3
+      ? { night, edge }
+      : undefined;
   return {
+    ...(alert ? { alert } : {}),
     accent,
     background,
     ink,
@@ -406,7 +521,12 @@ export function referenceZoneOf(value: string): string {
  *  early, late or night hour when the document asks for that mark. */
 export function timeColor(s: State, p: Place): string {
   if (s.inputs.showHourQuality !== true && s.inputs.showHourQuality !== 'true') return p.color;
-  return p.hourQuality === 'night' ? '#ef4444' : p.hourQuality === 'edge' ? '#f59e0b' : p.color;
+  const alert = s.palette.alert;
+  return p.hourQuality === 'night'
+    ? alert?.night || '#ef4444'
+    : p.hourQuality === 'edge'
+      ? alert?.edge || '#f59e0b'
+      : p.color;
 }
 /** The same mark in words, for a reader who cannot tell the colours apart. */
 export function hourWord(s: State, p: Place): string {
@@ -440,6 +560,8 @@ export async function makeState(inputs: Inputs, host: any, now = new Date()): Pr
     width: Math.max(1, num(inputs.width, 1440)),
     height: Math.max(1, num(inputs.height, 1080)),
   };
+  const reveal = await revealOf(host, inputs, state.places);
+  if (reveal) state.reveal = reveal;
   try {
     zoneName(inputs.referenceZone || 'UTC');
     updateTimes(

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-27T00:53:41.368Z",
+  "generatedAt": "2026-11-27T02:41:07.083Z",
   "tools": [
     {
       "id": "3d",
@@ -12398,7 +12398,7 @@
       "id": "timezone",
       "name": "Timezone",
       "description": "Turn places and timezones into artwork. Rotate a vector atlas or a WebGL globe, then export artwork, a camera tour or structured schedules.",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "status": "official",
       "category": "event",
       "tags": [
@@ -12423,6 +12423,8 @@
         "webm",
         "mp4",
         "gif",
+        "apng",
+        "webp-anim",
         "json",
         "csv",
         "md",
@@ -12438,7 +12440,7 @@
           "label": "Global webinar",
           "values": {
             "heading": "Ideas without borders.",
-            "eyebrow": "The global webinar",
+            "eyebrow": "",
             "annotation": "A conversation that travels with you.",
             "footer": "Save your place →",
             "timeMode": "now",
@@ -12501,7 +12503,7 @@
           "label": "Infrastructure atlas",
           "values": {
             "heading": "Always connected.",
-            "eyebrow": "Global infrastructure",
+            "eyebrow": "",
             "annotation": "Follow the sun. Know every region.",
             "footer": "",
             "timeMode": "now",

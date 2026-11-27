@@ -76,7 +76,7 @@ document rather than a handful of fields: **chart** (`chart.md`), **design**
 | `stationery` | Stationery | everyone | pdf, pdf-cmyk, svg, penpot, png, jpg, webp, tiff, cmyk-tiff | - | - | Business cards, letterhead and compliments slips from the design system, each piece sized to its real print trim, rea… |
 | `street-map` | Street Map | designer | svg, penpot, emf, dxf, pdf, pdf-cmyk, png, jpg, webp, avif, tiff, eps | - | - | Clean vector street-block maps of any city. |
 | `synth` | Synth | designer | png, jpg, webp, webm, mp4, gif, apng, avif, tiff, webp-anim | - | - | A visual instrument you play. |
-| `timezone` | Timezone | event | svg, png, pdf, webp, jpeg, webm, mp4, gif, json, csv, md, ics | - | - | Turn places and timezones into artwork. |
+| `timezone` | Timezone | event | svg, png, pdf, webp, jpeg, webm, mp4, gif, apng, webp-anim, json, csv, md, ics | - | - | Turn places and timezones into artwork. |
 | `wayfinding-signage` | Wayfinding | event | pdf, pdf-cmyk, svg, penpot, dxf, png, jpg, webp, avif, tiff, cmyk-tiff, emf | - | - | Directional event signs - destinations, each with an arrow. |
 | `week` | Week | everyone | png, svg, pdf, jpeg, webp, mp4, webm, gif, html | - | - | A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked, for a slide… |
 | `wordmark` | Wordmark | everyone | svg, penpot, emf, eps, eps-cmyk, dxf, pdf, pdf-cmyk, cmyk-tiff, tiff, png, jpeg, webp, avif | - | - | Type a word, get a pure-path vector wordmark in the design system font - recipients never need the font installed. |

@@ -23,12 +23,30 @@ export function mount(root: HTMLElement, state: State) {
   const reduced =
     window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
     document.documentElement.dataset.a11yMotion === 'reduce';
-  const wantsMotion = state.inputs.motion !== 'still';
+  // The reveal plays once and holds. Without a place to deal in there is no reveal,
+  // and the picture is a still.
+  const reveal = state.inputs.motion === 'reveal' ? state.reveal : undefined;
+  const wantsMotion =
+    state.inputs.motion !== 'still' && (state.inputs.motion !== 'reveal' || Boolean(reveal));
+  // The reveal's moment in ms, or null for the finished picture.
+  let revealAt: number | null = null;
   // A one-shot render (a gallery look, a batch row) is a still picture: spinning it
   // keeps the DOM changing, so the render never settles, and the picture shows
   // whatever frame the spin had reached. Exports still draw exact frames through
   // __lollyFrameRender, which does not depend on the wall-clock spin.
   playing = wantsMotion && !reduced && !root.closest('[data-lolly-offscreen]');
+  if (reveal) {
+    // The reveal plays once when it is chosen, never again on a keystroke, and only
+    // in the tool view. The Play button replays the reveal on request.
+    const stage = root.parentNode as (Node & { __tzRevealed?: boolean }) | null,
+      seen = Boolean(stage?.__tzRevealed);
+    if (stage) stage.__tzRevealed = true;
+    playing = playing && !seen && Boolean(root.closest('#tool-canvas, #tool-content'));
+    if (playing) revealAt = 0;
+  } else {
+    const stage = root.parentNode as (Node & { __tzRevealed?: boolean }) | null;
+    if (stage) delete stage.__tzRevealed;
+  }
   // The shell's export panel owns the containing artboard, including physical
   // units. Read its CSS size, so no duplicated tool size inputs can disagree.
   function readSize() {
@@ -49,6 +67,9 @@ export function mount(root: HTMLElement, state: State) {
       });
     overlay.setAttribute('viewBox', `0 0 ${l.map.w} ${l.map.h}`);
     overlay.setAttribute('font-family', state.palette.body);
+    // The focus ring is the accent as the artwork draws it: the design system's
+    // primary, lightened or darkened where the ground needs that to show.
+    root.style.setProperty('--tz-ring', state.palette.accent);
     const surface = root.querySelector('.tz-interaction') as HTMLElement;
     Object.assign(surface.style, {
       left: `${(l.map.x / l.w) * 100}%`,
@@ -79,9 +100,21 @@ export function mount(root: HTMLElement, state: State) {
     setStatus('Drag to rotate · Shift to roll · Scroll to zoom');
   }
   const frameCanvas = canvas as HTMLCanvasElement & {
-    __lollyFrameRender?: (t: number) => void;
+    __lollyFrameRender?: (t: number, clipSec?: number) => void;
     __lollyFrameDriven?: boolean;
   };
+  // Each moving part carries its one entrance as data-svg-motion, which plays nothing
+  // while the page is at rest. Posing gives the parts their animations and seeks them
+  // to one moment; null takes them away, which leaves the finished picture.
+  function poseReveal(ms: number | null) {
+    for (const el of root.querySelectorAll<SVGElement>('[data-svg-motion]'))
+      el.style.animation = ms === null ? '' : `${el.getAttribute('data-svg-motion')} both`;
+    if (ms === null) return;
+    for (const a of root.getAnimations({ subtree: true })) {
+      a.pause();
+      a.currentTime = ms;
+    }
+  }
   function draw(t: number, exportFrame = false) {
     if (disposed) return;
     const pose = tourView(state, t);
@@ -96,6 +129,7 @@ export function mount(root: HTMLElement, state: State) {
       art.innerHTML = artwork(state, pose.active);
       state.view = base;
     }
+    if (reveal) poseReveal(revealAt);
     root.dataset.frame = String(t);
     if (exportFrame) root.dataset.exportFrame = 'true';
   }
@@ -125,8 +159,11 @@ export function mount(root: HTMLElement, state: State) {
     draw(clock);
     updatePlay();
   }
+  // Kept from the mount: a still export lifts the controls out of the page while it
+  // reads the artwork, and the button's label has to follow a reveal that ends then.
+  const playButton = root.querySelector<HTMLButtonElement>('[data-action="play"]');
   function updatePlay() {
-    const b = root.querySelector<HTMLButtonElement>('[data-action="play"]');
+    const b = playButton;
     if (b) {
       b.disabled = !wantsMotion;
       b.textContent = playing
@@ -206,6 +243,7 @@ export function mount(root: HTMLElement, state: State) {
         action = target.closest('[data-action]')?.getAttribute('data-action');
       if (action === 'play') {
         playing = !playing;
+        if (reveal) revealAt = playing ? 0 : null;
         manual = false;
         updatePlay();
         draw(clock);
@@ -246,7 +284,15 @@ export function mount(root: HTMLElement, state: State) {
         if (!state.error) updateTimes(state, now);
         draw(clock);
       }
-      if (playing && !document.hidden) {
+      if (playing && !document.hidden && reveal) {
+        revealAt = (revealAt ?? 0) + dt;
+        if (revealAt >= reveal.clipMs) {
+          revealAt = null;
+          playing = false;
+          updatePlay();
+        }
+        poseReveal(revealAt);
+      } else if (playing && !document.hidden) {
         clock = (clock + dt / (num(state.inputs.duration, 12) * 1000)) % 1;
         draw(clock);
       }
@@ -264,12 +310,25 @@ export function mount(root: HTMLElement, state: State) {
     globe?.dispose();
   }
   // Hooks produce the first SVG before any GPU dependency arrives. Readiness waits for fonts too.
-  frameCanvas.__lollyFrameRender = (t: number) => {
+  const frame = (t: number, clipSec?: number) => {
     manual = false;
+    if (reveal) {
+      // A clip is t in [0, 1) of clipSec seconds. A still has no clip length and
+      // always gets the finished picture.
+      playing = false;
+      revealAt = clipSec && clipSec > 0 ? clamp(t, 0, 1) * clipSec * 1000 : null;
+      draw(0, true);
+      updatePlay();
+      return;
+    }
     draw(t, true);
   };
+  // Tells the shell that a still of the reveal is the finished picture, so an SVG or
+  // a PDF never catches a moment of the preview. The loops keep reading the page as drawn.
+  if (reveal) (frame as typeof frame & { stillPose?: boolean }).stillPose = true;
+  frameCanvas.__lollyFrameRender = frame;
   (root as any).__timezone = {
-    draw: (t: number) => frameCanvas.__lollyFrameRender!(t),
+    draw: (t: number, clipSec?: number) => frame(t, clipSec),
     dispose,
     state,
     resize,
