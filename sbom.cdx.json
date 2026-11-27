@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:6bbcefde-9afe-4385-87a0-70c09d840e82",
+  "serialNumber": "urn:uuid:b41e75f0-b63c-41d4-89e7-e563084c5825",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-27T04:57:49.763Z",
+    "timestamp": "2026-11-27T08:46:53.019Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -28555,7 +28555,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "25f5a9e5aaea2cff44d4f6227e3edc3f3a4f05377ec0698acfd5d78fca154bf299dc11ddde287847c68df5424808f74c2680944eab98f17f3e0102a80ea22422"
+          "content": "300d2d948f62786efaf4be2242a33a9c805efbba2e8fe9c929692573daa8e3d74118cc65894e2682e84c74f18bc3247142f8efbbcc7a60d2c139567ca1b1130c"
         }
       ],
       "properties": [
@@ -29137,7 +29137,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "194fb303c0e06c586cfeb4b2ea02ffecfd098913837984d4fcc4d56f01a03240511eb2dac4a9ec72e361c16bb00f91d8fb9df96f625cfd3bcae75a0ee0621d55"
+          "content": "24f8f6264d5fcbdb4d4c5806ece84f554f28a8a49d0547933413cff4298d31b79294d01d467ef4f410a9eb1cc5eaa53f243f3f2c614ed50bbda62c39534f7242"
         }
       ],
       "properties": [
@@ -29546,7 +29546,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "194fb303c0e06c586cfeb4b2ea02ffecfd098913837984d4fcc4d56f01a03240511eb2dac4a9ec72e361c16bb00f91d8fb9df96f625cfd3bcae75a0ee0621d55"
+          "content": "24f8f6264d5fcbdb4d4c5806ece84f554f28a8a49d0547933413cff4298d31b79294d01d467ef4f410a9eb1cc5eaa53f243f3f2c614ed50bbda62c39534f7242"
         }
       ],
       "properties": [
@@ -33722,7 +33722,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "25f5a9e5aaea2cff44d4f6227e3edc3f3a4f05377ec0698acfd5d78fca154bf299dc11ddde287847c68df5424808f74c2680944eab98f17f3e0102a80ea22422"
+          "content": "300d2d948f62786efaf4be2242a33a9c805efbba2e8fe9c929692573daa8e3d74118cc65894e2682e84c74f18bc3247142f8efbbcc7a60d2c139567ca1b1130c"
         }
       ],
       "properties": [

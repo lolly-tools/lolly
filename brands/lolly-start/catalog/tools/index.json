@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-27T04:57:39.950Z",
+  "generatedAt": "2026-11-27T08:46:41.402Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -275,7 +275,7 @@
       "id": "qr-code",
       "name": "QR Code",
       "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 - plus retail and logistics barcodes from EAN-13 to MaxiCode.",
-      "version": "2.12.0",
+      "version": "2.12.1",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -9530,7 +9530,7 @@
       "id": "gradient",
       "name": "Gradient",
       "description": "Six ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp, Flow and Field, which has sixteen GPU effects. Export stills or video loops.",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -12176,7 +12176,7 @@
       "id": "pages",
       "name": "Pages",
       "description": "Reorder, rotate, extract, delete, merge or split PDF pages, compress or sign a PDF, or turn images into a PDF, on your device.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -13103,7 +13103,7 @@
       "id": "timezone",
       "name": "Timezone",
       "description": "Turn places and timezones into artwork. Rotate a vector atlas or a WebGL globe, then export artwork, a camera tour or structured schedules.",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "status": "official",
       "category": "event",
       "tags": [
