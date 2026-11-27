@@ -1,60 +1,44 @@
-/* Editor-only notes over the foot of the canvas: scannability warnings, the
-   error-correction note and the button that replays the motion. The block carries
-   data-export-hide, so it never reaches a file (the CLI's root SVG rule skips it and
-   the web export detaches it). It lies over the canvas because the code fills the
-   whole canvas and the canvas clips what follows. A full colour wash (not a
-   single-edge rail) marks a warning, per the house rule on radiused elements. */
+/* Editor-only notes under the canvas: one list of scannability warnings and the
+   button that replays the motion. The block carries data-export-hide, so it never
+   reaches a file (the CLI's root SVG rule skips it and the web export detaches it).
+   It hangs below the artwork, never over the code: the template's script opens the
+   canvas frame for it and marks it data-foot, and until then it draws nothing. Sizes
+   are divided by the canvas's on-screen scale, so the text stays at screen size. The
+   look is the tool sidebar's (--ui-*), with the design system's own values where
+   another shell has none. */
 
-.qr-notes {
+.qr-notes { display: none; }
+
+.qr-notes[data-foot] {
+  /* As wide as the canvas looks, and never narrower than a readable line: on a phone
+     the canvas is small and the notes may be wider than the code above them. */
+  --qr-foot-w: max(calc(100% * var(--lolly-stage-scale, 1)), 320px);
   position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-  z-index: 2;
+  top: 100%;
+  left: calc(50% - var(--qr-foot-w) / 2);
+  width: var(--qr-foot-w);
+  transform: scale(calc(1 / var(--lolly-stage-scale, 1)));
+  transform-origin: 50% 0;
+  box-sizing: border-box;
+  padding-top: 10px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
+  font: var(--ui-type-caption, 12px)/1.45 var(--ui-type-ui-family, var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif));
 }
 
-.qr-scan-warn {
-  align-self: stretch;
-  padding: 10px 12px;
-  border-radius: 10px;
-  /* The design system's alert roles, measured and set by the hooks. The literals
-     stand where a system has none. */
-  background: var(--qr-alert-card, #fff5f5);
-  color: var(--qr-alert-ink, #7a1f12);
-  font: 13px/1.45 var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
-}
-
-.qr-scan-warn__h {
-  font-weight: 700;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.qr-scan-warn ul {
+/* One quiet list in the alert ink, with no card. The shell's own alert colour reads
+   on the stage under the canvas. The design system's alert ink stands in elsewhere. */
+.qr-warn {
   margin: 0;
-  padding-left: 18px;
+  padding: 0;
+  list-style: none;
+  color: var(--ui-color-status-danger, var(--qr-alert-ink, #7a1f12));
 }
 
-.qr-scan-warn li + li {
+.qr-warn li + li {
   margin-top: 4px;
-}
-
-.qr-scan-warn p {
-  margin: 0;
-}
-
-.qr-scan-info {
-  align-self: stretch;
-  margin: 0;
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: var(--brand-surface, #ffffff);
-  font: 12px/1.45 var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
-  color: var(--brand-muted, #6b6b6b);
 }
 
 /* Replays the motion in the preview. Never part of a file. */
@@ -62,39 +46,41 @@
   appearance: none;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--brand-surface, #ffffff);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-text, #1a1a1a) 14%, transparent);
-  color: var(--brand-text, #1a1a1a);
-  font: 600 13px/1.45 var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--ui-color-border-default, var(--brand-edge, #d9d9d9));
+  border-radius: var(--ui-radius-control, 8px);
+  background: var(--ui-color-surface-raised, var(--brand-surface, #ffffff));
+  color: var(--ui-color-text-default, var(--brand-text, #1a1a1a));
+  font: inherit;
+  font-weight: var(--ui-type-weight-label, 600);
+  line-height: 1;
   cursor: pointer;
 }
 .qr-play::before {
   content: '';
   border-style: solid;
-  border-width: 5px 0 5px 8px;
+  border-width: 4px 0 4px 7px;
   border-color: transparent transparent transparent currentColor;
 }
-.qr-play:focus-visible { outline: 2px solid var(--brand-primary, #30ba78); outline-offset: 2px; }
+.qr-play:focus-visible { outline: 2px solid var(--ui-color-focus-ring, var(--brand-primary, #30ba78)); outline-offset: 2px; }
 
-/* Scan mode (moved from community/scan-code, plans/162 Part 2). Reader UI: a viewfinder region and a results
-   card. Warnings use a full colour wash, never a single-edge rail (house rule
-   for radiused elements). Copy-first: the primary button is Copy; opening is a
-   secondary, explicitly-labelled affordance. */
+/* Scan mode (moved from community/scan-code, plans/162 Part 2). The reader is a page
+   on the shell's stage, so it takes the tool sidebar's look (--ui-*) and follows the
+   shell's light and dark themes. The design system's values stand in where another
+   shell has none. A viewfinder, then one result surface. Copy-first: the primary
+   button is Copy, and opening is a second, plainly labelled action. */
 
 .sc {
-  font: 15px/1.5 var(--font-brand, system-ui, -apple-system, "Segoe UI", sans-serif);
-  /* Inks and grounds come from the design system as pairs, so the panel reads in
-     a light theme and a dark one. The literals are the unbranded fallback. */
-  --sc-ink: var(--brand-text, #1a1a1a);
-  --sc-muted: var(--brand-muted, #6b6b6b);
-  --sc-ground: var(--brand-surface, #ffffff);
-  --sc-panel: color-mix(in srgb, var(--sc-ink) 5%, var(--sc-ground));
-  --sc-control: color-mix(in srgb, var(--sc-ink) 11%, var(--sc-ground));
-  --sc-mono: var(--font-mono, ui-monospace, Menlo, Consolas, monospace);
+  --sc-ink: var(--ui-color-text-default, var(--brand-text, #1a1a1a));
+  --sc-muted: var(--ui-color-text-muted, var(--brand-muted, #6b6b6b));
+  --sc-ground: var(--ui-color-surface-raised, var(--brand-surface, #ffffff));
+  --sc-edge: var(--ui-color-border-default, var(--brand-edge, #d9d9d9));
+  --sc-alert: var(--ui-color-status-danger, var(--qr-alert-ink, #7a1f12));
+  --sc-radius: var(--ui-radius-control, 8px);
+  --sc-mono: var(--ui-type-mono-family, var(--font-mono, ui-monospace, Menlo, Consolas, monospace));
+  font: var(--ui-type-body, 14px)/1.5 var(--ui-type-ui-family, var(--font-brand, system-ui, -apple-system, "Segoe UI", sans-serif));
   color: var(--sc-ink);
   max-width: 480px;
   margin: 0 auto;
@@ -104,11 +90,13 @@
   gap: 14px;
 }
 
+/* A camera picture stands on black whatever the theme. */
 .sc-viewfinder {
   position: relative;
   aspect-ratio: 3 / 4;
-  border-radius: 16px;
+  border-radius: var(--ui-radius-card, 16px);
   background: #0d1b17;
+  color: #ffffff;
   overflow: hidden;
   display: grid;
   place-items: center;
@@ -134,107 +122,137 @@
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 0 0 9999px rgba(0, 0, 0, 0.28);
   pointer-events: none;
 }
-.sc-viewfinder__frame {
-  width: 72%;
-  aspect-ratio: 1 / 1;
-  border-radius: 14px;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85);
-  display: grid;
-  place-items: end center;
-  padding-bottom: 10px;
+/* The viewfinder's one line: what to do while the camera runs and nothing is read. */
+.sc-vf__label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  padding: 0 16px;
   text-align: center;
+  font-size: var(--ui-type-label, 13px);
+  /* The picture behind may be bright. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
-.sc-viewfinder__hint { color: rgba(255, 255, 255, 0.9); font-size: 13px; padding: 0 8px; }
+.sc-vf__label--centre { position: static; }
+/* Before the camera runs the viewfinder is the start control: a tap anywhere on the
+   page starts the camera, and this is where the eye lands. It stands at the foot,
+   where a camera keeps its shutter and where a phone's input sheet leaves it in view. */
+.sc-start {
+  align-self: end;
+  margin-bottom: 28px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  font-size: var(--ui-type-label, 13px);
+  font-weight: var(--ui-type-weight-label, 600);
+  cursor: pointer;
+}
+.sc-start__glyph {
+  width: 40px;
+  height: 40px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
-.sc-empty {
-  padding: 28px 16px;
+/* A quiet line where no result stands yet, and the alert form for a problem. */
+.sc-note {
+  margin: 0;
+  padding: 4px;
   text-align: center;
   color: var(--sc-muted);
-  background: var(--sc-panel);
-  border-radius: 14px;
 }
+.sc-note--alert { color: var(--sc-alert); }
 
+/* The result: one surface. Inside, groups are set apart by space and a hairline. */
 .sc-result {
-  background: var(--sc-panel);
-  border-radius: 16px;
+  background: var(--sc-ground);
+  border-radius: var(--ui-radius-card, 16px);
+  box-shadow: var(--ui-elevation-control, 0 0 0 1px var(--sc-edge));
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-.sc-result__head { display: flex; align-items: center; gap: 8px; }
-.sc-badge {
-  font-weight: 700;
-  font-size: 14px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--sc-ink);
-  color: var(--sc-ground);
-}
+.sc-result__head { display: flex; align-items: baseline; gap: 8px; }
+.sc-kind { font-weight: var(--ui-type-weight-section, 600); }
 .sc-fmt {
-  font: 11px var(--sc-mono);
+  font: var(--ui-type-field, 11px) var(--sc-mono);
   color: var(--sc-muted);
 }
 
 .sc-value {
-  font: 14px var(--sc-mono);
+  font: var(--ui-type-body, 14px)/1.5 var(--sc-mono);
   word-break: break-all;
-  background: var(--sc-ground);
-  border-radius: 10px;
-  padding: 10px 12px;
 }
-.sc-value--secret { color: var(--qr-alert-ink, #7a1f12); }
-.sc-punycode { font: 12px var(--sc-mono); color: var(--sc-muted); margin-top: 4px; }
+.sc-value--secret { color: var(--sc-alert); }
+.sc-punycode { font: var(--ui-type-caption, 12px) var(--sc-mono); color: var(--sc-muted); }
 
-.sc-fields { display: flex; flex-direction: column; gap: 2px; }
+.sc-fields { display: flex; flex-direction: column; }
 .sc-field {
   display: flex;
   gap: 10px;
   align-items: baseline;
   padding: 6px 0;
-  border-bottom: 1px solid var(--brand-edge, #eceae5);
+  border-bottom: 1px solid var(--sc-edge);
 }
 .sc-field:last-child { border-bottom: 0; }
-.sc-field__k { flex: 0 0 34%; color: var(--sc-muted); font-size: 13px; }
+.sc-field__k { flex: 0 0 34%; color: var(--sc-muted); font-size: var(--ui-type-label, 13px); }
 .sc-field__v { flex: 1; word-break: break-word; }
 .sc-field--secret .sc-field__v { font-family: var(--sc-mono); }
 .sc-reveal {
-  border: 0;
-  background: var(--sc-control);
+  appearance: none;
+  border: 1px solid var(--sc-edge);
+  background: transparent;
   color: inherit;
-  border-radius: 8px;
-  padding: 3px 10px;
-  font-size: 12px;
+  border-radius: var(--sc-radius);
+  min-height: 24px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: var(--ui-type-caption, 12px);
+  font-weight: var(--ui-type-weight-label, 600);
   cursor: pointer;
 }
 
-/* A full wash - the code carries a risk worth reading before acting. */
+/* What to read before acting on the code: alert ink over a hairline, no card. */
 .sc-warn {
-  background: var(--qr-alert-card, #fff5f0);
-  color: var(--qr-alert-ink, #7a2a12);
-  border-radius: 12px;
-  padding: 12px 14px;
-  font-size: 13px;
+  color: var(--sc-alert);
+  border-top: 1px solid color-mix(in srgb, var(--sc-alert) 30%, transparent);
+  padding-top: 12px;
+  font-size: var(--ui-type-label, 13px);
 }
-.sc-warn__h { font-weight: 700; display: block; margin-bottom: 6px; }
+.sc-warn__h { font-weight: var(--ui-type-weight-label, 600); display: block; margin-bottom: 4px; }
 .sc-warn ul { margin: 0; padding-left: 18px; }
-.sc-warn li + li { margin-top: 5px; }
+.sc-warn li + li { margin-top: 4px; }
 
-.sc-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.sc-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .sc-btn {
   appearance: none;
-  border: 0;
-  border-radius: 10px;
-  padding: 10px 18px;
+  border: 1px solid var(--sc-edge);
+  border-radius: var(--sc-radius);
+  min-height: 36px;
+  padding: 0 16px;
   font: inherit;
-  font-weight: 600;
+  font-size: var(--ui-type-label, 13px);
+  font-weight: var(--ui-type-weight-label, 600);
   cursor: pointer;
   text-decoration: none;
-  background: var(--sc-control);
+  background: transparent;
   color: var(--sc-ink);
   display: inline-flex;
   align-items: center;
 }
-.sc-btn--primary { background: var(--sc-ink); color: var(--sc-ground); }
+.sc-btn--primary {
+  border-color: transparent;
+  background: var(--ui-color-action-primary, var(--sc-ink));
+  color: var(--ui-color-action-on-primary, var(--sc-ground));
+}
+.sc-btn:focus-visible,
+.sc-reveal:focus-visible { outline: 2px solid var(--ui-color-focus-ring, var(--brand-primary, #30ba78)); outline-offset: 2px; }
 
-.sc-foot { font-size: 12px; color: var(--sc-muted); margin: 0; }
+.sc-copy-status { margin: 0; font-size: var(--ui-type-caption, 12px); color: var(--sc-muted); }
+.sc-copy-status:empty { display: none; }
+.sc-foot { font-size: var(--ui-type-caption, 12px); color: var(--sc-muted); margin: 0; }

@@ -385,17 +385,17 @@ function _qbScanWarnings(o) {
   var minC = Infinity;
   for (var i = 0; i < inks.length; i++) { var cr = _qbContrast(inks[i], bg); if (cr != null && cr < minC) minC = cr; }
   if (minC < 3 && minC !== Infinity) {
-    w.push('Low contrast (' + minC.toFixed(1) + ':1) between the code and its background - many scanners need at least 3:1. Darken the modules or lighten the background.');
+    w.push('Low contrast (' + minC.toFixed(1) + ':1). Scanners need at least 3:1: darken the modules or lighten the background.');
   }
   // Polarity: scanners expect dark modules on a light field.
   var fgRgb = _qbHexToRgb(o.fg), bgRgb = _qbHexToRgb(bg);
   if (fgRgb && bgRgb && _qbLum(fgRgb) > _qbLum(bgRgb)) {
-    w.push('The modules are lighter than the background. Most scanners expect dark modules on a light background, so this may not read - swap the two colours.');
+    w.push('The modules are lighter than the background. Most scanners expect dark on light: swap the two colours.');
   }
   // Quiet zone.
   var pad = Number(o.padding);
   if (Number.isFinite(pad) && pad < 4) {
-    w.push('Quiet zone is ' + pad + ' module' + (pad === 1 ? '' : 's') + ' - keep at least 4 clear modules around the code so scanners can find it.');
+    w.push('Quiet zone is ' + pad + ' module' + (pad === 1 ? '' : 's') + '. Keep at least 4 clear modules around the code.');
   }
   // Logo occlusion vs the error-correction budget (ecl already raised to H when a logo is set).
   if (o.hasLogo) {
@@ -406,8 +406,8 @@ function _qbScanWarnings(o) {
     var area = frac * frac;                       // centred square footprint
     var budget = ({ L: 0.07, M: 0.15, Q: 0.25, H: 0.30 })[o.ecl] || 0.30;
     if (area > budget * 0.8) {
-      w.push('The logo covers about ' + Math.round(area * 100) + '% of the code - near the ' + Math.round(budget * 100)
-        + '% the error correction can recover. Shrink it if the code stops scanning.');
+      w.push('The logo covers about ' + Math.round(area * 100) + '% of the code, near the ' + Math.round(budget * 100)
+        + '% that error correction can recover. Shrink the logo if the code stops scanning.');
     }
   }
   return w;
@@ -2234,7 +2234,7 @@ async function brandFonts(host) {
 // === /lolly:shared brandFonts ===
 
 // ─── The design system's alert colours and motion ────────────────────────────
-// The error panels and the warning cards take the system's alert roles, and the
+// The error panels and the warnings take the system's alert roles, and the
 // motion takes its durations and curve. Each has the value this tool always drew
 // as its fallback, so a host with no tokens draws what it drew before.
 var _QB_PLAY_LABEL = 'Play motion';
@@ -2295,7 +2295,7 @@ async function _qbToken(host, ref) {
 }
 
 // The alert card and the inks that read on that card. The title is large type, so
-// 3:1 is enough. The body and the warning cards are small type and need 4.5:1.
+// 3:1 is enough. The body and the warning lines are small type and need 4.5:1.
 async function _qbReadAlert(host) {
   var card = _qbHex6(await _qbToken(host, '{color.role.alert-card}'));
   var ink = _qbHex6(await _qbToken(host, '{color.role.alert-ink}'));
@@ -2319,9 +2319,14 @@ async function _qbReadMotion(host) {
   };
 }
 
-// The alert colours for the cards the stylesheet draws, when the system gave them.
+// The alert colours for the warnings the stylesheet draws, when the system gave them.
+// A hook's result is laid over the last one, so a flag a result leaves out would keep
+// its old value: a fixed warning would leave an empty list behind, and a barcode would
+// keep the replay button of the QR code before. Each flag the template reads is
+// therefore stated on every result.
+var _QB_FLAGS = { qrNotes: false, qrListed: false, qrMotion: false, qrHasWarnings: false, qrLiveScanFail: false, scanMiss: false };
 function _qbWithAlert(result) {
-  return result ? Object.assign({}, result, { qrAlertStyle: _qbAlert.css }) : result;
+  return result ? Object.assign({}, _QB_FLAGS, result, { qrAlertStyle: _qbAlert.css }) : result;
 }
 
 // ═══ Scan mode (moved from community/scan-code) ═══════════════════════════════
@@ -2656,7 +2661,8 @@ function classify(rawValue, format) {
 
 function _scViewModel(c) {
   if (!c || c.kind === 'empty') {
-    return { scanKind: '', scanLabel: '', scanEmpty: true, scanFieldsHtml: '', scanWarnHtml: '', scanCopy: '', scanValueHtml: '', scanOpen: '', scanSummary: 'Nothing decoded yet' };
+    // An image that was read and held no code says so where the prompt would stand.
+    return { scanKind: '', scanLabel: '', scanEmpty: true, scanMiss: !!(c && c.miss), scanFieldsHtml: '', scanWarnHtml: '', scanCopy: '', scanValueHtml: '', scanOpen: '', scanSummary: 'Nothing decoded yet' };
   }
   var fieldsHtml = (c.fields || []).map(function (f) {
     return '<div class="sc-field"><span class="sc-field__k">' + _scEsc(f.label) + '</span><span class="sc-field__v">' + _scEsc(f.value) + '</span></div>';
@@ -2719,7 +2725,7 @@ function _scOnInit({ model, host }) {
   return _scWithAlert(vm, host);
 }
 
-// The reader's warning card takes the design system's alert role, as the maker's does.
+// The reader's warnings take the design system's alert role, as the maker's do.
 async function _scWithAlert(vm, host) {
   _qbAlert = await _qbReadAlert(host);
   return _qbWithAlert(vm);
@@ -2742,7 +2748,7 @@ async function _scOnInput({ model, host }) {
         var hits = await host.scan.detect(frame, formats ? { formats: formats } : undefined);
         vm = (hits && hits.length)
           ? _scResult((_scScanned = classify(hits[0].rawValue, hits[0].format)))
-          : _scResult({ kind: 'empty', label: 'No code found in this image', fields: [], warnings: [] });
+          : _scResult({ kind: 'empty', miss: true, label: 'No code found in this image', fields: [], warnings: [] });
       }
     } catch (e) { /* fall through to whatever was last scanned */ }
   }
@@ -2929,9 +2935,10 @@ async function _runMake(args, host) {
         result = Object.assign({}, result, { qrLiveScan: live, qrLiveScanFail: live === 'fail' });
       }
     }
-    // Anything the canvas says under the code: a warning, a note, the replay button.
-    if (result && !result.qrNotes && (result.qrHasWarnings || result.qrLiveScanFail || result.qrEclRaised)) {
-      result = Object.assign({}, result, { qrNotes: true });
+    // What the editor says under the canvas: one list of warnings and the replay
+    // button. The failed test read is one more line of that list.
+    if (result && (result.qrHasWarnings || result.qrLiveScanFail)) {
+      result = Object.assign({}, result, { qrNotes: true, qrListed: true });
     }
     return result;
   } catch (err) {

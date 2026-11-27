@@ -5,7 +5,7 @@ description: "Operate the Lolly QR Code tool (qr-code) using its declared inputs
 
 # QR Code
 
-Tool ID: `qr-code`. Tool version: `2.10.0`. Engine range: `^1.356.0`.
+Tool ID: `qr-code`. Tool version: `2.11.0`. Engine range: `^1.356.0`.
 
 Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 - plus retail and logistics barcodes from EAN-13 to MaxiCode.
 

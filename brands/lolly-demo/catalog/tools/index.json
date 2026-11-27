@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-26T23:18:56.960Z",
+  "generatedAt": "2026-11-27T03:15:41.215Z",
   "tools": [
     {
       "id": "3d",
@@ -9245,7 +9245,7 @@
       "id": "qr-code",
       "name": "QR Code",
       "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 - plus retail and logistics barcodes from EAN-13 to MaxiCode.",
-      "version": "2.10.0",
+      "version": "2.11.0",
       "status": "official",
       "category": "everyone",
       "tags": [
