@@ -3,7 +3,7 @@
   "name": "Gradient",
   "description": "Six ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp, Flow and Field, which has sixteen GPU effects. Export stills or video loops.",
   "a11yLabel": "Mesh gradient blending {{count}} colours",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "everyone",
