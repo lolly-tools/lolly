@@ -268,7 +268,6 @@ const NPM_COMPONENTS: NpmComponent[] = [
   { pkg: 'pako', where: 'web', installRoot: 'packages/rondo/node_modules', note: RONDO_EDITOR_NOTE },
   { pkg: 'lottie-web', where: 'web' },
   { pkg: 'onnxruntime-web', where: 'web', fallbackText: ONNXRUNTIME_WEB_TEXT },
-  { pkg: 'woff2-encoder', where: 'web' },
   { pkg: 'fzstd', where: 'web' },
   { pkg: 'kiwi-schema', where: 'web', fallbackText: KIWI_SCHEMA_TEXT },
 
@@ -584,6 +583,16 @@ const MANIFEST: {
       files: 'packages/node-shell/wasm/xlsx-numfmt/xlsx-numfmt.wasm',
       text: readFileSync(join(ROOT, 'packages/node-shell/wasm/xlsx-numfmt/LICENSES.txt'), 'utf8'),
       note: 'GridCraft gridcraft-numfmt and gridcraft-core compiled through a bounded Lolly byte adapter. The only source change is an injected clock in place of the system clock. MIT is elected for dependencies offering that licence choice. Source, modifications and build instructions are in packages/node-shell/wasm/xlsx-numfmt/.',
+      where: 'web',
+    },
+    {
+      name: 'WOFF2 decoder: wuff, brotli-decompressor and Rust dependencies',
+      version: 'wuff 0.2.10, brotli-decompressor 6.2.0 (pinned Cargo.lock)',
+      spdx: 'MPL-2.0 AND MIT AND BSD-3-Clause',
+      copyright: 'The WOFF2 Authors, Nico Burns, Dropbox, Inc. and Carl Lerche, reproduced in the notices below.',
+      files: 'packages/node-shell/wasm/woff2-kernel/woff2-kernel.wasm',
+      text: readFileSync(join(ROOT, 'packages/node-shell/wasm/woff2-kernel/LICENSES.txt'), 'utf8'),
+      note: 'wuff (a Rust port of Google\'s woff2 decoder) and brotli-decompressor (Dropbox\'s Rust Brotli decoder), unmodified, compiled through a bounded Lolly byte adapter. brotli-decompressor and alloc-no-stdlib are used under BSD-3-Clause, the licence text they ship. wuff publishes no licence file in its crate; LICENSE.wuff is the licence of its repository. Source and build instructions are in packages/node-shell/wasm/woff2-kernel/.',
       where: 'web',
     },
     {

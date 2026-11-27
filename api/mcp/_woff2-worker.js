@@ -2,11 +2,34 @@
 
 // packages/node-shell/src/woff2-worker.ts
 import { parentPort, workerData } from "node:worker_threads";
-import decompress from "woff2-encoder/decompress";
+
+// packages/node-shell/src/woff2-kernel.ts
+var MAX_RESULT = 30 * 1024 * 1024;
+var OP_DECODE = 1;
+function isWoff2Api(e) {
+  return e.memory instanceof WebAssembly.Memory && ["woff2_alloc", "woff2_free", "woff2_run", "woff2_result_ptr", "woff2_result_len"].every((k) => typeof e[k] === "function");
+}
+async function decodeWithWoff2Kernel(module, bytes) {
+  const instance = await WebAssembly.instantiate(module, {});
+  if (!isWoff2Api(instance.exports)) throw new Error("The WOFF2 decoder module does not have the expected interface.");
+  const api = instance.exports;
+  const pointer = api.woff2_alloc(bytes.length);
+  if (!pointer) throw new Error("The WOFF2 decoder could not take a file of this size.");
+  new Uint8Array(api.memory.buffer, pointer, bytes.length).set(bytes);
+  const status = api.woff2_run(pointer, bytes.length, OP_DECODE);
+  const at = api.woff2_result_ptr(), length = api.woff2_result_len();
+  if (length > MAX_RESULT || at + length > api.memory.buffer.byteLength) throw new Error("The WOFF2 decoder returned more than it may.");
+  const out = new Uint8Array(api.memory.buffer, at, length).slice();
+  if (status !== 0) throw new Error(new TextDecoder().decode(out));
+  return out;
+}
+
+// packages/node-shell/src/woff2-worker.ts
 var port = parentPort;
 if (port) {
   try {
-    const out = await decompress(workerData);
+    const { module, bytes } = workerData;
+    const out = await decodeWithWoff2Kernel(module, bytes);
     port.postMessage({ out }, [out.buffer]);
   } catch (error) {
     port.postMessage({ error: error instanceof Error ? error.message : String(error) });

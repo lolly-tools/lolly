@@ -88,6 +88,8 @@
     "./fallback-fonts-node": "./src/fallback-fonts-node.ts",
     "./page-text": "./src/page-text.ts",
     "./woff2": "./src/woff2.ts",
+    "./woff2-kernel": "./src/woff2-kernel.ts",
+    "./woff2-kernel.wasm": "./wasm/woff2-kernel/woff2-kernel.wasm",
     "./node-patch-level": "./src/node-patch-level.ts",
     "./svg-ir": "./src/svg-ir.ts",
     "./render-integrity": "./src/render-integrity.ts",
@@ -204,6 +206,7 @@
     "wasm/camera-raw",
     "wasm/affinity",
     "wasm/layout-kernel",
+    "wasm/woff2-kernel",
     "wasm/skera/skera.wasm",
     "wasm/skera/LICENSES.txt",
     "README.md"
@@ -220,8 +223,7 @@
     "harfbuzzjs": "^1.6.4",
     "libxml2-wasm": "^0.7.2",
     "pdf-lib": "^1.17.1",
-    "playwright-core": "^1.49.0",
-    "woff2-encoder": "2.0.0"
+    "playwright-core": "^1.49.0"
   },
   "optionalDependencies": {
     "@huggingface/transformers": "^4.3.2",
@@ -231,6 +233,7 @@
     "sharp": "^0.35.5"
   },
   "devDependencies": {
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "woff2-encoder": "2.0.0"
   }
 }

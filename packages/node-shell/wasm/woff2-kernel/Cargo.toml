@@ -1,0 +1,24 @@
+[package]
+name = "lolly-woff2-kernel"
+version = "0.1.0"
+edition = "2024"
+license = "MPL-2.0"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# Google's woff2 decoder, hand-ported to Rust. Its bundled backends are off: WOFF2 needs no
+# zlib, and src/lib.rs drives the Brotli decoder itself so it can refuse a size first.
+wuff = { version = "0.2.10", default-features = false }
+# The pure-Rust Brotli decoder, without its `unsafe` feature (which turns off bounds checks)
+# and without the standard-library allocator wrapper.
+brotli-decompressor = { version = "6.2.0", default-features = false }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

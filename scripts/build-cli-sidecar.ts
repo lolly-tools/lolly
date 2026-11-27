@@ -221,6 +221,7 @@ cpSync(join(REPO, 'packages/node-shell/wasm/affinity'), join(LIB, 'wasm/affinity
 cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(LIB, 'wasm/layout-kernel'), {
   recursive: true, filter: (source) => basename(source) !== 'target',
 });
+cpSync(join(REPO, 'packages/node-shell/wasm/woff2-kernel'), join(LIB, 'wasm/woff2-kernel'), { recursive: true, filter: (source) => basename(source) !== 'target' });
 
 const result = await build({
   // The output names matter: shells/cli/src/tui.ts starts the TUI by looking for
@@ -233,7 +234,7 @@ const result = await build({
     tui: join(REPO, 'shells/tui/src/main.tsx'),
     'rebrand-worker': join(REPO, 'shells/cli/src/rebrand-worker.ts'),
     // Each WOFF2 font decodes in a worker thread of its own (woff2-node.ts looks for
-    // `./_woff2-worker.js` beside its chunk), so the decoder rides along inlined.
+    // `./_woff2-worker.js` beside its chunk and hands it the module from wasm/woff2-kernel).
     '_woff2-worker': join(REPO, 'packages/node-shell/src/woff2-worker.ts'),
   },
   outdir: join(LIB, 'dist'),

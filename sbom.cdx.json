@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:b41e75f0-b63c-41d4-89e7-e563084c5825",
+  "serialNumber": "urn:uuid:d6c0a144-3629-43eb-8960-ea2d15471718",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-27T08:46:53.019Z",
+    "timestamp": "2026-11-27T19:22:20.071Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -1225,6 +1225,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/brotli-decompressor@6.2.0",
+      "name": "brotli-decompressor",
+      "version": "6.2.0",
+      "purl": "pkg:cargo/brotli-decompressor@6.2.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "BSD-3-Clause OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "34c6783f42c21c952ad7112b354f0ba2f10760e9decea5b1b60523d6e270faaf"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/woff2-kernel/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/brotli@9.0.0",
       "name": "brotli",
       "version": "9.0.0",
@@ -1474,6 +1499,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/bytes@1.12.1",
+      "name": "bytes",
+      "version": "1.12.1",
+      "purl": "pkg:cargo/bytes@1.12.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/woff2-kernel/Cargo.lock"
         }
       ]
     },
@@ -8838,6 +8890,27 @@
         {
           "name": "lolly:source",
           "value": "crates/lolly-render-node/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/lolly-woff2-kernel@0.1.0",
+      "name": "lolly-woff2-kernel",
+      "version": "0.1.0",
+      "purl": "pkg:cargo/lolly-woff2-kernel@0.1.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/woff2-kernel/Cargo.lock"
         }
       ]
     },
@@ -21026,6 +21099,33 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/wuff@0.2.10",
+      "name": "wuff",
+      "version": "0.2.10",
+      "purl": "pkg:cargo/wuff@0.2.10",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f6a992b57b3d1ee972b2e3fd9225e44793104d49818836dd812d5459187712dd"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "packages/node-shell/wasm/woff2-kernel/Cargo.lock"
         }
       ]
     },
@@ -35907,7 +36007,7 @@
       "name": "woff2-encoder",
       "version": "2.0.0",
       "purl": "pkg:npm/woff2-encoder@2.0.0",
-      "scope": "required",
+      "scope": "excluded",
       "licenses": [
         {
           "license": {
@@ -35919,6 +36019,12 @@
         {
           "alg": "SHA-512",
           "content": "c07d6b72c91ccc23f9f8124004cf3c68cde1a045f55545ba53e2acc7fedb997bdcb561aa17e3bf610742eaf590ee5252ee7cb6d5ad0c900a9c67238fd8ef0202"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
         }
       ]
     },

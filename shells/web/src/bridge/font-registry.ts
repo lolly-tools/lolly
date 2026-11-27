@@ -21,10 +21,10 @@
  * .notdef for every glyph (a silently blank export). Google Fonts serves woff2
  * to every browser and a browser cannot ask for anything else (`User-Agent` is a
  * forbidden fetch header), so we decompress on-device through node-shell's
- * `woff2.ts`, which checks the file's declared sizes before the lazily-imported
- * `woff2-encoder/decompress` wasm module (~127 KB gz, binary inlined as a data:
- * URI) runs and checks the sfnt it returns - no network, works offline, loads only
- * when a vector export actually needs a face. The resulting sfnt is kept as an
+ * `woff2.ts`, which checks the file's declared sizes before the Rust decoder module
+ * (wasm/woff2-kernel, ~123 KB gz, fetched and compiled once, each font decoded in
+ * a worker of its own) runs and checks the sfnt it returns - no network, works
+ * offline, loads only when a vector export actually needs a face. The resulting sfnt is kept as an
  * object URL for the session, never persisted (it's ~2.5× the woff2 we already
  * store).
  *

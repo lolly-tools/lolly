@@ -182,13 +182,13 @@ importers:
       playwright-core:
         specifier: 1.63.0
         version: 1.63.0
-      woff2-encoder:
-        specifier: 2.0.0
-        version: 2.0.0
     devDependencies:
       typescript:
         specifier: ^5.5.0
         version: 5.9.3
+      woff2-encoder:
+        specifier: 2.0.0
+        version: 2.0.0
     optionalDependencies:
       '@huggingface/transformers':
         specifier: ^4.3.2
@@ -497,9 +497,6 @@ importers:
       unicode-emoji-picker:
         specifier: ^2.0.1
         version: 2.0.1
-      woff2-encoder:
-        specifier: ^2.0.0
-        version: 2.0.0
       zxing-wasm:
         specifier: 3.1.7
         version: 3.1.7(@types/emscripten@1.41.5)

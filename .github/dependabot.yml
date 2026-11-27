@@ -342,6 +342,23 @@ updates:
         update-types:
           - "minor"
           - "patch"
+  - package-ecosystem: "cargo"
+    directory: "/packages/node-shell/wasm/woff2-kernel"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
 
   # ── GitHub Actions: the CI workflows (.github/workflows/*.yml) ─────────────
   - package-ecosystem: "github-actions"

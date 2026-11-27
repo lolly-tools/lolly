@@ -63,6 +63,8 @@ import { createTokenSet } from '../../engine/src/tokens.ts';
  *   - dxf           : the DXF reader (WASM tag reader, entity list), then the flattener and Design boxes over what it returns
  *   - font-inspect  : inspectFont + glyphsForText over a real variable TTF, its WOFF wrapper and crafted overlapping cmap 4/12 tables (sfnt directory, name, fvar, cmap 4/12)
  *   - woff2-preflight: preflightWoff2 over a real WOFF2 webfont and a crafted collection header (the bounds checked before the WOFF2 decoder runs)
+ *   - woff2-decode  : the WOFF2 decoder module (wuff with brotli-decompressor) over whole mutated files, without the preflight
+ *   - woff2-rebuild : the same module over mutated decompressed tables, compressed again, so the glyf, loca and hmtx rebuilding is reached
  */
 
 import { storeZip } from '../../engine/src/zip.ts';
@@ -93,7 +95,7 @@ import { readXcf } from '../../engine/src/xcf.ts';
 import type { InflateFn } from '../../engine/src/raster-layers.ts';
 import { buildXcf } from '../helpers/xcf-fixture.ts';
 import { overlappingCmap4Font, cmap12Font } from '../helpers/font-cmap-fixture.ts';
-import { deflateRawSync, deflateSync, inflateSync } from 'node:zlib';
+import { brotliCompressSync, brotliDecompressSync, constants as zlibConstants, deflateRawSync, deflateSync, inflateSync } from 'node:zlib';
 import { sniffAnimatedRaster, sniffVideoContainer } from '../../engine/src/media-sniff.ts';
 import { inspectOutput } from '../../engine/src/output-facts.ts';
 import { computePrintGeometry } from '../../engine/src/print-marks.ts';
@@ -2631,8 +2633,7 @@ export const fontInspectTarget: FuzzTarget = {
 // WOFF2 preflight (packages/node-shell/src/woff2.ts): the header, table directory and
 // collection directory of a WOFF2 file, read before the WebAssembly decoder runs.
 // Contract: facts within the limits, or a Woff2Error; never a hang or an unbounded
-// allocation. Only the preflight runs here: the decoder that follows the preflight is
-// third-party C++ that starts a worker per font, too slow for a fuzz loop.
+// allocation. The decoder itself has its own two targets below.
 export const woff2PreflightTarget: FuzzTarget = {
   name: 'woff2-preflight',
   async seeds() {
@@ -2657,6 +2658,107 @@ export const woff2PreflightTarget: FuzzTarget = {
       if (!(error instanceof Woff2Error)) throw error;
     }
   },
+};
+
+// WOFF2 decoder module (packages/node-shell/wasm/woff2-kernel: wuff with brotli-decompressor), fed
+// directly, without the preflight in front of the module, each input in a fresh instance, as
+// the shells run the module. Contract: sfnt bytes or an Error carrying the module's reason; never a
+// trap (a panic or a failed allocation inside the module), a hang or an unbounded allocation.
+let woff2Kernel: Promise<WebAssembly.Module> | undefined;
+async function decodeInWoff2Kernel(bytes: Uint8Array): Promise<Uint8Array> {
+  const { compileWoff2Kernel, decodeWithWoff2Kernel } = await import('../../packages/node-shell/src/woff2-kernel.ts');
+  woff2Kernel ??= compileWoff2Kernel(new Uint8Array(readFileSync(new URL('../../packages/node-shell/wasm/woff2-kernel/woff2-kernel.wasm', import.meta.url))));
+  return decodeWithWoff2Kernel(await woff2Kernel, bytes);
+}
+const WOFF2_SEED_FONT = new URL('../../shells/web/public/fonts/Outfit-latin-ext[wght].woff2', import.meta.url);
+
+/** A TrueType collection of `fonts`, each with its own copy of every table. */
+function ttcOf(fonts: Uint8Array[]): Uint8Array {
+  const directories = fonts.map((font) => new Uint8Array(font.subarray(0, 12 + 16 * new DataView(font.buffer, font.byteOffset).getUint16(4))));
+  let offset = 12 + 4 * fonts.length + directories.reduce((n, d) => n + d.length, 0);
+  const parts: Array<{ at: number; bytes: Uint8Array }> = [];
+  fonts.forEach((font, f) => {
+    const view = new DataView(font.buffer, font.byteOffset, font.byteLength), dir = new DataView(directories[f]!.buffer);
+    for (let i = 0; i < view.getUint16(4); i++) {
+      const from = view.getUint32(12 + 16 * i + 8), length = view.getUint32(12 + 16 * i + 12);
+      offset = (offset + 3) & ~3;
+      dir.setUint32(12 + 16 * i + 8, offset);
+      parts.push({ at: offset, bytes: font.subarray(from, from + length) });
+      offset += length;
+    }
+  });
+  const out = new Uint8Array((offset + 3) & ~3), view = new DataView(out.buffer);
+  view.setUint32(0, 0x74746366); view.setUint32(4, 0x00010000); view.setUint32(8, fonts.length);
+  let at = 12 + 4 * fonts.length;
+  directories.forEach((d, i) => { view.setUint32(12 + 4 * i, at); out.set(d, at); at += d.length; });
+  for (const part of parts) out.set(part.bytes, part.at);
+  return out;
+}
+
+// `woff2-decode` mutates whole files: the header and directory reach wuff's readers and the
+// compressed block reaches the Brotli decoder. Seeds: a real webfont, the same tables
+// compressed again at another quality, and a two-font collection that shares its tables.
+export const woff2DecodeTarget: FuzzTarget = {
+  name: 'woff2-decode',
+  async seeds() {
+    const webfont = new Uint8Array(readFileSync(WOFF2_SEED_FONT));
+    const sfnt = await decodeInWoff2Kernel(webfont);
+    const { compress } = await import('woff2-encoder') as { compress(bytes: Uint8Array): Promise<Uint8Array> };
+    return [webfont, woff2Rebuild(woff2Unpack(webfont)), await compress(ttcOf([sfnt, sfnt]))];
+  },
+  async invoke(bytes) { await decodeInWoff2Kernel(bytes); },
+};
+
+/**
+ * `woff2-rebuild` mutates the decompressed tables instead: an input is the file's header and
+ * directory, then the raw table stream, which invoke() compresses again, so the mutations
+ * reach the glyf, loca and hmtx rebuilding rather than stopping in the Brotli decoder.
+ * Layout: u32 big-endian header length, the header and directory, the table stream.
+ */
+function woff2Unpack(webfont: Uint8Array): Uint8Array {
+  const view = new DataView(webfont.buffer, webfont.byteOffset, webfont.byteLength);
+  const compressedLength = view.getUint32(20);
+  // The table directory ends where the compressed block starts: read it the way the preflight does.
+  let at = 48;
+  const tables = view.getUint16(12);
+  const base128 = (): void => { while (webfont[at++]! & 0x80) { /* continuation */ } };
+  for (let i = 0; i < tables; i++) {
+    const flags = webfont[at++]!;
+    if ((flags & 0x3f) === 0x3f) at += 4;
+    const known = flags & 0x3f, version = flags >> 6;
+    const transformed = known === 10 || known === 11 ? version === 0 : version !== 0;
+    base128();
+    if (transformed) base128();
+  }
+  const head = webfont.subarray(0, at);
+  const stream = new Uint8Array(brotliDecompressSync(webfont.subarray(at, at + compressedLength)));
+  return concat([u32be(head.length), head, stream]);
+}
+function woff2Rebuild(unpacked: Uint8Array): Uint8Array {
+  if (unpacked.length < 4) return unpacked;
+  const headLength = new DataView(unpacked.buffer, unpacked.byteOffset).getUint32(0);
+  if (headLength < 48 || headLength > unpacked.length - 4) return unpacked.subarray(4);
+  const head = new Uint8Array(unpacked.subarray(4, 4 + headLength));
+  const stream = brotliCompressSync(unpacked.subarray(4 + headLength), { params: { [zlibConstants.BROTLI_PARAM_QUALITY]: 1 } });
+  const size = (head.length + stream.length + 3) & ~3;
+  const file = new Uint8Array(size);
+  file.set(head);
+  file.set(stream, head.length);
+  const view = new DataView(file.buffer);
+  view.setUint32(8, size);
+  view.setUint32(20, stream.length);
+  for (const field of [28, 32, 36, 40, 44]) view.setUint32(field, 0); // no metadata or private block
+  return file;
+}
+export const woff2RebuildTarget: FuzzTarget = {
+  name: 'woff2-rebuild',
+  async seeds() {
+    const seed = woff2Unpack(new Uint8Array(readFileSync(WOFF2_SEED_FONT)));
+    // The unchanged seed must decode, so a module that fails to load cannot pass for clean refusals.
+    await decodeInWoff2Kernel(woff2Rebuild(seed));
+    return [seed];
+  },
+  async invoke(bytes) { await decodeInWoff2Kernel(woff2Rebuild(bytes)); },
 };
 
 // Audio DSP module (packages/node-shell/wasm/audio-dsp): the raw byte ABI that the decoded PCM
@@ -2814,7 +2916,7 @@ export const ALL_TARGETS: FuzzTarget[] = [
   depthHintTarget, gltfContainerTarget, lutParseTarget, psdTarget, psdDescriptorTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, presentInteractTarget, midiTarget, smfTarget, zzfxmTarget, rondoSourceTarget, rondoStagedTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
-  geomTarget, svgItemsTarget, fontInspectTarget, woff2PreflightTarget, audioDspTarget, imageTraceTarget, intentTarget,
+  geomTarget, svgItemsTarget, fontInspectTarget, woff2PreflightTarget, woff2DecodeTarget, woff2RebuildTarget, audioDspTarget, imageTraceTarget, intentTarget,
   lollyRenderEnvelopeTarget, lollyRenderPngTarget, lollyRenderJpegTarget, lollyRenderWebpTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

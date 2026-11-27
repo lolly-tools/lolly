@@ -278,6 +278,9 @@ cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(PKG, 'wasm/lay
 // pixel-kernel needs none either: nothing the CLI runs imports pixel-kernel.ts.
 cpSync(join(REPO, 'packages/node-shell/wasm/geometry-kernel'), join(PKG, 'wasm/geometry-kernel'), { recursive: true, filter: runtimeOnly });
 cpSync(join(REPO, 'packages/node-shell/wasm/skera'), join(PKG, 'wasm/skera'), { recursive: true, filter: runtimeOnly });
+// The WOFF2 decoder (woff2-node.ts reads ../wasm/woff2-kernel/woff2-kernel.wasm beside the bundle and
+// hands the compiled module to each _woff2-worker thread).
+cpSync(join(REPO, 'packages/node-shell/wasm/woff2-kernel'), join(PKG, 'wasm/woff2-kernel'), { recursive: true, filter: runtimeOnly });
 
 const result = await build({
   // The output NAMES matter: shells/cli/src/tui.ts starts the TUI by looking for

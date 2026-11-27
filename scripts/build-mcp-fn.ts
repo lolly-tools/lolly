@@ -36,8 +36,10 @@
  * through the worker's imports, QuickJS and its .wasm (checked with @vercel/nft).
  *
  * A third, `api/mcp/_woff2-worker.js`, is the worker thread one WOFF2 font decodes in
- * (packages/node-shell/src/woff2-worker.ts): one thread and one copy of the decoder
- * module per font. It keeps woff2-encoder external; the main bundle refers to it as
+ * (packages/node-shell/src/woff2-worker.ts): one thread and one fresh instance of the
+ * decoder module per font. The main bundle compiles the module
+ * (packages/node-shell/wasm/woff2-kernel/woff2-kernel.wasm, carried by vercel.json's includeFiles) and
+ * hands it to the thread, and refers to the worker as
  * `new URL('./_woff2-worker.js', import.meta.url)` (woff2-node.ts) for the tracer.
  */
 import { build } from 'esbuild';
@@ -170,7 +172,7 @@ if (!worker.includes('__rondoStage') || worker.includes('__LOLLY_RONDO_STAGE__')
 }
 console.log('✓ bundled api/mcp/_rondo-worker.js');
 
-// The WOFF2 decode worker (see the header): one font per thread, woff2-encoder external.
+// The WOFF2 decode worker (see the header): one font per thread, the module handed in.
 const woff2Out = path.join(root, 'api/mcp/_woff2-worker.js');
 await build({
   entryPoints: [path.join(root, 'packages/node-shell/src/woff2-worker.ts')],
@@ -186,8 +188,8 @@ await build({
 });
 const woff2Worker = await readFile(woff2Out, 'utf-8');
 assertNoBareWorkspaceImports(woff2Worker, 'api/mcp/_woff2-worker.js');
-if (!woff2Worker.includes('from "woff2-encoder/decompress"')) {
-  console.error('✗ api/mcp/_woff2-worker.js does not import woff2-encoder/decompress - WOFF2 fonts would not decode');
+if (!woff2Worker.includes('woff2_run') || /from\s*["']woff2-encoder/.test(woff2Worker)) {
+  console.error('✗ api/mcp/_woff2-worker.js does not run the woff2 decoder module - WOFF2 fonts would not decode');
   process.exit(1);
 }
 if (!bundled.includes('_woff2-worker.js')) {

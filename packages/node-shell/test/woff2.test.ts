@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The WOFF2 guard (src/woff2.ts): every public WOFF2 font in the tree decodes to the
- * bytes the pinned decoder has always returned, a collection decodes too, and malformed
- * or oversized files are refused before the decoder runs.
+ * WOFF2 decoding (src/woff2.ts and the Rust decoder module, wasm/woff2-kernel): every public
+ * WOFF2 font in the tree decodes to the bytes the original C++ decoder returned, a
+ * collection decodes to what that decoder returns for it, malformed or oversized files
+ * are refused before the decoder runs, and the module itself refuses what it would not
+ * hold without growing.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { brotliCompressSync } from 'node:zlib';
+import { brotliCompressSync, constants as zlib } from 'node:zlib';
 import { checkSfntOutput, decodeWoff2, preflightWoff2, Woff2Error, WOFF2_LIMITS, woff2Slots, type Woff2Runner } from '../src/woff2.ts';
 import { nodeWoff2Runner, useNodeWoff2Runner } from '../src/woff2-node.ts';
+import { compileWoff2Kernel, decodeWithWoff2Kernel } from '../src/woff2-kernel.ts';
 
 useNodeWoff2Runner();
 
@@ -19,6 +22,9 @@ const read = (path: string): Uint8Array => new Uint8Array(readFileSync(new URL(p
 const sha256 = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 const corpus = JSON.parse(readFileSync(new URL('./fixtures/woff2-corpus.json', import.meta.url), 'utf8')) as { fonts: Record<string, { bytes: number; sha256: string }> };
 const SMALL = 'shells/web/public/fonts/Outfit-latin-ext[wght].woff2';
+const kernel = compileWoff2Kernel(read('packages/node-shell/wasm/woff2-kernel/woff2-kernel.wasm'));
+/** The decoder module in this thread, a fresh instance per call, for tests that decode many times. */
+const inThread: Woff2Runner = async (input) => decodeWithWoff2Kernel(await kernel, input);
 
 function refusedWith(code: string): (error: unknown) => boolean {
   return (error) => error instanceof Woff2Error && error.code === code;
@@ -33,6 +39,8 @@ function woff2Of(opts: {
   priv?: number;
   lengthField?: number;
   trailing?: number;
+  /** Compress with Brotli's large-window extension, which RFC 7932 streams do not use. */
+  largeWindow?: boolean;
 }): Uint8Array {
   const dir: number[] = [];
   const base128 = (value: number): number[] => {
@@ -44,7 +52,8 @@ function woff2Of(opts: {
     dir.push(((t.version ?? 0) << 6) | t.index, ...base128(t.length));
     if (t.transformLength !== undefined) dir.push(...base128(t.transformLength));
   }
-  const compressed = brotliCompressSync(opts.data ?? new Uint8Array(opts.tables.reduce((n, t) => n + (t.transformLength ?? t.length), 0)));
+  const compressed = brotliCompressSync(opts.data ?? new Uint8Array(opts.tables.reduce((n, t) => n + (t.transformLength ?? t.length), 0)),
+    opts.largeWindow ? { params: { [zlib.BROTLI_PARAM_LARGE_WINDOW]: 1 } } : {});
   const collection = opts.collection ?? new Uint8Array(0);
   const compressedOffset = 48 + dir.length + collection.length;
   const privOffset = (compressedOffset + compressed.length + 3) & ~3;
@@ -55,6 +64,9 @@ function woff2Of(opts: {
   view.setUint32(4, opts.flavor ?? 0x00010000);
   view.setUint32(8, opts.lengthField ?? size);
   view.setUint16(12, opts.tables.length);
+  // totalSfntSize: the sfnt header, the table records and each table padded to four bytes.
+  // google/woff2 ignored the field; wuff refuses zero, which no real font declares.
+  view.setUint32(16, Math.min(0xffffffff, opts.tables.reduce((n, t) => n + ((t.length + 3) & ~3), 12 + 16 * opts.tables.length)));
   view.setUint32(20, compressed.length);
   if (opts.priv) { view.setUint32(40, privOffset); view.setUint32(44, opts.priv); }
   out.set(dir, 48);
@@ -93,7 +105,7 @@ function collectionOf(fonts: Uint8Array[]): Uint8Array {
   return result;
 }
 
-test('every public WOFF2 font decodes to the reference bytes of the pinned decoder', async () => {
+test('every public WOFF2 font decodes to the bytes the original C++ decoder returned', async () => {
   const entries = Object.entries(corpus.fonts);
   assert.equal(entries.length, 23);
   for (const [path, expected] of entries) {
@@ -103,13 +115,14 @@ test('every public WOFF2 font decodes to the reference bytes of the pinned decod
   }
 });
 
-test('the guard hands back exactly what the decoder returns', async () => {
+test('the guard hands back exactly what the decoder module returns', async () => {
   const bytes = read(SMALL);
-  const { default: decompress } = await import('woff2-encoder/decompress');
-  assert.deepEqual(await decodeWoff2(bytes), new Uint8Array(await decompress(bytes)));
+  assert.deepEqual(await decodeWoff2(bytes), await inThread(bytes, { timeoutMs: 20_000 }));
 });
 
-test('a WOFF2 collection decodes and checks every font in the collection', async () => {
+test('a WOFF2 collection decodes to what the original C++ decoder returns for it', async () => {
+  // woff2-encoder (a dev dependency) is the reference here: it compresses the collection
+  // and decodes it once, on bytes this test made.
   const { compress, decompress } = await import('woff2-encoder');
   const ttc = collectionOf([read('shells/web/public/fonts/SUSEMono[wght].ttf'), read('shells/web/public/fonts/Outfit[wght].ttf')]);
   const woff2 = await compress(ttc);
@@ -202,7 +215,9 @@ test('decoder output that is not a coherent sfnt is refused', () => {
 
 test('each decode runs in a worker thread that a time limit or an abort ends', async () => {
   const bytes = read(SMALL);
-  await assert.rejects(decodeWoff2(bytes, { timeoutMs: 1 }), refusedWith('timed-out'));
+  // The largest public font, so the decode cannot finish inside the 1 ms limit even
+  // when a loaded machine delays the timer.
+  await assert.rejects(decodeWoff2(read('community/fallback-fonts/noto-sans-tc.woff2'), { timeoutMs: 1 }), refusedWith('timed-out'));
   const controller = new AbortController();
   const pending = decodeWoff2(bytes, { signal: controller.signal });
   controller.abort(new Error('stopped by the test'));
@@ -238,9 +253,8 @@ test('at most a fixed number of decode workers run at once, and a queued decode 
 });
 
 test('one-byte changes to the header and directory give a checked font or a Woff2Error', async () => {
-  // About 300 decodes: run in this thread's shared decoder to keep the sweep quick. The
-  // guard's checks are the same whichever runner decodes.
-  const inThread: Woff2Runner = async (input) => (await import('woff2-encoder/decompress')).default(input);
+  // About 300 decodes: run in this thread, a fresh instance each, to keep the sweep quick.
+  // The guard's checks are the same whichever runner decodes.
   const bytes = read(SMALL);
   const { compressedOffset } = preflightWoff2(bytes);
   let decoded = 0;
@@ -260,6 +274,73 @@ test('one-byte changes to the header and directory give a checked font or a Woff
   }
   // Header fields the decoder ignores (the reserved word, totalSfntSize, versions) still decode.
   assert.ok(decoded > 0);
-  // And the shared decoder is still healthy afterwards.
   assert.equal(sha256(await decodeWoff2(bytes, { runner: inThread })), corpus.fonts[SMALL]!.sha256);
+});
+
+/** One decode in `instance`, reading the module's own status, reason and memory size. */
+function runIn(instance: WebAssembly.Instance, bytes: Uint8Array): { status: number; text: string; memory: number } {
+  const api = instance.exports as unknown as {
+    memory: WebAssembly.Memory; woff2_alloc(n: number): number; woff2_free(p: number): void;
+    woff2_run(p: number, n: number, op: number): number; woff2_result_ptr(): number; woff2_result_len(): number;
+  };
+  const pointer = api.woff2_alloc(bytes.length);
+  assert.notEqual(pointer, 0, 'the module took the input');
+  new Uint8Array(api.memory.buffer, pointer, bytes.length).set(bytes);
+  const status = api.woff2_run(pointer, bytes.length, 1);
+  const text = status ? new TextDecoder().decode(new Uint8Array(api.memory.buffer, api.woff2_result_ptr(), api.woff2_result_len())) : '';
+  api.woff2_free(pointer);
+  return { status, text, memory: api.memory.buffer.byteLength };
+}
+
+test('the decoder module refuses declared sizes it would not hold, without the preflight and without growing', async () => {
+  // The files measured against the old decoder: an 11 MB file whose last table claims
+  // 1,000,000,000 bytes (it grew the old module by about 1 GB) and a 25 MB file claiming
+  // 2,400,000,000 (44 of those stopped the old module for good). Both pass the ratio check.
+  const claim1g = woff2Of({ tables: [{ index: 1, length: 54 }, { index: 5, length: 1_000_000_000 }], data: new Uint8Array(64), priv: 11_000_000 });
+  const claim24g = woff2Of({ tables: [{ index: 1, length: 54 }, { index: 5, length: 2_400_000_000 }], data: new Uint8Array(64), priv: 25_000_000 });
+  // 35 MiB of tables in a 400 kB file: under wuff's own 128 MiB cap, so the module's
+  // 30 MiB Brotli ceiling is what refuses it, before the buffer is allocated.
+  const claim35m = woff2Of({ tables: [{ index: 1, length: 54 }, { index: 5, length: 35 * 1024 * 1024 }], data: new Uint8Array(64), priv: 400_000 });
+  const instance = await WebAssembly.instantiate(await kernel, {});
+  const baseline = runIn(instance, read(SMALL));
+  assert.equal(baseline.status, 0);
+  for (const [file, reason] of [[claim1g, /not valid/], [claim35m, /expand past 30 MB/]] as const) {
+    const result = runIn(instance, file);
+    assert.equal(result.status, 1);
+    assert.match(result.text, reason);
+    assert.ok(result.memory < file.length + 16 * 1024 * 1024, `memory grew to ${result.memory} bytes`);
+  }
+  // Fifty of the larger file through one instance: each refusal frees its input.
+  let memory = 0;
+  for (let i = 0; i < 50; i++) {
+    const result = runIn(instance, claim24g);
+    assert.equal(result.status, 1);
+    memory = Math.max(memory, result.memory);
+  }
+  assert.ok(memory < claim24g.length + 16 * 1024 * 1024, `memory grew to ${memory} bytes`);
+  // And the same instance still decodes a real font to its reference bytes.
+  const api = instance.exports as unknown as { memory: WebAssembly.Memory; woff2_result_ptr(): number; woff2_result_len(): number };
+  assert.equal(runIn(instance, read(SMALL)).status, 0);
+  assert.equal(sha256(new Uint8Array(api.memory.buffer, api.woff2_result_ptr(), api.woff2_result_len())), corpus.fonts[SMALL]!.sha256);
+});
+
+test('Brotli streams are read as RFC 7932 describes them, as the C++ decoder reads them', async () => {
+  const head = { index: 1, length: 54 };
+  const plain = woff2Of({ tables: [head] });
+  const large = woff2Of({ tables: [head], largeWindow: true });
+  assert.equal((await decodeWoff2(plain)).length, 12 + 16 + 56, 'one 54-byte table, padded');
+  // The large-window extension (windows up to 1 GiB) is refused, as google/woff2 refuses such a stream.
+  await assert.rejects(decodeWoff2(large), (error) => refusedWith('decode-failed')(error)
+    && (error as Error).message === 'This WOFF2 font could not be decoded.'
+    && (error as Error).cause === 'The WOFF2 compressed data is damaged.');
+  const { decompress } = await import('woff2-encoder');
+  await assert.rejects(decompress(large));
+  // A stream cut short, and one with more data than its tables, each give their own reason.
+  const bytes = read(SMALL);
+  const { compressedOffset, compressedLength } = preflightWoff2(bytes);
+  const cut = new Uint8Array(bytes);
+  cut.fill(0, compressedOffset + compressedLength - 64, compressedOffset + compressedLength);
+  await assert.rejects(inThread(cut, { timeoutMs: 20_000 }), /compressed data/);
+  const longer = woff2Of({ tables: [head], data: new Uint8Array(54 + 40) });
+  await assert.rejects(inThread(longer, { timeoutMs: 20_000 }), /longer than its tables/);
 });

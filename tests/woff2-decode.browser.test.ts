@@ -7,9 +7,11 @@
  * - The production build (`shells/web/dist`), served here with the response headers
  *   vercel.json sends (the Content-Security-Policy with `worker-src`, `script-src` and
  *   `wasm-unsafe-eval`, COOP, COEP), through the service worker and then offline. The
- *   built WOFF2 chunk is imported in the page and decodes public fonts to the pinned
- *   SHA-256 values, refuses damaged ones with a plain message, and leaves the main
- *   thread free while it works.
+ *   built WOFF2 chunk is imported in the page and decodes every public font in the tree
+ *   to the pinned SHA-256 values with the Rust decoder module (one compile per page, a
+ *   fresh instance per font), refuses damaged ones with a plain message, leaves the
+ *   main thread free while it works, and the service worker keeps the module for
+ *   offline use.
  * - The source shell (`LOLLY_EXPORT_TEST_URL`, a Vite dev server, as CI starts it): a
  *   WOFF2 font installed as a user font outlines to paths in an SVG export.
  *
@@ -103,6 +105,7 @@ const decodeInPage = async ({ chunk, items }: { chunk: string; items: Array<{ pa
 };
 
 const PUBLIC_FONTS = Object.keys(CORPUS).filter((path) => path.startsWith('shells/web/public/fonts/'));
+const median = (values: number[]): number => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)]!;
 
 test('the production build decodes WOFF2 in a worker under the deployed CSP, online and offline', { timeout: 300_000 }, async (t) => {
   const browserType = await chromiumOrSkip();
@@ -138,6 +141,42 @@ test('the production build decodes WOFF2 in a worker under the deployed CSP, onl
     assert.equal(result.error, undefined, `${result.path}: ${result.error?.message}`);
     assert.equal(result.hash, CORPUS[result.path]!.sha256, result.path);
   }
+
+  // Every public WOFF2 font in the tree, the fallback fonts included, three times over:
+  // byte for byte, with the time each takes (a worker start, an instance and the decode).
+  const everything = Object.keys(CORPUS).map((path) => ({ path, url: `/__corpus/${path}` }));
+  const times = new Map<string, number[]>();
+  for (let round = 0; round < 3; round++) {
+    for (const result of await page.evaluate(decodeInPage, { chunk, items: everything })) {
+      assert.equal(result.error, undefined, `${result.path}: ${result.error?.message}`);
+      assert.equal(result.hash, CORPUS[result.path]!.sha256, result.path);
+      times.set(result.path, [...(times.get(result.path) ?? []), result.ms]);
+    }
+  }
+  let total = 0;
+  for (const [path, ms] of times) {
+    total += median(ms);
+    t.diagnostic(`${median(ms).toFixed(1).padStart(7)} ms  ${CORPUS[path]!.bytes} bytes  ${path}`);
+  }
+  t.diagnostic(`all ${times.size} fonts: ${total.toFixed(0)} ms (sum of medians, one worker per font)`);
+
+  // Twenty faces asked for together, as the font registry asks for a family's faces: at
+  // most four workers at once, every result byte for byte, the main thread still ticking.
+  const together = await page.evaluate(async ({ chunk: path, items: list }) => {
+    const mod = await import(path) as { decodeWoff2(bytes: Uint8Array): Promise<Uint8Array> };
+    const files = await Promise.all(list.map(async (item) => new Uint8Array(await (await fetch(item.url)).arrayBuffer())));
+    let maxGap = 0, last = performance.now(), running = true;
+    const tick = (): void => { const now = performance.now(); maxGap = Math.max(maxGap, now - last); last = now; if (running) setTimeout(tick, 0); };
+    setTimeout(tick, 0);
+    const started = performance.now();
+    const outs = await Promise.all(files.map((bytes) => mod.decodeWoff2(bytes)));
+    const ms = performance.now() - started;
+    running = false;
+    const hashes = await Promise.all(outs.map(async (out) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', out as Uint8Array<ArrayBuffer>))].map((b) => b.toString(16).padStart(2, '0')).join('')));
+    return { ms, maxGap, hashes };
+  }, { chunk, items: everything.slice(0, 20) });
+  for (const [i, hash] of together.hashes.entries()) assert.equal(hash, CORPUS[everything[i]!.path]!.sha256, `together: ${everything[i]!.path}`);
+  t.diagnostic(`twenty fonts requested together: ${together.ms.toFixed(0)} ms; longest main-thread gap ${together.maxGap.toFixed(0)} ms`);
 
   // A damaged file is refused with a plain message, before the decoder (bad header) and
   // by the decoder in its worker (a corrupt Brotli stream).
@@ -199,8 +238,18 @@ test('the production build decodes WOFF2 in a worker under the deployed CSP, onl
   assert.match(fallbacks[0]!.message, /^No separate WOFF2 decoder is available here, so the font was not decoded\.$/);
   assert.equal(fallbacks[1]!.message, 'This WOFF2 font could not be decoded.');
 
-  // Offline, from the service worker's cache: the guard chunk, the worker chunk and its
-  // wasm (inlined in the worker chunk) still load.
+  // The service worker holds the decoder module, so an offline page can decode too.
+  const cached = await page.evaluate(async () => {
+    const urls: string[] = [];
+    for (const name of await caches.keys()) {
+      for (const request of await (await caches.open(name)).keys()) urls.push(new URL(request.url).pathname);
+    }
+    return urls.filter((path) => /^\/_app\/woff2-kernel-[\w-]+\.wasm$/.test(path));
+  });
+  assert.equal(cached.length, 1, `the service worker caches the WOFF2 decoder module (${cached.join(', ') || 'none'})`);
+
+  // Offline, from the service worker's cache: the guard chunk, the worker chunk and the
+  // decoder module still load, in a page that has not compiled the module yet.
   await context.setOffline(true);
   await page.reload({ waitUntil: 'load' });
   const offline = await page.evaluate(decodeInPage, { chunk, items: items.slice(0, 2) });
