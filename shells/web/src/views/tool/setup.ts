@@ -40,6 +40,7 @@ import { flushAddressWrites, replaceRouteUrl } from '../../lib/url-state.ts';
 import { inferDesignIntent } from '../design-workspace.ts';
 import { createHistory, historyTokenLinks } from '../tool-history.ts';
 import { mountBackPill } from '../../components/back-pill.ts';
+import { unwireHelpTips, wireHelpTips } from '../../components/help-tip.ts';
 import { autoOpenToolGuide, showToolGuide } from '../../components/tool-guide.ts';
 import { toolGuideRows } from '../../lib/tool-guides.ts';
 import { zipBulkFiles } from '../../lib/bulk-files.ts';
@@ -1601,6 +1602,14 @@ export async function mountLiveControls(tview: ToolViewCtx): Promise<void> {
         onBake: runtime.manifest.designTool ? undefined : (key) => tview.session.bakeFraming(key),
       });
     }
+  }
+
+  // A tool's canvas may carry the shell's own help tip: a .help-tip-host holding a
+  // .help-tip-btn and a hidden .help-tip-pop. The canvas node outlives every
+  // repaint, so one delegated wiring covers markup the template draws again.
+  if (contentEl) {
+    wireHelpTips(contentEl);
+    mountLifecycle.add('canvas help tips', () => unwireHelpTips(contentEl));
   }
 
   // File-input tools: the whole canvas accepts a dropped file - drag-and-drop, or

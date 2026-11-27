@@ -171,11 +171,10 @@ The report lists what the copy kept and what it left behind. A sheet too large t
 `lolly files convert` takes the same choices as `--sheet`, `--all-sheets`, `--cells`, `--delimiter`, `--encoding` and `--header`. `--sheet` takes a worksheet's name or its position, counting from 0 for the first, and a name wins: `--sheet=2024` picks a sheet called 2024, and `--sheet=1` picks the second sheet unless one is called 1.
 :::
 
-### Compress, Convert Image and Convert Font
+### Convert Image and Convert Font
 
-These three are tools: they save sessions and travel in a link.
+These two are tools: they save sessions and travel in a link. To make a PDF smaller, use the Compress operation of [Lolly Pages](#pdf-pages).
 
-- **[Lolly Compress](/t/compress-pdf)** shrinks a PDF by recompressing its images.
 - **[Lolly Convert Image](/t/convert-image)** converts photos. It decodes HEIC and HEIF with a bundled decoder and writes WebP, JPEG or PNG, with a quality setting and a longest-edge resize. The Convert view has its own image settings and also handles fonts, SVG, documents, video and data, which the tool does not.
 - **[Lolly Convert Font](/t/font-convert)** swaps a font between TrueType, OpenType and WOFF.
 
@@ -267,11 +266,17 @@ Rotating a single PDF edits that file, and a digital signature in it no longer v
 Rotating a single PDF keeps everything but the signature working. When an operation builds a new PDF, comments and other annotations travel with their pages. A page you delete or leave out does not come along through a link or form field that pointed to it, and the signer's name, date and certificate are left out with the signature.
 :::
 
-**[Lolly Sign](/t/sign)** places a transparent signature on a chosen PDF page, in PDF-point coordinates: drag it on the page or enter the numbers. Initials and today's date are optional. A Content Credential is on by default and records the profile signer only when **Use my details** is on. A password lock is available at download time, but not together with that credential, because encrypting afterwards would break the credential.
+Two more operations work on one PDF, the first in the list. Both were tools of their own, Compress and Sign, and a link to either still opens.
+
+**[Compress](/t/pages?operation=compress)** shrinks a PDF by recompressing its images, at a **Light**, **Balanced** or **Strong** level, with an option to turn the images greyscale. The panel shows how much smaller the file is before you download. Text and vector graphics stay as they are, and a digital signature no longer verifies once the file is saved again.
+
+**[Sign](/t/pages?operation=sign)** places a transparent signature on a chosen PDF page, in PDF-point coordinates: drag it on the page or enter the numbers. Initials and today's date are optional. A Content Credential is on by default and records the profile signer only when **Use my details** is on. A password lock is available at download time, but not together with that credential, because encrypting afterwards would break the credential.
 
 ::: note Not a regulated e-signature
-Lolly Sign makes a visible signed document with optional provenance, not a regulated e-signature or identity-verification service.
+Sign makes a visible signed document with optional provenance, not a regulated e-signature or identity-verification service.
 :::
+
+From the command line the operation is an input: `lolly pages --operation=compress --level=strong --source=report.pdf --output=small.pdf`, or `--operation=sign` with `--signaturePage`, `--signatureInk` and the other sign inputs. `lolly compress-pdf` and `lolly sign` still run.
 
 <!--i:eti-film-->
 ## Audio and video

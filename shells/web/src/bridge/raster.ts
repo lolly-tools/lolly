@@ -128,8 +128,10 @@ async function decodeViaImg(blob: Blob): Promise<ImageBitmap> {
       if (scale > 1) {
         try {
           return await createImageBitmap(img, {
-            resizeWidth: Math.round(w * scale),
-            resizeHeight: Math.round(h * scale),
+            // Floor, never round: two sides rounded up can pass the pixel guard
+            // by a few pixels, and the guard then refuses the whole decode.
+            resizeWidth: Math.max(1, Math.floor(w * scale)),
+            resizeHeight: Math.max(1, Math.floor(h * scale)),
             resizeQuality: 'high',
           });
         } catch { /* resize options unsupported - fall through to the 1x decode */ }

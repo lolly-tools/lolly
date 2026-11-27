@@ -1,145 +1,106 @@
-/* Colours follow the app's core theme switcher (light / dark / suse). Every hue
-   is sourced from the app design tokens on <html data-theme> (tokens.css) - they
-   inherit into the scoped tool canvas, so the tool restyles itself the instant
-   the theme changes. Fallbacks (light theme) keep the sheet valid in shells that
-   don't ship the tokens (CLI/headless - no visible canvas anyway). The `--ex-*`
-   aliases hold bare HSL triples so use-sites can alpha-composite: hsl(var(--x) / .1). */
-.exif {
-  --ex-bg:      var(--background, 0 0% 98%);
-  --ex-fg:      var(--foreground, 224 71% 4%);
-  --ex-muted:   var(--muted-foreground, 215 20% 38%);
-  --ex-card:    var(--card, 0 0% 100%);
-  --ex-bd:      var(--border, 214 28% 84%);
-  --ex-fill:    var(--muted, 210 40% 96%);
-  --ex-brand:   var(--primary, 171 62% 12%);
-  --ex-brandfg: var(--primary-foreground, 0 0% 100%);
-  --ex-warn:    var(--destructive, 0 72% 51%);
-  --ex-warnfg:  var(--destructive-foreground, 0 0% 100%);
+/* Utility UI: the look Redact, Strip Hidden Data and Annotate share with Pages
+   and Sign. The shell's own primitives draw the controls (.btn, .view-seg,
+   .help-tip-*, .close-btn), and every colour, size, radius and duration below
+   is a --ui-* token with a portable fallback, so the canvas follows the theme
+   switch at once and stays valid in a shell that ships no tokens. The --ut-*
+   triples are those fallbacks. The --u-* names are the tokens this sheet reads,
+   kept short so a rule stays readable. The block is the same in all three
+   tools. */
+.utility {
+  --ut-bg:      var(--background, 0 0% 98%);
+  --ut-fg:      var(--foreground, 224 71% 4%);
+  --ut-muted:   var(--muted-foreground, 215 20% 38%);
+  --ut-card:    var(--card, 0 0% 100%);
+  --ut-bd:      var(--border, 214 28% 84%);
+  --ut-fill:    var(--muted, 210 40% 96%);
+  --ut-brand:   var(--primary, 171 62% 12%);
+  --ut-brandfg: var(--primary-foreground, 0 0% 100%);
+  --ut-warn:    var(--destructive, 0 72% 51%);
 
-  width: 100%;
-  min-height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 28px;
+  --u-canvas:     var(--ui-color-surface-canvas, hsl(var(--ut-bg)));
+  --u-surface:    var(--ui-color-surface-raised, hsl(var(--ut-card)));
+  --u-fill:       var(--ui-color-surface-muted, hsl(var(--ut-fill)));
+  --u-text:       var(--ui-color-text-default, hsl(var(--ut-fg)));
+  --u-muted:      var(--ui-color-text-muted, hsl(var(--ut-muted)));
+  --u-line:       var(--ui-color-border-default, hsl(var(--ut-bd)));
+  --u-accent:     var(--ui-color-action-primary, hsl(var(--ut-brand)));
+  --u-on-accent:  var(--ui-color-action-on-primary, hsl(var(--ut-brandfg)));
+  --u-accent-text: var(--ui-color-text-accent, hsl(var(--ut-brand)));
+  --u-danger:     color-mix(in oklab, var(--ui-color-status-danger, hsl(var(--ut-warn))), var(--ui-color-text-default, hsl(var(--ut-fg))) 30%);
+  --u-danger-fill: hsl(var(--ut-warn));
+  --u-on-danger:  hsl(var(--destructive-foreground, 0 0% 100%));
+  --u-focus:      var(--ui-color-focus-ring, hsl(var(--ut-brand)));
+  --u-gap:        var(--ui-space-control-inline, 12px);
+  --u-gap-s:      var(--ui-space-control-block, 8px);
+  --u-gap-xs:     var(--sp-2, 4px);
+  --u-pad:        var(--ui-space-panel, 20px);
+  --u-r-control:  var(--ui-radius-control, 8px);
+  --u-r-panel:    var(--ui-radius-panel, 12px);
+  --u-r-card:     var(--ui-radius-card, 16px);
+  --u-fast:       var(--ui-motion-feedback, 120ms);
+  --u-caption:    var(--ui-type-caption, 12px);
+  --u-body:       var(--ui-type-body, 14px);
+  --u-title:      var(--ui-type-title, 18px);
+  --u-heading:    var(--ui-type-heading, 28px);
+  --u-mono:       var(--ui-type-mono-family, ui-monospace, monospace);
+
   box-sizing: border-box;
-  font-family: var(--font-brand, "SUSE", system-ui, sans-serif);
-  color: hsl(var(--ex-fg));
-  background: hsl(var(--ex-bg));
-}
-
-/* The empty state IS the click-to-pick drop zone (the shell wires the picker to
-   [data-file-pick] on the box; drag-drop covers the whole canvas), so it reads as
-   clickable. Clicks on the dead canvas around it do nothing. */
-.exif-empty { cursor: pointer; }
-
-/* ── Empty state ── */
-.exif-empty {
-  max-width: 440px;
-  text-align: center;
-}
-.exif-empty-icon {
-  display: inline-flex;
-  width: 56px;
-  height: 56px;
-  margin-bottom: 14px;
-  color: hsl(var(--ex-brand));
-}
-.exif-empty-icon svg { width: 100%; height: 100%; }
-.exif-empty h2 {
-  margin: 0 0 10px;
-  font-size: 22px;
-  font-weight: 700;
-}
-.exif-empty p {
-  margin: 0 0 8px;
-  font-size: 14px;
-  line-height: 1.5;
-  color: hsl(var(--ex-muted));
-}
-.exif-empty-note {
-  font-weight: 600;
-  color: hsl(var(--ex-brand)) !important;
-}
-
-/* Secondary CTA in the empty state - the keyboard-reachable way to open the
-   native picker (drag-and-drop and click-anywhere are wired by the shell). */
-.exif-pick {
-  margin: 6px 0 14px;
-  padding: 10px 18px;
-  border: 1px solid hsl(var(--ex-brand));
-  border-radius: 10px;
-  background: hsl(var(--ex-card));
-  color: hsl(var(--ex-brand));
-  font: inherit;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s;
-}
-.exif-pick:hover { background: hsl(var(--ex-brand)); color: hsl(var(--ex-brandfg)); }
-
-/* ── Result card ── */
-.exif-card {
   width: 100%;
-  max-width: 480px;
-  background: hsl(var(--ex-card));
-  border: 1px solid hsl(var(--ex-bd));
-  border-radius: 14px;
-  padding: 22px;
-  box-shadow: 0 1px 3px hsl(0 0% 0% / 0.06);
+  height: 100%;
+  padding: var(--u-pad);
+  background: var(--u-canvas);
+  color: var(--u-text);
+  font-family: var(--ui-type-ui-family, system-ui, sans-serif);
+  font-size: var(--u-body);
+  line-height: 1.5;
+  /* The shell measures a canvas with wrapping off. Words here wrap. */
+  white-space: normal;
 }
-.exif-head {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 6px 10px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid hsl(var(--ex-bd) / 0.6);
-  margin-bottom: 14px;
+/* A quiet line of help or status. */
+.utility .u-quiet {
+  margin: 0;
+  font-size: var(--u-caption);
+  line-height: 1.45;
+  color: var(--u-muted);
 }
-
-/* Swap the loaded file for another - opens the picker (shell-wired). */
-.exif-replace {
+/* The shell's segmented control and buttons, sized for a toolbar line. */
+.utility .view-seg { flex: none; gap: 0; }
+.utility .view-seg-btn,
+.utility .u-tool {
   flex: none;
-  padding: 4px 10px;
-  border: 1px solid hsl(var(--ex-bd));
-  border-radius: 7px;
-  background: hsl(var(--ex-card));
-  color: hsl(var(--ex-muted));
-  font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.12s, color 0.12s;
-}
-.exif-replace:hover { border-color: hsl(var(--ex-brand)); color: hsl(var(--ex-brand)); }
-.exif-file {
-  font-weight: 700;
-  font-size: 15px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--u-gap-xs);
+  padding: var(--u-gap-xs) var(--u-gap-s);
+  font-size: var(--u-caption);
+  line-height: 1.5;
   white-space: nowrap;
 }
-.exif-kind {
+.utility .view-seg-btn svg,
+.utility .u-tool svg {
   flex: none;
-  font-family: var(--font-mono, "SUSE Mono", monospace);
-  font-size: 11px;
-  color: hsl(var(--ex-muted));
+  width: var(--ui-size-icon-sm, 14px);
+  height: var(--ui-size-icon-sm, 14px);
 }
-
-.exif-summary {
-  margin: 0 0 12px;
-  font-size: 13.5px;
-  color: hsl(var(--ex-fg) / 0.85);
+.utility .view-seg-btn:focus-visible,
+.utility .u-reveal-cb:focus-visible ~ .u-reveal {
+  outline: 2px solid var(--u-focus);
+  outline-offset: 2px;
 }
-
-/* ── Show-details toggle ── */
-/* The checkbox is visually hidden but kept in the tab order so it's keyboard-
-   reachable; the label is the visible control. Default unchecked → the actual
-   embedded values (.exif-finding-detail) stay hidden. */
-.exif-reveal-cb {
+/* The fold arrow is the section card's hairline arrow, never a triangle. */
+.utility .u-arrow {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-inline-start: var(--u-gap-xs);
+  border-right: 1.25px solid currentColor;
+  border-bottom: 1.25px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--u-fast) ease;
+}
+.utility .u-reveal-cb:checked ~ .u-reveal .u-arrow { transform: translateY(-2px) rotate(45deg); }
+/* A checkbox that stays in the tab order while its label is the visible control. */
+.utility .u-reveal-cb {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -147,130 +108,162 @@
   padding: 0;
   border: 0;
   overflow: hidden;
-  clip: rect(0 0 0 0);
   clip-path: inset(50%);
   white-space: nowrap;
 }
-.exif-reveal-toggle {
+.utility .u-reveal {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  margin: 0 0 14px;
-  padding: 5px 11px;
-  border-radius: 8px;
-  background: hsl(var(--ex-brand) / 0.1);
-  color: hsl(var(--ex-brand));
-  font-size: 12px;
+  font-size: var(--u-caption);
   font-weight: 600;
+  color: var(--u-accent-text);
   cursor: pointer;
   user-select: none;
-  transition: background 0.12s;
 }
-.exif-reveal-toggle:hover { background: hsl(var(--ex-brand) / 0.16); }
-.exif-reveal-cb:focus-visible ~ .exif-reveal-toggle {
-  outline: 2px solid hsl(var(--ex-brand));
-  outline-offset: 2px;
+.utility .u-reveal-hide,
+.utility .u-reveal-cb:checked ~ .u-reveal .u-reveal-show { display: none; }
+.utility .u-reveal-cb:checked ~ .u-reveal .u-reveal-hide { display: inline; }
+/* A help tip opens under the whole line that holds its button. */
+.utility .help-tip-host { position: relative; }
+.utility .help-tip-btn { margin-left: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .utility .u-arrow { transition: none; }
 }
-/* A small caret that points right when collapsed, down when expanded. */
-.exif-reveal-icon {
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 5px solid currentColor;
-  transform: rotate(-90deg);
-  transition: transform 0.12s;
+
+/* ── Strip Hidden Data ──
+   This tool has no sidebar, so the canvas holds the file's name and the one
+   Replace control. */
+.exif {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  height: auto;
 }
-.exif-reveal-cb:checked ~ .exif-reveal-toggle .exif-reveal-icon { transform: rotate(0deg); }
-.exif-reveal-hide { display: none; }
-.exif-reveal-cb:checked ~ .exif-reveal-toggle .exif-reveal-show { display: none; }
-.exif-reveal-cb:checked ~ .exif-reveal-toggle .exif-reveal-hide { display: inline; }
+
+/* Empty state: one line, the file button, and the formats behind the tip. */
+.exif-empty {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+}
+.exif-drop { cursor: pointer; }
+.exif-empty-icon {
+  display: inline-flex;
+  width: var(--ui-size-target, 44px);
+  height: var(--ui-size-target, 44px);
+  margin-bottom: var(--u-gap-s);
+  color: var(--u-accent-text);
+}
+.exif-empty-icon svg { width: 100%; height: 100%; }
+.exif-empty h2 {
+  margin: 0 0 var(--u-gap);
+  font-size: var(--u-heading);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.exif-pick-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--u-gap-s);
+}
+.exif-pick-row .help-tip-pop { text-align: start; }
+
+/* ── Result: one card, rows split by hairlines ── */
+.exif-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 480px;
+  padding: var(--u-pad);
+  border: 1px solid var(--u-line);
+  border-radius: var(--u-r-card);
+  background: var(--u-surface);
+  box-shadow: var(--ui-elevation-panel, 0 1px 3px hsl(0 0% 0% / 0.06));
+}
+.exif-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--u-gap-xs) var(--u-gap-s);
+  flex-wrap: wrap;
+  margin-bottom: var(--u-gap);
+}
+.exif-file {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--u-body);
+  font-weight: 700;
+}
+.exif-kind {
+  flex: none;
+  font-family: var(--u-mono);
+  font-size: var(--u-caption);
+  color: var(--u-muted);
+}
+.exif-replace { margin-inline-start: auto; }
+
+.exif-summary {
+  margin: 0 0 var(--u-gap-s);
+  font-size: var(--u-body);
+}
+.exif-reveal-toggle { margin: 0 0 var(--u-gap-s); }
 
 .exif-findings {
   list-style: none;
-  margin: 0 0 18px;
+  margin: 0 0 var(--u-gap);
   padding: 0;
-  display: grid;
-  gap: 6px;
+  border-bottom: 1px solid var(--u-line);
 }
 .exif-finding {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
-  padding: 9px 12px;
-  background: hsl(var(--ex-fill));
-  border-radius: 8px;
-  border: 1px solid hsl(var(--ex-bd) / 0.6);
-}
-.exif-finding.warn {
-  background: hsl(var(--ex-warn) / 0.1);
-  border-color: hsl(var(--ex-warn) / 0.45);
+  gap: var(--u-gap);
+  padding: var(--u-gap-s) 0;
+  border-top: 1px solid var(--u-line);
 }
 .exif-finding-label {
+  font-size: var(--u-body);
   font-weight: 600;
-  font-size: 13px;
 }
-/* Mix the destructive red toward the theme foreground so the warning label stays
-   legible in dark/suse, where --destructive is a fill hue (too dark for text). */
-.exif-finding.warn .exif-finding-label { color: color-mix(in oklab, hsl(var(--ex-warn)), hsl(var(--ex-fg)) 30%); }
-/* The actual embedded value - hidden until "Show details" is toggled on. */
+/* A warning row is marked by the colour of its words, with no box of its own. */
+.exif-finding.warn .exif-finding-label,
+.exif-finding.fail .exif-finding-label { color: var(--u-danger); }
+/* The embedded value stays hidden until "Show details" is on. */
 .exif-finding-detail {
   display: none;
-  font-family: var(--font-mono, "SUSE Mono", monospace);
-  font-size: 12px;
-  color: hsl(var(--ex-muted));
-  text-align: right;
+  max-width: 60%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 60%;
+  font-family: var(--u-mono);
+  font-size: var(--u-caption);
+  color: var(--u-muted);
+  text-align: end;
 }
 .exif-reveal-cb:checked ~ .exif-findings .exif-finding-detail { display: block; }
 
-.exif-download {
-  width: 100%;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 10px;
-  background: hsl(var(--ex-brand));
-  color: hsl(var(--ex-brandfg));
-  font: inherit;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.12s, opacity 0.12s;
-}
-.exif-download:hover { background: hsl(var(--ex-brand) / 0.9); }
+.exif-download { width: 100%; }
 .exif-download.is-busy { opacity: 0.7; cursor: progress; }
-.exif-download.is-error { background: hsl(var(--ex-warn)); color: hsl(var(--ex-warnfg)); }
+.exif-download.is-error { background: var(--u-danger-fill); color: var(--u-on-danger); }
 
-.exif-clean-state { text-align: center; }
 .exif-clean {
-  margin: 4px 0 8px;
-  font-size: 15px;
+  margin: 0 0 var(--u-gap-s);
+  font-size: var(--u-body);
   font-weight: 700;
-  color: hsl(var(--ex-brand));
 }
-
 .exif-note {
-  margin: 12px 0 0;
-  font-size: 11.5px;
+  margin: var(--u-gap-s) 0 0;
+  font-size: var(--u-caption);
   line-height: 1.45;
-  color: hsl(var(--ex-muted) / 0.8);
-  text-align: center;
+  color: var(--u-muted);
 }
-.exif-note code {
-  font-family: var(--font-mono, "SUSE Mono", monospace);
-  font-size: 11px;
-  background: hsl(var(--ex-fill));
-  padding: 1px 4px;
-  border-radius: 4px;
-  color: hsl(var(--ex-muted));
-}
+.exif-clean-state .exif-download { margin-top: var(--u-gap); }
 
 /* PDF accessibility checks: the list is always open, because the wording is the point. */
-.exif-a11y { margin-top: 1rem; }
-.exif-a11y h3 { margin: 0 0 .25rem; font-size: 1rem; }
-.exif-a11y .exif-finding-detail { display: block; white-space: normal; text-align: left; max-width: 100%; font-family: inherit; }
-.exif-finding.fail .exif-finding-label { color: color-mix(in oklab, hsl(var(--ex-warn)), hsl(var(--ex-fg)) 30%); }
+.exif-a11y { margin-top: var(--u-pad); }
+.exif-a11y h3 { margin: 0 0 var(--u-gap-xs); font-size: var(--u-body); }
+.exif-a11y .exif-finding { display: block; }
+.exif-a11y .exif-finding-detail { display: block; max-width: 100%; white-space: normal; text-align: start; font-family: inherit; }

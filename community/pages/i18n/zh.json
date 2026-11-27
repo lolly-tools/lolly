@@ -1,4 +1,11 @@
 {
   "name": "页数",
-  "description": "在设备上重新排序、旋转、提取、删除、合并或拆分 PDF 页面，或将图片转为 PDF。"
+  "description": "在设备上重新排序、旋转、提取、删除、合并或拆分 PDF 页面，或将图片转为 PDF。",
+  "inputs.level.label": "压缩程度",
+  "inputs.level.help": "内嵌图片的压缩强度。强度越高，文件越小，图片也越模糊。",
+  "inputs.level.options.light": "轻度 - 保持高质量",
+  "inputs.level.options.balanced": "均衡",
+  "inputs.level.options.strong": "强力 - 文件最小",
+  "inputs.grayscale.label": "将图片转换为灰度",
+  "inputs.grayscale.help": "去除图片颜色以进一步节省空间--适用于扫描的文本文档。"
 }

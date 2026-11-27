@@ -119,7 +119,7 @@ lolly smoke --format=svg                 # force one browser-free format
 
 `lolly smoke` renders every tool in the active profile at its defaults, to its first browser-free format. A tool whose formats are all browser-only falls back to an `html` render, which still runs load, hydrate and hooks. Each output is checked for blank or empty results. Each tool prints a ✓ or ✗ row, and the exit code is non-zero if anything fails. In CI, this stops a `hooks.js` regression from shipping a tool that renders blank. `smoke` renders bare, like `batch`.
 
-A transform tool (`strip-data`, `compress-pdf` and the other on-device utilities) has nothing to render at its defaults. Smoke runs the tool once over a small committed fixture, chosen by the file types its input accepts. It passes when the output is non-empty and in a format the tool declares. A hook error is a failure.
+A transform tool (`strip-data`, `pages` and the other on-device utilities) has nothing to render at its defaults. Smoke runs the tool once over a small committed fixture, chosen by the file types its input accepts. It passes when the output is non-empty and in a format the tool declares. A hook error is a failure.
 
 ::: details When smoke skips a tool
 A tool is skipped, with the reason, when:

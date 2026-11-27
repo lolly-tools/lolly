@@ -1,13 +1,13 @@
-<div class="rd">
+<div class="rd utility">
   {{#unless hasFile}}
+    <!-- The picture and the words are the click-to-pick area. -->
     <div class="rd-empty" data-file-pick>
       <div class="rd-empty-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13.5h8" stroke-width="3"/><path d="M8 18h5"/></svg>
       </div>
       <h2>Redact an image, SVG or PDF</h2>
-      <p>Drop a JPEG, PNG, WebP, SVG or PDF anywhere here, or choose one below. Draw bars over what should go. The file is rebuilt from scratch so covered content and hidden data are removed, not hidden, and the output is verified before it downloads.</p>
-      <button type="button" class="rd-pick" data-file-pick>Choose a file…</button>
-      <p class="rd-empty-note">Everything happens in your browser. Your file is never uploaded.</p>
+      <p>Draw bars over what should go. The file is rebuilt from scratch so covered content and hidden data are removed, not hidden, and the output is verified before it downloads.</p>
+      <button type="button" class="btn btn--primary rd-pick" data-file-pick>Choose a file…</button>
     </div>
   {{/unless}}
 
@@ -16,30 +16,18 @@
 
       {{#unless supported}}
         <div class="rd-msg">
-          <div class="rd-msg-head">
-            <span class="rd-file" title="{{fileName}}">{{fileName}}</span>
-            <span class="rd-kind">{{kind}} · {{fileSize}}</span>
-            <button type="button" class="rd-replace" data-file-pick data-export-hide>Replace</button>
-          </div>
-          <div class="rd-state">
-            <p class="rd-state-lead">This doesn't look like a supported file.</p>
-            <p class="rd-note">Choose a <code>JPEG</code>, <code>PNG</code>, <code>WebP</code>, <code>SVG</code> or <code>PDF</code> file.</p>
-          </div>
+          <p class="rd-file" title="{{fileName}}">{{fileName}}</p>
+          <p class="rd-state-lead">This doesn't look like a supported file.</p>
+          <p class="u-quiet rd-note">Choose a <code>JPEG</code>, <code>PNG</code>, <code>WebP</code>, <code>SVG</code> or <code>PDF</code> file.</p>
         </div>
       {{/unless}}
 
       {{#if supported}}
         {{#if pdfUnavailable}}
           <div class="rd-msg">
-            <div class="rd-msg-head">
-              <span class="rd-file" title="{{fileName}}">{{fileName}}</span>
-              <span class="rd-kind">{{kind}} · {{fileSize}}</span>
-              <button type="button" class="rd-replace" data-file-pick data-export-hide>Replace</button>
-            </div>
-            <div class="rd-state">
-              <p class="rd-state-lead">PDF redaction isn't available here.</p>
-              <p class="rd-note">Open this tool in the Lolly web app to redact a PDF. Images and SVG work everywhere.</p>
-            </div>
+            <p class="rd-file" title="{{fileName}}">{{fileName}}</p>
+            <p class="rd-state-lead">PDF redaction isn't available here.</p>
+            <p class="u-quiet rd-note">Open this tool in the Lolly web app to redact a PDF. Images and SVG work everywhere.</p>
           </div>
         {{else}}
 
@@ -53,39 +41,31 @@
                clipped-glyph leak snap-to-cover exists to close. -->
           <div class="rd-stage" data-bars="{{barsJson}}" data-presets="{{presetsJson}}" data-geom="{{geomJson}}" data-mark="{{markJson}}" data-suggest="{{suggestJson}}" data-suggest-file="{{fileName}}|{{fileSize}}"{{#if pagesPending}} data-pages-pending="1"{{/if}}{{#if ocrPending}} data-ocr-pending="1"{{/if}}{{#if exportWait}} data-export-wait="1"{{/if}}>
 
-            <!-- TOP DOCK: file identity + the marking toolbar. Docked to the top
-                 of the stage and collapsible, so a long page can take the full
-                 height between the two docks. -->
+            <!-- TOP DOCK: one toolbar line, then the notes about this file. The
+                 sidebar's file field holds the name and the one place to
+                 replace the file. -->
             <div class="rd-dock rd-dock-top" data-dock="top" data-export-hide>
-              <div class="rd-head">
-                <span class="rd-file" title="{{fileName}}">{{fileName}}</span>
-                <span class="rd-kind">{{kind}} · {{fileSize}}</span>
-                <button type="button" class="rd-replace" data-file-pick data-export-hide>Replace</button>
-                <button type="button" class="rd-dock-toggle" data-dock-toggle="top" aria-expanded="true" aria-label="Collapse tools" title="Collapse tools">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg>
-                </button>
-              </div>
-              <div class="rd-dock-body">
+              <div class="rd-bar-row help-tip-host">
                 <div class="rd-rail" role="toolbar" aria-label="Marking tools">
-              <div class="rd-rail-group" data-rail-modes>
-                <button type="button" class="rd-rail-btn" data-mode="bar" aria-pressed="true" title="Drag a rectangle over what should go">
+              <div class="view-seg rd-rail-group" role="group" aria-label="Mark" data-rail-modes>
+                <button type="button" class="view-seg-btn rd-rail-btn" data-mode="bar" aria-pressed="true" title="Drag a rectangle over what should go">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="9" width="16" height="6" rx="1" fill="currentColor"/></svg>
                   <span>Bar</span>
                 </button>
-                <button type="button" class="rd-rail-btn" data-mode="marker" aria-pressed="false" title="Scribble freehand, committed as solid bands">
+                <button type="button" class="view-seg-btn rd-rail-btn" data-mode="marker" aria-pressed="false" title="Scribble freehand, committed as solid bands">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17c3-6 5 4 8-3s5 1 8-5"/></svg>
                   <span>Marker</span>
                 </button>
-                <button type="button" class="rd-rail-btn" data-mode="erase" aria-pressed="false" title="Tap a bar to remove it">
+                <button type="button" class="view-seg-btn rd-rail-btn" data-mode="erase" aria-pressed="false" title="Tap a bar to remove it">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l8 8 8-8-8-8z"/><path d="M9 7l8 8"/></svg>
                   <span>Remove</span>
                 </button>
               </div>
-              <div class="rd-rail-group rd-rail-presets" data-rail-presets aria-label="Bar height">
-                <button type="button" class="rd-rail-btn" data-preset="free" aria-pressed="true" title="Bar height follows the drag">Free</button>
-                <button type="button" class="rd-rail-btn" data-preset="line" aria-pressed="false" title="One text line tall">Line</button>
-                <button type="button" class="rd-rail-btn" data-preset="heading" aria-pressed="false" title="Heading tall">Heading</button>
-                <button type="button" class="rd-rail-btn" data-preset="block" aria-pressed="false" title="A paragraph block tall">Block</button>
+              <div class="view-seg rd-rail-group rd-rail-presets" role="group" data-rail-presets aria-label="Bar height">
+                <button type="button" class="view-seg-btn rd-rail-btn" data-preset="free" aria-pressed="true" title="Bar height follows the drag">Free</button>
+                <button type="button" class="view-seg-btn rd-rail-btn" data-preset="line" aria-pressed="false" title="One text line tall">Line</button>
+                <button type="button" class="view-seg-btn rd-rail-btn" data-preset="heading" aria-pressed="false" title="Heading tall">Heading</button>
+                <button type="button" class="view-seg-btn rd-rail-btn" data-preset="block" aria-pressed="false" title="A paragraph block tall">Block</button>
               </div>
               {{#if ocrAvailable}}
                 <!-- SUGGEST. The on-device reader looks at this picture's pixels
@@ -97,18 +77,18 @@
                      shell without host.ocr are unchanged. -->
                 <div class="rd-rail-group rd-rail-ocr" data-ocr-group>
                   {{#if ocrPending}}
-                    <button type="button" class="rd-rail-btn is-busy" data-ocr-cancel title="Stop reading this picture">
+                    <button type="button" class="btn btn--ghost u-tool rd-rail-btn is-busy" data-ocr-cancel title="Stop reading this picture">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/></svg>
                       <span>Reading…</span>
                     </button>
                   {{else}}
-                    <button type="button" class="rd-rail-btn" data-ocr-run title="Read the text in this picture on your device and propose bars over anything that looks personal">
+                    <button type="button" class="btn btn--ghost u-tool rd-rail-btn" data-ocr-run title="Read the text in this picture on your device and propose bars over anything that looks personal">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
                       <span>Suggest</span>
                     </button>
                   {{/if}}
                   {{#if hasSuggestions}}
-                    <button type="button" class="rd-rail-btn" data-sugg-accept-all title="Turn every suggestion still showing into a bar">
+                    <button type="button" class="btn btn--ghost u-tool rd-rail-btn" data-sugg-accept-all title="Turn every suggestion still showing into a bar">
                       <span>Accept {{suggestCount}}</span>
                     </button>
                   {{/if}}
@@ -121,16 +101,106 @@
                      it draws a bar, which leaves touch users with no way to reach
                      page 7 by finger. -->
                 <div class="rd-rail-group rd-pagenav" data-page-nav>
-                  <button type="button" class="rd-rail-btn" data-page-step="-1" aria-label="Previous page" title="Previous page">
+                  <button type="button" class="btn btn--ghost u-tool rd-rail-btn" data-page-step="-1" aria-label="Previous page" title="Previous page">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg>
                   </button>
                   <span class="rd-pagenow" data-page-now aria-live="polite">Page 1 of {{pageCount}}</span>
-                  <button type="button" class="rd-rail-btn" data-page-step="1" aria-label="Next page" title="Next page">
+                  <button type="button" class="btn btn--ghost u-tool rd-rail-btn" data-page-step="1" aria-label="Next page" title="Next page">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
                   </button>
                 </div>
               {{/if}}
-            </div>
+                  <button type="button" class="help-tip-btn" aria-label="How to draw and remove bars" aria-expanded="false" aria-controls="rd-tip-draw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button>
+                </div>
+                <span class="help-tip-pop" id="rd-tip-draw" hidden>Drag on the preview to draw a bar. To take one off, tap its corner dot or switch to Remove and tap the bar. Pinch or Cmd-scroll to zoom in on detail.{{#if hasManyPages}} Pages scroll in the viewport below, one page wide; the arrows in the toolbar step through them.{{/if}} {{#if canMeasure}}A bar grows to cover every element it touches, so it can never clip a word in half.{{else}}{{#if isRaster}}This is a picture, so there are no elements to measure: a bar covers exactly the area you draw and nothing more.{{else}}Nothing in this file could be measured, so a bar covers exactly the area you draw and nothing more.{{/if}}{{/if}}<button type="button" class="close-btn close-btn--sm close-btn--inherit help-tip-close" tabindex="-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+              </div>
+
+              <!-- NOTES: what was found in this file and what the tool will not
+                   do, as quiet lines under the toolbar and never over the page.
+                   The first line is the finding and its fold, with the limits
+                   behind a tip that is always there. The lines after it can be
+                   dismissed, and a dismissal is remembered for this file. -->
+              <div class="rd-notices" aria-live="polite" role="status">
+                <div class="rd-found help-tip-host">
+                  {{#if foundSummary}}
+                    <span class="rd-found-text">{{foundSummary}}</span>
+                    <input type="checkbox" id="rd-show-details" class="u-reveal-cb rd-reveal-cb">
+                    <label for="rd-show-details" class="u-reveal rd-reveal-toggle">
+                      <span class="u-reveal-show">Show details</span>
+                      <span class="u-reveal-hide">Hide details</span>
+                      <span class="u-arrow" aria-hidden="true"></span>
+                    </label>
+                  {{/if}}
+                  {{#if nothingFound}}<span class="rd-found-text">No hidden data was found by these checks. Absence of a finding is not proof there is nothing there.</span>{{/if}}
+                  {{#if analysisPending}}<span class="rd-found-text">Still reading the document structure…</span>{{/if}}
+                  {{#if analysisFailed}}<span class="rd-found-text">The document structure could not be read, so nothing can be claimed about attachments, scripts or earlier versions.</span>{{/if}}
+                  <span class="rd-limits-label">What will not be removed<button type="button" class="help-tip-btn" aria-label="What will not be removed" aria-expanded="false" aria-controls="rd-tip-limits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button></span>
+                  {{#if foundSummary}}
+                    <ul class="rd-findings">
+                      {{#each findings}}
+                        <li class="rd-finding {{tone}}">
+                          <span class="rd-finding-label">{{label}}</span>
+                          <span class="rd-finding-detail" title="{{detail}}">{{detail}}</span>
+                        </li>
+                      {{/each}}
+                    </ul>
+                  {{/if}}
+                  <span class="help-tip-pop rd-limits" id="rd-tip-limits" hidden>
+                    <span>A bar destroys only the pixels it covers. Invisible watermarks such as Google's SynthID span the whole image and this tool cannot detect or remove them.</span>
+                    <span>A bar's width can still hint at the length of what it hides. Rounding widths up to a coarse grid softens this, it does not remove it.</span>
+                    <span>Scans of printed pages can carry tracking dots from colour laser printers. The scanned page mode drops the yellow channel they live in, other print forensics remain.</span>
+                    <span>There is no blur or pixelate option on purpose. Blurred text has been recovered in practice, a solid fill has no inverse.</span><button type="button" class="close-btn close-btn--sm close-btn--inherit help-tip-close" tabindex="-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                  </span>
+                </div>
+
+                {{#if ocrError}}
+                  <div class="rd-notice rd-notice-keep" data-toast-key="ocrerr|{{fileName}}|{{fileSize}}">
+                    <span class="rd-notice-text">{{ocrError}}</span>
+                    <button type="button" class="close-btn close-btn--sm rd-notice-x" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                  </div>
+                {{/if}}
+                {{#if hasSuggestions}}
+                  <div class="rd-notice rd-notice-keep" data-toast-key="sugg|{{fileName}}|{{fileSize}}|{{suggestCount}}">
+                    <span class="rd-notice-text">{{suggestCount}} suggested region{{#if suggestPlural}}s{{/if}} from reading this picture on your device. Each one is a guess offered for you to accept or dismiss, never a redaction: nothing is covered until you accept it. A suggestion covers the whole line a match sits on, and a reader misses text it cannot see, so keep marking by hand as well.</span>
+                    <button type="button" class="close-btn close-btn--sm rd-notice-x" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                  </div>
+                {{/if}}
+                {{#if ocrRead}}{{#unless hasSuggestions}}
+                  <div class="rd-notice rd-notice-keep" data-toast-key="suggnone|{{fileName}}|{{fileSize}}">
+                    <span class="rd-notice-text">Nothing in this picture read as personal data. That is not proof there is none: the reader only sees text it can recognise, and it does not know what matters to you.</span>
+                    <button type="button" class="close-btn close-btn--sm rd-notice-x" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                  </div>
+                {{/unless}}{{/if}}
+                {{#if staleNote}}
+                  <div class="rd-notice rd-notice-keep" data-toast-key="stale|{{fileName}}|{{fileSize}}">
+                    <span class="rd-notice-text">{{staleNote}}</span>
+                    <button type="button" class="close-btn close-btn--sm rd-notice-x" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                  </div>
+                {{/if}}
+                {{#if vectorMode}}
+                  <div class="rd-notice rd-notice-keep" data-toast-key="vector|{{fileName}}|{{fileSize}}">
+                    <span class="rd-notice-text">Vector mode removes metadata, comments, scripts, editor data and embedded images, and deletes every element a bar touches, whole. A word half under a bar goes entirely, because half a word is a leak. The output is still SVG, a readable text format, so export a PNG if that matters. Marks have to be drawn on the preview so their elements can be measured.</span>
+                    <button type="button" class="close-btn close-btn--sm rd-notice-x" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                  </div>
+                {{/if}}
+                {{#if resignUnavailable}}
+                  <div class="rd-notice rd-notice-keep" data-toast-key="resignun|{{fileName}}|{{fileSize}}">
+                    <span class="rd-notice-text">A fresh Content Credential isn't available in this app, the redacted file will be exported without one.</span>
+                    <button type="button" class="close-btn close-btn--sm rd-notice-x" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                  </div>
+                {{/if}}
+                {{#if isPdfKind}}{{#if resign}}{{#unless resignUnavailable}}
+                  <div class="rd-notice rd-notice-keep" data-toast-key="resign|{{fileName}}|{{fileSize}}">
+                    <span class="rd-notice-text">The redacted copy is signed as a new work: {{#if authorKnown}}you ({{authorName}}) as its author{{else}}no author name, because "Use my details" is off in your profile{{/if}}, this app as the software, and one edit step reading "Covered content removed and the file rebuilt". No ingredients and no thumbnail of the original travel with it.</span>
+                    <button type="button" class="close-btn close-btn--sm rd-notice-x" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                  </div>
+                {{/unless}}{{/if}}{{/if}}
+                {{#if stampText}}
+                  <div class="rd-notice rd-notice-keep" data-toast-key="stamp|{{fileName}}|{{fileSize}}">
+                    <span class="rd-notice-text">Each mark is stamped &ldquo;{{stampText}}&rdquo;, painted on top of the bar where the covered pixels are already gone. Stamp text never comes from the content you covered.</span>
+                    <button type="button" class="close-btn close-btn--sm rd-notice-x" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                  </div>
+                {{/if}}
               </div>
             </div>
             <!-- /TOP DOCK -->
@@ -210,188 +280,53 @@
             </div>
             <!-- /VIEWPORT -->
 
-            <!-- BOTTOM DOCK: what the marks amount to, and the action. A
-                 collapsible body (coverage + how-to) over an always-visible
-                 gate + download, so the action never scrolls away. -->
+            <!-- ACTION: the button with its state, and to its right what the
+                 bars amount to and the promise the button keeps. An advisory
+                 (a bar that grew, a word left half covered) takes the first
+                 line for a few seconds, so the row never changes height while
+                 somebody is drawing. -->
             <div class="rd-dock rd-dock-bottom" data-dock="bottom" data-export-hide>
-              <div class="rd-dock-head">
-                <span class="rd-dock-summary">
-                  {{#unless isPdfKind}}{{#if hasCoverage}}{{coverageText}}{{/if}}{{/unless}}
-                  {{#if isPdfKind}}{{#if hasBars}}{{barCount}} bar{{#if barPlural}}s{{/if}} set{{/if}}{{/if}}
-                </span>
-                <button type="button" class="rd-dock-toggle" data-dock-toggle="bottom" aria-expanded="true" aria-label="Collapse details" title="Collapse details">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-                </button>
-              </div>
-              <div class="rd-dock-body">
-                {{#unless isPdfKind}}
-                  {{#if hasCoverage}}
-                    <div class="rd-meter" role="img" aria-label="{{coverageText}}">
-                      <span class="rd-meter-fill" style="width: {{coveragePct}}%"></span>
-                    </div>
-                    {{#if vectorMode}}
-                      <p class="rd-line">{{coverageText}} Anything a bar touches is removed from the file before the rectangle is painted.</p>
-                    {{else}}
-                      <p class="rd-line">{{coverageText}} The pixels under each bar are gone from the output.</p>
-                    {{/if}}
-                  {{/if}}
-                {{/unless}}
+              {{#if pdfRedactUnavailable}}
+                <div class="rd-state">
+                  <p class="rd-state-lead">PDF redaction isn't available in this app yet.</p>
+                  <p class="u-quiet rd-note">The notes above still apply. Open this tool in the Lolly web app to produce the redacted copy.</p>
+                </div>
+              {{else}}
                 {{#if isPdfKind}}
-                  {{#if hasBars}}
-                    <p class="rd-line">{{barCount}} bar{{#if barPlural}}s{{/if}} set. Each page is flattened to a picture with the bars burned in.</p>
-                  {{/if}}
-                {{/if}}
-                <p class="rd-stage-hint">Drag on the preview to draw a bar. To take one off, tap its corner dot or switch to Remove and tap the bar. Pinch or Cmd-scroll to zoom in on detail.{{#if hasManyPages}} Pages scroll in the viewport above, one page wide; the arrows in the toolbar step through them.{{/if}}
-                  {{#if canMeasure}}A bar grows to cover every element it touches, so it can never clip a word in half.{{else}}{{#if isRaster}}This is a picture, so there are no elements to measure: a bar covers exactly the area you draw and nothing more.{{else}}Nothing in this file could be measured, so a bar covers exactly the area you draw and nothing more.{{/if}}{{/if}}</p>
-              </div>
-              <div class="rd-dock-foot">
-                {{#if pdfRedactUnavailable}}
-                  <div class="rd-state">
-                    <p class="rd-state-lead">PDF redaction isn't available in this app yet.</p>
-                    <p class="rd-note">The notes in the corner still apply. Open this tool in the Lolly web app to produce the redacted copy.</p>
-                  </div>
-                {{else}}
-                  <p class="rd-gate">
-                    <svg class="rd-gate-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-                    <span>Re-read and checked before it downloads. If a check fails, nothing downloads.</span>
-                  </p>
-                  {{#if isPdfKind}}
-                    {{#unless hasBars}}
-                      <button type="button" class="rd-download" data-export-file disabled>Draw a bar over what should go first</button>
-                    {{else}}
-                      <button type="button" class="rd-download" data-export-file data-busy-label="Redacting…">{{downloadLabel}}</button>
-                    {{/unless}}
+                  {{#unless hasBars}}
+                    <button type="button" class="btn btn--primary rd-download" data-export-file disabled>Draw a bar over what should go first</button>
                   {{else}}
-                    <button type="button" class="rd-download" data-export-file data-busy-label="Redacting…">{{downloadLabel}}</button>
-                  {{/if}}
+                    <button type="button" class="btn btn--primary rd-download" data-export-file data-busy-label="Redacting…">{{downloadLabel}}</button>
+                  {{/unless}}
+                {{else}}
+                  <button type="button" class="btn btn--primary rd-download" data-export-file data-busy-label="Redacting…">{{downloadLabel}}</button>
                 {{/if}}
-              </div>
+                <div class="rd-status">
+                  <div class="rd-advice" aria-live="polite" role="status">
+                    {{#if toastKey}}
+                      <div class="rd-notice" data-toast-key="{{toastKey}}">
+                        <span class="rd-notice-text">{{toastText}}</span>
+                        <button type="button" class="close-btn close-btn--sm rd-notice-x" aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+                      </div>
+                    {{/if}}
+                  </div>
+                  {{#unless isPdfKind}}{{#if hasCoverage}}
+                    {{#if vectorMode}}
+                      <p class="u-quiet rd-line">{{coverageText}} Anything a bar touches is removed from the file before the rectangle is painted.</p>
+                    {{else}}
+                      <p class="u-quiet rd-line">{{coverageText}} The pixels under each bar are gone from the output.</p>
+                    {{/if}}
+                  {{/if}}{{/unless}}
+                  {{#if isPdfKind}}{{#if hasBars}}
+                    <p class="u-quiet rd-line">{{barCount}} bar{{#if barPlural}}s{{/if}} set. Each page is flattened to a picture with the bars burned in.</p>
+                  {{/if}}{{/if}}
+                  <p class="u-quiet rd-gate">Re-read and checked before it downloads. If a check fails, nothing downloads.</p>
+                </div>
+              {{/if}}
             </div>
-            <!-- /BOTTOM DOCK -->
+            <!-- /ACTION -->
           </div>
           <!-- /STAGE -->
-
-          <!-- TOASTS: everything informational, docked to the top-right corner and
-               dismissable. The advisory (partial coverage, snap-to-cover) clears
-               itself; the reference cards (hidden data found, what will not be
-               removed, how it signs) stay until dismissed. Absolute inside the
-               work area rather than position:fixed, which the stage-zoom transform
-               would trap; keyed by file so a new file shows its own set. -->
-          <div class="rd-toasts" data-export-hide aria-live="polite" role="status">
-            {{#if toastKey}}
-              <div class="rd-toast" data-toast-key="{{toastKey}}">
-                <span class="rd-toast-text">{{toastText}}</span>
-                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-              </div>
-            {{/if}}
-
-            {{#if foundSummary}}
-              <div class="rd-toast rd-toast-keep" data-toast-key="found|{{fileName}}|{{fileSize}}">
-                <div class="rd-toast-body">
-                  <p class="rd-toast-title">{{foundSummary}}</p>
-                  <input type="checkbox" id="rd-show-details" class="rd-reveal-cb">
-                  <label for="rd-show-details" class="rd-reveal-toggle">
-                    <span class="rd-reveal-icon" aria-hidden="true"></span>
-                    <span class="rd-reveal-show">Show details</span>
-                    <span class="rd-reveal-hide">Hide details</span>
-                  </label>
-                  <ul class="rd-findings">
-                    {{#each findings}}
-                      <li class="rd-finding {{tone}}">
-                        <span class="rd-finding-label">{{label}}</span>
-                        <span class="rd-finding-detail" title="{{detail}}">{{detail}}</span>
-                      </li>
-                    {{/each}}
-                  </ul>
-                </div>
-                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-              </div>
-            {{/if}}
-
-            {{#if nothingFound}}
-              <div class="rd-toast rd-toast-keep" data-toast-key="nothing|{{fileName}}|{{fileSize}}">
-                <span class="rd-toast-text">No hidden data was found by these checks. Absence of a finding is not proof there is nothing there.</span>
-                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-              </div>
-            {{/if}}
-            {{#if analysisPending}}
-              <div class="rd-toast rd-toast-keep" data-toast-key="analysing|{{fileName}}|{{fileSize}}">
-                <span class="rd-toast-text">Still reading the document structure…</span>
-                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-              </div>
-            {{/if}}
-            {{#if analysisFailed}}
-              <div class="rd-toast rd-toast-keep" data-toast-key="analysisfailed|{{fileName}}|{{fileSize}}">
-                <span class="rd-toast-text">The document structure could not be read, so nothing can be claimed about attachments, scripts or earlier versions.</span>
-                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-              </div>
-            {{/if}}
-
-            {{#if ocrError}}
-              <div class="rd-toast rd-toast-keep" data-toast-key="ocrerr|{{fileName}}|{{fileSize}}">
-                <span class="rd-toast-text">{{ocrError}}</span>
-                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-              </div>
-            {{/if}}
-            {{#if hasSuggestions}}
-              <div class="rd-toast rd-toast-keep" data-toast-key="sugg|{{fileName}}|{{fileSize}}|{{suggestCount}}">
-                <span class="rd-toast-text">{{suggestCount}} suggested region{{#if suggestPlural}}s{{/if}} from reading this picture on your device. Each one is a guess offered for you to accept or dismiss, never a redaction: nothing is covered until you accept it. A suggestion covers the whole line a match sits on, and a reader misses text it cannot see, so keep marking by hand as well.</span>
-                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-              </div>
-            {{/if}}
-            {{#if ocrRead}}{{#unless hasSuggestions}}
-              <div class="rd-toast rd-toast-keep" data-toast-key="suggnone|{{fileName}}|{{fileSize}}">
-                <span class="rd-toast-text">Nothing in this picture read as personal data. That is not proof there is none: the reader only sees text it can recognise, and it does not know what matters to you.</span>
-                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-              </div>
-            {{/unless}}{{/if}}
-
-            {{#if staleNote}}
-              <div class="rd-toast rd-toast-keep" data-toast-key="stale|{{fileName}}|{{fileSize}}">
-                <span class="rd-toast-text">{{staleNote}}</span>
-                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-              </div>
-            {{/if}}
-
-            {{#if vectorMode}}
-              <div class="rd-toast rd-toast-keep" data-toast-key="vector|{{fileName}}|{{fileSize}}">
-                <span class="rd-toast-text">Vector mode removes metadata, comments, scripts, editor data and embedded images, and deletes every element a bar touches, whole. A word half under a bar goes entirely, because half a word is a leak. The output is still SVG, a readable text format, so export a PNG if that matters. Marks have to be drawn on the preview so their elements can be measured.</span>
-                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-              </div>
-            {{/if}}
-            {{#if resignUnavailable}}
-              <div class="rd-toast rd-toast-keep" data-toast-key="resignun|{{fileName}}|{{fileSize}}">
-                <span class="rd-toast-text">A fresh Content Credential isn't available in this app, the redacted file will be exported without one.</span>
-                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-              </div>
-            {{/if}}
-            {{#if isPdfKind}}{{#if resign}}{{#unless resignUnavailable}}
-              <div class="rd-toast rd-toast-keep" data-toast-key="resign|{{fileName}}|{{fileSize}}">
-                <span class="rd-toast-text">The redacted copy is signed as a new work: {{#if authorKnown}}you ({{authorName}}) as its author{{else}}no author name, because "Use my details" is off in your profile{{/if}}, this app as the software, and one edit step reading "Covered content removed and the file rebuilt". No ingredients and no thumbnail of the original travel with it.</span>
-                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-              </div>
-            {{/unless}}{{/if}}{{/if}}
-            {{#if stampText}}
-              <div class="rd-toast rd-toast-keep" data-toast-key="stamp|{{fileName}}|{{fileSize}}">
-                <span class="rd-toast-text">Each mark is stamped &ldquo;{{stampText}}&rdquo;, painted on top of the bar where the covered pixels are already gone. Stamp text never comes from the content you covered.</span>
-                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-              </div>
-            {{/if}}
-
-            <div class="rd-toast rd-toast-keep" data-toast-key="limits|{{fileName}}|{{fileSize}}">
-              <div class="rd-toast-body">
-                <p class="rd-toast-title">What will not be removed</p>
-                <ul class="rd-limits">
-                  <li>A bar destroys only the pixels it covers. Invisible watermarks such as Google's SynthID span the whole image and this tool cannot detect or remove them.</li>
-                  <li>A bar's width can still hint at the length of what it hides. Rounding widths up to a coarse grid softens this, it does not remove it.</li>
-                  <li>Scans of printed pages can carry tracking dots from colour laser printers. The scanned page mode drops the yellow channel they live in, other print forensics remain.</li>
-                  <li>There is no blur or pixelate option on purpose. Blurred text has been recovered in practice, a solid fill has no inverse.</li>
-                </ul>
-              </div>
-              <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
-            </div>
-          </div>
-          <!-- /TOASTS -->
         {{/if}}
       {{/if}}
     </div>
@@ -444,7 +379,8 @@
        image/SVG frame still needs a pixel cap (it is inline, not a flex-filling
        scroller), so --rd-frameview is set to the live viewport height; the PDF
        page scroller fills the viewport through flexbox and needs no measurement.
-       --rd-toast-top keeps the top-right toast stack clear of the top dock. ── */
+       The notes under the toolbar change the viewport's height when one is
+       dismissed or a fold opens, so those paths call syncHeight as well. ── */
     var syncHeight = null;
     if (canvasRoot && canvasRoot.id === 'tool-canvas') {
       /* The stage is the canvas's grandparent (canvas → centred outer → stage),
@@ -463,8 +399,6 @@
           canvasRoot.style.height = avail + 'px';
           canvasRoot.dispatchEvent(new CustomEvent('canvas-resize'));
         }
-        var dockTop = wrap.querySelector('.rd-dock-top');
-        if (dockTop) wrap.style.setProperty('--rd-toast-top', (dockTop.offsetHeight + 12) + 'px');
         var vp = wrap.querySelector('.rd-viewport');
         if (vp) {
           var vh = Math.floor(vp.clientHeight);
@@ -488,14 +422,21 @@
       if (typeof requestAnimationFrame === 'function') requestAnimationFrame(syncHeight);
     }
 
-    /* ── Advisory toast: at most one, auto-dismiss, Escape or the close button
-       dismisses early. The hooks emit each advisory key once per file; the
-       dataset done-list only stops a dismissed toast reappearing on repaints
-       that re-render the same extras. Keys carry file identity from the hook,
-       so a new file is never muted by the old file's record. The done-list is
-       newline-delimited (it used to use a raw U+0001, which is invisible in an
-       editor and does not survive a copy-paste). ── */
-    function wireToastEl(toast, key, keep) {
+    function resync() {
+      if (typeof syncHeight !== 'function') return;
+      (typeof requestAnimationFrame === 'function' ? requestAnimationFrame : setTimeout)(syncHeight);
+    }
+
+    /* ── Notices. Two kinds share one element and one dismissal. An ADVISORY
+       (a bar that grew, a word left half covered) shows in the action row for
+       a few seconds, and Escape or its close button dismisses it early. A NOTE
+       about the file (rd-notice-keep) is a quiet line under the toolbar that
+       stays until its close button is pressed. The hooks emit each advisory key
+       once per file; the dataset done-list only stops a dismissed notice
+       reappearing on repaints that re-render the same extras. Keys carry file
+       identity from the hook, so a new file is never muted by the old file's
+       record. The done-list is newline-delimited. ── */
+    function wireNotice(notice, key, keep) {
       var timer;
       function dismiss() {
         clearTimeout(timer);
@@ -506,106 +447,68 @@
             canvasRoot.dataset.rdToastDone = d ? d + '\n' + key : key;
           }
         }
-        if (toast.parentNode) toast.parentNode.removeChild(toast);
+        if (notice.parentNode) notice.parentNode.removeChild(notice);
+        if (keep) resync();
       }
       function onKey(e) {
-        if (!alive() || !document.contains(toast)) {
+        if (!alive() || !document.contains(notice)) {
           document.removeEventListener('keydown', onKey, true);
           return;
         }
+        /* An open help tip owns Escape: the shell closes the tip and hands
+           focus back to its button. */
+        if (wrap.querySelector('.help-tip-pop:not([hidden])')) return;
         if (e.key === 'Escape') { e.stopPropagation(); dismiss(); }
       }
-      /* A transient advisory slides in on the next frame so the CSS TRANSITION
-         plays it (a transition, not a keyframe, so prefers-reduced-motion can
-         neutralise it - the app's own .toast made the same choice). A kept
-         reference card is recreated on every repaint, so it appears at once
-         rather than re-animating each time a bar is drawn, and it never
-         auto-dismisses - it stays until the person closes it. */
-      if (keep) {
-        toast.classList.add('is-visible');
-      } else if (typeof requestAnimationFrame === 'function') {
-        requestAnimationFrame(function () { if (toast.parentNode) toast.classList.add('is-visible'); });
-      } else {
-        toast.classList.add('is-visible');
+      if (!keep) {
+        timer = setTimeout(dismiss, 5000);
+        document.addEventListener('keydown', onKey, true);
       }
-      if (!keep) timer = setTimeout(dismiss, 5000);
-      document.addEventListener('keydown', onKey, true);
-      var x = toast.querySelector('.rd-toast-x');
+      var x = notice.querySelector('.rd-notice-x');
       if (x) x.addEventListener('click', dismiss);
     }
 
-    /* The hook raises its advisories by rendering a toast into the markup; the
+    /* The hook raises its advisories by rendering a notice into the markup; the
        partial-coverage warning is computed HERE, from the live DOM, so it needs
-       to raise one too. Same element, same classes, same dismissal - one toast
-       mechanism, not two. */
+       to raise one too. Same element, same classes, same dismissal - one
+       mechanism, not two. The cross is the shell's close button. */
     function pushToast(text, key) {
-      var box = wrap.querySelector('.rd-toasts');
+      var box = wrap.querySelector('.rd-advice');
       if (!box) return;
-      var toast = document.createElement('div');
-      toast.className = 'rd-toast';
+      var old = box.querySelectorAll('.rd-notice');
+      Array.prototype.forEach.call(old, function (el) { if (el.parentNode) el.parentNode.removeChild(el); });
+      var notice = document.createElement('div');
+      notice.className = 'rd-notice';
       var span = document.createElement('span');
-      span.className = 'rd-toast-text';
+      span.className = 'rd-notice-text';
       span.textContent = text;
       var x = document.createElement('button');
       x.type = 'button';
-      x.className = 'rd-toast-x';
+      x.className = 'close-btn close-btn--sm rd-notice-x';
       x.setAttribute('aria-label', 'Dismiss');
-      x.textContent = '×';
-      toast.appendChild(span);
-      toast.appendChild(x);
-      box.appendChild(toast);
-      wireToastEl(toast, key || '', false);
+      x.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+      notice.appendChild(span);
+      notice.appendChild(x);
+      box.appendChild(notice);
+      wireNotice(notice, key || '', false);
     }
 
-    /* Wire every toast the markup rendered: the transient advisory (auto-clears)
-       and the persistent reference cards (rd-toast-keep, stay until dismissed).
-       A card already dismissed for THIS file - the done-list is keyed by file -
-       is removed rather than re-shown, so a repaint does not bring back what the
-       person closed. Runs per repaint because innerHTML recreates the box. */
-    (function wireToasts() {
-      var box = wrap.querySelector('.rd-toasts');
-      if (!box || box.dataset.rdWired) return;
-      box.dataset.rdWired = '1';
+    /* Wire every notice the markup rendered. One already dismissed for THIS
+       file - the done-list is keyed by file - is removed and not shown again,
+       so a repaint does not bring back what the person closed. Runs per repaint
+       because innerHTML recreates the markup. */
+    (function wireNotices() {
+      if (wrap.dataset.rdNoticesWired) return;
+      wrap.dataset.rdNoticesWired = '1';
       var doneList = (canvasRoot && canvasRoot.dataset.rdToastDone) ? canvasRoot.dataset.rdToastDone.split('\n') : [];
-      var toasts = box.querySelectorAll('.rd-toast');
-      Array.prototype.forEach.call(toasts, function (toast) {
-        var key = toast.getAttribute('data-toast-key') || '';
+      var notices = wrap.querySelectorAll('.rd-notice');
+      Array.prototype.forEach.call(notices, function (notice) {
+        var key = notice.getAttribute('data-toast-key') || '';
         if (key && doneList.indexOf(key) !== -1) {
-          if (toast.parentNode) toast.parentNode.removeChild(toast);
+          if (notice.parentNode) notice.parentNode.removeChild(notice);
           return;
         }
-        wireToastEl(toast, key, toast.classList.contains('rd-toast-keep'));
-      });
-    })();
-
-    /* ── Dock collapse: fold either dock away to hand its height to the viewport.
-       State rides the persistent canvas container (like the rail mode/preset and
-       the findings reveal), because every commit repaints via innerHTML. ── */
-    (function wireDocks() {
-      var toggles = wrap.querySelectorAll('[data-dock-toggle]');
-      if (!toggles.length) return;
-      Array.prototype.forEach.call(toggles, function (btn) {
-        var which = btn.getAttribute('data-dock-toggle');
-        var dock = btn.closest ? btn.closest('.rd-dock') : null;
-        if (!dock) return;
-        var dsKey = which === 'bottom' ? 'rdDockBottom' : 'rdDockTop';
-        var collapsed = !!(canvasRoot && canvasRoot.dataset[dsKey] === '1');
-        function apply() {
-          if (collapsed) dock.setAttribute('data-collapsed', '1');
-          else dock.removeAttribute('data-collapsed');
-          btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-        }
-        apply();
-        btn.addEventListener('click', function () {
-          collapsed = !collapsed;
-          if (canvasRoot) canvasRoot.dataset[dsKey] = collapsed ? '1' : '0';
-          apply();
-          /* Folding a dock changes the viewport height; re-measure so a single
-             image frame and the toast anchor follow. */
-          if (typeof syncHeight === 'function') {
-            (typeof requestAnimationFrame === 'function' ? requestAnimationFrame : setTimeout)(syncHeight);
-          }
-        });
+        wireNotice(notice, key, notice.classList.contains('rd-notice-keep'));
       });
     })();
 
@@ -627,6 +530,7 @@
       if (canvasRoot && canvasRoot.dataset.rdDetails === '1') cb.checked = true;
       cb.addEventListener('change', function () {
         if (canvasRoot) canvasRoot.dataset.rdDetails = cb.checked ? '1' : '0';
+        resync();
       });
     })();
 
@@ -948,7 +852,7 @@
          the next one, and would walk across the line a render at a time - the
          same flood fill, arriving slowly. A drawn bar is grown once, when it is
          drawn, and after that partial coverage is REPORTED (RDGeom.partialNodes,
-         the .rd-partial overlay and the toast) rather than silently corrected.
+         the .rd-partial overlay and the advisory) rather than silently corrected.
 
          Its ADDRESSES are checked separately, and always. "Measured" was being
          read as "measured against THIS page", which it is not: the same bars
@@ -1410,7 +1314,7 @@
 
     /* One warning for the whole document, not one per frame: the frames each
        count their own partly-covered elements, this coalesces the totals and
-       raises a single toast when the number CHANGES. A repaint that reproduces
+       raises a single advisory when the number CHANGES. A repaint that reproduces
        the same count stays quiet, so the warning never nags. */
     var partialTimer = null;
     function reportPartials() {
@@ -1494,7 +1398,7 @@
       /* Elements a bar reaches but does not finish. Normally impossible right
          after a draw (snap just grew the bar past them); it shows up after an
          undo, a sidebar edit, or a neighbouring bar being removed. Returns the
-         count so the stage can raise one toast for the whole document. */
+         count so the stage can raise one advisory for the whole document. */
       function renderPartials(sp, nodes) {
         var mine = bars.filter(function (b) {
           return (b.page || 1) === page && b.w > 0 && b.h > 0;

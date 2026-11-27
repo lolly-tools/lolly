@@ -1,4 +1,11 @@
 {
   "name": "Strony",
-  "description": "Zmień kolejność, obróć, wyodrębnij, usuń, połącz lub podziel strony PDF albo zamień obrazy w PDF na swoim urządzeniu."
+  "description": "Zmień kolejność, obróć, wyodrębnij, usuń, połącz lub podziel strony PDF albo zamień obrazy w PDF na swoim urządzeniu.",
+  "inputs.level.label": "Kompresja",
+  "inputs.level.help": "Jak silnie kompresować osadzone obrazy. Silniejsza kompresja oznacza mniejsze pliki i mniej wyraźne obrazy.",
+  "inputs.level.options.light": "Słaba - zachowaj wysoką jakość",
+  "inputs.level.options.balanced": "Zrównoważona",
+  "inputs.level.options.strong": "Silna - najmniejszy plik",
+  "inputs.grayscale.label": "Konwertuj obrazy do skali szarości",
+  "inputs.grayscale.help": "Usuń kolor z obrazów dla dodatkowej redukcji rozmiaru - przydatne w przypadku zeskanowanych dokumentów tekstowych."
 }

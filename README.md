@@ -25,7 +25,7 @@ Making things happens on your device. What you make leaves your device only when
 | Turn a recording into a video with a moving waveform | [Lolly Audiogram](https://lolly.tools/t/audiogram) |
 | Turn data into a chart or diagram | [Lolly Chart](https://lolly.tools/t/chart) or [Lolly Diagrams](https://lolly.tools/t/diagram-builder) |
 | Build a layout I can reuse | [Lolly Design](https://lolly.tools/t/design) |
-| Remove hidden metadata or shrink a PDF | [Lolly Strip Hidden Data](https://lolly.tools/t/strip-data) or [Lolly Compress](https://lolly.tools/t/compress-pdf) |
+| Remove hidden metadata or shrink a PDF | [Lolly Strip Hidden Data](https://lolly.tools/t/strip-data) or [Lolly Pages](https://lolly.tools/t/pages?operation=compress) |
 
 [See every tool](TOOLS.md), or [make your first file](docs/make-something.md) with a QR code.
 

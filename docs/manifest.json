@@ -952,9 +952,9 @@
       "tools": [
         "strip-data#lolly-strip-hidden-data-and-redact",
         "redact#lolly-strip-hidden-data-and-redact",
-        "compress-pdf#compress-convert-image-and-convert-font",
-        "convert-image#compress-convert-image-and-convert-font",
-        "font-convert#compress-convert-image-and-convert-font",
+        "compress-pdf#pdf-pages",
+        "convert-image#convert-image-and-convert-font",
+        "font-convert#convert-image-and-convert-font",
         "text-helper#text",
         "pages#pdf-pages",
         "sign#pdf-pages",

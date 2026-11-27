@@ -1,33 +1,64 @@
-/* Utility UI: use the shell’s shared .btn and .field-* primitives. UI tokens have portable fallbacks; PDF paper, signature ink and media geometry remain document content. */
-/* Colours follow the app's core theme switcher (light / dark / suse) - sourced
-   from the app design tokens on <html data-theme> (tokens.css), which inherit
-   into the scoped tool canvas, so the tool restyles the instant the theme
-   changes. Fallbacks (light theme) keep the sheet valid where the tokens aren't
-   loaded (CLI/headless). The `--pg-*` aliases hold bare HSL triples so use-sites
-   can alpha-composite: hsl(var(--x) / .1). Document paper (a PDF page thumbnail)
-   stays white on purpose - it is the page itself, not chrome. */
-.utility{
-  --pg-bg:      var(--background, 0 0% 98%);
-  --pg-fg:      var(--foreground, 224 71% 4%);
-  --pg-muted:   var(--muted-foreground, 215 20% 38%);
-  --pg-card:    var(--card, 0 0% 100%);
-  --pg-bd:      var(--border, 214 28% 84%);
-  --pg-fill:    var(--muted, 210 40% 96%);
-  --pg-brand:   var(--primary, 171 62% 12%);
-  --pg-brandfg: var(--primary-foreground, 0 0% 100%);
-  --pg-warn:    var(--destructive, 0 72% 51%);
-  box-sizing:border-box;width:100%;height:100%;padding:var(--ui-space-panel,24px);background:linear-gradient(145deg,var(--ui-color-surface-canvas,hsl(var(--pg-bg))),var(--ui-color-surface-raised,hsl(var(--pg-card))));color:var(--ui-color-text-default,hsl(var(--pg-fg)));font-family:var(--ui-type-ui-family,system-ui,sans-serif);font-size:      var(--ui-type-body,14px);line-height:      1.5}
-.pages-root,.empty,.card{box-sizing:border-box;height:100%}
-.empty,.card{border:1px solid var(--ui-color-border-default,hsl(var(--pg-bd)));border-radius:var(--ui-radius-card,24px);background:var(--ui-color-surface-raised,hsl(var(--pg-card)));box-shadow:var(--ui-elevation-panel,0 18px 60px hsl(0 0% 0% / .12));padding:var(--ui-space-panel,22px)}
-.empty{display:grid;place-content:center;text-align:center;gap:var(--ui-space-control-inline,12px)}.mark{font-size:var(--ui-type-display,52px)}.empty h1{font-size:var(--ui-type-heading,34px);margin:0}.empty p{max-width:520px;margin:0 auto;line-height:1.5;color:var(--ui-color-text-muted,hsl(var(--pg-muted)))}.empty small{color:color-mix(in srgb,var(--ui-color-text-muted,hsl(var(--pg-muted))) 85%,transparent)}
-.card{display:flex;flex-direction:column;gap:var(--ui-space-control-inline,12px);overflow:      auto}.card header{display:flex;align-items:center;gap:var(--ui-space-control-inline,14px)}.card header>div{display:flex;align-items:baseline;gap:var(--ui-space-control-inline,10px);min-width:0}.card header strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--ui-type-title,18px)}.card header span{font-size:var(--ui-type-body,13px);color:var(--ui-color-text-muted,hsl(var(--pg-muted)))}.card header .quiet{margin-left:auto}
-.documents{display:flex;gap:var(--ui-space-control-block,7px);overflow:auto;padding:var(--sp-1,1px)}.document{display:grid;grid-template-columns:auto minmax(70px,1fr) auto auto;align-items:center;gap:var(--ui-space-control-block,7px);min-width:180px;max-width:260px;padding:var(--ui-space-control-block,6px) var(--ui-space-control-block,7px);border-radius:var(--ui-radius-control,10px);background:color-mix(in srgb,var(--ui-color-text-default,hsl(var(--pg-fg))) 5%,transparent);font-size:var(--ui-type-caption,12px)}.document-number{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--ui-color-action-primary,hsl(var(--pg-brand)));color:var(--ui-color-action-on-primary,hsl(var(--pg-brandfg)));font-weight:800}.document-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}.document small{color:var(--ui-color-text-muted,hsl(var(--pg-muted)))}.document button{
-  display:      grid;
-  place-items:      center}
-.controls{display:grid;grid-template-columns:180px minmax(220px,1fr) 165px;align-items:end;gap:var(--ui-space-control-block,9px) var(--ui-space-control-inline,12px);padding:var(--ui-space-control-inline,11px) var(--ui-space-control-inline,13px);border-radius:var(--ui-radius-panel,14px);background:color-mix(in srgb,var(--ui-color-text-default,hsl(var(--pg-fg))) 4%,transparent)}.controls label{display:grid;gap:var(--sp-2,4px);min-width:0}.controls label>span{font-size:var(--ui-type-caption,11px);font-weight:800;color:var(--ui-color-text-muted,hsl(var(--pg-muted)))}.controls small{grid-column:1/-1;color:var(--ui-color-text-muted,hsl(var(--pg-muted)));font-size:var(--ui-type-caption,11px)}.pages-field{min-width:0}
-.strip{display:flex;align-items:stretch;gap:var(--ui-space-control-inline,11px);overflow:auto;min-height:255px;padding:var(--sp-2,5px) var(--sp-2,3px) var(--ui-space-control-block,9px)}.page{display:flex;flex:0 0 158px;flex-direction:column;gap:var(--sp-2,5px);margin:0;padding:var(--ui-space-control-block,7px);border:2px solid transparent;border-radius:var(--ui-radius-panel,13px);background:var(--ui-color-surface-muted,hsl(var(--pg-fill)));transition:transform var(--ui-motion-feedback,120ms),border-color var(--ui-motion-feedback,120ms),opacity var(--ui-motion-feedback,120ms)}.page[draggable="true"]{cursor:grab}.page[draggable="true"]:active{cursor:grabbing}.page.dragging{opacity:.45;transform:scale(.97)}.page.chosen{border-color:var(--ui-color-action-primary,hsl(var(--pg-brand)));background:color-mix(in srgb,var(--ui-color-action-primary,hsl(var(--pg-brand))) 12%,transparent)}.page-preview{display:flex;align-items:center;justify-content:center;height:205px}.page-paper{overflow:hidden;background:#fff;box-shadow:0 3px 12px #0002}.page-paper svg{display:block;width:100%;height:100%}.page figcaption{display:flex;align-items:center;gap:var(--ui-space-control-block,7px);min-width:0}.page-number{display:grid;place-items:center;min-width:24px;height:24px;border-radius:50%;background:var(--ui-color-surface-raised,hsl(var(--pg-card)));border:1px solid var(--ui-color-border-default,hsl(var(--pg-bd)));font-weight:800}.page-origin{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--ui-type-caption,11px);color:var(--ui-color-text-muted,hsl(var(--pg-muted)))}.page-moves{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2,4px)}.page-moves span{font-size:var(--ui-type-caption,10px);color:var(--ui-color-text-muted,hsl(var(--pg-muted)))}.preview-note{flex:0 0 170px;align-self:center}
-.notice,.result{display:flex;align-items:center;gap:var(--ui-space-control-block,9px);border-radius:var(--ui-radius-panel,12px);padding:var(--ui-space-control-inline,10px) var(--ui-space-control-inline,13px);background:color-mix(in srgb,var(--ui-color-action-primary,hsl(var(--pg-brand))) 10%,transparent);font-size:var(--ui-type-caption,12px)}.notice.bad{background:color-mix(in srgb,hsl(var(--pg-warn)) 12%,transparent);color:hsl(var(--pg-warn))}.notice span,.result span{color:var(--ui-color-text-muted,hsl(var(--pg-muted)))}.result span:last-child{margin-left:auto}.download{align-self:flex-start}.muted{font-size:var(--ui-type-caption,11px);line-height:1.4;color:var(--ui-color-text-muted,hsl(var(--pg-muted)));margin:0}
-@media(max-width:700px){.utility{padding:var(--ui-space-control-inline,12px);font-size:      var(--ui-type-body,14px);line-height:      1.5}.empty,.card{padding:var(--ui-space-control-inline,15px);border-radius:var(--ui-radius-card,18px)}.controls{grid-template-columns:1fr 1fr}.controls label:nth-child(2){grid-column:1/-1}.page{flex-basis:145px}.card{gap:var(--ui-space-control-block,9px);overflow:      auto}}
+/* Pages draws one surface, the .utility root, and nothing inside is a card of its own:
+   groups are set apart by space. Controls are the shell's own: .btn, .field-input,
+   .field-select, .field-check, .chip and the sidebar's segmented control
+   (.badge-select--segmented), with its label style, on the shell's --ui-* tokens.
+   Three things stay fixed on purpose because they are the document and not chrome:
+   the page thumbnails, the signature pad and the signed page are white paper with dark
+   ink. The empty state has a dashed border because files can be dropped there. */
+.utility{box-sizing:border-box;width:100%;height:100%;padding:var(--ui-space-panel,24px);overflow:auto;background:var(--ui-color-surface-raised);color:var(--ui-color-text-default);font-family:var(--ui-type-ui-family,system-ui,sans-serif);font-size:var(--ui-type-body,14px);line-height:1.5}
+.pages-root{box-sizing:border-box;min-height:100%;display:flex;flex-direction:column}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--ui-space-control-inline,12px);padding:var(--ui-space-panel,24px);border:2px dashed var(--ui-color-border-default);border-radius:var(--ui-radius-card,16px);transition:border-color var(--ui-motion-feedback,120ms)}
+.is-file-dragover .empty{border-color:var(--ui-color-action-primary)}
+.empty h1{margin:0;font-size:var(--ui-type-title,18px);font-weight:var(--ui-type-weight-section,600)}
+.empty .field,.empty .btn{flex:none;width:min(100%,280px)}
+.panel{display:flex;flex-direction:column;gap:var(--ui-space-panel,20px)}
+
+/* Fields, labelled as the tool sidebar labels its inputs. */
+.field{display:flex;flex-direction:column;gap:var(--sp-2,4px);min-width:0;flex:0 1 220px}
+.field>span{font-size:var(--ui-type-field,11px);font-weight:var(--ui-type-weight-label,600);text-transform:uppercase;letter-spacing:var(--ui-type-tracking-label,.06em);color:var(--ui-color-text-muted)}
+.field--grow{flex:1 1 240px}.field--short{flex:0 1 110px}.field--seg{flex:0 1 320px}
+.controls{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--ui-space-control-inline,12px)}
+.check{display:flex;align-items:center;gap:var(--ui-space-control-block,8px);min-height:var(--ui-size-control,30px)}
+.status{margin:0;color:var(--ui-color-text-muted)}.status strong{color:var(--ui-color-text-default)}.status--bad{color:var(--ui-color-status-danger)}
+
+/* The files, as chips, and the one way to add or replace them. */
+.files{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-space-control-block,8px)}
+.files .chip{max-width:100%;color:var(--ui-color-text-default)}.files .chip b{color:var(--ui-color-text-muted)}.files .chip small{color:var(--ui-color-text-muted);font-size:inherit}
+.chip-name{overflow:hidden;text-overflow:ellipsis;max-width:24ch}
+.chip-remove{appearance:none;border:0;background:none;padding:0 var(--sp-1,2px);color:var(--ui-color-text-muted);font:inherit;line-height:1;cursor:pointer}.chip-remove:hover{color:var(--ui-color-text-default)}
+.files>.btn{margin-inline-start:auto}
+
+/* Page operations: the thumbnails are the controls. */
 .preview-nav{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-space-control-block,8px)}
-.preview-nav input,.move-to input{inline-size:calc(var(--ui-type-body,14px)*4)}
-.changes{display:grid;gap:var(--sp-2,4px);border-radius:var(--ui-radius-panel,12px);padding:var(--ui-space-control-inline,10px) var(--ui-space-control-inline,13px);background:color-mix(in srgb,var(--ui-color-text-default,hsl(var(--pg-fg))) 4%,transparent);font-size:var(--ui-type-caption,12px)}.changes ul{display:grid;gap:var(--sp-1,2px);margin:0;padding-inline-start:1.2em}.change--removed,.change--broken,.change--invalidated{color:hsl(var(--pg-warn))}
+.preview-nav input,.page-moves input{inline-size:calc(var(--ui-type-body,14px)*4)}
+.strip{display:flex;align-items:flex-start;gap:var(--ui-space-control-inline,12px);overflow:auto;padding:var(--sp-2,4px)}
+.page{display:flex;flex:0 0 150px;flex-direction:column;gap:var(--ui-space-control-block,8px);margin:0;transition:opacity var(--ui-motion-feedback,120ms)}
+.page[draggable="true"]{cursor:grab}.page[draggable="true"]:active{cursor:grabbing}.page.dragging{opacity:.45}
+.page-preview{display:flex;align-items:center;justify-content:center;height:205px}
+.page-paper{overflow:hidden;background:#fff;box-shadow:0 1px 2px #0002,0 3px 12px #0002;transition:box-shadow var(--ui-motion-feedback,120ms)}.page-paper svg{display:block;width:100%;height:100%}
+.page.chosen .page-paper,.page.drop-target .page-paper{box-shadow:var(--ui-effect-selection-ring,0 0 0 2px currentColor),0 3px 12px #0002}
+.missing-preview{display:grid;place-items:center;height:100%;color:#777;text-align:center}
+.page figcaption{display:flex;align-items:center;gap:var(--ui-space-control-block,8px);min-width:0;min-height:var(--ui-size-control,30px)}
+.page-number{font-weight:var(--ui-type-weight-label,600)}.page-origin{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ui-color-text-muted)}.page-select{margin-inline-start:auto}
+.page-moves{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2,4px)}
+.changes{display:grid;gap:var(--sp-2,4px)}.changes ul{display:grid;gap:var(--sp-1,2px);margin:0;padding-inline-start:1.2em;color:var(--ui-color-text-muted)}.change--removed,.change--broken,.change--invalidated{color:var(--ui-color-status-danger)}
+
+/* The result and the button that saves the file sit together. In Compress the saving leads. */
+.save{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-space-control-inline,12px)}
+.save--lead{flex-direction:column;align-items:flex-start}
+.save-note{flex-basis:100%;margin:0;font-size:var(--ui-type-caption,12px);color:var(--ui-color-text-muted)}
+.saving{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--ui-space-control-inline,12px);margin:0}.saving strong{font-size:var(--ui-type-heading,28px);line-height:1.15;color:var(--ui-color-text-accent)}.saving span{color:var(--ui-color-text-muted)}
+
+/* Sign: the pad to draw on, then the page the signature is placed on. */
+.workspace{display:grid;grid-template-columns:270px minmax(0,1fr);gap:var(--ui-space-panel,20px)}
+.sign-controls{display:flex;flex-direction:column;gap:var(--ui-space-control-block,8px)}
+.draw-box{position:relative;border:1px solid var(--ui-color-border-default);border-radius:var(--ui-radius-panel,12px);background:#fff;overflow:hidden}
+.ink-pad{display:block;width:100%;height:96px;touch-action:none;cursor:crosshair}.guide{fill:none;stroke:#211e1927;stroke-width:1.5;stroke-dasharray:6 5}.ink-stroke{fill:none;stroke:#111;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.ink-actions{position:absolute;right:6px;bottom:5px;display:flex;gap:var(--sp-2,4px)}.ink-cue{position:absolute;left:12px;top:8px;color:#211e1988;pointer-events:none}
+.page-stage{display:grid;place-items:start;min-width:0}
+.sign-page{position:relative;height:auto;max-width:100%;overflow:hidden;background:#fff;box-shadow:0 1px 2px #0002,0 3px 12px #0002;touch-action:none}
+.sign-page>svg:not(.placed-signature):not(.extra-marks){display:block;width:100%;height:100%}.extra-marks{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.paper{display:grid;place-items:center;height:100%;min-width:120px;color:#777}
+.placed-signature{position:absolute;height:auto;cursor:grab;user-select:none;touch-action:none}.placed-signature:active{cursor:grabbing}.placed-signature path{fill:none;stroke:#111;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+.placed-signature.placeholder{box-sizing:border-box;border:1px solid #211e1944}
+@media(max-width:700px){.utility{padding:var(--ui-space-control-inline,12px)}.panel{gap:var(--ui-space-control-inline,14px)}.field,.field--short,.field--seg{flex:1 1 140px}.field--grow{flex-basis:100%}.files>.btn{margin-inline-start:0}.workspace{grid-template-columns:minmax(0,1fr)}}
