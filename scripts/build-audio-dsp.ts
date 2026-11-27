@@ -3,13 +3,14 @@ import { execFileSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { wasmBuildEnv } from './lib/wasm-rustflags.ts';
 
 const source = fileURLToPath(new URL('../packages/node-shell/wasm/audio-dsp/', import.meta.url));
 const target = fileURLToPath(new URL('../.cache/audio-dsp-target/', import.meta.url));
 mkdirSync(target, { recursive: true });
 execFileSync('cargo', ['build', '--release', '--locked', '--target', 'wasm32-unknown-unknown', '--target-dir', target], {
   cwd: source, stdio: 'inherit',
-  env: { ...process.env, RUSTFLAGS: '-C link-arg=--max-memory=536870912 -C link-arg=-zstack-size=1048576' },
+  env: wasmBuildEnv(['-C', 'link-arg=--max-memory=536870912', '-C', 'link-arg=-zstack-size=1048576']),
 });
 copyFileSync(join(target, 'wasm32-unknown-unknown/release/lolly_audio_dsp.wasm'), join(source, 'audio-dsp.wasm'));
 const metadata = JSON.parse(execFileSync('cargo', ['metadata', '--format-version', '1', '--locked'], { cwd: source, encoding: 'utf8' })) as { packages: { name: string; version: string; manifest_path: string; license: string | null }[] };
