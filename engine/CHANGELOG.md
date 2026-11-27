@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.360.0
+
+- `host.pdf.stamp` takes an optional `classic: true` (`PdfStampOpts`). The stamped PDF is then saved with a classic cross-reference table and no object streams, the form `host.c2pa.sign` can attach a Content Credential to. Pages' Sign and the older Sign tool pass it only when the credential is on, so a signed PDF with a credential downloads in one step.
+- Without the option `stamp` saves exactly as before, and `host.c2pa.sign` is unchanged for every caller: a PDF whose cross-reference is a stream is still refused there.
+- A host that predates the option ignores it and saves the compact form. Sign then says the credential could not be added, as it did before.
+- No method of the bridge changed. Additive.
+
 ## 1.359.0
 
 - A 3D Studio camera leg can follow the design system's motion tokens. `cameraEase` takes five more values beside `smooth`, `flow` and `linear`: `standard`, `emphasised` and `exit` ease each leg on `motion.curve.<name>`, and `gentle` and `bouncy` on `motion.spring.<name>`. `studioCameraPose` evaluates them through `kfEaseAt`, the evaluator Sequence keyframes use, so a shell that has installed the system's tokens with `setKfEaseTokens` plays the live value and any other host plays the fixed value in `STUDIO_SYSTEM_EASES` (the Lolly Demo curves and springs). A spring runs in real time over the leg's own length, so on a long leg the camera arrives early and holds the key; every value is held inside the range a saved key takes, because a spring passes its key before it settles. `STUDIO_CAMERA_EASES` lists the eight values and `StudioSceneV1.cameraMotion.ease` admits them.

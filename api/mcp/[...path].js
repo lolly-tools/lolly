@@ -5611,7 +5611,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.359.0";
+    ENGINE_VERSION = "1.360.0";
   }
 });
 
@@ -177190,7 +177190,7 @@ async function stampPdf(bytes2, opts) {
     doc.getForm().flatten();
   } catch {
   }
-  const out = await doc.save({ useObjectStreams: true, updateFieldAppearances: false });
+  const out = await doc.save({ useObjectStreams: opts.classic !== true, updateFieldAppearances: false });
   return { bytes: out, pages: doc.getPageCount(), stamps };
 }
 async function lockPdf(bytes2, password) {
