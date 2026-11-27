@@ -5611,7 +5611,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.358.0";
+    ENGINE_VERSION = "1.359.0";
   }
 });
 
@@ -138285,7 +138285,7 @@ function spline(p0, p1, p2, p3, t) {
   const t2 = t * t, t3 = t2 * t;
   return 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
 }
-function mix(keys2, leg, t, ease) {
+function mix(keys2, leg, t, ease, legMs) {
   const a = keys2[leg], b = keys2[leg + 1];
   const pick = (key2) => [
     key2.azimuth,
@@ -138304,8 +138304,11 @@ function mix(keys2, leg, t, ease) {
       (_, i) => spline(pick(before)[i], pick(a)[i], pick(b)[i], pick(after)[i], t)
     );
   } else {
-    const s = ease === "linear" ? t : t * t * (3 - 2 * t);
+    const system = SYSTEM_EASE_TOKENS.get(ease);
+    const s = system ? kfEaseAt(system, t, legMs) : ease === "linear" ? t : t * t * (3 - 2 * t);
     values = pick(a).map((v, i) => v + (pick(b)[i] - v) * s);
+    if (system)
+      values = values.map((v, i) => Math.min(POSE_LIMITS[i][1], Math.max(POSE_LIMITS[i][0], v)));
   }
   const focus = a.focus > 0 && b.focus > 0 ? values[7] : 0;
   return {
@@ -138333,7 +138336,13 @@ function studioCameraPose(scene, time2, clipSeconds) {
     const a = keys2[leg], b = keys2[leg + 1];
     if (phase >= a.at && phase <= b.at) {
       const span = b.at - a.at;
-      return mix(keys2, leg, span > 0 ? (phase - a.at) / span : 1, motion.ease);
+      return mix(
+        keys2,
+        leg,
+        span > 0 ? (phase - a.at) / span : 1,
+        motion.ease,
+        span * scene.motion.seconds * 1e3
+      );
     }
   }
   return { ...last, at: phase };
@@ -138458,15 +138467,53 @@ function studioCameraFromKey(values, which) {
     { id: "focusDistance", value: num13(key2.focusDistance, 0) }
   ];
 }
-var STUDIO_CAMERA_KEY_LIMIT, num13, STUDIO_CAMERA_PRESETS, STUDIO_CAMERA_MOTIONS;
+var STUDIO_CAMERA_KEY_LIMIT, num13, STUDIO_CAMERA_EASES, STUDIO_SYSTEM_EASES, SYSTEM_EASE_TOKENS, POSE_LIMITS, STUDIO_CAMERA_PRESETS, STUDIO_CAMERA_MOTIONS;
 var init_studio3d_camera_path = __esm({
   "engine/src/studio3d-camera-path.ts"() {
     "use strict";
+    init_keyframes2();
+    init_kf_spring();
     STUDIO_CAMERA_KEY_LIMIT = 12;
     num13 = (value2, fallback) => {
       const n7 = Number(value2);
       return Number.isFinite(n7) ? Math.round(n7 * 1e3) / 1e3 : fallback;
     };
+    STUDIO_CAMERA_EASES = [
+      "linear",
+      "smooth",
+      "flow",
+      "standard",
+      "emphasised",
+      "exit",
+      "gentle",
+      "bouncy"
+    ];
+    STUDIO_SYSTEM_EASES = Object.freeze({
+      standard: { path: "motion.curve.standard", fallback: kfEaseToken("cubic-bezier(0.2,0,0,1)") },
+      emphasised: {
+        path: "motion.curve.emphasised",
+        fallback: kfEaseToken("cubic-bezier(0.05,0.7,0.1,1)")
+      },
+      exit: { path: "motion.curve.exit", fallback: kfEaseToken("cubic-bezier(0.3,0,0.8,0.15)") },
+      gentle: { path: "motion.spring.gentle", fallback: kfSpringToken(kfSpring(120, 20, 1)) },
+      bouncy: { path: "motion.spring.bouncy", fallback: kfSpringToken(kfSpring(400, 20, 1)) }
+    });
+    SYSTEM_EASE_TOKENS = new Map(
+      Object.entries(STUDIO_SYSTEM_EASES).map(([name, ease]) => [
+        name,
+        kfBindEase(ease.path, ease.fallback) ?? ease.fallback
+      ])
+    );
+    POSE_LIMITS = [
+      [-720, 720],
+      [-60, 80],
+      [15, 80],
+      [0.05, 3],
+      [-25, 25],
+      [-25, 25],
+      [-25, 25],
+      [0, 500]
+    ];
     STUDIO_CAMERA_PRESETS = [
       "sweep",
       "pushin",
@@ -139341,7 +139388,7 @@ function buildStudioScene(input) {
     ...arrangement ? { objects, activeObject: studioActiveObject(v) } : {},
     cameraMotion: {
       kind: cameraKind,
-      ease: choice2(v.cameraEase, ["linear", "smooth", "flow"], "smooth"),
+      ease: choice2(v.cameraEase, STUDIO_CAMERA_EASES, "smooth"),
       loop: enabled3(v.cameraLoop),
       amount: cameraAmount,
       keys: studioIsCameraPreset(cameraKind) ? studioCameraPreset(cameraKind, view, cameraAmount) : authoredKeys

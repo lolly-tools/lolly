@@ -64,7 +64,7 @@
    }
   },
   "qr-code": {
-   "version": "2.11.0",
+   "version": "2.12.0",
    "light": {
     "templateId": "website",
     "file": "/catalog/previews/covers/qr-code.light.svg"
@@ -357,7 +357,7 @@
    }
   },
   "audiogram": {
-   "version": "2.9.0",
+   "version": "2.10.0",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/audiogram.light.webp"
@@ -379,7 +379,7 @@
    }
   },
   "3d-studio": {
-   "version": "0.13.0",
+   "version": "0.14.0",
    "light": {
     "templateId": "studio-object",
     "file": "/catalog/previews/covers/3d-studio.light.webp"

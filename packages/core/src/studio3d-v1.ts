@@ -260,6 +260,9 @@ export interface StudioSceneV1 {
    * A camera path for motion: with `kind: 'keys'` and two or more keys the camera
    * travels through them over the loop; `still` keeps the live camera. `flow` passes
    * through every key with continuous velocity, `smooth` eases each leg, `linear` does not.
+   * `standard`, `emphasised` and `exit` ease each leg on the design system's curve of that
+   * name, and `gentle` and `bouncy` on its spring, with a fixed value where the system
+   * has none. A spring runs in real time, so a long leg arrives early and holds the key.
    * The other kinds are camera moves made from the live view: their rows are written
    * into `keys` when the recipe is built, so one evaluator draws every move, and
    * `amount` (0.25 to 2, default 1) scales how far the move travels. `orbit` is one
@@ -267,7 +270,7 @@ export interface StudioSceneV1 {
    */
   cameraMotion?: {
     kind: 'still' | 'keys' | 'sweep' | 'pushin' | 'dolly' | 'reveal' | 'crane' | 'orbit';
-    ease: 'linear' | 'smooth' | 'flow';
+    ease: 'linear' | 'smooth' | 'flow' | 'standard' | 'emphasised' | 'exit' | 'gentle' | 'bouncy';
     loop: boolean;
     amount?: number;
     keys: StudioCameraKeyV1[];
