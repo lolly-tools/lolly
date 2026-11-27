@@ -327,7 +327,7 @@ describe('Timezone tool', () => {
     assert.doesNotMatch(empty.svg, /data-svg-motion/);
     assert.equal(empty.runtime.getHydratedString('{{tzClipMs}}'), '0', 'nothing to deal in, so no clip');
   });
-  it('keeps the design system theme on its accent ground, with readable ink and the system warning colours', async () => {
+  it('keeps the design system theme on its accent ground, with readable ink and warning colours that read', async () => {
     const light: Record<string, string> = {
       '{color.semantic.primary}': '#033633', '{color.semantic.surface}': '#fbfdf7', '{color.semantic.text}': '#0b1f1d',
       '{color.role.alert-ink}': '#a3381f', '{color.role.alert-tint}': '#f2a03d',
@@ -345,24 +345,31 @@ describe('Timezone tool', () => {
     assert.equal(bg, ground(plain.svg));
     assert.notEqual(bg, '#fbfdf7');
     assert.match(brand.svg, /fill="#f3f4ee"/, 'a dark text token gives way to the light ink on this ground');
-    // The marked hours come from the alert roles, each at 3:1 or better on the ground.
-    assert.doesNotMatch(brand.svg, /#ef4444|#f59e0b/);
-    const times = [...brand.svg.matchAll(/font-size="42\.\d+" fill="(#[0-9a-f]{6})" font-family="[^"]*" letter-spacing/g)].map((m) => m[1]!);
-    assert.equal(times.length, 2);
-    assert.notEqual(times[0], times[1], 'early and night are told apart');
-    for (const c of times) assert.ok(ratio(c, bg) >= 3, `${c} on ${bg}`);
+    // On this ground the warning fill is under 3:1, so both marks stay the fixed pair.
+    assert.match(brand.svg, /#ef4444/);
+    assert.match(brand.svg, /#f59e0b/);
+    assert.doesNotMatch(brand.svg, /#a3381f|#f2a03d/);
+
+    // Where both alert roles read at 3:1 as given, they are the marks.
+    const both = await run({ ...rows, theme: 'brand' }, hostOf({ ...light, '{color.role.alert-ink}': '#ffd9cf', '{color.role.alert-tint}': '#ffe7a8' }));
+    assert.equal(ground(both.svg), bg);
+    for (const c of ['#ffd9cf', '#ffe7a8']) {
+      assert.ok(ratio(c, bg) >= 3, `${c} on ${bg}`);
+      assert.match(both.svg, new RegExp(c));
+    }
+    assert.doesNotMatch(both.svg, /#ef4444|#f59e0b/);
+    // One role alone is not a pair.
+    const one = await run({ ...rows, theme: 'brand' }, hostOf({ ...light, '{color.role.alert-ink}': '#ffd9cf' }));
+    assert.match(one.svg, /#ef4444/);
+    assert.doesNotMatch(one.svg, /#ffd9cf/);
 
     // A light background override gets dark ink, and a text token that reads is used.
     const pale = await run({ ...rows, theme: 'brand', background: '#f4e9d8' }, hostOf(light));
     assert.match(pale.svg, /fill="#0b1f1d"/);
     assert.doesNotMatch(pale.svg, /fill="#f3f4ee"/);
+    assert.match(pale.svg, /#ef4444/, 'the fill fails on this ground too, so the pair stays fixed');
     const paleNoText = await run({ ...rows, theme: 'brand', background: '#f4e9d8' }, hostOf({ '{color.semantic.primary}': '#033633' }));
     assert.match(paleNoText.svg, /fill="#132629"/);
-
-    // A system with no alert roles keeps the fixed marks.
-    const bare = await run({ ...rows, theme: 'brand' }, hostOf({ '{color.semantic.primary}': '#30ba78' }));
-    assert.match(bare.svg, /#ef4444/);
-    assert.match(bare.svg, /#f59e0b/);
 
     // The other themes read none of these tokens.
     for (const theme of ['midnight', 'paper', 'minimal']) {

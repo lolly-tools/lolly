@@ -447,21 +447,15 @@ export async function brand(host: any, inputs: Inputs): Promise<Palette> {
     ink: bold ? readable(background) : light ? DARK_INK : LIGHT_INK,
   };
   const ink = hex(inputs.ink) || auto.ink;
-  // A marked hour is large type, so each warning colour has to reach 3:1 on the ground.
-  // One that does not is mixed toward the ink, a quarter at a time, until it does.
-  const reads = (c: string | null) => {
-    if (!c) return null;
-    for (const t of [0, 0.25, 0.5, 0.75]) {
-      const m = mix(c, ink, t);
-      if (contrast(m, background) >= 3) return m;
-    }
-    return null;
-  };
-  const night = reads(toHex(alertInk)),
-    tint = reads(toHex(alertTint));
-  const alert = night
-    ? { night, edge: tint && tint !== night ? tint : mix(night, ink, 0.5) }
-    : undefined;
+  // A marked hour is large type, so both warning colours have to reach 3:1 on the
+  // ground unmixed. Where either does not, both marks stay the fixed red and amber,
+  // and the two are always a pair.
+  const night = toHex(alertInk),
+    edge = toHex(alertTint);
+  const alert =
+    night && edge && night !== edge && contrast(night, background) >= 3 && contrast(edge, background) >= 3
+      ? { night, edge }
+      : undefined;
   return {
     ...(alert ? { alert } : {}),
     accent,
