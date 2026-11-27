@@ -918,6 +918,14 @@ jobs:
       - name: Engine purity (no DOM/storage/network in engine/src)
         run: pnpm run check:engine-purity
 
+      # A compiler writes the builder's source paths into what it builds, and a path
+      # under a home directory publishes that person's user name. Every committed
+      # binary, minified file, source map and api/ bundle is scanned as bytes; the
+      # fix is a rebuild with remapped paths (scripts/lib/wasm-rustflags.ts), never
+      # an allowlist.
+      - name: No home-directory paths in committed binaries
+        run: pnpm run check:binary-paths
+
       # docs/build.ts's `pages` array is hand-maintained and the /info nav derives
       # from it, so a .md could be written and committed while staying unreachable
       # from the site - docs/ios-build.md was exactly that. Every docs/*.md must now

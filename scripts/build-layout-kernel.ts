@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { chmodSync, copyFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { wasmBuildEnv } from './lib/wasm-rustflags.ts';
 const source = fileURLToPath(
   new URL('../packages/node-shell/wasm/layout-kernel/', import.meta.url)
 );
@@ -23,10 +24,7 @@ execFileSync(
   {
     cwd: source,
     stdio: 'inherit',
-    env: {
-      ...process.env,
-      RUSTFLAGS: '-C link-arg=--max-memory=33554432 -C link-arg=-zstack-size=1048576',
-    },
+    env: wasmBuildEnv(['-C', 'link-arg=--max-memory=33554432', '-C', 'link-arg=-zstack-size=1048576']),
   }
 );
 const destination = join(source, 'layout-kernel.wasm');

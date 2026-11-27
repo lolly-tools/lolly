@@ -4,6 +4,7 @@ import { copyFileSync, mkdirSync, readFileSync, readdirSync, statSync, writeFile
 import { gzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { wasmBuildEnv } from './lib/wasm-rustflags.ts';
 
 const source = fileURLToPath(new URL('../packages/node-shell/wasm/camera-raw/', import.meta.url));
 const target = fileURLToPath(new URL('../plans/artifacts/342/camera-raw-target/', import.meta.url));
@@ -11,7 +12,7 @@ mkdirSync(target, { recursive: true });
 // 512 MiB memory ceiling and a 1 MiB stack, linked in so a hostile file cannot grow past them.
 execFileSync('cargo', ['build', '--release', '--locked', '--target', 'wasm32-unknown-unknown', '--target-dir', target], {
   cwd: source, stdio: 'inherit',
-  env: { ...process.env, RUSTFLAGS: '-C link-arg=--max-memory=536870912 -C link-arg=-zstack-size=1048576' },
+  env: wasmBuildEnv(['-C', 'link-arg=--max-memory=536870912', '-C', 'link-arg=-zstack-size=1048576']),
 });
 copyFileSync(join(target, 'wasm32-unknown-unknown/release/lolly_camera_raw.wasm'), join(source, 'camera-raw.wasm'));
 const wasm = readFileSync(join(source, 'camera-raw.wasm'));

@@ -86,6 +86,7 @@
     "build:engine-modules": "node scripts/gen-engine-modules.ts",
     "check:engine-modules": "node scripts/gen-engine-modules.ts --check",
     "check:engine-purity": "node scripts/check-engine-purity.ts",
+    "check:binary-paths": "node scripts/check-binary-home-paths.ts",
     "check:docs-nav": "node scripts/check-docs-nav.ts",
     "check:code-comments": "node scripts/check-code-comment-vernacular.ts",
     "check:ui-copy": "node scripts/check-ui-copy-vernacular.ts",
