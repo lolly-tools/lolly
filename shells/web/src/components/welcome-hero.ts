@@ -9,26 +9,27 @@
  *                  with colour, once (under 1.5 s), the first time the band is in
  *                  view, and never on a later visit. Under Reduce motion it is simply
  *                  the finished mark.
- *   The sentence   "Make the next thing beautiful." The brand already says this on
- *                  the featured poster, so the greeting and the product agree.
+ *   The title      "Make it yours". The card says one thing and the colours under
+ *                  the title are how (Andy, 2026-11-27: the card was saying and
+ *                  doing too much).
  *   One action     chosen by who is visiting: on a shipped design system (Lolly
  *                  Demo, lolly.tools) "Start making" opens Design on the lorikeet
  *                  poster (its brand-starter template), under a row of colours; on a
- *                  blank install the row of colours is the whole action ("Make it
- *                  yours"), because there the brand is the point.
+ *                  blank install the row of colours is the whole action, because
+ *                  there the brand is the point.
  *                  One press makes a design system from that colour and the gallery
  *                  under the card repaints in place (lib/design-system/one-colour.ts).
  *                  The card then stays, with Undo and the door to Design System Setup.
- *   Quiet lines    bring a file, the other audience's path, the privacy promise with
- *                  its "What we store" link, and a language chip only when the
- *                  detected language may be wrong.
+ *   Quiet lines    bring a file, the other audience's path, and a language chip only
+ *                  when the detected language may be wrong. The card carries no
+ *                  privacy line: the gallery's own notice says what is stored.
  *
  * What it keeps from the dialog (components/welcome-dialog.ts, still reachable at
  * #/?welcome=classic): the gate rules (views/gallery-welcome.ts decides who sees
  * it), any explicit choice settles the welcome for good, a route change is not a
  * dismissal, Escape and the close button dismiss, the language choice persists, the
- * file path is the drop router's. Every explicit choice also acknowledges the
- * privacy notice, because the promise is on the band itself.
+ * file path is the drop router's. A choice here does not answer the privacy notice,
+ * because the card no longer carries the promise.
  *
  * Maintenance waits (lib/welcome-gate.ts) only while the mark draws, and never more
  * than MAX_HOLD_MS: a greeting in place can stay on the page for a whole visit, and
@@ -53,7 +54,7 @@
 import '../styles/parts/welcome-hero.css';
 import { currentLang, langOptions, setActiveLang, t, LANG_ICON_SVG, flagEmoji } from '../i18n.ts';
 import type { Lang } from '../i18n.ts';
-import { escape as escapeHtml, NAV_EVENTS, safeHref } from '../utils.ts';
+import { escape as escapeHtml, NAV_EVENTS } from '../utils.ts';
 import { icon } from '../lib/icons.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import type { WebProfileAPI } from '../bridge/profile.ts';
@@ -133,17 +134,6 @@ export function languageMayBeWrong(): boolean {
   return !!first && first !== currentLang().toLowerCase().split('-')[0];
 }
 
-/** The privacy promise the band carries, and where "What we store" leads. */
-export interface WelcomePrivacy { text: string; href: string }
-
-/** The quiet privacy line. The caller words it (views/gallery-welcome.ts, from the notice). */
-function privacyLine(p: WelcomePrivacy): string {
-  // The link is the caller's, so its scheme is checked before it reaches the page.
-  // nosemgrep: lolly-href-escape-is-not-scheme-validation -- gated by safeHref() on this line
-  const link = safeHref(p.href) ? ` <a href="${escapeHtml(p.href)}">${t('What we store')}</a>` : '';
-  return `${escapeHtml(p.text)}${link}`;
-}
-
 function languageRow(open: boolean): string {
   if (!open) {
     const here = langOptions().find(o => o.code === currentLang());
@@ -171,37 +161,36 @@ function wellMarkup(well: WellState): string {
   // (components/welcome-colour-picker.ts). The button wears that colour once one is in use.
   const own = picked && !WELL_COLOURS.some(c => c.hex.toLowerCase() === picked);
   const custom = `<button type="button" class="welcome-hero-swatch welcome-hero-swatch--own" data-well-own aria-haspopup="dialog" aria-expanded="false" aria-pressed="${!!own}" aria-label="${escapeHtml(t('Pick a colour'))}" title="${escapeHtml(t('Pick a colour'))}"${own ? ` style="--wh-swatch:${escapeHtml(picked)}"` : ''}${off}>${own ? '' : icon('palette', { size: 16 })}</button>`;
-  return `<div class="welcome-hero-well" role="group" aria-labelledby="welcome-hero-well-label"${well.busy ? ' aria-busy="true"' : ''}>
-      <p class="welcome-hero-well-label" id="welcome-hero-well-label"><strong>${t('Make it yours')}</strong> <span>${t('One colour is enough')}</span></p>
+  return `<div class="welcome-hero-well" role="group" aria-labelledby="welcome-hero-title"${well.busy ? ' aria-busy="true"' : ''}>
       <div class="welcome-hero-swatches">${swatches}${custom}</div>
     </div>`;
 }
 
-function heroMarkup(audience: WelcomeAudience, withImport: boolean, langsOpen: boolean, privacy: WelcomePrivacy, well: WellState | null): string {
+function heroMarkup(audience: WelcomeAudience, withImport: boolean, langsOpen: boolean, well: WellState | null): string {
   const start = `<button type="button" class="btn btn--primary btn--labelled welcome-hero-go" data-choice="make"><span class="btn-label">${t('Start making')}</span></button>`;
   // Lolly Demo offers the colours too, above its Start making button.
   const primary = audience === 'demo'
     ? (well ? `${wellMarkup(well)}<span class="welcome-hero-row">${start}` : start)
     : well ? wellMarkup(well)
-    : `<button type="button" class="btn btn--primary btn--labelled welcome-hero-go welcome-hero-go--sub" data-choice="brand"><span class="btn-label">${t('Make it yours')}</span><span class="welcome-hero-go-sub">${t('One colour is enough')}</span></button>`;
+    : `<button type="button" class="btn btn--primary btn--labelled welcome-hero-go" data-choice="brand"><span class="btn-label">${t('Open Design System Setup →')}</span></button>`;
   // With a colour chosen here the quiet links are the two ways on from that choice.
   const chosen = !!well?.picked;
   const other = chosen
     ? `<button type="button" class="welcome-hero-link" data-choice="brand">${t('Open Design System Setup →')}</button>`
     : audience === 'demo'
-    ? (well ? '' : `<button type="button" class="welcome-hero-link" data-choice="brand">${t('Make it yours')}</button>`)
+    ? (well ? '' : `<button type="button" class="welcome-hero-link" data-choice="brand">${t('Open Design System Setup →')}</button>`)
     : `<button type="button" class="welcome-hero-link" data-choice="explore">${t('Explore the tools')}</button>`;
   const file = chosen
     ? `<button type="button" class="welcome-hero-link" data-well-undo${well?.busy ? ' disabled' : ''}>${t('Undo')}</button>`
     : withImport ? `<button type="button" class="welcome-hero-link" data-choice="import">${t('Bring a file')}</button>` : '';
   return `
     ${markSvg()}
-    <h2 class="welcome-hero-title" id="welcome-hero-title">${t('Make the next thing beautiful.')}</h2>
+    <h2 class="welcome-hero-title" id="welcome-hero-title">${t('Make it yours')}</h2>
     <div class="welcome-hero-act${well ? ' welcome-hero-act--well' : ''}">
       ${primary}
       <p class="welcome-hero-more">${(chosen ? [other, file] : [file, other]).filter(Boolean).join('<span class="welcome-hero-dot" aria-hidden="true">·</span>')}</p>${audience === 'demo' && well ? '</span>' : ''}
     </div>
-    <p class="welcome-hero-quiet">${privacyLine(privacy)}${languageMayBeWrong() || langsOpen ? ` ${languageRow(langsOpen)}` : ''}</p>
+    ${languageMayBeWrong() || langsOpen ? `<p class="welcome-hero-quiet">${languageRow(langsOpen)}</p>` : ''}
     <button type="button" class="welcome-hero-close" data-choice="dismiss" aria-label="${t('Close the welcome')}">${icon('close', { size: 18 })}</button>`;
 }
 
@@ -286,9 +275,7 @@ function wireSwipe(card: HTMLElement, dismiss: () => void): void {
 export function showWelcomeHero(
   root: HTMLElement | null,
   opts: {
-    audience: WelcomeAudience; privacy: WelcomePrivacy;
-    /** Acknowledge the privacy notice: every explicit choice does, since the band carries the promise. */
-    ackPrivacy: () => void;
+    audience: WelcomeAudience;
     profileApi?: WebProfileAPI; uploadHost?: PickerHost;
     /** The host a colour chosen on the card is installed through. Without one the card keeps its button to Design System Setup. */
     brandHost?: OneColourHost;
@@ -332,7 +319,7 @@ export function showWelcomeHero(
       releaseGate();
     };
     const paint = (focus?: string): void => {
-      card.innerHTML = heroMarkup(audience, !!opts.uploadHost, langsOpen, opts.privacy, well);
+      card.innerHTML = heroMarkup(audience, !!opts.uploadHost, langsOpen, well);
       if (focus) card.querySelector<HTMLElement>(focus)?.focus({ preventScroll: true });
     };
     paint();
@@ -361,9 +348,8 @@ export function showWelcomeHero(
       releaseGate();
       for (const ev of NAV_EVENTS) window.removeEventListener(ev, onNav);
       document.removeEventListener('keydown', onKey, true);
-      // Every explicit choice settles the welcome, and the band carried the privacy
-      // promise, so each also acknowledges the notice. A route change does neither.
-      if (choice) { markWelcomeDismissed(); opts.ackPrivacy(); }
+      // Every explicit choice settles the welcome. A route change does not.
+      if (choice) markWelcomeDismissed();
       // A choice that stays on the gallery animates away; one that navigates, or a
       // route change, goes at once, since the gallery is leaving too.
       leave(el, choice === 'dismiss' || choice === 'import' || choice === 'explore');
@@ -401,9 +387,6 @@ export function showWelcomeHero(
       paint();
       try {
         const { startFromColour } = await import('../lib/design-system/one-colour.ts');
-        // A colour is an explicit choice made on the card that carries the privacy
-        // promise, so the notice is answered before the gallery repaints under the card.
-        opts.ackPrivacy();
         const result = await startFromColour(opts.brandHost, hex, applied !== null);
         if (!result) {
           // This device already holds a design system of the person's own: the studio is the place to change one.
