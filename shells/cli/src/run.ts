@@ -1873,6 +1873,13 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   const recordLine = designRecordWords(await recordedDesignInFile(new Uint8Array(buf), finalFormat, runtime.lastExportMeta));
   if (recordLine) note(`Recorded the design system: ${recordLine}. Pass --no-madewith to leave the record out.`);
 
+  // What the tool's hooks say about its inputs (engine 1.358), one line per input on
+  // stderr, so piped bytes stay clean. A note, not a warning: the tool drew the file
+  // as asked, and --strict does not fail on these.
+  for (const [inputId, notice] of Object.entries(runtime.getNotices())) {
+    note(`Notice for --${inputId} (${notice.tone}): ${notice.text}`);
+  }
+
   // `--filename=<name>` names the file when no --output was given (contract B6). It is
   // resolved against the working directory, never against the tool or the catalog.
   const destPath = outputPath ?? (filenameFlag ? resolve(process.cwd(), filenameFlag) : null);

@@ -15,6 +15,8 @@ import { isTokenValue, isAlias, aliasPath } from './tokens.ts';
 import type { TokenValue } from './tokens.ts';
 import type { AssetRef, InputFile, TokenSet } from './bridge/host-v1.ts';
 import { parseColor } from './css-color.ts';
+import { INPUT_NOTICE_TONES, INPUT_NOTICE_TEXT_MAX } from '@lolly-tools/core';
+import type { InputNotice, InputNoticeTone } from '@lolly-tools/core';
 import { sha256Hex } from './bytes.ts';
 import { blockColourFields, normaliseDesignColourRefs, reconcileBlockTokenBindings, resolveBlockTokenBindings } from './token-block-bindings.ts';
 
@@ -982,4 +984,56 @@ export function deriveExportFilename(
     if (slug) parts.push(slug);
   }
   return parts.length ? parts.join('-').slice(0, 80).replace(/-+$/, '') : null;
+}
+
+/** The notices in force, keyed by input id. Only inputs that have one appear. */
+export type InputNoticeMap = Readonly<Record<string, InputNotice>>;
+
+const NO_NOTICES: InputNoticeMap = Object.freeze({});
+
+/**
+ * Read the `inputNotices` value of a hook result (v1.358) into the set a shell
+ * shows. A hook is tool code, so everything is checked: an entry for an id the
+ * tool does not declare is left out and listed in `unknown`; an entry that is
+ * not `{ tone, text }` with a known tone and some text is left out and listed in
+ * `invalid`; `null` means no notice. Text is plain text: control characters
+ * become spaces, the ends are trimmed and the rest is cut to
+ * INPUT_NOTICE_TEXT_MAX. Anything but a plain object reads as the empty set.
+ */
+export function readInputNotices(
+  raw: unknown,
+  inputIds: ReadonlySet<string>,
+): { notices: InputNoticeMap; unknown: string[]; invalid: string[] } {
+  const unknown: string[] = [];
+  const invalid: string[] = [];
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return { notices: NO_NOTICES, unknown, invalid };
+  const out: Record<string, InputNotice> = {};
+  let any = false;
+  for (const id of Object.keys(raw as Record<string, unknown>).sort()) {
+    const entry = (raw as Record<string, unknown>)[id];
+    if (entry == null) continue;
+    if (!inputIds.has(id)) { unknown.push(id); continue; }
+    const { tone, text } = (typeof entry === 'object' ? entry : {}) as { tone?: unknown; text?: unknown };
+    if (typeof text !== 'string' || !(INPUT_NOTICE_TONES as readonly unknown[]).includes(tone)) { invalid.push(id); continue; }
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: control characters are what this removes
+    let clean = text.replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]+/g, ' ').trim();
+    if (clean.length > INPUT_NOTICE_TEXT_MAX) {
+      clean = clean.slice(0, INPUT_NOTICE_TEXT_MAX);
+      // Never end on half of a surrogate pair.
+      const last = clean.charCodeAt(clean.length - 1);
+      if (last >= 0xd800 && last <= 0xdbff) clean = clean.slice(0, -1);
+    }
+    if (!clean) { invalid.push(id); continue; }
+    out[id] = Object.freeze({ tone: tone as InputNoticeTone, text: clean });
+    any = true;
+  }
+  return { notices: any ? Object.freeze(out) : NO_NOTICES, unknown, invalid };
+}
+
+/** Whether two notice sets say the same thing. */
+export function sameInputNotices(a: InputNoticeMap, b: InputNoticeMap): boolean {
+  if (a === b) return true;
+  const ka = Object.keys(a);
+  if (ka.length !== Object.keys(b).length) return false;
+  return ka.every(id => b[id] !== undefined && b[id]!.tone === a[id]!.tone && b[id]!.text === a[id]!.text);
 }

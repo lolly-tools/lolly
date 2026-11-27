@@ -45,6 +45,7 @@ import { blockColourFieldHtml, colourInputHtml, paintAutoColours,
 import { helpTip, wireHelpTips, linkHelpDescriptions } from '../components/help-tip.ts';
 import { customSliderHtml, mountCustomSlider, rulerDialFor, SLIDER_DRAG_EVENT } from '../components/custom-slider.ts';
 import { canSkipInputsRebuild, staticInputControl } from './inputs-sync.ts';
+import { applyInputNotices } from './input-notices.ts';
 import { dragTravel } from '../lib/pointer-wrap.ts';
 import { jellyActive, jellyEnabled } from '../lib/jelly.ts';
 import { BANDS, bandMeta, labelledBands, resolveBands, sectionGlyph, type Band } from '../lib/section-bands.ts';
@@ -267,9 +268,10 @@ function syncInputs(
 ): InputModelItem[] {
   if (canSkipInputsRebuild(el, model, prevModel)) {
     patchEditedBlockPreview(el); paintAutoColours(el, runtime); // the tool's colours can move without a rebuild
-    return model;
-  }
-  renderInputs(el, model, runtime, host, onDirty, toolId);
+  } else renderInputs(el, model, runtime, host, onDirty, toolId);
+  // What the tool's hooks say about its inputs (engine 1.358), under each control.
+  // After either path: a notice changes on the keystrokes that skip the rebuild.
+  applyInputNotices(el, runtime.getNotices?.());
   return model;
 }
 

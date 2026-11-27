@@ -3,8 +3,8 @@
   "name": "QR Code",
   "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 - plus retail and logistics barcodes from EAN-13 to MaxiCode.",
   "a11yLabel": "{{#if (eq mode \"scan\")}}{{default a11yScan \"Code reader\"}}{{else}}Scannable code holding {{default qrSummary \"nothing yet\"}}{{/if}}",
-  "version": "2.11.0",
-  "engineVersion": "^1.356.0",
+  "version": "2.12.0",
+  "engineVersion": "^1.358.0",
   "status": "official",
   "category": "everyone",
   "tags": [

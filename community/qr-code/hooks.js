@@ -375,27 +375,35 @@ function _qbContrast(c1, c2) {
   return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
 }
 // o: { fg, bg, eyeColor, gradStops, padding, hasLogo, logoScale, ecl }
-function _qbScanWarnings(o) {
+// Each check answers with the input that causes it, so the shell can show the line
+// under that control (inputNotices) and the user fixes it where it is.
+function _qbScanChecks(o) {
   var w = [];
   var bg = o.bg || '#ffffff';
   // Contrast: the WEAKEST ink (a gradient's lightest stop, or the eye colour) vs bg.
-  var inks = [o.fg];
-  if (o.eyeColor && String(o.eyeColor) !== '') inks.push(o.eyeColor);
-  if (o.gradStops && o.gradStops.length) inks = inks.concat(o.gradStops);
-  var minC = Infinity;
-  for (var i = 0; i < inks.length; i++) { var cr = _qbContrast(inks[i], bg); if (cr != null && cr < minC) minC = cr; }
+  var inks = [{ c: o.fg, input: 'color', what: 'the modules' }];
+  if (o.eyeColor && String(o.eyeColor) !== '') inks.push({ c: o.eyeColor, input: 'eyeColor', what: 'the eyes' });
+  // The first stop of a ramp is the module colour. Every later stop comes from the second colour.
+  if (o.gradStops && o.gradStops.length) {
+    for (var g = 1; g < o.gradStops.length; g++) inks.push({ c: o.gradStops[g], input: 'color2', what: 'the second colour' });
+  }
+  var minC = Infinity, weakest = inks[0];
+  for (var i = 0; i < inks.length; i++) {
+    var cr = _qbContrast(inks[i].c, bg);
+    if (cr != null && cr < minC) { minC = cr; weakest = inks[i]; }
+  }
   if (minC < 3 && minC !== Infinity) {
-    w.push('Low contrast (' + minC.toFixed(1) + ':1). Scanners need at least 3:1: darken the modules or lighten the background.');
+    w.push({ input: weakest.input, text: 'Low contrast (' + minC.toFixed(1) + ':1). Scanners need at least 3:1: darken ' + weakest.what + ' or lighten the background.' });
   }
   // Polarity: scanners expect dark modules on a light field.
   var fgRgb = _qbHexToRgb(o.fg), bgRgb = _qbHexToRgb(bg);
   if (fgRgb && bgRgb && _qbLum(fgRgb) > _qbLum(bgRgb)) {
-    w.push('The modules are lighter than the background. Most scanners expect dark on light: swap the two colours.');
+    w.push({ input: 'background', text: 'The modules are lighter than the background. Most scanners expect dark on light: swap the two colours.' });
   }
   // Quiet zone.
   var pad = Number(o.padding);
   if (Number.isFinite(pad) && pad < 4) {
-    w.push('Quiet zone is ' + pad + ' module' + (pad === 1 ? '' : 's') + '. Keep at least 4 clear modules around the code.');
+    w.push({ input: 'padding', text: 'Quiet zone is ' + pad + ' module' + (pad === 1 ? '' : 's') + '. Keep at least 4 clear modules around the code.' });
   }
   // Logo occlusion vs the error-correction budget (ecl already raised to H when a logo is set).
   if (o.hasLogo) {
@@ -406,11 +414,33 @@ function _qbScanWarnings(o) {
     var area = frac * frac;                       // centred square footprint
     var budget = ({ L: 0.07, M: 0.15, Q: 0.25, H: 0.30 })[o.ecl] || 0.30;
     if (area > budget * 0.8) {
-      w.push('The logo covers about ' + Math.round(area * 100) + '% of the code, near the ' + Math.round(budget * 100)
-        + '% that error correction can recover. Shrink the logo if the code stops scanning.');
+      w.push({ input: 'logoScale', text: 'The logo covers about ' + Math.round(area * 100) + '% of the code, near the ' + Math.round(budget * 100)
+        + '% that error correction can recover. Shrink the logo if the code stops scanning.' });
     }
   }
   return w;
+}
+function _qbScanWarnings(o) {
+  return _qbScanChecks(o).map(function (c) { return c.text; });
+}
+// The checks as the shell's input notices: one line under the input that causes it.
+function _qbScanNotices(checks) {
+  var out = {};
+  for (var i = 0; i < checks.length; i++) {
+    if (!out[checks[i].input]) out[checks[i].input] = { tone: 'warning', text: checks[i].text };
+  }
+  return out;
+}
+// A failed test read has no measured cause, so its line goes under the styling most
+// likely to have caused the miss: the logo, then the module shape, then whatever
+// else makes the code a branded one.
+var _QB_READ_FAILED = 'A test read of this code came back empty. Reduce the logo, raise the contrast or simplify the module shape.';
+function _qbReadFailInput(args) {
+  if (args._logoUrl) return 'logoScale';
+  if (_qbShape(args.moduleShape) !== 'square') return 'moduleShape';
+  if (_qbEyeShape(args.eyeShape) !== 'square') return 'eyeShape';
+  if (args.fill === 'gradient' || args.fill === 'mix') return 'fill';
+  return 'frame';
 }
 
 // ─── Live scannability check (plans/162 Part 3, WP-K2) ───────────────────────
@@ -1156,7 +1186,7 @@ function compute(args, host) {
   var eclRaised = hasLogo && eclInput !== 'H';
 
   // Scannability guardrail (WP-K1): pure checks over the styling that just ran.
-  var scanWarnings = _qbScanWarnings({
+  var scanChecks = _qbScanChecks({
     fg: fg,
     bg: _transparentBg ? '#ffffff' : bg,
     eyeColor: eyeColor,
@@ -1167,6 +1197,7 @@ function compute(args, host) {
     logoPad: args.logoPad,
     ecl: eclEff,
   });
+  var scanWarnings = scanChecks.map(function (c) { return c.text; });
 
   var result;
   if (!content) {
@@ -1211,6 +1242,7 @@ function compute(args, host) {
         qrEclRaised: eclRaised,   // WP-I - "raised to H for the logo", for the guardrail
         qrWarnings: scanWarnings, // WP-K1 - pure scannability warnings (editor-only)
         qrHasWarnings: scanWarnings.length > 0,
+        inputNotices: _qbScanNotices(scanChecks), // shown by the shell under each input, never drawn
       };
       if (args._motion) { result.qrMotion = true; result.qrPlayLabel = _QB_PLAY_LABEL; }
     } catch (err) {
@@ -2319,14 +2351,14 @@ async function _qbReadMotion(host) {
   };
 }
 
-// The alert colours for the warnings the stylesheet draws, when the system gave them.
+// The alert colours for the panels the stylesheet draws, when the system gave them.
 // A hook's result is laid over the last one, so a flag a result leaves out would keep
-// its old value: a fixed warning would leave an empty list behind, and a barcode would
-// keep the replay button of the QR code before. Each flag the template reads is
-// therefore stated on every result.
-var _QB_FLAGS = { qrNotes: false, qrListed: false, qrMotion: false, qrHasWarnings: false, qrLiveScanFail: false, scanMiss: false };
+// its old value: a barcode would keep the replay button of the QR code before. Each
+// flag the template reads is therefore stated on every result. The input notices are
+// stated the same way, so a fixed warning, a barcode and scan mode all clear them.
+var _QB_FLAGS = { qrNotes: false, qrMotion: false, qrHasWarnings: false, qrLiveScanFail: false, scanMiss: false };
 function _qbWithAlert(result) {
-  return result ? Object.assign({}, _QB_FLAGS, result, { qrAlertStyle: _qbAlert.css }) : result;
+  return result ? Object.assign({}, _QB_FLAGS, { inputNotices: {} }, result, { qrAlertStyle: _qbAlert.css }) : result;
 }
 
 // ═══ Scan mode (moved from community/scan-code) ═══════════════════════════════
@@ -2933,12 +2965,12 @@ async function _runMake(args, host) {
       var live = await _qbLiveScan(result.svgContent, result.qrPayload, host);
       if (live) {
         result = Object.assign({}, result, { qrLiveScan: live, qrLiveScanFail: live === 'fail' });
+        if (live === 'fail') {
+          var notices = Object.assign({}, result.inputNotices);
+          notices[_qbReadFailInput(args)] = { tone: 'error', text: _QB_READ_FAILED };
+          result = Object.assign({}, result, { inputNotices: notices });
+        }
       }
-    }
-    // What the editor says under the canvas: one list of warnings and the replay
-    // button. The failed test read is one more line of that list.
-    if (result && (result.qrHasWarnings || result.qrLiveScanFail)) {
-      result = Object.assign({}, result, { qrNotes: true, qrListed: true });
     }
     return result;
   } catch (err) {

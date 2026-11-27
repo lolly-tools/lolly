@@ -128,22 +128,21 @@
 {{else}}
 {{{svgContent}}}
 {{#if qrNotes}}
-<div class="qr-notes" data-export-hide{{#if qrAlertStyle}} style="{{qrAlertStyle}}"{{/if}}>
+<div class="qr-notes" data-export-hide>
   {{#if qrMotion}}
   <button type="button" class="qr-play">{{qrPlayLabel}}</button>
-  {{/if}}
-  {{#if qrListed}}
-  <ul class="qr-warn" role="status" aria-label="Scannability">{{#each qrWarnings}}<li>{{this}}</li>{{/each}}{{#if qrLiveScanFail}}<li>A test read of this code came back empty. Reduce the logo, raise the contrast or simplify the module shape.</li>{{/if}}</ul>
   {{/if}}
 </div>
 <script>
 (function () {
-  /* The notes hang under the canvas at screen size, outside the artwork. The canvas
-     and its frame clip what leaves them, so both are opened while notes are on show
-     and closed again when the notes go. Where the stage has no room under the canvas
-     the fit is asked for a band at the foot, as the shell's own stage chrome asks.
-     Elsewhere (a gallery cover, a batch row, another shell) this does not run and the
-     notes stay hidden. An export removes the block and this script. */
+  /* The replay button hangs under the canvas at screen size, outside the artwork. The
+     canvas and its frame clip what leaves them, so both are opened while the button is
+     on show and closed again when Motion is switched off. Where the stage has no room
+     under the canvas the fit is asked for a band at the foot, as the shell's own stage
+     chrome asks. Elsewhere (a gallery cover, a batch row, another shell) this does not
+     run and the button stays hidden. An export removes the block and this script.
+     Scannability warnings are not drawn here: the shell shows each one under the input
+     that causes it (inputNotices), so the canvas keeps its size. */
   var cs = document.currentScript;
   var canvas = cs && cs.parentNode;
   if (!canvas || canvas.id !== 'tool-canvas') return;

@@ -39,6 +39,7 @@ import { createProfileControl } from '../../components/profile-menu.ts';
 import { addFallbackSlots } from '../../lib/fallback-slots.ts';
 import { mountScopedStyle, releaseLeavingStyles, removeStyleWithMarkup } from '../../lib/scope-css.ts';
 import { flickDirection, setupMobileSheet } from '../../lib/mobile-sheet.ts';
+import { mountSheetNoticeChip } from '../sheet-notice-chip.ts';
 import { wireExportPanelFloat } from '../../lib/export-panel-float.ts';
 import { dockedFullCount, isDocked, releaseDock } from '../../lib/edge-dock.ts';
 import { playSfx } from '../../lib/sfx.ts';
@@ -1077,11 +1078,13 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     // most of the screen - re-fit there so the canvas grows into the freed space.
     // fitCanvas no-ops if the user has zoomed/panned, so this only fires at Fit.
     // Wait out the 0.34s height settle so it measures the final sheet position.
-    setupMobileSheet(layout, sidebarEl, sheetGrip, {
+    const sheet = setupMobileSheet(layout, sidebarEl, sheetGrip, {
       onChange: (snap) => {
         if (snap === 'peek') setTimeout(tview.stageLayout.fitCanvas, 360);
       },
     });
+    // A warning under an input the sheet is not showing gets one chip on the sheet's edge.
+    mountSheetNoticeChip({ layout, sidebar: sidebarEl, sheet });
   }
 
   // Collapse the export/actions panel behind a "Render" button on BOTH mobile and

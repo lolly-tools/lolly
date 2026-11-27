@@ -1,17 +1,16 @@
-/* Editor-only notes under the canvas: one list of scannability warnings and the
-   button that replays the motion. The block carries data-export-hide, so it never
-   reaches a file (the CLI's root SVG rule skips it and the web export detaches it).
-   It hangs below the artwork, never over the code: the template's script opens the
-   canvas frame for it and marks it data-foot, and until then it draws nothing. Sizes
-   are divided by the canvas's on-screen scale, so the text stays at screen size. The
-   look is the tool sidebar's (--ui-*), with the design system's own values where
-   another shell has none. */
+/* Editor-only: the button that replays the motion, under the canvas. The block
+   carries data-export-hide, so it never reaches a file (the CLI's root SVG rule skips
+   it and the web export detaches it). It hangs below the artwork, never over the
+   code: the template's script opens the canvas frame for it and marks it data-foot,
+   and until then it draws nothing. Sizes are divided by the canvas's on-screen scale,
+   so the text stays at screen size. The look is the tool sidebar's (--ui-*), with the
+   design system's own values where another shell has none. Scannability warnings are
+   not here: the shell shows each under its input. */
 
 .qr-notes { display: none; }
 
 .qr-notes[data-foot] {
-  /* As wide as the canvas looks, and never narrower than a readable line: on a phone
-     the canvas is small and the notes may be wider than the code above them. */
+  /* As wide as the canvas looks, and never narrower than the button needs. */
   --qr-foot-w: max(calc(100% * var(--lolly-stage-scale, 1)), 320px);
   position: absolute;
   top: 100%;
@@ -26,19 +25,6 @@
   align-items: flex-start;
   gap: 8px;
   font: var(--ui-type-caption, 12px)/1.45 var(--ui-type-ui-family, var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif));
-}
-
-/* One quiet list in the alert ink, with no card. The shell's own alert colour reads
-   on the stage under the canvas. The design system's alert ink stands in elsewhere. */
-.qr-warn {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: var(--ui-color-status-danger, var(--qr-alert-ink, #7a1f12));
-}
-
-.qr-warn li + li {
-  margin-top: 4px;
 }
 
 /* Replays the motion in the preview. Never part of a file. */

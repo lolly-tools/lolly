@@ -61,6 +61,31 @@ When a hook overruns, the runtime applies nothing at first, but the hook keeps r
 
 `onInput` also gets `id` and `value`, the input that changed. Four reserved ids mark runs the runtime starts itself: `'__view'` (a view change, below), `'__tokens'` (a theme or colourway change, below), `'__canvasSize'` (a change of canvas size, below) and `'__emoji'`, which runs when the emoji set changes for a tool that drew emoji itself through `host.emoji.renderSvg`, `host.emoji.renderText` or `host.text.layoutRuns`.
 
+### Put a message under an input
+
+A hook can tell the person something about one input: the contrast is too low, the quiet zone is too small. The result carries the reserved key `inputNotices` (engine v1.358), and the shell shows each message under the control that causes the problem, so the artwork stays free of warnings.
+
+```js
+function onInput({ model }) {
+  const v = Object.fromEntries(model.map((i) => [i.id, i.value]));
+  return {
+    inputNotices: {
+      padding: v.padding < 4 ? { tone: 'warning', text: 'Keep at least 4 clear modules around the code.' } : null,
+    },
+  };
+}
+```
+
+- **Shape.** One entry per input id: `{ tone, text }`, with `tone` one of `info`, `warning` or `error`. `null`, or no entry, means that input has no notice.
+- **Replace or keep.** A result that carries `inputNotices` replaces the whole set, so `{ inputNotices: {} }` clears every notice. A result without the key leaves the notices as they were. A hook with several return paths should state the key on each path, or a fixed problem keeps its message.
+- **Plain text.** The text is shown as text, never as markup. Line breaks become spaces and anything past 240 characters is cut.
+- **Unknown ids.** An entry for an id the tool does not declare, or an entry of the wrong shape, is left out and logged once.
+- **Budgets.** Notices follow the patch they arrive in: a late `onInit` or `onInput` result still sets them unless a newer run has started, and `report()` may carry them.
+- **Where they go.** Nowhere but the screen. A notice is not an input value and not an extra: the template cannot print one, and none travels in a link, a session, an export, a credential or a `.lolly` file.
+- **Reserved id.** No input may have the id `inputNotices`. A manifest that declares one is refused.
+
+The web app draws the line under the control, reads the text out as the control's description and marks a folded section that holds a notice with a dot. The command line prints one line per notice on stderr after a render. A tool that relies on the key declares `"engineVersion": "^1.358.0"`; an older shell would treat the key as an ordinary extra and show nothing.
+
 <!--i:eti-palette-->
 ## Reacting to the view and the design system
 

@@ -63,6 +63,11 @@ export type { CssBlendMode, RasterLayer, LayeredRasterDoc, InflateFn } from './r
 export { resolveRender, renderWhenMatches, RENDER_WHEN_KEYS } from './render-when.ts';
 export { buildInputModel, summarizeInputs, CREDENTIAL_READABLE_TYPES, normalizeTableValue, deriveExportFilename, matchesShowIf, tokenRestoreRefsOf, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export type { TableValue, TableColumnEditor, ShowIf, InputWriteOptions } from './inputs.ts';
+// Input notices (v1.358): a hook result's `inputNotices` key, shown under the input by the shell.
+export { readInputNotices, sameInputNotices } from './inputs.ts';
+export type { InputNoticeMap } from './inputs.ts';
+export { INPUT_NOTICES_KEY, INPUT_NOTICE_TONES, INPUT_NOTICE_TEXT_MAX } from '@lolly-tools/core';
+export type { InputNotice, InputNotices, InputNoticeTone } from '@lolly-tools/core';
 export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams, parseSpots, parseTextSetting, parsePartnerKitParam, formatPartnerKitParam, readPartnerKitAttachment } from './url-mode.ts';
 // The `s=` state address + the still-export frame filter both shells apply (plan 112).
 export { parseFrameAddress, selectFramePage, frameFilterApplies } from './frame-address.ts';
