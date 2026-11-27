@@ -9,32 +9,31 @@
       <polygon points="{{scanCorners}}" class="sc-vf__quad"/>
     </svg>
     <div class="sc-vf__reticle" aria-hidden="true"></div>
+    {{#if scanEmpty}}<span class="sc-vf__label">Hold a code in the frame</span>{{/if}}
     {{else}}
-    <div class="sc-viewfinder__frame">
       {{#if scanCameraReady}}
-      <span class="sc-viewfinder__hint">Point the camera at a code and hold it in the frame. If it doesn't start, tap here.</span>
+      <span class="sc-start">
+        <svg class="sc-start__glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        <span>Start camera</span>
+      </span>
       {{else}}
-      <span class="sc-viewfinder__hint">This connection can't open the camera - a phone needs a secure (https) address. Switch Source to <strong>Image</strong> or <strong>Text</strong> to scan without it.</span>
+      <span class="sc-vf__label sc-vf__label--centre">The camera needs a secure (https) address. Scan an <strong>Image</strong> or <strong>Text</strong> instead.</span>
       {{/if}}
-    </div>
     {{/if}}
   </div>
   {{/if}}
 
   {{#if scanNotice}}
-  <div class="sc-warn" role="status">{{scanNotice}}</div>
+  <p class="sc-note sc-note--alert" role="status">{{scanNotice}}</p>
   {{/if}}
 
   {{#if scanEmpty}}
-    <div class="sc-empty">
-      {{#if (eq source "paste")}}Paste a code's text in Code text to inspect it.{{/if}}
-      {{#if (eq source "image")}}Choose an image containing a code.{{/if}}
-      {{#if (eq source "camera")}}Nothing decoded yet - hold a code in view.{{/if}}
-    </div>
+    {{#if (eq source "paste")}}<p class="sc-note">Paste a code's text in Code text.</p>{{/if}}
+    {{#if (eq source "image")}}<p class="sc-note"{{#if scanMiss}} role="status"{{/if}}>{{#if scanMiss}}No code found in this image.{{else}}Choose an image that holds a code.{{/if}}</p>{{/if}}
   {{else}}
     <div class="sc-result" data-kind="{{scanKind}}">
       <div class="sc-result__head">
-        <span class="sc-badge">{{scanLabel}}</span>
+        <span class="sc-kind">{{scanLabel}}</span>
         {{#if scanFormat}}<span class="sc-fmt">{{scanFormat}}</span>{{/if}}
       </div>
 
@@ -129,26 +128,88 @@
 {{else}}
 {{{svgContent}}}
 {{#if qrNotes}}
-<div class="qr-notes" data-export-hide>
-  {{#if qrHasWarnings}}
-  <div class="qr-scan-warn" role="status"{{#if qrAlertStyle}} style="{{qrAlertStyle}}"{{/if}}>
-    <span class="qr-scan-warn__h">⚠ Scannability</span>
-    <ul>{{#each qrWarnings}}<li>{{this}}</li>{{/each}}</ul>
-  </div>
-  {{/if}}
-  {{#if qrLiveScanFail}}
-  <div class="qr-scan-warn qr-scan-warn--live" role="status"{{#if qrAlertStyle}} style="{{qrAlertStyle}}"{{/if}}>
-    <span class="qr-scan-warn__h">⚠ This styling may not scan</span>
-    <p>A test decode of the rendered code came back empty. Reduce the logo, raise contrast, or simplify the module shape.</p>
-  </div>
-  {{/if}}
-  {{#if qrEclRaised}}
-  <p class="qr-scan-info" role="status">Error correction was raised to High automatically so the logo stays scannable.</p>
-  {{/if}}
+<div class="qr-notes" data-export-hide{{#if qrAlertStyle}} style="{{qrAlertStyle}}"{{/if}}>
   {{#if qrMotion}}
   <button type="button" class="qr-play">{{qrPlayLabel}}</button>
   {{/if}}
+  {{#if qrListed}}
+  <ul class="qr-warn" role="status" aria-label="Scannability">{{#each qrWarnings}}<li>{{this}}</li>{{/each}}{{#if qrLiveScanFail}}<li>A test read of this code came back empty. Reduce the logo, raise the contrast or simplify the module shape.</li>{{/if}}</ul>
+  {{/if}}
 </div>
+<script>
+(function () {
+  /* The notes hang under the canvas at screen size, outside the artwork. The canvas
+     and its frame clip what leaves them, so both are opened while notes are on show
+     and closed again when the notes go. Where the stage has no room under the canvas
+     the fit is asked for a band at the foot, as the shell's own stage chrome asks.
+     Elsewhere (a gallery cover, a batch row, another shell) this does not run and the
+     notes stay hidden. An export removes the block and this script. */
+  var cs = document.currentScript;
+  var canvas = cs && cs.parentNode;
+  if (!canvas || canvas.id !== 'tool-canvas') return;
+  var outer = canvas.parentElement;
+  var stage = outer && outer.parentElement;
+  if (!stage || typeof stage.getBoundingClientRect !== 'function') return;
+  var BAND = '--stage-reserve-bottom';
+  /* What the fit keeps clear at the foot without the notes, once a band is asked for.
+     A repaint hands the number to the next run of this script, so the band stays put. */
+  var kept = canvas.__qrFootOff ? canvas.__qrFootOff(true) : -1;
+  var queued = 0;
+  var mo = null;
+  var ro = null;
+  function band(px) {
+    var value = px ? px + 'px' : '';
+    if (stage.style.getPropertyValue(BAND) === value) return;
+    if (value) stage.style.setProperty(BAND, value); else stage.style.removeProperty(BAND);
+    canvas.dispatchEvent(new Event('canvas-resize'));
+  }
+  function off(handOver) {
+    var was = kept;
+    if (mo) mo.disconnect();
+    if (ro) ro.disconnect();
+    if (queued) cancelAnimationFrame(queued);
+    canvas.__qrFootOff = null;
+    if (handOver === true) return was;
+    canvas.style.overflow = '';
+    outer.style.overflow = '';
+    kept = -1;
+    band(0);
+    return -1;
+  }
+  function place(measureAgain) {
+    queued = 0;
+    var notes = canvas.querySelector('.qr-notes');
+    if (!notes) { off(); return; }
+    notes.setAttribute('data-foot', '');
+    canvas.style.overflow = 'visible';
+    outer.style.overflow = 'visible';
+    if (measureAgain) { kept = -1; band(0); }
+    if (kept < 0) {
+      var foot = parseFloat(outer.style.marginBottom) || 0;
+      var free = stage.getBoundingClientRect().bottom - outer.getBoundingClientRect().bottom - foot;
+      if (free >= Math.ceil(notes.getBoundingClientRect().height) + 6) return;
+      kept = foot;
+    }
+    /* A narrower canvas wraps the notes onto more lines, so measure after each fit. */
+    for (var i = 0; i < 3; i++) band(kept + Math.ceil(notes.getBoundingClientRect().height) + 6);
+  }
+  function soon(measureAgain) {
+    if (queued) cancelAnimationFrame(queued);
+    queued = requestAnimationFrame(function () { place(measureAgain); });
+  }
+  if (typeof MutationObserver === 'function') {
+    mo = new MutationObserver(function () { soon(false); });
+    mo.observe(canvas, { childList: true, subtree: true, characterData: true });
+  }
+  if (typeof ResizeObserver === 'function') {
+    var first = true;
+    ro = new ResizeObserver(function () { if (first) { first = false; return; } soon(true); });
+    ro.observe(stage);
+  }
+  canvas.__qrFootOff = off;
+  place(false);
+})();
+</script>
 {{/if}}
 {{#if qrMotion}}
 <script>

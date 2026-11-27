@@ -151,8 +151,35 @@ test('the page shows the replay button and the clock only with motion on', async
   const still = await page({});
   assert.doesNotMatch(still, /qr-play|__lollyFrameRender|qr-notes/);
   // The button and the warnings sit in one block no export reads.
-  assert.match(template, /<div class="qr-notes" data-export-hide>/);
-  assert.match(await page({ padding: 1 }), /<div class="qr-notes" data-export-hide>\s*<div class="qr-scan-warn" role="status">/);
+  assert.match(template, /<div class="qr-notes" data-export-hide[{>]/);
+  assert.match(await page({ padding: 1 }), /<div class="qr-notes" data-export-hide>\s*<ul class="qr-warn" role="status" aria-label="Scannability"><li>Quiet zone is 1 module\./);
+});
+
+test('the warnings are one list under the canvas, said once', async () => {
+  const warned = await page({ padding: 1, color: '#ffffff', background: '#222222' });
+  assert.equal(warned.match(/role="status"/g)?.length, 1, 'one live region');
+  assert.equal(warned.match(/<li>/g)?.length, 2, 'each warning is one line of that list');
+  assert.doesNotMatch(warned, /qr-scan-warn|qr-scan-info|Error correction was raised/);
+  // With motion on, the replay button stands with the list.
+  assert.match(await page({ padding: 1, motion: 'rings' }), /class="qr-play">Play motion<\/button>\s*<ul class="qr-warn"/);
+  // The script that hangs the notes under the canvas goes with them and with nothing else.
+  assert.match(warned, /data-foot/);
+  assert.doesNotMatch(await page({}), /data-foot|qr-warn/);
+  // The stylesheet draws nothing over the code: the notes show only once they hang below.
+  const css = await read('qr-code/styles.css');
+  assert.match(css, /\.qr-notes \{ display: none; \}/);
+  assert.match(css, /\.qr-notes\[data-foot\] \{[^}]*top: 100%;/);
+});
+
+test('the reader shows no result panel before a result', async () => {
+  for (const source of ['camera', 'image', 'paste']) {
+    const idle = await page({ mode: 'scan', source });
+    assert.doesNotMatch(idle, /sc-result|sc-empty|Nothing decoded/, source);
+  }
+  const found = await page({ mode: 'scan', source: 'paste', scanText: 'https://lolly.tools' });
+  assert.equal(found.match(/class="sc-result"/g)?.length, 1);
+  assert.match(found, /data-copy="https:\/\/lolly\.tools">Copy<\/button>/);
+  assert.match(found, /data-open>Open link/);
 });
 
 test('Motion is the last input and it alone offers the clip formats', () => {
@@ -175,7 +202,7 @@ test('Motion is the last input and it alone offers the clip formats', () => {
   assert.deepEqual([...driver.formats.rings!].sort(), [...tool.manifest.render.formats].sort());
 });
 
-test('the error panel and the warning cards take the alert roles, measured', async () => {
+test('the error panel and the warnings take the alert roles, measured', async () => {
   const plain = await svg({ payload: 'text', text: 'x'.repeat(3200) });
   assert.match(plain, /fill="#fff5f5"/, 'with no design system the panel is what it always was');
   assert.match(plain, /fill="#bd3314">QR code unavailable/);
@@ -192,8 +219,8 @@ test('the error panel and the warning cards take the alert roles, measured', asy
       assert.doesNotMatch(panel, /#fff5f5|#bd3314/);
     }
     const warned = await page({ padding: 1 }, host);
-    const style = /class="qr-scan-warn" role="status" style="([^"]+)"/.exec(warned)?.[1];
-    assert.ok(style, 'the warning card carries the roles');
+    const style = /class="qr-notes" data-export-hide style="([^"]+)"/.exec(warned)?.[1];
+    assert.ok(style, 'the notes carry the roles');
     const vars = Object.fromEntries(style.split(';').map(p => p.split(':')) as [string, string][]);
     assert.equal(vars['--qr-alert-card'], card);
     assert.ok(contrast(vars['--qr-alert-ink']!, card) >= 4.5 || vars['--qr-alert-ink'] !== ink, 'small type is the alert ink only where that reads');
@@ -257,6 +284,7 @@ test('the scan check draws the code itself where the shell refuses to rasterise'
   const failed = await wrong.onInit({ model: model({ url: LINK, moduleShape: 'dot' }), host: { ...host, scan: { detect: async () => [] } } });
   assert.equal(failed.qrLiveScanFail, true);
   assert.equal(failed.qrNotes, true);
+  assert.equal(failed.qrListed, true, 'the failed read is a line of the one list');
 });
 
 test('the hooks touch nothing a Worker lacks', () => {
