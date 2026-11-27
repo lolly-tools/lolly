@@ -34,6 +34,14 @@ export const previewSeams = {
   store: async (key: string, picture: import('../bridge/preview-store.ts').PreparedPicture): Promise<string> => (await import('./preview-cache.ts')).storePreview(key, picture),
   render: async (...args: Parameters<typeof import('./preview-render.ts').renderLookPicture>) => (await import('./preview-render.ts')).renderLookPicture(...args),
   empty: async (): Promise<boolean> => (await import('./preview-cache.ts')).previewCacheEmpty(),
+  /** The formats this look can export: the tool's list narrowed by the look's own values
+   *  (lib/export-format-driver.ts). A tool that cannot be read keeps the list given. */
+  formats: async (toolId: string, values: Record<string, unknown>, formats: readonly string[] | undefined): Promise<readonly string[] | undefined> => {
+    try {
+      const [{ getTool }, { formatsForValues }] = await Promise.all([import('../bridge/tool-loader.ts'), import('./export-format-driver.ts')]);
+      return formatsForValues((await getTool(toolId)).manifest, values, formats);
+    } catch { return formats; }
+  },
 };
 
 /** Whether the preview store held no look at all when the gallery last mounted. */
@@ -114,12 +122,16 @@ export async function renderFeaturedVariant(
     const vw = Number((values as { width?: unknown }).width);
     const vh = Number((values as { height?: unknown }).height);
     const opts = { tokenSelection: tokenSelection ?? undefined, previewTimeMs, recipe: key, ...(vw > 0 && vh > 0 ? { width: vw, height: vh } : {}) };
+    // A look is drawn in a format it can export. Gradient lists SVG, but its Field
+    // method is raster only: walked as SVG, every Field look came out as the same wash.
+    const own = await previewSeams.formats(toolId, values, formats);
+    const format = displayFormatOf(own) ?? primary;
     let picture: PreparedPicture;
     try {
-      picture = await previewSeams.render(host, toolId, primary, values, opts);
+      picture = await previewSeams.render(host, toolId, format, values, opts);
     } catch (e) {
-      const raster = rasterFormatOf(formats);
-      if (primary !== 'svg' || !raster || raster === primary) throw e;
+      const raster = rasterFormatOf(own);
+      if (format !== 'svg' || !raster || raster === format) throw e;
       picture = await previewSeams.render(host, toolId, raster, values, opts);
     }
     // The brand changed while this rendered: the picture belongs to the old one.

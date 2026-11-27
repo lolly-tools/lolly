@@ -247,7 +247,7 @@
    }
   },
   "gradient": {
-   "version": "1.4.0",
+   "version": "1.4.1",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/gradient.light.webp"

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-27T04:57:39.950Z",
+  "generatedAt": "2026-11-27T08:50:17.352Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -9530,7 +9530,7 @@
       "id": "gradient",
       "name": "Gradient",
       "description": "Six ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp, Flow and Field, which has sixteen GPU effects. Export stills or video loops.",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "status": "official",
       "category": "everyone",
       "tags": [
