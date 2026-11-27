@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.358.0', () => {
+test('ENGINE_VERSION is 1.359.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -631,7 +631,8 @@ test('ENGINE_VERSION is 1.358.0', () => {
   // 1.356.0 adds render.when: export, webPreview and actions that follow one input's value. Capture is unchanged.
   // 1.357.0 lets a glTF model in 3D Studio play a baked animation clip. Capture is unchanged.
   // 1.358.0 lets a hook put a message under an input (inputNotices). Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.358.0');
+  // 1.359.0 lets a 3D Studio camera leg follow a design system curve or spring. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.359.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

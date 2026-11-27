@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.359.0
+
+- A 3D Studio camera leg can follow the design system's motion tokens. `cameraEase` takes five more values beside `smooth`, `flow` and `linear`: `standard`, `emphasised` and `exit` ease each leg on `motion.curve.<name>`, and `gentle` and `bouncy` on `motion.spring.<name>`. `studioCameraPose` evaluates them through `kfEaseAt`, the evaluator Sequence keyframes use, so a shell that has installed the system's tokens with `setKfEaseTokens` plays the live value and any other host plays the fixed value in `STUDIO_SYSTEM_EASES` (the Lolly Demo curves and springs). A spring runs in real time over the leg's own length, so on a long leg the camera arrives early and holds the key; every value is held inside the range a saved key takes, because a spring passes its key before it settles. `STUDIO_CAMERA_EASES` lists the eight values and `StudioSceneV1.cameraMotion.ease` admits them.
+- `smooth`, `flow` and `linear` evaluate exactly as before, so a recipe that does not ask for a new value draws the same frames.
+
 ## 1.358.0
 
 - Input notices: a hook can put a message under an input. A hook result may carry the reserved key `inputNotices`, `{ [inputId]: { tone: 'info' | 'warning' | 'error', text } | null }`. A result that carries the key replaces the whole set (`{}` clears every notice) and a result without the key leaves the set as it was, the rule an omitted extra already follows. The key is read from every patch the runtime merges, so a late `onInit` or `onInput` result, a `report()` and a Worker-run hook all carry notices under the rules their patches already follow; the hook-worker protocol is unchanged because the patch crosses whole.
