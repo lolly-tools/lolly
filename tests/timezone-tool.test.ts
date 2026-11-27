@@ -327,32 +327,42 @@ describe('Timezone tool', () => {
     assert.doesNotMatch(empty.svg, /data-svg-motion/);
     assert.equal(empty.runtime.getHydratedString('{{tzClipMs}}'), '0', 'nothing to deal in, so no clip');
   });
-  it('draws the design system theme on the system surface with readable ink and its warning colours', async () => {
+  it('keeps the design system theme on its accent ground, with readable ink and the system warning colours', async () => {
     const light: Record<string, string> = {
       '{color.semantic.primary}': '#033633', '{color.semantic.surface}': '#fbfdf7', '{color.semantic.text}': '#0b1f1d',
       '{color.role.alert-ink}': '#a3381f', '{color.role.alert-tint}': '#f2a03d',
     };
     const hostOf = (map: Record<string, string>) => baseHost({ tokens: { resolve: async (ref: string) => map[ref] ?? null, colors: async () => [] } });
     const rows = { locations: [{ place: 'London, GB' }, { place: 'San Francisco, US' }], eventTime: '2026-06-10T07:00', showHourQuality: true };
+    const ground = (svg: string) => /<rect width="1440" height="1080" fill="(#[0-9a-f]{6})"\/>/.exec(svg)?.[1];
+    const lum = (c: string) => [1, 3, 5].reduce((n, i, k) => { const v = parseInt(c.slice(i, i + 2), 16) / 255; return n + (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4) * [0.2126, 0.7152, 0.0722][k]!; }, 0);
+    const ratio = (a: string, b: string) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
+
+    // The ground is the accent mixed as the theme always mixed, whatever the surface token is.
     const brand = await run({ ...rows, theme: 'brand' }, hostOf(light));
-    assert.match(brand.svg, /<rect width="1440" height="1080" fill="#fbfdf7"\/>/, 'the ground is the surface token');
-    assert.match(brand.svg, /fill="#0b1f1d"/, 'the ink is the text token');
-    assert.match(brand.svg, /#a3381f/, 'a night hour takes the warning ink');
+    const plain = await run({ ...rows, theme: 'brand', showHourQuality: false }, hostOf({ '{color.semantic.primary}': '#033633' }));
+    const bg = ground(brand.svg)!;
+    assert.equal(bg, ground(plain.svg));
+    assert.notEqual(bg, '#fbfdf7');
+    assert.match(brand.svg, /fill="#f3f4ee"/, 'a dark text token gives way to the light ink on this ground');
+    // The marked hours come from the alert roles, each at 3:1 or better on the ground.
     assert.doesNotMatch(brand.svg, /#ef4444|#f59e0b/);
-    // The warning fill is under 3:1 on this ground, so the early hour is the warning ink softened with the text.
-    assert.doesNotMatch(brand.svg, /#f2a03d/);
+    const times = [...brand.svg.matchAll(/font-size="42\.\d+" fill="(#[0-9a-f]{6})" font-family="[^"]*" letter-spacing/g)].map((m) => m[1]!);
+    assert.equal(times.length, 2);
+    assert.notEqual(times[0], times[1], 'early and night are told apart');
+    for (const c of times) assert.ok(ratio(c, bg) >= 3, `${c} on ${bg}`);
 
-    // A text token that does not read on the ground gives way to a fixed ink that does.
-    const clash = await run({ ...rows, theme: 'brand' }, hostOf({ ...light, '{color.semantic.text}': '#f4f4f4' }));
-    assert.match(clash.svg, /fill="#132629"/);
-    assert.doesNotMatch(clash.svg, /fill="#f4f4f4"/);
+    // A light background override gets dark ink, and a text token that reads is used.
+    const pale = await run({ ...rows, theme: 'brand', background: '#f4e9d8' }, hostOf(light));
+    assert.match(pale.svg, /fill="#0b1f1d"/);
+    assert.doesNotMatch(pale.svg, /fill="#f3f4ee"/);
+    const paleNoText = await run({ ...rows, theme: 'brand', background: '#f4e9d8' }, hostOf({ '{color.semantic.primary}': '#033633' }));
+    assert.match(paleNoText.svg, /fill="#132629"/);
 
-    // A system with no surface keeps the accent ground the theme always mixed.
+    // A system with no alert roles keeps the fixed marks.
     const bare = await run({ ...rows, theme: 'brand' }, hostOf({ '{color.semantic.primary}': '#30ba78' }));
-    const before = await run({ ...rows, theme: 'brand' }, hostOf({ '{color.semantic.primary}': '#30ba78', '{color.semantic.text}': '#000000' }));
     assert.match(bare.svg, /#ef4444/);
-    assert.match(bare.svg, /fill="#f3f4ee"/);
-    assert.equal(bare.svg, before.svg, 'and a dark text token cannot darken the ink on that ground');
+    assert.match(bare.svg, /#f59e0b/);
 
     // The other themes read none of these tokens.
     for (const theme of ['midnight', 'paper', 'minimal']) {

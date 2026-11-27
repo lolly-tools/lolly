@@ -380,14 +380,13 @@ export async function brand(host: any, inputs: Inputs): Promise<Palette> {
   };
   const bold = inputs.theme === 'brand';
   // Only the design system theme reads these, so the other themes ask for nothing new.
-  const [surfaceToken, textToken, alertInk, alertTint] = bold
+  const [textToken, alertInk, alertTint] = bold
     ? await Promise.all([
-        resolve('color.semantic.surface'),
         resolve('color.semantic.text'),
         resolve('color.role.alert-ink'),
         resolve('color.role.alert-tint'),
       ])
-    : [null, null, null, null];
+    : [null, null, null];
   const [primary, secondary, body, display, mono, swatches] = await Promise.all([
     resolve('color.semantic.primary'),
     resolve('color.semantic.secondary'),
@@ -405,14 +404,7 @@ export async function brand(host: any, inputs: Inputs): Promise<Palette> {
     }
   };
   const anchor = toHex(inputs.accent) || toHex(primary) || '#8bb6ac';
-  // The design system theme draws on the system's own surface. An override or that
-  // surface decides whether the picture is a light one; with neither, the theme keeps
-  // the dark ground it always mixed from the accent.
-  const surface = bold ? toHex(surfaceToken) : null,
-    ground = bold ? hex(inputs.background) || surface : null;
-  const light = ground
-    ? contrast(ground, DARK_INK) > contrast(ground, LIGHT_INK)
-    : inputs.theme === 'paper' || inputs.theme === 'minimal';
+  const light = inputs.theme === 'paper' || inputs.theme === 'minimal';
   // The system's text colour where it reads on the ground, else the plainer of the two inks.
   const readable = (on: string) => {
     const text = toHex(textToken);
@@ -443,8 +435,9 @@ export async function brand(host: any, inputs: Inputs): Promise<Palette> {
     .filter((c, i, a) => c && a.indexOf(c) === i)
     .map((c) => visible(c!)) as string[];
   if (colors.length < 3) colors.push(mix(accent, '#ffffff', 0.3), mix(accent, '#657f9f', 0.5));
+  // The design system theme keeps its ground: the accent, deepened.
   const autoBackground = bold
-    ? surface || mix(accent, '#10151c', 0.42)
+    ? mix(accent, '#10151c', 0.42)
     : light
       ? mix(accent, '#ffffff', 0.96)
       : mix(accent, '#050c13', 0.93);
@@ -454,18 +447,21 @@ export async function brand(host: any, inputs: Inputs): Promise<Palette> {
     ink: bold ? readable(background) : light ? DARK_INK : LIGHT_INK,
   };
   const ink = hex(inputs.ink) || auto.ink;
-  // A marked hour is large type, so 3:1 against the ground is the bar. The fill that
-  // warns is the milder mark where it reads, else the warning ink softened with the text.
-  const night = toHex(alertInk),
-    tint = toHex(alertTint);
-  const alert =
-    night && contrast(night, background) >= 3
-      ? {
-          night,
-          edge:
-            tint && tint !== night && contrast(tint, background) >= 3 ? tint : mix(night, ink, 0.5),
-        }
-      : undefined;
+  // A marked hour is large type, so each warning colour has to reach 3:1 on the ground.
+  // One that does not is mixed toward the ink, a quarter at a time, until it does.
+  const reads = (c: string | null) => {
+    if (!c) return null;
+    for (const t of [0, 0.25, 0.5, 0.75]) {
+      const m = mix(c, ink, t);
+      if (contrast(m, background) >= 3) return m;
+    }
+    return null;
+  };
+  const night = reads(toHex(alertInk)),
+    tint = reads(toHex(alertTint));
+  const alert = night
+    ? { night, edge: tint && tint !== night ? tint : mix(night, ink, 0.5) }
+    : undefined;
   return {
     ...(alert ? { alert } : {}),
     accent,
