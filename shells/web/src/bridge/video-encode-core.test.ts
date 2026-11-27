@@ -14,7 +14,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createStreamingMux, encodeMuxWebCodecs, HIGH_WATER, type EncodeAudio, type EncodePick, type EncodeOpts } from './video-encode-core.ts';
+import { createStreamingMux, encodeMuxWebCodecs, ENCODER_STALL_MESSAGE, flushOrStall, HIGH_WATER, type EncodeAudio, type EncodePick, type EncodeOpts } from './video-encode-core.ts';
 import { HDR_VF_COLORSPACE } from './video-shared.ts';
 import type { SeekableSink, SeekableSinkFactory } from './mediabunny-mux.ts';
 import { videoFrameSchedule } from './video-mime.ts';
@@ -767,4 +767,35 @@ test('createStreamingMux: colorSpace UNSET keeps the image-source ctor and never
   const meta = { decoderConfig: { codec: 'avc1.42001f' } as { colorSpace?: VideoColorSpaceInit } };
   h.video.cb.output({ chunk: 1, timestamp: 0 }, meta);
   assert.equal(meta.decoderConfig.colorSpace, undefined, 'the SDR output callback leaves metadata untouched');
+});
+
+// ── An encoder that stops ─────────────────────────────────────────────────────
+// Chrome's encoder can hold its whole queue while the graphics process is busy, and
+// flush() then never settles. The export has to end, with a reason a person can read.
+
+test('flushOrStall: a flush that settles is passed through, and the timer is cleared', async () => {
+  let flushed = 0;
+  await flushOrStall(async () => { flushed++; }, () => 0, 30, 5);
+  assert.equal(flushed, 1);
+});
+
+test('flushOrStall: an encoder that gives nothing back fails with the plain message', async () => {
+  const never = new Promise<void>(() => {});
+  const started = Date.now();
+  await assert.rejects(flushOrStall(() => never, () => 3, 40, 5), new Error(ENCODER_STALL_MESSAGE));
+  assert.ok(Date.now() - started >= 40, 'it waits the whole stall time first');
+});
+
+test('flushOrStall: a slow encoder that keeps giving frames back is left alone', async () => {
+  let given = 0;
+  let done!: () => void;
+  const flush = new Promise<void>((resolve) => { done = resolve; });
+  // One frame every 15 ms for 150 ms: far longer than the 40 ms stall time in total.
+  const feed = setInterval(() => { given++; if (given === 10) { clearInterval(feed); done(); } }, 15);
+  await flushOrStall(() => flush, () => given, 40, 5);
+  assert.equal(given, 10);
+});
+
+test('flushOrStall: a flush that rejects keeps its own error', async () => {
+  await assert.rejects(flushOrStall(async () => { throw new Error('codec closed'); }, () => 0, 40, 5), /codec closed/);
 });

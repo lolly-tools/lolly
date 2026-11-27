@@ -118,9 +118,13 @@ test('the template EFFECTS table covers exactly the manifest options', () => {
 });
 
 test('the vendored lib ships with its licence and every mounted fragment', () => {
-  const libPath = join(DIR, 'lib', 'paper-shaders.min.js');
-  assert.ok(existsSync(libPath), 'lib/paper-shaders.min.js present');
-  assert.ok(existsSync(join(DIR, 'lib', 'LICENSE')), 'lib/LICENSE present (Apache-2.0)');
+  // The library moved to Gradient with the feature; Backdrop loads that one copy.
+  const libDir = join(DIR, '..', 'gradient', 'lib');
+  const libPath = join(libDir, 'paper-shaders.min.js');
+  assert.ok(existsSync(libPath), 'gradient/lib/paper-shaders.min.js present');
+  assert.ok(existsSync(join(libDir, 'LICENSE')) && existsSync(join(libDir, 'NOTICE')), 'LICENSE and NOTICE present (Apache-2.0)');
+  assert.ok(!existsSync(join(DIR, 'lib')), 'and there is no second copy');
+  assert.match(templateSource, /tag\.src = '\/tools\/gradient\/lib\/paper-shaders\.min\.js'/, 'Backdrop loads the copy Gradient holds');
   const lib = readFileSync(libPath, 'utf8');
   assert.ok(lib.startsWith('/*! Paper Shaders'), 'attribution banner survives minification');
   for (const frag of [...templateSource.matchAll(/frag: '(\w+)'/g)].map(m => m[1]!)) {
@@ -144,4 +148,20 @@ test('brand influence is bounded and only offered on the three original fields',
       assert.equal(cfg.brandInfluence, ['off', 'subtle', 'strong', 'full'].includes(influence!) ? influence : 'strong');
     }
   }
+});
+
+// Backdrop is retired into Gradient, where it is the Field method. Its id is a permanent
+// contract, so the tool still loads and draws for an old link or a saved session.
+test('Backdrop is retired into Gradient, which exports everything Backdrop did', () => {
+  assert.equal(manifest.deprecated, true);
+  assert.equal(manifest.replacedBy, 'gradient');
+  assert.equal(manifest.listed, false);
+  const gradient = JSON.parse(readFileSync(join(ROOT, 'community', 'gradient', 'tool.json'), 'utf8'));
+  for (const format of manifest.render.formats) assert.ok(gradient.render.formats.includes(format), `Gradient exports ${format}`);
+  const field = gradient.inputs.find((i: { id: string }) => i.id === 'mode').options.find((o: { value: string }) => o.value === 'field');
+  const offered = manifest.inputs.find((i: { id: string }) => i.id === 'effect').options[0].formats as string[];
+  assert.deepEqual(field.formats, offered, 'the Field method offers the formats a Backdrop effect offered');
+  const effects = (m: { inputs: Array<{ id: string; options?: Array<{ value: string }> }> }): string[] =>
+    m.inputs.find((i) => i.id === 'effect')!.options!.map((o) => o.value);
+  assert.deepEqual(effects(gradient), effects(manifest), 'and the same sixteen effects, in the same order');
 });

@@ -27,7 +27,7 @@ own). Each tool is a directory of *data, not code*:
 | Tool | What it does |
 |---|---|
 | `qr-code` | QR code generator - link, text, contact card, Wi-Fi, calendar event or location (SVG/PNG, custom colors, joined modules) |
-| `gradient` | Mesh-style gradients from brand swatches - draggable colour points, grain, drift animation exportable as WebM / MP4 / GIF |
+| `gradient` | Mesh-style gradients from brand swatches - draggable colour points, grain, drift animation exportable as WebM / MP4 / GIF, and a Field method with sixteen GPU effects (the former `backdrop` tool) |
 | `color-palette` | Grow a palette from one seed - harmony accents, OKLab/APCA ramps, an optional contrast grid and colour-vision preview, DTCG tokens plus CSV/CSS/SCSS/GIMP/ASE export |
 | `contrast-check` | WCAG 2.1 and APCA pass/fail for a colour pair or the whole brand palette, with colour-blind and greyscale simulation |
 | `compress-pdf` | On-device PDF compression |

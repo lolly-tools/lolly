@@ -1,9 +1,9 @@
 {
   "id": "gradient",
   "name": "Gradient",
-  "description": "Five ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp and Flow. Export stills or join-free video loops.",
+  "description": "Six ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp, Flow and Field, which has sixteen GPU effects. Export stills or video loops.",
   "a11yLabel": "Mesh gradient blending {{count}} colours",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "everyone",
@@ -16,7 +16,9 @@
     "brand",
     "coons",
     "warp",
-    "animated"
+    "animated",
+    "generative",
+    "backdrop"
   ],
   "examples": [
     {
@@ -30,20 +32,6 @@
         "spread": 95,
         "blur": 10,
         "grain": 30
-      }
-    },
-    {
-      "label": "Aurora night",
-      "values": {
-        "count": 4,
-        "color1": "#22d3ee",
-        "color2": "#a78bfa",
-        "color3": "#10b981",
-        "color4": "#0b1021",
-        "blend": "screen",
-        "spread": 110,
-        "blur": 8,
-        "grain": 60
       }
     },
     {
@@ -106,19 +94,6 @@
       }
     },
     {
-      "label": "Paper grain",
-      "values": {
-        "count": 2,
-        "color1": "#f5efe6",
-        "color2": "#e2e8f0",
-        "blend": "normal",
-        "spread": 140,
-        "blur": 20,
-        "grain": 100,
-        "grainBlend": "overlay"
-      }
-    },
-    {
       "label": "Live backdrop",
       "values": {
         "count": 4,
@@ -134,6 +109,36 @@
         "speed": 16,
         "distance": 80
       }
+    },
+    {
+      "label": "Lava lamp",
+      "values": {
+        "mode": "field",
+        "effect": "metaballs",
+        "count": 4,
+        "color1": "{color.semantic.secondary}",
+        "color2": "{color.semantic.primary}",
+        "color3": "{color.semantic.secondary}",
+        "color4": "{color.semantic.primary}",
+        "background": "{color.semantic.primary}",
+        "intensity": 55,
+        "density": 45
+      }
+    },
+    {
+      "label": "Liquid silk",
+      "values": {
+        "mode": "field",
+        "effect": "silk-flow",
+        "count": 3,
+        "color1": "{color.semantic.secondary}",
+        "color2": "{color.semantic.primary}",
+        "color3": "{color.semantic.secondary}",
+        "background": "{color.semantic.primary}",
+        "intensity": 60,
+        "density": 45,
+        "fieldSpeed": 70
+      }
     }
   ],
   "render": {
@@ -143,7 +148,9 @@
       "Texture & motion": "animate",
       "Waves": "waves",
       "Method": "sliders",
-      "Position": "move"
+      "Position": "move",
+      "Motion": "animate",
+      "Field": "shapes"
     },
     "width": 1600,
     "height": 900,
@@ -178,10 +185,11 @@
       "type": "number",
       "display": "slider",
       "default": 5,
-      "min": 2,
+      "min": 1,
       "max": 6,
       "step": 1,
-      "section": "Colour"
+      "section": "Colour",
+      "help": "Every method but Field draws at least two."
     },
     {
       "id": "color1",
@@ -195,6 +203,26 @@
       "label": "Colour 2",
       "type": "color",
       "default": "{color.semantic.secondary}",
+      "showIf": [
+        {
+          "mode": [
+            "blend",
+            "subdivide",
+            "flow",
+            "mesh",
+            "warp"
+          ]
+        },
+        {
+          "count": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
       "section": "Colour"
     },
     {
@@ -258,7 +286,7 @@
       "label": "Method",
       "type": "select",
       "default": "blend",
-      "help": "How the gradient is built. Blend and Subdivide export crisp SVG; Mesh, Warp and Flow render smooth raster finishes - Flow (and a drifting Blend or Warp) exports as a join-free video loop.",
+      "help": "How the gradient is built. Blend and Subdivide export crisp SVG; Mesh, Warp and Flow render smooth raster finishes - Flow (and a drifting Blend or Warp) exports as a join-free video loop. Field draws sixteen moving GPU effects from the same swatches.",
       "options": [
         {
           "value": "blend",
@@ -315,6 +343,20 @@
         {
           "value": "flow",
           "label": "Flow",
+          "badge": "raster",
+          "formats": [
+            "png",
+            "jpg",
+            "webp",
+            "avif",
+            "webm",
+            "mp4",
+            "gif"
+          ]
+        },
+        {
+          "value": "field",
+          "label": "Field",
           "badge": "raster",
           "formats": [
             "png",
@@ -863,6 +905,267 @@
         "mode": "flow"
       },
       "help": "Deterministic variation - the same seed always makes the same waves. The shuffle button picks a new one."
+    },
+    {
+      "id": "effect",
+      "label": "Effect",
+      "type": "select",
+      "default": "metaballs",
+      "help": "Every effect moves and takes the design system's colours. Silk flow, Prism bloom and Liquid contours bring a MilkDrop-inspired play of light and colour.",
+      "options": [
+        {
+          "value": "metaballs",
+          "label": "Metaballs",
+          "badge": "orbs",
+          "icon": "opacity"
+        },
+        {
+          "value": "smoke-ring",
+          "label": "Smoke ring",
+          "badge": "orbs",
+          "icon": "ring"
+        },
+        {
+          "value": "voronoi",
+          "label": "Voronoi",
+          "badge": "orbs",
+          "icon": "hexagon"
+        },
+        {
+          "value": "neuro-noise",
+          "label": "Neuro noise",
+          "badge": "noise",
+          "icon": "neuroBeat"
+        },
+        {
+          "value": "perlin-noise",
+          "label": "Perlin",
+          "badge": "noise",
+          "icon": "waves"
+        },
+        {
+          "value": "dithering",
+          "label": "Dither",
+          "badge": "noise",
+          "icon": "grid"
+        },
+        {
+          "value": "warp",
+          "label": "Warp",
+          "badge": "flow",
+          "icon": "wind"
+        },
+        {
+          "value": "spiral",
+          "label": "Spiral",
+          "badge": "flow",
+          "icon": "lollipop"
+        },
+        {
+          "value": "swirl",
+          "label": "Swirl",
+          "badge": "flow",
+          "icon": "refresh"
+        },
+        {
+          "value": "silk-flow",
+          "label": "Silk flow",
+          "badge": "flux",
+          "icon": "filterLines"
+        },
+        {
+          "value": "prism-bloom",
+          "label": "Prism bloom",
+          "badge": "flux",
+          "icon": "sparkle"
+        },
+        {
+          "value": "liquid-contours",
+          "label": "Liquid contours",
+          "badge": "flux",
+          "icon": "droplet"
+        },
+        {
+          "value": "dot-orbit",
+          "label": "Dot orbit",
+          "badge": "dots",
+          "icon": "grip"
+        },
+        {
+          "value": "god-rays",
+          "label": "God rays",
+          "badge": "light",
+          "icon": "sunburst"
+        },
+        {
+          "value": "color-panels",
+          "label": "Panels",
+          "badge": "light",
+          "icon": "dashboard"
+        },
+        {
+          "value": "pulsing-border",
+          "label": "Pulse frame",
+          "badge": "light",
+          "icon": "fitArtboard"
+        }
+      ],
+      "section": "Method",
+      "showIf": {
+        "mode": "field"
+      }
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "help": "The field behind the effect. Dark grounds make the colours glow; the design system's surface gives a calmer wash.",
+      "section": "Field",
+      "showIf": {
+        "mode": "field"
+      }
+    },
+    {
+      "id": "brandInfluence",
+      "display": "segmented",
+      "label": "Palette influence",
+      "type": "select",
+      "default": "full",
+      "showIf": {
+        "mode": "field",
+        "effect": [
+          "silk-flow",
+          "prism-bloom",
+          "liquid-contours"
+        ]
+      },
+      "options": [
+        {
+          "value": "off",
+          "label": "Off"
+        },
+        {
+          "value": "subtle",
+          "label": "Subtle"
+        },
+        {
+          "value": "strong",
+          "label": "Strong"
+        },
+        {
+          "value": "full",
+          "label": "Full"
+        }
+      ],
+      "help": "How strongly the design system's swatches shape the colour. Strong keeps a little spectral shimmer; the default Full follows the palette most closely, preserving shadows and luminous edges. Off reveals the original spectrum.",
+      "section": "Field"
+    },
+    {
+      "id": "intensity",
+      "label": "Intensity",
+      "section": "Field",
+      "type": "number",
+      "display": "slider",
+      "default": 65,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "help": "The effect's main character dial - ball size, ray strength, twist, distortion - tuned per effect so 50 is the designed look.",
+      "showIf": {
+        "mode": "field"
+      }
+    },
+    {
+      "id": "density",
+      "label": "Density",
+      "section": "Field",
+      "type": "number",
+      "display": "slider",
+      "default": 40,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "showIf": {
+        "mode": "field",
+        "effect": [
+          "metaballs",
+          "neuro-noise",
+          "perlin-noise",
+          "warp",
+          "spiral",
+          "swirl",
+          "silk-flow",
+          "prism-bloom",
+          "liquid-contours",
+          "dot-orbit",
+          "voronoi",
+          "smoke-ring",
+          "god-rays",
+          "color-panels",
+          "pulsing-border"
+        ]
+      },
+      "help": "The effect's secondary dial - how many, how tight, how detailed."
+    },
+    {
+      "id": "scale",
+      "label": "Scale",
+      "section": "Field",
+      "type": "number",
+      "display": "slider",
+      "default": 200,
+      "min": 25,
+      "max": 400,
+      "step": 5,
+      "help": "Zoom of the whole field - higher magnifies the shapes, lower packs more of them in.",
+      "showIf": {
+        "mode": "field"
+      }
+    },
+    {
+      "id": "rotation",
+      "label": "Rotation",
+      "section": "Field",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 5,
+      "showIf": {
+        "mode": "field"
+      }
+    },
+    {
+      "id": "fieldSpeed",
+      "label": "Speed",
+      "section": "Motion",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 0,
+      "max": 300,
+      "step": 5,
+      "showIf": {
+        "mode": "field"
+      },
+      "help": "Playback speed, as a percentage of each effect's designed pace. 0 freezes the live canvas; a video export still moves. Clips do not loop cleanly, so choose the clip length in the export bar."
+    },
+    {
+      "id": "phase",
+      "label": "Moment",
+      "section": "Motion",
+      "type": "number",
+      "display": "slider",
+      "default": 35,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "help": "Scrub through the animation to choose the exact frame a still export captures - and where playback starts. Defaults past the start because several effects are still gathering themselves at moment 0.",
+      "showIf": {
+        "mode": "field"
+      }
     }
   ],
   "isolate": true,

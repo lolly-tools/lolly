@@ -1,0 +1,17 @@
+{
+  "id": "neural-drift",
+  "name": "Neural drift",
+  "category": "Field",
+  "description": "Fine glowing threads that wander.",
+  "values": {
+    "mode": "field",
+    "effect": "neuro-noise",
+    "count": 2,
+    "color1": "{color.semantic.secondary}",
+    "color2": "{color.semantic.primary}",
+    "background": "{color.semantic.primary}",
+    "intensity": 50,
+    "density": 40,
+    "fieldSpeed": 80
+  }
+}

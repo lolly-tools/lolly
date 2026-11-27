@@ -25,7 +25,7 @@
       "name": "@paper-design/shaders",
       "version": "0.0.80",
       "license": "Apache-2.0",
-      "path": "community/backdrop/lib/paper-shaders.min.js",
+      "path": "community/gradient/lib/paper-shaders.min.js",
       "sha256": "c14b75e5d8701218898651285ee4690d74a2de8a7bf08dbdac25894d3b2aff55",
       "repository": "https://github.com/paper-design/shaders",
       "source": "https://registry.npmjs.org/@paper-design/shaders/-/shaders-0.0.80.tgz",

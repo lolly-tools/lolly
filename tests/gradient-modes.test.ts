@@ -263,7 +263,7 @@ test('beforeExport sets one-loop durations for flow and animated warp, with caps
 test('manifest: mode select carries per-option formats, all subsets of render.formats', () => {
   const modeInput = manifest.inputs.find((i: { id: string }) => i.id === 'mode');
   assert.ok(modeInput, 'mode select present');
-  assert.equal(modeInput.options.length, 5);
+  assert.equal(modeInput.options.length, 6);
   const union = new Set<string>(manifest.render.formats);
   for (const opt of modeInput.options) {
     assert.ok(Array.isArray(opt.formats) && opt.formats.length, `${opt.value} declares formats`);
@@ -275,6 +275,52 @@ test('manifest: mode select carries per-option formats, all subsets of render.fo
   assert.ok(!by.mesh.includes('svg') && !by.warp.includes('svg') && !by.flow.includes('svg'), 'raster modes do not offer svg');
   assert.ok(by.flow.includes('webm') && by.warp.includes('webm'), 'animatable modes offer video');
   assert.ok(!by.mesh.includes('webm') && !by.subdivide.includes('webm'), 'static modes do not offer video');
+  assert.deepEqual(by.field, ['png', 'jpg', 'webp', 'avif', 'webm', 'mp4', 'gif'], 'a field is raster and motion only, as Backdrop was');
+});
+
+// Backdrop is the Field method. Its inputs sit after every input Gradient already had,
+// so Batch columns keep their order, and each shows only in that method.
+test('manifest: the Field inputs follow seed, show only in Field, and keep Backdrop\'s definitions', async () => {
+  const ids = manifest.inputs.map((i: { id: string }) => i.id) as string[];
+  const added = ['effect', 'background', 'brandInfluence', 'intensity', 'density', 'scale', 'rotation', 'fieldSpeed', 'phase'];
+  assert.deepEqual(ids.slice(ids.indexOf('seed') + 1), added);
+  const backdrop = JSON.parse(await readFile(join(ROOT, 'community', 'backdrop', 'tool.json'), 'utf8'));
+  const old = new Map(backdrop.inputs.map((i: { id: string }) => [i.id, i])) as Map<string, Record<string, unknown>>;
+  for (const id of added) {
+    const input = manifest.inputs.find((i: { id: string }) => i.id === id) as Record<string, any>;
+    assert.equal(input.showIf.mode, 'field', `${id} shows only in Field`);
+    const was = old.get(id === 'fieldSpeed' ? 'speed' : id)!;
+    for (const key of ['type', 'default', 'min', 'max', 'step']) {
+      // Gradient's first colour is the lead colour, which was Backdrop's ground. On that ground the
+      // effects that draw one colour would draw nothing, so here the ground starts on the surface.
+      if (id === 'background' && key === 'default') continue;
+      assert.deepEqual(input[key], was[key], `${id} keeps Backdrop's ${key}`);
+    }
+  }
+  const ground = manifest.inputs.find((i: { id: string }) => i.id === 'background');
+  const first = manifest.inputs.find((i: { id: string }) => i.id === 'color1');
+  assert.equal(ground.default, '{color.semantic.surface}');
+  assert.notEqual(ground.default, first.default, 'the first colour never starts on a ground of its own colour');
+  const effect = manifest.inputs.find((i: { id: string }) => i.id === 'effect');
+  assert.equal(effect.options.length, 16);
+  // An option's formats narrow the export list whatever the method, so the effect carries none.
+  assert.ok(effect.options.every((o: { formats?: unknown }) => o.formats === undefined), 'only the method narrows the formats');
+  // `speed` stays the loop seconds of a drifting blend.
+  const speed = manifest.inputs.find((i: { id: string }) => i.id === 'speed');
+  assert.deepEqual([speed.min, speed.max, speed.default], [4, 24, 12]);
+});
+
+test('field: one colour is drawn as one, and every other method still draws two', () => {
+  const model = (values: Record<string, unknown>) => manifest.inputs.map((i: { id: string; default?: unknown }) => ({ id: i.id, value: values[i.id] ?? i.default }));
+  const run = (values: Record<string, unknown>) => (loadHooks().onInput!({ model: model(values), host: null }) as unknown as Record<string, string | number>);
+  const field = run({ mode: 'field', count: 1, color1: '#ff8800' });
+  assert.equal(JSON.parse(/data-field='([^']*)'/.exec(String(field.svgContent))![1]!).colors.length, 1);
+  assert.equal(field.count, undefined, 'the count is left alone in Field');
+  assert.equal(field.modeAttr, 'field');
+  assert.equal(field.loopAttr, 8);
+  const blend = run({ mode: 'blend', count: 1 });
+  assert.equal(blend.count, 2, 'a count of one left by a field is put right');
+  assert.equal((String(blend.svgContent).match(/<radialGradient/g) ?? []).length, 2);
 });
 
 test('manifest: mode-gated showIf wiring holds', () => {
@@ -294,4 +340,29 @@ test('manifest: mode-gated showIf wiring holds', () => {
     assert.deepEqual((gate(id) as { mode: string[] }).mode, ['blend', 'subdivide'], `${id} gated to the filterable modes`);
   }
   assert.ok(!(byId.get('count') as { showIf?: unknown }).showIf, 'count (the colour swatches) stays global');
+});
+
+// The same picture as Backdrop means the same shaders with the same numbers. The effect
+// table, the three original fragments and the mount code are one block of text in both
+// templates; only the element the mount hangs on and where the handle is kept differ.
+test('field: the template runs the block of shader code Backdrop runs', async () => {
+  // Gradient adds one thing Backdrop never needed, a remount after a lost WebGL context,
+  // because many Gradient cells can share a page. That passage is left out of the comparison.
+  const cut = (source: string): string => {
+    const from = source.indexOf('    var BRAND_MIX = {');
+    const to = source.indexOf("    tag.addEventListener('load'");
+    assert.ok(from > 0 && to > from, 'the block is present');
+    const block = source.slice(from, to);
+    const lost = block.indexOf('      /* Many fields on one page');
+    return lost < 0 ? block : block.slice(0, lost) + block.slice(block.indexOf('      var driving = false;'));
+  };
+  const gradient = cut(await readFile(join(ROOT, 'community', 'gradient', 'template.html'), 'utf8'));
+  const backdrop = cut(await readFile(join(ROOT, 'community', 'backdrop', 'template.html'), 'utf8'))
+    .replaceAll('store.__bdMount', 'store.__mgFieldMount')
+    .replace('new PS.ShaderMount(host,', 'new PS.ShaderMount(fieldHost,');
+  const comment = (block: string): string => block.replace(/\/\* The vendored lib loads once[\s\S]*?\*\//, '');
+  assert.equal(comment(gradient), comment(backdrop));
+  const table = [...gradient.matchAll(/^\s{6}'([a-z-]+)': \{ frag:/gm)].map((m) => m[1]!);
+  const options = manifest.inputs.find((i: { id: string }) => i.id === 'effect').options.map((o: { value: string }) => o.value);
+  assert.deepEqual(table.sort(), [...options].sort(), 'every effect offered has a shader, and every shader is offered');
 });

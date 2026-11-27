@@ -179,18 +179,59 @@ async function exportWith(
 }
 
 test('a motion export plays one drift loop; a still export freezes the pose', { skip: SKIP }, async () => {
-  for (const format of ['webm', 'mp4', 'gif']) {
+  for (const format of ['webm', 'mp4', 'gif', 'apng', 'webp-anim']) {
     const { classes, opts } = await exportWith({ animate: true, speed: 10 }, format);
     assert.ok(classes.has('mg-export'), `${format}: drift must run during capture, reduced motion or not`);
     assert.ok(!classes.has('mg-frozen'), `${format}: the loop is restarted, not left frozen`);
     assert.equal(opts.duration, 10, `${format}: the clip is exactly one loop`);
     assert.equal(opts.wait, 0, `${format}: capture starts at the loop origin`);
   }
-  for (const format of ['svg', 'png', 'jpg', 'webp', 'avif']) {
+  for (const format of ['png', 'jpg', 'webp', 'avif', 'pdf', 'penpot']) {
     const { classes, opts } = await exportWith({ animate: true, speed: 10 }, format);
     assert.ok(classes.has('mg-frozen'), `${format}: a still must not bake a mid-loop pose`);
     assert.equal(opts.duration, undefined, `${format}: a still has no clip length`);
   }
+});
+
+// The drift is CSS keyframes inside the drawing, and the SVG walk copies the drawing
+// without a pose, so the file is the loop. Freezing would write the class that stops
+// the animation into the file, and the export class would switch off the file's own
+// reduced-motion rule.
+test('an SVG of a drifting blend keeps its drift', { skip: SKIP }, async () => {
+  const { classes, opts } = await exportWith({ animate: true, speed: 10 }, 'svg');
+  assert.equal(classes.size, 0, 'neither frozen nor marked as a capture');
+  assert.equal(opts.duration, undefined, 'a picture has no clip length');
+  const html = (await render({ animate: true, speed: 10 })).svg;
+  assert.match(html, /\.mg-blob-1\{animation:mg-d1 10s linear infinite;/, 'one loop of the chosen seconds, repeating');
+  assert.match(html, /@keyframes mg-d1\{0\.0%\{transform:translate\(0\.0px,0\.0px\)\}.*100\.0%\{transform:translate\(-?0\.0px,-?0\.0px\)\}\}/, 'the orbit ends where it began, so the loop has no jump');
+  assert.doesNotMatch((await render({})).svg, /@keyframes/, 'with drift off the SVG is a still');
+});
+
+// The export hooks run in the page while onInit and onInput may run in a worker, so
+// what the canvas shows is read from the canvas: a hook module that never ran
+// compute() still stages the export.
+test('the export hook reads the method and the loop from the canvas', { skip: SKIP }, async () => {
+  const hooks = compileHooks();
+  const classes = new Set<string>();
+  const svg = { classList: { add: (c: string) => classes.add(c), remove: (c: string) => classes.delete(c) } };
+  const wrapOf = (mode: string, loop: string) => ({ getAttribute: (name: string) => (name === 'data-mode' ? mode : name === 'data-loop' ? loop : null) });
+  const nodeOf = (mode: string, loop: string) => ({
+    offsetWidth: 0,
+    querySelector: (sel: string) => (sel === '.mg-wrap' ? wrapOf(mode, loop) : sel === 'svg.mg-svg' ? svg : null),
+  });
+  const blend: Record<string, unknown> = {};
+  hooks.beforeExport({ node: nodeOf('blend', '9'), format: 'webp-anim', opts: blend });
+  assert.equal(blend.duration, 9, 'a drifting blend is one loop in an animated WebP');
+  assert.ok(classes.has('mg-export'));
+  const field: Record<string, unknown> = {};
+  hooks.beforeExport({ node: nodeOf('field', '8'), format: 'mp4', opts: field });
+  assert.deepEqual([field.duration, field.wait], [8, 0], 'a field clip is the eight seconds Backdrop clips were');
+  const still: Record<string, unknown> = {};
+  hooks.beforeExport({ node: nodeOf('field', '8'), format: 'png', opts: still });
+  assert.equal(still.duration, undefined);
+  const typed: Record<string, unknown> = { duration: 3, durationUserSet: true };
+  hooks.beforeExport({ node: nodeOf('field', '8'), format: 'webm', opts: typed });
+  assert.equal(typed.duration, 3, 'a typed length wins in a field too');
 });
 
 test('the frame budget shortens a long loop, and a typed duration wins', { skip: SKIP }, async () => {
@@ -286,7 +327,7 @@ test('every example, template and preset seed hydrates', { skip: SKIP }, async (
     const { svg } = await render(values);
     /* Each mode has its own root: blend an <svg> of radial gradients,
        subdivide an <svg> of flat quads, mesh/warp/flow a <canvas> the
-       template script paints. */
+       template script paints, field a host for the shader's own canvas. */
     const mode = (values.mode as string) ?? 'blend';
     if (mode === 'blend') {
       assert.match(svg, /^<svg class="mg-svg"/, `${label} must render the gradient`);
@@ -295,6 +336,10 @@ test('every example, template and preset seed hydrates', { skip: SKIP }, async (
     } else if (mode === 'subdivide') {
       assert.match(svg, /^<svg class="mg-svg mg-sub"/, `${label} must render the subdivided mesh`);
       assert.ok(svg.includes('<path '), `${label} must emit mesh quads`);
+    } else if (mode === 'field') {
+      // A field is a host element the shader mounts into, over the wash shown without WebGL2.
+      assert.match(svg, /^<div class="mg-field" data-field='\{"effect":"[a-z-]+",/, `${label} must mount the field host`);
+      assert.ok(svg.includes('<div class="mg-field-wash" style="background:radial-gradient('), `${label} must carry the wash`);
     } else {
       assert.match(svg, new RegExp(`^<canvas class="mg-${mode}-canvas"`), `${label} must mount the ${mode} canvas`);
     }

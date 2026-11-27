@@ -54,7 +54,7 @@ document rather than a handful of fields: **chart** (`chart.md`), **design**
 | `finish-preview` | Finishes | designer | svg, penpot, pdf, pdf-cmyk, png, jpg, webp, avif, tiff, cmyk-tiff, gif, apng, webp-anim, webm, mp4 | - | - | Preview foil, spot UV, emboss and soft-touch finishes on your artwork, then export the spot plate. |
 | `flythrough` | Flythrough | designer | png, jpg, webp, webm, mp4, gif, avif, tiff, webp-anim | - | - | Fly a 3D camera through a screenshot. |
 | `frame` | Frame | everyone | png, jpg, webp, svg, penpot, pdf, avif, tiff | - | - | Drop in a screenshot and get it framed, padded and shadowed on a design system backdrop. |
-| `gradient` | Gradient | everyone | svg, penpot, png, jpg, webp, avif, webm, mp4, gif, pdf, tiff, webp-anim | - | - | Five ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp and Flow. |
+| `gradient` | Gradient | everyone | svg, penpot, png, jpg, webp, avif, webm, mp4, gif, pdf, tiff, webp-anim | - | - | Six ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp, Flow and Field, which has… |
 | `growth` | Growth | designer | svg, penpot, pdf, png, jpg, webp, gif, webm, mp4, avif, tiff, emf, eps, dxf, webp-anim | - | - | Differential growth: a line that folds into coral. |
 | `icon` | Icon | everyone | ico, png, svg, penpot, zip, webp | - | compose | Favicon and app-icon maker - a multi-size .ico, PNG and SVG, or the whole app kit as one zip. |
 | `link-card` | Link Card | everyone | png, jpg, webp, svg, penpot, pdf, avif, tiff, mp4, webm, gif, html | - | - | Paste a link, get a social card in your design system - title, description, site chip and a thumbnail, at Open Graph,… |

@@ -1,0 +1,18 @@
+{
+  "id": "lava-lamp",
+  "name": "Lava lamp",
+  "category": "Field",
+  "description": "Slow orbs that merge and part.",
+  "values": {
+    "mode": "field",
+    "effect": "metaballs",
+    "count": 4,
+    "color1": "{color.semantic.secondary}",
+    "color2": "{color.semantic.primary}",
+    "color3": "{color.semantic.secondary}",
+    "color4": "{color.semantic.primary}",
+    "background": "{color.semantic.primary}",
+    "intensity": 55,
+    "density": 45
+  }
+}

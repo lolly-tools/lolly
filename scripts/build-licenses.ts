@@ -822,10 +822,10 @@ const MANIFEST: {
       version: '0.0.80',
       spdx: 'Apache-2.0',
       copyright: 'Copyright 2026 Paper',
-      files: 'tools/backdrop/lib/paper-shaders.min.js',
+      files: 'tools/gradient/lib/paper-shaders.min.js',
       text: [
-        readFileSync(join(ROOT, 'community/backdrop/lib/NOTICE'), 'utf8').trim(),
-        readFileSync(join(ROOT, 'community/backdrop/lib/LICENSE'), 'utf8').trim(),
+        readFileSync(join(ROOT, 'community/gradient/lib/NOTICE'), 'utf8').trim(),
+        readFileSync(join(ROOT, 'community/gradient/lib/LICENSE'), 'utf8').trim(),
       ].join('\n\n---\n\n'),
       note: 'A tree-shaken bundle of ShaderMount, two colour and noise helpers and 15 fragment shaders from the 0.0.80 npm package; the LICENSE and NOTICE beside it match that package byte for byte. The command and entry file that made the bundle were not recorded when it was vendored (it first appears in the lolly-tools snapshot of 2026-08-27), so the tree cannot rebuild these bytes: an esbuild 0.28.2 IIFE build of the same 18 exports from the 0.0.80 package gives the same code in a different module order.',
       where: 'web',
