@@ -38,7 +38,9 @@ test('the stage offers the map only when the file records a usable place', () =>
   const withMap = stageHtml(photo, located, 3);
   assert.match(withMap, /data-stage-pane="map" hidden/);
   assert.match(withMap, /data-forensic-host="3"/);
-  assert.match(withMap, /-27\.47000, 153\.02500/);
+  // The coordinates and their actions are one row in the Personal data section, so the map does not repeat them.
+  assert.doesNotMatch(withMap, /-27\.47000, 153\.02500|data-request-address/);
+  assert.match(withMap, /Map drawn on this device\./);
 });
 
 test('a finding is shown on the stage: Personal data opens the map, every other finding the asset', (t) => {

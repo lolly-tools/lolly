@@ -71,17 +71,19 @@ export function findingsJson(fileName: string, findings: readonly VerifyFinding[
 const extensionOf = (name: string): string => /\.([a-z0-9]{1,8})$/i.exec(name)?.[1]?.toLowerCase() ?? '';
 const SAME_TYPE: Record<string, string> = { jpg: 'jpeg', jpe: 'jpeg', tif: 'tiff', htm: 'html', m4v: 'mp4', mov: 'mp4', m4a: 'mp4', apng: 'png', markdown: 'md', psb: 'psd' };
 
-/** The switch and the block Evidence adds, for the head of the findings column. */
-export function evidenceHeadHtml(findings: readonly VerifyFinding[], report: TimesReport & { format?: string | null }, meta: FileMetadata | undefined, fileName: string, fileIndex: number): string {
+/** The Summary and Evidence switch, first in the report body. */
+export function depthSwitchHtml(): string {
+  return `<div class="ve-head">${segHtml('verify-depth', [{ id: 'summary', label: t('Summary') }, { id: 'evidence', label: t('Evidence') }], readDepth(), t('How much to show'), { attr: 'data-verify-depth' })}</div>`;
+}
+
+/** The block Evidence adds at the head of the origin column. */
+export function evidenceFileHtml(findings: readonly VerifyFinding[], report: TimesReport & { format?: string | null }, meta: FileMetadata | undefined, fileName: string, fileIndex: number): string {
   const depth = readDepth();
   const times = recordedTimes(report, meta);
   const ext = extensionOf(fileName);
   const read = report.format ?? '';
   const differs = !!ext && !!read && (SAME_TYPE[ext] ?? ext) !== read;
-  return `<div class="ve-head">
-    ${segHtml('verify-depth', [{ id: 'summary', label: t('Summary') }, { id: 'evidence', label: t('Evidence') }], depth, t('How much to show'), { attr: 'data-verify-depth' })}
-  </div>
-  <section class="ve-extra" data-evidence-only data-evidence-file="${fileIndex}" aria-label="${esc(t('The file'))}"${depth === 'evidence' ? '' : ' hidden'}>
+  return `<section class="ve-extra" data-evidence-only data-evidence-file="${fileIndex}" aria-label="${esc(t('The file'))}"${depth === 'evidence' ? '' : ' hidden'}>
     <dl class="ve-facts">
       <div><dt>${t('File')}</dt><dd>${esc(fileName)}</dd></div>
       <div><dt>${t('Size')}</dt><dd data-evidence-size>${t('Not read yet')}</dd></div>

@@ -63,3 +63,23 @@ test('unsupported link schemes remain visible as inert metadata', () => {
   assert.ok(html.includes('data-metadata-url="mailto:ada@example.org"'));
   assert.ok(html.includes('data-metadata-url="tel:+447123456789"'));
 });
+
+test('the creator and the licence link are said once: Licence shows them, so Personal data does not', () => {
+  const fields = [
+    { group: 'authorship', label: 'Creator', value: 'Jo Example' },
+    { group: 'authorship', label: 'Licence', value: 'https://creativecommons.org/licenses/by/4.0/', source: 'XMP/RDF cc:license' },
+    { group: 'description', label: 'Source', value: 'https://example.org/original' },
+  ] as FileMetadata['fields'];
+  const html = contextCardsHtml(report, { format: 'JPEG', fields });
+  assert.doesNotMatch(html, /Jo Example/, 'the creator is in the Licence section');
+  assert.doesNotMatch(html, /creativecommons\.org/, 'the licence text is linked from the Licence section');
+  assert.match(html, /example\.org/, 'a link nothing else shows is still listed');
+  // With no licence statement the Licence section shows no creator, so the creator is listed here.
+  assert.match(contextCardsHtml(report, { format: 'JPEG', fields: [fields[0]!] }), /Jo Example/);
+  // A creator who brings contact details is still listed, because the details are new.
+  const withContact = contextCardsHtml(report, { format: 'JPEG', fields: [...fields, { group: 'authorship', label: 'Contact email', value: 'jo@example.org' }] as FileMetadata['fields'] });
+  assert.match(withContact, /Jo Example/);
+  assert.match(withContact, /jo@example\.org/);
+  // Nothing left to show is no markup at all. The section then keeps its own sentence.
+  assert.equal(contextCardsHtml(report, { format: 'JPEG', fields: fields.slice(0, 2) }), '');
+});

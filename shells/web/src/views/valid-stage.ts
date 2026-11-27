@@ -14,7 +14,6 @@ import { escape as esc } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { segHtml, syncSeg, wireSeg } from '../lib/seg.ts';
-import { metadataLinkHtml } from './valid-links.ts';
 import { renderLocator } from './valid-context.ts';
 import { mediaPreviewHtml, type VerifyPreview } from './valid-preview.ts';
 
@@ -32,13 +31,11 @@ const gpsOf = (meta?: FileMetadata): { lat: number; lon: number } | undefined =>
 /** True when the file records a place the stage can show. */
 export const stageHasMap = (meta?: FileMetadata): boolean => !!gpsOf(meta);
 
-function mapPaneHtml(meta: FileMetadata, gps: { lat: number; lon: number }): string {
+/** The map alone. The coordinates and their actions are one row in the Personal data section. */
+function mapPaneHtml(gps: { lat: number; lon: number }): string {
   return `<div class="vf-stage-pane vf-stage-map" data-stage-pane="map" hidden>
     ${renderLocator(gps.lat, gps.lon)}
-    <div class="vf-stage-caption">
-      <p><strong>${gps.lat.toFixed(5)}, ${gps.lon.toFixed(5)}</strong><span>${t('Recorded in the file. Map drawn on this device.')}</span></p>
-      <div class="vf-stage-actions">${meta.mapUrl ? metadataLinkHtml(meta.mapUrl, t('Open map')) : ''}<button type="button" class="btn" data-request-address data-lat="${gps.lat.toFixed(5)}" data-lon="${gps.lon.toFixed(5)}">${icon('mapPin')}<span>${t('Request address')}</span></button></div>
-    </div>
+    <p class="vf-stage-caption">${t('Map drawn on this device.')}</p>
   </div>`;
 }
 
@@ -54,7 +51,7 @@ export function stageHtml(preview: VerifyPreview | undefined, meta: FileMetadata
       <div class="vf-stage-media" data-stage-media>${mediaPreviewHtml(preview, fileIndex)}</div>
       <div class="vf-stage-forensic" data-forensic-host="${fileIndex}" hidden></div>
     </div>
-    ${gps && meta ? mapPaneHtml(meta, gps) : ''}
+    ${gps ? mapPaneHtml(gps) : ''}
   </div>`;
 }
 

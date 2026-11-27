@@ -1602,7 +1602,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // - every interpolated value passes through escape() (heroName/verdict/lamp
   // labels read back from OUR rendered DOM, then re-escaped anyway).
   'views/valid-record.ts': 2,  // 2026-11-05 (plan 350 W6b): an asset's record rows and a failed approval's warning. Every recorded value, a recorded prompt above all, goes through escape() in recordRowsHtml.
-  'views/valid.ts': 28,  // +2 2026-09-13 (plans/253): the Sources panel's [data-reuse-out] sink, filled by reuseAnswerHtml (every issue code and summary through escape()), and the strip note's, filled by stripCreditNoteHtml (t() escapes its one number, escape() the credit into the button attribute); +1 2026-08-18 (plans/125): readImageText's [data-ocr-result].innerHTML = textSignalsHtml(...) - that helper escape()s every interpolated value (band/kind titles, the highlighted extract via escape()d segments, guess, summary), no user text reaches markup; +1 2026-08-19 (plans/126): readDocumentText's same [data-ocr-result] sink for the PDF text-layer read - textSignalsHtml again, plus a page-cap note whose only interpolations are escape()d t() output and two numbers
+  'views/valid.ts': 27,  // -1 2026-11-27: the watermark scan's banner was an insertAdjacentHTML into the report; the scan is now a row each report draws with its Hidden content section (views/valid-rows.ts); +2 2026-09-13 (plans/253): the Sources panel's [data-reuse-out] sink, filled by reuseAnswerHtml (every issue code and summary through escape()), and the strip note's, filled by stripCreditNoteHtml (t() escapes its one number, escape() the credit into the button attribute); +1 2026-08-18 (plans/125): readImageText's [data-ocr-result].innerHTML = textSignalsHtml(...) - that helper escape()s every interpolated value (band/kind titles, the highlighted extract via escape()d segments, guess, summary), no user text reaches markup; +1 2026-08-19 (plans/126): readDocumentText's same [data-ocr-result] sink for the PDF text-layer read - textSignalsHtml again, plus a page-cap note whose only interpolations are escape()d t() output and two numbers
   // 1 as of 2026-08-21 (plans/126 WP-A): the model-tier re-render, host.outerHTML
   // = render(panel), where render is the OWNING view's own panel builder
   // (textSignalsHtml / catTextSignalsHtml), the exact escaped-template family the
@@ -2175,7 +2175,9 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // --ui-type-lead, --fs-md and --fs-sm.
     // 409 to 388: close buttons that set a text cross by font size draw the
     // shared close button (lib/close-button.ts), which sizes an icon.
-    pin: 388,
+    // 388 to 385 (2026-11-27): Verify's filled AI card and watermark banner are
+    // rows in the report now, and their own type sizes went with them.
+    pin: 385,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },

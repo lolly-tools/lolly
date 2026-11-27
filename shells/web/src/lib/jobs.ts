@@ -54,6 +54,8 @@ export interface Job {
   readonly heavy: boolean;
   /** Whether a cancel callback was supplied - the toast hides ✕ when it wasn't. */
   readonly cancellable: boolean;
+  /** The caller shows this job's progress in its own view, so the toast leaves it out. */
+  readonly quiet?: boolean;
   status: JobStatus;
   /** null until the first progress() call - the toast shows an indeterminate bar. */
   progress: JobProgress | null;
@@ -97,6 +99,12 @@ export interface StartJobOpts {
   heavy?: boolean;
   /** Keep a cancelled active job's slot until finish/fail/settle. Default true. */
   retainSlotOnCancel?: boolean;
+  /**
+   * Keep the job out of the toast. For work whose view shows its own progress in
+   * place and whose result is of no use once that view is gone. The job still
+   * takes its turn in the serial queue.
+   */
+  quiet?: boolean;
 }
 
 /** Bound waiting work independently of the single active heavy job. */
@@ -240,6 +248,7 @@ export function startJob(opts: StartJobOpts): JobHandle {
     title: String(opts.title ?? ''),
     heavy,
     cancellable: typeof opts.cancel === 'function',
+    ...(opts.quiet ? { quiet: true } : {}),
     status: 'queued',
     progress: null,
     createdAt: Date.now(),

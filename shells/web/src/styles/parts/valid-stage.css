@@ -60,9 +60,5 @@
   /* The map: where the file says it was made. */
   .vf-stage-map { gap: var(--sp-4); align-content: start; }
   .vf-stage-map .valid-locator { width: 100%; height: auto; max-height: min(58dvh, 40rem); border-radius: var(--ui-radius-control); }
-  .vf-stage-caption { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-4); }
-  .vf-stage-caption p { margin: 0; display: grid; gap: var(--sp-1); }
-  .vf-stage-caption strong { font-family: var(--ui-type-mono-family, ui-monospace, monospace); font-size: var(--ui-type-body); }
-  .vf-stage-caption span { color: var(--ui-color-text-muted); font-size: var(--ui-type-label); }
-  .vf-stage-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-4); }
+  .vf-stage-caption { margin: 0; color: var(--ui-color-text-muted); font-size: var(--ui-type-label); }
 }

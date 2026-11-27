@@ -6,19 +6,24 @@
  * AI, personal data and hidden content, so a finding that draws on the asset
  * sits right under the asset. The right column is about where the file came
  * from: its licence, what made the file, and its credential. Under 1024px the
- * two columns follow one another.
+ * two columns follow one another. The Summary and Evidence switch comes first,
+ * level with the stage's own switch.
  *
- * Every section has the same head: an icon, a title and a help tip. The tip
- * holds the explanation a first-time reader needs, so the page itself stays
- * short for someone who reads these every day. Under the head comes the
- * finding's one sentence, then the detail.
+ * Every section has the same head: an icon, a title and a help tip. The answer
+ * row above already gives each finding in words with its strength, so a section
+ * leads with its evidence and repeats neither. The finding's sentence stays
+ * only where nothing else in the section would say what was found.
  */
-import type { VerifyFinding, VerifyFindingId } from '@lolly/engine';
+import type { VerifyFinding, VerifyFindingId, VerifyStrength } from '@lolly/engine';
 import '../styles/parts/valid-layout.css';
 import { escape as esc } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon, type IconName } from '../lib/icons.ts';
 import { helpTip } from '../components/help-tip.ts';
+import { strengthHtml } from './valid-vendors.ts';
+import { aiRowHtml, evidenceRowsHtml, pixelCheckRowsHtml, type AiRowInput, type PixelChecks } from './valid-rows.ts';
+
+export { offerDeepScan } from './valid-rows.ts';
 
 interface SectionCopy { title: string; icon: IconName; tip: string }
 
@@ -36,15 +41,29 @@ export const SECTION: Record<VerifyFindingId, SectionCopy> = {
 export const findingSentence = (finding: VerifyFinding): string => tRaw(finding.detail, finding.vars);
 
 /**
- * One section of the report. `body` is markup the caller built; a section with
- * no body still shows its sentence, so "nothing found" is a visible answer.
+ * A section's head: icon, title and help tip. The answer slot is the one
+ * statement of a finding's strength, so a head states a strength only when the
+ * caller passes one that differs from the slot's, or the section has no slot.
  */
-export function sectionHtml(finding: VerifyFinding, body: string, opts: { lede?: boolean } = {}): string {
-  const copy = SECTION[finding.id];
+export function sectionHeadHtml(id: VerifyFindingId, strength: VerifyStrength = 'none'): string {
+  const copy = SECTION[id];
   const tip = helpTip(t(copy.tip));
-  return `<section class="vs help-tip-host is-${finding.tone}" data-finding-section="${finding.id}" aria-label="${esc(t(copy.title))}">
-    <h3 class="vs-head">${icon(copy.icon)}<span>${t(copy.title)}</span>${tip.button}</h3>${tip.pop}
-    ${opts.lede === false ? '' : `<p class="vs-lede">${esc(findingSentence(finding))}</p>`}
+  return `<h3 class="vs-head">${icon(copy.icon)}<span>${t(copy.title)}</span>${tip.button}${strengthHtml(strength)}</h3>${tip.pop}`;
+}
+
+/** Findings whose section draws no evidence of its own, so the sentence is the detail. */
+const SENTENCE_STAYS = new Set(['credential:made-here', 'credential:seal', 'credential:imprint', 'made-with:lolly-imprint', 'ai:watermark']);
+
+/**
+ * One section of the report. `body` is markup the caller built. The finding's
+ * sentence shows when the finding is an absence, when its section draws no
+ * evidence, or when there is no body, so "nothing found" is a visible answer.
+ */
+export function sectionHtml(finding: VerifyFinding, body: string): string {
+  const sentence = finding.tone === 'quiet' || !body.trim() || SENTENCE_STAYS.has(`${finding.id}:${finding.state}`);
+  return `<section class="vs help-tip-host is-${finding.tone}" data-finding-section="${finding.id}" aria-label="${esc(t(SECTION[finding.id].title))}">
+    ${sectionHeadHtml(finding.id)}
+    ${sentence ? `<p class="vs-lede">${esc(findingSentence(finding))}</p>` : ''}
     ${body.trim() ? `<div class="vs-body">${body}</div>` : ''}
   </section>`;
 }
@@ -52,32 +71,43 @@ export function sectionHtml(finding: VerifyFinding, body: string, opts: { lede?:
 /** The markup the view has already built, by where it belongs. */
 export interface ReportParts {
   stage: string;
-  /** The Summary and Evidence switch with the block Evidence adds. */
+  /** The Summary and Evidence switch. */
   depth: string;
+  /** The block Evidence adds: the file's size, type, hash and recorded times. */
+  file: string;
   licence: string;
   madeWith: string;
+  /** What the file declares about AI, for the section's first row. */
+  aiDeclared: AiRowInput;
   ai: string;
   personal: string;
   credential: string;
   hidden: string;
-  /** Checks on the pixels and the sound: deep scan, Imprint, seal. */
+  /** What was read from the pixels and the sound: watermark, Imprint, seal. */
   marks: string;
+  /** The checks a reader can start on this file's pixels. */
+  checks: PixelChecks;
   /** What ran, what did not, and the on-device note. */
   receipt: string;
 }
 
-/** The two columns. `findings` must hold all six, in the engine's order. */
+/** The switch, then the two columns. `findings` must hold all six, in the engine's order. */
 export function reportBodyHtml(findings: readonly VerifyFinding[], parts: ReportParts): string {
   const by = (id: VerifyFindingId): VerifyFinding => findings.find((f) => f.id === id)!;
+  const ai = by('ai'), personal = by('personal'), hidden = by('hidden');
+  // A personal detail the report already shows elsewhere is not listed again.
+  const personalRows = evidenceRowsHtml(personal.evidence.filter((e) => !(e.label === 'Coordinates' && parts.personal.includes('data-request-address'))), personal.strength, parts.licence + parts.madeWith + parts.personal);
+  const hiddenRows = evidenceRowsHtml(hidden.evidence.filter((e) => !(e.label === 'Appended data' && parts.hidden.trim())), hidden.strength);
   return `<div class="vf-body">
+    ${parts.depth}
     <div class="vf-column vf-col-asset">
       ${parts.stage}
-      ${sectionHtml(by('ai'), parts.ai)}
-      ${sectionHtml(by('personal'), parts.personal)}
-      ${sectionHtml(by('hidden'), parts.hidden + parts.marks)}
+      ${sectionHtml(ai, aiRowHtml(parts.aiDeclared, ai.strength) + parts.ai)}
+      ${sectionHtml(personal, personalRows + parts.personal)}
+      ${sectionHtml(hidden, hiddenRows + parts.hidden + parts.marks + pixelCheckRowsHtml(parts.checks))}
     </div>
     <div class="vf-column vf-col-origin">
-      ${parts.depth}
+      ${parts.file}
       ${parts.licence}
       ${sectionHtml(by('made-with'), parts.madeWith)}
       ${sectionHtml(by('credential'), parts.credential)}

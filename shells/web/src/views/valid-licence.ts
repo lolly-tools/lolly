@@ -15,18 +15,8 @@ import { escape as esc } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { metadataLinkHtml } from './valid-links.ts';
-import { helpTip } from '../components/help-tip.ts';
-import { SECTION } from './valid-layout.ts';
-
-/** The same strength words the answer row uses. */
-const STRENGTH: Record<VerifyStrength, string> = {
-  signed: 'Signed',
-  unverified: 'Credential, not verified',
-  stated: 'Stated in the file',
-  hint: 'Hint',
-  estimated: 'Estimated on this device',
-  none: '',
-};
+import { rowStrengthHtml } from './valid-vendors.ts';
+import { sectionHeadHtml } from './valid-layout.ts';
 
 /** One plain sentence per licence element. The last two are named and not interpreted. */
 const CONDITION: Record<string, string> = {
@@ -133,27 +123,41 @@ export function licenceBand(report: BandReport, meta: FileMetadata | undefined, 
 const marksHtml = (marks: readonly string[]): string => marks.length
   ? `<span class="vl-marks" aria-hidden="true">${marks.map((m) => `<span class="vl-mark">${esc(m)}</span>`).join('')}</span>` : '';
 
-function whereHtml(s: LicenceStatement): string {
-  return `<ul class="vl-where" aria-label="${esc(t('Where this was found'))}">${s.where.slice(0, 8).map((w) => `<li><span class="vf-slot-strength is-${w.strength}">${t(STRENGTH[w.strength])}</span><span class="vl-source">${esc(w.source)}</span></li>`).join('')}</ul>`;
+const RANK: readonly VerifyStrength[] = ['signed', 'unverified', 'stated', 'hint', 'estimated'];
+
+/** The strongest evidence any statement rests on. */
+export function bandStrength(band: LicenceBand): VerifyStrength {
+  const found = band.statements.flatMap((s) => s.where.map((w) => w.strength));
+  return RANK.find((s) => found.includes(s)) ?? 'none';
 }
 
-function statementHtml(s: LicenceStatement): string {
+/** Where a statement was found. A source that matches the answer slot shows its strength only at Evidence depth. */
+function whereHtml(s: LicenceStatement, stated: VerifyStrength): string {
+  return `<ul class="vl-where" aria-label="${esc(t('Where this was found'))}">${s.where.slice(0, 8).map((w) => `<li>${rowStrengthHtml(w.strength, stated)}<span class="vl-source">${esc(w.source)}</span></li>`).join('')}</ul>`;
+}
+
+function statementHtml(s: LicenceStatement, stated: VerifyStrength): string {
   const conditions = s.conditions.map((c) => CONDITION[c]).filter((c): c is string => !!c);
   return `<div class="vl-statement">
     <p class="vl-name">${marksHtml(s.marks)}<strong>${esc(s.name.length > 160 ? `${s.name.slice(0, 157)}…` : s.name)}</strong></p>
     ${conditions.length ? `<ul class="vl-conditions">${conditions.map((c) => `<li>${t(c)}</li>`).join('')}</ul>` : ''}
     ${s.id && !s.reviewed ? `<p class="vl-quiet">${t('Lolly records these conditions and does not interpret them.')}</p>` : ''}
     ${s.courtesyCredit ? `<p class="vl-quiet">${t('A credit is welcome and is not a condition.')}</p>` : ''}
-    ${whereHtml(s)}
+    ${whereHtml(s, stated)}
     ${s.url ? `<p class="vl-link">${metadataLinkHtml(s.url, t('Read the licence'))}</p>` : ''}
   </div>`;
 }
 
-/** The band, first in the findings column. Always drawn, so an absence is visible. */
-export function licenceBandHtml(report: BandReport, meta: FileMetadata | undefined, fileName = ''): string {
+/**
+ * The band, first in the findings column. Always drawn, so an absence is visible.
+ * `slot` is the strength the Licence answer slot states. The heading repeats a
+ * strength only when the band's differs from the slot's, or when no slot is given.
+ */
+export function licenceBandHtml(report: BandReport, meta: FileMetadata | undefined, fileName = '', slot?: VerifyStrength): string {
   const band = licenceBand(report, meta, fileName);
-  const tip = helpTip(t(SECTION.licence.tip));
-  const head = `<h3 class="vs-head">${icon('badgeCheck')}<span>${t('Licence')}</span>${tip.button}</h3>${tip.pop}`;
+  const own = bandStrength(band);
+  const stated = slot ?? own;
+  const head = sectionHeadHtml('licence', slot === own ? 'none' : own);
   const sources = band.sourceCount
     ? `<p class="vl-sources">${esc(tRaw(band.sourceCount === 1 ? '1 source: {list}' : '{n} sources: {list}', { n: band.sourceCount, list: band.sources.map((s) => `${s.count} ${s.name}`).join(', ') }))}</p>` : '';
   if (band.state === 'none') {
@@ -164,7 +168,7 @@ export function licenceBandHtml(report: BandReport, meta: FileMetadata | undefin
     ? `<dl class="vl-who">${band.creator ? `<div><dt>${t('Creator')}</dt><dd>${esc(band.creator)}</dd></div>` : ''}${band.credit ? `<div><dt>${t('Credit line')}</dt><dd>${esc(band.credit)}</dd></div>` : ''}</dl>` : '';
   return `<section class="vl-band vs help-tip-host is-${band.state}" data-finding-section="licence" aria-label="${esc(t('Licence'))}">${head}
     ${band.state === 'disagree' ? `<p class="vl-disagree">${t('Two statements disagree. Each is listed as recorded.')}</p>` : ''}
-    <div class="vl-statements">${band.statements.slice(0, 6).map(statementHtml).join('')}</div>
+    <div class="vl-statements">${band.statements.slice(0, 6).map((s) => statementHtml(s, stated)).join('')}</div>
     ${who}${sources}
     ${band.creditLine ? `<p class="vl-actions"><button type="button" class="btn" data-copy-evidence="${esc(band.creditLine)}" data-copy-done="${esc(t('Credit line copied'))}">${icon('duplicate')}<span>${t('Copy credit line')}</span></button></p>` : ''}
     <p class="vl-quiet">${t('Declared terms. Permission to reuse is not verified.')}</p>

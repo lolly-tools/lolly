@@ -105,7 +105,8 @@ export function wireForensicVerify(
     const previous = states.get(panel),
       pageCap = Math.min(100, Math.max(6, (previous?.collection.report.pages.length ?? 0) + 6));
     const controller = new AbortController();
-    const job = startJob({ title: t('Inspecting AI evidence'), cancel: () => controller.abort() });
+    // The AI section shows this run's progress in place. The job still waits for the queue, with no toast.
+    const job = startJob({ title: t('Inspecting AI evidence'), cancel: () => controller.abort(), quiet: true });
     running.set(panel, { controller, job: job.id });
     content(panel).innerHTML =
       `<div class="forensic-progress" role="status"><span data-forensic-progress>${t('Waiting to inspect this file…')}</span><button type="button" class="btn" data-forensic="cancel">${t('Cancel inspection')}</button></div>${previous ? forensicWorkspaceHtml(previous) : ''}`;
