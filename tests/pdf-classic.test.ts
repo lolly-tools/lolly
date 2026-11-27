@@ -52,7 +52,7 @@ test('a PDF with a classic table, another format and an unreadable file come bac
 });
 
 test('an XMP packet comes through byte for byte and every object keeps its number', async () => {
-  const { PDFName, PDFRawStream } = await import('pdf-lib');
+  const { PDFName } = await import('pdf-lib');
   const packet = new TextEncoder().encode('<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?><x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/></x:xmpmeta><?xpacket end="w"?>');
   const doc = await PDFDocument.create({ updateMetadata: false });
   doc.addPage([300, 300]);
@@ -60,8 +60,8 @@ test('an XMP packet comes through byte for byte and every object keeps its numbe
   const streamed = await doc.save({ useObjectStreams: true });
   const read = async (bytes: Uint8Array) => {
     const loaded = await PDFDocument.load(bytes, { updateMetadata: false });
-    const meta = loaded.catalog.lookup(PDFName.of('Metadata')) as InstanceType<typeof PDFRawStream>;
-    return { xmp: [...meta.getContents()], numbers: loaded.context.enumerateIndirectObjects().map(([ref]) => ref.objectNumber).sort((a, b) => a - b), root: loaded.context.trailerInfo.Root.toString() };
+    const meta = loaded.catalog.lookup(PDFName.of('Metadata')) as unknown as { getContents(): Uint8Array };
+    return { xmp: [...meta.getContents()], numbers: loaded.context.enumerateIndirectObjects().map(([ref]) => ref.objectNumber).sort((a, b) => a - b), root: String(loaded.context.trailerInfo.Root) };
   };
   const [before, after] = [await read(streamed), await read(await classicPdfForStamp(streamed, 'pdf'))];
   assert.deepEqual(after.xmp, [...packet]);

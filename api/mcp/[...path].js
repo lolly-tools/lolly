@@ -185638,6 +185638,42 @@ var init_signing_identity = __esm({
   }
 });
 
+// packages/node-shell/src/pdf-classic.ts
+var pdf_classic_exports = {};
+__export(pdf_classic_exports, {
+  classicPdfForStamp: () => classicPdfForStamp
+});
+function latin13(bytes2) {
+  let out = "";
+  for (let i = 0; i < bytes2.length; i++) out += String.fromCharCode(bytes2[i]);
+  return out;
+}
+function lastCrossReference(pdf) {
+  const tail = latin13(pdf.subarray(Math.max(0, pdf.length - 2048)));
+  const found = [...tail.matchAll(/startxref\s+(\d+)/g)].at(-1);
+  return found ? Number(found[1]) : null;
+}
+function hasClassicTable(pdf) {
+  const at = lastCrossReference(pdf);
+  if (at === null || at >= pdf.length) return true;
+  return latin13(pdf.subarray(at, at + 16)).trimStart().startsWith("xref");
+}
+async function classicPdfForStamp(bytes2, format) {
+  if (!/^pdf/i.test(format) || hasClassicTable(bytes2)) return bytes2;
+  const { PDFDocument: PDFDocument5 } = await import("pdf-lib");
+  try {
+    const doc = await PDFDocument5.load(bytes2, { updateMetadata: false });
+    return await doc.save({ useObjectStreams: false, updateFieldAppearances: false });
+  } catch {
+    return bytes2;
+  }
+}
+var init_pdf_classic = __esm({
+  "packages/node-shell/src/pdf-classic.ts"() {
+    "use strict";
+  }
+});
+
 // packages/node-shell/src/raster-child.ts
 var raster_child_exports = {};
 __export(raster_child_exports, {
@@ -185730,37 +185766,6 @@ process.stdin.on('end', () => {
     TIMEOUT_MS = 3e4;
     MAX_OUTPUT_BYTES = 512 * 1024 * 1024;
     resvgPath = null;
-  }
-});
-
-// packages/node-shell/src/pdf-classic.ts
-var pdf_classic_exports = {};
-__export(pdf_classic_exports, {
-  classicPdfForStamp: () => classicPdfForStamp
-});
-function lastCrossReference(pdf) {
-  const tail = Buffer.from(pdf.subarray(Math.max(0, pdf.length - 2048))).toString("latin1");
-  const found = [...tail.matchAll(/startxref\s+(\d+)/g)].at(-1);
-  return found ? Number(found[1]) : null;
-}
-function hasClassicTable(pdf) {
-  const at = lastCrossReference(pdf);
-  if (at === null || at >= pdf.length) return true;
-  return Buffer.from(pdf.subarray(at, at + 16)).toString("latin1").trimStart().startsWith("xref");
-}
-async function classicPdfForStamp(bytes2, format) {
-  if (!/^pdf/i.test(format) || hasClassicTable(bytes2)) return bytes2;
-  const { PDFDocument: PDFDocument5 } = await import("pdf-lib");
-  try {
-    const doc = await PDFDocument5.load(bytes2, { updateMetadata: false });
-    return await doc.save({ useObjectStreams: false, updateFieldAppearances: false });
-  } catch {
-    return bytes2;
-  }
-}
-var init_pdf_classic = __esm({
-  "packages/node-shell/src/pdf-classic.ts"() {
-    "use strict";
   }
 });
 
@@ -196532,7 +196537,8 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
         identity2 = await resolveSigningIdentity2({});
       } catch {
       }
-      return await embedC2pa(bytes2, format, {
+      const { classicPdfForStamp: classicPdfForStamp2 } = await Promise.resolve().then(() => (init_pdf_classic(), pdf_classic_exports));
+      return await embedC2pa(await classicPdfForStamp2(bytes2, format), format, {
         title: opts.title || "Embed, Imprint & Track",
         claimGenerator: "Lolly lolly.tools",
         generatorInfo: { name: "Lolly", version: ENGINE_VERSION },
