@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-26T23:18:43.938Z",
+  "generatedAt": "2026-11-27T02:41:05.583Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3278,7 +3278,7 @@
       "id": "filter",
       "name": "Filter",
       "description": "Photo effects: halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster).",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -5495,7 +5495,7 @@
       "id": "darkroom",
       "name": "Darkroom",
       "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Opens Photoshop and GIMP layers.",
-      "version": "2.6.0",
+      "version": "2.7.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -5551,6 +5551,8 @@
         "penpot",
         "webm",
         "mp4",
+        "gif",
+        "apng",
         "exr",
         "hdr",
         "tiff",
@@ -9524,8 +9526,8 @@
     {
       "id": "gradient",
       "name": "Gradient",
-      "description": "Five ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp and Flow. Export stills or join-free video loops.",
-      "version": "1.3.1",
+      "description": "Six ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp, Flow and Field, which has sixteen GPU effects. Export stills or video loops.",
+      "version": "1.4.0",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -9537,7 +9539,9 @@
         "brand",
         "coons",
         "warp",
-        "animated"
+        "animated",
+        "generative",
+        "backdrop"
       ],
       "added": "2026-07-11",
       "formats": [
@@ -9571,20 +9575,6 @@
             "spread": 95,
             "blur": 10,
             "grain": 30
-          }
-        },
-        {
-          "label": "Aurora night",
-          "values": {
-            "count": 4,
-            "color1": "#22d3ee",
-            "color2": "#a78bfa",
-            "color3": "#10b981",
-            "color4": "#0b1021",
-            "blend": "screen",
-            "spread": 110,
-            "blur": 8,
-            "grain": 60
           }
         },
         {
@@ -9647,19 +9637,6 @@
           }
         },
         {
-          "label": "Paper grain",
-          "values": {
-            "count": 2,
-            "color1": "#f5efe6",
-            "color2": "#e2e8f0",
-            "blend": "normal",
-            "spread": 140,
-            "blur": 20,
-            "grain": 100,
-            "grainBlend": "overlay"
-          }
-        },
-        {
           "label": "Live backdrop",
           "values": {
             "count": 4,
@@ -9675,6 +9652,36 @@
             "speed": 16,
             "distance": 80
           }
+        },
+        {
+          "label": "Lava lamp",
+          "values": {
+            "mode": "field",
+            "effect": "metaballs",
+            "count": 4,
+            "color1": "{color.semantic.secondary}",
+            "color2": "{color.semantic.primary}",
+            "color3": "{color.semantic.secondary}",
+            "color4": "{color.semantic.primary}",
+            "background": "{color.semantic.primary}",
+            "intensity": 55,
+            "density": 45
+          }
+        },
+        {
+          "label": "Liquid silk",
+          "values": {
+            "mode": "field",
+            "effect": "silk-flow",
+            "count": 3,
+            "color1": "{color.semantic.secondary}",
+            "color2": "{color.semantic.primary}",
+            "color3": "{color.semantic.secondary}",
+            "background": "{color.semantic.primary}",
+            "intensity": 60,
+            "density": 45,
+            "fieldSpeed": 70
+          }
         }
       ],
       "templates": [
@@ -9686,10 +9693,52 @@
           "galleryCover": true
         },
         {
+          "id": "cathedral-rays",
+          "name": "Cathedral rays",
+          "category": "Field",
+          "description": "Shafts of light falling from above."
+        },
+        {
+          "id": "lava-lamp",
+          "name": "Lava lamp",
+          "category": "Field",
+          "description": "Slow orbs that merge and part."
+        },
+        {
+          "id": "liquid-silk",
+          "name": "Liquid silk",
+          "category": "Field",
+          "description": "Slow folds of silk."
+        },
+        {
+          "id": "mercury-contours",
+          "name": "Mercury contours",
+          "category": "Field",
+          "description": "Embossed contour lines over a shifting surface."
+        },
+        {
+          "id": "neural-drift",
+          "name": "Neural drift",
+          "category": "Field",
+          "description": "Fine glowing threads that wander."
+        },
+        {
           "id": "ocean",
           "name": "Ocean",
           "category": "Background",
           "description": "Cool blues and sea green for calm, spacious backdrops."
+        },
+        {
+          "id": "prismatic-bloom",
+          "name": "Prismatic bloom",
+          "category": "Field",
+          "description": "Mirrored facets opening around a bright centre."
+        },
+        {
+          "id": "smoke-halo",
+          "name": "Smoke halo",
+          "category": "Field",
+          "description": "A soft ring of drifting smoke."
         },
         {
           "id": "studio",
@@ -9702,6 +9751,12 @@
           "name": "Sunrise",
           "category": "Background",
           "description": "Warm amber and coral light for hero banners and covers."
+        },
+        {
+          "id": "velvet-warp",
+          "name": "Velvet warp",
+          "category": "Field",
+          "description": "Folded colour with a slow swirl."
         }
       ],
       "i18n": {
@@ -10577,9 +10632,12 @@
       "id": "backdrop",
       "name": "Backdrop",
       "description": "Backdrops from your design system's colours: sixteen GPU effects. Export stills or motion loops for heroes, walls and meeting backgrounds.",
-      "version": "1.1.3",
+      "version": "1.2.0",
       "status": "official",
       "category": "everyone",
+      "listed": false,
+      "deprecated": true,
+      "replacedBy": "gradient",
       "tags": [
         "backdrop",
         "background",
@@ -13022,7 +13080,7 @@
       "id": "timezone",
       "name": "Timezone",
       "description": "Turn places and timezones into artwork. Rotate a vector atlas or a WebGL globe, then export artwork, a camera tour or structured schedules.",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "status": "official",
       "category": "event",
       "tags": [
@@ -13047,6 +13105,8 @@
         "webm",
         "mp4",
         "gif",
+        "apng",
+        "webp-anim",
         "json",
         "csv",
         "md",
@@ -13062,7 +13122,7 @@
           "label": "Global webinar",
           "values": {
             "heading": "Ideas without borders.",
-            "eyebrow": "The global webinar",
+            "eyebrow": "",
             "annotation": "A conversation that travels with you.",
             "footer": "Save your place →",
             "timeMode": "now",
@@ -13125,7 +13185,7 @@
           "label": "Infrastructure atlas",
           "values": {
             "heading": "Always connected.",
-            "eyebrow": "Global infrastructure",
+            "eyebrow": "",
             "annotation": "Follow the sun. Know every region.",
             "footer": "",
             "timeMode": "now",

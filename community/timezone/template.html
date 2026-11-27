@@ -1,4 +1,4 @@
-<div id="tz-root" class="tz-root">
+<div id="tz-root" class="tz-root"{{#if tzClipMs}} data-clip-ms="{{tzClipMs}}"{{/if}}>
   <div class="tz-art">{{{_artwork}}}</div>
   <canvas class="tz-globe" aria-label="WebGL world map" hidden></canvas>
   <svg class="tz-pins" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>

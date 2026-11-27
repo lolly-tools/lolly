@@ -1,0 +1,17 @@
+{
+  "id": "smoke-halo",
+  "name": "Smoke halo",
+  "category": "Field",
+  "description": "A soft ring of drifting smoke.",
+  "values": {
+    "mode": "field",
+    "effect": "smoke-ring",
+    "count": 2,
+    "color1": "{color.semantic.secondary}",
+    "color2": "{color.semantic.primary}",
+    "background": "{color.semantic.primary}",
+    "intensity": 55,
+    "density": 40,
+    "fieldSpeed": 80
+  }
+}

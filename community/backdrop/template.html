@@ -308,14 +308,14 @@ void main() {
       };
     }
 
-    /* The vendored lib loads once per page from the tool's own lib/ dir
-       (street-map's pattern); every later render reuses the global. */
+    /* The vendored lib loads once per page; every later render reuses the
+       global. The file lives with Gradient, which this tool moved into. */
     if (window.PaperShaders) { init(); return; }
     var tag = document.getElementById('bd-lib');
     if (!tag) {
       tag = document.createElement('script');
       tag.id = 'bd-lib';
-      tag.src = '/tools/backdrop/lib/paper-shaders.min.js';
+      tag.src = '/tools/gradient/lib/paper-shaders.min.js';
       document.head.appendChild(tag);
     }
     tag.addEventListener('load', function () { if (document.contains(wrap)) init(); });

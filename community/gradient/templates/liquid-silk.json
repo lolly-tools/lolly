@@ -1,0 +1,18 @@
+{
+  "id": "liquid-silk",
+  "name": "Liquid silk",
+  "category": "Field",
+  "description": "Slow folds of silk.",
+  "values": {
+    "mode": "field",
+    "effect": "silk-flow",
+    "count": 3,
+    "color1": "{color.semantic.secondary}",
+    "color2": "{color.semantic.primary}",
+    "color3": "{color.semantic.secondary}",
+    "background": "{color.semantic.primary}",
+    "intensity": 60,
+    "density": 45,
+    "fieldSpeed": 70
+  }
+}

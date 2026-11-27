@@ -2,7 +2,7 @@
 /**
  * Mesh Gradient hooks.
  *
- * Five methods behind one `mode` select (the filter tool's badged-select
+ * Six methods behind one `mode` select (the filter tool's badged-select
  * pattern):
  *
  *  - blend (vector, default): stacked radial gradients over a base fill -
@@ -26,6 +26,14 @@
  *  - warp (raster): freeform colour points (photogradient / Illustrator
  *    freeform-gradient style) - Shepard inverse-distance interpolation in a
  *    WebGL shader, reusing blend's dots, spread and drift controls.
+ *  - field (raster, animated): the sixteen GPU fields that were the Backdrop
+ *    tool. Thirteen are curated Paper Shaders fragments
+ *    (lib/paper-shaders.min.js, Apache-2.0, see lib/LICENSE) and three are
+ *    original MilkDrop-inspired fields. Hooks only validate the inputs and
+ *    emit the host element with its config as a data attribute; the template
+ *    script owns the WebGL2 mount, the live loop and the export frame clock.
+ *    The inline CSS wash is what shows where the shader cannot run, and what
+ *    the CLI's jsdom render shows, since that never loads the library.
  *
  * The mesh math lives in the shared `mesh-core` region (canonical source:
  * community/_shared/mesh.js) so the template script - and, later, other
@@ -49,7 +57,15 @@ var GOLDEN = 137.508;
 // mix-blend-mode whitelist for the colour blobs (the "blend" select).
 var BLOB_BLENDS = ['normal', 'multiply', 'screen', 'overlay', 'soft-light', 'hard-light', 'lighten', 'darken', 'luminosity'];
 
-var MODES = ['blend', 'subdivide', 'flow', 'mesh', 'warp'];
+var MODES = ['blend', 'subdivide', 'flow', 'mesh', 'warp', 'field'];
+
+// The field method's effects. `warp` here is a Paper Shaders effect and has
+// nothing to do with the warp method above.
+var FIELD_EFFECTS = ['metaballs', 'smoke-ring', 'voronoi', 'neuro-noise', 'perlin-noise', 'dithering',
+  'warp', 'spiral', 'swirl', 'silk-flow', 'prism-bloom', 'liquid-contours', 'dot-orbit', 'god-rays', 'color-panels', 'pulsing-border'];
+// Seconds. A field runs on open-ended shader time and has no loop to measure,
+// so a clip takes the length Backdrop's clips had.
+var FIELD_CLIP = 8;
 
 function _num(v, d) { var n = Number(v); return Number.isFinite(n) ? n : d; }
 function _clamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
@@ -524,7 +540,53 @@ function computeWarp(a) {
   };
 }
 
+// ── field (the GPU effects that were the Backdrop tool) ─────────────────────
+
+function computeField(a) {
+  var effect = FIELD_EFFECTS.indexOf(a.effect) >= 0 ? a.effect : 'metaballs';
+  // One colour is a real choice here: the two-colour effects read the first swatch alone.
+  var count = _clamp(Math.round(_num(a.count, 4)), 1, 6);
+  var colors = [];
+  for (var i = 0; i < count; i++) colors.push(_hex6(a['color' + (i + 1)], FALLBACK[i]));
+  var background = _hex6(a.background, '#0b1021');
+  var cfg = JSON.stringify({
+    effect: effect,
+    colors: colors,
+    background: background,
+    brandInfluence: ['off', 'subtle', 'strong', 'full'].indexOf(a.brandInfluence) >= 0 ? a.brandInfluence : 'strong',
+    intensity: _clamp(_num(a.intensity, 50), 0, 100),
+    density: _clamp(_num(a.density, 50), 0, 100),
+    scale: _clamp(_num(a.scale, 100), 25, 400),
+    rotation: _clamp(_num(a.rotation, 0), 0, 360),
+    speed: _clamp(_num(a.fieldSpeed, 100), 0, 300),
+    phase: _clamp(_num(a.phase, 0), 0, 100),
+  });
+  // The wash: the swatches as soft radial pools over the background, shown
+  // wherever the shader cannot mount.
+  var pools = colors.map(function (c, idx) {
+    var x = 18 + (idx * 137.508) % 64;
+    var y = 16 + (idx * 71) % 68;
+    return 'radial-gradient(circle at ' + x.toFixed(0) + '% ' + y.toFixed(0) + '%,' + c + ' 0%,transparent 55%)';
+  });
+  var bg = pools.join(',') + ',linear-gradient(' + background + ',' + background + ')';
+  // The wash is an inner layer at z-index -2 (styles.css), below the shader
+  // canvas: Paper Shaders isolates the host and puts its canvas at z-index -1,
+  // so a background on the host would paint over the shader.
+  return {
+    dotsJson: '[]',
+    meshJson: '',
+    svgContent: '<div class="mg-field" data-field=\'' + cfg + '\'>'
+      + '<div class="mg-field-wash" style="background:' + bg + '"></div></div>',
+  };
+}
+
 // ── dispatch ────────────────────────────────────────────────────────────────
+
+function _loopSeconds(mode) {
+  if (mode === 'blend' || mode === 'warp') return _animate ? _speed : 0;
+  if (mode === 'flow') return _flowSpeed;
+  return mode === 'field' ? FIELD_CLIP : 0;
+}
 
 function compute(model) {
   var a = Object.fromEntries(model.map(function (i) { return [i.id, i.value]; }));
@@ -540,19 +602,28 @@ function compute(model) {
   var key = JSON.stringify([mode, a.count, a.color1, a.color2, a.color3, a.color4, a.color5, a.color6,
     a.pos1, a.pos2, a.pos3, a.pos4, a.pos5, a.pos6, a.spread, a.blur, a.grain, a.grainBlend, a.blend,
     a.animate, a.speed, a.distance, a.rows, a.cols, a.curvature, a.detail, a.meshData,
-    a.flowSpeed, a.waveScale, a.waveAmp, a.angle, a.seed]);
+    a.flowSpeed, a.waveScale, a.waveAmp, a.angle, a.seed,
+    a.effect, a.background, a.brandInfluence, a.intensity, a.density, a.scale, a.rotation, a.fieldSpeed, a.phase]);
   if (key === _memoKey) return _memoResult;
 
   var result;
   if (mode === 'subdivide' || mode === 'mesh') result = computeMeshModes(a, mode);
   else if (mode === 'flow') result = computeFlow(a);
   else if (mode === 'warp') result = computeWarp(a);
+  else if (mode === 'field') result = computeField(a);
   else result = computeBlend(a);
+  // Only a field takes one colour. Every other method draws at least two, so a
+  // count of one left behind by a field is put right where the person can see.
+  if (mode !== 'field' && _num(a.count, 5) < 2) result.count = 2;
   // The template reads the mode from this EXTRA, never from {{mode}} directly:
   // an input reference inside the wrap tag would make annotateTemplate map
   // every canvas click to a sidebar control popover (and its greedy matcher
   // picks whichever input id appears last in the expression).
   result.modeAttr = mode;
+  // Seconds in one loop when this render moves, read back by beforeExport from
+  // the canvas. The export hooks run in the page while these hooks may run in a
+  // worker, so nothing kept in a variable here reaches them.
+  result.loopAttr = _loopSeconds(mode);
 
   _memoKey = key;
   _memoResult = result;
@@ -669,10 +740,11 @@ function onInput(ctx) {
   }, function () { return result; });
 }
 
-// Motion formats play the drift/flow; every other format freezes the base pose
-// so a mid-loop transform never bakes into a "static" SVG/PNG. GIF samples the
-// same live DOM as webm/mp4, just through the raster frame path at a fixed rate.
-var ANIMATED_FORMATS = { webm: 1, mp4: 1, gif: 1 };
+// Motion formats play the drift, the flow or the field; a still freezes the base
+// pose so a mid-loop transform never bakes into a PNG. GIF, APNG and animated
+// WebP sample the same live DOM as webm/mp4 through the raster frame path. An
+// SVG of a drifting blend is the one still format that keeps its motion.
+var ANIMATED_FORMATS = { webm: 1, mp4: 1, gif: 1, apng: 1, 'webp-anim': 1 };
 // Seconds. The GIF encoder runs at a fixed 15 fps and ignores opts.fps, and its
 // frame ceiling is a function of device memory (as low as 200 frames on a small
 // phone), so a whole 24s loop would be truncated mid-clip with only a bridge
@@ -680,6 +752,7 @@ var ANIMATED_FORMATS = { webm: 1, mp4: 1, gif: 1 };
 // bound the digi-ad tools put on their GIF exports.
 var GIF_CAP = 16;
 var _exportSvg = null;
+var _exportSheet = null;
 
 function _warnLoopCap(loop, cap) {
   if (cap >= loop || typeof host === 'undefined' || !host || typeof host.log !== 'function') return;
@@ -689,38 +762,62 @@ function _warnLoopCap(loop, cap) {
   } catch (e) { /* logging must never break an export */ }
 }
 
+// What the canvas is showing, read from the canvas. These two hooks always run
+// in the page, while onInit and onInput may run in a worker, so the variables
+// compute() sets are only an answer where no canvas can be read (the CLI).
+function _exportState(node) {
+  var wrap = null;
+  if (node && node.matches && node.matches('.mg-wrap')) wrap = node;
+  else if (node && node.querySelector) wrap = node.querySelector('.mg-wrap');
+  if (!wrap || !wrap.getAttribute) return { mode: _mode, loop: _loopSeconds(_mode) };
+  return { mode: wrap.getAttribute('data-mode') || 'blend', loop: _num(wrap.getAttribute('data-loop'), 0) };
+}
+
+// One loop is the clip, unless the caller already chose a length: a composed
+// child (host.compose) has one its caller bounded, and a length typed in the
+// export bar wins (durationUserSet is the shell's flag for exactly that).
+function _clipLength(ctx, loop, warn) {
+  ctx.opts.wait = 0;
+  if (ctx.opts.thumbnail || ctx.opts.durationUserSet) return;
+  // 595 = the bridge's fps-aware frame ceiling (digi-ad precedent); GIF is
+  // bounded in seconds instead, see GIF_CAP.
+  var fps = ctx.opts.fps > 0 ? ctx.opts.fps : 24;
+  var cap = ctx.format === 'gif' ? GIF_CAP : Math.floor(595 / fps);
+  ctx.opts.duration = Math.min(loop, cap);
+  // The export can't fit a whole loop - say so instead of silently shipping a
+  // clip that pops at the seam. host.log is a (level, msg) FUNCTION, not an
+  // object of level methods.
+  if (warn) _warnLoopCap(loop, cap);
+}
+
 function beforeExport(ctx) {
-  if (_mode === 'warp') {
-    // The warp canvas registers __lollyFrameRender too; a static warp needs
-    // nothing, an animated one just needs the one-loop clip length.
-    if (!_animate || !ANIMATED_FORMATS[ctx.format]) return;
-    ctx.opts.wait = 0;
-    if (ctx.opts.thumbnail || ctx.opts.durationUserSet) return;
-    var wfps = ctx.opts.fps > 0 ? ctx.opts.fps : 24;
-    var wcap = ctx.format === 'gif' ? GIF_CAP : Math.floor(595 / wfps);
-    ctx.opts.duration = Math.min(_speed, wcap);
-    _warnLoopCap(_speed, wcap);
+  var state = _exportState(ctx.node);
+  var moving = Boolean(ANIMATED_FORMATS[ctx.format]);
+  if (state.mode === 'warp' || state.mode === 'flow' || state.mode === 'field') {
+    // These canvases register __lollyFrameRender, so the capture drives the
+    // exact phase per frame - all that's left here is the clip length. A field
+    // has no loop, so a short clip of one has no seam to warn about.
+    if (state.loop > 0 && moving) _clipLength(ctx, state.loop, state.mode !== 'field');
     return;
   }
-  if (_mode === 'flow') {
-    // The flow canvas registers __lollyFrameRender, so the capture drives the
-    // exact loop phase per frame - all that's left here is the clip length.
-    if (!ANIMATED_FORMATS[ctx.format]) return;
-    ctx.opts.wait = 0;
-    if (ctx.opts.thumbnail || ctx.opts.durationUserSet) return;
-    var ffps = ctx.opts.fps > 0 ? ctx.opts.fps : 24;
-    var fcap = ctx.format === 'gif' ? GIF_CAP : Math.floor(595 / ffps);
-    ctx.opts.duration = Math.min(_flowSpeed, fcap);
-    _warnLoopCap(_flowSpeed, fcap);
-    return;
-  }
-  if (_mode !== 'blend') return; // subdivide/mesh are static - nothing to stage
+  if (state.mode !== 'blend') return; // subdivide/mesh are static - nothing to stage
   var node = ctx.node;
-  if (!_animate || !node || !node.querySelector) return;
+  if (!(state.loop > 0) || !node || !node.querySelector) return;
   var svg = node.querySelector('svg.mg-svg');
   if (!svg) return;
+  // The file keeps the drift: the keyframes travel inside the drawing and the
+  // walk copies no pose, so an SVG of a drifting blend is one seamless loop.
+  if (ctx.format === 'svg') return;
   _exportSvg = svg;
-  if (ANIMATED_FORMATS[ctx.format]) {
+  if (moving) {
+    // Each frame is drawn from a copy of the canvas with the pose written on
+    // every element. Keyframes inside the copy would start again in each frame
+    // and win over that pose, so every frame came out the same. For the length
+    // of the capture the stylesheet sits in the page head: the live drift keeps
+    // running and the copies carry the pose alone.
+    var sheet = svg.querySelector ? svg.querySelector('style') : null;
+    var head = node.ownerDocument && node.ownerDocument.head;
+    if (sheet && head && head.appendChild) { head.appendChild(sheet); _exportSheet = sheet; }
     // .mg-export lets the drift run during capture even under
     // prefers-reduced-motion (an explicit video export should move), then a
     // deterministic restart at t=0 (freeze → reflow → unfreeze) so the clip
@@ -728,26 +825,7 @@ function beforeExport(ctx) {
     svg.classList.add('mg-export');
     svg.classList.add('mg-frozen'); void node.offsetWidth;
     svg.classList.remove('mg-frozen'); void node.offsetWidth;
-    ctx.opts.wait = 0;
-    // A composed child (host.compose - the "paste this tool's link into another
-    // tool's picker" path) already has a length its caller chose and bounded,
-    // and its clip is inlined into the parent's export. Keep the drift, keep the
-    // caller's length: stretching it to a whole loop would embed a clip several
-    // times the size the parent asked for.
-    if (ctx.opts.thumbnail) return;
-    // A length the user typed in the export bar wins (durationUserSet is the
-    // shell's cross-agent flag for exactly that); otherwise the clip is one
-    // drift loop, so it plays seamlessly on repeat.
-    if (ctx.opts.durationUserSet) return;
-    // 595 = the bridge's fps-aware frame ceiling (digi-ad precedent); GIF is
-    // bounded in seconds instead, see GIF_CAP.
-    var fps = ctx.opts.fps > 0 ? ctx.opts.fps : 24;
-    var cap = ctx.format === 'gif' ? GIF_CAP : Math.floor(595 / fps);
-    ctx.opts.duration = Math.min(_speed, cap);
-    // The export can't fit a whole loop - say so instead of silently shipping a
-    // clip that pops at the seam. host.log is a (level, msg) FUNCTION, not an
-    // object of level methods.
-    _warnLoopCap(_speed, cap);
+    _clipLength(ctx, state.loop, true);
   } else {
     svg.classList.add('mg-frozen');
   }
@@ -758,6 +836,9 @@ function afterExport(ctx) {
   if (!svg) return;
   _exportSvg = null;
   svg.classList.remove('mg-export');
+  // The drift's stylesheet goes back into the drawing, where an SVG export reads the keyframes.
+  if (_exportSheet && svg.insertBefore) svg.insertBefore(_exportSheet, svg.firstChild);
+  _exportSheet = null;
   // Restart the drift on the way out rather than just unfreezing it. A motion
   // capture PAUSES every CSS animation so it can scrub them frame by frame and
   // never resumes them, so the live canvas would sit still after an export.

@@ -1,0 +1,18 @@
+{
+  "id": "velvet-warp",
+  "name": "Velvet warp",
+  "category": "Field",
+  "description": "Folded colour with a slow swirl.",
+  "values": {
+    "mode": "field",
+    "effect": "warp",
+    "count": 4,
+    "color1": "{color.semantic.secondary}",
+    "color2": "{color.semantic.primary}",
+    "color3": "{color.semantic.secondary}",
+    "color4": "{color.semantic.primary}",
+    "background": "{color.semantic.primary}",
+    "intensity": 45,
+    "density": 65
+  }
+}

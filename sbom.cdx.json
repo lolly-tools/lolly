@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:845546fa-f9fa-4b46-83ec-9cb7d99c652f",
+  "serialNumber": "urn:uuid:c2e31c7e-561e-4f64-8a8f-3917023b37f9",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-27T00:25:43.649Z",
+    "timestamp": "2026-11-27T02:41:08.414Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -25835,7 +25835,7 @@
       "properties": [
         {
           "name": "lolly:vendored",
-          "value": "community/backdrop/lib/paper-shaders.min.js"
+          "value": "community/gradient/lib/paper-shaders.min.js"
         },
         {
           "name": "lolly:local-changes",
@@ -29137,7 +29137,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "5175b8a81aed6c3cee26063c2eb6df085bd34fead38c66076728d52304630402a9562b3960782eb605d092deb24a2eeb865a6b84e8dcb940427a3af7f52ccb06"
+          "content": "194fb303c0e06c586cfeb4b2ea02ffecfd098913837984d4fcc4d56f01a03240511eb2dac4a9ec72e361c16bb00f91d8fb9df96f625cfd3bcae75a0ee0621d55"
         }
       ],
       "properties": [
@@ -29546,7 +29546,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "5175b8a81aed6c3cee26063c2eb6df085bd34fead38c66076728d52304630402a9562b3960782eb605d092deb24a2eeb865a6b84e8dcb940427a3af7f52ccb06"
+          "content": "194fb303c0e06c586cfeb4b2ea02ffecfd098913837984d4fcc4d56f01a03240511eb2dac4a9ec72e361c16bb00f91d8fb9df96f625cfd3bcae75a0ee0621d55"
         }
       ],
       "properties": [

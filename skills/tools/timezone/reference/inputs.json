@@ -490,12 +490,24 @@
       {
         "value": "unfold",
         "label": "Unfold & return"
+      },
+      {
+        "value": "reveal",
+        "label": "Reveal times"
       }
-    ]
+    ],
+    "help": "Reveal times plays once and holds: each place comes in after the one before, then its time. Tour, orbit and unfold are loops."
   },
   {
     "id": "duration",
     "label": "Loop seconds",
+    "showIf": {
+      "motion": [
+        "tour",
+        "orbit",
+        "unfold"
+      ]
+    },
     "type": "number",
     "default": 12,
     "section": "Motion",

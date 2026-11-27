@@ -19,7 +19,7 @@ Open the **Darkroom** tool and choose an image. The controls run from broad to f
 
 On a phone, each slider is a ruler you drag or flick under a fixed centre mark. The ruler stops on a step. Tap the value above the ruler to type a number.
 
-**Before / after split** and **Histogram** help you judge the result. Lolly Darkroom also opens Photoshop and GIMP layers for positioning, blending and export.
+**Before / after split** and **Histogram** help you judge the result. **Before and after wipe** makes a short clip of the same comparison: the seam crosses once and leaves the graded picture. **Open in Filter**, under the picture, carries the picture and its framing to Lolly Filter, and Filter has the same way back. Lolly Darkroom also opens Photoshop and GIMP layers for positioning, blending and export.
 
 To keep HDR or wide-gamut originals at full precision, set **Editing range** to **HDR**; see [Wide colour and HDR editing](/info/hdr-editing.html).
 

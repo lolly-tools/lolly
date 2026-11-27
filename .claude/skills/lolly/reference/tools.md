@@ -44,7 +44,7 @@ document rather than a handful of fields: **chart** (`chart.md`), **design**
 | `captions` | Captions | everyone | png, svg, penpot, srt, vtt, ttml, scc, json, jpg, webp | - | - | Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, and export burned-in frames pl… |
 | `certificate` | Certificate | everyone | pdf, pdf-cmyk, svg, penpot, png, jpg, webp, tiff, cmyk-tiff, mp4, webm, gif, apng, webp-anim | - | - | Completion and award certificates: four styles, print and social sizes, and motion - one name at a time, or a roster… |
 | `chart` | Chart | designer | png, md, svg, penpot, emf, pdf, pdf-cmyk, cmyk-tiff, tiff, pptx, webp, jpg, apng, webp-anim, gif, webm, mp4, avif, csv, json | - | - | Charts from first paste to advanced visualisation - 35 vector families, 3-D scenes, flights, motion and styles from t… |
-| `darkroom` | Darkroom | designer | png, jpg, webp, svg, penpot, webm, mp4, exr, hdr, tiff, pdf, avif | - | - | Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. |
+| `darkroom` | Darkroom | designer | png, jpg, webp, svg, penpot, webm, mp4, gif, apng, exr, hdr, tiff, pdf, avif | - | - | Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. |
 | `deck-studio` | Markdown Slides | designer | pptx, pdf, png, html, jpg, webp | - | - | Turn Markdown or a JSON spec into a native, editable PowerPoint deck. |
 | `design` | Design | designer | png, svg, penpot, pdf, pdf-cmyk, cmyk-tiff, jpg, webp, mp4, webm, gif, apng, wav, mp3, m4a, opus, pptx, scorm, avif, tiff, emf, webp-anim, lottie, idml, premiere-xml, html | - | - | An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to… |
 | `diagram-builder` | Diagrams | everyone | svg, penpot, pdf, dxf, png, jpg, webp, avif, emf, pdf-cmyk, pptx | - | - | Org charts, flowcharts, timelines and more - from cards, text, Mermaid, DOT or CSV. |
@@ -54,7 +54,7 @@ document rather than a handful of fields: **chart** (`chart.md`), **design**
 | `finish-preview` | Finishes | designer | svg, penpot, pdf, pdf-cmyk, png, jpg, webp, avif, tiff, cmyk-tiff, gif, apng, webp-anim, webm, mp4 | - | - | Preview foil, spot UV, emboss and soft-touch finishes on your artwork, then export the spot plate. |
 | `flythrough` | Flythrough | designer | png, jpg, webp, webm, mp4, gif, avif, tiff, webp-anim | - | - | Fly a 3D camera through a screenshot. |
 | `frame` | Frame | everyone | png, jpg, webp, svg, penpot, pdf, avif, tiff | - | - | Drop in a screenshot and get it framed, padded and shadowed on a design system backdrop. |
-| `gradient` | Gradient | everyone | svg, penpot, png, jpg, webp, avif, webm, mp4, gif, pdf, tiff, webp-anim | - | - | Five ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp and Flow. |
+| `gradient` | Gradient | everyone | svg, penpot, png, jpg, webp, avif, webm, mp4, gif, pdf, tiff, webp-anim | - | - | Six ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp, Flow and Field, which has… |
 | `growth` | Growth | designer | svg, penpot, pdf, png, jpg, webp, gif, webm, mp4, avif, tiff, emf, eps, dxf, webp-anim | - | - | Differential growth: a line that folds into coral. |
 | `icon` | Icon | everyone | ico, png, svg, penpot, zip, webp | - | compose | Favicon and app-icon maker - a multi-size .ico, PNG and SVG, or the whole app kit as one zip. |
 | `link-card` | Link Card | everyone | png, jpg, webp, svg, penpot, pdf, avif, tiff, mp4, webm, gif, html | - | - | Paste a link, get a social card in your design system - title, description, site chip and a thumbnail, at Open Graph,… |
@@ -76,7 +76,7 @@ document rather than a handful of fields: **chart** (`chart.md`), **design**
 | `stationery` | Stationery | everyone | pdf, pdf-cmyk, svg, penpot, png, jpg, webp, tiff, cmyk-tiff | - | - | Business cards, letterhead and compliments slips from the design system, each piece sized to its real print trim, rea… |
 | `street-map` | Street Map | designer | svg, penpot, emf, dxf, pdf, pdf-cmyk, png, jpg, webp, avif, tiff, eps | - | - | Clean vector street-block maps of any city. |
 | `synth` | Synth | designer | png, jpg, webp, webm, mp4, gif, apng, avif, tiff, webp-anim | - | - | A visual instrument you play. |
-| `timezone` | Timezone | event | svg, png, pdf, webp, jpeg, webm, mp4, gif, json, csv, md, ics | - | - | Turn places and timezones into artwork. |
+| `timezone` | Timezone | event | svg, png, pdf, webp, jpeg, webm, mp4, gif, apng, webp-anim, json, csv, md, ics | - | - | Turn places and timezones into artwork. |
 | `wayfinding-signage` | Wayfinding | event | pdf, pdf-cmyk, svg, penpot, dxf, png, jpg, webp, avif, tiff, cmyk-tiff, emf | - | - | Directional event signs - destinations, each with an arrow. |
 | `week` | Week | everyone | png, svg, pdf, jpeg, webp, mp4, webm, gif, html | - | - | A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked, for a slide… |
 | `wordmark` | Wordmark | everyone | svg, penpot, emf, eps, eps-cmyk, dxf, pdf, pdf-cmyk, cmyk-tiff, tiff, png, jpeg, webp, avif | - | - | Type a word, get a pure-path vector wordmark in the design system font - recipients never need the font installed. |
