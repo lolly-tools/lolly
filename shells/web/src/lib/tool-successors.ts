@@ -389,12 +389,66 @@ export function scanToQrCode(values: Values): Values {
   };
 }
 
+const isFlag = (value: unknown): boolean => value === true || value === false || value === 'true' || value === 'false';
+
+/** Sign's inputs under the ids they have in Pages. Three were renamed so they read clearly among the page inputs. */
+const SIGN_TO_PAGES: Record<string, string> = {
+  signature: 'signature', signatureInk: 'signatureInk', page: 'signaturePage', initials: 'initials', date: 'signatureDate', seal: 'seal', lock: 'lock',
+};
+
+/**
+ * Compress into Pages. Compress is Pages' compress operation, so the document opens
+ * there with its level and its greyscale choice. The picked PDF is bytes in memory and
+ * not a value, so the PDF is chosen again. Pure, exported for tests.
+ */
+export function compressToPages(values: Values): Values {
+  const level = text(values.level);
+  return {
+    operation: 'compress',
+    ...(['light', 'balanced', 'strong'].includes(level) ? { level } : {}),
+    ...(isFlag(values.grayscale) ? { grayscale: flag(values.grayscale, false) } : {}),
+  };
+}
+
+/**
+ * Sign into Pages. Sign is Pages' sign operation. The drawn signature, the page, the
+ * position and the date, credential and lock choices travel; a signature or initials
+ * picture travels when the value is a catalog picture or a link, and an uploaded one is
+ * bytes in memory, as the PDF is, so both are chosen again. Pure, exported for tests.
+ */
+export function signToPages(values: Values): Values {
+  const out: Values = { operation: 'sign' };
+  for (const [from, to] of Object.entries(SIGN_TO_PAGES)) {
+    const value = values[from];
+    if (from === 'signature' || from === 'initials') {
+      // An asset travels as its id; a link pasted from the Signature tool is its own id.
+      const id = typeof value === 'string' ? value.trim() : text(record(value).id);
+      if (id && !/^(blob|data):/i.test(id)) out[to] = id;
+    } else if (from === 'signatureInk') {
+      if (typeof value === 'string' && value.trim()) out[to] = value;
+    } else if (from === 'page') {
+      const n = Math.round(num(value, NaN));
+      if (n >= 1) out[to] = n;
+    } else if (isFlag(value)) {
+      out[to] = flag(value, false);
+    }
+  }
+  const position = record(values.position);
+  const place = Object.fromEntries(
+    ['x', 'y', 'width'].filter((field) => Number.isFinite(num(position[field], NaN))).map((field) => [field, num(position[field], 0)])
+  );
+  // A group of numbers travels in a link one field at a time, as `signaturePosition.x=72`.
+  return { ...out, ...fields('signaturePosition', place) };
+}
+
 const CARRY: Record<string, Carry> = {
   'meeting-planner': meetingPlannerToTimezone,
   'org-chart': flowChartToDesign,
   'scan-code': scanToQrCode,
   'voice-recorder': voiceRecorderToAudiogram,
   '3d': threeDToStudio,
+  'compress-pdf': compressToPages,
+  sign: signToPages,
 };
 
 /** The successor's address for a document open in the retired tool `from`. Lists and

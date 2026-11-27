@@ -102,7 +102,7 @@ On-device file utilities: bytes in, bytes out. Most take the user's own file
 | `countdown-timer` | Countdown | utility | html | - | - | A focused countdown with a live progress ring. |
 | `font-convert` | Convert Font | utility | ttf, otf, woff | - | - | Convert a font between TrueType, OpenType and WOFF - on your device. |
 | `jump` | Jump | utility | html | - | - | A one-link landing page: your links, heading, portrait and colours - and the whole page lives inside the link you share. |
-| `pages` | Pages | utility | pdf, zip | - | - | Reorder, rotate, extract, delete, merge or split PDF pages, or turn images into a PDF, on your device. |
+| `pages` | Pages | utility | pdf, zip | - | - | Reorder, rotate, extract, delete, merge or split PDF pages, compress or sign a PDF, or turn images into a PDF, on you… |
 | `prompt-card` | Prompt Card | utility | png, webp, jpg, avif, svg, penpot, pdf | - | - | Typeset a long prompt into one image for a multimodal model - image input is often cheaper than the same words as tex… |
 | `rebrand-deck` | Theme swap | utility | pptx | - | - | Swaps the theme, colours and fonts in a PowerPoint deck on this device. |
 | `redact` | Redact | utility | png, jpg, webp, svg, penpot, pdf | - | - | Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device. |

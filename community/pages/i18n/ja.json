@@ -1,4 +1,11 @@
 {
   "name": "ページ数",
-  "description": "PDFのページを、デバイス上で並べ替え、回転、抽出、削除、結合、分割できます。画像からPDFを作ることもできます。"
+  "description": "PDFのページを、デバイス上で並べ替え、回転、抽出、削除、結合、分割できます。画像からPDFを作ることもできます。",
+  "inputs.level.label": "圧縮レベル",
+  "inputs.level.help": "埋め込み画像をどれだけ圧縮するかを設定します。強くするほどファイルサイズは小さくなりますが、画像はぼやけます。",
+  "inputs.level.options.light": "軽度 - 画質を優先",
+  "inputs.level.options.balanced": "バランス",
+  "inputs.level.options.strong": "強度 - ファイルサイズを最小化",
+  "inputs.grayscale.label": "画像をグレースケールに変換",
+  "inputs.grayscale.help": "画像から色を取り除いてさらに容量を削減します。スキャンしたテキスト文書に便利です。"
 }

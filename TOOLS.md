@@ -3,7 +3,7 @@
 Every tool in the gallery, in alphabetical order. [Open Lolly](https://lolly.tools) to use one, or go back to the [README](README.md).
 
 <!-- tools-table:start -->
-The Lolly Start (blank brand) catalog ships **75 tools** today - 60 listed in the gallery, plus 15 unlisted tools (3D, Asset Export, Battlecards, Brief, Calendar, Email, Flow Chart, Meeting Planner, Pricing, Sales Quote, Scan, Scorecard, Theme swap, Voice Recorder, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
+The Lolly Start (blank brand) catalog ships **75 tools** today - 58 listed in the gallery, plus 17 unlisted tools (3D, Asset Export, Battlecards, Brief, Calendar, Compress, Email, Flow Chart, Meeting Planner, Pricing, Sales Quote, Scan, Scorecard, Sign, Theme swap, Voice Recorder, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|
@@ -19,7 +19,6 @@ The Lolly Start (blank brand) catalog ships **75 tools** today - 60 listed in th
 | Chart | Charts from first paste to advanced visualisation - 35 vector families, 3-D scenes, flights, motion and styles from the design system. |
 | Claim | Claim your name on any media - image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials, on your device. |
 | Clean | Clean a voice recording, trim edge silence and set its loudness on your device. |
-| Compress | Shrink a PDF by recompressing its images - on your device. |
 | Contrast | Check a text and background pair, or every pairing in the palette, against WCAG 2.1 and APCA, and see how it reads to colour-blind viewers. |
 | Convert Font | Convert a font between TrueType, OpenType and WOFF - on your device. |
 | Convert Image | Turn HEIC, TIFF or any photo into WebP, JPEG or PNG - on your device. |
@@ -40,7 +39,7 @@ The Lolly Start (blank brand) catalog ships **75 tools** today - 60 listed in th
 | Logo Wall | Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall. |
 | Lottie Ad | Build animated ads from layered scenes, each carrying a Lottie motion asset, for any standard size. |
 | Markdown Slides | Turn Markdown or a JSON spec into a native, editable PowerPoint deck. Exports .pptx (editable), plus PDF and PNG. |
-| Pages | Reorder, rotate, extract, delete, merge or split PDF pages, or turn images into a PDF, on your device. |
+| Pages | Reorder, rotate, extract, delete, merge or split PDF pages, compress or sign a PDF, or turn images into a PDF, on your device. |
 | Palette Lab | Grow a palette from one seed colour - harmony accents, OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export. |
 | Print Sheet | Lay one design - or a whole pile of them - out n-up on A4, Letter or A3, across as many pages as it takes, with crop marks in the margin. |
 | Prompt Card | Typeset a long prompt into one image for a multimodal model - image input is often cheaper than the same words as text tokens. |
@@ -51,7 +50,6 @@ The Lolly Start (blank brand) catalog ships **75 tools** today - 60 listed in th
 | Rondocode | Write music as code and hear it as you type. Export the song as audio with Content Credentials, as stems, as a MIDI file, or keep its source. |
 | Sandbox | Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. |
 | Screen Capture | Screenshot or record your screen, a window, or a browser tab. Drag on the canvas to crop - the export stays the exact pixels you captured. |
-| Sign | Place your signature on a PDF, optionally add a Content Credential and lock the result. |
 | Signature | Sign with a finger, stylus or mouse and get a clean signature on transparency - SVG or PNG, no scanner, no photo of a bit of paper. |
 | Snippet | Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion. |
 | Spatial Photo | Drop in one photo and move a camera through it: depth is read on your device. |

@@ -103,7 +103,7 @@ The tool view has an **Inputs** panel, an **Export** panel and a preview. Every 
 **The preview.** For a design tool the preview is opt-in (`p`). The TUI rasterises the tool's SVG and draws a truecolor half-block image in the terminal cells, with no external image protocol. For a utility the preview is the main pane and appears on its own, even on a narrow terminal:
 
 - a **text or interactive** utility (`color-palette`, `text-helper`, …) shows its rendered content as terminal text. The TUI turns the rendered page into structured, coloured lines, with headings, tabs, buttons and colour swatches drawn as blocks in their colour from the tool's own CSS;
-- a **file transform** (`strip-data`, `compress-pdf`) shows a result summary with the size before and after;
+- a **file transform** (`strip-data`, `pages`) shows a result summary with the size before and after;
 - **`url-shot`** shows its capture settings: URL, size, crop and recolour.
 
 ### Saving, sharing and actions

@@ -30,7 +30,7 @@ own). Each tool is a directory of *data, not code*:
 | `gradient` | Mesh-style gradients from brand swatches - draggable colour points, grain, drift animation exportable as WebM / MP4 / GIF |
 | `color-palette` | Grow a palette from one seed - harmony accents, OKLab/APCA ramps, an optional contrast grid and colour-vision preview, DTCG tokens plus CSV/CSS/SCSS/GIMP/ASE export |
 | `contrast-check` | WCAG 2.1 and APCA pass/fail for a colour pair or the whole brand palette, with colour-blind and greyscale simulation |
-| `compress-pdf` | On-device PDF compression |
+| `pages` | Reorder, rotate, extract, delete, merge or split PDF pages, compress or sign a PDF, on-device |
 | `strip-data` | Strip hidden metadata from images, on-device |
 | `text-helper` | Text transforms and helpers |
 | `countdown-timer` | Countdown timer graphics |

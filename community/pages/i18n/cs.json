@@ -1,4 +1,11 @@
 {
   "name": "Stránky",
-  "description": "Přeřaď, otoč, vyjmi, smaž, sluč nebo rozděl stránky PDF, nebo převeď obrázky do PDF, přímo v zařízení."
+  "description": "Přeřaď, otoč, vyjmi, smaž, sluč nebo rozděl stránky PDF, nebo převeď obrázky do PDF, přímo v zařízení.",
+  "inputs.level.label": "Komprese",
+  "inputs.level.help": "Jak silně komprimovat vložené obrázky. Silnější komprese znamená menší soubory a měkčí obrázky.",
+  "inputs.level.options.light": "Slabá - zachová vysokou kvalitu",
+  "inputs.level.options.balanced": "Vyvážená",
+  "inputs.level.options.strong": "Silná - nejmenší soubor",
+  "inputs.grayscale.label": "Převést obrázky na stupně šedi",
+  "inputs.grayscale.help": "Odeber barvu z obrázků pro další úsporu - užitečné pro naskenované textové dokumenty."
 }

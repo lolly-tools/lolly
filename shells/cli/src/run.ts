@@ -996,7 +996,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       // One-line result summary (input→output delta + the tool's a11y summary) so the
       // headless path reports what a transform did, not just a byte count. Matches the
       // TUI's utility result panel.
-      const inBytes = fileIn ? (values[fileIn.id] as { size?: number } | undefined)?.size : undefined;
+      // A file input that takes a list has a before size when the list holds one file.
+      const given = fileIn ? values[fileIn.id] : undefined;
+      const inBytes = ((Array.isArray(given) ? (given.length === 1 ? given[0] : undefined) : given) as { size?: number } | undefined)?.size;
       const label = runtime.getHydratedString(tool.manifest.a11yLabel).trim();
       const delta = typeof inBytes === 'number' ? `${inBytes.toLocaleString()} → ${buf.length.toLocaleString()} bytes` : `${buf.length.toLocaleString()} bytes`;
       note(`✓ ${label ? label + ' - ' : ''}${delta} → ${dest}`);

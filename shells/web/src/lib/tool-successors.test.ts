@@ -2,7 +2,7 @@
 /** Where a retired tool's document opens in its successor (lib/tool-successors.ts). */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { flowChartToDesign, meetingPlannerToTimezone, successorHref, THREE_D_SCENES, threeDRotation, threeDToStudio, voiceRecorderToAudiogram, scanToQrCode } from './tool-successors.ts';
+import { flowChartToDesign, meetingPlannerToTimezone, successorHref, THREE_D_SCENES, threeDRotation, threeDToStudio, voiceRecorderToAudiogram, scanToQrCode, compressToPages, signToPages } from './tool-successors.ts';
 
 test('a Meeting Planner document becomes Timezone places, with the host city first and as the clock', () => {
   const carried = meetingPlannerToTimezone({
@@ -370,4 +370,45 @@ test('the QR Code address is one its own manifest reads back, in scan mode', asy
   const render = resolveRender(manifest.render, values);
   assert.equal(render.export, false, 'the address lands on the reader, with no export');
   assert.deepEqual(render.actions, []);
+});
+
+test('Compress into Pages: the compress operation, with the level and the greyscale choice', () => {
+  assert.deepEqual(compressToPages({ level: 'strong', grayscale: true }), { operation: 'compress', level: 'strong', grayscale: true });
+  assert.deepEqual(compressToPages({ level: 'balanced', grayscale: 'false' }), { operation: 'compress', level: 'balanced', grayscale: false });
+  assert.deepEqual(compressToPages({}), { operation: 'compress' }, 'Pages keeps its own defaults, which are the same');
+  assert.deepEqual(compressToPages({ level: 'maximum' }), { operation: 'compress' }, 'a level Compress never had is left out');
+});
+
+test('Compress into Pages: the picked PDF is not carried', () => {
+  const picked = { __file: true, name: 'report.pdf', mime: 'application/pdf', size: 9, bytes: new Uint8Array([1]) };
+  assert.deepEqual(compressToPages({ source: picked, level: 'light' }), { operation: 'compress', level: 'light' });
+});
+
+test('Sign into Pages: three inputs take their new ids and the rest keep theirs', () => {
+  const carried = signToPages({
+    signatureInk: 'M10,10L100,80', page: 4, position: { x: 72, y: 620, width: 144 }, date: true, seal: false, lock: true,
+  });
+  assert.deepEqual(carried, {
+    operation: 'sign', signatureInk: 'M10,10L100,80', signaturePage: 4, signatureDate: true, seal: false, lock: true,
+    'signaturePosition.x': 72, 'signaturePosition.y': 620, 'signaturePosition.width': 144,
+  });
+  for (const old of ['page', 'position', 'date']) assert.equal(old in carried, false, `${old} is not an input of Pages`);
+});
+
+test('Sign into Pages: a catalog or linked picture travels by id, and bytes in memory do not', () => {
+  const picked = { __file: true, name: 'contract.pdf', mime: 'application/pdf', size: 9, bytes: new Uint8Array([1]) };
+  const carried = signToPages({
+    source: picked, signature: { id: 'user/signature-1', url: 'blob:https://lolly.tools/1' }, initials: { id: 'data:image/png;base64,AA==', url: 'data:image/png;base64,AA==' },
+  });
+  assert.deepEqual(carried, { operation: 'sign', signature: 'user/signature-1' });
+  assert.deepEqual(signToPages({ signature: 'https://lolly.tools/tool/signature.png?name=Ana', page: 0, date: 'false' }), {
+    operation: 'sign', signature: 'https://lolly.tools/tool/signature.png?name=Ana', signatureDate: false,
+  });
+  assert.deepEqual(signToPages({}), { operation: 'sign' });
+});
+
+test('the Pages addresses for Compress and Sign carry the operation first', () => {
+  assert.equal(successorHref('compress-pdf', 'pages', { level: 'strong', grayscale: false }), '#/tool/pages?operation=compress&level=strong&grayscale=false');
+  assert.equal(successorHref('sign', 'pages', { page: 2, position: { x: 10, y: 20, width: 30 } }),
+    '#/tool/pages?operation=sign&signaturePage=2&signaturePosition.x=10&signaturePosition.y=20&signaturePosition.width=30');
 });

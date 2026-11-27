@@ -218,7 +218,7 @@ The CLI, the TUI and this server share one predicate that decides when a call ne
 
 | Tool | Does |
 |---|---|
-| `lolly_transform` | Run an on-device file utility (`strip-data`, `compress-pdf`) on a file you supply. |
+| `lolly_transform` | Run an on-device file utility (`strip-data`, `pages`) on a file you supply. A utility with several operations takes the choice in `inputs`, as `{"operation": "compress"}` does for `pages`. |
 | `lolly_redact` | Destroy regions of an image, SVG or PDF you supply. |
 | `lolly_verify` | Verify a file's Content Credentials (C2PA). |
 | `lolly_rebrand` | Renovate a PowerPoint deck you supply into this server's design system, in stages. |
@@ -360,7 +360,7 @@ Every tool that takes a Lolly Design source lowers them first, to ordinary layer
 
 ### Redaction needs the full endpoint
 
-`lolly_redact` rebuilds pixels (a canvas for images, a page render for PDFs), which the browser-free tier cannot do. On the **full** endpoint it runs the same browser path as the app, including the tool's own export gate. On the **open** endpoint it returns an error that says the browser tier is not available there. It never hands back a file that was not redacted. `lolly_transform` behaves the same way for any utility that rebuilds pixels; the metadata-only utilities (`strip-data`, `compress-pdf`) still run browser-free.
+`lolly_redact` rebuilds pixels (a canvas for images, a page render for PDFs), which the browser-free tier cannot do. On the **full** endpoint it runs the same browser path as the app, including the tool's own export gate. On the **open** endpoint it returns an error that says the browser tier is not available there. It never hands back a file that was not redacted. `lolly_transform` behaves the same way for any utility that rebuilds pixels; the metadata-only utilities (`strip-data`, and `pages` with its Compress operation) still run browser-free.
 
 <!--i:eti-stamp-->
 ## What a render records

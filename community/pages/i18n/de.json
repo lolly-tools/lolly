@@ -1,4 +1,11 @@
 {
   "name": "Seiten",
-  "description": "PDF-Seiten neu anordnen, drehen, extrahieren, löschen, zusammenführen oder aufteilen oder Bilder in ein PDF umwandeln - auf Ihrem Gerät."
+  "description": "PDF-Seiten neu anordnen, drehen, extrahieren, löschen, zusammenführen oder aufteilen oder Bilder in ein PDF umwandeln - auf Ihrem Gerät.",
+  "inputs.level.label": "Komprimierung",
+  "inputs.level.help": "Wie stark eingebettete Bilder komprimiert werden. Stärker bedeutet kleinere Dateien und weichere Bilder.",
+  "inputs.level.options.light": "Leicht - hohe Qualität beibehalten",
+  "inputs.level.options.balanced": "Ausgewogen",
+  "inputs.level.options.strong": "Stark - kleinste Datei",
+  "inputs.grayscale.label": "Bilder in Graustufen umwandeln",
+  "inputs.grayscale.help": "Entfernt die Farbe aus Bildern für zusätzliche Einsparungen - nützlich für gescannte Textdokumente."
 }

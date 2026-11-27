@@ -1,4 +1,11 @@
 {
   "name": "Sayfalar",
-  "description": "PDF sayfalarını cihazında yeniden sırala, döndür, çıkar, sil, birleştir ya da ayır veya görsellerden PDF oluştur."
+  "description": "PDF sayfalarını cihazında yeniden sırala, döndür, çıkar, sil, birleştir ya da ayır veya görsellerden PDF oluştur.",
+  "inputs.level.label": "Sıkıştırma",
+  "inputs.level.help": "Gömülü görsellerin ne kadar sıkıştırılacağı. Daha güçlü sıkıştırma, daha küçük dosyalar ve daha yumuşak görseller demektir.",
+  "inputs.level.options.light": "Hafif - kaliteyi yüksek tut",
+  "inputs.level.options.balanced": "Dengeli",
+  "inputs.level.options.strong": "Güçlü - en küçük dosya",
+  "inputs.grayscale.label": "Görselleri gri tonlamaya dönüştür",
+  "inputs.grayscale.help": "Ekstra tasarruf için görsellerden rengi kaldır - taranmış metin belgeleri için faydalı."
 }

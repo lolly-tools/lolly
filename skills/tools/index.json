@@ -423,8 +423,8 @@
     {
       "version": 1,
       "toolId": "compress-pdf",
-      "toolVersion": "1.0.2",
-      "toolVersionRange": "1.0.2",
+      "toolVersion": "1.0.3",
+      "toolVersionRange": "1.0.3",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -432,7 +432,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "f6fea3cb0effa7615c7788a7ddf7b72750baa7cc6fd6ec0c74ec858e283d08df",
+          "sha256": "c876932b11e8fec65f03cb93ef1d90729bf5bfc7b8546d9914e417b716155ab2",
           "bytes": 1583
         },
         "reference/inputs.json": {
@@ -1048,8 +1048,8 @@
     {
       "version": 1,
       "toolId": "pages",
-      "toolVersion": "1.1.2",
-      "toolVersionRange": "1.1.2",
+      "toolVersion": "1.2.0",
+      "toolVersionRange": "1.2.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1057,12 +1057,12 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "1bc9a774dfec32e6976e617f0f79a4ee7f664978b035ffde7007fd4465b993b9",
-          "bytes": 1713
+          "sha256": "9766060d40ef0bff465cdb18c65a68a11f4522127dfb34646f6f22507803c259",
+          "bytes": 2005
         },
         "reference/inputs.json": {
-          "sha256": "f372d88cc3c7a6028f0c87791ab6b7c85a1ff2abfad3a1be3f63cc525c8bd28b",
-          "bytes": 2870
+          "sha256": "a1007e9c0ebe88eb96ac87f191ef8b83bc57782fb49168bd728ac8c996b8c7e9",
+          "bytes": 7483
         }
       },
       "path": "pages/SKILL.md"
@@ -1398,8 +1398,8 @@
     {
       "version": 1,
       "toolId": "sign",
-      "toolVersion": "1.1.1",
-      "toolVersionRange": "1.1.1",
+      "toolVersion": "1.1.2",
+      "toolVersionRange": "1.1.2",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1407,7 +1407,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "ad9f044d1e31028d616069c2f1d8bb4796b1fd922c37f3f4aa12bc65062b08aa",
+          "sha256": "ce0701c0c1a549a95dbec5e2bef0009146d15dc8c41492b6d5a20c5ebee69796",
           "bytes": 1723
         },
         "reference/inputs.json": {

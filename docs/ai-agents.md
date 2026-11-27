@@ -110,7 +110,7 @@ A few more habits help:
 <!--i:eti-help-->
 ## When a tool will not hand back a file
 
-- **Utilities that show rather than export.** `countdown-timer`, `strip-data`, `text-helper` and `compress-pdf` set `render.export: false`, so `&export` and `&copy` do nothing. `color-palette` is not one of them: the community Lolly Palette Lab exports images, PDF, palette files and data. A brand pack can narrow any community tool's formats, so read the manifest or `lolly_describe_tool`.
+- **Utilities that show rather than export.** `countdown-timer`, `strip-data`, `text-helper` and `pages` set `render.export: false`, so `&export` and `&copy` do nothing. `color-palette` is not one of them: the community Lolly Palette Lab exports images, PDF, palette files and data. A brand pack can narrow any community tool's formats, so read the manifest or `lolly_describe_tool`.
 - **Experimental tools** (`status: "experimental"` in the manifest) watermark their exports by default until they are promoted. On-device utilities are exempt.
 - **Tools that take your own file**, such as `strip-data`, transform bytes in memory. A file cannot travel in a URL, so use `lolly_transform` on the MCP server or the CLI.
 
