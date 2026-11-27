@@ -1,12 +1,20 @@
 // SPDX-License-Identifier: MPL-2.0
 //
 // Audiogram took over Voice Recorder's work (the coaching inputs `targetLevel` and
-// `showTips`). An Audiogram link made before that must draw what it drew: these
-// digests were taken from the tree before the two inputs were added, with this same
-// file, so a change to what an old link hydrates to fails here.
+// `showTips`). An Audiogram link made before that must draw what it drew, so a change
+// to what an old link hydrates to fails here.
 //
-// The two new inputs steer the recording control in the shell and nothing on the
-// card, which the last test states directly.
+// What is pinned is the card's MARKUP: everything between the stylesheet and the
+// script, which holds each value a link carries (the words, the colours, the still,
+// the packed analysis, the captions). Audiogram 2.10.0 changed the other two parts,
+// the same way for every link: the stylesheet sizes the type in the card's own unit,
+// and the script learned the title entrance. So the digests were taken again, with
+// this same file, from the tree before 2.10.0, and they match that tree's markup byte
+// for byte. The stylesheet change was checked as pictures instead: the square card
+// exports the same pixels as before.
+//
+// The two coaching inputs steer the recording control in the shell and nothing on the
+// card, and Title motion left at None adds nothing: the last two tests state both.
 //
 // Run with:
 //   node --import ./tests/css-stub.mjs --test tests/audiogram-unchanged-links.test.ts
@@ -35,14 +43,22 @@ const LINKS: Record<string, string> = {
   captions: 'title=In+her+own+words&style=mirror&captions=true&transcript=1%0A00%3A00%3A00%2C200+--%3E+00%3A00%3A03%2C400%0AWe+started+with+one+question.%0A',
 };
 
-/** Taken on origin/main at 1c3186fcce (Audiogram 2.8.0), before the coaching inputs. */
+/** The markup's digest, taken on origin/main at 0967f65aad (Audiogram 2.9.0). */
 const WANT: Record<string, string> = {
-  defaults: '8a0b3b0e43d1b4ccb15f7d13e73d00a910c5d80c77675587fec6cd002c9aa649',
-  podcast: '5bcea83452bfd167e8f24feb0328d06891e49b340886f797035b8572d3395fa7',
-  wave: 'ad522a41cf3b9d0beda7e331c095f5beb615c2e032313d31c275f048776b5300',
-  colours: '35f0b392da9359bcc38554bedb5b4bce41912ddfa5b5f4cea60610c7e3add694',
-  captions: '7d3a8a98c32e333c70b2171422959e0de591c43989da1fdc63f3a26377e272ee',
+  defaults: '20740551b5e7578e9754e0009073bb7a0e14565c4ae9cbf1b676a6d3e0318395',
+  podcast: '1f11e0a626858aeac0229e39eb1bdbc3a9527be49c62be4bd264fee43857eaa0',
+  wave: 'a9c8ab85ef63b8ca8f48e9de7d48327559c942d82195cbd29c60e3f886ee67c6',
+  colours: 'f97f8559f3fdc9e879418c780d2cb83b99fc451c95e6735e5b1e81572e11a6ba',
+  captions: 'fb29a2407ea673bce46f22c5cedc6fdb0ce1499907c9c6ded2e9a5d8fd615e00',
 };
+
+/** The card between its stylesheet and its script. */
+function markup(hydrated: string): string {
+  const from = hydrated.indexOf('</style>');
+  const to = hydrated.indexOf('<script>');
+  assert.ok(from > 0 && to > from, 'the card is a stylesheet, markup and a script, in that order');
+  return hydrated.slice(from, to);
+}
 
 async function hydrate(query: string, extra: Record<string, unknown> = {}): Promise<string> {
   const tool = await loadTool('audiogram', (p) => readFile(join(COMMUNITY, p), 'utf8'));
@@ -55,7 +71,7 @@ const digest = (text: string): string => createHash('sha256').update(text).diges
 
 for (const [name, query] of Object.entries(LINKS)) {
   test(`an Audiogram link from before the merge draws the same card: ${name}`, { skip: SKIP }, async () => {
-    const got = digest(await hydrate(query));
+    const got = digest(markup(await hydrate(query)));
     assert.equal(got, WANT[name]);
   });
 }
@@ -64,4 +80,12 @@ test('the coaching inputs change nothing on the card', { skip: SKIP }, async () 
   const plain = await hydrate(LINKS.podcast!);
   const coached = await hydrate(LINKS.podcast!, { targetLevel: 'loud', showTips: false });
   assert.equal(coached, plain);
+});
+
+test('Title motion left at None changes nothing on the card', { skip: SKIP }, async () => {
+  for (const query of Object.values(LINKS)) {
+    const plain = await hydrate(query);
+    assert.equal(await hydrate(query, { titleMotion: 'none' }), plain);
+    assert.equal(/data-ag-entrance|data-ag-in=|class="ag-w"/.test(markup(plain)), false);
+  }
 });

@@ -405,20 +405,96 @@ function _qbScanChecks(o) {
   if (Number.isFinite(pad) && pad < 4) {
     w.push({ input: 'padding', text: 'Quiet zone is ' + pad + ' module' + (pad === 1 ? '' : 's') + '. Keep at least 4 clear modules around the code.' });
   }
-  // Logo occlusion vs the error-correction budget (ecl already raised to H when a logo is set).
-  if (o.hasLogo) {
-    // Clamp to the same [8,32]% the renderer enforces, plus the quiet ring, so the
-    // estimate matches the actual footprint rather than an out-of-range input.
-    var scale = Math.min(32, Math.max(8, Number(o.logoScale) || 22)) / 100;
-    var frac = scale + (Number(o.logoPad) > 0 ? 0.03 : 0); // the plate is a touch wider than the mark
-    var area = frac * frac;                       // centred square footprint
-    var budget = ({ L: 0.07, M: 0.15, Q: 0.25, H: 0.30 })[o.ecl] || 0.30;
-    if (area > budget * 0.8) {
-      w.push({ input: 'logoScale', text: 'The logo covers about ' + Math.round(area * 100) + '% of the code, near the ' + Math.round(budget * 100)
-        + '% that error correction can recover. Shrink the logo if the code stops scanning.' });
+  // The logo against what error correction can rebuild, counted on the real symbol
+  // (o.logoLoad, from _qbLogoLoad). Without a symbol there is nothing to count.
+  if (o.hasLogo && o.logoLoad) {
+    var load = o.logoLoad;
+    if (load.worst > 1) {
+      w.push({ input: 'logoScale', tone: 'error', text: 'The logo hides more of the code than error correction can rebuild, so this code is unlikely to scan. Make the logo or its padding smaller.' });
+    } else if (load.worst > _QB_LOGO_HEADROOM) {
+      w.push({ input: 'logoScale', text: 'The logo uses about ' + Math.round(load.worst * 100) + '% of what error correction can rebuild, which leaves little for glare, wear or a poor camera. '
+        + 'Make the logo or its padding smaller if the code stops scanning.' });
     }
   }
   return w;
+}
+// The logo plate from the inputs: the mark's side as a share of the code, the clear ring
+// around it in modules, and the plate's shape. One reading for the renderer and the count.
+function _qbLogoPlate(options) {
+  return {
+    scale: Math.min(32, Math.max(8, Number(options.logoScale) || 22)) / 100,
+    // Number.isFinite guard, not `Number(x) == null` (which is ALWAYS false -
+    // Number returns NaN, never null - so an undefined logoPad used to make the
+    // whole plate NaN and silently disable the knockout).
+    pad: Number.isFinite(Number(options.logoPad)) ? Math.max(0, Number(options.logoPad)) : 1,
+    shape: options.logoShape || 'rounded',
+  };
+}
+// The share of the correction budget a logo may use before the warning shows. The rest
+// is kept for what a real scan loses to glare, print wear and focus.
+var _QB_LOGO_HEADROOM = 0.8;
+// What a centred logo plate costs a QR symbol, counted on the symbol itself. A codeword
+// is 8 modules, and one hidden module is enough to lose the codeword. Each Reed-Solomon
+// block rebuilds at most half its correction codewords, so the block that is hit hardest
+// decides whether the code still reads. `model` is the encoder's QRCodeModel; `logo` is
+// the renderer's own { scale, pad, shape }, so the count matches the plate that is drawn.
+// Returns { hidden, capacity, total, worst } where worst is hidden/capacity in the
+// hardest-hit block, or null when there is no symbol to count.
+function _qbLogoLoad(model, logo) {
+  if (!model || !logo) return null;
+  var n = model.moduleCount, t = model.typeNumber;
+  if (!n || !t) return null;
+  var half = (logo.scale * n + 2 * logo.pad) / 2, mid = n / 2;
+  function hiddenAt(r, c) {
+    var dx = c + 0.5 - mid, dy = r + 0.5 - mid;
+    return logo.shape === 'circle' ? Math.sqrt(dx * dx + dy * dy) <= half : Math.abs(dx) <= half && Math.abs(dy) <= half;
+  }
+  // Modules that hold no data: finders with their separators and format bits, the
+  // timing lines, alignment patterns and, from version 7, the version blocks.
+  var align = QRUtil.PATTERN_POSITION_TABLE[t - 1] || [], last = align.length - 1;
+  function fixedAt(r, c) {
+    if ((r < 9 && c < 9) || (r < 9 && c >= n - 8) || (r >= n - 8 && c < 9)) return true;
+    if (r === 6 || c === 6) return true;
+    if (t >= 7 && ((r < 6 && c >= n - 11) || (c < 6 && r >= n - 11))) return true;
+    for (var i = 0; i <= last; i++) for (var j = 0; j <= last; j++) {
+      if ((i === 0 && j === 0) || (i === 0 && j === last) || (i === last && j === 0)) continue;
+      if (Math.abs(r - align[i]) <= 2 && Math.abs(c - align[j]) <= 2) return true;
+    }
+    return false;
+  }
+  // Which block each codeword belongs to, in the order the symbol stores them: data
+  // codewords dealt across the blocks in turn, then correction codewords the same way.
+  var blocks = QRRSBlock.getRSBlocks(t, model.errorCorrectLevel), owner = [], i, b, maxData = 0, maxEc = 0;
+  for (b = 0; b < blocks.length; b++) {
+    maxData = Math.max(maxData, blocks[b].dataCount);
+    maxEc = Math.max(maxEc, blocks[b].totalCount - blocks[b].dataCount);
+  }
+  for (i = 0; i < maxData; i++) for (b = 0; b < blocks.length; b++) if (i < blocks[b].dataCount) owner.push(b);
+  for (i = 0; i < maxEc; i++) for (b = 0; b < blocks.length; b++) if (i < blocks[b].totalCount - blocks[b].dataCount) owner.push(b);
+  // Walk the modules in the encoder's own order (two columns at a time from the right,
+  // up then down, skipping the timing column) and mark each codeword a hidden module hits.
+  var lost = [], bit = 0, row = n - 1, inc = -1;
+  for (var col = n - 1; col > 0; col -= 2) {
+    if (col === 6) col--;
+    for (;;) {
+      for (var k = 0; k < 2; k++) {
+        if (fixedAt(row, col - k)) continue;
+        if (hiddenAt(row, col - k)) lost[bit >> 3] = true;
+        bit++;
+      }
+      row += inc;
+      if (row < 0 || row >= n) { row -= inc; inc = -inc; break; }
+    }
+  }
+  var hidden = 0, capacity = 0, worst = 0, per = [];
+  for (b = 0; b < blocks.length; b++) per.push(0);
+  for (i = 0; i < owner.length; i++) if (lost[i]) { hidden++; per[owner[i]]++; }
+  for (b = 0; b < blocks.length; b++) {
+    var can = Math.floor((blocks[b].totalCount - blocks[b].dataCount) / 2);
+    capacity += can;
+    worst = Math.max(worst, can ? per[b] / can : Infinity);
+  }
+  return { hidden: hidden, capacity: capacity, total: owner.length, worst: worst, dataModules: bit };
 }
 function _qbScanWarnings(o) {
   return _qbScanChecks(o).map(function (c) { return c.text; });
@@ -427,7 +503,7 @@ function _qbScanWarnings(o) {
 function _qbScanNotices(checks) {
   var out = {};
   for (var i = 0; i < checks.length; i++) {
-    if (!out[checks[i].input]) out[checks[i].input] = { tone: 'warning', text: checks[i].text };
+    if (!out[checks[i].input]) out[checks[i].input] = { tone: checks[i].tone || 'warning', text: checks[i].text };
   }
   return out;
 }
@@ -815,14 +891,7 @@ QRCode.prototype.svg = function(opt) {
     ? { stops: options.gradStops, type: options.gradType === 'radial' ? 'radial' : 'linear', angle: Number(options.gradAngle) || 0, mix: options.gradMix === true }
     : null;
   var _logo = (options.logoUrl && String(options.logoUrl) !== '')
-    ? { url: options.logoUrl,
-        scale: Math.min(32, Math.max(8, Number(options.logoScale) || 22)) / 100,
-        // Number.isFinite guard, not `Number(x) == null` (which is ALWAYS false -
-        // Number returns NaN, never null - so an undefined logoPad used to make the
-        // whole plate NaN and silently disable the knockout).
-        pad: Number.isFinite(Number(options.logoPad)) ? Math.max(0, Number(options.logoPad)) : 1,
-        shape: options.logoShape || 'rounded',
-        bg: options.bg || '#ffffff' }
+    ? Object.assign({ url: options.logoUrl, bg: options.bg || '#ffffff' }, _qbLogoPlate(options))
     : null;
   // A custom eyeColor alone (square modules, square eyes) must still route to the
   // branded renderer - the legacy loop paints every module in one colour and would
@@ -1186,7 +1255,7 @@ function compute(args, host) {
   var eclRaised = hasLogo && eclInput !== 'H';
 
   // Scannability guardrail (WP-K1): pure checks over the styling that just ran.
-  var scanChecks = _qbScanChecks({
+  var scanOpts = {
     fg: fg,
     bg: _transparentBg ? '#ffffff' : bg,
     eyeColor: eyeColor,
@@ -1196,8 +1265,7 @@ function compute(args, host) {
     logoScale: args.logoScale,
     logoPad: args.logoPad,
     ecl: eclEff,
-  });
-  var scanWarnings = scanChecks.map(function (c) { return c.text; });
+  };
 
   var result;
   if (!content) {
@@ -1233,6 +1301,10 @@ function compute(args, host) {
         height:      600,
         pretty:      false,
       });
+      // The logo is counted on the symbol that was just built, with the plate the renderer draws.
+      if (hasLogo) scanOpts.logoLoad = _qbLogoLoad(qr.qrcode, _qbLogoPlate(args));
+      var scanChecks = _qbScanChecks(scanOpts);
+      var scanWarnings = scanChecks.map(function (c) { return c.text; });
       result = {
         svgContent: qr.svg({ container: 'svg-viewbox' }),
         qrError: '',
@@ -2967,7 +3039,9 @@ async function _runMake(args, host) {
         result = Object.assign({}, result, { qrLiveScan: live, qrLiveScanFail: live === 'fail' });
         if (live === 'fail') {
           var notices = Object.assign({}, result.inputNotices);
-          notices[_qbReadFailInput(args)] = { tone: 'error', text: _QB_READ_FAILED };
+          // A measured cause already under that input (the logo count) says more than the empty read.
+          var failAt = _qbReadFailInput(args);
+          if (!notices[failAt] || notices[failAt].tone !== 'error') notices[failAt] = { tone: 'error', text: _QB_READ_FAILED };
           result = Object.assign({}, result, { inputNotices: notices });
         }
       }

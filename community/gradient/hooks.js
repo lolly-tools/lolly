@@ -46,6 +46,8 @@ var VBH = 900;
 // Brand-agnostic fallbacks for when a semantic token alias doesn't resolve
 // (an unresolved alias flattens to '') - one per colour slot.
 var FALLBACK = ['#6d5bd8', '#e0679f', '#2fb6a3', '#f6f1e7', '#f2a65a', '#5b8def'];
+var AUTO_COLORS = {};
+for (var _ac = 0; _ac < FALLBACK.length; _ac++) AUTO_COLORS['color' + (_ac + 1)] = { value: FALLBACK[_ac], source: 'tool' };
 var DEF_POS = [[14, 20], [85, 18], [80, 82], [18, 78], [52, 10], [50, 88]];
 
 // Drift = one closed orbit per blob, passing through its set position.
@@ -624,6 +626,10 @@ function compute(model) {
   // the canvas. The export hooks run in the page while these hooks may run in a
   // worker, so nothing kept in a variable here reaches them.
   result.loopAttr = _loopSeconds(mode);
+  // What each colour slot draws while its input is empty: a default that links a token
+  // the design system does not have leaves the input empty, and the sidebar shows this
+  // colour on the field in place of black.
+  result.autoColors = AUTO_COLORS;
 
   _memoKey = key;
   _memoResult = result;

@@ -434,6 +434,223 @@ function ramp(host, accent, n) {
   }
 }
 
+/* ── The title entrance, and ink that can be read ────────────────────────────
+ *
+ * Both read the design system and neither touches the page. The entrance is data
+ * here and playback in template.html: this file splits the title into the units
+ * that move and reads the timing; the template poses them from the export clock.
+ * With the entrance off, and with an ink that already reads, nothing below adds
+ * a byte to the card.
+ */
+
+/** Built-in timing where a design system has no motion tokens. */
+const UNIT_MS = 400;
+const FADE_MS = 200;
+const STAGGER_MS = 80;
+const EASE = [0.05, 0.7, 0.1, 1];
+/** The entrance is over inside the first second of the clip, however long the title. */
+const ENTRANCE_MS = 1000;
+
+const RTL_RE = /[֐-ࣿיִ-﷿ﹰ-﻿]/;
+const CJK_RE = /[぀-ヿ㐀-䶿一-鿿豈-﫿ｦ-ﾟ]/;
+/** Kept with the character before: a line never starts with one of these. */
+const CJK_CLOSE_RE = /^[、。，．！？：；）」』】〉》”’…ー々]$/;
+/** Kept with the character after: a line never ends with one of these. */
+const CJK_OPEN_RE = /^[（「『【〈《“‘]$/;
+
+// === lolly:shared esc - generated from community/_shared/text.js; edit there and run npm run sync:shared ===
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+// === /lolly:shared esc ===
+
+const SEGMENTER = (typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function')
+  ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null;
+
+/** One run with no spaces, as the units that move together. Latin and Hangul take the
+ *  whole word. Chinese and Japanese have no spaces, so each character is a unit, with
+ *  its punctuation held to it so no line starts or ends on a stranded mark. */
+function runUnits(run) {
+  if (!CJK_RE.test(run)) return [run];
+  const out = [];
+  let open = '';
+  const chars = SEGMENTER ? Array.from(SEGMENTER.segment(run), (r) => r.segment) : Array.from(run);
+  for (const g of chars) {
+    if (CJK_OPEN_RE.test(g)) { open += g; continue; }
+    if (CJK_CLOSE_RE.test(g) && out.length && !open) { out[out.length - 1] += g; continue; }
+    out.push(open + g);
+    open = '';
+  }
+  if (open) out.push(open);
+  return out;
+}
+
+/**
+ * A line of the card as the units that rise, numbered from `from`, or as one unit when
+ * `whole`. Right-to-left text always moves whole: a word in a box of its own counts as a
+ * neutral character, and the browser would then lay the words out in the wrong order.
+ * Every value the person typed goes through esc(), because the template writes this raw.
+ */
+function riseMarkup(text, from, whole) {
+  if (whole || RTL_RE.test(text)) {
+    return { html: `<span class="ag-w" data-ag-in="rise" data-ag-i="${from}">${esc(text)}</span>`, units: 1 };
+  }
+  let html = '';
+  let units = 0;
+  if (/^\s/.test(text)) html += ' ';
+  for (const m of text.matchAll(/(\S+)(\s*)/g)) {
+    for (const u of runUnits(m[1])) {
+      html += `<span class="ag-w" aria-hidden="true" data-ag-in="rise" data-ag-i="${from + units}">${esc(u)}</span>`;
+      units++;
+    }
+    if (m[2]) html += ' ';
+  }
+  return { html: `<span role="text" aria-label="${esc(text)}">${html}</span>`, units };
+}
+
+function hex(v) {
+  if (typeof v !== 'string') return '';
+  const s = v.trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(s)) return s;
+  if (/^#[0-9a-f]{8}$/.test(s)) return s.slice(0, 7);
+  if (/^#[0-9a-f]{3}$/.test(s)) return '#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3];
+  return '';
+}
+
+function durationMs(v) {
+  let n = null;
+  let unit = 'ms';
+  if (typeof v === 'number') n = v;
+  else if (typeof v === 'string') {
+    const m = /^\s*(\d+(?:\.\d+)?|\.\d+)\s*(ms|s)\s*$/i.exec(v);
+    if (m) { n = Number(m[1]); unit = m[2].toLowerCase(); }
+  } else if (v && typeof v === 'object' && typeof v.value === 'number') {
+    n = v.value;
+    unit = v.unit === 's' ? 's' : 'ms';
+  }
+  if (n === null || !(n > 0)) return 0;
+  return unit === 's' ? n * 1000 : n;
+}
+
+/** A curve token as its four control points, or null when it is not one. */
+function curvePoints(value) {
+  let v = value;
+  if (v && typeof v === 'object' && !Array.isArray(v) && Array.isArray(v.timingFunction)) v = v.timingFunction;
+  if (!Array.isArray(v) || v.length !== 4) return null;
+  for (let i = 0; i < 4; i++) if (typeof v[i] !== 'number' || !Number.isFinite(v[i])) return null;
+  if (v[0] < 0 || v[0] > 1 || v[2] < 0 || v[2] > 1) return null;
+  return v.slice();
+}
+
+/**
+ * What the two features read from the design system, kept between keystrokes. A theme
+ * or colourway switch reaches onInput as '__tokens', which drops the kept answers.
+ */
+let _theme = null;
+async function readTheme(h) {
+  if (_theme) return _theme;
+  const t = { onPrimary: '', text: '', surface: '', unitMs: 0, fadeMs: 0, ease: null };
+  if (h && h.tokens && typeof h.tokens.resolve === 'function') {
+    const read = async (ref) => {
+      try { return await h.tokens.resolve(ref); } catch { return null; }
+    };
+    t.onPrimary = hex(await read('{color.semantic.on-primary}'));
+    t.text = hex(await read('{color.semantic.text}'));
+    t.surface = hex(await read('{color.semantic.surface}'));
+    t.unitMs = durationMs(await read('{motion.duration.medium}'));
+    t.fadeMs = durationMs(await read('{motion.duration.short}'));
+    t.ease = curvePoints(await read('{motion.curve.emphasised}'));
+  }
+  _theme = t;
+  return t;
+}
+
+function luminance(h) {
+  const c = [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)].map((x) => {
+    const s = x / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+
+function contrast(a, b) {
+  const la = luminance(a);
+  const lb = luminance(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+/** How well `ink` reads on the worst of the grounds it sits on. */
+function worst(ink, grounds) {
+  let low = Infinity;
+  for (const g of grounds) low = Math.min(low, contrast(ink, g));
+  return low;
+}
+
+/** The title and subtitle are large type, so 3:1 is the line an ink has to clear. */
+const INK_MIN = 3;
+/** A replacement is body-text readable where one can be found. */
+const INK_GOOD = 4.5;
+
+/** The layouts that put the words over the visual, where its colour is a ground too. */
+const OVER_VISUAL = { overlay: 1, 'overlay-top': 1, 'overlay-center': 1, minimal: 1 };
+
+/**
+ * The ink to draw with when the chosen one cannot be read, or '' to keep the chosen
+ * one. An ink that clears 3:1 on every ground is never touched. Otherwise the design
+ * system's own inks are tried in order, then the card's two built-in ones, and the
+ * first to clear 4.5:1 wins. Where none does, whichever reads best is used, and the
+ * chosen ink stays when nothing reads better.
+ */
+async function readableInk(h, v) {
+  const ink = hex(v.ink);
+  const bg = hex(v.bg);
+  if (!ink || !bg) return '';
+  const grounds = [bg];
+  const accent = hex(v.accent);
+  if (OVER_VISUAL[v.layout] && accent) grounds.push(accent);
+  const have = worst(ink, grounds);
+  if (have >= INK_MIN) return '';
+  const t = await readTheme(h);
+  let best = ink;
+  let score = have;
+  for (const c of [t.onPrimary, t.text, t.surface, '#eef1f4', '#101828']) {
+    if (!c) continue;
+    const s = worst(c, grounds);
+    if (s >= INK_GOOD) return c === ink ? '' : c;
+    if (s > score) { best = c; score = s; }
+  }
+  return best === ink ? '' : best;
+}
+
+/**
+ * The entrance: the play badge fades up, the title rises in unit by unit and the
+ * subtitle follows as one line, all inside the first second. Empty when the entrance
+ * is off or there are no words to move.
+ */
+async function entrance(h, v) {
+  const title = String(v.title == null ? '' : v.title);
+  const subtitle = String(v.subtitle == null ? '' : v.subtitle);
+  if (v.titleMotion !== 'rise' || v.layout === 'minimal' || (!title.trim() && !subtitle.trim())) return null;
+  const t = await readTheme(h);
+  const built = title.trim() ? riseMarkup(title, 0, false) : { html: '', units: 0 };
+  const sub = subtitle.trim() ? riseMarkup(subtitle, built.units, true) : { html: '', units: 0 };
+  const units = built.units + sub.units;
+  const unitMs = Math.round(Math.min(600, t.unitMs || UNIT_MS));
+  const staggerMs = units > 1 ? Math.min(STAGGER_MS, Math.floor((ENTRANCE_MS - unitMs) / (units - 1))) : 0;
+  return {
+    titleHtml: built.html,
+    subtitleHtml: sub.html,
+    json: JSON.stringify({
+      unitMs,
+      fadeMs: Math.round(Math.min(unitMs, t.fadeMs || FADE_MS)),
+      staggerMs,
+      ease: t.ease || EASE,
+      endMs: unitMs + staggerMs * Math.max(0, units - 1),
+    }),
+  };
+}
+
 /**
  * The length of audio the last analysis actually covered, in seconds.
  *
@@ -654,7 +871,24 @@ async function build(ctx) {
     }
   }
 
+  const rise = await entrance(h, v);
+  const ink = await readableInk(h, v);
   return {
+    // Said under Text colour, never on the card. Stated on every run, so the line goes
+    // once the colour reads again.
+    inputNotices: {
+      ink: ink ? { tone: 'info', text: `Too close to the background to read, so the card uses ${ink}.` } : null,
+    },
+    // The title entrance (see entrance above). All empty with the entrance off, which
+    // is what leaves the card's markup as it was.
+    agTitleHtml: rise ? rise.titleHtml : '',
+    agSubtitleHtml: rise ? rise.subtitleHtml : '',
+    agEntrance: rise ? rise.json : '',
+    // The inert canvas the export clock is read from: captions need one, and so does
+    // an entrance, because both have to be driven whichever canvas owns the picture.
+    agClock: !!(cues.length || rise),
+    // Set only when the chosen ink cannot be read on the card (see readableInk).
+    agInk: ink,
     agData: packed,
     agMeta: JSON.stringify(meta),
     agColors: colors.join(' '),
@@ -1045,6 +1279,7 @@ async function onInit(ctx) {
 }
 
 async function onInput(ctx) {
+  if (ctx && ctx.id === '__tokens') _theme = null;
   return build(ctx);
 }
 

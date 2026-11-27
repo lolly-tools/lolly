@@ -135,7 +135,7 @@ Do not declare hidden `width` and `height` inputs to get the size. The web shell
 
 ### Showing what an empty colour input draws
 
-A colour input whose `default` is empty can stay empty, and the tool then picks the colour. Certificate's Ink follows the design system's text colour, and Timezone's Text override follows the theme. In the web app's sidebar an empty colour input shows a neutral pattern and the word **Automatic**, and its picker offers a way back to empty. A hook can say which colour the tool draws there by returning `autoColors`, keyed by input id:
+A colour input whose `default` is empty can stay empty, and the tool then picks the colour. Certificate's Ink follows the design system's text colour, and Timezone's Text override follows the theme. In the web app's sidebar an empty colour input shows a neutral pattern and the word **Automatic**, and its picker offers a way back to empty. The same holds for an input whose `default` links a token the active design system does not have: the value stays empty, the tool draws its own fallback and the field reads **Automatic**. Gradient reports its fallback colours this way. A hook can say which colour the tool draws there by returning `autoColors`, keyed by input id:
 
 ```js
 return {

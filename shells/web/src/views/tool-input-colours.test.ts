@@ -47,6 +47,22 @@ test('only an input whose default is empty gets the automatic state, and every f
   assert.ok(host.querySelector('[data-color-field]')!.hasAttribute('data-color-empty'), 'a block field with no default reads as automatic too');
 });
 
+test('a token default the design system does not have reads as automatic with the colour the tool draws, never as black', () => {
+  const host = document.getElementById('host')!;
+  // Gradient's Colour 3 in a design system with no spectrum teal: the value stays empty.
+  host.innerHTML = colourInputHtml('color3', { value: '', default: '{color.spectrum.teal}', label: 'Colour 3' })
+    + colourInputHtml('color4', { value: '{color.spectrum.teal}', default: '{color.spectrum.teal}', label: 'Colour 4' })
+    + colourInputHtml('color2', { value: '#008657', default: '{color.semantic.secondary}', label: 'Colour 2' });
+  const [third, fourth, second] = [...host.querySelectorAll<HTMLElement>('[data-color-field]')];
+  assert.ok(third!.hasAttribute('data-color-auto') && third!.hasAttribute('data-color-empty'));
+  assert.equal(third!.querySelector('.color-trigger')!.getAttribute('aria-label'), 'Colour 3: automatic');
+  assert.doesNotMatch(third!.querySelector('.color-trigger')!.getAttribute('aria-label')!, /#000000/);
+  assert.ok(fourth!.hasAttribute('data-color-auto'), 'a value that is still the reference is unresolved too');
+  assert.equal(second!.hasAttribute('data-color-auto'), false, 'a token default that resolved is an ordinary colour');
+  paintAutoColours(host, runtimeWith({ autoColors: { color3: { value: '#2fb6a3', source: 'tool' } } }));
+  assert.equal(third!.querySelector<HTMLElement>('.color-trigger-preview')!.style.background.replace(/\s/g, ''), 'rgb(47,182,163)');
+});
+
 test('the colour the tool reports for an empty input reaches its chip and its accessible name', () => {
   setSwatches([{ value: '#09141a', label: 'Liquorice', group: 'Brand', ref: null }]);
   const host = document.getElementById('host')!;

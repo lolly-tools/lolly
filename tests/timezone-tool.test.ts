@@ -23,6 +23,19 @@ async function run(values: Record<string, unknown> = {}, host = baseHost()) {
   return { runtime, data, svg: runtime.getHydratedString('{{{_artwork}}}') };
 }
 describe('Timezone tool', () => {
+  it('keeps the map labels of the Infrastructure atlas starter off each other', async () => {
+    // London and Virginia are further apart than the pin-distance rule looks, but a
+    // label is wider than that gap, so the Virginia label used to cover the London one.
+    const starter = JSON.parse(await readFile(join(root, 'timezone/templates/infrastructure-atlas.json'), 'utf8'));
+    const { svg } = await run({ ...starter.values, timeMode: 'fixed' });
+    const boxes = [...svg.matchAll(/<g data-place-index="\d+" aria-label="([^"]*)"[^>]*>[\s\S]*?<rect x="([-\d.]+)" y="([-\d.]+)" width="([-\d.]+)" height="([-\d.]+)" rx="5"/g)]
+      .map((m) => ({ label: m[1]!, x: +m[2]!, y: +m[3]!, w: +m[4]!, h: +m[5]! }));
+    assert.equal(boxes.length, 3, 'three labelled pins');
+    for (const [i, a] of boxes.entries()) for (const b of boxes.slice(i + 1)) {
+      const apart = a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y;
+      assert.ok(apart, `${a.label} and ${b.label} overlap`);
+    }
+  });
   it('marks early, late and night hours only when asked, in colour and in words', async () => {
     // 07:00 in London: 08:00 in Nuremberg, 23:00 the day before in San Francisco,
     // 17:00 in Noosa.

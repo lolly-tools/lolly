@@ -5,7 +5,7 @@ description: "Operate the Lolly 3D Studio tool (3d-studio) using its declared in
 
 # 3D Studio
 
-Tool ID: `3d-studio`. Tool version: `0.13.0`. Engine range: `>=1.355.0`.
+Tool ID: `3d-studio`. Tool version: `0.14.0`. Engine range: `>=1.359.0`.
 
 Turn SVG artwork and 3D models into images, alone or together in one scene. Shape materials, lighting, focus and shadows.
 

@@ -3293,8 +3293,29 @@
       {
         "value": "linear",
         "label": "Constant speed"
+      },
+      {
+        "value": "standard",
+        "label": "Standard curve (design system)"
+      },
+      {
+        "value": "emphasised",
+        "label": "Emphasised curve (design system)"
+      },
+      {
+        "value": "exit",
+        "label": "Exit curve (design system)"
+      },
+      {
+        "value": "gentle",
+        "label": "Gentle spring (design system)"
+      },
+      {
+        "value": "bouncy",
+        "label": "Bouncy spring (design system)"
       }
-    ]
+    ],
+    "help": "The last five follow the design system's motion curves and springs, so a change to the system changes the move. A spring takes its own time: on a long move the camera arrives early and then holds."
   },
   {
     "id": "cameraLoop",

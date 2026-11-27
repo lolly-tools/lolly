@@ -6,9 +6,13 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
+import { withKfEaseTokens } from '../engine/src/keyframes.ts';
+import { studioObjectPose, STUDIO_POSE_REST } from '../engine/src/studio3d-motion.ts';
 import {
+  STUDIO_CAMERA_EASES,
   STUDIO_CAMERA_KEY_LIMIT,
   STUDIO_CAMERA_PRESETS,
+  STUDIO_SYSTEM_EASES,
   studioAddCameraKey,
   studioCameraApparentSize,
   studioCameraFromKey,
@@ -239,7 +243,7 @@ test('the real tool carries a camera path through URL mode and reports the clip 
  * over unchanged. These tests pin that equality, the keys each move makes, and the one
  * case a move refuses: a dolly zoom under an orthographic camera.
  */
-const PRESET_EASES = ['smooth', 'linear', 'flow'] as const;
+const PRESET_EASES = STUDIO_CAMERA_EASES;
 /** The fields a pose carries; a converted key also carries the name it was given. */
 const POSE_FIELDS = ['at', 'azimuth', 'elevation', 'fov', 'zoom', 'focus'] as const;
 
@@ -559,7 +563,9 @@ test('an orbit at constant speed turns evenly and stays on its circle', () => {
 });
 
 test('a looping orbit has no doubled frame at the seam', () => {
-  for (const cameraEase of PRESET_EASES)
+  // A spring arrives early and then holds its key, so only the easings that travel for
+  // the whole leg can promise that every frame moves on.
+  for (const cameraEase of PRESET_EASES.filter((ease) => ease !== 'gentle' && ease !== 'bouncy'))
     for (const frames of [24, 150, 900]) {
       const scene = orbitScene({ cameraEase, cameraLoop: true });
       const positions = Array.from({ length: frames }, (_, i) =>
@@ -655,4 +661,139 @@ test('?cameraMotion=orbit opens an orbit, and a link without it draws as before'
   for (const time of [0, 0.3, 1, 4])
     assert.deepEqual(studioCameraPose(still, time), studioRestPose(still));
   plain.destroy();
+});
+
+/*
+ * The design system's curves and springs as camera easing (engine 1.359). The three
+ * values the tool shipped with keep their arithmetic; the five new ones go through the
+ * keyframe evaluator, read the installed motion tokens and fall back to fixed values.
+ */
+const TWO_KEYS = [
+  { at: 0, azimuth: 0, elevation: 10, fov: 30, zoom: 1, panX: 0, panY: 1.6, panZ: 0 },
+  { at: 100, azimuth: 100, elevation: 10, fov: 30, zoom: 1, panX: 0, panY: 1.6, panZ: 0 },
+];
+const easedScene = (cameraEase: string, duration = 4) =>
+  buildStudioScene({
+    version: 1,
+    values: { cameraMotion: 'keys', cameraKeys: TWO_KEYS, cameraEase, duration },
+  });
+const profile = (cameraEase: string) =>
+  [0.25, 0.5, 0.75].map((t) => studioCameraPose(easedScene(cameraEase), t).azimuth);
+
+test('the three original easings draw the numbers they always drew', () => {
+  assert.deepEqual(profile('linear'), [25, 50, 75]);
+  assert.deepEqual(profile('smooth'), [15.625, 50, 84.375]);
+  assert.deepEqual(profile('flow'), profile('smooth'), 'two keys have no spline to follow');
+  assert.equal(easedScene('nonsense').cameraMotion!.ease, 'smooth');
+});
+
+test('each system easing is its own motion profile, and starts and ends on the keys', () => {
+  const seen = new Map<string, string>();
+  for (const ease of STUDIO_CAMERA_EASES) {
+    const scene = easedScene(ease);
+    assert.equal(scene.cameraMotion!.ease, ease);
+    assert.equal(studioCameraPose(scene, 0).azimuth, 0, `${ease} starts on the first key`);
+    assert.equal(studioCameraPose(scene, 1).azimuth, 100, `${ease} ends on the last key`);
+    if (ease === 'flow') continue;
+    const key = profile(ease).map((n) => n.toFixed(3)).join(',');
+    assert.equal(seen.has(key), false, `${ease} repeats ${seen.get(key)}`);
+    seen.set(key, ease);
+  }
+  const [q1, mid, q3] = profile('emphasised');
+  assert.ok(q1! > 75 && mid! > 90 && q3! > 98, 'emphasised arrives early and lands softly');
+  const exit = profile('exit');
+  assert.ok(exit[0]! < 5 && exit[1]! < 20 && exit[2]! < 45, 'exit gathers speed as it goes');
+  const standard = profile('standard');
+  assert.ok(standard[0]! > 25 && standard[0]! < q1!, 'standard starts promptly, behind emphasised');
+});
+
+test('a system easing plays the installed token, and the fixed value without one', () => {
+  const fixed = profile('standard');
+  const live = withKfEaseTokens({ 'motion.curve.standard': 'el' }, () => profile('standard'));
+  assert.deepEqual(live.map((n) => Math.round(n * 1e6) / 1e6), [25, 50, 75], 'a linear token plays as linear');
+  assert.deepEqual(profile('standard'), fixed, 'the fixed value is back once the tokens are gone');
+  const asToken = withKfEaseTokens(
+    { 'motion.curve.standard': STUDIO_SYSTEM_EASES.standard!.fallback },
+    () => profile('standard')
+  );
+  assert.deepEqual(asToken, fixed, 'the fixed value is the Lolly Demo token');
+});
+
+test('a spring runs in real time, passes its key and stays in a saved key range', () => {
+  // A four second leg: the spring has arrived well inside the first second.
+  const long = easedScene('gentle', 4);
+  assert.ok(studioCameraPose(long, 0.25).azimuth > 99);
+  // A one second leg from a zoom near the top of the range: the bounce is held at 3.
+  const scene = buildStudioScene({
+    version: 1,
+    values: {
+      cameraMotion: 'keys',
+      cameraEase: 'bouncy',
+      duration: 1,
+      cameraKeys: [
+        { ...TWO_KEYS[0], zoom: 1 },
+        { ...TWO_KEYS[1], zoom: 3 },
+      ],
+    },
+  });
+  let peak = 0;
+  let passed = false;
+  for (let i = 0; i <= 100; i++) {
+    const pose = studioCameraPose(scene, i / 100);
+    peak = Math.max(peak, pose.zoom);
+    if (pose.azimuth > 100.5) passed = true;
+  }
+  assert.equal(passed, true, 'a bouncy spring passes the key before it settles');
+  assert.ok(peak <= 3, `zoom stays inside a key's range, saw ${peak}`);
+  assert.equal(studioCameraPose(scene, 1).zoom, 3);
+});
+
+test('the manifest offers the system easings after the three it shipped with', async () => {
+  const tool = await loadTool('3d-studio', (p) => readFile(join('community', p), 'utf8'));
+  const input = tool.manifest.inputs.find((i: { id: string }) => i.id === 'cameraEase') as {
+    default: string;
+    options: { value: string }[];
+  };
+  assert.equal(input.default, 'smooth');
+  assert.deepEqual(
+    input.options.map((o) => o.value),
+    ['smooth', 'flow', 'linear', 'standard', 'emphasised', 'exit', 'gentle', 'bouncy']
+  );
+  assert.deepEqual([...STUDIO_CAMERA_EASES].sort(), input.options.map((o) => o.value).sort());
+});
+
+test('the Logo sting template spins in, lands and ends at rest', () => {
+  const sting = JSON.parse(
+    readFileSync(join('community', '3d-studio', 'templates', 'logo-sting.json'), 'utf8')
+  ) as { values: Record<string, unknown> };
+  const scene = buildStudioScene({ version: 1, values: sting.values });
+  assert.equal(scene.motion.kind, 'spinland');
+  assert.equal(scene.cameraMotion!.ease, 'emphasised');
+  assert.equal(scene.cameraMotion!.loop, false);
+  assert.equal(studioAnimated(scene), true);
+  // One loop is the length of a clip exported with nothing said about its length (the
+  // manifest's five seconds), so such a clip ends on the hold and not partway through
+  // a second spin.
+  assert.equal(scene.motion.seconds, 5);
+  // The move is over before the hold starts, and the hold is the picture as composed.
+  const rest = studioRestPose(scene);
+  const hold = 1 - scene.motion.rest;
+  for (const time of [hold, (hold + 1) / 2, 0.999]) {
+    assert.deepEqual(studioObjectPose(scene, time), { ...STUDIO_POSE_REST, tilt: [0, 0], scale: [1, 1, 1] });
+    // The emphasised curve eases to a stop: under two degrees are left when the subject
+    // comes to rest, and nothing a viewer can see by the middle of the hold.
+    const camera = studioCameraPose(scene, time);
+    const slack = time === hold ? 1.5 : 0.25;
+    assert.ok(Math.abs(camera.elevation - rest.elevation) < slack, `camera settled at ${time}`);
+    assert.ok(Math.abs(camera.zoom - rest.zoom) < slack / 50, `camera zoom settled at ${time}`);
+  }
+  samePose(studioCameraPose(scene, 1), { ...rest, at: 1 }, 'the last frame');
+  // It moves before that: the subject is off the floor and turning, the camera is higher.
+  const early = studioObjectPose(scene, 0.15);
+  assert.ok(early.lift > 0.5 && early.spin > 0);
+  assert.ok(studioCameraPose(scene, 0.02).elevation > rest.elevation + 2);
+  // A still is drawn at the first frame, as it is for every camera move, so the move is
+  // kept small: the still's view is within a few degrees and a few percent of the hold.
+  const first = studioCameraPose(scene, 0);
+  assert.ok(first.elevation - rest.elevation <= 6.25 && rest.zoom / first.zoom < 1.05);
 });

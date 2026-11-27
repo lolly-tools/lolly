@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-27T08:50:17.352Z",
+  "generatedAt": "2026-11-27T09:40:59.978Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -275,7 +275,7 @@
       "id": "qr-code",
       "name": "QR Code",
       "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 - plus retail and logistics barcodes from EAN-13 to MaxiCode.",
-      "version": "2.12.0",
+      "version": "2.12.1",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -2542,7 +2542,7 @@
       "id": "audiogram",
       "name": "Audiogram",
       "description": "Turn a voice clip or song into a video in your design system's colours that moves with the sound.",
-      "version": "2.9.0",
+      "version": "2.10.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -9530,7 +9530,7 @@
       "id": "gradient",
       "name": "Gradient",
       "description": "Six ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp, Flow and Field, which has sixteen GPU effects. Export stills or video loops.",
-      "version": "1.4.1",
+      "version": "1.4.2",
       "status": "official",
       "category": "everyone",
       "tags": [
@@ -12176,7 +12176,7 @@
       "id": "pages",
       "name": "Pages",
       "description": "Reorder, rotate, extract, delete, merge or split PDF pages, compress or sign a PDF, or turn images into a PDF, on your device.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -13103,7 +13103,7 @@
       "id": "timezone",
       "name": "Timezone",
       "description": "Turn places and timezones into artwork. Rotate a vector atlas or a WebGL globe, then export artwork, a camera tour or structured schedules.",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "status": "official",
       "category": "event",
       "tags": [
@@ -13534,7 +13534,7 @@
       "id": "3d-studio",
       "name": "3D Studio",
       "description": "Turn SVG artwork and 3D models into images, alone or together in one scene. Shape materials, lighting, focus and shadows.",
-      "version": "0.13.0",
+      "version": "0.14.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -13589,6 +13589,12 @@
           "name": "Logo drop",
           "category": "Promotion",
           "description": "A badge drops in turning, bounces to a stop and holds still under dramatic light. Swap in your own SVG under Start, or choose Words in the brand font for a wordmark."
+        },
+        {
+          "id": "logo-sting",
+          "name": "Logo sting",
+          "category": "Promotion",
+          "description": "A badge spins in and lands while the camera settles a little on the design system's emphasised curve, then both hold still for the second half of the clip. Swap in your own SVG under Start, or choose Words in the brand font for a wordmark."
         },
         {
           "id": "shatter-reveal",

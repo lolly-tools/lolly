@@ -1,0 +1,34 @@
+{
+  "id": "logo-sting",
+  "name": "Logo sting",
+  "category": "Promotion",
+  "description": "A badge spins in and lands while the camera settles a little on the design system's emphasised curve, then both hold still for the second half of the clip. Swap in your own SVG under Start, or choose Words in the brand font for a wordmark.",
+  "values": {
+    "studio": "dramatic",
+    "drama": 0.75,
+    "outputMode": "scene",
+    "motion": "spinland",
+    "motionAmount": 0.8,
+    "motionRest": 0.55,
+    "duration": 5,
+    "cameraMotion": "crane",
+    "cameraAmount": 0.25,
+    "cameraEase": "emphasised",
+    "cameraLoop": false,
+    "lightMotion": "still",
+    "camera": {
+      "azimuth": 18,
+      "elevation": 12,
+      "fov": 29,
+      "zoom": 0.66,
+      "panX": 0,
+      "panY": 1.15,
+      "panZ": 0
+    },
+    "source": "primitive",
+    "primitive": "badge",
+    "materialMode": "pair",
+    "finishA": "satin",
+    "finishB": "enamel"
+  }
+}

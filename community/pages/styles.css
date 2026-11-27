@@ -15,7 +15,9 @@
 
 /* Fields, labelled as the tool sidebar labels its inputs. */
 .field{display:flex;flex-direction:column;gap:var(--sp-2,4px);min-width:0;flex:0 1 220px}
-.field>span{font-size:var(--ui-type-field,11px);font-weight:var(--ui-type-weight-label,600);text-transform:uppercase;letter-spacing:var(--ui-type-tracking-label,.06em);color:var(--ui-color-text-muted)}
+.field>span:first-child{font-size:var(--ui-type-field,11px);font-weight:var(--ui-type-weight-label,600);text-transform:uppercase;letter-spacing:var(--ui-type-tracking-label,.06em);color:var(--ui-color-text-muted)}
+/* The Action label carries the shell's help tip; the tip opens under the field. */
+.field-label{display:flex;align-items:center;gap:var(--sp-2,4px)}.field-label .help-tip-btn{margin-left:0}.help-tip-host{position:relative}.help-tip-pop{text-align:start}
 .field--grow{flex:1 1 240px}.field--short{flex:0 1 110px}.field--seg{flex:0 1 320px}
 .controls{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--ui-space-control-inline,12px)}
 .check{display:flex;align-items:center;gap:var(--ui-space-control-block,8px);min-height:var(--ui-size-control,30px)}
