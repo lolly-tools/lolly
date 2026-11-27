@@ -110,6 +110,8 @@ test('Pages compresses the first PDF and leads with the saving', async () => {
     assert.match(html, /class="badge-select badge-select--segmented" role="radiogroup"/);
     assert.match(html, /class="badge-select-opt is-on" data-level="strong" aria-checked="true"/);
     assert.equal((html.match(/aria-checked="true"/g) || []).length, 1);
+    // What saving does to the document stays on the canvas, under the button.
+    assert.match(html, /Download compressed PDF<\/button>\s*<p class="save-note">Only images are recompressed, and a digital signature on the PDF stops being valid once the file is saved again\.<\/p>/);
     assert.match(html, /Only report\.pdf is compressed\./);
     assert.doesNotMatch(html, /<figure class="page|class="ink-pad"/, 'the other two panels are not drawn');
     const result = await runtime.exportFile() as any;
@@ -150,6 +152,7 @@ test('Pages signs the chosen page of the first PDF under the new input ids', asy
     assert.match(html, /data-input-id="signaturePage"/);
     assert.match(html, /data-input-id="signatureDate" checked/);
     assert.match(html, /value="2" data-input-id="signaturePage"/);
+    assert.match(html, /<p class="save-note">This is a visible signature, not an identity-verification service\.<\/p>/);
     assert.doesNotMatch(html, /<figure class="page|class="saving"/, 'the other two panels are not drawn');
     const result = await runtime.exportFile() as any;
     assert.equal(result.filename, 'contract-signed.pdf');
@@ -158,6 +161,34 @@ test('Pages signs the chosen page of the first PDF under the new input ids', asy
     assert.equal(seen.stamp.opts.texts.length, 1, 'the date is stamped');
     assert.match(seen.stamp.opts.texts[0].text, /^\d{4}-\d\d-\d\d$/);
   } finally { runtime.destroy(); }
+});
+
+test('Sign shows whose name the credential records, and only when one is recorded', async () => {
+  const tool = await load('pages');
+  const pdf = fileRef(new Uint8Array([37, 80, 68, 70, 45, 49, 46, 55, 10, 1]), 'contract.pdf');
+  const named = { ...signHost({}), profile: { get: async () => ({ useDetails: true, firstname: 'Ana', lastname: 'Lima' }) }, c2pa: { sign: async (bytes: Uint8Array) => bytes } };
+  for (const [seal, expected] of [[true, 'Signing as Ana Lima. This is a visible signature'], [false, '<p class="save-note">This is a visible signature']] as const) {
+    const runtime = await createRuntime(tool, named, { operation: 'sign', source: [pdf], signatureInk: 'M10,10L100,80', seal } as never);
+    try { assert.ok(runtime.getHydrated().includes(expected), String(seal)); } finally { runtime.destroy(); }
+  }
+});
+
+test('in Reorder a thumbnail carries its number once, in the position field', async () => {
+  const tool = await load('pages');
+  const host = { ...BARE_HOST, pdf: {
+    pages: async () => ({ pages: [1, 2, 3].map((page) => ({ page, widthPt: 400, heightPt: 500, svg: '<svg/>' })), totalPages: 3 }),
+    organize: async () => ({ bytes: new Uint8Array([1]), beforePages: 3, afterPages: 3, beforeBytes: 20, afterBytes: 1, pageOrder: [1, 2, 3], operations: ['Reordered 3 pages'] }),
+  } };
+  const pdf = fileRef(new Uint8Array([37, 80, 68, 70, 45, 49, 46, 55, 10, 1]), 'report.pdf');
+  const reorder = await createRuntime(tool, host, { operation: 'reorder', source: [pdf] } as never);
+  try {
+    const html = reorder.getHydrated();
+    assert.equal((html.match(/data-move-to/g) || []).length, 3 + 1, 'three fields and the script that wires them');
+    assert.doesNotMatch(html, /class="page-number"/);
+    assert.doesNotMatch(html, /<figcaption>/);
+  } finally { reorder.destroy(); }
+  const rotate = await createRuntime(tool, host, { operation: 'rotate', source: [pdf] } as never);
+  try { assert.equal((rotate.getHydrated().match(/class="page-number"/g) || []).length, 3); } finally { rotate.destroy(); }
 });
 
 test('the empty state follows the operation and offers the picker', async () => {

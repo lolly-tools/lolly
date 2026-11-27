@@ -60,24 +60,25 @@
       <section class="strip" aria-label="PDF page previews">
         {{#each preview}}<figure class="page{{#if ../canSelect}}{{#if chosen}} chosen{{/if}}{{/if}}" data-page-card data-page="{{page}}" data-occurrence="{{occurrence}}" data-chosen="{{#if chosen}}true{{else}}false{{/if}}" draggable="{{#if ../isReorder}}true{{else}}false{{/if}}" title="{{sourceName}}, page {{localPage}} · {{sizeLabel}}">
           <div class="page-preview"><div class="page-paper" style="width:{{previewWidth}}px;height:{{previewHeight}}px">{{#if svg}}{{{svg}}}{{else}}<span class="missing-preview">Page {{localPage}}<br>Preview unavailable</span>{{/if}}</div></div>
-          <figcaption><span class="page-number">{{page}}</span>{{#if origin}}<span class="page-origin">{{origin}}</span>{{/if}}{{#if ../canSelect}}<button type="button" class="btn btn--ghost btn--sm page-select" data-page-select aria-pressed="{{#if chosen}}true{{else}}false{{/if}}">{{#if chosen}}✓ Selected{{else}}Select{{/if}}</button>{{/if}}</figcaption>
+          {{#if caption}}<figcaption>{{#unless ../isReorder}}<span class="page-number">{{page}}</span>{{/unless}}{{#if origin}}<span class="page-origin">{{origin}}</span>{{/if}}{{#if ../canSelect}}<button type="button" class="btn btn--ghost btn--sm page-select" data-page-select aria-pressed="{{#if chosen}}true{{else}}false{{/if}}">{{#if chosen}}✓ Selected{{else}}Select{{/if}}</button>{{/if}}</figcaption>{{/if}}
           {{#if ../isReorder}}<div class="page-moves"><button class="btn btn--ghost btn--sm" type="button" data-page-move="-1" aria-label="Move position {{ordinal}} left" {{#if first}}disabled{{/if}}>←</button><input class="field-input field-input--sm" type="number" min="1" max="{{../orderLength}}" value="{{ordinal}}" data-move-to aria-label="Move position {{ordinal}} to position"><button class="btn btn--ghost btn--sm" type="button" data-page-move="1" aria-label="Move position {{ordinal}} right" {{#if last}}disabled{{/if}}>→</button></div>{{/if}}
         </figure>{{/each}}
       </section>
       {{#if previewUnavailable}}<p class="status">Some previews could not be drawn. Page positions still work. {{previewError}}</p>{{/if}}
       {{#if hasChanges}}<section class="changes" aria-label="What changes in the new PDF"><strong>What changes</strong><ul>{{#each changes}}<li class="change change--{{outcome}}" data-change-outcome="{{outcome}}">{{message}}</li>{{/each}}</ul></section>{{/if}}
-      <footer class="save"><button type="button" class="btn btn--primary" data-export-file data-export-archive="{{archiveName}}" data-busy-label="Working…" {{#unless ready}}disabled{{/unless}}>{{#if isSplit}}Download split PDFs{{else}}Download PDF{{/if}}</button>
+      <div class="save"><button type="button" class="btn btn--primary" data-export-file data-export-archive="{{archiveName}}" data-busy-label="Working…" {{#unless ready}}disabled{{/unless}}>{{#if isSplit}}Download split PDFs{{else}}Download PDF{{/if}}</button>
         {{#if pending}}<span class="status" role="status">Preparing…</span>{{/if}}
-        {{#if ready}}<span class="status" role="status"><strong>{{summary}}</strong> · {{operations}}{{#if sizeAfter}} · {{sizeAfter}}{{/if}}</span>{{/if}}</footer>
+        {{#if ready}}<span class="status" role="status"><strong>{{summary}}</strong> · {{operations}}{{#if sizeAfter}} · {{sizeAfter}}{{/if}}</span>{{/if}}</div>
     {{/if}}{{/if}}
 
     {{#if isCompress}}{{#if available}}
-      <footer class="save save--lead">
+      <div class="save save--lead">
         {{#if done}}<p class="saving" role="status"><strong>{{savedLead}}</strong><span>{{savedDetail}}</span></p>{{/if}}
         {{#if noGain}}<p class="status" role="status">Already well optimised</p>{{/if}}
         {{#if pending}}<p class="status" role="status">Built when you download</p>{{/if}}
         <button type="button" class="btn btn--primary" data-export-file data-busy-label="Compressing…">Download compressed PDF</button>
-      </footer>
+        <p class="save-note">Only images are recompressed, and a digital signature on the PDF stops being valid once the file is saved again.</p>
+      </div>
     {{/if}}{{/if}}
 
     {{#if isSign}}{{#if available}}
@@ -108,8 +109,9 @@
           </g></svg>
         </div></div>
       </div>
-      <footer class="save">{{#if lock}}<button type="button" class="btn btn--primary" data-export-file data-export-password="true" data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{else}}<button type="button" class="btn btn--primary" data-export-file data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{/if}}
-        {{#if pending}}<span class="status" role="status">Preparing…</span>{{/if}}</footer>
+      <div class="save">{{#if lock}}<button type="button" class="btn btn--primary" data-export-file data-export-password="true" data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{else}}<button type="button" class="btn btn--primary" data-export-file data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{/if}}
+        {{#if pending}}<span class="status" role="status">Preparing…</span>{{/if}}
+        <p class="save-note">{{#if signerName}}Signing as {{signerName}}. {{/if}}This is a visible signature, not an identity-verification service.</p></div>
     {{/if}}{{/if}}
   </section>{{/if}}
 </div></main>

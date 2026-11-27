@@ -211,6 +211,8 @@ async function previews(host, fs, docs, v) {
     if (!p) unavailable = true;
     pages.push({ page: n, occurrence: occurrence, ordinal: occurrence + 1, localPage: local, document: doc.ordinal,
       origin: documents.length < 2 ? '' : (doc.image ? 'Image ' + doc.ordinal : 'PDF ' + doc.ordinal + ' · p' + local),
+      // In Reorder the position field is the page's number, so the caption holds only the file a page came from.
+      caption: v.operation !== 'reorder' || documents.length > 1,
       sourceName: doc.name, svg: svg, previewWidth: fit.width, previewHeight: fit.height,
       chosen: selected(v.pages, n, offset), first: occurrence === 0, last: occurrence === order.length - 1,
       sizeLabel: p ? Math.round(p.widthPt) + ' × ' + Math.round(p.heightPt) + ' pt' : 'Preview unavailable' });
@@ -502,7 +504,7 @@ async function signCompute(ctx) {
     signatureUrl: v.signature && v.signature.url || '', initialsUrl: v.initials && v.initials.url || '', inkPaths: ink.paths,
     inkValue: String(v.signatureInk || ''), inkViewBox: ink.viewBox, hasInk: ink.paths.length > 0,
     hasSignature: ink.paths.length > 0 || Boolean(v.signature && v.signature.url), xPct: 0, yPct: 0, wPct: 20,
-    posJson: '{}', positionWidth: 144, pageW: 612, pageH: 792, pageDisplayW: 301
+    posJson: '{}', positionWidth: 144, pageW: 612, pageH: 792, pageDisplayW: 301, signerName: ''
   };
   // The date is set in the design system's text face, on the page preview as in the file.
   o.dateFont = (await brandFonts(ctx.host)).brand;
@@ -514,6 +516,9 @@ async function signCompute(ctx) {
   o.available = true; o.pending = true;
   if (ctx.report) ctx.report(o);
   try {
+    // The name the Content Credential records, shown before the file is saved.
+    var signer = v.seal ? await profileName(ctx.host) : 'Signer';
+    o.signerName = signer === 'Signer' ? '' : signer;
     var r = await signingLayout(ctx.host, v, f), p = r.page, l = r.layout;
     o.pageSvg = p.svg; o.pageW = p.widthPt; o.pageH = p.heightPt; o.totalPages = r.total;
     o.pageDisplayW = Math.round(p.widthPt * Math.min(465 / p.widthPt, 390 / p.heightPt));
@@ -598,7 +603,7 @@ function blank() {
     done: false, noGain: false, savedLead: '', savedDetail: '',
     canDownload: false, pageSvg: '', pageNo: 1, signatureUrl: '', initialsUrl: '', inkPaths: [], inkValue: '', inkViewBox: '0 0 ' + INK_W + ' ' + INK_H,
     hasInk: false, hasSignature: false, xPct: 0, yPct: 0, wPct: 20, hPct: 0, posJson: '{}', positionWidth: 144, pageW: 612, pageH: 792, pageDisplayW: 301,
-    dateFont: '', groupWidth: 0, groupHeight: 0, initialsMark: null, dateMark: null
+    dateFont: '', signerName: '', groupWidth: 0, groupHeight: 0, initialsMark: null, dateMark: null
   };
 }
 function kindOf(ctx) {
