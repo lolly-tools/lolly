@@ -150,25 +150,55 @@ test('the page shows the replay button and the clock only with motion on', async
   assert.match(moving, /__lollyFrameRender/);
   const still = await page({});
   assert.doesNotMatch(still, /qr-play|__lollyFrameRender|qr-notes/);
-  // The button and the warnings sit in one block no export reads.
-  assert.match(template, /<div class="qr-notes" data-export-hide[{>]/);
-  assert.match(await page({ padding: 1 }), /<div class="qr-notes" data-export-hide>\s*<ul class="qr-warn" role="status" aria-label="Scannability"><li>Quiet zone is 1 module\./);
+  // The button sits in a block no export reads.
+  assert.match(template, /<div class="qr-notes" data-export-hide>/);
 });
 
-test('the warnings are one list under the canvas, said once', async () => {
-  const warned = await page({ padding: 1, color: '#ffffff', background: '#222222' });
-  assert.equal(warned.match(/role="status"/g)?.length, 1, 'one live region');
-  assert.equal(warned.match(/<li>/g)?.length, 2, 'each warning is one line of that list');
-  assert.doesNotMatch(warned, /qr-scan-warn|qr-scan-info|Error correction was raised/);
-  // With motion on, the replay button stands with the list.
-  assert.match(await page({ padding: 1, motion: 'rings' }), /class="qr-play">Play motion<\/button>\s*<ul class="qr-warn"/);
-  // The script that hangs the notes under the canvas goes with them and with nothing else.
-  assert.match(warned, /data-foot/);
-  assert.doesNotMatch(await page({}), /data-foot|qr-warn/);
-  // The stylesheet draws nothing over the code: the notes show only once they hang below.
+async function notices(values: Record<string, InputValue>, host = baseHost()) {
+  const runtime = await createRuntime(tool, host, { url: LINK, ...values });
+  const out = runtime.getNotices();
+  runtime.destroy();
+  return out;
+}
+
+test('each warning is a notice under the input that causes it, and nothing is drawn for it', async () => {
+  const warned = await notices({ padding: 1, color: '#ffffff', background: '#222222' });
+  assert.deepEqual(Object.keys(warned).sort(), ['background', 'padding']);
+  assert.equal(warned.padding!.tone, 'warning');
+  assert.match(warned.padding!.text, /^Quiet zone is 1 module\./);
+  assert.match(warned.background!.text, /lighter than the background/);
+
+  // Contrast goes to the weakest ink: the module colour, the eyes or the second colour.
+  assert.match((await notices({ color: '#cccccc', background: '#ffffff' })).color!.text, /^Low contrast \(1\.6:1\)\. .*darken the modules/);
+  assert.match((await notices({ eyeColor: '#dddddd', background: '#ffffff' })).eyeColor!.text, /darken the eyes/);
+  assert.match((await notices({ fill: 'gradient', color: '#0c322c', color2: '#eef7ee', background: '#ffffff' })).color2!.text, /darken the second colour/);
+  // The logo check keeps its place in the hooks, but the 32% size limit sits under its threshold, so no size raises that line today.
+  assert.equal((await notices({ logo: 'lolly/logo/primary', logoScale: 32 })).logoScale, undefined);
+
+  // Fixed, a barcode and scan mode: the set is empty again.
+  assert.deepEqual(await notices({}), {});
+  assert.deepEqual(await notices({ padding: 1, payload: 'ean13', value: '4006381333931' }), {});
+  assert.deepEqual(await notices({ padding: 1, mode: 'scan', source: 'paste', scanText: 'hello' }), {});
+  const runtime = await createRuntime(tool, baseHost(), { url: LINK, padding: 1 });
+  assert.ok(runtime.getNotices().padding);
+  await runtime.setInput('padding', 4);
+  assert.deepEqual(runtime.getNotices(), {}, 'the notice goes when the value is fixed');
+  await runtime.setInput('padding', 0);
+  await runtime.setInput('mode', 'scan');
+  assert.deepEqual(runtime.getNotices(), {}, 'and when the tool leaves make mode');
+  runtime.destroy();
+
+  // Nothing reaches the page: no list, no script that makes room, no text of a warning.
+  const page1 = await page({ padding: 1, color: '#ffffff', background: '#222222' });
+  assert.doesNotMatch(page1, /qr-warn|qr-notes|data-foot|role="status"|Quiet zone is|inputNotices/);
+  assert.doesNotMatch(template, /qr-warn|qrListed|qrWarnings/);
+  // With motion on, the replay button is all that hangs under the canvas.
+  const moving = await page({ padding: 1, motion: 'rings' });
+  assert.match(moving, /<div class="qr-notes" data-export-hide>\s*<button type="button" class="qr-play">Play motion<\/button>\s*<\/div>/);
   const css = await read('qr-code/styles.css');
   assert.match(css, /\.qr-notes \{ display: none; \}/);
   assert.match(css, /\.qr-notes\[data-foot\] \{[^}]*top: 100%;/);
+  assert.doesNotMatch(css, /qr-warn/);
 });
 
 test('the reader shows no result panel before a result', async () => {
@@ -218,9 +248,9 @@ test('the error panel and the warnings take the alert roles, measured', async ()
       assert.match(panel, new RegExp(`<rect[^>]*fill="${card}"`), `${JSON.stringify(selection)}: the panel is the alert card`);
       assert.doesNotMatch(panel, /#fff5f5|#bd3314/);
     }
-    const warned = await page({ padding: 1 }, host);
-    const style = /class="qr-notes" data-export-hide style="([^"]+)"/.exec(warned)?.[1];
-    assert.ok(style, 'the notes carry the roles');
+    const reader = await page({ mode: 'scan', source: 'paste', scanText: 'https://bit.ly/x' }, host);
+    const style = /<div class="sc" data-mode="paste" style="([^"]+)"/.exec(reader)?.[1];
+    assert.ok(style, 'the reader carries the roles');
     const vars = Object.fromEntries(style.split(';').map(p => p.split(':')) as [string, string][]);
     assert.equal(vars['--qr-alert-card'], card);
     assert.ok(contrast(vars['--qr-alert-ink']!, card) >= 4.5 || vars['--qr-alert-ink'] !== ink, 'small type is the alert ink only where that reads');
@@ -283,8 +313,9 @@ test('the scan check draws the code itself where the shell refuses to rasterise'
   const wrong = make({ ...host, scan: { detect: async () => [] } }, CanvasStub, Path2DStub);
   const failed = await wrong.onInit({ model: model({ url: LINK, moduleShape: 'dot' }), host: { ...host, scan: { detect: async () => [] } } });
   assert.equal(failed.qrLiveScanFail, true);
-  assert.equal(failed.qrNotes, true);
-  assert.equal(failed.qrListed, true, 'the failed read is a line of the one list');
+  assert.equal(failed.qrNotes, false, 'nothing hangs under the canvas for it');
+  assert.deepEqual(failed.inputNotices, { moduleShape: { tone: 'error', text: 'A test read of this code came back empty. Reduce the logo, raise the contrast or simplify the module shape.' } }, 'the failed read is a notice under the styling most likely to cause it');
+  assert.deepEqual(result.inputNotices, {}, 'a code that reads back carries none');
 });
 
 test('the hooks touch nothing a Worker lacks', () => {

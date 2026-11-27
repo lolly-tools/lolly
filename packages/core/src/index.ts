@@ -108,8 +108,11 @@ export type {
   CanvasSyncAdapter,
 } from './canvas-op-v1.ts';
 
-export { defineTool, defineHooks } from './define-tool.ts';
+export { defineTool, defineHooks, INPUT_NOTICES_KEY, INPUT_NOTICE_TONES, INPUT_NOTICE_TEXT_MAX } from './define-tool.ts';
 export type {
+  InputNotice,
+  InputNotices,
+  InputNoticeTone,
   CanvasSize,
   HookContext,
   HookModelItem,

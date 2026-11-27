@@ -1067,6 +1067,30 @@
   margin: 2px 0 6px;
 }
 
+/* What the tool says about this input's value (engine 1.358, views/input-notices.ts):
+   the same fine print, under the control, in the status colour of its tone. The
+   shell has one status ink, so a warning and an error share the danger ink and an
+   error is set heavier; a note that only informs keeps the muted ink above. The row
+   is a column with its own gap, so the line needs no margin and nothing else moves. */
+.input-notice--hook { margin: 0; overflow-wrap: anywhere; }
+.input-notice--hook:is([data-tone="warning"], [data-tone="error"]) { color: var(--ui-color-status-danger); }
+.input-notice--hook[data-tone="error"] { font-weight: 600; }
+/* A row that lays its control and label side by side gives the line a row of its own. */
+.input-row--checkbox > .input-notice--hook { flex-basis: 100%; }
+
+/* A folded section that holds a notice: one dot on its head, before the arrow. */
+.input-section-mark {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-inline-start: auto;
+  border-radius: 50%;
+  background: var(--ui-color-text-muted);
+}
+.input-section-mark:is([data-tone="warning"], [data-tone="error"]) { background: var(--ui-color-status-danger); }
+/* Open, the section shows the line itself. */
+.input-section[open] > .input-section-summary > .input-section-mark { display: none; }
+
 /* ── The label is ALWAYS above the control (plans/273, Andy 2026-09-23) ─────
    There used to be a second idiom here: a floating label that sat inside a text
    field at rest, looking like placeholder text, and lifted out on focus. It was

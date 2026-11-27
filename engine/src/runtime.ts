@@ -43,7 +43,8 @@ import { sourceIngredientsFor } from './rights-attribution.ts';
 import type { SourceDetailV1 } from './rights-attribution.ts';
 import { evaluateCreativeUses } from './rights-evaluate.ts';
 import { outputLicenceId, outputLicenceNotice } from './rights-profiles.ts';
-import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputDigests, matchesShowIf, normalizeTableValue, tokenBindingsOf, type InputWriteOptions } from './inputs.ts';
+import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputDigests, matchesShowIf, normalizeTableValue, tokenBindingsOf, readInputNotices, sameInputNotices, type InputNoticeMap, type InputWriteOptions } from './inputs.ts';
+import { INPUT_NOTICES_KEY } from '@lolly-tools/core';
 import { hydrate, resolvePaintBindings } from './template.ts';
 import { buildExportMeta, designRecordFrom, isEmptyDesignRecord, partnerRecord, type MadeWithPreview } from './metadata.ts';
 import { isTokenValue, isAlias, aliasPath, colorToHex } from './tokens.ts';
@@ -80,6 +81,8 @@ import { assetVersionPin, assetDependency, decodeAssetVersion, unavailablePinned
 export interface RuntimeState {
   model: InputModelItem[];
   hydrated: string;
+  /** The input notices in force (v1.358). The same object until the set changes. */
+  notices: InputNoticeMap;
 }
 
 /** A hook failure recorded for the shell (currently onInit). */
@@ -380,6 +383,15 @@ export interface Runtime {
    */
   setCanvasSize(size: { width: number; height: number } | null): Promise<void>;
   getModel(): InputModelItem[];
+  /**
+   * The messages hooks have attached to inputs (v1.358), keyed by input id. A hook
+   * result's `inputNotices` key replaces the whole set; a result without the key
+   * leaves the set as it was. The same frozen object is returned until the set
+   * changes, and every `subscribe` emission carries it as `state.notices`. Notices
+   * are for a shell to show: they are not input values, never reach the template,
+   * and are not part of a link, a session or an export.
+   */
+  getNotices(): InputNoticeMap;
   getHydrated(): string;
   /** Hydrate an arbitrary template string against the same context (e.g. manifest.a11yLabel). */
   getHydratedString(str: string | null | undefined): string;
@@ -839,6 +851,30 @@ export async function createRuntime(
   // Available to templates alongside input values.
   let extras: Record<string, unknown> = {};
 
+  // Input notices (v1.358): what hooks said about inputs, kept apart from values
+  // and extras so no serializer or template can pick them up. Every hook patch
+  // passes through this mergePatch, so a late or reported patch is handled the
+  // same way as a direct one.
+  let notices: InputNoticeMap = readInputNotices(null, inputIds).notices;
+  const noticeComplaints = new Set<string>();
+  const complainOnce = (kind: string, ids: string[], say: string): void => {
+    for (const id of ids) {
+      if (noticeComplaints.has(`${kind}:${id}`)) continue;
+      noticeComplaints.add(`${kind}:${id}`);
+      host.log('warn', `${INPUT_NOTICES_KEY}: "${id}" ${say}`, { toolId: tool.manifest.id });
+    }
+  };
+  const mergePatch = (m: InputModelItem[], e: Record<string, unknown>, patch: unknown, ids?: Set<string>): { model: InputModelItem[]; extras: Record<string, unknown> } => {
+    const raw = patch && typeof patch === 'object' ? (patch as Record<string, unknown>)[INPUT_NOTICES_KEY] : undefined;
+    if (raw !== undefined) {
+      const read = readInputNotices(raw, inputIds);
+      complainOnce('unknown', read.unknown, 'is not an input of this tool, so its notice is not shown');
+      complainOnce('invalid', read.invalid, 'needs { tone: info | warning | error, text }, so its notice is not shown');
+      if (!sameInputNotices(notices, read.notices)) notices = read.notices;
+    }
+    return mergePatchValues(m, e, patch, ids);
+  };
+
   // Run one lifecycle hook under its HOOK_BUDGET_MS budget. An async result is
   // raced: a timeout rejects HERE (the caller logs/records it and applies no
   // patch NOW). The hook itself is NOT cancelled (no in-realm preemption). A
@@ -940,7 +976,7 @@ export async function createRuntime(
   // Declared above the hooks block because a LATE onInit patch (runHook's onLate)
   // has to re-emit; it only ever runs after mount, when getHydrated exists.
   const emit = () => {
-    const state = { model, hydrated: getHydrated() };
+    const state = { model, hydrated: getHydrated(), notices };
     listeners.forEach(fn => fn(state));
   };
   // Shared late-patch application for onInit/onInput: merge, then repaint.
@@ -1499,6 +1535,7 @@ export async function createRuntime(
     get tokenSelection() { return tokenSelection ? structuredClone(tokenSelection) : undefined; },
     get ignoredTokenChoices() { return ignoredTokenChoices.map(choice => ({ ...choice })); },
     getModel: () => model,
+    getNotices: () => notices,
     getHydrated,
     getHydratedString,
     getHydratedText,
@@ -1849,7 +1886,7 @@ export async function createRuntime(
 
     subscribe(fn) {
       listeners.add(fn);
-      fn({ model, hydrated: getHydrated() });
+      fn({ model, hydrated: getHydrated(), notices });
       return () => listeners.delete(fn);
     },
 
@@ -3226,7 +3263,7 @@ function withTimeout<T>(promise: Promise<T> | T, ms: number, toolId: string): Pr
  * hook that only computes QR modules / badge geometry) the SAME model reference
  * is returned, so templateContext's ref-equality cache isn't needlessly busted.
  */
-function mergePatch(
+function mergePatchValues(
   model: InputModelItem[],
   extras: Record<string, unknown>,
   patch: unknown,
@@ -3249,6 +3286,9 @@ function mergePatch(
     // a doc leaves frames mode - an undefined there kept the stale artboard
     // alive forever).
     if (v === undefined) continue;
+    // The reserved notices key is read by createRuntime's mergePatch and is
+    // neither an input value nor an extra.
+    if (k === INPUT_NOTICES_KEY) continue;
     // Hook trust boundary: a patched input value is whatever the tool
     // computed - the same latitude the untyped runtime always gave hooks.
     if (ids.has(k)) { modelPatch[k] = v as InputValue; hasModelPatch = true; }

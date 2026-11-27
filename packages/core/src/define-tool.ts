@@ -55,6 +55,33 @@ export interface HookContext {
  */
 export type HookResult = Record<string, unknown> | void;
 
+/**
+ * The one reserved key of a hook result (engine 1.358): messages for inputs.
+ * `{ inputNotices: { color: { tone: 'warning', text: 'Low contrast.' } } }` shows
+ * that line under the `color` control. No input may use this id.
+ */
+export const INPUT_NOTICES_KEY = 'inputNotices';
+/** The tones a notice may carry. A shell draws each in its own status colour. */
+export const INPUT_NOTICE_TONES = ['info', 'warning', 'error'] as const;
+export type InputNoticeTone = (typeof INPUT_NOTICE_TONES)[number];
+/** Longest notice text, in UTF-16 units. Longer text is cut to this length. */
+export const INPUT_NOTICE_TEXT_MAX = 240;
+
+/** One message under one input. Plain text, never markup. */
+export interface InputNotice {
+  tone: InputNoticeTone;
+  text: string;
+}
+
+/**
+ * The value under `inputNotices`: one entry per input id. `null` (or a missing
+ * id) means that input has no notice. A result that carries the key replaces
+ * the whole set, so `{ inputNotices: {} }` clears every notice; a result
+ * without the key leaves the set as it was. Notices are shown by the shell and
+ * go nowhere else: not into the template, a link, a session or a file.
+ */
+export type InputNotices = Record<string, InputNotice | null>;
+
 /** Context for the export-lifecycle hooks (`beforeExport` / `afterExport`). */
 export interface ExportHookContext {
   /** Effective tool language, including a per-render language override. */
