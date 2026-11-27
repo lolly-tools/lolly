@@ -10,7 +10,7 @@ import type { VerifyEvidence, VerifyStrength } from '@lolly/engine';
 import { escape as esc } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
-import { aiMakerChip, aiStrength, strengthHtml } from './valid-vendors.ts';
+import { aiMakerChip, aiStrength, rowStrengthHtml } from './valid-vendors.ts';
 
 /** What the file says about AI, and where that was read. */
 export interface AiDeclaration {
@@ -72,8 +72,9 @@ const SYNTHID_MAKERS = /google|gemini|imagen|veo|nano.?banana/i;
 
 /**
  * The AI declaration as one row of the AI section: the declaration, the maker's
- * mark and name, and the credit as recorded. The section's heading states the
- * strength, so the row adds strength words only when its own differ. The AI
+ * mark and name, and the credit as recorded. The answer slot states the
+ * strength, so the row shows strength words only when its own differ, or at
+ * Evidence depth. The AI
  * colour tints the glyph and two hairlines. The longer explanation and the note
  * about marks only a maker can read show at Evidence depth.
  */
@@ -94,7 +95,7 @@ export function aiRowHtml(input: AiRowInput, stated: VerifyStrength): string {
   return `<div class="vs-ai${likely ? ' is-likely' : ''}" role="alert" data-ai-via="${origin.via}">
       <span class="vs-ai-glyph" aria-hidden="true">${icon('aiSpark')}</span>
       <div class="vs-ai-copy">
-        <p class="vs-ai-line"><strong>${esc(t(copy.title))}</strong>${chip}${chip || own === stated ? '' : strengthHtml(own)}</p>
+        <p class="vs-ai-line"><strong>${esc(t(copy.title))}</strong>${chip}${chip ? '' : rowStrengthHtml(own, stated)}</p>
         ${origin.credit ? `<p class="vs-ai-credit">“${esc(origin.credit)}”</p>` : ''}
         <p class="vs-ai-more" data-evidence-only hidden>${sub}</p>
         <p class="vs-ai-more" data-evidence-only hidden>${note}</p>
@@ -113,7 +114,7 @@ export function evidenceRowsHtml(evidence: readonly VerifyEvidence[], stated: Ve
     return !(value.length >= 3 && shown.includes(value));
   }).slice(0, 24);
   if (!rows.length) return '';
-  return `<dl class="vs-rows">${rows.map((e) => `<div><dt>${esc(t(e.label))}</dt><dd>${esc(e.value)}</dd><dd class="vs-source">${esc(e.source)}${e.strength === stated ? '' : strengthHtml(e.strength)}</dd></div>`).join('')}</dl>`;
+  return `<dl class="vs-rows">${rows.map((e) => `<div><dt>${esc(t(e.label))}</dt><dd>${esc(e.value)}</dd><dd class="vs-source">${esc(e.source)}${rowStrengthHtml(e.strength, stated)}</dd></div>`).join('')}</dl>`;
 }
 
 /** What Verify can still check on one file's pixels, when asked. */

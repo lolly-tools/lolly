@@ -48,14 +48,24 @@ export function strengthHtml(strength: VerifyStrength): string {
 }
 
 /**
- * One vendor, wherever one is named: the mark and the name as recorded. The
- * strength of the evidence rides with the mark, because a mark alone would read
- * as a confirmed fact. A section states its strength once, beside its heading,
- * so a chip in that section passes the section's strength as `stated` and adds
- * its own words only when they differ.
+ * A row's strength inside a section. The answer slot is the one statement of a
+ * finding's strength, so a row whose strength matches the slot's (`stated`)
+ * shows its words only at Evidence depth, where every source is listed with
+ * its strength. A row that differs always shows its own.
+ */
+export function rowStrengthHtml(strength: VerifyStrength, stated?: VerifyStrength): string {
+  const words = STRENGTH[strength];
+  return words ? `<span class="vf-slot-strength is-${strength}${strength === stated ? ' vf-same' : ''}">${t(words)}</span>` : '';
+}
+
+/**
+ * One vendor, wherever one is named: the mark, the name as recorded and how
+ * strong the evidence is. The strength is part of the chip, because a mark
+ * alone would read as a confirmed fact. Inside a section, `stated` is the
+ * strength the finding's answer slot already gives (see rowStrengthHtml).
  */
 export function vendorChip(name: string, role: string, strength: VerifyStrength, stated?: VerifyStrength): string {
-  return `<span class="vendor-chip" data-vendor-role="${esc(role)}" data-strength="${strength}">${vendorMark(name)}<span class="vendor-chip-copy"><strong>${esc(name.length > 80 ? `${name.slice(0, 77)}…` : name)}</strong>${strength === stated ? '' : strengthHtml(strength)}</span></span>`;
+  return `<span class="vendor-chip" data-vendor-role="${esc(role)}" data-strength="${strength}">${vendorMark(name)}<span class="vendor-chip-copy"><strong>${esc(name.length > 80 ? `${name.slice(0, 77)}…` : name)}</strong>${rowStrengthHtml(strength, stated)}</span></span>`;
 }
 
 /** How strong an AI declaration is, by where it was read. Only a credential that verified is "signed". */

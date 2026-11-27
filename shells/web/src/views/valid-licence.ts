@@ -15,7 +15,7 @@ import { escape as esc } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { metadataLinkHtml } from './valid-links.ts';
-import { strengthHtml } from './valid-vendors.ts';
+import { rowStrengthHtml } from './valid-vendors.ts';
 import { sectionHeadHtml } from './valid-layout.ts';
 
 /** One plain sentence per licence element. The last two are named and not interpreted. */
@@ -125,15 +125,15 @@ const marksHtml = (marks: readonly string[]): string => marks.length
 
 const RANK: readonly VerifyStrength[] = ['signed', 'unverified', 'stated', 'hint', 'estimated'];
 
-/** The strongest evidence any statement rests on. The band's heading states this once. */
+/** The strongest evidence any statement rests on. */
 export function bandStrength(band: LicenceBand): VerifyStrength {
   const found = band.statements.flatMap((s) => s.where.map((w) => w.strength));
   return RANK.find((s) => found.includes(s)) ?? 'none';
 }
 
-/** Where a statement was found. A source adds strength words only when they differ from the heading's. */
+/** Where a statement was found. A source that matches the answer slot shows its strength only at Evidence depth. */
 function whereHtml(s: LicenceStatement, stated: VerifyStrength): string {
-  return `<ul class="vl-where" aria-label="${esc(t('Where this was found'))}">${s.where.slice(0, 8).map((w) => `<li>${w.strength === stated ? '' : strengthHtml(w.strength)}<span class="vl-source">${esc(w.source)}</span></li>`).join('')}</ul>`;
+  return `<ul class="vl-where" aria-label="${esc(t('Where this was found'))}">${s.where.slice(0, 8).map((w) => `<li>${rowStrengthHtml(w.strength, stated)}<span class="vl-source">${esc(w.source)}</span></li>`).join('')}</ul>`;
 }
 
 function statementHtml(s: LicenceStatement, stated: VerifyStrength): string {
@@ -148,11 +148,16 @@ function statementHtml(s: LicenceStatement, stated: VerifyStrength): string {
   </div>`;
 }
 
-/** The band, first in the findings column. Always drawn, so an absence is visible. */
-export function licenceBandHtml(report: BandReport, meta: FileMetadata | undefined, fileName = ''): string {
+/**
+ * The band, first in the findings column. Always drawn, so an absence is visible.
+ * `slot` is the strength the Licence answer slot states. The heading repeats a
+ * strength only when the band's differs from the slot's, or when no slot is given.
+ */
+export function licenceBandHtml(report: BandReport, meta: FileMetadata | undefined, fileName = '', slot?: VerifyStrength): string {
   const band = licenceBand(report, meta, fileName);
-  const stated = bandStrength(band);
-  const head = sectionHeadHtml('licence', stated);
+  const own = bandStrength(band);
+  const stated = slot ?? own;
+  const head = sectionHeadHtml('licence', slot === own ? 'none' : own);
   const sources = band.sourceCount
     ? `<p class="vl-sources">${esc(tRaw(band.sourceCount === 1 ? '1 source: {list}' : '{n} sources: {list}', { n: band.sourceCount, list: band.sources.map((s) => `${s.count} ${s.name}`).join(', ') }))}</p>` : '';
   if (band.state === 'none') {

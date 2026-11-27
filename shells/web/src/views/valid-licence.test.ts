@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { FileMetadata } from '@lolly/engine';
-import { licenceBand, licenceBandHtml } from './valid-licence.ts';
+import { bandStrength, licenceBand, licenceBandHtml } from './valid-licence.ts';
 
 const none = { found: false, state: 'none' as const, trusted: false, madeWithLolly: false, likelyMadeWithLolly: false, partsMadeWithLolly: false, checks: [] };
 const meta = (fields: Array<{ label: string; value: string; source?: string }>): FileMetadata =>
@@ -28,25 +28,30 @@ test('a known licence leads with its marks, plain conditions, where it was found
   assert.match(html, /Share adaptations under the same licence\./);
   assert.match(html, /Stated in the file/);
   assert.match(html, /Declared terms\. Permission to reuse is not verified\./);
-  // The strength is said once, beside the heading. A source under the heading carries only where it was found.
-  assert.equal(html.match(/Stated in the file/g)?.length, 1);
+  // With no answer slot the heading states the strength. Each source carries its own, shown at Evidence depth.
   assert.match(html, /<span class="vf-slot-strength is-stated">Stated in the file<\/span><\/h3>/);
-  assert.match(html, /<li><span class="vl-source">XMP\/RDF cc:license<\/span><\/li>/);
+  assert.match(html, /<li><span class="vf-slot-strength is-stated vf-same">Stated in the file<\/span><span class="vl-source">XMP\/RDF cc:license<\/span><\/li>/);
+  // Under an answer slot that states the same strength, the heading does not repeat the words.
+  const underSlot = licenceBandHtml(none, file, 'photo.jpg', 'stated');
+  assert.match(underSlot, /<\/button><\/h3>/);
+  assert.doesNotMatch(underSlot.replaceAll(/<span class="vf-slot-strength is-stated vf-same">[^<]*<\/span>/g, ''), /Stated in the file/, 'nothing visible in Summary repeats the slot');
 });
 
-test('a source weaker or stronger than the heading still states its own strength', () => {
+test('a source weaker than the answer slot always states its own strength, and every source carries one', () => {
   const file = meta([{ label: 'Licence', value: 'https://creativecommons.org/licenses/by/4.0/', source: 'XMP/RDF cc:license' }]);
   const signed = { ...none, found: true, state: 'valid' as const, rights: 'CC-BY-4.0', checks: [{ id: 'hash', ok: true }] };
-  const html = licenceBandHtml(signed as never, file, 'photo.jpg');
-  const head = /<h3 class="vs-head">.*?<\/h3>/s.exec(html)![0];
+  // The slot states the band's strongest evidence, which here is the credential's.
+  const slot = bandStrength(licenceBand(signed as never, file, 'photo.jpg'));
+  assert.notEqual(slot, 'stated');
+  const html = licenceBandHtml(signed as never, file, 'photo.jpg', slot);
   const rows = [...html.matchAll(/<li>(.*?)<\/li>/g)].map((m) => m[1]!).filter((row) => row.includes('vl-source'));
   assert.ok(rows.length >= 2, 'the credential and the metadata are both listed');
-  const headWords = /vf-slot-strength is-(\w+)/.exec(head)![1];
-  for (const row of rows) {
-    const own = /vf-slot-strength is-(\w+)/.exec(row)?.[1];
-    assert.notEqual(own, headWords, 'a row never repeats the heading');
-  }
-  assert.ok(rows.some((row) => /vf-slot-strength is-stated/.test(row)), 'the metadata source says it is only stated');
+  for (const row of rows) assert.match(row, /vf-slot-strength is-\w+/, 'every source carries its strength for Evidence depth');
+  assert.ok(rows.some((row) => /class="vf-slot-strength is-stated">/.test(row)), 'the metadata source says it is only stated, at every depth');
+  assert.ok(rows.some((row) => row.includes(`is-${slot} vf-same">`)), 'a source that matches the slot waits for Evidence depth');
+  assert.match(html, /<\/button><\/h3>/, 'the heading does not repeat the slot');
+  // A slot that states something else leaves the band's own strength in the heading.
+  assert.match(licenceBandHtml(signed as never, file, 'photo.jpg', 'hint'), new RegExp(`<span class="vf-slot-strength is-${slot}">[^<]+</span></h3>`));
 });
 
 test('two different licences are a disagreement, listed side by side, with no credit line to copy', () => {

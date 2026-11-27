@@ -9,9 +9,9 @@
  * two columns follow one another. The Summary and Evidence switch comes first,
  * level with the stage's own switch.
  *
- * Every section has the same head: an icon, a title, a help tip and how strong
- * the evidence is, stated once. The answer row above already gives each finding
- * in words, so a section leads with its evidence. The finding's sentence stays
+ * Every section has the same head: an icon, a title and a help tip. The answer
+ * row above already gives each finding in words with its strength, so a section
+ * leads with its evidence and repeats neither. The finding's sentence stays
  * only where nothing else in the section would say what was found.
  */
 import type { VerifyFinding, VerifyFindingId, VerifyStrength } from '@lolly/engine';
@@ -40,7 +40,11 @@ export const SECTION: Record<VerifyFindingId, SectionCopy> = {
 /** The finding's one sentence, with its values filled in. */
 export const findingSentence = (finding: VerifyFinding): string => tRaw(finding.detail, finding.vars);
 
-/** A section's head: icon, title, help tip, then the strength of its evidence, once. */
+/**
+ * A section's head: icon, title and help tip. The answer slot is the one
+ * statement of a finding's strength, so a head states a strength only when the
+ * caller passes one that differs from the slot's, or the section has no slot.
+ */
 export function sectionHeadHtml(id: VerifyFindingId, strength: VerifyStrength = 'none'): string {
   const copy = SECTION[id];
   const tip = helpTip(t(copy.tip));
@@ -58,7 +62,7 @@ const SENTENCE_STAYS = new Set(['credential:made-here', 'credential:seal', 'cred
 export function sectionHtml(finding: VerifyFinding, body: string): string {
   const sentence = finding.tone === 'quiet' || !body.trim() || SENTENCE_STAYS.has(`${finding.id}:${finding.state}`);
   return `<section class="vs help-tip-host is-${finding.tone}" data-finding-section="${finding.id}" aria-label="${esc(t(SECTION[finding.id].title))}">
-    ${sectionHeadHtml(finding.id, finding.strength)}
+    ${sectionHeadHtml(finding.id)}
     ${sentence ? `<p class="vs-lede">${esc(findingSentence(finding))}</p>` : ''}
     ${body.trim() ? `<div class="vs-body">${body}</div>` : ''}
   </section>`;

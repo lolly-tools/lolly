@@ -6,7 +6,7 @@ import type { VerifyReport } from './valid-verdict.ts';
 import { hasHashVerdict, hashFailed } from './valid-verdict.ts';
 import { escape as esc } from '../utils.ts';
 import { t } from '../i18n.ts';
-import { strengthHtml, vendorMark } from './valid-vendors.ts';
+import { rowStrengthHtml as sameOrOwn, vendorMark } from './valid-vendors.ts';
 import { icon } from '../lib/icons.ts';
 import { metadataValueHtml, metadataLinkHtml } from './valid-links.ts';
 
@@ -100,20 +100,21 @@ const kindsHtml = (evidence: Evidence[]): string => [...new Set(evidence.map((e)
 const KIND_STRENGTH: Record<EvidenceKind, VerifyStrength> = { credential: 'signed', 'unverified-credential': 'unverified', metadata: 'stated', hint: 'hint' };
 const RANK: readonly VerifyStrength[] = ['signed', 'unverified', 'stated', 'hint'];
 /**
- * A row's strength, only when its best evidence differs from what the section's
- * heading already states. Every source stays listed under Evidence.
+ * A row's strength: its best evidence, shown when that differs from what the
+ * answer slot states, and at Evidence depth either way. Every source stays
+ * listed under Evidence.
  */
 function rowStrengthHtml(evidence: Evidence[], stated: VerifyStrength | undefined): string {
   if (!stated) return kindsHtml(evidence);
   const best = RANK.find((s) => evidence.some((e) => KIND_STRENGTH[e.kind] === s));
-  return best && best !== stated ? strengthHtml(best) : '';
+  return best ? sameOrOwn(best, stated) : '';
 }
 const evidenceDetails = (entries: Array<{ name: string; evidence: Evidence[] }>): string => {
   const count = entries.reduce((n, entry) => n + entry.evidence.length, 0);
   return count ? `<details class="valid-origin-evidence"><summary>${icon('search')}<span>${t('Evidence ({n})', { n: count })}</span>${icon('chevronDown')}</summary>${entries.map((entry) => `<div><h4>${esc(entry.name)}</h4><ul>${entry.evidence.map((e) => `<li>${kindsHtml([e])}<span class="valid-evidence-source">${esc(e.source)}</span><q>${metadataValueHtml(e.value)}</q></li>`).join('')}</ul></div>`).join('')}</details>` : '';
 };
 
-/** `stated` is the strength the section's heading shows; a row then repeats no strength that matches. */
+/** `stated` is the strength the finding's answer slot gives; a row repeats a matching strength only at Evidence depth. */
 export function provenanceOverviewHtml(report: VerifyReport, meta?: FileMetadata, withRights = true, stated?: VerifyStrength): string {
   const { apps, devices, rights, facts } = provenanceOverview(report, meta);
   const roles: SoftwareRole[] = ['authoring', 'export', 'history', 'system'];

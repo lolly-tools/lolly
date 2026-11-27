@@ -15,15 +15,17 @@
     .vf-body > .vf-col-origin { grid-column: 2; grid-row: 2; }
   }
 
-  /* One section: the head with the strength of its evidence, then the evidence. */
+  /* One section: the head, then the evidence. */
   .vs { display: grid; gap: var(--sp-4); min-width: 0; position: relative; scroll-margin-top: calc(var(--valid-actions-height, 5rem) + var(--ui-space-panel)); }
   .vs-head { display: flex; align-items: center; gap: var(--ui-space-control-inline); margin: 0; font-size: var(--ui-type-title); font-weight: 650; letter-spacing: var(--ui-type-tracking-tight); }
   .vs-head > svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); flex: 0 0 auto; color: var(--ui-color-text-muted); }
   .vs.is-warn .vs-head > svg { color: hsl(var(--vf-warn)); }
   .vs.is-bad .vs-head > svg { color: hsl(var(--vf-fail)); }
   .vs[data-finding-section="ai"]:not(.is-quiet) .vs-head > svg { color: hsl(var(--vf-ai-1)); }
-  /* How strong the section's evidence is, said once, at the end of the head's line. */
+  /* A head states a strength only when it differs from the answer slot's. */
   .vs-head > .vf-slot-strength { margin-inline-start: auto; padding-inline-start: var(--sp-4); font-weight: 400; letter-spacing: 0; text-align: end; }
+  /* A row whose strength matches its answer slot shows the words only at Evidence depth. */
+  .valid-result:not([data-vf-depth="evidence"]) .vf-same { display: none; }
   .vs-lede { margin: 0; max-width: 62ch; font-size: var(--ui-type-body); }
   .vs.is-quiet .vs-lede { color: var(--ui-color-text-muted); }
   .vs-body { display: grid; gap: var(--ui-space-panel); min-width: 0; }

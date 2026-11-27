@@ -1628,7 +1628,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
       ${reportBodyHtml(findings, {
         stage: stageHtml(preview, meta, fileIndex),
         depth: depthSwitchHtml(), file: evidenceFileHtml(findings, report, meta, fileName, fileIndex),
-        licence: licenceBandHtml(report, meta, fileName),
+        licence: licenceBandHtml(report, meta, fileName, findings.find((f) => f.id === 'licence')?.strength),
         madeWith: provenanceOverviewHtml(report, meta, false, findings.find((f) => f.id === 'made-with')?.strength) + lollyBlockHtml(report, { tool: recreate, imprint: !!watermark?.present }),
         aiDeclared: { origin: aiOrigin, makerHint, audio: preview?.kind === 'audio', verified: report.state === 'valid' }, ai: aiBlock,
         personal: contextCardsHtml(report, meta, false),
