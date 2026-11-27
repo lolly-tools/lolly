@@ -881,6 +881,11 @@ jobs:
           pnpm -C shells/tauri-mobile install --frozen-lockfile --prod
 
       - name: Typecheck (tsc -p, every project)
+        # The tests project outgrew Node's default heap: tsc aborted with an
+        # out-of-memory crash (exit 134) on two main pushes on 2026-11-27 while the
+        # same commits had passed as pull requests. The runner has 16 GB.
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: pnpm run typecheck
 
       - name: Typecheck must not have skipped the Tauri shells
