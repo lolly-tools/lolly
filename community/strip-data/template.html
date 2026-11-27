@@ -86,6 +86,7 @@
               {{#if propertySelected}}<button type="button" class="btn btn--primary exif-download" data-export-file data-busy-label="Removing properties…">Download DOCX copy</button>{{else}}<p class="exif-note">Select a property to remove. Unselected properties and other Office content are retained.</p>{{/if}}
             {{/if}}
 
+            {{#if signedNote}}<p class="exif-note exif-signed" data-signed-note>{{signedLead}}<strong>digitally signed</strong>{{signedRest}}</p>{{/if}}
             {{#unless inspectOnly}}<button type="button" class="btn btn--primary exif-download" data-export-file data-busy-label="Stripping data…">Download clean {{kind}}{{#if cleanSize}} ({{cleanSize}}){{/if}}</button>{{/unless}}
             <p class="exif-note">{{tailNote}}</p>
           {{/unless}}
@@ -112,3 +113,16 @@
     </div>
   {{/if}}
 </div>
+<script>
+(function(){
+  // The signed-PDF line is read out once. Each paint replaces the card, so the words go into a
+  // status region of their own only when they differ from the words last read out.
+  var cs=document.currentScript,root=cs&&cs.previousElementSibling;
+  if(!root||!root.classList||!root.classList.contains('exif')){var roots=document.querySelectorAll('.exif');root=roots[roots.length-1];}
+  var canvas=root&&root.closest('[data-lolly-canvas]');
+  if(!canvas)return;
+  var signedLine=root.querySelector('[data-signed-note]'),signedWords=signedLine?signedLine.textContent:'';
+  if(!signedWords)delete canvas.__stripSignedSaid;
+  else if(canvas.__stripSignedSaid!==signedWords){var said=document.createElement('span');said.className='visually-hidden';said.setAttribute('role','status');root.appendChild(said);setTimeout(function(){if(!said.isConnected)return;said.textContent=signedWords;canvas.__stripSignedSaid=signedWords;},150);}
+})();
+</script>

@@ -22,7 +22,8 @@ const load = (id: string): Promise<any> => loadTool(id, (path) => readFile(join(
 const fixture = async (name: string): Promise<Uint8Array> => new Uint8Array(await readFile(join(ROOT, 'tests', 'fixtures', 'pages-signed', name)));
 const fileRef = (bytes: Uint8Array, name: string): any => ({ __file: true, url: null, name, mime: 'application/pdf', size: bytes.length, bytes });
 const ONE = 'This PDF is digitally signed: its signature will not verify on the saved copy, and the original file is not changed.';
-const LINE = /<p class="save-note save-note--alert" data-signed-note>([^<]*)<\/p>/g;
+// Muted ink, with only the two words "digitally signed" in the alert ink.
+const LINE = /<p class="save-note save-note--signed" data-signed-note>([^<]*)<strong>digitally signed<\/strong>([^<]*)<\/p>/g;
 
 /** A host on the real PDF bridge that keeps what the hooks log. */
 function host(logged: string[], pdf: any = createPdfAPI()): any {
@@ -34,7 +35,7 @@ function host(logged: string[], pdf: any = createPdfAPI()): any {
 }
 /** The panel's markup without the script that wires the panel. */
 const panel = (runtime: any): string => runtime.getHydrated().replace(/<script>[\s\S]*$/, '');
-const lines = (html: string): string[] => [...html.matchAll(LINE)].map((m) => m[1]!);
+const lines = (html: string): string[] => [...html.matchAll(LINE)].map((m) => `${m[1]}digitally signed${m[2]}`);
 
 /** A signature field nobody has signed: /FT /Sig with no /V. */
 async function emptySignatureField(): Promise<Uint8Array> {
@@ -62,7 +63,7 @@ test('a page operation on a signed PDF says so once, above the button, and still
       const html = panel(runtime);
       assert.deepEqual(lines(html), [ONE], operation);
       // Directly above the button, which is ready to press.
-      const button = /data-signed-note>[^<]*<\/p><button type="button" class="btn btn--primary" data-export-file[^>]*>/.exec(html);
+      const button = /data-signed-note>[^<]*<strong>digitally signed<\/strong>[^<]*<\/p><button type="button" class="btn btn--primary" data-export-file[^>]*>/.exec(html);
       assert.ok(button, `${operation}: the line sits above the button`);
       assert.doesNotMatch(button![0], /disabled/, `${operation}: the button is ready`);
       // The point is made once: the list of changes no longer repeats what happens to the signature.
@@ -118,7 +119,7 @@ test('in Compress the line takes the place of the general sentence about a signa
   try {
     const html = panel(runtime);
     assert.deepEqual(lines(html), [ONE]);
-    assert.match(html, /data-signed-note>[^<]*<\/p>\s*<button type="button" class="btn btn--primary" data-export-file data-busy-label="Compressing…">Download compressed PDF<\/button>\s*<p class="save-note">Only images are recompressed\.<\/p>/);
+    assert.match(html, /data-signed-note>[^<]*<strong>digitally signed<\/strong>[^<]*<\/p>\s*<button type="button" class="btn btn--primary" data-export-file data-busy-label="Compressing…">Download compressed PDF<\/button>\s*<p class="save-note">Only images are recompressed\.<\/p>/);
     assert.doesNotMatch(html, /stops being valid/);
     // Said once on the panel. The Action help tip, closed until asked for, still explains Compress in general.
     const shown = html.replace(/<span class="help-tip-pop"[\s\S]*?<\/span>/, '');
@@ -164,7 +165,7 @@ test('in Sign the line shows above the button and the sentence about a visible s
   try {
     const html = panel(runtime);
     assert.deepEqual(lines(html), [ONE]);
-    const button = /data-signed-note>[^<]*<\/p><button type="button" class="btn btn--primary" data-export-file[^>]*>Download signed PDF/.exec(html);
+    const button = /data-signed-note>[^<]*<strong>digitally signed<\/strong>[^<]*<\/p><button type="button" class="btn btn--primary" data-export-file[^>]*>Download signed PDF/.exec(html);
     assert.ok(button, 'the line sits above the button');
     assert.doesNotMatch(button![0], /disabled/);
     assert.match(html, /<p class="save-note">This is a visible signature, not an identity-verification service\.<\/p>/);
@@ -189,7 +190,7 @@ test('an app whose PDF bridge has no analysis shows no line and keeps the entry 
 
 test('the line is read out once: the script fills a status region only when the words change', async () => {
   const template = await readFile(join(ROOT, 'community', 'pages', 'template.html'), 'utf8');
-  assert.equal((template.match(/data-signed-note>\{\{signedNote\}\}/g) || []).length, 3, 'page operations, Compress and Sign');
+  assert.equal((template.match(/data-signed-note>\{\{signedLead\}\}<strong>digitally signed<\/strong>\{\{signedRest\}\}/g) || []).length, 3, 'page operations, Compress and Sign');
   // The visible line has no live role of its own, so a repaint does not read the sentence again.
   assert.doesNotMatch(template, /data-signed-note[^>]*role=|role="[^"]*"[^>]*data-signed-note/);
   assert.match(template, /canvas\.__pagesSignedSaid!==signedWords/);

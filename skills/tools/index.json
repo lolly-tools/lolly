@@ -1048,8 +1048,8 @@
     {
       "version": 1,
       "toolId": "pages",
-      "toolVersion": "1.2.3",
-      "toolVersionRange": "1.2.3",
+      "toolVersion": "1.2.4",
+      "toolVersionRange": "1.2.4",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1057,7 +1057,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "0236eabf6392dce89effdb7c7c2877d1f4104385cb154e4192bae89d412a7cb5",
+          "sha256": "5c11c4acbc40b3386585f265f941730b913a9b5491dda6d86e4e0cc6ded813b0",
           "bytes": 2005
         },
         "reference/inputs.json": {
@@ -1266,8 +1266,8 @@
     {
       "version": 1,
       "toolId": "redact",
-      "toolVersion": "1.8.1",
-      "toolVersionRange": "1.8.1",
+      "toolVersion": "1.8.2",
+      "toolVersionRange": "1.8.2",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1275,7 +1275,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "9b2a96c30a2f94a0f2b7cec009ff150b24b9e2a77a4a7c9dca8b82210a6e9097",
+          "sha256": "bedd27a62d68f9f237abfd25aa372438c1e31b0eb2d35ffcacfeca27a8ef2b46",
           "bytes": 1869
         },
         "reference/inputs.json": {
@@ -1550,8 +1550,8 @@
     {
       "version": 1,
       "toolId": "strip-data",
-      "toolVersion": "1.5.1",
-      "toolVersionRange": "1.5.1",
+      "toolVersion": "1.5.2",
+      "toolVersionRange": "1.5.2",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1559,7 +1559,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "fc419e9ad6a44e100f733a9b8ba7f3d28f50b327abfb827a7c3d1f3319291a6b",
+          "sha256": "a450b6e7b3420c094ed2ae6e76a91042fb314d1d3ae3bcc6c05aeaabc8f6b106",
           "bytes": 1701
         },
         "reference/inputs.json": {

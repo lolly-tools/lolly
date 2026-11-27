@@ -81,7 +81,7 @@ In the TUI, press **P** from Tools, add file paths, inspect, choose replacements
 <a id="strip-hidden-data-and-redact"></a>
 ### Lolly Strip Hidden Data and Redact
 
-**[Lolly Strip Hidden Data](/t/strip-data)** removes metadata from images and PDFs and tags and Content Credentials from audio files. It also removes selected DOCX properties and shows other Office hidden content for inspection. **[Lolly Redact](/t/redact)** blacks out sensitive content by rebuilding the file, then checks the output before the download. Both are tools and save sessions.
+**[Lolly Strip Hidden Data](/t/strip-data)** removes metadata from images and PDFs and tags and Content Credentials from audio files. It also removes selected DOCX properties and shows other Office hidden content for inspection. **[Lolly Redact](/t/redact)** blacks out sensitive content by rebuilding the file, then checks the output before the download. Both are tools and save sessions. When a PDF you load is already digitally signed, each shows one line above its download button: the signature will not verify on the saved copy. The download still works, and the original file is not changed.
 
 ::: details What Strip Hidden Data removes from audio
 M4A, WAV, MP3, FLAC and Opus files keep their audio byte for byte. The sound is copied, never re-encoded, and the clean copy is read again before the download starts.

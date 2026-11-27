@@ -66,7 +66,7 @@
       </section>
       {{#if previewUnavailable}}<p class="status">Some previews could not be drawn. Page positions still work. {{previewError}}</p>{{/if}}
       {{#if hasChanges}}<section class="changes" aria-label="What changes in the new PDF"><strong>What changes</strong><ul>{{#each changes}}<li class="change change--{{outcome}}" data-change-outcome="{{outcome}}">{{message}}</li>{{/each}}</ul></section>{{/if}}
-      <div class="save">{{#if signedNote}}<p class="save-note save-note--alert" data-signed-note>{{signedNote}}</p>{{/if}}<button type="button" class="btn btn--primary" data-export-file data-export-archive="{{archiveName}}" data-busy-label="Working…" {{#unless ready}}disabled{{/unless}}>{{#if isSplit}}Download split PDFs{{else}}Download PDF{{/if}}</button>
+      <div class="save">{{#if signedNote}}<p class="save-note save-note--signed" data-signed-note>{{signedLead}}<strong>digitally signed</strong>{{signedRest}}</p>{{/if}}<button type="button" class="btn btn--primary" data-export-file data-export-archive="{{archiveName}}" data-busy-label="Working…" {{#unless ready}}disabled{{/unless}}>{{#if isSplit}}Download split PDFs{{else}}Download PDF{{/if}}</button>
         {{#if pending}}<span class="status" role="status">Preparing…</span>{{/if}}
         {{#if ready}}<span class="status" role="status"><strong>{{summary}}</strong> · {{operations}}{{#if sizeAfter}} · {{sizeAfter}}{{/if}}</span>{{/if}}</div>
     {{/if}}{{/if}}
@@ -76,7 +76,7 @@
         {{#if done}}<p class="saving" role="status"><strong>{{savedLead}}</strong><span>{{savedDetail}}</span></p>{{/if}}
         {{#if noGain}}<p class="status" role="status">Already well optimised</p>{{/if}}
         {{#if pending}}<p class="status" role="status">Built when you download</p>{{/if}}
-        {{#if signedNote}}<p class="save-note save-note--alert" data-signed-note>{{signedNote}}</p>{{/if}}
+        {{#if signedNote}}<p class="save-note save-note--signed" data-signed-note>{{signedLead}}<strong>digitally signed</strong>{{signedRest}}</p>{{/if}}
         <button type="button" class="btn btn--primary" data-export-file data-busy-label="Compressing…">Download compressed PDF</button>
         <p class="save-note">{{#if signedPdf}}Only images are recompressed.{{else}}Only images are recompressed, and a digital signature on the PDF stops being valid once the file is saved again.{{/if}}</p>
       </div>
@@ -110,7 +110,7 @@
           </g></svg>
         </div></div>
       </div>
-      <div class="save">{{#if signedNote}}<p class="save-note save-note--alert" data-signed-note>{{signedNote}}</p>{{/if}}{{#if lock}}<button type="button" class="btn btn--primary" data-export-file data-export-password="true" data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{else}}<button type="button" class="btn btn--primary" data-export-file data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{/if}}
+      <div class="save">{{#if signedNote}}<p class="save-note save-note--signed" data-signed-note>{{signedLead}}<strong>digitally signed</strong>{{signedRest}}</p>{{/if}}{{#if lock}}<button type="button" class="btn btn--primary" data-export-file data-export-password="true" data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{else}}<button type="button" class="btn btn--primary" data-export-file data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{/if}}
         {{#if pending}}<span class="status" role="status">Preparing…</span>{{/if}}
         <p class="save-note">{{#if signerName}}Signing as {{signerName}}. {{/if}}This is a visible signature, not an identity-verification service.</p></div>
     {{/if}}{{/if}}

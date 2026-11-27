@@ -75,6 +75,42 @@ function onePdfFacts(o, fs, f, done) {
   o.onlyFirst = f && fs.length > 1 ? 'Only ' + o.fileName + ' is ' + done + '.' : '';
 }
 
+// === lolly:shared signedPdf - generated from community/_shared/signed-pdf.js; edit there and run pnpm run sync:shared ===
+// A tool that saves a PDF again breaks a digital signature made over the old
+// bytes. The shell's analysis (host.pdf.analyze) reports a filled signature
+// field as a "Digital signature" finding; an empty signature field is not one.
+// Each tool shows one sentence above its download button and logs the same
+// sentence on export, which is how the command line prints the warning.
+function signedPdfFound(findings) {
+  return (findings || []).some(function (x) { return x && x.label === 'Digital signature'; });
+}
+// `names` holds the signed files the tool saves again, `loaded` the number of
+// files loaded. One file loaded reads "This PDF"; several give the file names.
+function signedPdfSentence(names, loaded) {
+  if (!names || !names.length) return '';
+  if (names.length === 1) {
+    return (loaded === 1 ? 'This PDF' : names[0]) + ' is digitally signed: its signature will not verify on the saved copy, and the original file is not changed.';
+  }
+  return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]
+    + ' are digitally signed: their signatures will not verify on the saved copy, and the original files are not changed.';
+}
+// What the template draws: the sentence in muted ink around the two words
+// "digitally signed", which the template sets in the alert ink.
+function signedPdfLine(note) {
+  var mark = 'digitally signed', at = note ? note.indexOf(mark) : -1;
+  if (at < 0) return { signedNote: '', signedLead: '', signedRest: '' };
+  return { signedNote: note, signedLead: note.slice(0, at), signedRest: note.slice(at + mark.length) };
+}
+// The findings list still lists the signature. The consequence is left to the
+// line above the button, so the point is made once.
+function signedPdfFindings(findings) {
+  return (findings || []).map(function (x) {
+    if (!x || x.label !== 'Digital signature') return x;
+    return Object.assign({}, x, { detail: String(x.detail || '').replace(/ - re-saving this file invalidates it$/, '') });
+  });
+}
+// === /lolly:shared signedPdf ===
+
 // ── A PDF that already carries a digital signature ──────────────────────────
 // Every operation saves the PDF again, and a signature made over the old bytes
 // does not verify on the new file. The shell's own analysis says whether a
@@ -85,7 +121,7 @@ function isSigned(host, f) {
   if (!host || !host.pdf || typeof host.pdf.analyze !== 'function' || fileKind(f) !== 'pdf') return Promise.resolve(false);
   if (!_signedPdfs.has(f.bytes)) {
     var asked = Promise.resolve().then(function () { return host.pdf.analyze(f.bytes); }).then(function (r) {
-      return ((r && r.findings) || []).some(function (x) { return x && x.label === 'Digital signature'; });
+      return signedPdfFound(r && r.findings);
     });
     asked.catch(function () { _signedPdfs.delete(f.bytes); });
     _signedPdfs.set(f.bytes, asked);
@@ -100,12 +136,7 @@ async function signedNote(host, worked, loaded) {
   for (var i = 0; i < worked.length; i++) {
     if (await isSigned(host, worked[i])) names.push(worked[i].name || 'document.pdf');
   }
-  if (!names.length) return '';
-  if (names.length === 1) {
-    return (loaded === 1 ? 'This PDF' : names[0]) + ' is digitally signed: its signature will not verify on the saved copy, and the original file is not changed.';
-  }
-  return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]
-    + ' are digitally signed: their signatures will not verify on the saved copy, and the original files are not changed.';
+  return signedPdfSentence(names, loaded);
 }
 
 // ── Page operations ─────────────────────────────────────────────────────────
@@ -666,7 +697,7 @@ function blank() {
     canDownload: false, pageSvg: '', pageNo: 1, signatureUrl: '', initialsUrl: '', inkPaths: [], inkValue: '', inkViewBox: '0 0 ' + INK_W + ' ' + INK_H,
     hasInk: false, hasSignature: false, xPct: 0, yPct: 0, wPct: 20, hPct: 0, posJson: '{}', positionWidth: 144, pageW: 612, pageH: 792, pageDisplayW: 301,
     dateFont: '', signerName: '', groupWidth: 0, groupHeight: 0, initialsMark: null, dateMark: null,
-    signedNote: '', signedPdf: false
+    signedNote: '', signedLead: '', signedRest: '', signedPdf: false
   };
 }
 function kindOf(ctx) {
@@ -680,6 +711,8 @@ function compute(ctx) {
     var all = Object.assign(blank(), o, { isPageOp: kind === 'pages', isCompress: kind === 'compress', isSign: kind === 'sign', a11yName: A11Y_NAME[kind] });
     // The preview window's controls show only when the pages do not fit one window.
     all.paged = all.hasPrevious || all.hasNext;
+    // Muted ink around the two words set in the alert ink.
+    Object.assign(all, signedPdfLine(all.signedNote));
     return all;
   };
   var inner = Object.create(ctx);
