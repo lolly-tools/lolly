@@ -445,7 +445,7 @@ Paths go in and come out as an **SVG path-data string**, the form your template,
 
 ### `host.pdf`
 
-Inspect a PDF, remove its metadata and make it smaller. The metadata and structural work is pure pdf-lib, so it runs in the lean CLI too; image recompression uses a browser canvas. `strip-data` and `compress-pdf` are built on this API. Check for each method (for example `host.pdf?.compress`): an older shell may provide `analyze` and `strip` but not `compress`, or no `host.pdf` at all.
+Inspect a PDF, remove its metadata and make it smaller. The metadata and structural work is pure pdf-lib, so it runs in the lean CLI too; image recompression uses a browser canvas. `strip-data` and the Compress operation of `pages` are built on this API. Check for each method (for example `host.pdf?.compress`): an older shell may provide `analyze` and `strip` but not `compress`, or no `host.pdf` at all.
 
 ::: details `host.pdf` members
 | Method | Returns | Notes |

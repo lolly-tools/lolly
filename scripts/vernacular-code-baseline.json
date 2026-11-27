@@ -790,7 +790,7 @@
   "shells/web/src/lib/dom-penpot.ts": 4,
   "shells/web/src/lib/drive-sync.test.ts": 1,
   "shells/web/src/lib/drop-router.test.ts": 1,
-  "shells/web/src/lib/drop-router.ts": 26,
+  "shells/web/src/lib/drop-router.ts": 25,
   "shells/web/src/lib/dropbox-send.ts": 2,
   "shells/web/src/lib/dropbox-sync.test.ts": 2,
   "shells/web/src/lib/edge-dock-split-default.test.ts": 1,

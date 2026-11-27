@@ -7,7 +7,7 @@ A file about to be shared is often a PDF full of names, a screenshot with a face
 - **Black out text permanently.** [Lolly Redact](/t/redact) rebuilds the file around the boxes you draw. The words under the boxes are gone, not covered. Redact verifies the output before the download. It works on PDFs and images.
 - **Anonymise the text.** The de-identify mode in [Lolly Text](/t/text-helper) replaces the personal identifiers in a block of text with placeholders. An interview, a log or an export can then be shared without identifying the people it names.
 - **Strip what the pages do not show.** [Lolly Strip Hidden Data](/t/strip-data) reveals and removes the metadata inside images, audio files and PDFs: locations, devices, authors, edit history, tags and Content Credentials.
-- **Shrink without sending.** [Lolly Compress](/t/compress-pdf) recompresses a PDF's images on the device. A free online compressor would upload the file to someone else's server.
+- **Shrink without sending.** [Lolly Pages](/t/pages?operation=compress) recompresses a PDF's images on the device. A free online compressor would upload the file to someone else's server.
 - **Check what you were sent.** [Lolly Verify](/#/verify) reads a file's Content Credentials on your device: who made it, with what and whether AI was involved. [Verify it yourself](/info/verify-yourself.html) walks through the steps.
 
 ![Lolly Strip Hidden Data: the file arrives on the canvas and the badge states plainly that nothing is uploaded](/info/shots/aud-strip-data.svg)

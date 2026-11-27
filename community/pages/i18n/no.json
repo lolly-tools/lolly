@@ -1,4 +1,11 @@
 {
   "name": "Sider",
-  "description": "Endre rekkefølge, roter, hent ut, slett, slå sammen eller del PDF-sider, eller gjør bilder om til en PDF, på enheten din."
+  "description": "Endre rekkefølge, roter, hent ut, slett, slå sammen eller del PDF-sider, eller gjør bilder om til en PDF, på enheten din.",
+  "inputs.level.label": "Komprimering",
+  "inputs.level.help": "Hvor hardt innebygde bilder komprimeres. Sterkere betyr mindre filer og mykere bilder.",
+  "inputs.level.options.light": "Lett - behold høy kvalitet",
+  "inputs.level.options.balanced": "Balansert",
+  "inputs.level.options.strong": "Sterk - minste fil",
+  "inputs.grayscale.label": "Konverter bilder til gråtoner",
+  "inputs.grayscale.help": "Fjerner fargen fra bilder for ekstra besparelser - nyttig for skannede tekstdokumenter."
 }

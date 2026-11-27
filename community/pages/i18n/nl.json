@@ -1,4 +1,11 @@
 {
   "name": "Pagina's",
-  "description": "Herschik, roteer, haal eruit, verwijder, voeg samen of splits PDF-pagina's, of zet afbeeldingen om in een PDF, op je apparaat."
+  "description": "Herschik, roteer, haal eruit, verwijder, voeg samen of splits PDF-pagina's, of zet afbeeldingen om in een PDF, op je apparaat.",
+  "inputs.level.label": "Compressie",
+  "inputs.level.help": "Hoe sterk ingesloten afbeeldingen worden gecomprimeerd. Sterker betekent kleinere bestanden en zachtere afbeeldingen.",
+  "inputs.level.options.light": "Licht - kwaliteit hoog houden",
+  "inputs.level.options.balanced": "Gebalanceerd",
+  "inputs.level.options.strong": "Sterk - kleinste bestand",
+  "inputs.grayscale.label": "Afbeeldingen omzetten naar grijstinten",
+  "inputs.grayscale.help": "Verwijder kleur uit afbeeldingen voor extra besparing - handig voor gescande tekstdocumenten."
 }

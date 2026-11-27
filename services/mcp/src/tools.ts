@@ -464,7 +464,7 @@ export const TOOL_DEFS: McpToolDef[] = [
   },
   {
     name: 'lolly_transform',
-    description: 'Run an on-device file utility (e.g. strip-data, compress-pdf) on a file you provide. Returns the transformed file. Never watermarked.',
+    description: 'Run an on-device file utility (e.g. strip-data, or pages with inputs.operation "compress") on a file you provide. Returns the transformed file. Never watermarked.',
     inputSchema: {
       type: 'object',
       properties: {

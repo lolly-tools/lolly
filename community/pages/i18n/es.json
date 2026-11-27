@@ -1,4 +1,11 @@
 {
   "name": "Páginas",
-  "description": "Reordena, gira, extrae, elimina, combina o divide páginas de PDF, o convierte imágenes en un PDF, en tu dispositivo."
+  "description": "Reordena, gira, extrae, elimina, combina o divide páginas de PDF, o convierte imágenes en un PDF, en tu dispositivo.",
+  "inputs.level.label": "Compresión",
+  "inputs.level.help": "Cuánto comprimir las imágenes incrustadas. Cuanto más fuerte, más pequeños los archivos y más suaves las imágenes.",
+  "inputs.level.options.light": "Ligera - mantiene la calidad alta",
+  "inputs.level.options.balanced": "Equilibrada",
+  "inputs.level.options.strong": "Fuerte - el archivo más pequeño",
+  "inputs.grayscale.label": "Convertir imágenes a escala de grises",
+  "inputs.grayscale.help": "Elimina el color de las imágenes para un ahorro extra, útil para documentos de texto escaneados."
 }

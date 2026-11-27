@@ -1,4 +1,11 @@
 {
   "name": "Pagini",
-  "description": "Reordonează, rotește, extrage, șterge, îmbină sau împarte pagini PDF ori transformă imagini în PDF pe dispozitivul tău."
+  "description": "Reordonează, rotește, extrage, șterge, îmbină sau împarte pagini PDF ori transformă imagini în PDF pe dispozitivul tău.",
+  "inputs.level.label": "Compresie",
+  "inputs.level.help": "Cât de puternic sunt comprimate imaginile încorporate. Mai puternic înseamnă fișiere mai mici și imagini mai neclare.",
+  "inputs.level.options.light": "Ușoară - păstrează calitatea ridicată",
+  "inputs.level.options.balanced": "Echilibrată",
+  "inputs.level.options.strong": "Puternică - cel mai mic fișier",
+  "inputs.grayscale.label": "Convertește imaginile în tonuri de gri",
+  "inputs.grayscale.help": "Elimină culoarea din imagini pentru economii suplimentare - util pentru documente text scanate."
 }
