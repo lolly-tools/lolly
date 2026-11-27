@@ -10,8 +10,10 @@
     "color1": "{color.semantic.secondary}",
     "color2": "{color.semantic.primary}",
     "background": "{color.semantic.primary}",
-    "intensity": 50,
-    "density": 40,
-    "fieldSpeed": 80
+    "intensity": 5,
+    "density": 100,
+    "fieldSpeed": 80,
+    "phase": 70,
+    "scale": 60
   }
 }
