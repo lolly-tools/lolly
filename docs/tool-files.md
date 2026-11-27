@@ -114,3 +114,5 @@ function exportFile({ model }) {
 
 In the template, a `<button data-export-file>Download…</button>` runs the hook. Use `onInit` and `onInput` to return extras the template shows, such as the metadata that was found. `strip-data` is the reference.
 
+Keep instructions off the working surface. The canvas can carry the shell's own help tip: an element with the class `help-tip-host` that holds a `<button class="help-tip-btn">` and a `<span class="help-tip-pop" hidden>` as its direct child. The shell shows the tip on hover, on focus and on a press, and Escape closes the tip and returns focus to the button. `redact` is the reference.
+

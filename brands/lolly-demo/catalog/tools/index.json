@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-27T04:06:07.737Z",
+  "generatedAt": "2026-11-27T04:06:15.947Z",
   "tools": [
     {
       "id": "3d",
@@ -590,7 +590,7 @@
       "id": "annotate",
       "name": "Annotate",
       "description": "Mark up your own screenshot on your device - arrows, boxes, numbered steps, callouts, highlighter and a spotlight dim.",
-      "version": "1.1.2",
+      "version": "1.1.3",
       "status": "community",
       "category": "utility",
       "privacy": "on-device",
@@ -9985,7 +9985,7 @@
       "id": "redact",
       "name": "Redact",
       "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device.",
-      "version": "1.8.0",
+      "version": "1.8.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -11887,7 +11887,7 @@
       "id": "strip-data",
       "name": "Strip Hidden Data",
       "description": "Remove metadata from images, audio and PDFs, and selected DOCX properties, and inspect other Office hidden content, on your device.",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
