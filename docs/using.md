@@ -24,7 +24,7 @@ Four tabs run along the top of the home screen: **Tools**, **Utilities**, **Asse
 
 The bar at the foot holds **Open**, **Settings**, a search field, a **Verify** shortcut to Lolly Verify and **Docs**, which opens these guides. The bar shows on Tools, Utilities, Assets, Projects, Settings and the in-app guides, and hides once a tool is open. [Lolly Search](/info/search.html) finds your tools, saved work, assets and settings from that field. [Ask Lolly](/info/ask.html) answers a typed question with the matching section of these guides.
 
-Click a card to start new work in that tool. Saved work reopens from **Projects**. On a first visit, a greeting band at the top of the gallery offers one action to start: **Start making** under Lolly Demo, or **Make it yours** to set up your own design system.
+Click a card to start new work in that tool. Saved work reopens from **Projects**. On a first visit, a greeting at the top of the gallery, titled **Make it yours**, offers a row of colours to start your own design system from, and **Start making** under Lolly Demo.
 
 ![A gallery card with example navigation and a New action](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
