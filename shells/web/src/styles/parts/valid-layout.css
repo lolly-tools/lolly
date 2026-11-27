@@ -50,8 +50,8 @@
   .vs .forensic-coverage-notice > .btn:not(.btn--primary):not(:disabled) { background: var(--ui-color-surface-canvas); border: transparent; box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control); }
 
   /* The AI declaration: a row of the AI section, first under the asset. The AI
-     colour tints the glyph and two hairlines; nothing is filled. */
-  .vs-ai { display: flex; align-items: start; gap: var(--sp-4); min-width: 0; padding-block: var(--sp-5); border-block: 1px solid hsl(var(--vf-ai-1) / 0.4); }
+     colour tints the glyph; the hairlines are the theme's neutral one and nothing is filled. */
+  .vs-ai { display: flex; align-items: start; gap: var(--sp-4); min-width: 0; padding-block: var(--sp-5); border-block: 1px solid var(--ui-color-border-default); }
   .vs-ai-glyph { display: inline-flex; flex: 0 0 auto; color: hsl(var(--vf-ai-1)); }
   .vs-ai-glyph svg { width: calc(22px * var(--a11y-fs)); height: calc(22px * var(--a11y-fs)); }
   .vs-ai-copy { display: grid; gap: var(--sp-2); min-width: 0; }
