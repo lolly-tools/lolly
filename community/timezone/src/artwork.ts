@@ -11,7 +11,7 @@ import {
   sphere,
   wrapText,
 } from './geography';
-import { esc, hourWord, mix, num, timeColor, type State } from './model';
+import { esc, hourWord, mix, motionMark, num, timeColor, type State } from './model';
 
 const text = (x: number, y: number, value: any, size: number, fill: string, extra = '') =>
   `<text x="${x}" y="${y}" font-size="${size}" fill="${fill}" ${extra}>${esc(value)}</text>`;
@@ -31,15 +31,18 @@ function lines(value: string, limit: number) {
 export function markers(s: State, project: (p: number[]) => number[] | null, active = -1) {
   const c = s.palette,
     size = num(s.inputs.labelSize, 15),
-    taken: number[][] = [];
-  let out = '';
+    taken: number[][] = [],
+    deal = s.reveal?.target === 'pins';
+  let out = '',
+    drawn = 0;
   for (const [i, p] of s.places.entries()) {
     if (p.error || p.longitude === null || p.latitude === null) continue;
     const xy = project([p.longitude, p.latitude]);
     if (!xy) continue;
     const [x, y] = xy.map((v) => v / layout(s).unit),
       focused = active === i;
-    out += `<g data-place-index="${i}" aria-label="${esc(p.label)}"><circle cx="${x}" cy="${y}" r="${focused ? 20 : 14}" fill="${p.color}" opacity=".35"/><circle cx="${x}" cy="${y}" r="${focused ? 8 : 6}" fill="${p.color}" stroke="${c.background}" stroke-width="2"/>`;
+    const order = drawn++;
+    out += `<g data-place-index="${i}" aria-label="${esc(p.label)}"${deal ? motionMark(s, 'tz-deal', order) : ''}><circle cx="${x}" cy="${y}" r="${focused ? 20 : 14}" fill="${p.color}" opacity=".35"/><circle cx="${x}" cy="${y}" r="${focused ? 8 : 6}" fill="${p.color}" stroke="${c.background}" stroke-width="2"/>`;
     if (s.inputs.showLabels !== false) {
       let ly = y - 15;
       while (taken.some((a) => Math.abs(a[0] - x) < 130 && Math.abs(a[1] - ly) < size * 2.2))
@@ -58,7 +61,7 @@ export function markers(s: State, project: (p: number[]) => number[] | null, act
           p.localTime || '',
           size - 1,
           timeColor(s, p),
-          `font-family="${esc(c.mono)}"`
+          `font-family="${esc(c.mono)}"${deal ? motionMark(s, 'tz-settle', order) : ''}`
         );
     }
     out += '</g>';
@@ -101,7 +104,8 @@ export function artwork(s: State, active = -1, withMap = true) {
   const l = layout(s),
     c = s.palette,
     u = l.unit,
-    pad = l.pad;
+    pad = l.pad,
+    dealCards = s.reveal?.target === 'cards';
   let out = `<svg xmlns="http://www.w3.org/2000/svg" class="tz-artwork" width="${l.w}" height="${l.h}" viewBox="0 0 ${l.w} ${l.h}" role="img" aria-label="${esc(s.inputs.heading || 'World timezone map')}" font-family="${esc(c.body)}"><rect width="${l.w}" height="${l.h}" fill="${c.background}"/>`;
   if (l.showDetails && s.inputs.eyebrow)
     out +=
@@ -161,7 +165,7 @@ export function artwork(s: State, active = -1, withMap = true) {
         }).format(d),
         32 * u,
         c.ink,
-        `text-anchor="end" font-family="${esc(c.mono)}"`
+        `text-anchor="end" font-family="${esc(c.mono)}"${dealCards ? motionMark(s, 'tz-settle', Math.max(0, s.places.length - 1)) : ''}`
       ) +
       text(x, pad + 80 * u, zone, 12 * u, c.accent, 'text-anchor="end"') +
       text(
@@ -189,7 +193,7 @@ export function artwork(s: State, active = -1, withMap = true) {
         y = l.cardsY + Math.floor(index / l.cols) * l.cardH;
       const label = wrapText(p.label, Math.floor((cardW - 25 * k) / (9 * k)), 1)[0];
       out +=
-        `<g data-place-index="${index}" aria-label="${esc(p.label)}"><rect x="${x + k}" y="${y}" width="${cardW - 12 * k}" height="${l.cardH - 8 * k}" fill="${active === index ? mix(c.accent, c.background, 0.9) : c.background}" rx="${7 * k}"/><circle cx="${x + 7 * k}" cy="${y + 20 * k}" r="${3.5 * k}" fill="${p.color}"/>` +
+        `<g data-place-index="${index}" aria-label="${esc(p.label)}"${dealCards ? motionMark(s, 'tz-deal', index) : ''}><rect x="${x + k}" y="${y}" width="${cardW - 12 * k}" height="${l.cardH - 8 * k}" fill="${active === index ? mix(c.accent, c.background, 0.9) : c.background}" rx="${7 * k}"/><circle cx="${x + 7 * k}" cy="${y + 20 * k}" r="${3.5 * k}" fill="${p.color}"/>` +
         text(x + 20 * k, y + 25 * k, label, 16 * k, c.ink, 'font-weight="600"') +
         text(
           x + 4 * k,
@@ -197,7 +201,7 @@ export function artwork(s: State, active = -1, withMap = true) {
           p.error ? 'Check place' : p.localTime || '—',
           (p.error ? 16 : 32) * k,
           p.error ? p.color : timeColor(s, p),
-          `font-family="${esc(c.mono)}" letter-spacing="${-k}"`
+          `font-family="${esc(c.mono)}" letter-spacing="${-k}"${dealCards ? motionMark(s, 'tz-settle', index) : ''}`
         ) +
         text(
           x + 4 * k,

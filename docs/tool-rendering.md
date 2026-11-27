@@ -204,7 +204,7 @@ An HTML template reaches the SVG file as flat vector groups, so its CSS animatio
 <span class="word" data-svg-motion="my-rise 400ms cubic-bezier(0.05,0.7,0.1,1) 80ms">Word</span>
 ```
 
-The value is the name of an `@keyframes` rule in your `styles.css`, then a duration in milliseconds, an easing and a delay in milliseconds, in that order. Anything else is ignored. The element needs a box of its own, so inline text wants `display: inline-block`. Lengths in the keyframes are best in `em`, which the file resolves against the element's font size.
+The value is the name of an `@keyframes` rule in your `styles.css`, then a duration in milliseconds, an easing and a delay in milliseconds, in that order. Anything else is ignored. A part of an inline `<svg>` in the template can carry the attribute too, as Timezone's reveal does. The element needs a box of its own, so inline text wants `display: inline-block`. Lengths in the keyframes are best in `em`, which the file resolves against the element's font size.
 
 The attribute plays nothing on the page, because the file and the canvas have different clocks. Three rules keep them apart:
 

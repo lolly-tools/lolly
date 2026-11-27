@@ -9,7 +9,8 @@
  *
  * An element carrying `data-svg-motion="<keyframes> <dur>ms <easing> <delay>ms"` keeps
  * that one CSS animation: the group the walker emits for it gets the animation, and the
- * file gets a `<style>` holding the named `@keyframes`. What the file then does is what
+ * file gets a `<style>` holding the named `@keyframes`. A marked part inside an inline
+ * `<svg>` keeps its animation too, on the part itself. What the file then does is what
  * an inlined animated SVG already does everywhere: anim-svg-mount inlines it, the
  * sequence clock seeks it through the Web Animations API, and a video export samples the
  * same moments (bridge/sequence-svg-clock.ts). There is no second clock here.
@@ -78,15 +79,20 @@ export function createMotionCarrier(doc: Document): {
   finish(svgEl: Element, defs: Element, node: Element): void;
 } {
   const names = new Set<string>();
+  const stamp = (el: Element, g: Element, fontSize: string): void => {
+    const motion = parseSvgMotion(el.getAttribute(MOTION_ATTR));
+    if (!motion) return;
+    names.add(motion.name);
+    const prior = g.getAttribute('style');
+    g.setAttribute('style', `${prior ? `${prior};` : ''}${svgMotionStyle(motion, parseFloat(fontSize))}`);
+  };
   return {
-    stamp(el, g, fontSize) {
-      const motion = parseSvgMotion(el.getAttribute(MOTION_ATTR));
-      if (!motion) return;
-      names.add(motion.name);
-      const prior = g.getAttribute('style');
-      g.setAttribute('style', `${prior ? `${prior};` : ''}${svgMotionStyle(motion, parseFloat(fontSize))}`);
-    },
+    stamp,
     finish(svgEl, defs, node) {
+      // A tool drawn as an inline <svg> marks its own parts the same way (Timezone's
+      // reveal). The walk copies that <svg> whole, so the marks are still on the copy
+      // here, and each marked part keeps its one entrance. Its type size is its own.
+      for (const part of Array.from(svgEl.querySelectorAll(`[${MOTION_ATTR}]`))) stamp(part, part, '');
       if (!names.size) return;
       const css = collectKeyframes(Array.from(doc.styleSheets), names);
       if (css) {

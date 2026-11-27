@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { collectKeyframes, holdEntrancesFinished, MOTION_REST_CSS, parseSvgMotion, svgMotionStyle, withEntrancesHeld } from './export-svg-motion.ts';
+import { collectKeyframes, createMotionCarrier, holdEntrancesFinished, MOTION_REST_CSS, parseSvgMotion, svgMotionStyle, withEntrancesHeld } from './export-svg-motion.ts';
 
 test('a motion is one exact form, because the value ends up in a style attribute', () => {
   assert.deepEqual(parseSvgMotion('qc-rise 400ms cubic-bezier(0.05,0.7,0.1,1) 80ms'), { name: 'qc-rise', durMs: 400, easing: 'cubic-bezier(0.05,0.7,0.1,1)', delayMs: 80 });
@@ -40,6 +40,38 @@ test('only the keyframes the file uses travel with it, first definition wins', (
     { cssRules: [rule('a', '@keyframes a{late}'), rule('b', '@keyframes b{}')] },
   ] as unknown as CSSStyleSheet[];
   assert.equal(collectKeyframes(sheets, ['b', 'a', 'missing']), '@keyframes b{}\n@keyframes a{}');
+});
+
+test('a marked part of an inline svg keeps its entrance, and the file says how long the piece is', () => {
+  const KEYFRAMES_RULE = 7;
+  (globalThis as { CSSRule?: unknown }).CSSRule ??= { KEYFRAMES_RULE };
+  const el = (attrs: Record<string, string>) => ({
+    attrs,
+    getAttribute(name: string) { return this.attrs[name] ?? null; },
+    setAttribute(name: string, value: string) { this.attrs[name] = value; },
+  });
+  const part = el({ 'data-svg-motion': 'tz-deal 400ms cubic-bezier(0.05,0.7,0.1,1) 120ms', style: 'fill: red' });
+  const junk = el({ 'data-svg-motion': 'tz-deal 400ms url(x) 0ms' });
+  const added: Array<{ textContent: string }> = [];
+  const doc = {
+    styleSheets: [{ cssRules: [{ type: KEYFRAMES_RULE, name: 'tz-deal', cssText: '@keyframes tz-deal{}' }] }],
+    createElementNS: () => ({ textContent: '' }),
+  } as unknown as Document;
+  const svg = { ...el({}), querySelectorAll: () => [part, junk] } as unknown as Element;
+  const stage = { ...el({ 'data-clip-ms': '4200' }), matches: () => true } as unknown as Element;
+  const defs = { appendChild: (n: { textContent: string }) => added.push(n) } as unknown as Element;
+  createMotionCarrier(doc).finish(svg, defs, stage);
+  assert.equal(part.attrs.style, 'fill: red;transform-box:fill-box;transform-origin:center;animation:tz-deal 400ms cubic-bezier(0.05,0.7,0.1,1) 120ms both');
+  assert.equal(junk.attrs.style, undefined, 'a value outside the grammar is left alone');
+  assert.match(added[0]!.textContent, /@keyframes tz-deal/);
+  assert.equal((svg as unknown as { attrs: Record<string, string> }).attrs['data-clip-ms'], '4200');
+
+  // With nothing marked the file gets nothing.
+  const bare = { ...el({}), querySelectorAll: () => [] } as unknown as Element;
+  const none: unknown[] = [];
+  createMotionCarrier(doc).finish(bare, { appendChild: (n: unknown) => none.push(n) } as unknown as Element, stage);
+  assert.equal(none.length, 0);
+  assert.equal((bare as unknown as { attrs: Record<string, string> }).attrs['data-clip-ms'], undefined);
 });
 
 function piece(times: Array<[number, string]>, clip = '3000') {

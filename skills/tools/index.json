@@ -1621,8 +1621,8 @@
     {
       "version": 1,
       "toolId": "timezone",
-      "toolVersion": "1.2.0",
-      "toolVersionRange": "1.2.0",
+      "toolVersion": "1.3.0",
+      "toolVersionRange": "1.3.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1631,16 +1631,16 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "30595e901d732f17987c97cec105e8353e5c45448cc246c5b6ba4ca698a246a7",
-          "bytes": 2602
+          "sha256": "6dec12cd83cc306ffc4676bfe7e27480ec8a48b2ce536fba950374f1390b26bb",
+          "bytes": 2619
         },
         "reference/inputs.json": {
-          "sha256": "a75ff639337cdef4d05188764849ae1dbcbc60725f633537ea6b91a28b335958",
-          "bytes": 10808
+          "sha256": "f8fd8ca3ee167daffa06899f1ed06057b328aac414bf01bae32a3b931efc461c",
+          "bytes": 11124
         },
         "reference/examples.json": {
-          "sha256": "d3d358bde0ef3f9776ee5ffab10236bf4bb3b64b5a92fe52c7cc7d311293c44f",
-          "bytes": 6234
+          "sha256": "01cdf46ebe40b3dff1ac2a37d41f454baae813079e009ff419a9d727ca30f6ac",
+          "bytes": 6195
         }
       },
       "path": "timezone/SKILL.md"
