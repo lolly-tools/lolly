@@ -1738,10 +1738,7 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         const { resolveSigningIdentity } = await import('@lolly-tools/node-shell/signing-identity');
         identity = await resolveSigningIdentity({});
       } catch { /* no identity configured - ephemeral */ }
-      // The embedder extends a classic cross-reference table. A PDF saved with object
-      // streams (what host.pdf.stamp writes) is saved again in the classic form first.
-      const { classicPdfForStamp } = await import('@lolly-tools/node-shell/pdf-classic');
-      return await embedC2pa(await classicPdfForStamp(bytes, format), format, {
+      return await embedC2pa(bytes, format, {
         title: opts.title || 'Embed, Imprint & Track',
         claimGenerator: 'Lolly lolly.tools',
         generatorInfo: { name: 'Lolly', version: ENGINE_VERSION },

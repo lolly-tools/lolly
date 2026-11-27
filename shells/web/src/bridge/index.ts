@@ -744,10 +744,8 @@ export async function createBridge(): Promise<WebHost> {
         try { signer = await host.identity.signer(); } catch { /* the ephemeral signer below */ }
         return signRondoFile(bytes, format, { song, name, facts, ...(signer ? { signer: signer as never } : {}) });
       }
-      // The embedder extends a classic cross-reference table. A PDF saved with object
-      // streams (what host.pdf.stamp writes) is saved again in the classic form first.
-      const [{ signFreshC2pa }, { classicPdfForStamp }] = await Promise.all([import('./export.ts'), import('@lolly-tools/node-shell/pdf-classic')]);
-      return signFreshC2pa(host, await classicPdfForStamp(bytes, format), format, opts);
+      const { signFreshC2pa } = await import('./export.ts');
+      return signFreshC2pa(host, bytes, format, opts);
     },
     readIngredients: async (bytes) => {
       try {

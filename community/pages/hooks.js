@@ -552,6 +552,9 @@ async function dateOutline(host, date) {
   }
   return null;
 }
+// The file (name and size) whose credential could not be added on the last download.
+var _sealRefused = '';
+var SEAL_REFUSED = 'The Content Credential could not be added to this PDF. Download again for the signed PDF without one, or turn Add Content Credential off.';
 async function signExport(ctx) {
   var v = values(ctx.model), fs = sourceFiles(v), f = firstPdf(fs), ink = parseInk(v.signatureInk);
   if (!fs.length) throw new Error('Choose a PDF first.');
@@ -578,7 +581,22 @@ async function signExport(ctx) {
   if (v.seal) {
     if (!host.c2pa || typeof host.c2pa.sign !== 'function') throw new Error('Content Credentials are not available in this app; turn the credential off or use a supported shell.');
     var ingredients = typeof host.c2pa.readIngredients === 'function' ? await host.c2pa.readIngredients(f.bytes) : [];
-    bytes = await host.c2pa.sign(bytes, 'pdf', { title: signBase(f.name) + ' signed', description: 'Placed a visible signature on page ' + page, author: signer === 'Signer' ? undefined : { name: signer }, ingredients: ingredients, action: 'imported' });
+    // A PDF the credential cannot be attached to must not cost the person the signature
+    // they placed. The first download says so and saves nothing; the next download of the
+    // same file saves the visible signature alone. The file never carries a credential
+    // that was not added, and the person is told before they have a file without one.
+    var sealKey = f.name + ':' + f.bytes.length;
+    if (_sealRefused === sealKey) {
+      _sealRefused = '';
+    } else {
+      try {
+        bytes = await host.c2pa.sign(bytes, 'pdf', { title: signBase(f.name) + ' signed', description: 'Placed a visible signature on page ' + page, author: signer === 'Signer' ? undefined : { name: signer }, ingredients: ingredients, action: 'imported' });
+      } catch (e) {
+        _sealRefused = sealKey;
+        if (host.log) host.log('warn', 'pages: the Content Credential could not be added', { reason: String(e && e.message || e) });
+        throw new Error(SEAL_REFUSED);
+      }
+    }
   }
   if (v.lock) {
     if (!ctx.opts || !ctx.opts.password) throw new Error('A password is required to lock this PDF.');
