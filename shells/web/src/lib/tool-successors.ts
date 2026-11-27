@@ -379,12 +379,49 @@ export function scanToQrCode(values: Values): Values {
   };
 }
 
+/**
+ * A value as a link can hold one. An input linked to a design token is held as the
+ * token's path beside the colour it gave (`{ ref, value }`); the path is what travels,
+ * so the document stays linked to the design system in the tool it opens in.
+ */
+function linkedValue(value: unknown): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+  const linked = value as { ref?: unknown; value?: unknown };
+  if (typeof linked.ref === 'string' && linked.ref) return linked.ref;
+  return typeof linked.value === 'string' || typeof linked.value === 'number' ? linked.value : value;
+}
+
+/** Backdrop's inputs that Gradient's Field method holds under the same id. */
+const FIELD_KEPT = [
+  'effect', 'count', 'color1', 'color2', 'color3', 'color4', 'color5', 'color6',
+  'background', 'brandInfluence', 'intensity', 'density', 'scale', 'rotation', 'phase',
+];
+
+/**
+ * Backdrop into Gradient. Backdrop is Gradient's Field method, so the effect, the
+ * colours, the background and every dial keep their ids and their values. The one
+ * rename is the speed: in Gradient `speed` is the seconds a drifting blend takes to
+ * loop, so Backdrop's percentage travels as `fieldSpeed`. A colour linked to a design
+ * token travels as the token's path. Pure, exported for tests.
+ */
+export function backdropToGradient(values: Values): Values {
+  const carried: Values = { mode: 'field' };
+  for (const id of FIELD_KEPT) {
+    const value = linkedValue(values[id]);
+    if (value !== undefined && value !== null && value !== '') carried[id] = value;
+  }
+  const speed = linkedValue(values.speed);
+  if (speed !== undefined && speed !== null && speed !== '') carried.fieldSpeed = speed;
+  return carried;
+}
+
 const CARRY: Record<string, Carry> = {
   'meeting-planner': meetingPlannerToTimezone,
   'org-chart': flowChartToDesign,
   'scan-code': scanToQrCode,
   'voice-recorder': voiceRecorderToAudiogram,
   '3d': threeDToStudio,
+  backdrop: backdropToGradient,
 };
 
 /** The successor's address for a document open in the retired tool `from`. Lists and

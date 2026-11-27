@@ -156,8 +156,8 @@
     {
       "version": 1,
       "toolId": "backdrop",
-      "toolVersion": "1.1.3",
-      "toolVersionRange": "1.1.3",
+      "toolVersion": "1.2.0",
+      "toolVersionRange": "1.2.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -166,7 +166,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "c65b7070703357d6367ec1fc8259f034c54ec1684da137d410be470731f43a3b",
+          "sha256": "46ee4ea850446e271db9e419a4c39e94a31a15a51fe4c83baa419d9e9bb24744",
           "bytes": 2012
         },
         "reference/inputs.json": {
@@ -803,8 +803,8 @@
     {
       "version": 1,
       "toolId": "gradient",
-      "toolVersion": "1.3.1",
-      "toolVersionRange": "1.3.1",
+      "toolVersion": "1.4.0",
+      "toolVersionRange": "1.4.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -813,16 +813,16 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "b14dafe7920866627ecab7eb36f5b603024e20a33058324d1b3345986af72f14",
-          "bytes": 2385
+          "sha256": "a94dbe5b09c33ba79b96252cb68ae027f44c0fe9cb717eaf5551884abfd8feea",
+          "bytes": 2638
         },
         "reference/inputs.json": {
-          "sha256": "3260cb8b6ccf0557f4bc89f05cceb6ef6fea8edb6c9d42a490bf39c04ddc2767",
-          "bytes": 13128
+          "sha256": "cc2bb796d9eab6cc931102855594b16b9ce22beab73e3ac7c503856af4cb68b5",
+          "bytes": 19862
         },
         "reference/examples.json": {
-          "sha256": "3a99ab2bda173530b20e06dfa24f13bd673ee0294c80c14820d26e6e86936f9b",
-          "bytes": 2221
+          "sha256": "ebfd67b0222a91cc53cf29402080f6ad91f4bd0324d8b8831c918100475c5de0",
+          "bytes": 2487
         }
       },
       "path": "gradient/SKILL.md"

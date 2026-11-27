@@ -5,7 +5,7 @@ description: "Operate the Lolly Backdrop tool (backdrop) using its declared inpu
 
 # Backdrop
 
-Tool ID: `backdrop`. Tool version: `1.1.3`. Engine range: `^1.0.0`.
+Tool ID: `backdrop`. Tool version: `1.2.0`. Engine range: `^1.0.0`.
 
 Backdrops from your design system's colours: sixteen GPU effects. Export stills or motion loops for heroes, walls and meeting backgrounds.
 

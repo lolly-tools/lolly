@@ -5,9 +5,9 @@ description: "Operate the Lolly Gradient tool (gradient) using its declared inpu
 
 # Gradient
 
-Tool ID: `gradient`. Tool version: `1.3.1`. Engine range: `^1.0.0`.
+Tool ID: `gradient`. Tool version: `1.4.0`. Engine range: `^1.0.0`.
 
-Five ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp and Flow. Export stills or join-free video loops.
+Six ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp, Flow and Field, which has sixteen GPU effects. Export stills or video loops.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 
@@ -51,6 +51,15 @@ Required host APIs: none. Device capabilities: none.
 | waveAmp | number |  |
 | angle | number |  |
 | seed | number |  |
+| effect | select |  |
+| background | color |  |
+| brandInfluence | select |  |
+| intensity | number |  |
+| density | number |  |
+| scale | number |  |
+| rotation | number |  |
+| fieldSpeed | number |  |
+| phase | number |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

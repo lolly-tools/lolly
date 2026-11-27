@@ -2,7 +2,7 @@
 /** Where a retired tool's document opens in its successor (lib/tool-successors.ts). */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { flowChartToDesign, meetingPlannerToTimezone, successorHref, THREE_D_SCENES, threeDRotation, threeDToStudio, voiceRecorderToAudiogram, scanToQrCode } from './tool-successors.ts';
+import { backdropToGradient, flowChartToDesign, meetingPlannerToTimezone, successorHref, THREE_D_SCENES, threeDRotation, threeDToStudio, voiceRecorderToAudiogram, scanToQrCode } from './tool-successors.ts';
 
 test('a Meeting Planner document becomes Timezone places, with the host city first and as the clock', () => {
   const carried = meetingPlannerToTimezone({
@@ -368,4 +368,67 @@ test('the QR Code address is one its own manifest reads back, in scan mode', asy
   const render = resolveRender(manifest.render, values);
   assert.equal(render.export, false, 'the address lands on the reader, with no export');
   assert.deepEqual(render.actions, []);
+});
+
+test('Backdrop into Gradient: the Field method with every value under its id, and the speed renamed', () => {
+  const carried = backdropToGradient({
+    effect: 'silk-flow', count: 3, color1: '#008657', color2: '#033633', color3: '#008657', color4: '#033633', color5: '#008657', color6: '#033633',
+    background: '#033633', brandInfluence: 'subtle', intensity: 60, density: 45, scale: 100, rotation: 90, speed: 70, phase: 35,
+  });
+  assert.deepEqual(carried, {
+    mode: 'field', effect: 'silk-flow', count: 3, color1: '#008657', color2: '#033633', color3: '#008657', color4: '#033633', color5: '#008657',
+    color6: '#033633', background: '#033633', brandInfluence: 'subtle', intensity: 60, density: 45, scale: 100, rotation: 90, phase: 35, fieldSpeed: 70,
+  });
+  assert.ok(!Object.hasOwn(carried, 'speed'), 'Gradient reads speed as loop seconds, so the percentage does not travel under that id');
+});
+
+test('Backdrop into Gradient: a colour linked to a design token travels as the token path', () => {
+  // The web shell holds a linked input as the path beside the colour the path gave.
+  const carried = backdropToGradient({
+    effect: 'metaballs', count: 2,
+    color1: { ref: '{color.semantic.secondary}', value: '#008657' }, color2: { ref: '{color.semantic.primary}', value: '#033633' },
+    background: { ref: '{color.semantic.primary}', value: '#033633' },
+  });
+  assert.deepEqual(carried, {
+    mode: 'field', effect: 'metaballs', count: 2, color1: '{color.semantic.secondary}', color2: '{color.semantic.primary}', background: '{color.semantic.primary}',
+  });
+  const href = successorHref('backdrop', 'gradient', { color1: { ref: '{color.semantic.secondary}', value: '#008657' }, color2: { value: '#112233' } });
+  assert.deepEqual(Object.fromEntries(new URLSearchParams(href.split('?')[1])), { mode: 'field', color1: '{color.semantic.secondary}', color2: '#112233' });
+});
+
+test('Backdrop into Gradient: an empty document still opens on the Field method, and a speed of 0 is kept', () => {
+  assert.deepEqual(backdropToGradient({}), { mode: 'field' });
+  assert.deepEqual(backdropToGradient({ speed: 0, count: 1, color2: '' }), { mode: 'field', count: 1, fieldSpeed: 0 });
+});
+
+test('the Gradient address is one its own manifest reads back, and its hooks draw the same field Backdrop drew', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { parseUrlState } = await import('../../../../engine/src/url-mode.ts');
+  const { loadTool } = await import('../../../../engine/src/loader.ts');
+  const { createRuntime } = await import('../../../../engine/src/runtime.ts');
+  const { baseHost } = await import('../../../../tests/helpers/host.ts');
+  const community = new URL('../../../../community/', import.meta.url);
+  const load = (id: string) => loadTool(id, (path: string) => readFile(new URL(path, community), 'utf8'));
+  // The field each tool hands its canvas script: one JSON record in a data attribute.
+  const field = (html: string, attr: string): unknown => JSON.parse(new RegExp(`${attr}='([^']*)'`).exec(html)![1]!);
+  const wash = (html: string): string => /class="(?:bd|mg-field)-wash" style="([^"]*)"/.exec(html)![1]!;
+  const backdrop = await load('backdrop');
+  const gradient = await load('gradient');
+  const documents = [
+    {},
+    { effect: 'silk-flow', brandInfluence: 'subtle', count: 3, intensity: 60, density: 45, speed: 70 },
+    { effect: 'warp', count: 1, color1: '#ff8800', background: '#101010', scale: 120, rotation: 45, speed: 0, phase: 80 },
+    { effect: 'god-rays', count: 6, color1: '#111111', color2: '#222222', color3: '#333333', color4: '#444444', color5: '#555555', color6: '#666666', intensity: 60, density: 45 },
+  ];
+  for (const changed of documents) {
+    const query = new URLSearchParams(Object.entries(changed).map(([id, value]) => [id, String(value)])).toString();
+    const old = await createRuntime(backdrop as never, baseHost(), parseUrlState(query, backdrop.manifest as never).values as never);
+    const model = Object.fromEntries(old.getModel().map((input) => [input.id, input.value]));
+    const href = successorHref('backdrop', 'gradient', model);
+    assert.ok(href.startsWith('#/tool/gradient?mode=field&'));
+    const { values } = parseUrlState(href.split('?')[1]!, gradient.manifest as never);
+    const next = await createRuntime(gradient as never, baseHost(), values as never);
+    assert.deepEqual(field(next.getHydrated(), 'data-field'), field(old.getHydrated(), 'data-bd'), `the same field for ${query || 'the defaults'}`);
+    assert.equal(wash(next.getHydrated()), wash(old.getHydrated()), 'and the same wash where the shader cannot run');
+  }
 });

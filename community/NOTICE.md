@@ -16,7 +16,7 @@ Some tools vendor minified third-party libraries under `<id>/lib/`, and
 self-contained data file: qrcode-svg (MIT) and a selective bwip-js/BWIPP
 bundle (MIT) for the industrial symbologies. `gradient/template.html`
 inlines the 3D simplex noise GLSL by Ian McEwan and Stefan Gustavson, Ashima
-Arts (webgl-noise, MIT) for its Flow mode shader. `backdrop/lib/` vendors a
+Arts (webgl-noise, MIT) for its Flow mode shader. `gradient/lib/` vendors a
 tree-shaken bundle of Paper Shaders (@paper-design/shaders, Apache-2.0,
 © Paper Design) - its LICENSE and NOTICE ship in that directory. `3d/lib/`
 and `flythrough/lib/` vendor three.js (MIT, © 2010-2026 three.js authors) with

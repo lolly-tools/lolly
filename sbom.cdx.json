@@ -4,7 +4,7 @@
   "serialNumber": "urn:uuid:b11621f0-5ba7-454c-81bd-be10f99b4613",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-26T15:57:01.974Z",
+    "timestamp": "2026-11-26T22:54:05.649Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -25835,7 +25835,7 @@
       "properties": [
         {
           "name": "lolly:vendored",
-          "value": "community/backdrop/lib/paper-shaders.min.js"
+          "value": "community/gradient/lib/paper-shaders.min.js"
         },
         {
           "name": "lolly:local-changes",

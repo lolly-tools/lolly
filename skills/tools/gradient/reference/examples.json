@@ -13,20 +13,6 @@
     }
   },
   {
-    "label": "Aurora night",
-    "values": {
-      "count": 4,
-      "color1": "#22d3ee",
-      "color2": "#a78bfa",
-      "color3": "#10b981",
-      "color4": "#0b1021",
-      "blend": "screen",
-      "spread": 110,
-      "blur": 8,
-      "grain": 60
-    }
-  },
-  {
     "label": "Silk flow",
     "values": {
       "mode": "flow",
@@ -86,19 +72,6 @@
     }
   },
   {
-    "label": "Paper grain",
-    "values": {
-      "count": 2,
-      "color1": "#f5efe6",
-      "color2": "#e2e8f0",
-      "blend": "normal",
-      "spread": 140,
-      "blur": 20,
-      "grain": 100,
-      "grainBlend": "overlay"
-    }
-  },
-  {
     "label": "Live backdrop",
     "values": {
       "count": 4,
@@ -113,6 +86,36 @@
       "animate": true,
       "speed": 16,
       "distance": 80
+    }
+  },
+  {
+    "label": "Lava lamp",
+    "values": {
+      "mode": "field",
+      "effect": "metaballs",
+      "count": 4,
+      "color1": "{color.semantic.secondary}",
+      "color2": "{color.semantic.primary}",
+      "color3": "{color.semantic.secondary}",
+      "color4": "{color.semantic.primary}",
+      "background": "{color.semantic.primary}",
+      "intensity": 55,
+      "density": 45
+    }
+  },
+  {
+    "label": "Liquid silk",
+    "values": {
+      "mode": "field",
+      "effect": "silk-flow",
+      "count": 3,
+      "color1": "{color.semantic.secondary}",
+      "color2": "{color.semantic.primary}",
+      "color3": "{color.semantic.secondary}",
+      "background": "{color.semantic.primary}",
+      "intensity": 60,
+      "density": 45,
+      "fieldSpeed": 70
     }
   }
 ]

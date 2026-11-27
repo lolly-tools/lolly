@@ -3,7 +3,7 @@
 Every tool in the gallery, in alphabetical order. [Open Lolly](https://lolly.tools) to use one, or go back to the [README](README.md).
 
 <!-- tools-table:start -->
-The Lolly Start (blank brand) catalog ships **75 tools** today - 60 listed in the gallery, plus 15 unlisted tools (3D, Asset Export, Battlecards, Brief, Calendar, Email, Flow Chart, Meeting Planner, Pricing, Sales Quote, Scan, Scorecard, Theme swap, Voice Recorder, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
+The Lolly Start (blank brand) catalog ships **75 tools** today - 59 listed in the gallery, plus 16 unlisted tools (3D, Asset Export, Backdrop, Battlecards, Brief, Calendar, Email, Flow Chart, Meeting Planner, Pricing, Sales Quote, Scan, Scorecard, Theme swap, Voice Recorder, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|
@@ -11,7 +11,6 @@ The Lolly Start (blank brand) catalog ships **75 tools** today - 60 listed in th
 | Agenda | Turn one programme into branded screens, interactive web pages, animated overviews, PowerPoint slides and calendars. |
 | Annotate | Mark up your own screenshot on your device - arrows, boxes, numbered steps, callouts, highlighter and a spotlight dim. |
 | Audiogram | Turn a voice clip or song into a video in your design system's colours that moves with the sound. |
-| Backdrop | Backdrops from your design system's colours: sixteen GPU effects. Export stills or motion loops for heroes, walls and meeting backgrounds. |
 | Booklet | Build a multi-page PDF - a cover, flowing content blocks, and a back page. |
 | Booth | Dress a 3D event booth with sponsor artwork. Pick a booth design and render a still or a turntable for a sponsor pitch. |
 | Captions | Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, and export burned-in frames plus .srt and .vtt. |
@@ -32,7 +31,7 @@ The Lolly Start (blank brand) catalog ships **75 tools** today - 60 listed in th
 | Finishes | Preview foil, spot UV, emboss and soft-touch finishes on your artwork, then export the spot plate. The on-screen sheen is presentation only. |
 | Flythrough | Fly a 3D camera through a screenshot. The picture lifts into layers at real depth; a timeline of poses animates the move. Export as video. |
 | Frame | Drop in a screenshot and get it framed, padded and shadowed on a design system backdrop. |
-| Gradient | Five ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp and Flow. Export stills or join-free video loops. |
+| Gradient | Six ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp, Flow and Field, which has sixteen GPU effects. Export stills or video loops. |
 | Growth | Differential growth: a line that folds into coral. Seed it from a ring, a burst, letterforms or a logo, and export plotter-ready SVG paths. |
 | Icon | Favicon and app-icon maker - a multi-size .ico, PNG and SVG, or the whole app kit as one zip. |
 | Jump | A one-link landing page: your links, heading, portrait and colours - and the whole page lives inside the link you share. |

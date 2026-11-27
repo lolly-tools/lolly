@@ -72,9 +72,9 @@ async function frame(page: Page, t: number): Promise<{ png: string; mean: number
 describe('Backdrop GPU fields', { skip }, () => {
   before(async () => {
     server = createServer(async (req, res) => {
-      if (req.url === '/tools/backdrop/lib/paper-shaders.min.js') {
+      if (req.url === '/tools/gradient/lib/paper-shaders.min.js') {
         res.setHeader('Content-Type', 'text/javascript');
-        res.end(await readFile(join(dir, 'lib/paper-shaders.min.js')));
+        res.end(await readFile(join(dir, '..', 'gradient', 'lib', 'paper-shaders.min.js')));
       } else { res.statusCode = 404; res.end(); }
     });
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
