@@ -49,6 +49,8 @@
 .save{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ui-space-control-inline,12px)}
 .save--lead{flex-direction:column;align-items:flex-start}
 .save-note{flex-basis:100%;margin:0;font-size:var(--ui-type-caption,12px);color:var(--ui-color-text-muted)}
+/* The one consequence that is about this file, a PDF that is already digitally signed: the same line, above the button, in the alert ink. */
+.save-note--alert{color:var(--ui-color-status-danger)}
 .saving{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--ui-space-control-inline,12px);margin:0}.saving strong{font-size:var(--ui-type-heading,28px);line-height:1.15;color:var(--ui-color-text-accent)}.saving span{color:var(--ui-color-text-muted)}
 
 /* Sign: the pad to draw on, then the page the signature is placed on. */
