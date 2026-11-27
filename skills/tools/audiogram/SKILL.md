@@ -5,7 +5,7 @@ description: "Operate the Lolly Audiogram tool (audiogram) using its declared in
 
 # Audiogram
 
-Tool ID: `audiogram`. Tool version: `2.9.0`. Engine range: `>=1.261.0 <2.0.0`.
+Tool ID: `audiogram`. Tool version: `2.10.0`. Engine range: `>=1.261.0 <2.0.0`.
 
 Turn a voice clip or song into a video in your design system's colours that moves with the sound.
 
@@ -38,6 +38,7 @@ Required host APIs: none. Device capabilities: none.
 | accent | color |  |
 | ink | color |  |
 | bg | color |  |
+| titleMotion | select |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

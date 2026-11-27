@@ -11,6 +11,7 @@ import type {
   StudioVector3,
 } from '@lolly-tools/core';
 import {
+  STUDIO_CAMERA_EASES,
   STUDIO_CAMERA_KEY_LIMIT,
   STUDIO_CAMERA_MOTIONS,
   studioCameraPreset,
@@ -522,7 +523,7 @@ export function buildStudioScene(input: unknown): StudioSceneV1 {
     ...(arrangement ? { objects, activeObject: studioActiveObject(v) } : {}),
     cameraMotion: {
       kind: cameraKind,
-      ease: choice(v.cameraEase, ['linear', 'smooth', 'flow'] as const, 'smooth'),
+      ease: choice(v.cameraEase, STUDIO_CAMERA_EASES, 'smooth'),
       loop: enabled(v.cameraLoop),
       amount: cameraAmount,
       keys: studioIsCameraPreset(cameraKind)

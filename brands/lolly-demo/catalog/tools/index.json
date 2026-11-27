@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-27T08:46:42.153Z",
+  "generatedAt": "2026-11-27T09:10:59.764Z",
   "tools": [
     {
       "id": "3d",
@@ -150,7 +150,7 @@
       "id": "3d-studio",
       "name": "3D Studio",
       "description": "Turn SVG artwork and 3D models into images, alone or together in one scene. Shape materials, lighting, focus and shadows.",
-      "version": "0.13.0",
+      "version": "0.14.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -205,6 +205,12 @@
           "name": "Logo drop",
           "category": "Promotion",
           "description": "A badge drops in turning, bounces to a stop and holds still under dramatic light. Swap in your own SVG under Start, or choose Words in the brand font for a wordmark."
+        },
+        {
+          "id": "logo-sting",
+          "name": "Logo sting",
+          "category": "Promotion",
+          "description": "A badge spins in and lands while the camera settles a little on the design system's emphasised curve, then both hold still for the second half of the clip. Swap in your own SVG under Start, or choose Words in the brand font for a wordmark."
         },
         {
           "id": "shatter-reveal",
@@ -1039,7 +1045,7 @@
       "id": "audiogram",
       "name": "Audiogram",
       "description": "Turn a voice clip or song into a video in your design system's colours that moves with the sound.",
-      "version": "2.9.0",
+      "version": "2.10.0",
       "status": "community",
       "category": "everyone",
       "tags": [

@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "3d-studio",
-  "toolVersion": "0.13.0",
-  "toolVersionRange": "0.13.0",
+  "toolVersion": "0.14.0",
+  "toolVersionRange": "0.14.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,12 +10,12 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "95e2f60f56327bb0e9923c229ce77d8ea6b0592a9a101f3e579a4977fffe2a52",
+      "sha256": "3af71425a297d057ab55331ccf64ddedb992a8bc03b55148e5f07fd64852145f",
       "bytes": 4212
     },
     "reference/inputs.json": {
-      "sha256": "19edc0b30e6f771322bea2fc87cdee733721c318bbe52f265592e81b2196a3c5",
-      "bytes": 71992
+      "sha256": "ab697021ff5f5222e16e51a9b8e3524f8283f9ff18973d9729451e6d1e5c739e",
+      "bytes": 72674
     }
   }
 }
