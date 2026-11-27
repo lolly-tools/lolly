@@ -4,7 +4,9 @@
  * real everywhere the brand is felt.
  *
  * The storage story is deliberately boring: every downloaded woff2 is a
- * `type:'font'` USER ASSET (`user/fonts/<slug>/<n>`), so it rides every
+ * `type:'font'` USER ASSET in the fonts folder of the design system it was
+ * installed into (`user/fonts/<slug>/<n>` for the default one, `user/ds/<id>/fonts/…`
+ * for a named one; see fontInstallPrefix), so it rides every
  * existing rail for free - the storage meter counts it, "Export my data" (and
  * the hoard) bundles the bytes, a backup import restores them, and clear-all
  * wipes them. No parallel store, no second source of truth.
@@ -36,6 +38,7 @@ import { detectFontFormat, parseFontMetadata, readFontEmbedding, validateFontFil
 import { variableWeightRange } from './lib/design-system/font-resolve.ts';
 import { isFontOf } from './lib/register-user-fonts.ts';
 import { selectAdoptionFonts } from './lib/design-system/adoption-fonts.ts';
+import { SHIPPED_DESIGN_SYSTEM_ID, designSystemNamespace } from '../../../engine/src/design-system.ts';
 
 /** Every user font asset id starts with this (headshot-style fixed namespace). */
 
@@ -376,9 +379,10 @@ export async function installGoogleFont(
   const slug = slugOf(canonical);
   const version = new Date().toISOString().slice(0, 10);
   const stored: string[] = [];
+  const prefix = await fontInstallPrefix(host);
   for (let i = 0; i < faces.length; i++) {
     const f: DownloadedFontFace = faces[i]!;
-    const id = `${USER_FONT_PREFIX}${slug}/${i}`;
+    const id = `${prefix}${slug}/${i}`;
     // The stored format mirrors whatever css2 actually served (see
     // google-fonts.ts's FONT_EXT_FORMAT) - usually woff2, occasionally
     // truetype/opentype when the request wasn't recognised as a modern
@@ -410,6 +414,39 @@ export async function installGoogleFont(
   if (mustBePrimary) await setPrimaryFont(host, canonical);
   return families.find(f => f.family === canonical)
     ?? { family: canonical, assetIds: stored, bytes: 0, weights: '', italic: faces.some(f => f.style === 'italic'), primary: mustBePrimary };
+}
+
+/**
+ * Where a new face is minted: the fonts folder of the design system it is installed
+ * into (plans/186 section 3.2), so that system's Fonts list, its page and its vector
+ * export all find the face. Every face used to go to the default system's
+ * `user/fonts/`, whatever was active, and the registry offers only the active
+ * system's faces: with another system active an upload never reached the page and
+ * an export kept the run as `<text>`.
+ *
+ * The person's own active system takes the face. While the shipped system is active,
+ * an install is the first edit of the design system, and an edit there starts the
+ * person's copy and makes it active (installUserTokens, the write path for every
+ * edit), so the face lands in that copy. A locked system takes no fonts of the
+ * person's, and neither does a shipped one under a brand lock: the face goes to the
+ * default system's folder, as before. So does every install on a host with no
+ * registry.
+ */
+async function fontInstallPrefix(host: UserFontsHost): Promise<string> {
+  const reg = host.designSystems;
+  if (!reg) return USER_FONT_PREFIX;
+  const activeRecord = async () => reg.get(await reg.activeId()).catch(() => null);
+  let record = await activeRecord().catch(() => null);
+  if (!record) return USER_FONT_PREFIX;
+  if (record.id === SHIPPED_DESIGN_SYSTEM_ID) {
+    if (record.locked || await brandIsLocked(host)) return USER_FONT_PREFIX;
+    await installUserTokens(host as Parameters<typeof installUserTokens>[0], await primaryBaseDoc(host));
+    record = await activeRecord().catch(() => null);
+    if (!record || record.id === SHIPPED_DESIGN_SYSTEM_ID) return USER_FONT_PREFIX;
+  }
+  if (record.locked) return USER_FONT_PREFIX;
+  const ns = designSystemNamespace(record.id);
+  return ns ? `${ns}fonts/` : USER_FONT_PREFIX;
 }
 
 /** Is the shipped brand authoritative? Best-effort: an unreachable or absent
@@ -446,7 +483,7 @@ export interface InstallFontBytesOptions {
  * an uploaded family could be stored but never *assigned*.
  *
  * Everything downstream is deliberately identical to the Google path - the same
- * `user/fonts/<slug>/<n>` user assets (so the storage meter, "Export my data",
+ * `<fonts folder>/<slug>/<n>` user assets (so the storage meter, "Export my data",
  * a brand pack and clear-all all keep working with no new rail), the same
  * FontFace registration, the same only-font promotion - so a face's origin
  * stops mattering the moment it lands.
@@ -562,7 +599,7 @@ export async function installFontFromBytes(
   let records: Array<{ id: string; type: string; meta?: Record<string, unknown>; trashedAt?: string }> = [];
   try { records = await host.assets._exportUserAssets(); }
   catch { /* an unreadable store just means we start this family at 0 */ }
-  const prefix = `${USER_FONT_PREFIX}${slug}/`;
+  const prefix = `${await fontInstallPrefix(host)}${slug}/`;
   const siblings = records.filter(r => r.type === 'font' && r.id.startsWith(prefix));
   // A face in the Trash is never replaced in place (its restore must bring back
   // the bytes that were deleted), but its index still counts, so a new face

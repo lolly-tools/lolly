@@ -227,10 +227,10 @@ test('WOFF2 faces outline to paths in an SVG export', { timeout: 300_000 }, asyn
   const cinzel = readFileSync(join(REPO, 'shells/web/public/info/fonts/cinzel-latin.woff2')).toString('base64');
   const result = await page.evaluate(async (base64) => {
     const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-    const [{ createBridge }, { installFontFromBytes }, { renderSvgFromHtml }, { setExportHost }, registry, { openDB }] = await Promise.all([
+    const [{ createBridge }, { installFontFromBytes }, { renderSvgFromHtml }, { setExportHost }, registry] = await Promise.all([
       import('/src/bridge/index.ts' as string), import('/src/user-fonts.ts' as string),
       import('/src/bridge/export-svg-walker.ts' as string), import('/src/bridge/export-shared.ts' as string),
-      import('/src/bridge/font-registry.ts' as string), import('/src/bridge/db.ts' as string),
+      import('/src/bridge/font-registry.ts' as string),
     ]);
     const host = await createBridge();
     setExportHost(host);
@@ -255,17 +255,11 @@ test('WOFF2 faces outline to paths in an SVG export', { timeout: 300_000 }, asyn
     document.head.append(style);
     const declared = await exportRun('Cinzel Webfont');
 
-    // The same face uploaded as a user font. Uploads are stored for the device's
-    // default design system, so that system is made the active one, as on a device
-    // whose own system holds its uploads.
+    // The same face uploaded as a user font, into whichever design system is active
+    // (tests/user-font-design-system.browser.test.ts covers each kind of system).
     const installed = await installFontFromBytes(host, bytes, { filename: 'cinzel-latin.woff2', makePrimary: false });
     if (!installed) throw new Error('the WOFF2 font was not installed');
-    const db = await openDB();
-    const previous = await db.get('profile', 'active-design-system');
-    await db.put('profile', 'default', 'active-design-system');
-    let uploaded: string;
-    try { uploaded = await exportRun(installed.family); }
-    finally { await db.put('profile', previous, 'active-design-system'); }
+    const uploaded = await exportRun(installed.family);
     return { family: installed.family, declared, uploaded };
   }, cinzel);
   assert.equal(result.family, 'Cinzel');
