@@ -74,6 +74,7 @@ import { homedir, tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import { NODE_FLOOR_WORDS, nodeMeetsFloor, unsupportedNodeMessage } from '../packages/node-shell/src/node-patch-level.ts';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(REPO, 'dist', 'cli-sidecar');
@@ -154,20 +155,29 @@ function defaultNodeCandidates(): string[] {
   return [...new Set(out)];
 }
 
+/** The version a Node binary reports, or '' when it does not run. */
+function nodeVersionOf(path: string): string {
+  return spawnSync(path, ['-p', 'process.versions.node'], { encoding: 'utf8' }).stdout?.trim() ?? '';
+}
+
+// The sidecar carries this Node to every desktop install, so a Node without the Brotli fix
+// for CVE-2026-111497 is never chosen and never accepted from --node.
 const requestedNode = flag('node');
 const resolvedNode = requestedNode
-  ?? defaultNodeCandidates().find(seaCapable);
+  ?? defaultNodeCandidates().find((path) => seaCapable(path) && nodeMeetsFloor(nodeVersionOf(path)));
 if (!resolvedNode) {
   throw new Error(
-    'No clean SEA-capable Node runtime was found. Pass --node=<path> to an official Node 22+ binary; ' +
-    'the current runtime may already contain a NODE_SEA blob or have SEA disabled.',
+    `No clean SEA-capable Node runtime was found. Pass --node=<path> to an official Node binary, ${NODE_FLOOR_WORDS}; ` +
+    'the current runtime may already contain a NODE_SEA blob, have SEA disabled or be older than that.',
   );
 }
 const NODE_BINARY: string = resolvedNode;
 if (requestedNode && !seaCapable(requestedNode)) {
   throw new Error(`--node=${requestedNode} is not a clean SEA-capable Node runtime.`);
 }
-const NODE_VERSION = spawnSync(NODE_BINARY, ['-p', 'process.versions.node'], { encoding: 'utf8' }).stdout.trim();
+const NODE_VERSION = nodeVersionOf(NODE_BINARY);
+const nodeRefusal = unsupportedNodeMessage(NODE_VERSION);
+if (nodeRefusal) throw new Error(`--node=${NODE_BINARY}: ${nodeRefusal}`);
 
 // ── 1. the ESM bundle ─────────────────────────────────────────────────────────
 /** Packages left external: native addons, wasm carriers, and ink's devtools import. */

@@ -51,7 +51,7 @@ jobs:
           run_install: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
       - name: Install pinned dependencies
         timeout-minutes: 5
@@ -83,7 +83,7 @@ jobs:
           run_install: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
       - name: Install pinned dependencies
         timeout-minutes: 5
@@ -128,7 +128,7 @@ jobs:
           run_install: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
       - name: Install pinned dependencies
         timeout-minutes: 5
@@ -156,7 +156,7 @@ jobs:
           run_install: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
       - name: Install pinned dependencies
         timeout-minutes: 5

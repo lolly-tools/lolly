@@ -141,7 +141,7 @@ Lolly beside Lolly Work once:
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git ../lolly
-cd ../lolly && pnpm install && pnpm run build:web && cd -   # needs Node >=22.18 or >=24
+cd ../lolly && pnpm install && pnpm run build:web && cd -   # needs Node 22.23.4+, 24.22.1+ or 26.12.1+
 ```
 
 The public clone includes the community tools and the starter brand. Then run

@@ -12,11 +12,18 @@ import { getProfile } from './store.ts';
 import { setTerminalAppearance, setBrandAccents } from './theme.ts';
 import { loadTools } from './catalog.ts';
 import { nodeStartSeen } from '@lolly-tools/node-shell/design-systems';
+import { unsupportedNodeMessage } from '@lolly-tools/node-shell/node-patch-level';
 
 const ENTER_ALT = '\x1b[?1049h\x1b[2J\x1b[H';   // alt buffer + clear + home
 const LEAVE_ALT = '\x1b[?1049l';
 
 async function main(): Promise<void> {
+  // A Node older than the Brotli fix for CVE-2026-111497 on its line is refused, as the CLI does.
+  const nodeRefusal = unsupportedNodeMessage(process.versions.node);
+  if (nodeRefusal) {
+    process.stderr.write(`lolly-tui: ${nodeRefusal}\n`);
+    process.exit(1);
+  }
   const screenReader = process.env.INK_SCREEN_READER === 'true' || process.argv.some(arg => /^--screen-reader(?:=(?:1|true|on|yes))?$/.test(arg));
   if (!process.stdout.isTTY) {
     process.stderr.write('lolly-tui needs an interactive terminal (TTY). Run it directly, e.g. `npm run tui`.\n');

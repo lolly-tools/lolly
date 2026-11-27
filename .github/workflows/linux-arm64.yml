@@ -73,7 +73,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '24'          # the tree runs .ts directly; engines require >= 22.18
+          node-version: '^24.22.1'          # the first 24 with the Brotli fix (package.json engines)
           cache: pnpm
 
       # A version tag is a release, and no release may ship the WebGPU startup

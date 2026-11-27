@@ -7,7 +7,7 @@ Everything you need is public. Lolly is one repository. A plain clone builds eve
 **What you'll do**, in three steps:
 
 ::: steps
-- <!--i:eti-checklist--> **[Check the tools](#what-you-need-first)** Node.js 22.18 or later, or 24 or later, with pnpm and git.
+- <!--i:eti-checklist--> **[Check the tools](#what-you-need-first)** Node.js 22.23.4 or later on Node 22, 24.22.1 or later on Node 24, or 26.12.1 or later, with pnpm and git.
 - <!--i:eti-download--> **[Clone and set up](#clone-and-set-up)** One clone command, then `./setup.sh` or `pnpm install`.
 - <!--i:eti-badge-check--> **[Check the result](#check-the-result)** The profile this checkout resolves to, the tools it sees and a readiness report.
 :::
@@ -15,7 +15,7 @@ Everything you need is public. Lolly is one repository. A plain clone builds eve
 <!--i:eti-checklist-->
 ## What you need first
 
-- **Node.js 22.18 or later, or 24 or later.** The repository's scripts run TypeScript directly (`node scripts/foo.ts`) with Node's built-in type stripping. Node 20 and early 22 releases fail at `pnpm install`. `.nvmrc` pins Node `26`; `nvm install` in the checkout picks that version.
+- **Node.js 22.23.4 or later on Node 22, 24.22.1 or later on Node 24, or 26.12.1 or later.** Older releases carry a flaw in Node's own Brotli decoder (CVE-2026-111497), so `pnpm install` refuses them, and so do the CLI, the TUI and the MCP server. Every accepted release runs the repository's TypeScript directly (`node scripts/foo.ts`) with Node's built-in type stripping. `.nvmrc` pins Node `26`; `nvm install` in the checkout picks that version.
 - **pnpm.** `npm install --global pnpm` installs pnpm. `package.json` pins the exact version.
 - **git.**
 
@@ -153,7 +153,7 @@ In a locale catalog (`shells/web/src/locales/<lang>.json`), the value for the `o
 <!--i:eti-help-->
 ## If something fails
 
-- **`pnpm install` stops with a syntax error in a `.ts` file.** Your Node is too old for type stripping. Check `node -v` against 22.18 or 24. With Homebrew, `node@22` is keg-only: add `export PATH="$(brew --prefix node@22)/bin:$PATH"` to your shell profile.
+- **`pnpm install` stops with `ERR_PNPM_UNSUPPORTED_ENGINE` or a syntax error in a `.ts` file.** Your Node is older than the release with the Brotli fix. Check `node -v` against 22.23.4, 24.22.1 or 26.12.1. With Homebrew, `node@22` is keg-only: add `export PATH="$(brew --prefix node@22)/bin:$PATH"` to your shell profile.
 - **`brands/suse` will not clone.** The pack is private. Drop `--suse`; you land on `lolly-start` and everything still builds and runs.
 - **A SUSE tool edit does not show up.** `brands/suse` is a separate repository, so the edit needs a commit inside it and a pointer commit here (see [the private pack](#the-private-suse-pack)).
 - **Anything else.** Run `pnpm run doctor`. It checks the checkout without changing it and prints the exact command for each repair.

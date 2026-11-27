@@ -18,7 +18,7 @@ Each guide below builds one of Lolly's apps from source, with its toolchain, com
 <!--i:eti-checklist-->
 ## What every build needs
 
-Every build starts from a checkout with its dependencies installed: <!--l:node-->Node.js 22.18 or later (or 24 or later), pnpm and git. [Get the source](/info/contributing-setup.html) covers the clone, the setup script and the content profile. Each app guide then adds its own toolchain, such as Rust for the desktop and mobile apps.
+Every build starts from a checkout with its dependencies installed: <!--l:node-->Node.js (22.23.4 or later on Node 22, 24.22.1 or later on Node 24, or 26.12.1 or later), pnpm and git. [Get the source](/info/contributing-setup.html) covers the clone, the setup script and the content profile. Each app guide then adds its own toolchain, such as Rust for the desktop and mobile apps.
 
 ::: note The web app needs a browser with WebGPU from startup
 Check [Supported environments](/info/supported-environments.html) before you ship a build to people. A development build is for testing and does not qualify a release.

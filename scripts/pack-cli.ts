@@ -48,6 +48,7 @@ import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { satisfiesRange } from '../engine/src/semver-range.ts';
+import { NODE_ENGINES } from '../packages/node-shell/src/node-patch-level.ts';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(REPO, 'dist', 'cli-pack');
@@ -307,8 +308,7 @@ const result = await build({
   splitting: true,
   platform: 'node',
   format: 'esm',
-  // The repo's own floor (package.json engines: >=22.18.0), so the package runs
-  // everywhere the monorepo does.
+  // The oldest line the package accepts (engines: NODE_ENGINES, whose 22 floor is 22.23.4).
   target: 'node22',
   jsx: 'automatic',
   external: [...Object.keys(dependencies), ...Object.keys(optionalDependencies)],
@@ -367,7 +367,7 @@ writeFileSync(
       bugs: 'https://github.com/lolly-tools/lolly/issues',
       type: 'module',
       bin: { lolly: './bin/lolly.js', 'lolly-tui': './bin/lolly-tui.js' },
-      engines: { node: '>=22.18.0' },
+      engines: { node: NODE_ENGINES },
       files: ['bin', 'dist', 'wasm', 'README.md', 'LICENSE'],
       dependencies,
       optionalDependencies,
