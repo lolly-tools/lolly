@@ -64,6 +64,20 @@ function colorResolver(node: Element): (css: string) => string | null {
   };
 }
 
+/**
+ * The instant the operations draw a page at, read from the live page. While the page
+ * shows every one of its rows, every row is drawn at rest (`null`): that is how a page
+ * export of a deck lifts the sequence clock's hiding before each shot (wiring.ts). While
+ * the clock hides some of them (`seq-off`, OFF_CLASS in sequence-dom.ts) the page holds a
+ * moment this module cannot name, so the walker draws the page as it stands.
+ */
+export function liveStillInstant(pages: readonly Element[]): { at: null } | { reason: string } {
+  for (const page of pages) {
+    if (page.classList?.contains('seq-off') || page.querySelector?.('.seq-off')) return { reason: 'the sequence clock hides some of its layers at this moment' };
+  }
+  return { at: null };
+}
+
 const MOTION = /\.(json|lottie|mp4|m4v|mov|webm)($|\?|#)/i;
 const SOUND = /\.(mp3|wav|ogg|m4a|flac)($|\?|#)/i;
 
@@ -147,11 +161,14 @@ export async function designOpsSvg(node: Element, opts: ExportOpts): Promise<Blo
   if (opts.watermark) return walkerBecause(opts, 'the export carries a watermark');
   const text = _host?.text;
   if (!text || !_host?.assets) return walkerBecause(opts, 'this shell has no text or asset host');
+  const instant = liveStillInstant([node]);
+  if ('reason' in instant) return walkerBecause(opts, instant.reason);
   const d = exportDims(node, opts);
   const { designPageSvg } = await import('../../../../engine/src/design-page-svg.ts');
   let page: DesignPageSvg;
   try {
     page = await designPageSvg(doc.values, frameId, pageHost(node, opts, text, _host.assets), {
+      at: instant.at,
       dpi: d.dpi,
       size: { width: toCssLength(d.w), height: toCssLength(d.h), px: { w: toCssPx(d.w), h: toCssPx(d.h) } },
       meta: opts.meta,
@@ -181,12 +198,15 @@ export async function designOpsPdf(pageEls: readonly Element[], opts: ExportOpts
   if (opts.convertPaths === false) return why('the export keeps its words as live text');
   const text = _host?.text;
   if (!text || !_host?.assets) return why('this shell has no text or asset host');
+  const instant = liveStillInstant(pageEls);
+  if ('reason' in instant) return why(instant.reason);
   const { designPagesPdf } = await import('../../../../engine/src/design-page-svg.ts');
   const m = opts.meta;
   const creator = m?.software || 'Lolly';
   let out: { pdf: Uint8Array | null; findings: ReadonlyArray<{ feature: string; id: string }> };
   try {
     out = await designPagesPdf(doc.values, ids as string[], pageHost(pageEls[0]!, opts, text, _host.assets), {
+      at: instant.at,
       ...((opts.dpi as number) > 0 ? { dpi: opts.dpi as number } : {}),
       // The document information the walker's PDF carries (applyPdfMeta).
       info: {

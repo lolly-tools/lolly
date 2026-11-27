@@ -6,6 +6,14 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.361.0
+
+- A Design still drawn from the drawing operations shows the timed rows the browser shows at the still's instant. `compileDesignDraw` leaves out a row on the sequence lane, or with a start, that the sequence clock does not show at `at` (seconds, the new `DesignDrawCompileOpts.at`), read the way the browser reads the times: a half-open span from the played start, set-aside clips closed up, an open-ended row running to the end of the whole document's sequence (`timeline`). Before, every row was drawn, so the resvg and lolly-render routes drew the video template's `cta` line at 0 s, where the browser shows none.
+- With no `at` the instant is 0, the moment a still is taken at when its export names none. `at: null` draws every row at rest, as before: a page export of a whole deck shows everything on each artboard, and the web shell passes `null` while the live page shows all its rows (its own clock hiding some sends the page to the walker).
+- Two findings: `timed-transition`, a row the clock shows part way through its enter or exit (or just past a fade-out that may hand over to the next clip), since the drawing holds only the authored pose; and `timed-frame`, a sequenced frame off its own span at the instant.
+- `designRowInstants(timeline, atSeconds)` returns each row's place at the instant (`shown`, `off`, `moving`). `designPageDrawing`, `designPageSvg` and `designPagesPdf` take `at` and pass the document's rows as the timeline.
+- The preview reading (`semantics: 'preview'`) is unchanged. No method of the bridge changed. Additive.
+
 ## 1.360.0
 
 - `host.pdf.stamp` takes an optional `classic: true` (`PdfStampOpts`). The stamped PDF is then saved with a classic cross-reference table and no object streams, the form `host.c2pa.sign` can attach a Content Credential to. Pages' Sign and the older Sign tool pass it only when the credential is on, so a signed PDF with a credential downloads in one step.

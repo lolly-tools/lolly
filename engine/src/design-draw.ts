@@ -208,7 +208,8 @@ export type DrawFeature =
   | 'line-height' | 'tracking' | 'text-layout-estimate' | 'non-static-kind' | 'border-style' | 'bound-path' | 'frame-paint'
   | 'fit-text' | 'text-direction' | 'text-unlaid' | 'text-decoration' | 'text-unoutlined' | 'image-motion' | 'image-unsized'
   | 'text-emoji' | 'text-dictionary' | 'text-fallback-face' | 'image-oversize' | 'image-unread' | 'color-unresolved'
-  | 'pdf-shadow' | 'pdf-blur' | 'pdf-live-text' | 'pdf-image-format' | 'pdf-preview-op' | 'group-compositing';
+  | 'pdf-shadow' | 'pdf-blur' | 'pdf-live-text' | 'pdf-image-format' | 'pdf-preview-op' | 'group-compositing'
+  | 'timed-transition' | 'timed-frame';
 export interface DrawFinding { id: string; feature: DrawFeature }
 
 export interface DesignDrawPage {
@@ -567,6 +568,17 @@ export interface DesignDrawCompileOpts {
   /** The brand's font families by slot, for the text measure (Design's own faces when absent). */
   fonts?: TextMeasureFontsV1;
   /**
+   * Design semantics: the still's instant, in seconds. A timed row (on the sequence lane,
+   * or with a start) that the sequence clock does not show at that instant is left out, as
+   * the browser hides it, and a row the clock shows part way through its enter or exit is
+   * a finding (`timed-transition`), since the drawing holds no pose but the authored one.
+   * `null` draws every row at rest, as a page export of a whole deck shows everything on
+   * each artboard. Absent: 0, the instant a still is taken at when its export names none.
+   */
+  at?: number | null;
+  /** Every row of the document, for the sequence's length; the page's own rows when absent. */
+  timeline?: readonly DesignBoxRowV1[];
+  /**
    * `design` (the default) follows the Design renderer, the authority on what a row
    * means. `preview` keeps the approximations `framePreviewSvg` drew before the compiler
    * existed (radius on a plain rectangle, a centred outline, unrounded geometry), so the
@@ -603,6 +615,79 @@ export function designBool(value: unknown, fallback: boolean): boolean {
 }
 function designFlag(row: DesignBoxRowV1, key: string): boolean {
   return designBool(row[key], false);
+}
+
+/** Where a row stands at a still's instant: drawn, left out, or part way through a transition. */
+export type DesignRowInstant = 'shown' | 'off' | 'moving';
+
+/** The renderer's ceiling for every authored time, in seconds (hooks.js `MAX_TIME_S`). */
+const MAX_TIME_S = 3600;
+/** The transition kinds the renderer writes (hooks.js `TRANSITIONS`, less `none`). */
+const TRANSITIONS = new Set(['fade', 'pop', 'grow', 'rise', 'drop', 'slide-left', 'slide-right', 'slide-up', 'slide-down', 'zoom-in', 'zoom-out', 'tilt', 'swoop', 'spin', 'drift']);
+const SPLIT_TIERS = new Set(['line', 'word', 'letter']);
+
+/** The renderer's `isFiniteNum`: a value that parses to a finite number at all. */
+function timeNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const n = typeof value === 'number' ? value : Number.parseFloat(String(value));
+  return Number.isFinite(n) ? n : null;
+}
+const clampTime = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
+
+/**
+ * When each row of a Design document is on screen at `atSeconds`, read the way the
+ * browser's sequence clock reads it (the renderer's `timeAttrsFor` in
+ * community/design/hooks.js writes the times, and `isActiveAt` and `transitionAt` in
+ * shells/web/src/bridge/sequence-dom.ts apply them):
+ *
+ * - A row with no lane and no start is scenery, shown throughout.
+ * - A set-aside (`ignored`) row is never shown, and a sequence row closes up behind the
+ *   set-aside rows that start before it.
+ * - A timed row is shown on the half-open span from its start, for its duration; with no
+ *   duration it runs to the end of the sequence, or throughout when nothing has one.
+ * - A shown row part way through its enter or exit is `moving`, as is a row whose text
+ *   enters a unit at a time, and a row just past a fade-out cut, which a crossfade into
+ *   the next clip keeps on screen.
+ *
+ * Times are rounded to milliseconds, as the renderer writes them. `timeline` is every row
+ * of the document: the sequence's length is the whole document's.
+ */
+export function designRowInstants(timeline: readonly DesignBoxRowV1[], atSeconds: number): (row: DesignBoxRowV1) => DesignRowInstant {
+  const timed = (row: DesignBoxRowV1) => rowStr(row, 'lane') === 'seq' || timeNumber(row.start) !== null;
+  const ignored = (row: DesignBoxRowV1) => designBool(row.ignored, false);
+  const startS = (row: DesignBoxRowV1) => clampTime(timeNumber(row.start) ?? 0, 0, MAX_TIME_S);
+  const durS = (row: DesignBoxRowV1): number | null => { const d = timeNumber(row.dur); return d === null ? null : clampTime(d, 0.1, MAX_TIME_S); };
+  const spans = timeline.filter((row) => ignored(row) && rowStr(row, 'lane') === 'seq' && durS(row) !== null).map((row) => ({ s: startS(row), d: durS(row)! }));
+  const playedS = (row: DesignBoxRowV1): number => {
+    const s = startS(row);
+    if (rowStr(row, 'lane') !== 'seq') return s;
+    let removed = 0;
+    for (const span of spans) if (span.s < s - 1e-6) removed += span.d;
+    return Math.max(0, s - removed);
+  };
+  // The sequence's length (hooks.js `seqDurationMs`): the latest end of a timed row with a
+  // duration, else five seconds when anything is timed.
+  const playing = timeline.filter((row) => timed(row) && !ignored(row));
+  const bounded = playing.filter((row) => durS(row) !== null);
+  const seqMs = bounded.length ? Math.round(Math.max(...bounded.map((row) => (playedS(row) + durS(row)!) * 1000))) : playing.length ? 5000 : 0;
+  const t = atSeconds * 1000;
+  const transitionMs = (row: DesignBoxRowV1, key: 'enterMs' | 'exitMs') => Math.round(clampTime(timeNumber(row[key]) ?? 400, 100, 3000));
+  return (row) => {
+    if (!timed(row)) return 'shown';
+    if (ignored(row)) return 'off';
+    const start = Math.round(playedS(row) * 1000);
+    const d = durS(row);
+    const dur = d === null ? null : Math.round(d * 1000);
+    const end = dur !== null ? start + dur : Math.max(start, seqMs > 0 ? seqMs : start);
+    const throughout = dur === null && !(seqMs > 0);
+    const exit = TRANSITIONS.has(rowStr(row, 'exit')) && dur !== null;
+    // A fade-out handing over to a fade-in stays on screen past its cut, fading.
+    if (!throughout && (t < start || t >= end)) return exit && rowStr(row, 'exit') === 'fade' && t >= end && t < end + transitionMs(row, 'exitMs') ? 'moving' : 'off';
+    const units = SPLIT_TIERS.has(rowStr(row, 'split')) ? clampTime(timeNumber(row.stagger) ?? 60, 0, 2000) * Math.min([...rowStr(row, 'text')].length, 240) : 0;
+    if (TRANSITIONS.has(rowStr(row, 'enter')) && t - start < transitionMs(row, 'enterMs') + units) return 'moving';
+    if (exit && !throughout && end - t < transitionMs(row, 'exitMs') + units) return 'moving';
+    return 'shown';
+  };
 }
 
 /**
@@ -786,6 +871,11 @@ export function compileDesignDraw(rows: readonly DesignBoxRowV1[], size: { width
   const hidden = (row: DesignBoxRowV1) => (design ? designFlag(row, 'hidden') : rowFlag(row, 'hidden'));
   // A hidden frame drops its whole page in Design.
   if (framed && design && hidden(head)) return page;
+  // The rows' places in time at the still's instant; every row at rest for `at: null`.
+  const instant = design && opts.at !== null ? designRowInstants(opts.timeline ?? rows, opts.at ?? 0) : null;
+  // A sequenced frame is a scene of its own; what a still of one shows off its span is not
+  // the clock's to say here.
+  if (framed && instant && instant(head) !== 'shown') page.findings.push({ id: rowStr(head, 'id'), feature: 'timed-frame' });
   if (framed && design) {
     framePaint(head, page, opts);
     // A page export shows none of a board's shadow, and its opacity and blend composite the
@@ -800,8 +890,12 @@ export function compileDesignDraw(rows: readonly DesignBoxRowV1[], size: { width
     const kind = rowStr(row, 'kind');
     if (kind === 'group') { page.findings.push({ id: rowStr(row, 'id'), feature: 'group-compositing' }); continue; }
     if (kind === 'frame' || hidden(row)) continue;
+    // A timed row the sequence does not show at the still's instant draws nothing, as in the browser.
+    const when = instant?.(row) ?? 'shown';
+    if (when === 'off') continue;
     // Audio and camera boxes leave no mark on the page; a bound connector is routed, not drawn as authored.
     if (design && (kind === 'audio' || kind === 'camera')) continue;
+    if (when === 'moving') page.findings.push({ id: rowStr(row, 'id'), feature: 'timed-transition' });
     if (design && kind === 'path' && (rowStr(row, 'bindStart') || rowStr(row, 'bindEnd'))) { page.findings.push({ id: rowStr(row, 'id'), feature: 'bound-path' }); continue; }
     page.ops.push(compileDesignRow(row, offset, { ...opts, byId }));
     for (const feature of designDrawFindings(row, opts)) page.findings.push({ id: rowStr(row, 'id'), feature });
