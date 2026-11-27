@@ -259,7 +259,7 @@ A JPEG is placed without re-encoding and turned upright from its camera orientat
 :::
 
 ::: warning A new PDF drops bookmarks, form fields and signatures
-Rotating a single PDF edits that file, and a digital signature in it no longer verifies once the file is saved again. Every other operation builds a new PDF from copies of the pages, so bookmarks are not carried over, links to other pages stop working, form fields can no longer be filled in and the new PDF is unsigned. Before download, **What changes** lists what the operation does to the bookmarks, comments, links, form fields and signatures in your PDFs.
+Rotating a single PDF edits that file, and a digital signature in it no longer verifies once the file is saved again. Every other operation builds a new PDF from copies of the pages, so bookmarks are not carried over, links to other pages stop working, form fields can no longer be filled in and the new PDF is unsigned. Before download, **What changes** lists what the operation does to the bookmarks, comments, links and form fields in your PDFs. When a PDF you loaded is already digitally signed, one line above the download button says its signature will not verify on the saved copy. The download still works, and the original file is not changed.
 :::
 
 ::: details What changes in the PDF
@@ -268,7 +268,7 @@ Rotating a single PDF keeps everything but the signature working. When an operat
 
 Two more operations work on one PDF, the first in the list. Both were tools of their own, Compress and Sign, and a link to either still opens.
 
-**[Compress](/t/pages?operation=compress)** shrinks a PDF by recompressing its images, at a **Light**, **Balanced** or **Strong** level, with an option to turn the images greyscale. The panel shows how much smaller the file is before you download. Text and vector graphics stay as they are, and a digital signature no longer verifies once the file is saved again.
+**[Compress](/t/pages?operation=compress)** shrinks a PDF by recompressing its images, at a **Light**, **Balanced** or **Strong** level, with an option to turn the images greyscale. The panel shows how much smaller the file is before you download. Text and vector graphics stay as they are, and a digital signature no longer verifies once the file is saved again. Compress and Sign show the same line above the download button for a signed PDF.
 
 **[Sign](/t/pages?operation=sign)** places a transparent signature on a chosen PDF page, in PDF-point coordinates: drag it on the page or enter the numbers. Initials and today's date are optional. A Content Credential is on by default and records the profile signer only when **Use my details** is on. A password lock is available at download time, but not together with that credential, because encrypting afterwards would break the credential.
 

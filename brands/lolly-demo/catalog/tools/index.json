@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-27T10:24:53.510Z",
+  "generatedAt": "2026-11-27T11:00:12.680Z",
   "tools": [
     {
       "id": "3d",
@@ -8735,7 +8735,7 @@
       "id": "pages",
       "name": "Pages",
       "description": "Reorder, rotate, extract, delete, merge or split PDF pages, compress or sign a PDF, or turn images into a PDF, on your device.",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",

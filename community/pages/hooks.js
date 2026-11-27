@@ -75,6 +75,39 @@ function onePdfFacts(o, fs, f, done) {
   o.onlyFirst = f && fs.length > 1 ? 'Only ' + o.fileName + ' is ' + done + '.' : '';
 }
 
+// ── A PDF that already carries a digital signature ──────────────────────────
+// Every operation saves the PDF again, and a signature made over the old bytes
+// does not verify on the new file. The shell's own analysis says whether a
+// signature field is filled, so nothing here reads the PDF. One answer is kept
+// per file. An app without the analysis gives no answer and no line is shown.
+var _signedPdfs = new WeakMap();
+function isSigned(host, f) {
+  if (!host || !host.pdf || typeof host.pdf.analyze !== 'function' || fileKind(f) !== 'pdf') return Promise.resolve(false);
+  if (!_signedPdfs.has(f.bytes)) {
+    var asked = Promise.resolve().then(function () { return host.pdf.analyze(f.bytes); }).then(function (r) {
+      return ((r && r.findings) || []).some(function (x) { return x && x.label === 'Digital signature'; });
+    });
+    asked.catch(function () { _signedPdfs.delete(f.bytes); });
+    _signedPdfs.set(f.bytes, asked);
+  }
+  return _signedPdfs.get(f.bytes).catch(function () { return false; });
+}
+// The one sentence shown above the download button and printed by the command
+// line. `worked` holds the files the operation saves again. With one file
+// loaded the sentence says "This PDF"; with several, the signed files by name.
+async function signedNote(host, worked, loaded) {
+  var names = [];
+  for (var i = 0; i < worked.length; i++) {
+    if (await isSigned(host, worked[i])) names.push(worked[i].name || 'document.pdf');
+  }
+  if (!names.length) return '';
+  if (names.length === 1) {
+    return (loaded === 1 ? 'This PDF' : names[0]) + ' is digitally signed: its signature will not verify on the saved copy, and the original file is not changed.';
+  }
+  return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]
+    + ' are digitally signed: their signatures will not verify on the saved copy, and the original files are not changed.';
+}
+
 // ── Page operations ─────────────────────────────────────────────────────────
 function selected(expr, page, total) {
   var parts = String(expr || '').split(',');
@@ -270,6 +303,7 @@ async function pagesCompute(ctx) {
   try { docs = await Promise.all(fs.map(function (f) { return documentFor(ctx.host, f, v); })); }
   catch (e) { out.error = errorText(e); out.pending = false; return out; }
   var notes = imageNotes(docs);
+  out.signedNote = await signedNote(ctx.host, fs, fs.length);
   if (typeof ctx.host.pdf.pages === 'function') {
     try {
       var p = await previews(ctx.host, fs, docs, v);
@@ -286,7 +320,9 @@ async function pagesCompute(ctx) {
     out.summary = allImages ? plural(fs.length, 'image') + ' → ' + plural(res.afterPages, 'page') : res.beforePages + ' pages → ' + res.afterPages + ' pages';
     out.sizeAfter = fmt(res.afterBytes);
     out.operations = res.operations.join(' · ');
-    out.changes = notes.concat((res.effects || []).map(function (e) { return { outcome: e.outcome, message: e.message }; }));
+    // The line above the button already says what happens to a signature, so the list leaves that entry out.
+    out.changes = notes.concat((res.effects || []).filter(function (e) { return !(out.signedNote && e.feature === 'signatures'); })
+      .map(function (e) { return { outcome: e.outcome, message: e.message }; }));
     out.hasChanges = out.changes.length > 0;
   } catch (e) { out.error = errorText(e); }
   out.pending = false;
@@ -347,8 +383,13 @@ async function cmpCompute(ctx) {
   o.error = cmpProblem(ctx.host);
   if (o.error) return o;
   o.available = true;
-  var res = await cmpWithin(cmpJob(ctx.host, f, cmpOptions(v)), CMP_PREVIEW_BUDGET_MS);
+  var job = cmpJob(ctx.host, f, cmpOptions(v));
+  o.signedNote = await signedNote(ctx.host, [f], fs.length);
+  o.signedPdf = !!o.signedNote;
+  var res = await cmpWithin(job, CMP_PREVIEW_BUDGET_MS);
   if (!res) { o.pending = true; return o; }
+  // A PDF that cannot be made smaller is handed back as it was, signature intact.
+  if (!(res.after < res.before)) o.signedNote = '';
   var saved = res.before - res.after, pct = res.before > 0 ? Math.round(saved / res.before * 100) : 0;
   if (saved > 0 && pct >= 1) {
     o.done = true;
@@ -514,6 +555,7 @@ async function signCompute(ctx) {
   o.valid = true;
   if (!ctx.host || !ctx.host.pdf || typeof ctx.host.pdf.stamp !== 'function') { o.error = 'PDF signing is not available in this app.'; return o; }
   o.available = true; o.pending = true;
+  o.signedNote = await signedNote(ctx.host, [f], fs.length);
   if (ctx.report) ctx.report(o);
   try {
     // The name the Content Credential records, shown before the file is saved.
@@ -623,7 +665,8 @@ function blank() {
     done: false, noGain: false, savedLead: '', savedDetail: '',
     canDownload: false, pageSvg: '', pageNo: 1, signatureUrl: '', initialsUrl: '', inkPaths: [], inkValue: '', inkViewBox: '0 0 ' + INK_W + ' ' + INK_H,
     hasInk: false, hasSignature: false, xPct: 0, yPct: 0, wPct: 20, hPct: 0, posJson: '{}', positionWidth: 144, pageW: 612, pageH: 792, pageDisplayW: 301,
-    dateFont: '', signerName: '', groupWidth: 0, groupHeight: 0, initialsMark: null, dateMark: null
+    dateFont: '', signerName: '', groupWidth: 0, groupHeight: 0, initialsMark: null, dateMark: null,
+    signedNote: '', signedPdf: false
   };
 }
 function kindOf(ctx) {
@@ -645,9 +688,16 @@ function compute(ctx) {
 }
 function onInit(ctx) { return compute(ctx); }
 function onInput(ctx) { return compute(ctx); }
-function exportFile(ctx) {
+async function exportFile(ctx) {
   var kind = kindOf(ctx);
-  return kind === 'compress' ? cmpExport(ctx) : kind === 'sign' ? signExport(ctx) : pagesExport(ctx);
+  var saved = await (kind === 'compress' ? cmpExport(ctx) : kind === 'sign' ? signExport(ctx) : pagesExport(ctx));
+  // The same sentence for the log, which is how the command line gets to print the warning.
+  // The file is saved either way.
+  var fs = sourceFiles(values(ctx.model)), one = firstPdf(fs);
+  var kept = kind === 'compress' && one && saved.bytes.length >= one.bytes.length;
+  var note = kept ? '' : await signedNote(ctx.host, kind === 'pages' ? fs : (one ? [one] : []), fs.length);
+  if (note && ctx.host && typeof ctx.host.log === 'function') ctx.host.log('warn', note);
+  return saved;
 }
 
 // === lolly:shared brandFonts - generated from community/_shared/brand-fonts.js; edit there and run npm run sync:shared ===
