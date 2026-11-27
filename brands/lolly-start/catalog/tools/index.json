@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-26T16:52:07.600Z",
+  "generatedAt": "2026-11-27T00:11:28.259Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3272,7 +3272,7 @@
       "id": "filter",
       "name": "Filter",
       "description": "Photo effects: halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster).",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -5489,7 +5489,7 @@
       "id": "darkroom",
       "name": "Darkroom",
       "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Opens Photoshop and GIMP layers.",
-      "version": "2.6.0",
+      "version": "2.7.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -5545,6 +5545,8 @@
         "penpot",
         "webm",
         "mp4",
+        "gif",
+        "apng",
         "exr",
         "hdr",
         "tiff",

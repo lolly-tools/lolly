@@ -73,7 +73,7 @@ import {
 } from './block-tree.ts';
 import { getTool } from '../bridge/tool-loader.ts';
 import { brandFontFamilies } from '../user-fonts.ts';
-import { mountSidebarLiveControls } from './live-controls.ts';
+import { mountSlotExtras } from './picture-handoff-control.ts';
 import { mountCurvePlots, wireDateTimePickers } from './tool-input-enhancers.ts';
 
 import type { AssetRef, ComposeAPI, InputFile } from '@lolly-tools/core/host-v1';
@@ -2513,7 +2513,7 @@ export function renderInputs(
   // them into the source asset input's slot-actions row after this rebuild wiped
   // the panel. A no-op unless the mounted tool registered a controller
   // (live-controls.ts) - /multi's fanRuntime never does.
-  mountSidebarLiveControls(el, runtime);
+  mountSlotExtras(el, runtime, host, toolId);
 }
 
 // Starting value for a freshly-added block field. An explicit `default` wins;

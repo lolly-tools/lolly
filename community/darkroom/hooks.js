@@ -1059,6 +1059,8 @@ function paramsFrom(inputs) {
     seed: clamp(Math.round(n(inputs.seed, 7)), 1, 9999),
     // view / framing
     splitPreview: !!inputs.splitPreview,
+    // The wipe is the split's seam in motion, so the placed split wins while it is on.
+    wipe: !!inputs.wipe && !inputs.splitPreview,
     histogram: !!inputs.histogram,
     // The whole framing compound, straight through to the shared frameRect - the
     // engine already clamped each field to the manifest's declared range, so a
@@ -2317,9 +2319,10 @@ async function computeLook(model) {
 
   // "Before" layer for the split overlay - the framed source encoded losslessly,
   // cached against the frame key so colour/texture drags don't re-encode it (only
-  // a source/framing/size change does). Only produced while the split is on.
+  // a source/framing/size change does). Only produced while the split or the
+  // wipe is on.
   var beforeSrc = null;
-  if (P.splitPreview && out.__bsFramed) {
+  if ((P.splitPreview || P.wipe) && out.__bsFramed) {
     var fkey = _framedCache.key;
     if (fkey && _beforeCache.key === fkey && _beforeCache.src) beforeSrc = _beforeCache.src;
     else {
@@ -2338,6 +2341,7 @@ async function computeLook(model) {
     outSrc: outSrc, prevSrc: prev, note: null,
     histSvg: histSvg, lutNote: lutNote, lutLabel: lutLabel,
     bakeLut: false, downloadPresetLut: false, split: P.splitPreview, beforeSrc: beforeSrc,
+    wipe: P.wipe && !!beforeSrc,
     videoLook: videoLook,
   };
   return _memoResult;
@@ -2376,18 +2380,64 @@ async function brandFonts(host) {
 }
 // === /lolly:shared brandFonts ===
 
+// What the template reads from the design system besides the picture: the empty
+// state's ground and ink (surface and muted), and the wipe's timing. The wipe runs
+// for two long durations, about a second and a half on the usual scale, on the
+// system's standard curve. Read once, and again after a theme or colourway switch.
+var WIPE_HOLD_MS = 1500;
+var _system = null;
+function tokenMs(v) {
+  var ms = typeof v === 'number' ? v : (v && typeof v === 'object' && typeof v.value === 'number') ? (v.unit === 's' ? v.value * 1000 : v.value) : 0;
+  return ms > 0 ? Math.min(4000, ms) : 0;
+}
+function tokenCurve(v) {
+  if (v && typeof v === 'object' && !Array.isArray(v) && Array.isArray(v.timingFunction)) v = v.timingFunction;
+  if (!Array.isArray(v) || v.length !== 4) return null;
+  for (var i = 0; i < 4; i++) if (typeof v[i] !== 'number' || !isFinite(v[i])) return null;
+  return (v[0] < 0 || v[0] > 1 || v[2] < 0 || v[2] > 1) ? null : v;
+}
+function tokenColour(v) {
+  return typeof v === 'string' && /^(#[0-9a-f]{3,8}|(rgb|hsl|oklch|oklab|lab|lch|color)\([0-9a-z.,%\s\/+-]+\))$/i.test(v.trim()) ? v.trim() : '';
+}
+async function readSystem() {
+  if (_system) return _system;
+  var sys = { ground: '', ink: '', wipeMs: 1400, wipeCurve: [0.2, 0, 0, 1] };
+  if (host.tokens && host.tokens.resolve) {
+    var read = async function (ref) { try { return await host.tokens.resolve(ref); } catch (e) { return null; } };
+    sys.ground = tokenColour(await read('{color.semantic.surface}'));
+    sys.ink = tokenColour(await read('{color.semantic.muted}'));
+    var long = tokenMs(await read('{motion.duration.long}'));
+    if (long) sys.wipeMs = long * 2;
+    sys.wipeCurve = tokenCurve(await read('{motion.curve.standard}')) || sys.wipeCurve;
+  }
+  return (_system = sys);
+}
+
 // The note drawn in place of a picture is set in the design system's text face.
+// Every patch states the wipe, so a patch without one (a note, a live frame, HDR
+// editing) clears the last one.
 async function withFont(result) {
   var r = await result;
   var fonts = await brandFonts(host);
-  return r && typeof r === 'object' ? Object.assign(r, { _fontBrand: fonts.brand }) : r;
+  if (!r || typeof r !== 'object') return r;
+  var sys = await readSystem();
+  var wipe = !!r.wipe;
+  return Object.assign({}, r, {
+    _fontBrand: fonts.brand,
+    _emptyGround: sys.ground,
+    _emptyInk: sys.ink,
+    wipe: wipe,
+    wipeMs: wipe ? sys.wipeMs : 0,
+    wipeCurve: wipe ? sys.wipeCurve.join(',') : '',
+    wipeClipMs: wipe ? sys.wipeMs + WIPE_HOLD_MS : 0,
+  });
 }
 
 function onInit(ctx) { return withFont(compute(ctx.model)); }
 function onInput(ctx) {
   // A theme or colourway switch (id '__tokens'): the treatment seeds are read again
   // in the new choice. The colour key holds the seeds, so the render follows.
-  if (ctx && ctx.id === '__tokens') _brandStops = null;
+  if (ctx && ctx.id === '__tokens') { _brandStops = null; _system = null; }
   return withFont(compute(ctx.model));
 }
 
@@ -2493,6 +2543,7 @@ function onFrame(ctx) {
     outSrc: outSrc, prevSrc: null, note: null,
     histSvg: P.histogram ? buildHistogramSvg(out) : '',
     bakeLut: false, downloadPresetLut: false, split: P.splitPreview, beforeSrc: beforeSrc,
+    wipe: false,
   };
 }
 
