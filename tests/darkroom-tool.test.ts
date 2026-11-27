@@ -374,12 +374,13 @@ test('overlays: histogram + split grips are export-hidden; the divider is not', 
   const tpl = await fetchFile('darkroom/template.html');
   // Anchor on the actual HUD attribute (not the prose mentions in comments/scripts).
   const attr = /\sdata-export-hide(?=[\s>])/g;
-  const hud = tpl.search(attr);
+  const hud = tpl.indexOf('class="bs-hud" data-export-hide');
   assert.ok(hud > 0, 'template has a [data-export-hide] HUD');
-  // Two audited export-hidden nodes: the HUD, and the layered-mode PSD button
-  // (plan 106). Anything beyond these is an unaudited export leak.
-  assert.equal((tpl.match(attr) || []).length, 2,
-    'exactly the two audited export-hidden nodes (HUD + PSD button)');
+  // Three audited export-hidden nodes: the HUD, the layered-mode PSD button
+  // (plan 106) and the wipe's Replay chip. Anything beyond these is an unaudited export leak.
+  assert.equal((tpl.match(attr) || []).length, 3,
+    'exactly the three audited export-hidden nodes (HUD, PSD button, wipe Replay chip)');
+  assert.match(tpl, /data-bs-wipe-replay[^>]*data-export-hide/, 'the Replay chip never reaches an export');
   assert.match(tpl, /data-export-file[^>]*data-export-hide|data-export-hide[^>]*data-export-file/,
     'the second export-hidden node is the PSD rebuild button');
 
