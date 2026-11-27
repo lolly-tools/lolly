@@ -1088,6 +1088,9 @@
   background: var(--ui-color-text-muted);
 }
 .input-section-mark:is([data-tone="warning"], [data-tone="error"]) { background: var(--ui-color-status-danger); }
+/* The phone sheet's notice chip (views/sheet-notice-chip.ts): placed inside the phone
+   breakpoint below, and absent everywhere else. */
+.sheet-notice-chip { display: none; }
 /* Open, the section shows the line itself. */
 .input-section[open] > .input-section-summary > .input-section-mark { display: none; }
 
@@ -4110,6 +4113,32 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     transition: top var(--sheet-settle); /* match the sheet's settle */
   }
   .tool-layout.is-sheet-dragging .sheet-grip { transition: none; }
+
+  /* A warning under an input the sheet is not showing: the shared chip with the
+     section mark's dot, centred on the divider at the sheet's start corner. It rides
+     the sheet like the grip, stands clear of the pill in the middle and of the stage
+     HUD at the far corner, and is its own button, so a touch here never drags. */
+  .sheet-notice-chip:not([hidden]) {
+    display: inline-flex;
+    position: fixed;
+    left: calc(var(--vv-left, 0px) + var(--safe-left, 0px) + var(--sp-5));
+    top: calc(var(--sheet-h) + var(--vv-top, 0px) + var(--safe-top, 0px));
+    transform: translateY(-50%);
+    z-index: 61;                  /* above the grip (60) */
+    border: 1px solid var(--ui-color-border-default);
+    background: var(--ui-color-surface-raised);
+    color: var(--ui-color-text-default);
+    box-shadow: var(--shadow-1);
+    cursor: pointer;
+    /* The sheet's settle in the shell's own motion tokens: the chip arrives with the edge. */
+    transition: top var(--ui-motion-navigation) var(--ui-motion-standard);
+  }
+  .tool-layout.is-sheet-dragging .sheet-notice-chip { transition: none; }
+  @media (prefers-reduced-motion: reduce) { .sheet-notice-chip:not([hidden]) { transition: none; } }
+  html[data-a11y-motion="reduce"] .sheet-notice-chip:not([hidden]) { transition: none; }
+  .sheet-notice-chip > .input-section-mark { margin: 0; }
+  /* The chip is short, so the touch target reaches past its box. */
+  .sheet-notice-chip::after { content: ''; position: absolute; inset: -12px -8px; }
 
   /* End the scrolling controls above the grip's inward half. */
   .sidebar-body { margin-bottom: var(--sheet-body-foot); }

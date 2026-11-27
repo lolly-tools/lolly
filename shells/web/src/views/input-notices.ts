@@ -36,9 +36,17 @@ function rowOf(panel: HTMLElement, inputId: string): HTMLElement | null {
   return null;
 }
 
-function describe(row: HTMLElement, id: string, on: boolean): void {
+/** Fired on the panel after each pass, for chrome that counts the notices on show (the phone sheet's chip). */
+export const INPUT_NOTICES_EVENT = 'lolly:input-notices';
+
+/** The control of a row that takes focus and carries the row's descriptions. */
+export function noticeControl(row: HTMLElement): HTMLElement | null {
   // A colour row's field is a hidden input behind the swatch button, and the button is what takes focus.
-  const control = row.querySelector<HTMLElement>('.color-trigger') ?? row.querySelector<HTMLElement>(CONTROL_SEL);
+  return row.querySelector<HTMLElement>('.color-trigger') ?? row.querySelector<HTMLElement>(CONTROL_SEL);
+}
+
+function describe(row: HTMLElement, id: string, on: boolean): void {
+  const control = noticeControl(row);
   if (!control) return;
   const ids = (control.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean).filter((x) => x !== id);
   if (on) ids.push(id);
@@ -101,6 +109,10 @@ export function applyInputNotices(panel: HTMLElement, notices: Notices | undefin
     if (mark.dataset.tone !== tone) mark.dataset.tone = tone;
     if (mark.getAttribute('aria-label') !== words) { mark.setAttribute('aria-label', words); mark.title = words; }
   }
+
+  // The event class of the panel's own document, which is the page's in a browser.
+  const PanelEvent = panel.ownerDocument.defaultView?.Event ?? Event;
+  panel.dispatchEvent(new PanelEvent(INPUT_NOTICES_EVENT, { bubbles: true }));
 
   // Say what is new or changed, once. A notice that went away is not announced, and
   // neither is what a panel opens with: the page is still announcing its own arrival,
