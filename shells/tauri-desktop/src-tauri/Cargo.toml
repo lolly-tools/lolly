@@ -94,7 +94,7 @@ snow = { version = "0.9", default-features = false, features = ["default-resolve
 arboard = "3"
 # Hot folder (plans/174 #9): inotify/FSEvents/ReadDirectoryChanges watcher
 # behind desktop_hotfolder_set. Non-recursive by design.
-notify = "8"
+notify = "9"
 # lolly:// deep links and file:// argv arrive as URLs; parse, never string-split.
 url = "2"
 
