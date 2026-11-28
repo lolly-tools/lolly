@@ -29,6 +29,10 @@
  * No engine imports: the chrome painter (brand-vars.ts) imports this on the boot path.
  */
 
+/** Fired on `window` after a choice is saved, so every mounted colourway control
+ *  (Settings, the design system menu) shows the same one. */
+export const COLOURWAY_PREF_CHANGED_EVENT = 'lolly:colourway-pref-changed';
+
 /** The profile field the choices live in. */
 export const COLOURWAYS_FIELD = 'colourways';
 
@@ -110,5 +114,6 @@ export async function setPersonalColourway(host: ColourwayPrefHost, systemId: st
     if (Object.keys(choices).length) next[COLOURWAYS_FIELD] = choices;
     else delete next[COLOURWAYS_FIELD];
     await host.profile.set(next);
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event(COLOURWAY_PREF_CHANGED_EVENT));
   } catch { /* a preference save is best effort */ }
 }
