@@ -31,10 +31,10 @@
   max-width: 460px;
   text-align: center;
   cursor: pointer;
-  border: 2px dashed hsl(var(--e-bd));
-  border-radius: 16px;
   padding: 40px 32px;
   transition: border-color .15s ease, background .15s ease;
+  border: 4px dashed color-mix(in srgb, var(--ui-color-surface-canvas) 93%, var(--ui-color-border-default));
+  border-radius: var(--radius);
 }
 .eit-empty:hover,
 .eit-empty:focus-visible { border-color: hsl(var(--e-brand)); outline: none; }

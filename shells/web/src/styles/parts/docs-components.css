@@ -570,6 +570,7 @@ html[data-a11y-contrast="high"] .docs-content .doc-note--warning { --doc-note-to
   block-size: 4.5rem;
   background: var(--docs-rule);
   pointer-events: none;
+  opacity: .5;
 }
 .docs-content .md-section-icon svg { width: 3.5rem; height: 3.5rem; flex: none; }
 .docs-content .md-section-icon + :is(h2, h3) { margin-block-start: 0; padding-block-start: 0; border-block-start: 0; }
