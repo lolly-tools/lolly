@@ -185,7 +185,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ```
 
-### sql-formatter 15.9.1
+### sql-formatter 15.10.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2016-2020 ZeroTurnaround LLC; Copyright (c) 2020-2021 George Leslie-Waksman and other contributors; Copyright (c) 2021-Present inferrinizzard and other contributors
@@ -275,7 +275,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
 
-### terser 5.51.2
+### terser 5.51.4
 
 - SPDX-License-Identifier: `BSD-2-Clause`
 - Copyright: Copyright 2012-2018 (c) Mihai Bazon <mihai.bazon@gmail.com>; copyright notice, this list of conditions and the following; copyright notice, this list of conditions and the following
@@ -345,7 +345,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### dompurify 3.4.18
+### dompurify 3.5.0
 
 - SPDX-License-Identifier: `MPL-2.0 (elected from "(MPL-2.0 OR Apache-2.0)")`
 - Copyright: (c) Cure53 and other contributors
@@ -1585,7 +1585,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 ```
 
-### @tiptap/core 3.34.0
+### @tiptap/core 3.35.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1614,7 +1614,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/pm 3.34.0
+### @tiptap/pm 3.35.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1643,7 +1643,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/starter-kit 3.34.0
+### @tiptap/starter-kit 3.35.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1672,7 +1672,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-image 3.34.0
+### @tiptap/extension-image 3.35.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1701,7 +1701,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-placeholder 3.34.0
+### @tiptap/extension-placeholder 3.35.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1730,7 +1730,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table 3.34.0
+### @tiptap/extension-table 3.35.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1759,7 +1759,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table-cell 3.34.0
+### @tiptap/extension-table-cell 3.35.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1788,7 +1788,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table-header 3.34.0
+### @tiptap/extension-table-header 3.35.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1817,7 +1817,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table-row 3.34.0
+### @tiptap/extension-table-row 3.35.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1846,7 +1846,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-text-align 3.34.0
+### @tiptap/extension-text-align 3.35.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1875,7 +1875,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-text-style 3.34.0
+### @tiptap/extension-text-style 3.35.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -2822,7 +2822,7 @@ SOFTWARE.
 license of the upstream project, https://github.com/evanw/kiwi.)
 ```
 
-### zxing-wasm 3.1.7
+### zxing-wasm 3.1.8
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2023 Ze-Zheng Wu
