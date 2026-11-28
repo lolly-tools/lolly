@@ -22,8 +22,8 @@ globalThis.localStorage = {
   setItem: (k: string, v: string) => { store.set(k, String(v)); },
   removeItem: (k: string) => { store.delete(k); },
   clear: () => store.clear(),
-  key: () => null,
-  length: 0,
+  key: (i: number) => [...store.keys()][i] ?? null,
+  get length() { return store.size; },
 } as unknown as Storage;
 
 type Handler = (url: string, init?: RequestInit) => Response | Promise<Response>;
@@ -35,7 +35,7 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   return router(String(input), init);
 }) as typeof fetch;
 
-const { probeInstance, initOrgProbeFirst, isRecentlyAbsent, AUTH_PROBE_BUDGET_MS, PROBE_TIMEOUT_MS } = await import('./probe.ts');
+const { probeInstance, probeForBoot, gateRemembered, initOrgProbeFirst, isRecentlyAbsent, cleanAnswerRemembered, onGateShown, noteGateShown, AUTH_PROBE_BUDGET_MS, CLEAN_ANSWER_TTL_MS, GATED_RETRY_DELAYS_MS, PROBE_TIMEOUT_MS, SHARED_ANSWER_FRESH_MS } = await import('./probe.ts');
 
 const ABSENT_KEY = 'lolly:org-absent:same-origin';
 const SLOW_KEY = 'lolly:org-probe-unanswered:same-origin';
@@ -250,3 +250,327 @@ for (const status of [401, 403, 429]) {
     assert.ok(!store.has(ABSENT_KEY));
   });
 }
+
+// ── The last answer (plan 371): paint before the probe only after a clean answer ─────
+
+/** Node has no page, so the origin part of the key is empty here. */
+const LAST_KEY = 'lolly:org-last-answer:|same-origin';
+const lastAnswer = (): { v: number; answer: string; at: number } | null =>
+  store.has(LAST_KEY) ? JSON.parse(store.get(LAST_KEY)!) : null;
+
+for (const [label, answer] of [['a 404', () => new Response('', { status: 404 })], ['the SPA\'s own HTML', () => html(200)]] as const) {
+  test(`${label} is remembered as "no control plane", so the next boot may paint first`, async () => {
+    assert.equal(cleanAnswerRemembered(), false, 'no record: boot waits');
+    router = answer;
+    await probeInstance();
+    assert.equal(lastAnswer()?.answer, 'absent');
+    assert.equal(cleanAnswerRemembered(), true);
+  });
+}
+
+test('a control plane is remembered as one, and replaces an earlier clean answer', async () => {
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  assert.equal(cleanAnswerRemembered(), true);
+  router = () => json({ mode: 'gated', provider: 'oidc', loginPath: '/login' });
+  await probeInstance();
+  assert.equal(lastAnswer()?.answer, 'control-plane');
+  assert.equal(cleanAnswerRemembered(), false, 'a gated deployment never paints first');
+});
+
+test('a probe with no answer writes nothing: never "no control plane", and an earlier gate stands', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  router = after(60_000, () => html(404));
+  await run(t, probeInstance(), AUTH_PROBE_BUDGET_MS + 1000);
+  assert.equal(lastAnswer(), null, 'a timeout is not an answer');
+  assert.equal(cleanAnswerRemembered(), false);
+
+  router = () => json(config);
+  await run(t, probeInstance(), AUTH_PROBE_BUDGET_MS);
+  for (const silent of [after(60_000, () => html(404)), () => html(503), () => { throw new TypeError('Failed to fetch'); }]) {
+    router = silent as Handler;
+    await run(t, probeInstance(), AUTH_PROBE_BUDGET_MS + 1000);
+    assert.equal(lastAnswer()?.answer, 'control-plane', 'a silent probe does not clear what a control plane said');
+    assert.equal(cleanAnswerRemembered(), false);
+  }
+});
+
+for (const status of [401, 403, 429, 500, 503]) {
+  test(`a ${status} writes no answer`, async (t) => {
+    t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+    router = () => html(status);
+    await run(t, probeInstance(), AUTH_PROBE_BUDGET_MS);
+    assert.equal(lastAnswer(), null);
+    assert.equal(cleanAnswerRemembered(), false);
+  });
+}
+
+test('JSON that is not an auth config writes no answer', async () => {
+  router = () => json({ hello: 'world' });
+  await probeInstance();
+  assert.equal(lastAnswer(), null);
+});
+
+test('a clean answer lasts its lifetime and no longer', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  assert.equal(CLEAN_ANSWER_TTL_MS, 30 * 24 * 60 * 60 * 1000);
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  const at = Date.now();
+  assert.equal(cleanAnswerRemembered(at + CLEAN_ANSWER_TTL_MS - 1), true);
+  assert.equal(cleanAnswerRemembered(at + CLEAN_ANSWER_TTL_MS), false, 'expired: boot waits again');
+});
+
+test('a damaged, foreign or future record is not believed', () => {
+  const now = Date.now();
+  for (const raw of [
+    'not json',
+    'null',
+    JSON.stringify({ answer: 'absent', at: now }),
+    JSON.stringify({ v: 2, answer: 'absent', at: now }),
+    JSON.stringify({ v: 1, answer: 'none', at: now }),
+    JSON.stringify({ v: 1, answer: 'absent', at: 'now' }),
+    JSON.stringify({ v: 1, answer: 'absent', at: null }),
+    JSON.stringify({ v: 1, answer: 'absent', at: now + 10 * 60 * 1000 }),
+  ]) {
+    store.set(LAST_KEY, raw);
+    assert.equal(cleanAnswerRemembered(now), false, raw);
+  }
+  store.set(LAST_KEY, JSON.stringify({ v: 1, answer: 'absent', at: now }));
+  assert.equal(cleanAnswerRemembered(now), true, 'the well-formed record is');
+});
+
+test('the record is kept per origin and instance base', async () => {
+  const realLocation = Object.getOwnPropertyDescriptor(globalThis, 'location');
+  const setOrigin = (origin: string) => Object.defineProperty(globalThis, 'location', { value: { origin }, configurable: true, writable: true });
+  try {
+    setOrigin('https://a.example');
+    router = () => new Response('', { status: 404 });
+    await probeInstance();
+    assert.ok(store.has('lolly:org-last-answer:https://a.example|same-origin'));
+    assert.equal(cleanAnswerRemembered(), true);
+    setOrigin('https://b.example');
+    assert.equal(cleanAnswerRemembered(), false, 'another origin has its own record');
+  } finally {
+    if (realLocation) Object.defineProperty(globalThis, 'location', realLocation);
+    else delete (globalThis as { location?: unknown }).location;
+  }
+});
+
+test('a device that has seen a managed AI policy here never paints first', async () => {
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  store.set('lolly:managed-ai:same-origin', '1');
+  assert.equal(cleanAnswerRemembered(), false);
+});
+
+test('a clean answer from a slower tab does not undo a later control-plane answer', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  const now = Date.now();
+  // Another tab learned of a control plane a moment after this tab's probe answered.
+  store.set(LAST_KEY, JSON.stringify({ v: 1, answer: 'control-plane', at: now + 5000 }));
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  assert.equal(lastAnswer()?.answer, 'control-plane');
+  assert.equal(cleanAnswerRemembered(), false);
+  // A clean answer stamped after the control plane's does replace the record.
+  t.mock.timers.setTime(now + 10_000);
+  await probeInstance();
+  assert.equal(lastAnswer()?.answer, 'absent');
+});
+
+test('the gate listener hears the drawn gate, and a failing listener cannot break the renderer', () => {
+  const seen: Array<unknown> = [];
+  const gate = { marker: 'gate' } as unknown as Element;
+  onGateShown(node => { seen.push(node); });
+  noteGateShown(gate);
+  assert.deepEqual(seen, [gate]);
+  onGateShown(() => { throw new Error('listener broke'); });
+  const error = console.error;
+  console.error = () => {};
+  try { assert.doesNotThrow(() => noteGateShown(gate)); } finally { console.error = error; }
+  onGateShown(null);
+  noteGateShown(gate);
+  assert.equal(seen.length, 1);
+});
+
+test('a device that has seen a control plane here never paints first again, even after a later clean answer', async () => {
+  // A control plane answers on this origin (a gated workspace that members sign in to).
+  router = () => json({ mode: 'gated', provider: 'oidc', loginPath: '/login' });
+  const error = console.error;
+  const warn = console.warn;
+  console.error = () => {};
+  console.warn = () => {};
+  try { await initOrgProbeFirst(); } finally { console.error = error; console.warn = warn; }
+  assert.equal(store.get('lolly:managed-ai:same-origin'), '1', 'the first control-plane answer marks the device');
+  // The control plane goes away, then comes back with a gate. In between the probe saw a 404.
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  assert.equal(lastAnswer()?.answer, 'absent');
+  assert.equal(cleanAnswerRemembered(), false, 'saved work made under accounts is never painted ahead of the gate');
+  // A forged clean record changes nothing on such a device either.
+  store.set(LAST_KEY, JSON.stringify({ v: 1, answer: 'absent', at: Date.now() }));
+  assert.equal(cleanAnswerRemembered(), false);
+});
+
+test('a control plane met under another instance base also keeps boot waiting (saved work is per origin)', async () => {
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  assert.equal(cleanAnswerRemembered(), true);
+  store.set('lolly:managed-ai:https://a.example', '1');
+  assert.equal(cleanAnswerRemembered(), false, 'a managed instance used from this origin');
+  store.delete('lolly:managed-ai:https://a.example');
+  store.set('lolly:org-last-answer:|https://a.example', JSON.stringify({ v: 1, answer: 'control-plane', at: Date.now() }));
+  assert.equal(cleanAnswerRemembered(), false, 'a control plane answered for another base');
+  store.delete('lolly:org-last-answer:|https://a.example');
+  assert.equal(cleanAnswerRemembered(), true);
+});
+
+test('storage that cannot be listed counts as having met a control plane', async () => {
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  const key = localStorage.key;
+  (localStorage as { key: (i: number) => string | null }).key = () => { throw new Error('blocked'); };
+  try { assert.equal(cleanAnswerRemembered(), false); } finally { (localStorage as { key: typeof key }).key = key; }
+});
+
+// ── A gated origin stays gated (plan 371) ─────────────────────────────────────
+//
+// Two tabs booting together on a slow control plane share one HTTP/1.1 connection
+// pool, so the second tab's probe can wait behind the first tab's downloads and run
+// out of time. Before this, that silence read as "no control plane" and the tab
+// booted without its gate. Now silence on an origin last known to be gated keeps the
+// tab waiting and asking, and a tab takes another tab's answer when it arrives first.
+
+const gatedConfig = { mode: 'gated', provider: 'oidc', loginPath: '/login' };
+const HOUR = 60 * 60 * 1000;
+const rememberGate = (extra: Record<string, unknown> = { auth: gatedConfig }, age = HOUR): void => {
+  store.set(LAST_KEY, JSON.stringify({ v: 1, answer: 'control-plane', at: Date.now() - age, ...extra }));
+};
+/** Move mocked time on by `ms`, letting promise callbacks run between steps. */
+async function advance(t: { mock: { timers: { tick(ms: number): void } } }, ms: number, stepMs = 50): Promise<void> {
+  for (let elapsed = 0; elapsed < ms; elapsed += stepMs) { await flush(); t.mock.timers.tick(stepMs); }
+  await flush();
+}
+/** Let real event-loop turns pass (a BroadcastChannel message needs one). */
+async function turns(n = 5): Promise<void> {
+  for (let i = 0; i < n; i++) await new Promise(resolve => setImmediate(resolve));
+}
+
+test('a control-plane answer is written down with its public auth config', async () => {
+  router = () => json(gatedConfig);
+  await probeInstance();
+  assert.deepEqual((lastAnswer() as { auth?: unknown } | null)?.auth, gatedConfig);
+  store.set(LAST_KEY, JSON.stringify({ v: 1, answer: 'control-plane', at: Date.now(), auth: { mode: 'nonsense' } }));
+  assert.equal(gateRemembered(), false, 'a record with a damaged config is not believed');
+});
+
+test('which remembered answers count as a gate', () => {
+  assert.equal(gateRemembered(), false, 'no record');
+  store.set(LAST_KEY, JSON.stringify({ v: 1, answer: 'absent', at: Date.now() }));
+  assert.equal(gateRemembered(), false, 'no control plane');
+  rememberGate({ auth: { ...gatedConfig, mode: 'open' } });
+  assert.equal(gateRemembered(), false, 'an open control plane draws no gate');
+  rememberGate({ auth: gatedConfig });
+  assert.equal(gateRemembered(), true);
+  rememberGate({ auth: { ...gatedConfig, mode: 'per-tool' } });
+  assert.equal(gateRemembered(), true, 'per tool gates some tools');
+  rememberGate({});
+  assert.equal(gateRemembered(), true, 'a record from before the config was kept is treated as gated');
+});
+
+test('a timeout on a gated origin stays gated: the tab keeps waiting and asks again until the control plane answers', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  rememberGate();
+  // Three requests go unanswered, then the control plane answers at once.
+  router = (url, init) => (calls <= 3 ? after(60_000, () => html(404))(url, init) : json(gatedConfig));
+  let done = false;
+  const boot = probeForBoot().then(r => { done = true; return r; });
+  // The first long budget, the first pause and ask, and most of the second pause.
+  const [first, second] = GATED_RETRY_DELAYS_MS as [number, number];
+  await advance(t, AUTH_PROBE_BUDGET_MS + first + AUTH_PROBE_BUDGET_MS + second - 500);
+  assert.equal(done, false, 'silence is not "no control plane" on a gated origin');
+  assert.equal(calls, 2, 'asked again after the first pause, each time with the long budget');
+  assert.deepEqual(await run(t, boot, 60_000), { auth: gatedConfig, absent: false });
+  assert.equal(calls, 4);
+});
+
+test('a gated origin whose control plane keeps failing with 5xx also keeps waiting', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  rememberGate();
+  router = () => (calls <= 4 ? html(503) : json(gatedConfig));
+  assert.deepEqual(await run(t, probeForBoot(), 60_000), { auth: gatedConfig, absent: false });
+  assert.equal(calls, 5);
+});
+
+test('a gated origin takes a real "no control plane" when it finally comes', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  rememberGate({});
+  router = (url, init) => (calls <= 1 ? after(60_000, () => html(404))(url, init) : new Response('', { status: 404 }));
+  assert.deepEqual(await run(t, probeForBoot(), 60_000), { auth: null, absent: true });
+  assert.equal(calls, 2);
+  assert.equal(lastAnswer()?.answer, 'absent');
+});
+
+test('a timeout on a never-gated origin paints as before: one request, dormant after the budget', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  store.set(LAST_KEY, JSON.stringify({ v: 1, answer: 'absent', at: Date.now() - 1000 }));
+  assert.equal(cleanAnswerRemembered(), true, 'the browse routes paint before the probe answers (PR #1053)');
+  router = after(60_000, () => html(404));
+  assert.deepEqual(await run(t, probeForBoot(), AUTH_PROBE_BUDGET_MS + 1000), { auth: null, absent: false });
+  assert.equal(calls, 1, 'not asked again');
+  store.clear(); calls = 0;
+  assert.deepEqual(await run(t, probeForBoot(), AUTH_PROBE_BUDGET_MS + 1000), { auth: null, absent: false }, 'no record at all: the same');
+  assert.equal(calls, 1);
+});
+
+test('an open control plane, or an offline device on a gated origin, boots as before', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  rememberGate({ auth: { ...gatedConfig, mode: 'open' } });
+  router = after(60_000, () => html(404));
+  assert.deepEqual(await run(t, probeForBoot(), AUTH_PROBE_BUDGET_MS + 1000), { auth: null, absent: false });
+  assert.equal(calls, 1);
+  rememberGate(); calls = 0;
+  router = () => { throw new TypeError('Failed to fetch'); };
+  assert.deepEqual(await run(t, probeForBoot(), 1000), { auth: null, absent: false }, 'a request that fails at once is not silence');
+  assert.equal(calls, 1);
+});
+
+test('a second tab uses the first tab\'s answer instead of waiting on its own request', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  rememberGate();
+  let aborted = false;
+  // This tab's request is stuck behind the other tab's downloads.
+  router = (_url, init) => new Promise<Response>((_resolve, reject) => {
+    init?.signal?.addEventListener('abort', () => { aborted = true; reject(new DOMException('aborted', 'AbortError')); });
+  });
+  let result: unknown = null;
+  const boot = probeForBoot().then(r => { result = r; });
+  await flush();
+  t.mock.timers.tick(500);
+  await flush();
+  const otherTab = new BroadcastChannel('lolly:org-answer');
+  try {
+    otherTab.postMessage({ v: 1, key: 'lolly:org-last-answer:|https://elsewhere.example', answer: 'absent' });
+    await turns();
+    await flush();
+    assert.equal(result, null, 'an answer about another instance base is ignored');
+    otherTab.postMessage({ v: 1, key: LAST_KEY, answer: 'control-plane', auth: gatedConfig });
+    await turns();
+    await boot;
+  } finally { otherTab.close(); }
+  assert.deepEqual(result, { auth: gatedConfig, absent: false });
+  assert.equal(calls, 1, 'no further request');
+  assert.ok(aborted, 'its own request is let go');
+});
+
+test('a tab booting just after another tab answered uses that answer with no request', async () => {
+  rememberGate({ auth: gatedConfig }, 2000);
+  router = () => { throw new Error('no request expected'); };
+  assert.deepEqual(await probeForBoot(), { auth: gatedConfig, absent: false });
+  assert.equal(calls, 0);
+  rememberGate({ auth: gatedConfig }, SHARED_ANSWER_FRESH_MS + 1);
+  router = () => json(gatedConfig);
+  assert.deepEqual(await probeForBoot(), { auth: gatedConfig, absent: false });
+  assert.equal(calls, 1, 'an older answer is asked again');
+});

@@ -1,6 +1,6 @@
 {
   "name": "Laboratório de Paletas",
-  "description": "Faça crescer uma paleta a partir de uma cor semente - acentos harmônicos, rampas perceptuais OKLab e selos de legibilidade WCAG/APCA, com tokens DTCG e exportação CSV.",
+  "description": "Faça crescer uma paleta a partir de uma cor semente - acentos harmônicos, rampas OKLab e selos de legibilidade WCAG/APCA, com tokens DTCG e exportação CSV.",
   "inputs.seed.label": "Cor semente",
   "inputs.seed.help": "A cor da qual toda a paleta nasce - o padrão é a cor primária da sua marca.",
   "inputs.harmony.label": "Harmonia",

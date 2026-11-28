@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `tview.<module>.<fn>`. Extracted verbatim
  * from mountTool() by scripts/split-closure.ts.
  */
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import { flushAddressWrites, replaceRouteUrl, updateRouteParams } from '../../lib/url-state.ts';
 import { acquireCollabSession } from '../../lib/collab-session-source.ts';
 import { mountPeerViewport } from '../tool-peer-view.ts';
@@ -15,6 +16,7 @@ import { mountStageMotion } from '../../lib/stage-lod.ts';
 import { stageBottomReserve, stageSideReserve } from '../../lib/design-panel-layout.ts';
 import { hudClearance } from '../../lib/stage-hud-clearance.ts';
 import { carryMountState, willRemountForCollab } from '../../lib/collab-live-mount.ts';
+import { carryRenderMount, willRemountForRender } from '../tool-render-mode.ts';
 import { releaseTeamSessionOrigin } from '../../org/team-session-origin.ts';
 import type { ToolCollab } from '../tool-collab.ts';
 import { stopFrameFps } from '../../lib/frame-fps.ts';
@@ -37,6 +39,7 @@ import { createProfileControl } from '../../components/profile-menu.ts';
 import { addFallbackSlots } from '../../lib/fallback-slots.ts';
 import { mountScopedStyle, releaseLeavingStyles, removeStyleWithMarkup } from '../../lib/scope-css.ts';
 import { flickDirection, setupMobileSheet } from '../../lib/mobile-sheet.ts';
+import { mountSheetNoticeChip } from '../sheet-notice-chip.ts';
 import { wireExportPanelFloat } from '../../lib/export-panel-float.ts';
 import { dockedFullCount, isDocked, releaseDock } from '../../lib/edge-dock.ts';
 import { playSfx } from '../../lib/sfx.ts';
@@ -108,7 +111,7 @@ export function updateFullParam(tview: ToolViewCtx, shouldBeFull: boolean): void
 
 export function fitCanvas(tview: ToolViewCtx): void {
   if (tview.stageZoom?.isSuspended()) return;
-  const { canvasEl, nativeH, nativeW, outerEl, pagedDoc, pagesMode, sidebarEl, stageEl, visitorPage } = tview;
+  const { canvasEl, nativeH, nativeW, outerEl, pagedDoc, pagesMode, stageEl, visitorPage } = tview;
   if (visitorPage) return; // a visitor page flows as a document - never scaled to fit
   if (!canvasEl || !outerEl) return;
   if (tview.stageZoom?.isZoomed()) return; // preserve pan/zoom across window/sidebar resize
@@ -129,11 +132,7 @@ export function fitCanvas(tview: ToolViewCtx): void {
   // sizes AND centres the canvas within the area the sheet leaves visible - not
   // behind it. getBoundingClientRect is the border-box (padding-independent), so
   // the scale math stays stable as we set the padding.
-  let topPad = 0;
-  if (sidebarEl && isPhoneLayout()) {
-    const sheetBottom = sidebarEl.getBoundingClientRect().bottom;
-    topPad = Math.max(0, Math.min(stageRect.height, sheetBottom - stageRect.top));
-  }
+  const topPad = sheetOverlap(tview, stageRect);
   const padPx = topPad ? `${topPad}px` : '';
   if (stageEl.style.paddingTop !== padPx) stageEl.style.paddingTop = padPx; // guard the ResizeObserver
 
@@ -203,9 +202,23 @@ export function resetView(tview: ToolViewCtx): void {
 // correctly). Height grows via CSS (#tool-canvas + its root are height:auto here), so
 // adding a page just makes the surface taller. `zoom` is neutralised during export
 // (exportUnscaled) so each page still prints at its true, unscaled page size.
+/** How far the phone controls sheet covers the top of the stage, in px. 0 off a phone. */
+function sheetOverlap(tview: ToolViewCtx, stageRect: DOMRect): number {
+  const { sidebarEl } = tview;
+  if (!sidebarEl || !isPhoneLayout()) return 0;
+  return Math.max(0, Math.min(stageRect.height, sidebarEl.getBoundingClientRect().bottom - stageRect.top));
+}
 export function fitPagedDoc(tview: ToolViewCtx): void {
-  const { canvasEl, nativeW, stageEl, webDoc } = tview;
+  const { canvasEl, nativeW, outerEl, stageEl, webDoc } = tview;
   if (!canvasEl) return;
+  // The scroll surface fills the stage, and on a phone the controls sheet covers the top
+  // of the stage. Start the surface at the sheet's edge, as fitCanvas pads a single
+  // canvas, so the top of the page (a scan result, the first page) is not under the sheet.
+  if (outerEl) {
+    const top = sheetOverlap(tview, stageEl.getBoundingClientRect());
+    const topPx = top ? `${Math.round(top)}px` : '';
+    if (outerEl.style.top !== topPx) outerEl.style.top = topPx;
+  }
   // A web-page preview never zooms: the canvas IS the viewport, CSS gives it
   // the pane's full width and the content reflows there like a real page.
   if (webDoc) {
@@ -325,7 +338,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
     ? `
     <div class="tool-notice" role="status" id="dropped-assets-notice">
       <span class="tool-notice-text">${droppedLines.join(' ')}</span>
-      <button type="button" class="tool-notice-close" id="dropped-assets-dismiss" aria-label="${escapeText(t('Dismiss this message'))}">✕</button>
+      ${closeButtonHtml({ size: 'sm', inherit: true, className: 'tool-notice-close', label: t('Dismiss this message'), attrs: { id: 'dropped-assets-dismiss' } })}
     </div>`
     : ''; tview.droppedNotice = droppedNotice;
 
@@ -336,7 +349,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
     <div class="tool-notice" role="status" id="capture-hint-notice">
       ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - docsAppHref() over a build-time slug constant, always '#/docs/…' */ ''}
       <span class="tool-notice-text">${t('Compose a shot and copy its recipe here. Saving it to a file needs the desktop app or browser extension.')} <a href="${escapeText(docsAppHref('create/extension'))}" target="_blank" rel="noopener">${t('Get the extension')}</a></span>
-      <button type="button" class="tool-notice-close" id="capture-hint-dismiss" aria-label="${escapeText(t('Dismiss this message'))}">✕</button>
+      ${closeButtonHtml({ size: 'sm', inherit: true, className: 'tool-notice-close', label: t('Dismiss this message'), attrs: { id: 'capture-hint-dismiss' } })}
     </div>`
     : ''; tview.captureNotice = captureNotice;
 
@@ -365,7 +378,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
               )
       }
         ${madeWithOnDevice ? ` <button type="button" class="tool-notice-link" id="made-with-switch">${t('Switch to {name}', { name: escapeText(madeWith.label) })}</button>` : ''}</span>
-      <button type="button" class="tool-notice-close" id="made-with-dismiss" aria-label="${escapeText(t('Dismiss this message'))}">✕</button>
+      ${closeButtonHtml({ size: 'sm', inherit: true, className: 'tool-notice-close', label: t('Dismiss this message'), attrs: { id: 'made-with-dismiss' } })}
     </div>`
     : ''; tview.madeWithNotice = madeWithNotice;
 
@@ -539,7 +552,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
           <div class="export-popup" role="dialog" aria-modal="true" data-canvas-keys="off" aria-label="${escapeText(t('Export'))}">
             <div class="export-popup-head">
               <span class="export-popup-title">${t('Export')}</span>
-              <button type="button" class="export-popup-close" data-export-close aria-label="${escapeText(t('Close'))}">&#x2715;</button>
+              ${closeButtonHtml({ className: 'export-popup-close', attrs: { 'data-export-close': true } })}
             </div>
             <div class="export-popup-body" id="export-popup-body"></div>
           </div>
@@ -1075,11 +1088,14 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     // most of the screen - re-fit there so the canvas grows into the freed space.
     // fitCanvas no-ops if the user has zoomed/panned, so this only fires at Fit.
     // Wait out the 0.34s height settle so it measures the final sheet position.
-    setupMobileSheet(layout, sidebarEl, sheetGrip, {
+    const sheet = setupMobileSheet(layout, sidebarEl, sheetGrip, {
       onChange: (snap) => {
-        if (snap === 'peek') setTimeout(tview.stageLayout.fitCanvas, 360);
+        // A paged or web-page surface scrolls under the sheet's edge, so it follows every snap.
+        if (snap === 'peek' || tview.pagedDoc) setTimeout(tview.stageLayout.fitCanvas, 360);
       },
     });
+    // A warning under an input the sheet is not showing gets one chip on the sheet's edge.
+    mountSheetNoticeChip({ layout, sidebar: sidebarEl, sheet });
   }
 
   // Collapse the export/actions panel behind a "Render" button on BOTH mobile and
@@ -1337,6 +1353,10 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
       placeActions();
       applyModality();
       settleSheet();
+      // The layout is decided inside the resize event, ahead of the listeners that
+      // move a docked sheet back to its overlay, and that move restyles the sheet
+      // again. The frame that follows settles whatever they started, before any paint.
+      requestAnimationFrame(settleSheet);
     };
     mqMobile.addEventListener('change', onBreakpoint);
     tview.exportTeardown = () => {
@@ -1369,7 +1389,9 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     // reason we are being torn down, the live model crosses in memory instead. The
     // predicate is three comparisons and no allocation, which is the whole cost every
     // ordinary teardown pays for this.
-    if (willRemountForCollab(toolId)) {
+    // A mount replaced because its render settings changed (`render.when`) hands its
+    // values over the same way (views/tool-render-mode.ts).
+    if (willRemountForCollab(toolId) || willRemountForRender(toolId)) {
       const live: Record<string, unknown> = {};
       // `undefined` is skipped rather than carried: the carry is applied ON TOP of the
       // route, so a value the model does not hold would otherwise blank one the route
@@ -1377,6 +1399,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
       for (const item of runtime.getModel())
         if (item.value !== undefined) live[item.id] = item.value;
       carryMountState(toolId, slot ?? null, live);
+      carryRenderMount(toolId, slot ?? null, live, tview.dirtyParams);
     }
     // Latch first: the template chooser is un-awaited and outlives nothing else here,
     // so this is the ONLY thing that stops it landing on a torn-down runtime. Closing

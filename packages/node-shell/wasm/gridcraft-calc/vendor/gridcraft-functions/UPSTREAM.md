@@ -1,7 +1,7 @@
 # GridCraft function library
 
-Source: https://github.com/storytold/gridcraft/tree/5e415cdd34d287b90a4a9df67eb4f532f6f72d96/crates/functions
-Commit: 5e415cdd34d287b90a4a9df67eb4f532f6f72d96
+Source: https://github.com/storytold/gridcraft/tree/11a5711ab11c4b94acce63faa07bb42c058c124f/crates/functions
+Commit: 11a5711ab11c4b94acce63faa07bb42c058c124f (upstream main after v0.19.1; head 927d4d6 has the same crate contents on 2026-11-22)
 Licence: MIT OR Apache-2.0. The upstream licence and notice files are retained here.
 
 Provenance statement from the upstream repository (AGENTS.md): GridCraft describes itself as clean-room.

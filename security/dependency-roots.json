@@ -138,6 +138,14 @@
       "owner": "packages/node-shell"
     },
     {
+      "id": "woff2-kernel-cargo",
+      "ecosystem": "cargo",
+      "directory": "packages/node-shell/wasm/woff2-kernel",
+      "lockfile": "packages/node-shell/wasm/woff2-kernel/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "packages/node-shell"
+    },
+    {
       "id": "geometry-kernel-cargo",
       "ecosystem": "cargo",
       "directory": "packages/node-shell/wasm/geometry-kernel",
@@ -168,6 +176,22 @@
       "lockfile": "packages/node-shell/wasm/portable-math/Cargo.lock",
       "exposure": "shipped-runtime",
       "owner": "packages/node-shell"
+    },
+    {
+      "id": "lolly-render-cargo",
+      "ecosystem": "cargo",
+      "directory": "crates/lolly-render",
+      "lockfile": "crates/lolly-render/Cargo.lock",
+      "exposure": "build-toolchain",
+      "owner": "crates/lolly-render"
+    },
+    {
+      "id": "lolly-render-node-cargo",
+      "ecosystem": "cargo",
+      "directory": "crates/lolly-render-node",
+      "lockfile": "crates/lolly-render-node/Cargo.lock",
+      "exposure": "shipped-runtime",
+      "owner": "crates/lolly-render-node"
     },
     {
       "id": "tauri-glib-iterator-probe-cargo",

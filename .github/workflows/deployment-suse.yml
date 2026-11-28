@@ -131,7 +131,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '24'
+          node-version: '^24.22.1'
           package-manager-cache: false
 
       - name: Install checksum-verified chart tools
@@ -294,7 +294,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '24'
+          node-version: '^24.22.1'
           package-manager-cache: false
 
       - name: Install checksum-verified Caddy
@@ -377,7 +377,7 @@ jobs:
           submodules: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '24'
+          node-version: '^24.22.1'
           package-manager-cache: false
       - name: Bind the candidate to its completed normal main CI
         run: |
@@ -458,7 +458,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
 
       - name: Require the existing public pin before frontend signing
@@ -530,7 +530,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
 
       - name: Require the reviewed source and existing public pin
@@ -716,7 +716,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '24'
+          node-version: '^24.22.1'
           package-manager-cache: false
 
       - name: Require the reviewed source
@@ -781,7 +781,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
 
       - name: Require the reviewed source
@@ -915,7 +915,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
 
       - name: Require the reviewed source
@@ -1083,7 +1083,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
 
       - name: Require the reviewed source
@@ -1285,7 +1285,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '24'
+          node-version: '^24.22.1'
           package-manager-cache: false
 
       - name: Require the reviewed source
@@ -1342,7 +1342,7 @@ jobs:
     steps:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '24'
+          node-version: '^24.22.1'
       # Export successful image jobs from the exact completed source run.
       # A scope can omit images; an omitted web gate differs from a gate
       # that ran successfully and withheld the web image. Failed images stay out.

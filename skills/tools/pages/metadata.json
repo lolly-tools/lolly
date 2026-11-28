@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "pages",
-  "toolVersion": "1.1.2",
-  "toolVersionRange": "1.1.2",
+  "toolVersion": "1.2.4",
+  "toolVersionRange": "1.2.4",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,12 +10,12 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "1bc9a774dfec32e6976e617f0f79a4ee7f664978b035ffde7007fd4465b993b9",
-      "bytes": 1713
+      "sha256": "5c11c4acbc40b3386585f265f941730b913a9b5491dda6d86e4e0cc6ded813b0",
+      "bytes": 2005
     },
     "reference/inputs.json": {
-      "sha256": "f372d88cc3c7a6028f0c87791ab6b7c85a1ff2abfad3a1be3f63cc525c8bd28b",
-      "bytes": 2870
+      "sha256": "a1007e9c0ebe88eb96ac87f191ef8b83bc57782fb49168bd728ac8c996b8c7e9",
+      "bytes": 7483
     }
   }
 }

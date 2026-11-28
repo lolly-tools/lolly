@@ -1,28 +1,31 @@
-# পরিচালনা
+# পরিচালনা করুন
 
-Lolly প্রতিটি মানুষের নিজের ডিভাইসে চলে। কোনো দলের সাইন-ইন, শেয়ার্ড প্রজেক্ট, নিয়ন্ত্রিত অ্যাসেট, রিভিউ ও সার্ভার জব লাগলে প্রতিষ্ঠান যোগ করে **Lolly Work**, একই প্রকল্পের ওপেন-সোর্স অর্গানাইজেশন সার্ভার। এই পৃষ্ঠাগুলো তাদের জন্য যারা সেই সার্ভার বানায় ও দেখাশোনা করে।
+Lolly প্রতিটি ব্যক্তির ডিভাইসে চলে। এই পৃষ্ঠাগুলো তাঁদের জন্য, যাঁরা **Lolly Work** চালান, যা সাইন-ইন, শেয়ার করা প্রজেক্ট, নিয়ন্ত্রিত অ্যাসেট, পর্যালোচনা ও সার্ভারের কাজের জন্য প্রকল্পটির তৈরি প্রতিষ্ঠানের উপযোগী ওপেন সোর্স সার্ভার।
 
-সদস্যরা কী পায় তা দেখতে শুরু করুন [আপনার প্রতিষ্ঠানে Lolly ব্যবহার](/info/organisation.html) দিয়ে, বা সার্ভারের দায়িত্ব কী তা দেখতে [Lolly Work architecture](/info/work-overview.html) দিয়ে।
+সদস্যরা কী পান দেখতে [আপনার প্রতিষ্ঠানে Lolly ব্যবহার করুন](/info/organisation.html) দিয়ে শুরু করুন, অথবা সার্ভার কী করে জানতে [Lolly Work-এর স্থাপত্য](/info/work-overview.html) পড়ুন।
 
-## অ্যাক্সেস ও নীতি ঠিক করুন
+<!--i:eti-lock-->
+## প্রবেশাধিকার ও নীতি নির্ধারণ করুন
 
-- [Adoption & Governance](/info/adoption-governance.html) রোলআউট এবং ব্র্যান্ড নিয়মের ভূমিকা নিয়ে।
-- [Identity and sessions](/info/work-identity.html) সাইন-ইন ও গ্রুপ ম্যাপিং নিয়ে। [Roles and grants](/info/work-permissions.html) রোল, গ্রান্ট ও মালিক গার্ড ব্যাখ্যা করে।
-- [Policy and governance](/info/work-governance.html) টুল ওভারলে, লক করা ইনপুট ও নীতি নিয়ে। [Manage organisation AI policy](/info/work-ai-policy.html) অনুমোদন ও এক্সিকিউশনের সীমা নিয়ে।
-- [Account data controls](/info/work-account-lifecycle.html) এবং [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) এক্সপোর্ট, অফবোর্ডিং, সংরক্ষণ ও তাদের সীমা নিয়ে।
-- [Profiles, brands and tool configuration](/info/configuration.html) Lolly-র একটি বিল্ডে কোন টুল ও ডিজাইন সিস্টেম থাকে তা নিয়ে।
+- [গ্রহণ & পরিচালনা](/info/adoption-governance.html)-তে চালু করার প্রক্রিয়া ও ব্র্যান্ডের নিয়মের ভূমিকা আছে।
+- [পরিচয় ও সেশন](/info/work-identity.html)-এ সাইন-ইন ও গ্রুপ ম্যাপিং আছে। [ভূমিকা ও অনুমতি](/info/work-permissions.html) ভূমিকা, অনুমতি ও মালিকের সুরক্ষাব্যবস্থা ব্যাখ্যা করে।
+- [নীতি ও পরিচালনা](/info/work-governance.html)-তে টুল ওভারলে, লক করা ইনপুট ও নীতি আছে। [প্রতিষ্ঠানের AI নীতি পরিচালনা করুন](/info/work-ai-policy.html)-তে অনুমোদন ও চালানোর সীমা আছে।
+- [অ্যাকাউন্টের ডেটা নিয়ন্ত্রণ](/info/work-account-lifecycle.html) এবং [Lolly Work স্টোরেজ ও ডেটার জীবনচক্র](/info/work-data-lifecycle.html)-এ এক্সপোর্ট, সদস্যের বিদায়, সংরক্ষণকাল ও এগুলোর সীমা আছে।
+- [প্রোফাইল, ব্র্যান্ড ও টুল কনফিগারেশন](/info/configuration.html)-এ Lolly-র একটি বিল্ড কোন টুল ও ডিজাইন সিস্টেম রাখে তা আছে।
 
-## অ্যাসেট সংযুক্ত করুন ও কাজ পর্যালোচনা করুন
+<!--i:eti-link-->
+## অ্যাসেট যুক্ত করুন ও কাজ পর্যালোচনা করুন
 
-- [Use Lolly with your existing DAM](/info/use-with-dam.html) সোর্স কর্তৃত্ব ও সংযুক্ত প্রোডাকশন ব্যাখ্যা করে। [The SUSE Brandfolder account](/info/suse-brandfolder.html) গ্রহণের অভিজ্ঞতা নথিভুক্ত করে, আর [Plan a DAM transition](/info/dam-transition.html) পরে ঐচ্ছিক স্থানান্তর নিয়ে।
+- [আপনার বর্তমান DAM-এর সঙ্গে Lolly ব্যবহার করুন](/info/use-with-dam.html) উৎসের প্রামাণিকতা ও সংযুক্ত উৎপাদন ব্যাখ্যা করে। [SUSE-র Brandfolder ব্যবহারের বিবরণ](/info/suse-brandfolder.html) গ্রহণের একটি ঘটনা নথিভুক্ত করে। [DAM স্থানান্তরের পরিকল্পনা করুন](/info/dam-transition.html)-এ পরে ঐচ্ছিকভাবে স্থানান্তরের বিবরণ আছে।
 
-- [Design-system administration](/info/work-design-system-administration.html) উৎস তালিকা, পর্যালোচিত পরিবর্তন ও রোলব্যাক নিয়ে।
-- [Catalog and content](/info/work-catalog.html) শেয়ার্ড অ্যাসেট ও প্রকাশের নিয়ম নিয়ে। [Provider guides](/info/work-provider-guides.html) প্রতিটি উৎস প্ল্যাটফর্মের সেটআপ ও যাচাইয়ের প্রয়োজন দেয়।
-- [Approvals](/info/work-approvals.html) রিভিউ শৃঙ্খল ও দায়িত্বের বিভাজন নিয়ে। [Rendering and sharing](/info/work-sharing.html) লিংক ও সার্ভার আউটপুট নিয়ে।
-- [Invite an agent to a document](/info/work-document-agents.html) সীমিত ডকুমেন্ট অ্যাক্সেস, মেয়াদ ও প্রত্যাহার নিয়ে। একটি আমন্ত্রণ ডিপ্লয়মেন্ট বা অবকাঠামোর অ্যাক্সেস দেয় না।
+- [ডিজাইন সিস্টেম প্রশাসন](/info/work-design-system-administration.html)-এ উৎসের তালিকা, পর্যালোচিত পরিবর্তন ও আগের অবস্থায় ফেরানোর বিবরণ আছে।
+- [ক্যাটালগ ও কনটেন্ট](/info/work-catalog.html)-এ শেয়ার করা অ্যাসেট ও প্রকাশের নিয়ম আছে। [প্রদানকারীর নির্দেশিকা](/info/work-provider-guides.html) প্রতিটি উৎস প্ল্যাটফর্মের সেটআপ ও যাচাইয়ের প্রয়োজনীয়তা জানায়।
+- [অনুমোদন](/info/work-approvals.html)-এ পর্যালোচনার ধাপ ও দায়িত্বের পৃথকীকরণ আছে। [রেন্ডারিং ও শেয়ারিং](/info/work-sharing.html)-এ লিংক ও সার্ভার আউটপুট আছে।
+- [ডকুমেন্টে একজন এজেন্টকে আমন্ত্রণ জানান](/info/work-document-agents.html)-এ সীমিত ডকুমেন্ট প্রবেশাধিকার, মেয়াদ শেষ হওয়া ও প্রত্যাহারের বিবরণ আছে। আমন্ত্রণ ডেপ্লয়মেন্ট বা অবকাঠামোতে প্রবেশাধিকার দেয় না।
 
-## পরের কাজটি খুঁজুন
+<!--i:eti-search-->
+## পরের কাজ খুঁজুন
 
-- [Create](/info/creators.html)-এ আছে সৃজনশীল কাজ ও দলের প্লেবুক।
-- [Deploy](/info/operate.html) Lolly ও একটি Lolly Work সার্ভার ইনস্টল ও রক্ষণাবেক্ষণ নিয়ে। একটি ইনস্ট্যান্সের কনফিগারেশন কোনো ব্যক্তির কনটেন্ট প্রোফাইল থেকে আলাদা।
-- [Trust](/info/trust.html) ডেটা প্রবাহ, স্বাক্ষর ও নিরাপত্তার সীমানা ব্যাখ্যা করে।
+- [তৈরি করুন](/info/creators.html)-এ সৃজনশীল কাজ ও দলের কাজের নির্দেশনা আছে।
+- [ডেপ্লয় করুন](/info/operate.html)-এ Lolly ও Lolly Work সার্ভার ইনস্টল ও রক্ষণাবেক্ষণের বিবরণ আছে। ইনস্ট্যান্সের কনফিগারেশন ব্যক্তির কনটেন্ট প্রোফাইল থেকে আলাদা।
+- [বিশ্বাস](/info/trust.html) ডেটার প্রবাহ, স্বাক্ষর ও নিরাপত্তার সীমানা ব্যাখ্যা করে।

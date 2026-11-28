@@ -157,8 +157,31 @@ export function optionValue(opt: SelectOption | string): string {
  *   spec: inputDecl|null,              // representative decl for the bulk control
  * }
  */
+/**
+ * The inputs of a tool that belong to a mode Batch cannot use. A tool may say, with
+ * `render.when`, that one value of one input turns export off (QR Code's Scan mode reads
+ * a code and has nothing to export). Batch only makes exports, so that switch and every
+ * input shown only in that mode are left out of the table, and each row stays in the
+ * mode that exports.
+ */
+export function inputsOutsideBatch(manifest: InputManifest | null): Set<string> {
+  const when = (manifest as { render?: { when?: { input?: unknown; value?: unknown; set?: { export?: unknown } } } } | null)?.render?.when;
+  const out = new Set<string>();
+  if (!when || typeof when.input !== 'string' || when.set?.export !== false) return out;
+  const values = (Array.isArray(when.value) ? when.value : [when.value]).map(String);
+  out.add(when.input);
+  for (const input of manifest?.inputs ?? []) {
+    const cond = (input?.showIf as Record<string, unknown> | undefined)?.[when.input];
+    if (cond === undefined) continue;
+    const wanted = (Array.isArray(cond) ? cond : [cond]).map(String);
+    if (wanted.length && wanted.every((v) => values.includes(v))) out.add(input.id);
+  }
+  return out;
+}
+
 export function deriveColumns(rows: BatchRow[]): Column[] {
   const byKey = new Map<string, DraftColumn>();
+  const outside = new Map<InputManifest, Set<string>>();
 
   for (const row of rows) {
     if (!row || !row.manifest) continue;
@@ -167,6 +190,13 @@ export function deriveColumns(rows: BatchRow[]): Column[] {
       // Reserved names (width/height/unit/dpi/filename/…) are owned by the grid
       // chrome and the export-dimension feed - never their own column.
       if (RESERVED_KEYS.has(input.id)) continue;
+      // An input of a mode with nothing to export has no place in a table of exports.
+      let skip = outside.get(row.manifest);
+      if (!skip) {
+        skip = inputsOutsideBatch(row.manifest);
+        outside.set(row.manifest, skip);
+      }
+      if (skip.has(input.id)) continue;
       let col = byKey.get(input.id);
       if (!col) {
         col = { key: input.id, label: input.label ?? input.id, members: new Map(), order: byKey.size };

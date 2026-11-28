@@ -6,11 +6,11 @@
  *
  *   markupOf(stage)     the HTML the stage actually rendered, pretty-printed,
  *                       with the library's own scaffolding removed
- *   importLine(s)       `import { symbol } from 'path'` for a function-rendered
- *                       specimen, or the stylesheet + classes for a CSS-only one
+ *   importInfo(s)       `import { symbol } from 'path'` when the specimen gives
+ *                       the functions it is made with, and the stylesheet and
+ *                       classes for a CSS-only one
  *   tokensUsedBy(stage) every `var(--…)` a stylesheet rule that matches something
  *                       in the stage reads - the design tokens this part consumes
- *   copyText(text)      clipboard write with a textarea fallback
  *
  * All of it runs on demand, the first time a card's reference block opens, so
  * the library page stays as light as it was when the block was prose.
@@ -82,21 +82,40 @@ export function markupOf(stage: Element): { html: string; truncated: boolean } {
     : { html, truncated: false };
 }
 
-/** The function the specimen name credits - `segHtml()` in
- *  "Segmented control (.view-seg via segHtml())" - if any. */
-export function symbolOf(s: Specimen): string | null {
-  const m = /([A-Za-z_$][\w$]*)\(\)/.exec(s.name);
-  return m?.[1] ?? null;
+/** An identifier written as code is camelCase with a capital inside it
+ *  (`mountZoomHud`, `segHtml`), which no ordinary word in a name is. */
+const SYMBOL = /\b[a-z][a-z0-9]*[A-Z][A-Za-z0-9]*\b/g;
+
+/**
+ * The functions a specimen says it is made with: the camelCase identifiers in the
+ * bracketed asides of its name, "Zoom HUD (mountZoomHud)" or "Segmented control
+ * (.view-seg via segHtml())", and in the aside after its first path,
+ * "view-loading.ts (beginViewLoading)". In the order written, each once. A guard in
+ * components-reference.test.ts holds every one to a real export of the file `defined`
+ * gives first, so an import line is never invented.
+ */
+export function symbolsOf(s: Specimen): string[] {
+  let asides = '';
+  let depth = 0;
+  for (const ch of s.name) {
+    if (ch === '(') { depth++; asides += ' '; continue; }
+    if (ch === ')') { depth = Math.max(0, depth - 1); continue; }
+    if (depth > 0) asides += ch;
+  }
+  const owner = (s.defined || '').split(/\s*\/\s+(?=[a-z])/)[0] ?? '';
+  asides += ' ' + (/\(([^)]*)\)/.exec(owner)?.[1] ?? '');
+  return [...new Set(asides.match(SYMBOL) ?? [])];
 }
 
-/** The first path in `defined` ("a.ts / b.ts" names the owner first). */
+/** The first path in `defined` ("a.ts / b.ts" gives the owner first), without
+ *  the aside that gives its function. */
 export function definedPath(s: Specimen): string | null {
-  const first = (s.defined || '').split(/\s*\/\s+(?=[a-z])/)[0]?.trim();
+  const first = (s.defined || '').split(/\s*\/\s+(?=[a-z])/)[0]?.replace(/\s*\(.*$/, '').trim();
   return first || null;
 }
 
 export interface ImportInfo {
-  /** `import { x } from 'path'` for a function-rendered part; null for CSS-only. */
+  /** `import { x } from 'path'` when the specimen gives its functions; else null. */
   line: string | null;
   /** The stylesheet that owns a CSS-only part, when `defined` names one. */
   stylesheet: string | null;
@@ -108,10 +127,9 @@ export interface ImportInfo {
 
 export function importInfo(s: Specimen): ImportInfo {
   const path = definedPath(s);
-  const symbol = symbolOf(s);
-  const fn = s.kind === 'pure-html-fn' || s.kind === 'wired-fn';
-  const line = fn && path && !path.endsWith('.css')
-    ? `import { ${symbol ?? '…'} } from '${path}';`
+  const symbols = symbolsOf(s);
+  const line = symbols.length && path && !path.endsWith('.css')
+    ? `import { ${symbols.join(', ')} } from '${path}';`
     : null;
   const classes = (s.css || '').startsWith('(') ? [] : (s.css || '').split(/,\s*/).map(c => c.trim()).filter(c => c.startsWith('.'));
   return {
@@ -155,19 +173,4 @@ export function tokensUsedBy(stage: Element): string[] {
   }
   const all = [...seen];
   return [...all.filter(v => v.startsWith('--ui-')), ...all.filter(v => !v.startsWith('--ui-'))];
-}
-
-/** Clipboard write; the textarea path covers a page without the async API. */
-export async function copyText(text: string): Promise<boolean> {
-  try {
-    if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(text); return true; }
-  } catch { /* fall through */ }
-  try {
-    const ta = document.createElement('textarea');
-    ta.value = text; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;opacity:0';
-    document.body.appendChild(ta); ta.select();
-    const ok = document.execCommand('copy');
-    ta.remove();
-    return ok;
-  } catch { return false; }
 }

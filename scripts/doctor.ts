@@ -10,6 +10,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { loadInventory, validateCoverage } from './audit-all.ts';
 import { SHARDS, shardInventory } from './run-test-suite.ts';
 import { contentRoots } from '../packages/node-shell/src/content-roots.ts';
+import { NODE_FLOOR_WORDS, nodeMeetsFloor } from '../packages/node-shell/src/node-patch-level.ts';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 type State = 'PASS' | 'WARN' | 'FAIL';
@@ -154,12 +155,11 @@ export function inspect(argv = process.argv.slice(2)): Finding[] {
   const add = (state: State, check: string, detail: string, repair?: string): void => {
     findings.push({ state, check, detail, repair });
   };
-  const nodeMajor = Number(process.versions.node.split('.')[0]);
   add(
-    nodeMajor >= 22 ? 'PASS' : 'FAIL',
+    nodeMeetsFloor(process.versions.node) ? 'PASS' : 'FAIL',
     'Node',
     process.version,
-    'install Node >=22.18.0 and run pnpm install --frozen-lockfile'
+    `install Node ${NODE_FLOOR_WORDS}, then run pnpm install --frozen-lockfile`
   );
   for (const command of ['pnpm', 'git', 'cargo']) {
     const version = commandVersion(command);

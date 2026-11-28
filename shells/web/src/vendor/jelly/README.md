@@ -18,7 +18,18 @@ The exact distributed bytes and local-change status are recorded in `security/ve
   unminified ESM bundle - 40 custom elements, ~318 KB)
 - Snapshot: 2026-07-21. Upstream had no tagged release yet; treat this as a pin
   and re-audit on refresh (the repo is early-stage).
-- The historical snapshot does not record an upstream source commit or a separate pre-patch artifact. Its current byte pin makes later changes reviewable; it does not reconstruct that missing history.
+- The snapshot did not record an upstream source commit. Checked afterwards
+  (2026-11-21), the likely source is
+  [`8e39a8e61b5a43a562ae85e4b01191d333d5b121`](https://github.com/jelly-org/ui/tree/8e39a8e61b5a43a562ae85e4b01191d333d5b121)
+  (2026-07-20): the bundle carries that commit's button activation fix
+  (`activationPointerId`, `cancelPointerClick`), lacks the pagination fix of the
+  next commit (`46e3f1e`, 2026-07-25), and that commit's GitHub Pages deploy,
+  which publishes jelly-ui.com, was the last one before the snapshot. Upstream
+  commits no built bundle, so this is not confirmed byte for byte.
+- The bytes as first vendored, before the performance patch, are in commit
+  `8e1347493b` of the lolly-web history (2026-07-21), SHA-256
+  `68af6000710c7b8bd22d3ed8e337308fb20d767511483d1458f27288d34950ef`. The current
+  byte pin is in `security/vendor-artifacts.json`.
 - Repo: https://github.com/jelly-org/ui - TypeScript, MIT
 - The trailing `//# sourceMappingURL=jelly.js.map` is upstream's; the map is not
   vendored (devtools may log a one-time 404 when the Sources panel is open).

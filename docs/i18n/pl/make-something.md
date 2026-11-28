@@ -1,48 +1,60 @@
-# Zrób swój pierwszy plik
+# Utwórz swój pierwszy plik
 
-Po przeczytaniu tej strony pobierzesz kod QR dla adresu internetowego i zapiszesz kopię, którą będzie można później otworzyć i zmienić. Nie potrzebujesz konta ani niczego wcześniej skonfigurowanego.
+Pobierz kod QR prowadzący do adresu internetowego i zapisz kopię, którą możesz później otworzyć i zmienić. Nie potrzebujesz konta ani wcześniejszej konfiguracji. Nie potrzebujesz konta ani konfiguracji.
 
 ::: note Zanim zaczniesz
-Miej gotowy adres internetowy, który ma otwierać kod, zaczynający się od `https://`.
+Przygotuj adres internetowy, który kod ma otwierać, zaczynający się od `https://`.
 :::
 
-## Zrób kod
+::: steps
+- <!--i:eti-pen--> **[Utwórz kod](#make-the-code)** Wpisz swój adres w Lolly QR Code i ustaw kolory.
+- <!--i:eti-download--> **[Pobierz plik](#download-the-file)** Wyeksportuj PNG na ekran lub SVG albo PDF do druku.
+- <!--i:eti-folder-plus--> **[Zachowaj edytowalną kopię](#keep-an-editable-copy)** Zapisz pracę, aby móc później zmienić kod.
+:::
 
-1. Otwórz [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Elementy sterujące znajdują się obok podglądu, a na telefonie nad nim; to, co pokazuje podgląd, jest tym, czym będzie plik.
-2. W polu **URL** zastąp cały przykładowy adres swoim. Podgląd zmienia się w miarę pisania.
-3. Aby dopasować własne kolory, ustaw **Kolor modułu** i **Tło**. Zachowaj mocny kontrast między nimi, inaczej telefony będą miały problem z odczytaniem kodu.
-4. **Strefa ciszy**, w sekcji **Moduły**, zaczyna się od 4. Zachowaj wartość 4 lub więcej: ten pusty margines jest tym, czego szuka aparat telefonu.
+<!--i:eti-pen-->
+## Utwórz kod
 
+1. Otwórz [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Kontrolki są obok podglądu, a na telefonie nad nim. Podgląd pokazuje, jak będzie wyglądać plik.
+2. W polu **URL** zastąp cały przykładowy adres swoim. Podgląd zmienia się w miarę wpisywania.
+3. Aby dopasować własne kolory, ustaw **Module colour** i **Background**. Zachowaj między nimi silny kontrast, inaczej telefonom trudno będzie odczytać kod.
+4. **Quiet zone** w sekcji **Modules** ma początkowo wartość 4. Zostaw 4 lub więcej. Aparat telefonu szuka tego pustego marginesu.
+
+<!--i:eti-download-->
 ## Pobierz plik
 
-1. Naciśnij **Eksportuj** na pigułce **Eksportuj | Zapisz jako**, u dołu elementów sterujących na komputerze lub pływającej u dołu ekranu na telefonie.
-2. Otwórz menu formatu obok nazwy pliku (zaczyna się od **SVG**) i wybierz **PNG** na ekran lub wiadomość. Do druku zobacz uwagę poniżej.
-3. Naciśnij **Pobierz**. Plik trafia do folderu pobranych plików twojej przeglądarki; jeśli go tam nie ma, zobacz [Znajdź pobrany plik](/info/find-your-work.html#find-a-file-you-downloaded).
+1. Naciśnij **Export** na pigułce **Export | Save as**, na dole kontrolek na komputerze lub unoszącej się u dołu ekranu na telefonie.
+2. Otwórz menu formatu obok nazwy pliku (początkowo ma wartość **SVG**) i wybierz **PNG** na ekran lub do wiadomości. Jeśli chcesz drukować, zobacz uwagę poniżej.
+3. Naciśnij **Download**. Plik trafia do pobranych plików przeglądarki. Jeśli go tam nie ma, zobacz [Znajdź pobrany plik](/info/find-your-work.html#find-a-file-you-downloaded).
 
 ::: check Zeskanuj kod, zanim udostępnisz plik
-Otwórz pobrany plik na ekranie i zeskanuj kod aparatem telefonu. Jeśli zrobiłeś go na telefonie, zeskanuj go z drugiego telefonu lub ekranu komputera. Telefon powinien zaproponować twój adres internetowy.
+Otwórz pobrany plik na ekranie i zeskanuj kod aparatem telefonu. Jeśli kod powstał na telefonie, zeskanuj go z drugiego telefonu lub ekranu komputera. Telefon powinien zaproponować otwarcie Twojego adresu internetowego.
 :::
 
-::: details Jeśli kod będzie drukowany lub używany fizycznie
-Wybierz **SVG** lub **PDF**, aby kod pozostał ostry w dowolnym rozmiarze, i przetestuj wydruk w rozmiarze, w jakim będzie używany. Jeśli kod może się przetrzeć lub zmoknąć, ustaw **Error correction**, w sekcji **Modules**, na **High (30%)**: uszkodzony kod nadal się odczyta.
+::: note Jeśli kod będzie drukowany lub narażony na zużycie
+Wybierz **SVG** lub **PDF**, aby kod zachował ostrość w każdym rozmiarze. Sprawdź wydruk w rozmiarze, w którym będzie używany. Jeśli kod może się zetrzeć lub zamoknąć, ustaw **Error correction** w sekcji **Modules** na **High (30%)**, aby dało się odczytać nawet uszkodzony kod.
 :::
 
+<!--i:eti-folder-plus-->
 ## Zachowaj edytowalną kopię
 
-Pobrany plik jest gotowy. Aby zmienić kod później, zapisz też swoją pracę:
+Aby później zmienić kod, zapisz też swoją pracę:
 
-1. Naciśnij **Zapisz jako**, a potem **Zapisz**. Gdy panel eksportu jest otwarty, **Zapisz jako** znajduje się w panelu; gdy jest zamknięty, to znaczek obok **Eksportuj**. Kod trafia do **Moja biblioteka**, a komunikat **Zapisano** oferuje **Otwórz Projekty**.
-2. Następnym razem naciśnij **Start** i otwórz **Projekty** (na telefonie ikona folderu). Twój kod jest tam, nazwany **QR Code**. Otwórz go, zmień cokolwiek i wyeksportuj ponownie.
+1. Naciśnij **Save as**, a potem **Save**. Gdy panel Export jest otwarty, **Save as** znajduje się w nim. Przy zamkniętym panelu użyj ptaszka obok **Export**. Kod trafia do **My library**, a komunikat **Saved** oferuje **Open Projects**.
+2. Następnym razem naciśnij **Home** i otwórz widok **Projects** (na telefonie ikonę folderu). Znajdziesz tam kod pod nazwą **QR Code**. Otwórz go, zmień, co chcesz, i ponownie wyeksportuj.
 
-Zapisana praca pozostaje na tym urządzeniu, w przeglądarce lub aplikacji, której użyłeś, chyba że włączysz [Synchronizację](/info/sync.html). [Znajdź i odzyskaj swoją pracę](/info/find-your-work.html) obejmuje foldery, wcześniejsze wersje i przenoszenie pracy na inne urządzenie.
+Zapisana praca pozostaje na tym urządzeniu, w użytej przeglądarce lub aplikacji, chyba że włączysz [Sync](/info/sync.html). [Znajdowanie i odzyskiwanie pracy](/info/find-your-work.html) opisuje foldery, wcześniejsze wersje i przenoszenie pracy na inne urządzenie.
 
-## Inne pierwsze projekty
+<!--i:eti-sparkles-->
+## Inne projekty na początek
 
-- [Lolly Audiogram](/#/tool/audiogram) zamienia notatkę głosową w wideo: poruszający się przebieg fali, twoje słowa na okładce, twoje kolory. Upuść nagranie w polu **Audio**, dodaj **Tytuł**, a potem wyeksportuj **MP4**.
-- [Lolly Filter](/#/tool/filter) przetwarza zdjęcie na potrzeby plakatu: drukowane punkty rastra, dwa płaskie kolory lub kilka bloków tonalnych. Wybierz zdjęcie w polu **Obraz**, wybierz **Efekt**, a potem wyeksportuj **PNG** lub **SVG** przy efekcie oznaczonym jako *wektorowy*.
+- [Lolly Audiogram](/#/tool/audiogram) zmienia notatkę głosową w wideo z ruchomym przebiegiem fali, Twoim tekstem na okładce i Twoimi kolorami. Upuść nagranie w **Audio**, dodaj **Title**, a potem wyeksportuj **MP4**.
+- [Lolly Filter](/#/tool/filter) przetwarza zdjęcie na plakat: drukowane kropki rastra, dwa jednolite kolory lub kilka plam tonalnych. Wybierz zdjęcie w **Image**, wybierz **Effect**, a potem wyeksportuj **PNG** lub **SVG**, jeśli efekt ma oznaczenie *vector*.
+- [Generator muzyki](/#/music) komponuje utwór na podstawie gatunku i ziarna. Naciskaj okrągły przycisk losowania, aż spodoba Ci się to, co słyszysz, a potem otwórz **Render** i pobierz plik M4A lub WAV. Utworzonej muzyki możesz używać bezpłatnie, także komercyjnie, z oznaczeniem **Muzyka stworzona w Lolly (https://lolly.tools), CC BY 4.0**. [Przewodnik po generatorze muzyki](/info/music-generator.html) pokazuje każdą kontrolkę, a [Bezpłatna muzyka w tle](/info/background-music.html) zawiera próbkę każdego gatunku.
 
+<!--i:eti-map-pin-->
 ## Dalej
 
-- **Wyślij link zamiast pliku.** Każda kontrolka, której dotknąłeś, jest zapisana w adresie strony, więc **Udostępnij** w panelu eksportu daje link, który otwiera ten sam projekt ponownie na ekranie kogoś innego. Zdjęcie przesłane z własnego urządzenia nie podróżuje razem z linkiem. Zobacz [Udostępnianie swojej pracy](/info/using.html#sharing-your-work).
-- **Dodaj swoje kolory i czcionki raz**, aby każde narzędzie zaczynało od nich: [Szybki start](/info/quickstart.html).
-- [Korzystanie z Lolly](/info/using.html) to pełny przewodnik po aplikacji, a [Lolly dla twórców](/info/creators.html) pokazuje, co jeszcze potrafi stworzyć.
+- **Wyślij link zamiast pliku.** Każda zmieniona kontrolka jest zapisana w adresie strony. **Share** w panelu eksportu daje link, który otwiera ten sam projekt na ekranie innej osoby. Zdjęcie wczytane z Twojego urządzenia nie jest przenoszone z linkiem. Zobacz [Udostępnianie pracy](/info/using.html#sharing-your-work).
+- **Dodaj kolory i czcionki raz**, aby każde narzędzie zaczynało z nimi: [Szybki start](/info/quickstart.html).
+- [Korzystanie z Lolly](/info/using.html) to pełny przewodnik po aplikacji. [Lolly dla twórców](/info/creators.html) pokazuje, co jeszcze można zrobić w Lolly.

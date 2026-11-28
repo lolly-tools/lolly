@@ -100,10 +100,41 @@ test('the sections row holds the sections and nothing else, so it stays one row'
   assert.ok(tabs.length <= 6, `${tabs.length} tabs no longer fit one row at desktop width`);
 });
 
-test('a page names its section over the title and ends with Previous and Next in rail order', { skip: built }, () => {
+// The line over a title used to say the section in capitals on every page, and on a
+// section's own page it said the title again: "AUTOMATE" over "Automate" beside a rail
+// headed "Automate". The trail holds the steps above the page and never the page.
+test('no trail says its own page title again, and a section\'s own page has no trail', { skip: built }, () => {
+  const text = (html: string): string => html.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').trim().toLowerCase();
+  let withTrail = 0;
+  for (const page of REGISTRY.pages) {
+    const file = join(BUILT, `${page.path}.html`);
+    if (!existsSync(file)) continue;
+    const html = readFileSync(file, 'utf-8');
+    const trail = /<ol class="docs-crumbs">([\s\S]*?)<\/ol>/.exec(html)?.[1];
+    if (!trail) continue;
+    withTrail++;
+    const title = text(/<h1[^>]*>([\s\S]*?)<\/h1>/.exec(html)?.[1] ?? '');
+    const steps = [...trail.matchAll(/<li>([\s\S]*?)<\/li>/g)].map((m) => text(m[1]!));
+    assert.ok(steps.length >= 1 && steps.length <= 2, `${page.path}: a trail of ${steps.length} steps`);
+    assert.ok(!steps.includes(title), `${page.path}: the trail repeats the title "${title}"`);
+    assert.ok(!steps.includes(page.title.toLowerCase()), `${page.path}: the trail repeats the page's name`);
+    assert.equal(new Set(steps).size, steps.length, `${page.path}: the trail says one step twice`);
+    assert.match(trail, /^<li><a href="\/info\/[^"]+\.html">/, `${page.path}: the section step is not a link`);
+  }
+  assert.ok(withTrail > 100, `only ${withTrail} pages carry a trail: the check is not reading the built pages`);
+  for (const section of REGISTRY.sections) {
+    const hub = REGISTRY.pages.find((p) => p.slug === section.hub);
+    if (!hub) continue;
+    const html = readFileSync(join(BUILT, `${hub.path}.html`), 'utf-8');
+    assert.ok(!html.includes('class="docs-crumbs"'), `${section.title}: the section's own page carries a trail`);
+  }
+});
+
+test('a page shows its trail over the title and ends with Previous and Next in rail order', { skip: built }, () => {
   const html = readFileSync(join(BUILT, 'create/exporting.html'), 'utf-8');
-  // The label sits in the band before the title row, generated, never in the article text.
-  assert.match(html, /<p class="docs-eyebrow"><span>Create<\/span><span aria-hidden="true"> · <\/span><span>[^<]+<\/span><\/p><div class="mast-title"><h1/);
+  // The trail sits in the band before the title row, generated, never in the article text:
+  // the section as a link to its own page, then the group as text.
+  assert.match(html, /<ol class="docs-crumbs"><li><a href="\/info\/create\/[^"]+\.html">Create<\/a><\/li><li>[^<]+<\/li><\/ol><div class="mast-title"><h1/);
   const pager = /<nav class="docs-pager" aria-label="[^"]+">([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? '';
   assert.match(pager, /rel="prev"/, 'no Previous link');
   assert.match(pager, /rel="next"/, 'no Next link');
@@ -112,5 +143,5 @@ test('a page names its section over the title and ends with Previous and Next in
   assert.ok(main.includes('class="docs-pager"'), 'the pager is outside the article');
   // The search index reads the page before this chrome, so the index holds neither line.
   const index = readFileSync(join(BUILT, 'search-index.json'), 'utf-8');
-  assert.ok(!/docs-pager|docs-eyebrow/.test(index));
+  assert.ok(!/docs-pager|docs-crumbs/.test(index));
 });

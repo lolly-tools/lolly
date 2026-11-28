@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Generator, software stack and rights evidence for Verify's expanded and collapsed reports. */
 import { softwareOrigins, normaliseLicence, licenceDisplayName } from '@lolly/engine';
-import type { FileMetadata, MetaField, SoftwareRole } from '@lolly/engine';
+import type { FileMetadata, MetaField, SoftwareRole, VerifyStrength } from '@lolly/engine';
 import type { VerifyReport } from './valid-verdict.ts';
 import { hasHashVerdict, hashFailed } from './valid-verdict.ts';
 import { escape as esc } from '../utils.ts';
 import { t } from '../i18n.ts';
-import { vendorMark } from './valid-vendors.ts';
+import { rowStrengthHtml as sameOrOwn, vendorMark } from './valid-vendors.ts';
 import { icon } from '../lib/icons.ts';
 import { metadataValueHtml, metadataLinkHtml } from './valid-links.ts';
 
@@ -96,32 +96,46 @@ export function provenanceOverview(report: VerifyReport, meta?: FileMetadata): P
 }
 
 const kindsHtml = (evidence: Evidence[]): string => [...new Set(evidence.map((e) => e.kind))].map((kind) => `<span class="valid-evidence-kind is-${kind}">${esc(t(KIND_LABEL[kind]))}</span>`).join('');
+/** The same evidence in the strength words the answer row uses, strongest first. */
+const KIND_STRENGTH: Record<EvidenceKind, VerifyStrength> = { credential: 'signed', 'unverified-credential': 'unverified', metadata: 'stated', hint: 'hint' };
+const RANK: readonly VerifyStrength[] = ['signed', 'unverified', 'stated', 'hint'];
+/**
+ * A row's strength: its best evidence, shown when that differs from what the
+ * answer slot states, and at Evidence depth either way. Every source stays
+ * listed under Evidence.
+ */
+function rowStrengthHtml(evidence: Evidence[], stated: VerifyStrength | undefined): string {
+  if (!stated) return kindsHtml(evidence);
+  const best = RANK.find((s) => evidence.some((e) => KIND_STRENGTH[e.kind] === s));
+  return best ? sameOrOwn(best, stated) : '';
+}
 const evidenceDetails = (entries: Array<{ name: string; evidence: Evidence[] }>): string => {
   const count = entries.reduce((n, entry) => n + entry.evidence.length, 0);
   return count ? `<details class="valid-origin-evidence"><summary>${icon('search')}<span>${t('Evidence ({n})', { n: count })}</span>${icon('chevronDown')}</summary>${entries.map((entry) => `<div><h4>${esc(entry.name)}</h4><ul>${entry.evidence.map((e) => `<li>${kindsHtml([e])}<span class="valid-evidence-source">${esc(e.source)}</span><q>${metadataValueHtml(e.value)}</q></li>`).join('')}</ul></div>`).join('')}</details>` : '';
 };
 
-export function provenanceOverviewHtml(report: VerifyReport, meta?: FileMetadata): string {
+/** `stated` is the strength the finding's answer slot gives; a row repeats a matching strength only at Evidence depth. */
+export function provenanceOverviewHtml(report: VerifyReport, meta?: FileMetadata, withRights = true, stated?: VerifyStrength): string {
   const { apps, devices, rights, facts } = provenanceOverview(report, meta);
   const roles: SoftwareRole[] = ['authoring', 'export', 'history', 'system'];
   return `<div class="valid-origin-overview">
     <section class="valid-origin-card valid-origin-software" aria-label="${esc(t('Generator & software'))}">
       <h3>${icon('tool')}<span>${t('Generator & software')}</span></h3>
-      ${devices.length ? `<div class="valid-software-group"><p class="valid-origin-label">${t('Capture device')}</p><div class="valid-software-badges">${devices.map((device) => `<div class="valid-software-badge is-primary">${vendorMark(device.name)}<span class="valid-vendor-copy"><strong>${esc(device.name)}</strong>${kindsHtml(device.evidence)}</span></div>`).join('')}</div></div>` : ''}
+      ${devices.length ? `<div class="valid-software-group"><p class="valid-origin-label">${t('Capture device')}</p><div class="valid-software-badges">${devices.map((device) => `<div class="valid-software-badge is-primary">${vendorMark(device.name)}<span class="valid-vendor-copy"><strong>${esc(device.name)}</strong>${rowStrengthHtml(device.evidence, stated)}</span></div>`).join('')}</div></div>` : ''}
       ${apps.length ? roles.map((role) => {
         const selected = apps.filter((a) => a.role === role);
-        return selected.length ? `<div class="valid-software-group"><p class="valid-origin-label">${t(ROLE_LABEL[role])}</p><div class="valid-software-badges">${selected.map((app) => `<div class="valid-software-badge${role === 'authoring' ? ' is-primary' : ''}">${vendorMark(app.name)}<span class="valid-vendor-copy"><strong>${esc(app.name)}</strong><span class="valid-origin-kinds">${kindsHtml(app.evidence)}</span></span></div>`).join('')}</div></div>` : '';
+        return selected.length ? `<div class="valid-software-group"><p class="valid-origin-label">${t(ROLE_LABEL[role])}</p><div class="valid-software-badges">${selected.map((app) => `<div class="valid-software-badge${role === 'authoring' ? ' is-primary' : ''}">${vendorMark(app.name)}<span class="valid-vendor-copy"><strong>${esc(app.name)}</strong><span class="valid-origin-kinds">${rowStrengthHtml(app.evidence, stated)}</span></span></div>`).join('')}</div></div>` : '';
       }).join('') : devices.length ? '' : `<p class="valid-origin-empty">${t('Generator not identified')}</p>`}
       ${apps.some((a) => a.evidence.some((e) => e.kind === 'metadata' || e.kind === 'hint')) ? `<p class="valid-origin-note">${t('Metadata and hints are editable; earlier software may still be named.')}</p>` : ''}
       ${evidenceDetails([...devices, ...apps])}
     </section>
-    <section class="valid-origin-card valid-origin-rights" aria-label="${esc(t('Licence & rights'))}">
+    ${withRights ? `<section class="valid-origin-card valid-origin-rights" aria-label="${esc(t('Licence & rights'))}">
       <h3>${icon('document')}<span>${t('Licence & rights')}</span></h3>
       ${rights.length ? `<div class="valid-rights-declarations">${rights.map((entry) => `<div class="valid-rights-declaration"><strong>${metadataLinkHtml(entry.evidence.find((e) => /^https?:\/\//i.test(e.value))?.value ?? '', entry.name)}</strong><span class="valid-origin-kinds">${kindsHtml(entry.evidence)}</span></div>`).join('')}</div>` : `<p class="valid-origin-empty">${t('No licence recorded')}</p>`}
       <p class="valid-origin-note">${rights.length ? t('Declared terms. Permission to reuse is not verified.') : t('No recorded licence does not mean free to use.')}</p>
       ${evidenceDetails(rights)}
-    </section>
-    ${facts.length ? `<dl class="valid-origin-facts">${facts.filter((f) => !['Creator', 'Creator website', 'Location'].includes(f.label)).map(({ label, evidence }) => `<div><dt>${icon('calendar')}${esc(t(label))}</dt><dd title="${esc(evidence.source)}"><span>${label === 'Location' && meta?.mapUrl ? metadataLinkHtml(meta.mapUrl, evidence.value) : metadataValueHtml(evidence.value.replace(/^(\d{4}):(\d{2}):(\d{2}) /, '$1-$2-$3 ').replace(/^(\d{4}-\d{2}-\d{2})T/, '$1 ').replace(/(\d\d:\d\d:\d\d)(?:\.000)?Z$/, '$1 UTC'))}</span>${kindsHtml([evidence])}</dd></div>`).join('')}</dl>` : ''}
+    </section>` : ''}
+    ${facts.length ? `<dl class="valid-origin-facts">${facts.filter((f) => !['Creator', 'Creator website', 'Location'].includes(f.label)).map(({ label, evidence }) => `<div><dt>${icon('calendar')}${esc(t(label))}</dt><dd title="${esc(evidence.source)}"><span>${label === 'Location' && meta?.mapUrl ? metadataLinkHtml(meta.mapUrl, evidence.value) : metadataValueHtml(evidence.value.replace(/^(\d{4}):(\d{2}):(\d{2}) /, '$1-$2-$3 ').replace(/^(\d{4}-\d{2}-\d{2})T/, '$1 ').replace(/(\d\d:\d\d:\d\d)(?:\.000)?Z$/, '$1 UTC'))}</span>${rowStrengthHtml([evidence], stated)}</dd></div>`).join('')}</dl>` : ''}
   </div>`;
 }
 

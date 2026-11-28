@@ -204,6 +204,13 @@ async function checkCaddyFiles(port: number, bytes: Buffer): Promise<void> {
     assert.equal(missing.status, 404); assert.equal(missing.headers['cache-control'], cachePolicy('person-private').cacheControl);
     assert.equal(missing.headers['cdn-cache-control'], 'no-store');
   }
+  // Content-hashed build output is immutable; a missing chunk is an error and keeps no-store.
+  const hashed = await get(port, '/_app/main-a1b2.js'), immutable = cachePolicy('public-immutable');
+  assert.equal(hashed.status, 200); assert.equal(hashed.headers['cache-control'], immutable.cacheControl);
+  assert.equal(hashed.headers['cdn-cache-control'], immutable.cdnCacheControl);
+  const gone = await get(port, '/_app/missing-c3d4.js');
+  assert.equal(gone.status, 404); assert.equal(gone.headers['cache-control'], cachePolicy('person-private').cacheControl);
+  assert.equal(gone.headers['cdn-cache-control'], 'no-store');
   const sw = await get(port, '/sw.js');
   assert.equal(sw.headers['cache-control'], 'no-cache, s-maxage=0, no-transform');
   assert.equal(sw.headers['cdn-cache-control'], 'no-store'); assert.equal(sw.headers['service-worker-allowed'], '/');
@@ -213,6 +220,7 @@ test('reference Caddy preserves proxy privacy and bytes, conservative static pol
   const temporary = mkdtempSync(join(tmpdir(), 'lolly-reference-caddy-')), root = join(temporary, 'site'); mkdirSync(root);
   writeFileSync(join(root, 'asset.svg'), signedBytes);
   writeFileSync(join(root, 'asset.svg.gz'), gzipSync(signedBytes)); writeFileSync(join(root, 'asset.svg.br'), brotliCompressSync(signedBytes));
+  mkdirSync(join(root, '_app')); writeFileSync(join(root, '_app', 'main-a1b2.js'), 'export {};\n');
   writeFileSync(join(root, 'sw.js'), 'self.fixture = true;');
   writeFileSync(join(root, '.delivery-etags.conf'), 'internal fixture inventory');
   mkdirSync(join(root, 'models')); writeFileSync(join(root, 'models/manifest.json'), 'internal fixture model metadata');

@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.348.0', () => {
+test('ENGINE_VERSION is 1.361.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -621,7 +621,20 @@ test('ENGINE_VERSION is 1.348.0', () => {
   // 1.346.0 writes the music generator's CC BY 4.0 licence and credit into its files. Capture is unchanged.
   // 1.347.0 makes the music credit line "Music made with Lolly (https://lolly.tools), CC BY 4.0". Capture is unchanged.
   // 1.348.0 adds the select display "picker" with option glyphs and groups (chrome only). Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.348.0');
+  // 1.349.0 places a vector picture by its unrounded size and writes gradient stops as CSS holds them. Capture is unchanged.
+  // 1.350.0 refreshes the official C2PA trust list (6 more anchors, NETLOCK held back). Capture is unchanged.
+  // 1.351.0 moves the session record to format 5 (a picture reference beside the thumbnail). Capture is unchanged.
+  // 1.352.0 reads a GFM table in the markdown helper. Capture is unchanged.
+  // 1.353.0 stops charging an isolated hook for the time a host call takes. Capture is unchanged.
+  // 1.354.0 adds Verify's six findings. Capture is unchanged.
+  // 1.355.0 is taken by an open pull request (3D Studio's Orbit move and .gltf). Capture is unchanged.
+  // 1.356.0 adds render.when: export, webPreview and actions that follow one input's value. Capture is unchanged.
+  // 1.357.0 lets a glTF model in 3D Studio play a baked animation clip. Capture is unchanged.
+  // 1.358.0 lets a hook put a message under an input (inputNotices). Capture is unchanged.
+  // 1.359.0 lets a 3D Studio camera leg follow a design system curve or spring. Capture is unchanged.
+  // 1.360.0 lets host.pdf.stamp save a classic cross-reference table for a credential (Sign). Capture is unchanged.
+  // 1.361.0 draws a Design still's timed rows as the sequence shows them at its instant. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.361.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

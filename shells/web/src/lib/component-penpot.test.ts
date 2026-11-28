@@ -6,7 +6,7 @@ import { seededPenpotUuid, PENPOT_ROOT_ID } from '../../../../engine/src/penpot-
 import type { PenpotDoc } from '../../../../engine/src/penpot-file.ts';
 import { createTokenSet } from '../../../../engine/src/tokens.ts';
 import { buildComponentArchive, componentTokenDocument } from './component-penpot.ts';
-import { AUDIT_SECTIONS } from '../views/components-data.ts';
+import { COMPONENT_SECTIONS } from '../views/components-data.ts';
 import { componentFixture } from '../views/components-fixtures.ts';
 
 const fixture = (): PenpotDoc => ({ name: 'Button', pages: [{ name: 'Primary button', shapes: [{
@@ -79,6 +79,6 @@ test('theme capture preserves aliases and never writes CSS calc expressions as P
 });
 
 test('every host-only inventory entry has a labelled design fixture rather than a code-only export', () => {
-  const items = AUDIT_SECTIONS.flatMap(s => s.items);
+  const items = COMPONENT_SECTIONS.flatMap(s => s.items);
   for (const item of items.filter(s => !s.live && !s.markup)) assert.ok(componentFixture(item), `missing fixture: ${item.name}`);
 });

@@ -1,10 +1,10 @@
 # Building for iOS
 
-This page is for a developer who wants Lolly running in the iPhone Simulator, on a test device or as a signed build for TestFlight and the App Store. You need a Mac with the full Xcode app.
+Run Lolly in the iPhone Simulator, on a test device or as a signed build for TestFlight and the App Store. You need a Mac with the full Xcode app.
 
-The iOS app is the same Lolly as the web and desktop apps. A Tauri 2 shell (`shells/tauri-mobile`, identifier `tools.lolly.mobile`) wraps the web app's code and saves work as files instead of in browser storage. It leaves out what a phone cannot do, such as screen capture. Android uses the same shell; only the toolchain and signing differ (see [Build the mobile apps](/info/build-mobile.html)). The app runs on iOS and iPadOS 26.0 or later.
+A Tauri 2 shell (`shells/tauri-mobile`, identifier `tools.lolly.mobile`) wraps the web app's code and saves work as files instead of in browser storage. It leaves out what a phone cannot do, such as screen capture. Android uses the same shell; only the toolchain and signing differ (see [Build the mobile apps](/info/build-mobile.html)). The app runs on iOS and iPadOS 26.0 or later.
 
-The Xcode project is already in the repository, with the camera and microphone permission text in place, so there is nothing to generate.
+The Xcode project, with its camera and microphone permission text, is already in the repository. There is nothing to generate.
 
 **What you'll do**, in four steps:
 
@@ -18,7 +18,7 @@ The Xcode project is already in the repository, with the camera and microphone p
 <!--i:eti-checklist-->
 ## Prerequisites
 
-1. **Xcode**, the full app from the App Store rather than only the Command Line Tools. Point the toolchain at it, accept the licence and launch Xcode once so it installs the iOS platform and Simulator:
+1. **Xcode**, the full App Store app, not only the Command Line Tools. Point the toolchain at Xcode, accept the licence and launch Xcode once to install the iOS platform and Simulator:
 
    ```bash
    sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
@@ -54,7 +54,7 @@ A real device and any signed build need an Apple Developer account and its **Tea
 pnpm run dev:ios            # tauri ios dev
 ```
 
-The Vite dev server starts on its own on port 5174 (`beforeDevCommand` and `devUrl` in `tauri.conf.json`), and hot reload works as it does for the web and desktop apps.
+The Vite dev server starts automatically on port 5174 (`beforeDevCommand` and `devUrl` in `tauri.conf.json`). Hot reload works as in the web and desktop apps.
 
 - Pick a simulator by name: `pnpm run dev:ios "iPhone 15 Pro"`.
 - Open the project in Xcode instead of running headless: `pnpm run dev:ios --open`.
@@ -63,7 +63,7 @@ The Vite dev server starts on its own on port 5174 (`beforeDevCommand` and `devU
 <!--i:eti-camera-->
 ## What iOS can and cannot do
 
-The mobile shell's capability list is the web app's list plus `filesystem`, minus `screen` (`bridge-overrides/capabilities-provided.ts`). A capability added on the web side therefore reaches mobile by default. A tool that needs a missing capability is greyed out in the gallery instead of failing when tapped.
+The mobile shell's capability list is the web app's list plus `filesystem`, minus `screen` (`bridge-overrides/capabilities-provided.ts`). A capability added on the web side reaches mobile by default. A tool that needs a missing capability is greyed out in the gallery.
 
 ::: cols
 ## Available on iOS
@@ -79,7 +79,7 @@ The mobile shell's capability list is the web app's list plus `filesystem`, minu
 - `ffmpeg`: transcoding needs `tauri-plugin-shell`, which the mobile shell does not bundle.
 :::
 
-Camera and microphone are gated twice. The capability flag lets the tool load, and the WebView's `getUserMedia` still asks for the operating system's permission, which is why the usage strings below exist. Android behaves the same way.
+Camera and microphone are gated twice. The capability flag lets the tool load. The WebView's `getUserMedia` then asks for the operating system's permission, which needs the usage strings below. Android behaves the same way.
 
 <!--i:eti-lock-->
 ## The Xcode project and its permissions
@@ -99,7 +99,7 @@ iOS grants the camera, the microphone and similar features only to an app whose 
 - `NSPhotoLibraryAddUsageDescription`, for saving exports to the photo library;
 - `NSLocalNetworkUsageDescription`, used only by development builds to load the interface from the local dev server.
 
-A change that gives a tool a new permission adds its usage string to `project.yml` in the same commit; a key typed into `Info.plist` directly is lost at the next regeneration. `bundle.iOS.infoPlist` points at the tracked `src-tauri/Info.ios.plist`, which Tauri merges in and which holds the scene manifest and the `lolly:` URL scheme.
+A change that gives a tool a new permission adds its usage string to `project.yml` in the same commit. A key typed into `Info.plist` directly is lost at the next regeneration. `bundle.iOS.infoPlist` points at the tracked `src-tauri/Info.ios.plist`, which Tauri merges in. That file holds the scene manifest and the `lolly:` URL scheme.
 
 Icons are committed under `src-tauri/icons/` (including the `ios/` set) and in the project's `Assets.xcassets`. To regenerate them from one source image, run `npx @tauri-apps/cli icon path/to/icon-1024.png` in `shells/tauri-mobile`.
 
@@ -110,7 +110,7 @@ Icons are committed under `src-tauri/icons/` (including the `ios/` set) and in t
 pnpm run build:ios          # vite build, then tauri ios build
 ```
 
-The output is an `.ipa` under `src-tauri/gen/apple/build/`. The `vite build` step writes `dist/` first and embeds the content catalog in it: a neutral seed from the `lolly-start` brand by default, or the selected profile's catalog with `LOLLY_EMBED_CATALOG=profile` (`shells/tauri-shared/vite-embed.mjs`). `tauri.conf.json` reads that folder as `frontendDist` (`../dist`).
+The output is an `.ipa` under `src-tauri/gen/apple/build/`. The `vite build` step writes `dist/` first and embeds the content catalog there: a neutral seed from the `lolly-start` brand by default, or the selected profile's catalog with `LOLLY_EMBED_CATALOG=profile` (`shells/tauri-shared/vite-embed.mjs`). `tauri.conf.json` reads that folder as `frontendDist` (`../dist`).
 
 The Team ID is public build metadata. Set the approved team in `bundle.iOS.developmentTeam`, or with `APPLE_DEVELOPMENT_TEAM`, which takes precedence. Keep certificates, passwords and API private keys in local credential storage or the protected release environment, never in the source tree.
 
@@ -133,7 +133,7 @@ Device builds, IPA export, TestFlight and App Store distribution also need a pro
 <!--i:eti-upload-->
 ## The App Store release workflow
 
-`.github/workflows/ios-release.yml` builds a signed IPA on a hosted macOS runner. It keeps compilation and signing in separate jobs, so the project build never runs where the signing key is. Dispatch it with `upload=false` to collect the IPA without sending it to App Store Connect.
+`.github/workflows/ios-release.yml` builds a signed IPA on a hosted macOS runner. Compilation and signing run in separate jobs, so the project build never runs where the signing key is. Dispatch it with `upload=false` to collect the IPA without sending it to App Store Connect.
 
 ::: timeline
 - <!--i:code--> **Compile an unsigned archive.** The compiler job installs dependencies, verifies the independently signed frontend and runs `tauri ios build --target aarch64 --no-sign --archive-only --ci`. It has no signing environment, distribution certificate or App Store API key. The pinned [Tauri CLI](https://github.com/tauri-apps/tauri/blob/tauri-cli-v2.12.3/crates/tauri-cli/src/mobile/ios/build.rs) archives without code signing and stops before IPA export for these flags.

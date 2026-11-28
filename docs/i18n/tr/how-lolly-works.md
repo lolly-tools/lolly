@@ -1,53 +1,58 @@
 # Lolly nasıl çalışır
 
-Bir Lolly aracı, tek tür dosyanın kurallarını taşır: düzen, yazı, renkler ve başkalarının hangi bölümleri değiştirebileceği. Sen, bir meslektaşın, bir betik veya bir yapay zekâ ajanı alanları doldurursunuz ve her dosya doğru çıkar. Bu sayfa kimin ne yaptığını ve bir araçtan bitmiş bir dosyaya giden dört yolu gösterir.
+Bir Lolly aracı, bir dosya türünün kurallarını tutar: düzen, yazı, renkler ve başkalarının hangi kısımları değiştirebileceği. Sen, bir meslektaşın, bir betik veya bir yapay zekâ ajanı alanları doldurur ve her dosya bu kurallara uyar.
 
-## Bir araç, senin kuralların, çok sayıda dosya
+<!--i:eti-repeat-->
+## Tek araç, senin kuralların, çok sayıda dosya
 
-Marka kuralları aracın içinde yaşar, ürettiği her dosyada değil. Aracı bir kez doğru kur; ister tek bir kart ister düzinelerce dilde satırlardan oluşan bir elektronik tablo olsun, her çıktı aynı yazıyı, rengi ve aralığı devralır.
+Marka kuralları araçta yer alır. Aracı bir kez kur; tek bir karttan bir düzine dilde satırlar içeren bir elektronik tabloya kadar her çıktı aynı yazıyı, rengi ve aralığı kullanır.
 
-![Tek bir alanı doldurulmuş bir logotype aracı: yazı, renk ve aralık araç yapılırken belirlendi](/info/shots/aud-rules-in-the-tool.svg)
+![Tek alanı doldurulmuş bir wordmark aracı: yazı, renk ve aralık araç oluşturulurken belirlendi](/info/shots/aud-rules-in-the-tool.svg)
 
-Yüzüncü dosyayı yapan kişi yalnızca sözcükleri yazar. İşi nasıl ve kimin denetleyeceği senin kararın olarak kalır. Lolly denetlemeye değer şeyi küçültür ve sonraki dosyayı daha hızlı yapılır kılar.
+Yüzüncü dosyayı yapan kişi yalnızca sözcükleri yazar. İşin nasıl denetleneceğine ve kimin denetleyeceğine sen karar verirsin. Lolly, denetlenecek şeyleri azaltır ve sonraki dosyanın daha hızlı yapılmasını sağlar.
 
-## Bir araca kimler dokunur
+<!--i:eti-users-->
+## Aracı kimler kullanır
 
-Bir kampanya kartını bir kuruluşun içinde izle; üç çift el ortaya çıkar. Her biri öncekinin üzerine kurar.
+Bir kuruluştaki üç rol, tek bir kampanya kartı üzerinde çalışır.
 
-![Bir tasarımcı kuralları bir araçta bir kez belirler; bir geliştirici onu bir betikten çalıştırır ve herkes alanlarını doldurabilir; ikisi de bitmiş dosyalar üretir](/info/diagrams/concepts/asset-relay.svg)
+![Tasarımcı kuralları bir araçta bir kez belirler; geliştirici onu bir betikten çalıştırır ve herkes alanlarını doldurabilir; her iki yol da bitmiş dosyalar üretir](/info/diagrams/concepts/asset-relay.svg)
 
 ::: timeline
-- <!--i:pentool--> **Bir tasarımcı kuralları belirler.** Kartı Design içinde markanın yazısı ve renkleriyle düzenler, sonra hangi alanların açık kalacağını seçer. Bunu bir kez yapar; böylece kimse kartı bir daha elle yerelleştirmez.
-- <!--i:code--> **Bir geliştirici aracı ölçekler.** Aynı araç komut satırı üzerinden gece çalışan bir betikte çalışır; böylece taze bir grafik veya yeni bir dil sürümü, kimse tasarımı yeniden açmadan gelir.
-- <!--i:people--> **Herkes doldurur.** Uçaktaki bir satış temsilcisi, ağ olmadan ve tasarım eğitimi almadan, aracı açar ve yarınki toplantı için kartı yapar.
+- <!--i:pentool--> **Tasarımcı kuralları belirler.** Kartı Lolly Design'da markanın yazısı ve renkleriyle düzenler, ardından hangi alanların açık kalacağını seçer. Bunu bir kez yapar; böylece kimse kartı bir daha elle yerelleştirmez.
+- <!--i:code--> **Geliştirici aracı ölçeklendirir.** Aynı araç, komut satırı üzerinden her gece bir betikte çalışır. Kimse tasarımı yeniden açmadan güncel bir grafik veya yeni bir dil sürümü gelir.
+- <!--i:people--> **Herkes doldurabilir.** Ağ bağlantısı ve tasarım eğitimi olmayan, uçaktaki bir satış temsilcisi aracı açar ve yarınki toplantının kartını hazırlar.
 :::
 
-Geliştiricinin adımındaki taze grafik, bunun gibi bir render'dır: bir veri dizesinden ve birkaç ayardan, kimse bir tasarım dosyası açmadan yapılmıştır:
+Geliştiricinin güncel grafiği, bir veri dizesi ve birkaç ayarla oluşturulmuş, bunun gibi bir render'dır:
 
-![Başlıklı bir yığılmış alan grafiği, üç serisi soğuk bir paletle bantlanmış; eksenler, gösterge ve başlık elle değil şablonla yerleştirilmiş](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3FchartType%3Darea%26stackMode%3Dstacked%26palette%3Dcool%26heading%3DProduct%2520mix%2520by%2520quarter%26full&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-lifecycle-chart)
+![Soğuk bir palette şeritler halinde üç serili, başlıklı bir yığılmış alan grafiği; eksenler, gösterge ve başlık elle değil, şablon tarafından yerleştirildi](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3FchartType%3Darea%26stackMode%3Dstacked%26palette%3Dcool%26heading%3DProduct%2520mix%2520by%2520quarter%26full&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-lifecycle-chart)
 
-Temsilcinin kolay dakikası, yalnızca tasarımcının özeni ve geliştiricinin betiği sayesinde mümkündür. Her rol, her biri için ayrı bir ürün yerine aynı araçla çalışır.
+Temsilcinin bir dakikada işini bitirmesi, tasarımcının kurallarına ve geliştiricinin betiğine bağlıdır. Her rol aynı araçla çalışır.
 
-## Bir dosyaya dört yol
+<!--i:eti-train-->
+## Dosyaya giden dört yol
 
-Her yol aynı aracın üzerinde aynı motoru çalıştırır; bu yüzden bir betiğin yaptığı dosya, uygulamada önizlediğinle eşleşir.
+Her yol, aynı araç üzerinde aynı motoru çalıştırır; bu yüzden bir betiğin ürettiği dosya, uygulamada önizlediğin dosyayla eşleşir.
 
-![URL parametreleri ve komut satırı argümanları aynı girdi modeline dönüşür; tek bir paylaşılan çalışma zamanı ve dışa aktarma köprüsünden geçer](/info/diagrams/concepts/one-render-path.svg)
+![URL parametreleri ve komut satırı argümanları aynı girdi modeline dönüşür, ortak bir çalışma zamanı ve dışa aktarma köprüsünden geçer](/info/diagrams/concepts/one-render-path.svg)
 
-- <!--i:people--> **Uygulamada, tek tek.** Bir aracı aç, alanları doldur ve **Export** düğmesine bas. [İlk dosyanı yap](/info/make-something.html) seni bir tanesinde yönlendirir.
-- <!--i:layers--> **Uygulamada, hepsi bir arada.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) yapıştırılmış veya içe aktarılmış bir tabloyu alır ve her satır için bitmiş bir dosya render eder.
-- <!--i:cpu--> **Bir betikten veya yapay zekâ ajanından.** [CLI](/info/cli.html) bir aracı arayüzsüz çalıştırır ve [MCP sunucusu](/info/mcp.html) bir ajanın araçları keşfedip çalıştırmasını sağlar. Bir araca giden bağlantı girdilerini de taşır; yani bir bağlantı eksiksiz bir istektir.
-- <!--i:server--> **Kuruluşunun sunucusu üzerinden.** [Lolly Work](/info/organisation.html), kuruluşunun girişi ve araç politikası altında sunucuda render eder, sürdürülebilir işleri tutar ve çıktıyı indirme veya onaylı teslimat için saklar.
+- <!--i:people--> **Uygulamada, tek tek.** Bir araç aç, alanları doldur ve **Export** düğmesine bas. [İlk dosyanı oluştur](/info/make-something.html), bir örnekle sana yol gösterir.
+- <!--i:layers--> **Uygulamada, aynı anda çok sayıda.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`), yapıştırılan veya içeri aktarılan bir tabloyu alır ve her satır için bitmiş bir dosya render eder.
+- <!--i:cpu--> **Bir betikten veya yapay zekâ ajanından.** [CLI](/info/cli.html), aracı arayüzsüz çalıştırır ve [MCP sunucusu](/info/mcp.html), bir ajanın araçları keşfetmesini ve çalıştırmasını sağlar. Araç bağlantısı girdilerini de taşır; dolayısıyla bağlantı, eksiksiz bir istektir.
+- <!--i:server--> **Kuruluşunun sunucusu üzerinden.** [Lolly Work](/info/organisation.html), kuruluşunun oturum açma ve araç politikası kapsamında sunucuda render eder, devam ettirebileceği işleri saklar ve çıktıyı indirme veya onaylı teslimat için tutar.
 
-Bir işin hangi yolu kullanabileceği aracın biçimlerine ve ana bilgisayarın neler yapabildiğine bağlıdır: bazı biçimler bir tarayıcı gerektirir, bu yüzden komut satırı onları bir tarayıcı katmanına devreder. [Render with the CLI](/info/cli-rendering.html) hangi biçimlerin nerede render edildiğini listeler.
+Bir işin hangi yolu kullanabileceği, aracın biçimlerine ve çalıştığı ortamın yeteneklerine bağlıdır. Bazı biçimler tarayıcı gerektirir; bu yüzden komut satırı bunları bir tarayıcı katmanına aktarır. [CLI ile render et](/info/cli-rendering.html), hangi biçimin nerede render edildiğini listeler.
 
+<!--i:eti-monitor-->
 ## Ne nerede çalışır
 
-Yapmak, düzenlemek ve dışa aktarmak, hesap olmadan cihazında çalışır. Sync veya bağlı bir hizmete dosya göndermek gibi sunucu gerektiren bir özellik, yalnızca o özelliği kullandığında bağlanır. Lolly Work ile paylaşılan projeler, canlı ekip düzenlemesi, onaylar ve sunucu işleri kuruluşunun sunucusunu kullanır. [What runs where](/info/compare.html#what-runs-where) iki bölümü yan yana koyar.
+Üretme, düzenleme ve dışa aktarma, hesap olmadan cihazında çalışır. Sync veya bağlı bir hizmete dosya gönderme gibi sunucu gerektiren bir özellik, yalnızca o özelliği kullandığında bağlanır. Lolly Work ile paylaşılan projeler, ekiple canlı düzenleme, onaylar ve sunucu işleri kuruluşunun sunucusunu kullanır. [Ne nerede çalışır](/info/compare.html#what-runs-where), iki bölümü yan yana gösterir.
 
-## Sırada oku
+<!--i:eti-graduation-cap-->
+## Sırada okunacaklar
 
-- [İlk dosyanı yap](/info/make-something.html), şimdi denemek için.
-- [Başla](/info/quickstart.html), kendi tasarım sistemini koymak için.
-- [Automate](/info/builders.html), komut satırı, bağlantılar ve ajanlar için.
-- [Lolly architecture](/info/overview.html), katkıda bulunanlar için: motor, kabuklar ve onları bir arada tutan kurallar.
+- Hemen denemek için [İlk dosyanı oluştur](/info/make-something.html).
+- Kendi tasarım sistemini eklemek için [Başla](/info/quickstart.html).
+- Komut satırı, bağlantılar ve ajanlar için [Otomatikleştir](/info/builders.html).
+- Katkıda bulunanlar için [Lolly mimarisi](/info/overview.html): motor, kabuklar ve bunları bir arada tutan kurallar.

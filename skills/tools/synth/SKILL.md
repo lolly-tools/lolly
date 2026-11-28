@@ -7,7 +7,7 @@ description: "Operate the Lolly Synth tool (synth) using its declared inputs and
 
 Tool ID: `synth`. Tool version: `0.2.4`. Engine range: `^1.214.0`.
 
-A visual instrument you play. Four scenes run live on the GPU: fluid ink, a particle swarm that flies at your headline or your logo, a feedback field, and your own camera. Every colour comes out of the design system palette, and the picture moves to your pointer, to a music track, and to a MIDI controller. Export a still or a join-free loop.
+A visual instrument you play. The picture moves to your pointer, a music track and a MIDI controller. Export a still or a join-free loop.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

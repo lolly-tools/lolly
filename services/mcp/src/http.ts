@@ -17,6 +17,7 @@
 import { pathToFileURL } from 'node:url';
 import { createHttpLifecycle, createWriteTracker } from '../../shared/http-lifecycle.mjs';
 import { createGateway } from './gateway.ts';
+import { unsupportedNodeMessage } from '@lolly-tools/node-shell/node-patch-level';
 import { createLiveRelay } from './live-relay.ts';
 import { browserJobStatus, closeBrowser, closeWebShell } from './render.ts';
 import { createUsageBudget } from './usage-budget.ts';
@@ -28,6 +29,14 @@ import { admissionNamespace } from './admission-namespace.ts';
 export const createMcpHttpHandler = createGateway;
 
 export function startHttpServer(port = Number(process.env.PORT || 8790)): void {
+  // A Node older than the Brotli fix for CVE-2026-111497 on its line is refused before
+  // the server listens.
+  const nodeRefusal = unsupportedNodeMessage(process.versions.node);
+  if (nodeRefusal) {
+    process.stderr.write(`lolly-mcp (http): ${nodeRefusal}\n`);
+    process.exitCode = 1;
+    return;
+  }
   const writes = createWriteTracker();
   const budget = createUsageBudget(process.env, admissionNamespace(process.env), writes.begin);
   const handler = createGateway(process.env, { onWrite: writes.begin, budget });

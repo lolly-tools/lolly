@@ -32,13 +32,13 @@ export { DOCUMENT_API_VERSION, compileDocument, validateDocument, documentSchema
 export type { CompiledDocument, DocumentInspection, DocumentDiff, DocumentMeasurement } from './document-api.ts';
 export { createRuntime, HOOK_BUDGET_MS, inRealmHookExecutor } from './runtime.ts';
 export {
-  createHookWorkerCore, lockDownAmbientCapabilities, workerRpcMethods, introspectHost, gatherHostSeeds,
+  createHookWorkerCore, createHookBudget, lockDownAmbientCapabilities, workerRpcMethods, introspectHost, gatherHostSeeds,
   STRICT_AMBIENT_GLOBALS, STRICT_NAVIGATOR_PROPERTIES, WORKER_HOOK_NAMES, IN_REALM_ONLY_HOOK_NAMES,
 } from './hook-worker-core.ts';
 export type {
   HostShape, HostSeeds, HookInitMsg, HookInvokeMsg, HookHostReplyMsg, HookDisposeMsg, HookWorkerIn, WorkerHookName,
   InRealmOnlyHookName, HookInitDoneMsg, HookInvokeDoneMsg, HookReportMsg, HookHostCallMsg, HookLogMsg, HookWorkerOut,
-  HookWorkerPort, HookWorkerCoreOpts,
+  HookWorkerPort, HookWorkerCoreOpts, HookBudget,
 } from './hook-worker-core.ts';
 export type { HookExecutor, Hooks, RuntimeViewState, CanvasSize } from './runtime.ts';
 // Emoji (1.196): the runtime draws every emoji in a rendered tree from the
@@ -60,8 +60,14 @@ export {
   PSD_BLEND_TO_CSS, CSS_TO_PSD_BLEND, XCF_MODE_TO_CSS, psdBlendToCss, xcfModeToCss,
 } from './raster-layers.ts';
 export type { CssBlendMode, RasterLayer, LayeredRasterDoc, InflateFn } from './raster-layers.ts';
+export { resolveRender, renderWhenMatches, RENDER_WHEN_KEYS } from './render-when.ts';
 export { buildInputModel, summarizeInputs, CREDENTIAL_READABLE_TYPES, normalizeTableValue, deriveExportFilename, matchesShowIf, tokenRestoreRefsOf, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export type { TableValue, TableColumnEditor, ShowIf, InputWriteOptions } from './inputs.ts';
+// Input notices (v1.358): a hook result's `inputNotices` key, shown under the input by the shell.
+export { readInputNotices, sameInputNotices } from './inputs.ts';
+export type { InputNoticeMap } from './inputs.ts';
+export { INPUT_NOTICES_KEY, INPUT_NOTICE_TONES, INPUT_NOTICE_TEXT_MAX } from '@lolly-tools/core';
+export type { InputNotice, InputNotices, InputNoticeTone } from '@lolly-tools/core';
 export { parseUrlState, serializeUrlState, serializeHdr, encodeBlocksCompact, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS, VIDEO_CODEC_STRINGS, parseVideoParams, hasVideoParams, parseSpots, parseTextSetting, parsePartnerKitParam, formatPartnerKitParam, readPartnerKitAttachment } from './url-mode.ts';
 // The `s=` state address + the still-export frame filter both shells apply (plan 112).
 export { parseFrameAddress, selectFramePage, frameFilterApplies } from './frame-address.ts';
@@ -97,6 +103,8 @@ export type { BrandPageWrite } from './brand-page-address.ts';
 export { extractFileMetadata, extractXmpPacket, readFileDesignRecord, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
 export type { FileMetadata, MetaField, MetaGroup } from './file-metadata.ts';
 export { softwareName, softwareOrigins, xmlProvenanceFields } from './software-origin.ts';
+export { VERIFY_FINDING_IDS, verifyFindings, verifyHashFailed, verifyRights, verifySoftware, fillFindingText } from './verify-findings.ts';
+export type { VerifyEvidence, VerifyFinding, VerifyFindingId, VerifyFindingsInput, VerifyFindingsReport, VerifyRights, VerifySoftware, VerifyStrength, VerifyTone } from './verify-findings.ts';
 export type { SoftwareOrigin, SoftwareEvidence, SoftwareRole } from './software-origin.ts';
 // Image-metadata byte stampers + the metadata carry (plans/144 Wave 1). The
 // stampers graduated here from the web shell's bridge/export-image-meta.ts
@@ -1051,7 +1059,7 @@ export type { CompiledDesignTool } from './design-tool/compiler.ts';
 export { compileSessionTool } from './design-tool/session-compiler.ts';
 export type { SessionToolSource } from './design-tool/session-compiler.ts';
 export { designExportSize, assertDesignValues } from './design-tool/policy.ts';
-export { buildStudioScene, studioFinish, STUDIO_FINISHES, studioTime, studioAnimated, studioLightMotion } from './studio3d.ts';
+export { buildStudioScene, studioFinish, STUDIO_FINISHES, studioTime, studioAnimated, studioLightMotion, studioWantsClip, studioClipSeconds, studioClipSampleTimes, STUDIO_CLIP_INDEX_MAX, STUDIO_CLIP_BOUND_STEPS } from './studio3d.ts';
 export { studioActiveIndex, studioActiveValues, studioCameraEdit, studioFocusEdit, studioCollectionRows, studioCollectionSize, studioSubjectIds, studioSubjectEdit, studioSheetSize, STUDIO_COLLECTION_LIMIT, STUDIO_SHEET_PIXELS } from './studio3d-collection.ts';
 export { studioCameraPose, studioRestPose, studioCameraTravels, studioCameraKeyFromView, studioAddCameraKey, studioCameraFromKey, STUDIO_CAMERA_KEY_LIMIT } from './studio3d-camera-path.ts';
 export { studioOrbitLight, studioScaleLightDistance, studioPlaceableLights, studioLightEdit, STUDIO_LIGHT_TARGET, STUDIO_LIGHT_RANGE, STUDIO_PRESET_LIGHT_POSITIONS, STUDIO_KEY_CARD_OFFSET } from './studio3d-lights.ts';

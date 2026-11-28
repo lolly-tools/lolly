@@ -10,6 +10,10 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.357: baked animation clips in 3D Studio (clip time and the bounds sample times).
+  'STUDIO_CLIP_BOUND_STEPS', 'STUDIO_CLIP_INDEX_MAX', 'studioClipSampleTimes', 'studioClipSeconds', 'studioWantsClip',
+  // Additive 1.356: render settings that follow one input's value (`render.when`).
+  'RENDER_WHEN_KEYS', 'renderWhenMatches', 'resolveRender',
   // Additive 1.345: audio metadata removal for Strip Hidden Data (M4A/MP4, WAV, MP3, FLAC, Ogg Opus).
   'AUDIO_STRIP_FORMATS', 'AudioInspection', 'AudioMetadataItem', 'AudioStripFormat', 'audioMetadataResidual',
   'inspectAudioMetadata', 'sniffAudioFormat', 'stripAudioMetadata',
@@ -1200,6 +1204,8 @@ const EXPECTED: readonly string[] = [
   'sniffVideoContainer',
   'softwareName',
   'softwareOrigins',
+  'VERIFY_FINDING_IDS', 'verifyFindings', 'verifyHashFailed', 'verifyRights', 'verifySoftware', 'fillFindingText',
+  'VerifyEvidence', 'VerifyFinding', 'VerifyFindingId', 'VerifyFindingsInput', 'VerifyFindingsReport', 'VerifyRights', 'VerifySoftware', 'VerifyStrength', 'VerifyTone',
   'solidPointOklch',
   'sortedLangs',
   'sourceIngredientsFor',
@@ -1666,6 +1672,16 @@ const EXPECTED: readonly string[] = [
   'MotionCheck',
   'MotionFacts',
   'MotionTarget',
+  // Input notices (1.358): a hook result's `inputNotices` key.
+  'readInputNotices',
+  'sameInputNotices',
+  'InputNoticeMap',
+  'INPUT_NOTICES_KEY',
+  'INPUT_NOTICE_TONES',
+  'INPUT_NOTICE_TEXT_MAX',
+  'InputNotice',
+  'InputNotices',
+  'InputNoticeTone',
 ];
 
 function barrelNames(): string[] {

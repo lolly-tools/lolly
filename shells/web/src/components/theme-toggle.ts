@@ -26,7 +26,7 @@
 import { THEMES, THEME_LABELS, THEME_ICONS, nextTheme, currentTheme } from '../theme.ts';
 import { setTheme, type SetThemeHost as ThemeToggleHost } from '../lib/set-theme.ts';
 import { t, tRaw } from '../i18n.ts';
-import { segHtml } from '../lib/seg.ts';
+import { segHtml, wireSeg } from '../lib/seg.ts';
 
 export function createThemeToggle(
   host: ThemeToggleHost,
@@ -96,13 +96,7 @@ export function themeSegmentHtml(headClass = 'filter-pop-head'): string {
  * the click as a select/dismiss. Call once after the popover is in the DOM.
  */
 export function wireThemeSegment(root: ParentNode, host: ThemeToggleHost): void {
-  const btns = [...root.querySelectorAll<HTMLButtonElement>('[data-theme-seg]')];
-  btns.forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const theme = btn.dataset.themeSeg!;
-      btns.forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
-      await setTheme(host, theme);
-    });
-  });
+  for (const group of root.querySelectorAll<HTMLElement>('[data-be-seg="theme"]')) {
+    wireSeg(group, { attr: 'data-theme-seg', stopPropagation: true, onChange: theme => { void setTheme(host, theme); } });
+  }
 }

@@ -1,88 +1,91 @@
-# Kom igång
+# Start
 
-När du kommit till slutet av den här sidan bär dina verktyg dina egna färger och typsnitt, och arbetet du redan har är redo att återanvändas. Du behöver inget konto, och att skapa och exportera sker på din enhet.
+Ställ in verktygen med dina egna färger och typsnitt och återanvänd det arbete du redan har. Du behöver inget konto, och skapande och export sker på din enhet.
 
-::: timeline
-- <!--i:sparkle--> **Gör en fil.** [Gör din första fil](/info/make-something.html) tar dig genom en QR-kod på några minuter.
-- <!--i:palette--> **Lägg in ditt varumärke.** Börja från en färg, en tokenfil eller en färdig design.
-- <!--i:layers--> **Gör fler av samma sort.** Dela en länk, fyll i ett kalkylblad eller kör verktyget från ett skript.
+::: steps
+- <!--i:eti-sparkles--> **[Skapa en fil](/info/make-something.html)** En QR-kod på några minuter, med varje steg visat.
+- <!--i:eti-palette--> **[Lägg in ditt varumärke](#put-your-brand-in)** Börja med en färg, en tokenfil eller en färdig design.
+- <!--i:eti-folder-move--> **[Ta med ditt arbete](#bring-in-what-you-already-have)** Designer, presentationer och data som du redan har, lästa på din enhet.
+- <!--i:eti-repeat--> **[Skapa fler av samma slag](#make-many-share-and-automate)** Dela en länk, fyll ett kalkylblad eller kör verktyget från ett skript.
 :::
 
-Ny på själva idén? [Vad är Lolly?](/info/what-is-lolly.html) är femminutersintroduktionen, och [Så fungerar Lolly](/info/how-lolly-works.html) visar vem som gör vad.
+[Vad är Lolly?](/info/what-is-lolly.html) är en fem minuters introduktion. [Så fungerar Lolly](/info/how-lolly-works.html) visar vem som gör vad.
 
+<!--i:eti-palette-->
 ## Lägg in ditt varumärke
 
-lolly.tools öppnas i **Lolly Demo**, Lollys eget exempel på designsystem; [Möt Lolly Demo](/info/lolly-demo.html) visar vad du tittar på. Ditt designsystem ersätter det: en liten uppsättning designtokens, alltså färger, typsnitt och några regler, som varje verktyg ritar med. Ställ in det en gång, så börjar allt du gör i varumärkets stil.
+lolly.tools öppnas med **Lolly Demo**, Lollys eget exempeldesignsystem ([Möt Lolly Demo](/info/lolly-demo.html)). Ditt designsystem ersätter Lolly Demo. Det är en liten uppsättning designtokens (färger, typsnitt och några regler) som varje verktyg ritar med. Ställ in det en gång så följer allt du skapar ditt varumärke från början.
 
 Välj den väg som passar det du har:
 
-- <!--i:palette--> **En färg.** Öppna **Design System Setup** (`#/start`), ge ditt designsystem ett namn och välj en primärfärg. Lolly härleder en komplett, tillgänglig palett från den, med ljusa och mörka ytor, text och accenter. Välj ett typsnitt så har du ett fungerande varumärke.
-- <!--i:upload--> **En tokenfil.** **Add from…**, i fältet högst upp i Design System Setup, tar en tokenfil från DTCG, Tokens Studio eller Penpot, en SVG eller ett `LollyBrand`-paket. Släpp in den så fylls paletten. Medan designsystemet fortfarande är tomt öppnar **Start from a reference** på Board samma väljare.
-- <!--i:pentool--> **En färdig design.** I Design väljer du **Import a design** och släpper en `.fig`-, `.penpot`-, `.ai`-, `.idml`- eller SVG-fil. Se [Ta in det du redan har](#bring-in-what-you-already-have) nedan.
+- <!--i:palette--> **En färg.** Öppna vyn **Design System Setup** (`#/start`), namnge ditt designsystem och välj en primärfärg. Lolly härleder en tillgänglig palett från den färgen, med ljusa och mörka ytor, text och accenter. Välj ett typsnitt så har du ett fungerande varumärke.
+- <!--i:upload--> **En tokenfil.** **Add from…**, högst upp i Lolly Design System Setup, tar emot en DTCG-tokenfil, en tokenfil från Tokens Studio eller Penpot, en SVG eller ett `LollyBrand`-paket. Paletten fylls från filen. När designsystemet är tomt öppnar **Start from a reference** på Board samma väljare.
+- <!--i:pentool--> **En färdig design.** I Lolly Design väljer du **Import a design** och släpper en Figma-, Penpot-, Illustrator-, InDesign-, Affinity-, Photoshop-, PowerPoint- eller SVG-fil ([alla format](/info/design-import.html#what-comes-in-from-each-app)). Se [Ta med det du redan har](#bring-in-what-you-already-have) nedan.
 
-Första gången du öppnar galleriet erbjuder en kort välkomstdialog samma val: **Make it yours** öppnar Design System Setup, **Bring your design** öppnar en filväljare för en design och **Explore the community tools** stänger välkomstdialogen.
+Första gången du öppnar galleriet erbjuder en hälsning högst upp ett nästa steg. På lolly.tools öppnar **Start making** Lolly Design med Launch-affischen. På en ny installation öppnar **Make it yours** Lolly Design System Setup. Under den knappen öppnar **Bring a file** en filväljare för en design, och det andra av de två alternativen visas som en länk. Vilket som helst av dessa, eller stängningsknappen, tar bort hälsningen för gott.
 
-![Rummet Colours i Lolly Design System Setup på ett nytt designsystem: ett levande chip, ett fält och hela det första beslutet](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
+![Rummet Colours i Lolly Design System Setup för ett nytt designsystem: ett levande färgprov, ett fält och hela det första beslutet](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
-Därifrån tar åtta rum dig så långt du vill, i valfri ordning: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** och **Skills**. Varje förhandsvisning i appen uppdateras medan du skriver. [Lolly Design System Setup](/info/brand-studio.html) går igenom varje rum.
+Åtta rum, som kan användas i valfri ordning, tar designsystemet vidare: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** och **Skills**. Varje förhandsvisning i appen uppdateras medan du skriver. [Lolly Design System Setup](/info/brand-studio.html) beskriver varje rum.
 
-Typsnitt sparas på din enhet. Välj ett Google Font så lagrar Lolly filen som en varumärkestillgång, så att din typografi följer med offline och inget hämtas när ett verktyg ritar.
+Typsnitt sparas på din enhet. Ett Google Font som du väljer lagras som en varumärkestillgång, så att din typografi fungerar offline och inget hämtas när ett verktyg ritar.
 
-### Se, byt och dela ett designsystem
+### Visa, byt och dela ett designsystem
 
-- **Se det aktiva.** **Settings → Design system** visar det aktiva designsystemet som ett omslag och sidor, skrivskyddat.
-- **Byt mellan dem.** **Settings → Preferences → Design systems** listar varje designsystem på den här enheten. En organisation kan driva flera designsystem, eller ett med flera färgvarianter; [Brand architectures](/info/brand-architectures.html) kartlägger upplägget.
+- **Visa det aktiva.** **Settings → Design system** visar det aktiva designsystemet som ett omslag och sidor, skrivskyddat.
+- **Byt mellan dem.** **Settings → Preferences → Design systems** listar alla designsystem på den här enheten. En organisation kan använda flera designsystem eller ett med flera färgvarianter. [Varumärkesarkitekturer](/info/brand-architectures.html) kartlägger uppläggen.
 - **Dela ett.** Exportera designsystemet som ett `LollyBrand`-paket: en fil som en kollega importerar för att få samma palett, typsnitt och regler.
 
-Ett designsystem som ditt bygge eller din organisation tillhandahåller är **hanterat**: det visar ett lås och förblir skrivskyddat. För att ändra ett gör du en redigerbar kopia från **Settings → Preferences → Design systems**.
+Ett designsystem som följer med din version eller tillhandahålls av din organisation är **hanterat**: det visas med ett lås och är skrivskyddat. Om du vill ändra det skapar du en redigerbar kopia under **Settings → Preferences → Design systems**.
 
 ![Fliken Design system i Settings: det aktiva designsystemet som ett omslag och sidor](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D)
 
-Ditt designsystem är DTCG-tokens, formatet som Penpot läser och skriver och som Tokens Studio tar med till Figma, så paletten du designar med och paletten Lolly tillämpar är ett och samma dokument. [Design Tokens](/info/design-tokens.html) har detaljerna.
+Ditt designsystem består av DTCG-tokens, det format som Penpot läser och skriver och som Tokens Studio tar in i Figma. Paletten du designar med och paletten Lolly tillämpar är ett och samma dokument. [Designtokens](/info/design-tokens.html) beskriver detaljerna.
 
 ::: details För utvecklare: bygg ett varumärkespaket från kommandoraden
-För att sätta upp ett återanvändbart varumärkespaket i en utcheckning tar `ingest:brand` de tre behållarna som Penpot och Tokens Studio exporterar: en enda `tokens.json`, en katalog med filer per uppsättning med `$metadata.json`, eller ett `project.penpot`-arkiv.
+`ingest:brand` bygger ett återanvändbart varumärkespaket i en utcheckad kodbas. Det stöder de tre behållare som Penpot och Tokens Studio exporterar: en enda `tokens.json`, en katalog med filer för varje uppsättning och `$metadata.json` eller ett `project.penpot`-arkiv.
 
 ```bash
 pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
-`--activate` registrerar varumärket som en profil och bygger och validerar dess katalog. Det ändrar aldrig standardprofilen: kör med `LOLLY_PROFILE=acme` för att använda det nya paketet. [Configuration](/info/configuration.html) förklarar hur varumärkespaket och profiler hänger ihop.
+`--activate` registrerar varumärket som en profil och bygger och validerar dess katalog. Det ändrar aldrig standardprofilen: kör med `LOLLY_PROFILE=acme` för att använda det nya paketet. [Konfiguration](/info/configuration.html) förklarar hur varumärkespaket och profiler hänger ihop.
 :::
 
+<!--i:eti-folder-move-->
 ## Ta in det du redan har
 
-Du börjar inte från en tom sida.
+**Lolly Design-filer.** Färdigt arbete från Figma, Penpot, Illustrator, InDesign eller en SVG-app öppnas i Lolly Design som en redigerbar layout. Text går fortfarande att ändra, former förblir former och bilder hamnar i ditt bibliotek. Filen läses i din webbläsare och inget laddas upp. [Importera en design](/info/design-import.html) listar varje format och vad som bevaras.
 
-**Designfiler.** Färdigt arbete från Figma, Penpot, Illustrator, InDesign eller valfri SVG-app öppnas i Design som en levande layout: text förblir omskrivbar, former förblir former och bilder hamnar i ditt bibliotek. Filen läses i din webbläsare och inget laddas upp. [Import a design](/info/design-import.html) listar varje format och vad som följer med.
+**Presentationer.** Släpp en PowerPoint-fil i formatet `.pptx` på Lolly för att spara dess bilder som tillgångar. Skriv en ny presentation från Markdown i **Lolly Markdown Slides**. [Byt varumärke på en presentation](/info/rebrand.html) överför en presentation till ditt designsystem.
 
-**Presentationer.** Släpp en PowerPoint-`.pptx` på Lolly för att arkivera dess bilder som tillgångar, skriv en ny presentation från Markdown i **Markdown Slides**, eller använd [Rebrand a deck](/info/rebrand.html) för att flytta hela presentationen till ditt designsystem.
-
-**Data.** Klistra in eller släpp en CSV- eller JSON-tabell så fylls ett verktygs upprepade fält från den, eller så gör [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) en färdig fil per rad.
+**Data.** Klistra in eller släpp en CSV- eller JSON-tabell för att fylla i ett verktygs upprepade fält. [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) skapar en färdig fil per rad.
 
 ### Från engångsjobb till mall
 
-En importerad layout är en vanlig Design-session. **Share with rules** gör den till ett verktyg: du väljer vilka delar andra får ändra, och de fyller bara i dem.
+En importerad layout är en vanlig Lolly Design-session. **Share with rules** gör sessionen till ett verktyg. Du väljer vilka delar andra får ändra, och de fyller bara i dem.
 
-![Behåll Design-mastern, välj indata och gränser i en författarkopia, dela sedan ett återanvändbart .lolly-verktyg som mottagarna fyller i](/info/diagrams/concepts/share-with-rules.svg)
+![Behåll originalet i Lolly Design, välj indata och gränser i en redigeringskopia och dela sedan ett återanvändbart .lolly-verktyg som mottagarna fyller i](/info/diagrams/concepts/share-with-rules.svg)
 
 [Dela en design med regler](/info/create-a-tool.html) går igenom varje steg.
 
-## Gör många, dela och automatisera
+<!--i:eti-repeat-->
+## Skapa många, dela och automatisera
 
-- <!--i:download--> **Exportera.** Verktyg skapar SVG, PDF, PNG, JPG, WebP, video och mer, i de format varje verktyg erbjuder, i verkliga tryckstorlekar när du behöver det. Se [Exportera en fil](/info/exporting.html).
-- <!--i:link--> **Dela en länk.** Ett verktygs inställningar följer med i dess länk, så länken öppnar samma fil var som helst.
-- <!--i:layers--> **Gör en per rad.** Styr ett verktyg från ett kalkylblad i [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
+- <!--i:download--> **Exportera.** Verktygen skapar SVG, PDF, PNG, JPG, WebP, video och mer, i verkliga tryckstorlekar när det behövs. Varje verktyg har sina egna format. Se [Exportera en fil](/info/exporting.html).
+- <!--i:link--> **Dela en länk.** Ett verktygs inställningar följer med i länken, så länken öppnar samma fil var som helst.
+- <!--i:layers--> **Skapa en per rad.** Styr ett verktyg från ett kalkylblad i [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 - <!--i:cpu--> **Automatisera.** Samma rendering körs från [CLI](/info/cli.html) och från en [AI-agent](/info/ai-agents.html).
 
-En länk är en komplett begäran. Ingen ritade diagrammet nedan: dess typ, rubrik och hela datatabell skrevs in i adressfältet, och samma länk ritar samma diagram på vilken enhet som helst.
+En länk är en fullständig begäran. Diagramtypen, rubriken och datatabellen i diagrammet nedan skrevs in i adressfältet.
 
-![Ett stapeldiagram över månatliga registreringar per kanal i designsystemets färger, där varje värde kom in som en frågeparameter istället för ett klick](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26sty%3Dposter%26pl%3Droles%26transparentBg%3Dfalse%26d%3DMonth%2CWeb%2CApp%2CPartners%250AJan%2C120%2C60%2C25%250AFeb%2C180%2C95%2C40%250AMar%2C265%2C150%2C70%250AApr%2C340%2C210%2C110%250AMay%2C455%2C290%2C160%250AJun%2C560%2C380%2C230%26t%3DSignups%2520this%2520year%26st%3DBy%2520channel%252C%2520January%2520to%2520June%26full&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
+![Ett stapeldiagram över registreringar per månad och kanal i designsystemets färger, där varje värde kom som en frågeparameter i stället för ett klick](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26sty%3Dposter%26pl%3Droles%26transparentBg%3Dfalse%26d%3DMonth%2CWeb%2CApp%2CPartners%250AJan%2C120%2C60%2C25%250AFeb%2C180%2C95%2C40%250AMar%2C265%2C150%2C70%250AApr%2C340%2C210%2C110%250AMay%2C455%2C290%2C160%250AJun%2C560%2C380%2C230%26t%3DSignups%2520this%2520year%26st%3DBy%2520channel%252C%2520January%2520to%2520June%26full&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
-## Vart du ska gå härnäst
+<!--i:eti-map-pin-->
+## Gå vidare
 
-- <!--i:people--> **[Skapa](/info/creators.html)**: att skapa, animera, spela in, dela och exportera.
-- <!--i:code--> **[Automatisera](/info/builders.html)**: designsystem, verktygsutveckling, kommandoraden, länkar och agenter.
-- <!--i:usercheck--> **[Hantera](/info/operators.html)**: att driva Lolly för ett team med Lolly Work.
-- <!--i:server--> **[Driftsätt](/info/operate.html)**: att hosta Lolly och Lolly Work.
-- <!--i:shieldcheck--> **[Förtroende](/info/trust.html)**: integritet, säkerhet och att själv kontrollera en fil.
+- <!--i:people--> **[Skapa](/info/creators.html)**: skapa, animera, spela in, dela och exportera.
+- <!--i:code--> **[Automatisera](/info/builders.html)**: designsystem, skapa verktyg, kommandoraden, länkar och agenter.
+- <!--i:usercheck--> **[Hantera](/info/operators.html)**: köra Lolly för ett team med Lolly Work.
+- <!--i:server--> **[Driftsätt](/info/operate.html)**: vara värd för Lolly och Lolly Work.
+- <!--i:shieldcheck--> **[Tillit](/info/trust.html)**: integritet, säkerhet och att själv kontrollera en fil.

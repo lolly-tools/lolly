@@ -4,12 +4,21 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
 
-const template = await readFile(new URL('../community/scan-code/template.html', import.meta.url), 'utf8');
-const script = template.match(/<script>([\s\S]*?)<\/script>/)![1];
+// The reader's Copy, Open and Reveal script, in QR Code's template (scan mode) and in
+// the retired scan-code tool's, which keeps working under its own id.
 const value = 'WIFI:S:Cafe;P:exact & private;;';
+const scriptOf = async (id: string): Promise<string> =>
+  (await readFile(new URL(`../community/${id}/template.html`, import.meta.url), 'utf8')).match(/<script>([\s\S]*?)<\/script>/)![1]!;
+
+test('the two templates carry the same reader script', async () => {
+  assert.equal(await scriptOf('qr-code'), await scriptOf('scan-code'));
+});
+
+for (const id of ['qr-code', 'scan-code']) {
+const script = await scriptOf(id);
 
 for (const api of ['missing', 'rejecting']) {
-  test(`Copy uses the selected exact payload when the clipboard API is ${api}`, async () => {
+  test(`${id}: Copy uses the selected exact payload when the clipboard API is ${api}`, async () => {
     let copies = 0;
     const dom = new JSDOM(`<div data-canvas-input="mode"><button data-copy="WIFI:S:Cafe;P:exact &amp; private;;">Copy</button><p class="sc-copy-status"></p><script>${script}</script></div>`, {
       runScripts: 'dangerously', beforeParse(window) {
@@ -41,7 +50,7 @@ for (const api of ['missing', 'rejecting']) {
   });
 }
 
-test('Open link retains its native default action without bubbling into the canvas Source picker', () => {
+test(id + ': ' + 'Open link retains its native default action without bubbling into the canvas Source picker', () => {
   const dom = new JSDOM(`<div data-canvas-input="mode"><a data-open href="https://example.com" target="_blank" rel="noopener noreferrer">Open link…</a><script>${script}</script></div>`, { runScripts: 'dangerously' });
   let canvasClicks = 0;
   dom.window.document.body.addEventListener('click', () => canvasClicks++);
@@ -51,3 +60,4 @@ test('Open link retains its native default action without bubbling into the canv
   assert.equal(canvasClicks, 0);
   dom.window.close();
 });
+}

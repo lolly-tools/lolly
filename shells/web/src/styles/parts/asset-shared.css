@@ -27,6 +27,8 @@
    cluster (both position:fixed), matching .projects' own clearance. */
 /* (Footer clearance comes from #view's shared .has-search-footer padding - gallery.css.) */
 .catalog { padding: 52px 20px 0; min-height: 100vh; box-sizing: border-box; }
+/* The Sources button opens the page in its top-left corner, where the system may hold a side. */
+.catalog > [data-browse-sources] { margin-left: var(--safe-left); }
 
 /* ── Toolbar - a floating pill that sticks to the top as you scroll past the header, so
    the filetype filter + Expand/Collapse-all + Hide-hidden stay reachable everywhere. It's
@@ -34,9 +36,10 @@
    toggle top-left, profile/history cluster top-right) instead of underlapping it. */
 .cat-toolbar {
   position: sticky;
-  /* Pin BELOW the fixed top chrome - the centred view toggle (Tools|Projects|Catalog) and
-     the profile cluster both live in the top ~48px band; sitting there would overlap them. */
-  top: calc(var(--sp-8) *2.06);
+  /* Pin BELOW the fixed top chrome: the centred view toggle and the profile cluster. Their
+     band is var(--chrome-top) down and var(--chrome-h) tall, and both grow with a system
+     inset or larger touch targets, so a fixed offset ends up under them. */
+  top: calc(var(--chrome-top) + var(--chrome-h) + 0.75rem);
 
   z-index: 50;
   display: flex; align-items: center; gap: var(--sp-5);
@@ -251,13 +254,6 @@
 .cat-swatchbar-actions .btn svg, .cat-bulkbar-actions .btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
 .cat-bulk-danger.btn { color: hsl(var(--destructive-text)); border-color: hsl(var(--destructive) / .4); }
 .cat-bulk-danger.btn:hover { background: hsl(var(--destructive) / .1); border-color: hsl(var(--destructive)); }
-.cat-swatchbar-clear, .cat-bulkbar-clear {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border-radius: var(--radius-pill); cursor: pointer;
-  font-size: var(--fs-xl); line-height: 1; color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted) / .6); border: none;
-}
-.cat-swatchbar-clear:hover, .cat-bulkbar-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 /* Icon-only when the labels would wrap or overflow (lib/bulk-bar.ts fitBulkBar sets
    .is-compact by measuring). Labels are clipped, not removed, so each button keeps its
    accessible name; the label is also its tooltip. */
@@ -321,12 +317,7 @@ button.cat-download { font: inherit; cursor: pointer; }
 .cat-details::backdrop { background: #0008; -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
 .cat-details-close {
   position: absolute; top: 10px; right: 12px; z-index: 4;
-  /* Box on the chrome icon scale (tokens.css) - its × is TYPE and already
-     scales, so a fixed box would clip it. */
-  width: calc(32px * var(--a11y-fs)); height: calc(32px * var(--a11y-fs)); border: none; border-radius: var(--radius-pill); cursor: pointer;
-  font-size: calc(20px * var(--a11y-fs)); line-height: 1; color: hsl(var(--foreground)); background: hsl(var(--muted) / .7);
 }
-.cat-details-close:hover { background: hsl(var(--muted)); }
 /* ONE CANVAS, EVERY ASSET TYPE - the expanded Neurospicy player's model applied here.
    Before this, each type invented its own layout inside this pane: an image centred a
    contained <img>, audio grew a flex column of meter + bar + swatches + player, lottie
@@ -481,6 +472,8 @@ button.cat-download { font: inherit; cursor: pointer; }
   position: fixed; inset: 0; z-index: 60;
   display: flex; flex-direction: column; gap: .5rem;
   margin: 0; padding: clamp(.75rem, 3vw, 2rem);
+  /* The whole screen, so the top padding takes in the status bar (0 where there is none). */
+  padding-top: calc(clamp(.75rem, 3vw, 2rem) + var(--safe-top));
   background: hsl(var(--background));
 }
 
@@ -640,7 +633,9 @@ button.cat-download { font: inherit; cursor: pointer; }
 .cat-dl-themes { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
 .cat-dl-theme { padding: 3px; border: 2px solid transparent; border-radius: var(--radius-pill); background: none; cursor: pointer; }
 .cat-dl-theme.is-active { border-color: hsl(var(--primary)); }
-.cat-dl-duo { display: inline-flex; width: 30px; height: 18px; border-radius: var(--radius-pill); overflow: hidden; border: 0; }
+/* The hairline is an outline so it draws over the two halves: a pairing for a dark ground
+   can hold white or a pale tint, which has no edge of its own on a light page. */
+.cat-dl-duo { display: inline-flex; width: 30px; height: 18px; border-radius: var(--radius-pill); overflow: hidden; border: 0; outline: 1px solid hsl(var(--foreground) / .16); outline-offset: -1px; }
 .cat-dl-duo i { flex: 1; }
 /* The radio rows are `.field-toggle` + `.field-radio` (fields.css) - box, dot, hover,
    focus ring and hit-area all come from the primitive. The only delta left here is the

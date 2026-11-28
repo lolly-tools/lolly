@@ -46,6 +46,9 @@ const appDataFs: StateFs = {
   readDirNames: async (path) =>
     (await readDir(path, { baseDir: BaseDirectory.AppData })).map((entry) => entry.name),
   remove: (path) => remove(path, { baseDir: BaseDirectory.AppData }),
+  // Session pictures, once each by the hash of their bytes (plan 373).
+  readFile: (path) => readFile(path, { baseDir: BaseDirectory.AppData }),
+  writeFile: (path, bytes) => trackUpdateWrite(path, () => writeFile(path, bytes, { baseDir: BaseDirectory.AppData })),
 };
 
 // createStateAPI signature matches the web shell (db param ignored - not needed here).

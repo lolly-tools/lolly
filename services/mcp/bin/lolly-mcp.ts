@@ -9,8 +9,17 @@
  */
 
 import { dispatch } from '../src/server.ts';
+import { unsupportedNodeMessage } from '@lolly-tools/node-shell/node-patch-level';
 import { LiveBridge } from '../src/live-bridge.ts';
 import type { JsonRpcRequest } from '../src/protocol.ts';
+
+// A Node older than the Brotli fix for CVE-2026-111497 on its line is refused before the
+// first request is read. Stderr only, and nothing has reached stdout, the JSON-RPC channel.
+const nodeRefusal = unsupportedNodeMessage(process.versions.node);
+if (nodeRefusal) {
+  process.stderr.write(`lolly-mcp: ${nodeRefusal}\n`);
+  process.exit(1);
+}
 
 // The live tools (plans/289 D1) exist only here: this process runs on the person's
 // machine, so it can reach their open editor. The name the client gave in initialize

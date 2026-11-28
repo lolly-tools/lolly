@@ -1,24 +1,26 @@
-# Lolly dibandingkan, alat demi alat
+# Perbandingan Lolly, alat demi alat
 
-Jika anda sudah menggunakan produk lain, halaman ini menyatakan sama ada Lolly menggantikan produk itu, berfungsi bersamanya atau tidak sesuai dengan kerja anda. Setiap satu bermula dengan apa yang dilakukan produk lain dengan lebih baik.
+Halaman ini menyatakan sama ada Lolly menggantikan produk lain, berfungsi bersama produk itu atau tidak sesuai untuk kerja anda. Setiap halaman bermula dengan apa yang produk lain lakukan dengan lebih baik.
 
-_Disemak kali terakhir: 28 September 2026._
+_Semakan terakhir: 28 September 2026._
 
+<!--i:eti-grid-->
 ## Bandingkan mengikut produk
 
-- [Lolly dan Canva](/info/compare-canva.html) - templat, reka bentuk harian dan pengeluaran jenama dikongsi.
+- [Lolly dan Canva](/info/compare-canva.html) - templat, reka bentuk harian dan penghasilan kandungan jenama bersama.
 - [Lolly dan Adobe](/info/compare-adobe.html) - penyuntingan, penukaran, output profesional dan Content Credentials.
-- [Lolly dan Figma](/info/compare-figma.html) - reka bentuk, kolaborasi langsung dan pengeluaran aset boleh guna semula.
-- [Lolly dan Penpot](/info/compare-penpot.html) - reka bentuk sumber terbuka, token dikongsi dan kerja organisasi.
-- [Lolly dan portal jenama](/info/compare-brand-portals.html) - pustaka diluluskan, templat terkunci, identiti, semakan dan pelaporan.
-- [Lolly dan API perenderan](/info/compare-render-apis.html) - penjanaan automatik pada peranti anda, dalam CI atau pada pelayan anda sendiri, dan [cara berpindah](/info/work-move-from-render-api.html) daripada Bannerbear atau Placid.
+- [Lolly dan Figma](/info/compare-figma.html) - reka bentuk, kolaborasi langsung dan penghasilan aset yang boleh digunakan semula.
+- [Lolly dan Penpot](/info/compare-penpot.html) - reka bentuk sumber terbuka, token bersama dan kerja organisasi.
+- [Lolly dan portal jenama](/info/compare-brand-portals.html) - pustaka yang diluluskan, templat terkunci, identiti, semakan dan pelaporan.
+- [Lolly dan API render](/info/compare-render-apis.html) - penjanaan automatik pada peranti anda, dalam CI atau pada pelayan anda sendiri, dan [cara beralih](/info/work-move-from-render-api.html) daripada Bannerbear atau Placid.
 - [Lolly dan penukar fail dalam talian](/info/compare-converters.html) - penukaran format pada peranti anda sendiri.
 
-Untuk paparan keupayaan demi keupayaan, lihat [Perbandingan Lolly](/info/positioning.html). Setiap perbandingan bertarikh; tuntutan yang tidak lagi sepadan dengan mana-mana produk perlu dibetulkan.
+[Bagaimana Lolly dibandingkan](/info/positioning.html) menyediakan paparan mengikut keupayaan. Setiap perbandingan bertarikh. Dakwaan yang tidak lagi sepadan dengan mana-mana produk perlu dibetulkan.
 
-## Apa yang berjalan di mana
+<!--i:eti-map-pin-->
+## Apa berjalan di mana
 
-Setiap perbandingan meliputi dua bahagian satu projek sumber terbuka. **Lolly** ialah enjin, apl dan alat. **Lolly Work** ialah pelayan organisasi, diselenggara dalam [repositori lolly-work](https://github.com/lolly-tools/lolly-work). Kedua-duanya MPL-2.0, dan organisasi memutuskan perkhidmatan Lolly Work mana yang hendak dihidupkan.
+Setiap perbandingan meliputi dua bahagian satu projek sumber terbuka. **Lolly** ialah enjin, apl dan alat. **Lolly Work** ialah pelayan organisasi, yang diselenggarakan dalam [repositori lolly-work](https://github.com/lolly-tools/lolly-work). Kedua-duanya menggunakan MPL-2.0, dan organisasi menentukan perkhidmatan Lolly Work yang hendak dihidupkan.
 
 ::: cols
 ## Pada peranti anda: Lolly
@@ -27,24 +29,25 @@ Setiap perbandingan meliputi dua bahagian satu projek sumber terbuka. **Lolly** 
 - Membuat, menyunting, menukar dan mengeksport
 - Berfungsi luar talian setelah alat dan aset yang diperlukannya disimpan
 - Content Credentials ditandatangani pada peranti
-- Collab peribadi antara dua peranti, tanpa pelayan
+- Kolaborasi peribadi antara dua peranti, tanpa pelayan
 
 ## Pada pelayan organisasi anda: Lolly Work
 
-- Log masuk tunggal, penyediaan SCIM, peranan dan dasar
-- Katalog dikongsi, projek pasukan dan collab kerja
+- Daftar masuk tunggal, penyediaan SCIM, peranan dan dasar
+- Katalog bersama, projek pasukan dan kolaborasi kerja
 - Kelulusan, pelaporan penggunaan dan rekod audit
-- Perenderan pelayan, tugasan boleh dipulihkan dan penghantaran diluluskan
+- Render pelayan, tugas yang boleh dipulihkan dan penghantaran yang diluluskan
 - Penandatanganan pelayan dengan identiti organisasi
 :::
 
-Penggunaan kendiri mengekalkan fail pada peranti. Memilih projek dikongsi, collab kerja, render pelayan atau penghantaran menghantar data yang diperlukan ciri itu ke pelayan organisasi anda.
+Penggunaan kendiri mengekalkan fail pada peranti. Memilih projek bersama, kolaborasi kerja, render pelayan atau penghantaran menghantar data yang diperlukan ciri itu ke pelayan organisasi anda.
 
-## Apa yang diandaikan setiap perbandingan
+<!--i:eti-info-->
+## Andaian setiap perbandingan
 
-Had ini terpakai pada setiap halaman dalam set ini, jadi ia dinyatakan sekali di sini:
+Had ini terpakai pada setiap halaman dalam set ini:
 
-- **Collab kerja berjalan pada satu nod pelayan hari ini.** Skala dan sejarah operasinya berbeza daripada produk terhos yang sudah lama bertapak. [Lolly Work status and roadmap](/info/work-status.html) merekodkan had semasa.
-- **Tapak di [lolly.work](https://lolly.work) ialah kotak pasir demo.** Penempatan organisasi tahan lama memerlukan storan berterusan dan pengendali; [Install Lolly Work](/info/work-install.html) meliputi kedua-duanya.
-- **Tiada caj lesen perisian bagi setiap tempat duduk** untuk Lolly atau Lolly Work yang dihos sendiri. Pengehosan, storan dan operasi masih berkos.
-- **Tandatangan bukan penandatangan yang dipercayai.** Pengesah mesti mempercayai sijil yang menandatangani fail sebelum ia menunjukkan penandatangan sebagai dipercayai; [Content Credentials Identity](/info/content-credentials-identity.html) menerangkan caranya.
+- **Kolaborasi Lolly Work berjalan pada satu nod pelayan buat masa ini.** Skala dan sejarah operasinya berbeza daripada produk dihoskan yang sudah lama bertapak. [Status dan pelan hala tuju Lolly Work](/info/work-status.html) merekodkan had semasa.
+- **Laman di [lolly.work](https://lolly.work) ialah persekitaran ujian demo.** Pelaksanaan organisasi yang berkekalan memerlukan storan berterusan dan pengendali. [Pasang Lolly Work](/info/work-install.html) meliputi kedua-duanya.
+- **Tiada caj lesen perisian bagi setiap pengguna** untuk Lolly atau Lolly Work yang dihoskan sendiri. Pengehosan, storan dan operasi masih memerlukan wang.
+- **Tandatangan tidak bermakna penandatangannya dipercayai.** Pengesah menunjukkan penandatangan sebagai dipercayai hanya apabila pengesah mempercayai sijil yang menandatangani fail. [Identiti Content Credentials](/info/content-credentials-identity.html) menerangkan caranya.

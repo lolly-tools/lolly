@@ -1,88 +1,91 @@
-# Simulan
+# Magsimula
 
-Pagdating sa dulo ng pahinang ito, isusuot na ng mga tool mo ang sarili mong mga kulay at font, at handa nang gamitin muli ang gawa mo na. Hindi mo kailangan ng account, at tumatakbo sa device mo ang paggawa at pag-export.
+Itakda ang mga tool mo sa sarili mong mga kulay at font, at muling gamitin ang gawa na mayroon ka na. Hindi mo kailangan ng account, at sa device mo tumatakbo ang paggawa at pag-export.
 
-::: timeline
-- <!--i:sparkle--> **Gumawa ng isang file.** Ginagabayan ka ng [Gawin ang una mong file](/info/make-something.html) sa isang QR code sa loob ng ilang minuto.
-- <!--i:palette--> **Ilagay ang brand mo.** Magsimula sa isang kulay, tokens file o tapos nang design.
-- <!--i:layers--> **Gumawa pa ng kapareho.** Magbahagi ng link, punan ang spreadsheet o patakbuhin ang tool mula sa script.
+::: steps
+- <!--i:eti-sparkles--> **[Gumawa ng isang file](/info/make-something.html)** Isang QR code sa loob ng ilang minuto, na ipinapakita ang bawat hakbang.
+- <!--i:eti-palette--> **[Ilagay ang brand mo](#put-your-brand-in)** Magsimula sa isang kulay, tokens file o tapos na design.
+- <!--i:eti-folder-move--> **[Ipasok ang gawa mo](#bring-in-what-you-already-have)** Mga design, deck at datos na mayroon ka na, na binabasa sa device mo.
+- <!--i:eti-repeat--> **[Gumawa pa ng kapareho](#make-many-share-and-automate)** Magbahagi ng link, punan ang spreadsheet o patakbuhin ang tool mula sa script.
 :::
 
-Bago ka sa mismong ideya? Ang [Ano ang Lolly?](/info/what-is-lolly.html) ay limang-minutong pagpapakilala, at ipinapakita ng [Paano gumagana ang Lolly](/info/how-lolly-works.html) kung sino ang gumagawa ng ano.
+Ang [Ano ang Lolly?](/info/what-is-lolly.html) ay isang limang minutong pagpapakilala. Ipinapakita ng [Paano gumagana ang Lolly](/info/how-lolly-works.html) kung sino ang gumagawa ng ano.
 
+<!--i:eti-palette-->
 ## Ilagay ang brand mo
 
-Nagbubukas ang lolly.tools sa **Lolly Demo**, ang sariling sample na design system ng Lolly; ipinapakita ng [Kilalanin ang Lolly Demo](/info/lolly-demo.html) kung ano ang tinitingnan mo. Papalitan ito ng design system mo: isang maliit na hanay ng design token, ibig sabihin mga kulay, font at ilang patakaran, na ginagamit ng bawat tool sa pagguhit. Itakda ito nang minsan, at on-brand na ang simula ng lahat ng gagawin mo.
+Bumubukas ang lolly.tools sa **Lolly Demo**, ang sariling halimbawang design system ng Lolly ([Kilalanin ang Lolly Demo](/info/lolly-demo.html)). Pinapalitan ng design system mo ang Lolly Demo. Isa itong maliit na set ng mga design token (mga kulay, font at ilang panuntunan) na ginagamit ng bawat tool sa pagguhit. Itakda ito nang isang beses, at lahat ng gagawin mo ay magsisimulang tugma sa brand.
 
-Piliin ang rutang tugma sa meron ka:
+Piliin ang paraang tugma sa mayroon ka:
 
-- <!--i:palette--> **Isang kulay.** Buksan ang **Design System Setup** (`#/start`), pangalanan ang design system mo at pumili ng primary na kulay. Gumagawa ang Lolly mula rito ng kumpleto at accessible na palette, na may light at dark na surface, text at accent. Pumili ng font at may gumagana ka nang brand.
-- <!--i:upload--> **Isang tokens file.** Ang **Add from…**, sa bar ng Design System Setup, ay tumatanggap ng DTCG, Tokens Studio o Penpot tokens file, SVG o `LollyBrand` pack. I-drop ito at mapupuno ang palette. Habang walang laman pa ang design system, binubuksan ng **Start from a reference** sa Board room ang parehong picker.
-- <!--i:pentool--> **Isang tapos nang design.** Sa Design, piliin ang **Import a design** at i-drop ang `.fig`, `.penpot`, `.ai`, `.idml` o SVG file. Tingnan ang [Dalhin ang meron ka na](#bring-in-what-you-already-have) sa ibaba.
+- <!--i:palette--> **Isang kulay.** Buksan ang **Design System Setup** view (`#/start`), pangalanan ang design system mo at pumili ng pangunahing kulay. Bumubuo ang Lolly ng accessible na palette mula sa kulay na iyon, na may light at dark na mga surface, text at accent. Pumili ng font at mayroon ka nang magagamit na brand.
+- <!--i:upload--> **Isang tokens file.** Tumatanggap ang **Add from…**, sa itaas ng Lolly Design System Setup, ng DTCG, Tokens Studio o Penpot tokens file, SVG o `LollyBrand` pack. Napupunan ang palette mula sa file. Habang walang laman ang design system, binubuksan ng **Start from a reference** sa Board ang parehong picker.
+- <!--i:pentool--> **Isang tapos na design.** Sa Lolly Design, piliin ang **Import a design** at mag-drop ng Figma, Penpot, Illustrator, InDesign, Affinity, Photoshop, PowerPoint o SVG file ([bawat format](/info/design-import.html#what-comes-in-from-each-app)). Tingnan ang [Ipasok ang mayroon ka na](#bring-in-what-you-already-have) sa ibaba.
 
-Sa unang beses mong buksan ang gallery, nag-aalok ang maikling welcome ng parehong mga pagpipilian: binubuksan ng **Make it yours** ang Design System Setup, binubuksan ng **Bring your design** ang file picker para sa design at isinasara ng **Explore the community tools** ang welcome.
+Sa unang pagbukas mo ng gallery, may pagbati sa itaas na nag-aalok ng isang susunod na hakbang. Sa lolly.tools, binubuksan ng **Start making** ang Lolly Design sa Launch poster. Sa bagong install, binubuksan ng **Make it yours** ang Lolly Design System Setup. Sa ilalim ng button na iyon, binubuksan ng **Bring a file** ang file picker para sa design, at lumalabas bilang link ang isa pa sa dalawang pagpipiliang iyon. Alinman sa mga ito, o ang close button, ay permanenteng nag-aalis ng pagbati.
 
 ![Ang Colours room ng Lolly Design System Setup sa bagong design system: isang live na chip, isang field at ang buong unang desisyon](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-colours-new-system)
 
-Mula roon, walong room ang magdadala nito hanggang saan mo gusto, sa anumang pagkakasunod-sunod: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** at **Skills**. Nag-a-update ang bawat preview sa app habang nagta-type ka. Sinasaklaw ng [Lolly Design System Setup](/info/brand-studio.html) ang bawat room.
+Walong room, na magagamit sa anumang pagkakasunod, ang nagpapalawak sa design system: **Board**, **Colours**, **Type**, **Logos**, **Tokens**, **Files**, **Rules** at **Skills**. Nag-a-update ang bawat preview sa app habang nagta-type ka. Sinasaklaw ng [Lolly Design System Setup](/info/brand-studio.html) ang bawat room.
 
-Iniingatan sa device mo ang mga font. Pumili ng Google Font at ise-save ng Lolly ang file bilang brand asset, kaya sumasama offline ang type mo at walang kinukuha kapag gumuguhit ang tool.
+Itinatago ang mga font sa device mo. Iniimbak bilang brand asset ang Google Font na pipiliin mo, kaya gumagana offline ang type mo at walang kinukuha kapag gumuguhit ang tool.
 
-### Tingnan, ilipat at ibahagi ang design system
+### Tingnan, palitan at ibahagi ang design system
 
-- **Tingnan ang aktibo.** Ipinapakita ng **Settings → Design system** ang aktibong design system bilang cover at mga pahina, read-only.
-- **Lumipat sa pagitan nila.** Inililista ng **Settings → Preferences → Design systems** ang bawat design system sa device na ito. Ang isang organisasyon ay puwedeng magpatakbo ng ilang design system, o isa na may ilang colourway; ipinapakita ng [Brand architectures](/info/brand-architectures.html) ang mga kaayusan.
-- **Magbahagi ng isa.** I-export ang design system bilang `LollyBrand` pack: isang file na ii-import ng kasamahan para makuha ang parehong palette, font at patakaran.
+- **Tingnan ang aktibo.** Ipinapakita ng **Settings → Design system** ang aktibong design system bilang cover at mga page, na read-only.
+- **Lumipat sa iba.** Inililista ng **Settings → Preferences → Design systems** ang bawat design system sa device na ito. Puwedeng magpatakbo ang isang organisasyon ng ilang design system, o ng isa na may ilang colourway. Ipinapakita ng [Mga arkitektura ng brand](/info/brand-architectures.html) ang mga ayos.
+- **Magbahagi ng isa.** I-export ang design system bilang `LollyBrand` pack: isang file na ini-import ng kasamahan para makuha ang parehong palette, mga font at panuntunan.
 
-Ang design system na ibinigay ng build o organisasyon mo ay **managed**: may lock ito at nananatiling read-only. Para baguhin ang isa, gumawa ng mae-edit na kopya mula sa **Settings → Preferences → Design systems**.
+Ang design system na kasama sa build mo o ibinigay ng organisasyon mo ay **pinamamahalaan**: may lock ito at nananatiling read-only. Para baguhin ito, gumawa ng mae-edit na kopya mula sa **Settings → Preferences → Design systems**.
 
-![Ang Design system tab sa Settings: ang aktibong design system bilang cover at mga pahina](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D)
+![Ang Design system tab sa Settings: ang aktibong design system bilang cover at mga page](/t/url-shot?url=%2F%23%2Fd%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=dashboard-brand&waitSelector=%5Bdata-issue-ready%5D)
 
-Ang design system mo ay mga DTCG token, ang format na binabasa at isinusulat ng Penpot at dinadala ng Tokens Studio sa Figma, kaya iisang dokumento ang palette na dinidisenyo mo at ang palette na inilalapat ng Lolly. Nasa [Design Tokens](/info/design-tokens.html) ang mga detalye.
+DTCG tokens ang design system mo, ang format na binabasa at sinusulat ng Penpot at dinadala ng Tokens Studio sa Figma. Iisang dokumento ang palette na ginagamit mo sa pag-design at ang palette na inilalapat ng Lolly. Nasa [Design Tokens](/info/design-tokens.html) ang mga detalye.
 
 ::: details Para sa mga developer: bumuo ng brand pack mula sa command line
-Para magtayo ng magagamit muling brand pack sa checkout, tumatanggap ang `ingest:brand` ng tatlong container na ine-export ng Penpot at Tokens Studio: isang `tokens.json`, isang directory ng mga file bawat set na may `$metadata.json`, o isang `project.penpot` archive.
+Bumubuo ang `ingest:brand` ng magagamit muli na brand pack sa isang checkout. Tinatanggap nito ang tatlong container na ine-export ng Penpot at Tokens Studio: isang `tokens.json`, isang directory ng mga file bawat set na may `$metadata.json` o isang `project.penpot` archive.
 
 ```bash
 pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
-Nire-register ng `--activate` ang brand bilang profile at binubuo at vina-validate ang catalog nito. Hindi nito kailanman binabago ang default na profile: patakbuhin gamit ang `LOLLY_PROFILE=acme` para magamit ang bagong pack. Ipinapaliwanag ng [Configuration](/info/configuration.html) kung paano nagkakasya ang mga brand pack at profile.
+Nirerehistro ng `--activate` ang brand bilang profile at binubuo at vina-validate ang catalog nito. Hindi nito kailanman binabago ang default na profile: patakbuhin gamit ang `LOLLY_PROFILE=acme` para gamitin ang bagong pack. Ipinapaliwanag ng [Pag-configure](/info/configuration.html) kung paano nagtutugma ang mga brand pack at profile.
 :::
 
-## Dalhin ang meron ka na
+<!--i:eti-folder-move-->
+## Ipasok ang mayroon ka na
 
-Hindi ka nagsisimula sa blangkong pahina.
+**Mga Lolly Design file.** Bumubukas sa Lolly Design bilang mae-edit na layout ang tapos na gawa mula sa Figma, Penpot, Illustrator, InDesign o anumang SVG app. Puwede pa ring baguhin ang text, nananatiling hugis ang mga hugis at napupunta sa library mo ang mga larawan. Binabasa ang file sa browser mo at walang ina-upload. Inililista ng [Mag-import ng design](/info/design-import.html) ang bawat format at kung ano ang napapanatili.
 
-**Mga design file.** Ang tapos nang gawa mula sa Figma, Penpot, Illustrator, InDesign o anumang SVG app ay bumubukas sa Design bilang buhay na layout: nananatiling matatype muli ang text, nananatiling hugis ang mga hugis at napupunta sa library mo ang mga larawan. Binabasa sa browser mo ang file at walang ina-upload. Inililista ng [Import a design](/info/design-import.html) ang bawat format at kung ano ang nadadala.
+**Mga deck.** Mag-drop ng PowerPoint `.pptx` sa Lolly para itago ang mga slide nito bilang mga asset. Sumulat ng bagong deck mula sa Markdown sa **Lolly Markdown Slides**. Inililipat ng [Palitan ang brand ng deck](/info/rebrand.html) ang isang deck sa design system mo.
 
-**Mga deck.** I-drop ang PowerPoint `.pptx` sa Lolly para i-file ang mga slide nito bilang asset, magsulat ng bagong deck mula sa Markdown sa **Markdown Slides**, o gamitin ang [Rebrand a deck](/info/rebrand.html) para ilipat ang buong deck sa design system mo.
+**Data.** Mag-paste o mag-drop ng CSV o JSON table para punan ang mga umuulit na field ng tool. Gumagawa ang [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) ng isang tapos na file bawat row.
 
-**Data.** Mag-paste o mag-drop ng CSV o JSON table at mapupunan mula roon ang mga umuulit na field ng tool, o gumagawa ang [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) ng isang tapos na file bawat row.
+### Mula sa minsanang gawa tungo sa template
 
-### Mula sa isang beses lang papuntang template
+Karaniwang Lolly Design session ang isang na-import na layout. Ginagawang tool ng **Share with rules** ang session. Pinipili mo kung aling mga bahagi ang puwedeng baguhin ng iba, at iyon lang ang pinupunan nila.
 
-Ang na-import na layout ay karaniwang Design session. Ginagawa itong tool ng **Share with rules**: pipiliin mo kung aling mga bahagi ang puwedeng baguhin ng ibang tao, at iyon lang ang pupunan nila.
+![Panatilihin ang Lolly Design master, piliin ang mga input at limitasyon sa kopyang pang-author, saka magbahagi ng magagamit muli na .lolly tool na pupunan ng mga tatanggap](/info/diagrams/concepts/share-with-rules.svg)
 
-![Panatilihin ang Design master, piliin ang mga input at limitasyon sa authoring copy, saka magbahagi ng magagamit muling .lolly tool na pupunan ng mga tatanggap](/info/diagrams/concepts/share-with-rules.svg)
+Dinadaanan ng [Magbahagi ng design na may mga patakaran](/info/create-a-tool.html) ang bawat hakbang.
 
-Ginagabayan ka ng [Share a design with rules](/info/create-a-tool.html) sa bawat hakbang.
-
+<!--i:eti-repeat-->
 ## Gumawa ng marami, magbahagi at mag-automate
 
-- <!--i:download--> **I-export.** Gumagawa ang mga tool ng SVG, PDF, PNG, JPG, WebP, video at iba pa, sa mga format na iniaalok ng bawat tool, sa tunay na laki ng print kapag kailangan. Tingnan ang [Mag-export ng file](/info/exporting.html).
-- <!--i:link--> **Magbahagi ng link.** Sumasama sa link ang mga setting ng tool, kaya muling binubuksan ng link ang parehong file saanman.
+- <!--i:download--> **Mag-export.** Gumagawa ang mga tool ng SVG, PDF, PNG, JPG, WebP, video at iba pa, sa tunay na sukat ng print kapag kailangan. May sariling mga format na iniaalok ang bawat tool. Tingnan ang [Mag-export ng file](/info/exporting.html).
+- <!--i:link--> **Magbahagi ng link.** Kasama sa link ng tool ang mga setting nito, kaya muling binubuksan ng link ang parehong file saanman.
 - <!--i:layers--> **Gumawa ng isa bawat row.** Patakbuhin ang tool mula sa spreadsheet sa [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
-- <!--i:cpu--> **Mag-automate.** Tumatakbo ang parehong render mula sa [CLI](/info/cli.html) at mula sa [AI agent](/info/ai-agents.html).
+- <!--i:cpu--> **Mag-automate.** Tumatakbo ang parehong render mula sa [CLI](/info/cli.html) at mula sa isang [AI agent](/info/ai-agents.html).
 
-Kumpletong request ang isang link. Walang gumuhit sa chart sa ibaba: ang uri, heading at buong data table nito ay tinype sa address bar, at iginuguhit ng parehong link ang parehong chart sa anumang device.
+Kumpletong request ang isang link. Tinype sa address bar ang uri, heading at data table ng chart sa ibaba.
 
-![Isang bar chart ng buwanang signup ayon sa channel sa mga kulay ng design system, kung saan ang bawat value ay dumating bilang isang query parameter sa halip na isang click](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26sty%3Dposter%26pl%3Droles%26transparentBg%3Dfalse%26d%3DMonth%2CWeb%2CApp%2CPartners%250AJan%2C120%2C60%2C25%250AFeb%2C180%2C95%2C40%250AMar%2C265%2C150%2C70%250AApr%2C340%2C210%2C110%250AMay%2C455%2C290%2C160%250AJun%2C560%2C380%2C230%26t%3DSignups%2520this%2520year%26st%3DBy%2520channel%252C%2520January%2520to%2520June%26full&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
+![Isang bar chart ng mga buwanang signup ayon sa channel sa mga kulay ng design system, kung saan ang bawat value ay galing sa query parameter sa halip na click](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26sty%3Dposter%26pl%3Droles%26transparentBg%3Dfalse%26d%3DMonth%2CWeb%2CApp%2CPartners%250AJan%2C120%2C60%2C25%250AFeb%2C180%2C95%2C40%250AMar%2C265%2C150%2C70%250AApr%2C340%2C210%2C110%250AMay%2C455%2C290%2C160%250AJun%2C560%2C380%2C230%26t%3DSignups%2520this%2520year%26st%3DBy%2520channel%252C%2520January%2520to%2520June%26full&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
+<!--i:eti-map-pin-->
 ## Saan susunod
 
-- <!--i:people--> **[Gumawa](/info/creators.html)**: paggawa, pag-animate, pagre-record, pagbabahagi at pag-export.
-- <!--i:code--> **[Mag-automate](/info/builders.html)**: mga design system, pagbuo ng tool, command line, mga link at agent.
-- <!--i:usercheck--> **[Mamahala](/info/operators.html)**: pagpapatakbo ng Lolly para sa team gamit ang Lolly Work.
-- <!--i:server--> **[I-deploy](/info/operate.html)**: pag-host ng Lolly at Lolly Work.
-- <!--i:shieldcheck--> **[Tiwala](/info/trust.html)**: privacy, seguridad at pag-check ng file mismo.
+- <!--i:people--> **[Lumikha](/info/creators.html)**: paggawa, pag-animate, pag-record, pagbabahagi at pag-export.
+- <!--i:code--> **[Mag-automate](/info/builders.html)**: mga design system, paggawa ng tool, command line, mga link at agent.
+- <!--i:usercheck--> **[Pamahalaan](/info/operators.html)**: pagpapatakbo ng Lolly para sa team gamit ang Lolly Work.
+- <!--i:server--> **[Mag-deploy](/info/operate.html)**: pag-host ng Lolly at Lolly Work.
+- <!--i:shieldcheck--> **[Tiwala](/info/trust.html)**: privacy, seguridad at pag-check ng file nang sarili mo.

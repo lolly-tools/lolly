@@ -3,8 +3,8 @@
     "name": "Claude Code"
   },
   "model": {
-    "name": "Claude Opus 5.5",
-    "identifier": "claude-opus-5-5",
+    "name": "Claude Fable 5.2",
+    "identifier": "claude-fable-5-2",
     "vendor": "Anthropic"
   },
   "oversight": "prompt_guided",

@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "tool": {
+    "id": "logo-wall",
+    "version": "1.9.0",
+    "digest": "e930c33ccd09e674623a96748575d7b6033b1ac821ea5695fcd49c34a521f954"
+  },
+  "verdict": "resvg",
+  "measured": {
+    "date": "2026-11-20",
+    "profile": "lolly-demo",
+    "webShell": "b7977cd6fa",
+    "renderers": {
+      "resvg": "2.6.2",
+      "engine": "1.348.0",
+      "chromium": "153.0.8010.12"
+    },
+    "bands": {
+      "threshold": 24,
+      "fillThreshold": 72,
+      "regionShare": 0.005,
+      "inkShare": 0.25,
+      "inkShift": 1.5,
+      "gradientLevels": 2
+    }
+  },
+  "cases": [
+    {
+      "name": "logo-wall-default",
+      "args": [],
+      "result": "inside"
+    },
+    {
+      "name": "logo-wall-mixed-pictures",
+      "args": [
+        "--logos=[{\"logo\":\"lolly/logo/primary\",\"tier\":\"Gold partners\"},{\"logo\":\"lolly/logo/horizontal\",\"tier\":\"Gold partners\"},{\"logo\":\"lolly/demo/sample-photo\",\"tier\":\"Silver\"},{\"logo\":\"lolly/demo/sample-portrait\",\"tier\":\"Silver\"}]",
+        "--knockout=false"
+      ],
+      "result": "refused",
+      "detail": "the tool computed part of the picture with a 2D canvas, which this shell emulates and the browser draws natively"
+    },
+    {
+      "name": "logo-wall-knockout-brick",
+      "args": [
+        "--logos=[{\"logo\":\"lolly/logo/primary\"},{\"logo\":\"lolly/logo/horizontal\"}]",
+        "--repeat=brick",
+        "--ground=lead"
+      ],
+      "result": "refused",
+      "detail": "the tool computed part of the picture with a 2D canvas, which this shell emulates and the browser draws natively"
+    },
+    {
+      "name": "logo-wall-knockout-brick-photo",
+      "args": [
+        "--logos=[{\"logo\":\"lolly/logo/primary\"},{\"logo\":\"lolly/logo/horizontal\"},{\"logo\":\"lolly/demo/sample-photo\"}]",
+        "--repeat=brick",
+        "--ground=lead"
+      ],
+      "result": "refused",
+      "detail": "the tool computed part of the picture with a 2D canvas, which this shell emulates and the browser draws natively"
+    }
+  ]
+}

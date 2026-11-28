@@ -69,6 +69,8 @@ export async function designOpsPdfNode(node: Element | null | undefined, opts: P
   if (labels && geos.some((g) => g?.primitives.labels?.length) && (await labelsBeyondStandardFont(labels)).length) {
     return { reason: 'the print marks hold letters the mark font does not have' };
   }
+  // Every credentialed picture the document places, the pictures on other pages too, as on the web shell.
+  const ingredients = await use.ingredients(doc.values);
   try {
     const finished = await finishPdfX(out.pdf, opts, {
       intentKind: 'srgb', log: (level, message) => host.log?.(level, message),
@@ -77,7 +79,7 @@ export async function designOpsPdfNode(node: Element | null | undefined, opts: P
     // Encryption is last. The caller must skip its C2PA update on encrypted bytes.
     const pdf = opts.strongPassword ? await encryptPdfStrong(finished, opts.strongPassword) : finished;
     host.log?.('info', `Design PDF export: ${ids.length} pages drawn from the drawing operations without a browser.`);
-    return { pdf, ingredients: use.ingredients() };
+    return { pdf, ingredients };
   } catch (error) {
     throw new PdfFinishingError(error);
   }

@@ -1,6 +1,6 @@
 {
   "name": "오디오그램",
-  "description": "음성 클립이나 노래를 소리에 맞춰 실제로 움직이는 디자인 시스템 색상의 영상으로 바꿔요 - 바, 스펙트럼, 링, 능선, 스코프 중에서 고를 수 있고, 소셜용으로 바로 써요.",
+  "description": "음성 클립이나 노래를 소리에 맞춰 움직이는 디자인 시스템 색상의 영상으로 바꿔요.",
   "a11yLabel": "애니메이션 파형이 있는 {{default title \"an audio clip\"}}용 오디오그램 카드",
   "inputs.audio.label": "오디오",
   "inputs.audio.help": "라이브러리에서 트랙을 선택하거나 클립을 업로드하세요. 파형을 그리기 위해 기기에서 디코딩되며, 오디오는 브라우저를 벗어나지 않아요. 비워두면 자리표시자 파형이 표시돼요. 내보내기에서 소리를 들으려면 다운로드 옵션의 오디오 트랙에서 \"이 도구의 오디오\"를 선택하세요.",
@@ -18,5 +18,12 @@
   "inputs.size.options.story": "스토리 (9:16)",
   "inputs.accent.label": "파형 색상",
   "inputs.ink.label": "텍스트 색상",
-  "inputs.bg.label": "배경"
+  "inputs.bg.label": "배경",
+  "inputs.targetLevel.label": "목표 레벨",
+  "inputs.targetLevel.help": "코칭 안내에서 '딱 적당함'으로 판단하는 기준이에요.",
+  "inputs.targetLevel.options.soft": "작게 · 근접 마이크",
+  "inputs.targetLevel.options.normal": "일반 발화",
+  "inputs.targetLevel.options.loud": "크게 · 룸",
+  "inputs.showTips.label": "코칭 팁",
+  "inputs.showTips.help": "'더 가까이 오세요' 또는 '소리가 찌그러지고 있어요' 같은 실시간 안내예요."
 }

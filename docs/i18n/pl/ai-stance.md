@@ -1,55 +1,60 @@
 # Nasze stanowisko wobec AI
 
-Lolly powstało w środku największej zmiany w sposobie tworzenia mediów od czasu prasy drukarskiej, przez ludzi, którzy nie panikują z powodu AI ani nie zachwycają się tą technologią bez tchu. Oto stanowisko projektu, z mechanizmem za każdym zobowiązaniem, abyś mógł sprawdzić, a nie zaufać.
+Lolly powstało w trakcie największej zmiany w sposobie tworzenia mediów od czasu prasy drukarskiej, stworzone przez ludzi, którzy ani nie panikują z powodu AI, ani nie zachwycają się bezkrytycznie tą technologią. Oto stanowisko projektu wraz z mechanizmem stojącym za każdym zobowiązaniem, abyś mógł sprawdzić zamiast wierzyć.
 
-> "Pijemy tak, jakby kran miał zaraz wyschnąć. Nie wyschnie - dzisiejsza AI jest najgorsza, jaka kiedykolwiek będzie. Jeśli przetrwamy powódź, to nie dzięki gromadzeniu tego, co jest w zardzewiałym zbiorniku na wodę u podnóża wzgórza, pełnym osadu. Przetrwamy, nawadniając i odzyskując ***naszą*** ziemię dla dostatniej przyszłości."
+> „Pijemy tak, jakby woda w kranie miała się skończyć w każdej chwili. Nie skończy się - dzisiejsze AI jest najgorsze, jakie kiedykolwiek będzie. Jeśli przetrwamy powódź, to nie dzięki gromadzeniu tego, co jest w zardzewiałym zbiorniku na wodę u podnóża wzgórza, pełnym osadu. Przetrwamy dzięki nawadnianiu i odzyskiwaniu ***naszej*** ziemi dla dostatniej przyszłości”.
 >
 > - Andy Fitzsimon, współtwórca Lolly
 
-![Superkomórka burzowa nadciągająca nad zagrodą w buszu - zbiornik i szopy poniżej, woda powodziowa już żłobi kanały w suchym polu](/info/the-flood.webp)
+![Burza superkomórkowa nad gospodarstwem na australijskim pustkowiu - zbiornik i szopy poniżej, woda powodziowa już żłobi kanały w suchym pastwisku](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} wygenerowany obraz %sig{podpisany przez %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} i %act{wyeksportowała do WebP} jako %file{the-flood.webp} %detail{10,6 MB do 0,8 MB} %sig{podpisany przez %entity{Lolly}} [Zweryfikuj to teraz](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} wygenerowany obraz %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} i %act{exported to WebP} jako %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Sprawdź teraz](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
-Ścisłość, bo ta strona dowodzi, że ścisłość ma znaczenie: powyższy obraz jest wygenerowany, a nie sfotografowany. Żaden aparat nie był skierowany na to gospodarstwo, bo nie ma gospodarstwa. Opisuje regionalne Queensland w Australii, z promptu z Wielkiej Brytanii, wygenerowane w centrum danych w Stanach Zjednoczonych. Próbuje być wierny miejscu, nie będąc jego zapisem, i ta różnica jest całym powodem, dla którego obraz niesie Content Credentials.
+Ujmując to precyzyjnie, bo ta strona przekonuje, że precyzja ma znaczenie: powyższy obraz został wygenerowany, a nie sfotografowany. Żaden aparat nie był skierowany na to gospodarstwo, ponieważ ono nie istnieje. Przedstawia prowincję Queensland w Australii, na podstawie polecenia z Wielkiej Brytanii, wygenerowany w centrum danych w Stanach Zjednoczonych. Próbuje wiernie oddać miejsce, nie będąc jego zapisem, i właśnie to rozróżnienie jest powodem, dla którego obraz zawiera Content Credentials.
 
-Oto jak to wygląda, gdy sprawdzisz plik. W pliku przetrwało dziewięć kroków: pięć zapisanych przez Google, gdy generowało i oznaczało znakiem wodnym obraz, potem cztery zapisane przez Lolly, gdy otwierało, tworzyło, oznaczało i konwertowało wersję na tej stronie. Lolly niczego nie wygenerowało, a jego wpis tak mówi.
+Tak to wygląda, gdy sprawdzasz plik. W pliku zachowało się dziewięć kroków: pięć zapisanych przez Google podczas generowania obrazu i dodawania znaku wodnego, potem cztery zapisane przez Lolly podczas otwierania, tworzenia, oznaczania i konwersji wersji na tej stronie. Lolly niczego nie wygenerowało i jego wpis o tym mówi.
 
-![Historia zmian, którą Lolly odczytuje z gotowego pliku - pięć kroków zapisanych przez Google, potem cztery przez Lolly, kończąc na pliku WebP na tej stronie](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
+![Historia zmian, którą Lolly odczytuje z gotowego pliku - pięć kroków zapisanych przez Google, potem cztery przez Lolly, zakończone plikiem WebP na tej stronie](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
 
-W obrazie Andy'ego postawa niedoboru wobec AI to picie zatęchłej wody ze zbiornika, podczas gdy woda powodziowa pędzi po równinach. Wygenerowana treść stanie się praktycznie nieskończona. Gdy coś staje się nieskończone, jego wartość przenosi się na to, co pozostaje wokół niego rzadkie: zaufanie, proweniencję, spójność marki i ludzki osąd. Lolly nie jest większym wiadrem na powódź. Jest nawadnianiem: kanałami, które kierują wodę, i glebą, w której naprawdę coś rośnie.
+W obrazie Andy’ego podejście do AI oparte na niedoborze to picie zepsutej wody ze zbiornika, gdy woda powodziowa pędzi przez równiny. Ilość generowanych treści wkrótce stanie się praktycznie nieskończona. Gdy coś staje się nieskończone, jego wartość przenosi się na to, co wokół nadal jest rzadkie: zaufanie, proweniencję, spójność marki i ludzki osąd. Lolly nie jest większym wiadrem na powódź. Jest nawadnianiem: kanałami kierującymi wodą i glebą, na której coś rzeczywiście rośnie.
 
+<!--i:eti-checklist-->
 ## Stanowisko w pięciu zobowiązaniach
 
-- <!--i:layers--> **AI jest mile widziane jako wkład, nigdy jako podszywanie się.** Agenci są pełnoprawnymi użytkownikami Lolly: uruchamiają te same narzędzia co ludzie, przez [serwer MCP](/info/mcp.html) i [tryb URL](/info/url-mode.html), w dokładnie tych samych ograniczeniach. Czego żaden agent nie może zrobić, to podać swoje wyniki za coś, czym nie są. [Input, not impersonation](/info/input-not-impersonation.html) wytycza tę linię.
-- <!--i:shieldcheck--> **AI się deklaruje.** Gdy AI wygenerowało piksele, eksport to mówi: czytelna maszynowo asercja w Content Credentials pliku i widoczna odznaka GEN AI, gdy ktokolwiek weryfikuje plik. Gdy media zadeklarowane jako wykonane przez AI są umieszczane w projekcie, własne poświadczenie eksportu też to mówi: złożony znak pochodzenia i podpisane, czytelne maszynowo ujawnienie AI. Lolly odczytuje też i pokazuje deklaracje AI plików wykonanych gdzie indziej i oznacza, gdy prawdopodobnie jest obecny znak wodny SynthID, odczytując deklarację, a nie sam znak wodny. Ta sama reguła wiąże własny przepisywacz Lolly działający na urządzeniu: każde zdanie, które napisze, niesie publiczny statystyczny znak wodny w doborze słów, ujawniony tu i w narzędziu, więc tekst napisany przez model pozostaje sam siebie deklarującym nawet jako zwykła kopia tekstowa, a każdy może sprawdzić ten tekst w [Lolly Verify](/#/verify) ([jak działa sprawdzanie](/info/what-verify-checks.html#text-reworded-by-lolly)). Schemat jest publiczny z założenia: weryfikacja dla wszystkich, sekrety dla nikogo. Odbiorcy zasługują na to, by wiedzieć, jak wykonano media.
-- <!--i:check--> **Proweniencja jest domyślnie włączona.** Eksporty niosą [Content Credentials](/info/content-credentials-identity.html) domyślnie, a nie jako ukryte ustawienie. Łańcuch obejmuje edycje i składniki, więc historia dzieła podróżuje z dziełem. Możesz [sprawdzić to sam](/info/verify-yourself.html) na każdym pliku, który tworzy Lolly.
-- <!--i:people--> **Autorami pozostają ludzie.** Słowa, obraz, paleta, decyzja wymagająca osądu: narzędzia skalują ten osąd i nigdy nie zastępują osoby. Automatyzowane są żmudne części: sprawdzanie zgodności z marką, ponowny eksport w każdym rozmiarze, ręczna lokalizacja. To, co zostaje, to autorstwo.
-- <!--i:globe--> **Kanały, a nie wiadra.** Dzisiejsze modele to podłoga, a nie sufit, więc odmawiamy budowania czegokolwiek, czego wartość zależy od gromadzenia dostępu do nich. Silnik jest open source, renderuje na Twoim własnym urządzeniu i działa offline. Nie ma fosy modelowej, licznika użycia ani biznesu niedoboru przyczepionego do samej powodzi. Trwałą inwestycją jest infrastruktura wokół wody - i tę infrastrukturę rozdajemy.
+- <!--i:layers--> **AI jest mile widziane jako źródło danych, nigdy jako podszywanie się.** Agenci są pełnoprawnymi użytkownikami Lolly: uruchamiają te same narzędzia co ludzie, przez [serwer MCP](/info/mcp.html) i [tryb URL](/info/url-mode.html), w dokładnie tych samych granicach. Żaden agent nie może przedstawiać swojego wyniku jako czegoś, czym on nie jest. [Dane wejściowe, nie podszywanie się](/info/input-not-impersonation.html) wyznacza tę granicę.
+- <!--i:shieldcheck--> **AI ujawnia swój udział.** Gdy AI wygenerowało piksele, eksport o tym mówi: deklaracja odczytywalna maszynowo w Content Credentials pliku i widoczna odznaka GEN AI, gdy ktokolwiek weryfikuje plik. Gdy media zadeklarowane przez Ciebie jako stworzone przez AI trafiają do projektu, własne poświadczenie eksportu też o tym mówi: oznaczenie pochodzenia złożonej treści i podpisane, odczytywalne maszynowo ujawnienie udziału AI. Lolly odczytuje też i pokazuje deklaracje AI z plików utworzonych gdzie indziej oraz sygnalizuje prawdopodobną obecność znaku wodnego SynthID, odczytując deklarację, a nie sam znak wodny. Ta sama zasada obowiązuje własne narzędzie Lolly do przeredagowania tekstu na urządzeniu: każde napisane przez nie zdanie zawiera publiczny statystyczny znak wodny w doborze słów, ujawniony tutaj i w narzędziu, więc tekst napisany przez model nadal ujawnia swoje pochodzenie nawet jako kopia w zwykłym tekście. Każdy może sprawdzić ten tekst w [Lolly Verify](/#/verify) ([jak działa sprawdzanie](/info/what-verify-checks.html#text-reworded-by-lolly)). Mechanizm jest z założenia publiczny: weryfikacja dla wszystkich, sekrety dla nikogo. Odbiorcy mają prawo wiedzieć, jak powstały media.
+- <!--i:check--> **Proweniencja jest domyślnie włączona.** Eksporty domyślnie zawierają [Content Credentials](/info/content-credentials-identity.html), a nie dopiero po znalezieniu ukrytego ustawienia. Łańcuch obejmuje zmiany i składniki, więc historia dzieła podróżuje z nim. Możesz [sprawdzić to samodzielnie](/info/verify-yourself.html) w każdym pliku tworzonym przez Lolly.
+- <!--i:people--> **Ludzie pozostają autorami.** Słowa, obraz, paleta, decyzja wymagająca osądu: narzędzia zwiększają skalę tego osądu i nigdy nie zastępują człowieka. Automatyzowane są żmudne części: sprawdzanie zgodności z marką, ponowny eksport w każdym rozmiarze, ręczna lokalizacja. Pozostaje autorstwo.
+- <!--i:globe--> **Kanały, nie wiadra.** Dzisiejsze modele to dolna granica możliwości, nie górna, więc odmawiamy budowania czegokolwiek, czego wartość zależy od gromadzenia wyłącznego dostępu do nich. Silnik ma otwarty kod źródłowy, renderuje na Twoim urządzeniu i działa offline. Nie ma przewagi opartej na wyłączności modelu, licznika użycia ani biznesu opartego na niedoborze samej powodzi. Trwałą inwestycją jest infrastruktura wokół wody - i tę infrastrukturę udostępniamy bezpłatnie.
 
-## Ludzka decyzja jest sednem
+<!--i:eti-user-check-->
+## Chodzi o ludzką decyzję
 
-Jednostki kształtują ziemię i naszą historię. Ich wybory, dokonywane po jednym, stają się światem, w którym żyje reszta z nas. Ich czyny tworzą ten świat. Tak działo się wszystko, co kiedykolwiek się wydarzyło.
+Jednostki kształtują ziemię i naszą historię. Ich wybory, podejmowane jeden po drugim, stają się światem, w którym żyje reszta z nas. Ich działania tworzą ten świat. Tak zawsze działo się wszystko.
 
-Dlatego wzmacniamy ludzką decyzję i nigdy nie idziemy na kompromis. Prawo wyboru. Sprawczość. Autonomia. Zdolność decydowania i działania oraz to, by ten czyn był Twój.
+Dlatego wzmacniamy ludzką decyzyjność i nigdy w tej sprawie nie idziemy na kompromis. Prawo wyboru. Sprawczość. Autonomia. Zdolność do decydowania i działania oraz do tego, by to działanie było Twoje.
 
-Narzędzia tutaj skalują to, co postanowił człowiek. Nie decydują za niego i nigdy po cichu go nie zastępują. Tam, gdzie decyzję przenosi automatyzacja, zapis nadal prowadzi z powrotem do osoby, która ją uruchomiła, bez względu na to, przez ile systemów i zakrętów przeszła po drodze.
+Narzędzia tutaj pozwalają powielać to, o czym zdecydował człowiek, i nigdy po cichu nie decydują za niego. Gdy decyzję realizuje automatyzacja, zapis nadal prowadzi do osoby, która ją uruchomiła, niezależnie od liczby systemów i zakrętów po drodze.
 
-Honorujemy to od początku do końca i to zapisujemy: dla historii, dla odpowiedzialności, dla zaufania i dla jutra.
+Przestrzegamy tego od początku do końca i to zapisujemy: dla historii, odpowiedzialności, zaufania i przyszłości.
 
-## AI na twoich warunkach
+<!--i:eti-sliders-->
+## AI na Twoich warunkach
 
-Nigdy nie musisz tu korzystać z AI. Jeśli jednak z niej skorzystasz, obowiązują trzy zasady:
+AI nigdy nie jest tu potrzebna. Jeśli ją wybierzesz, obowiązują trzy zasady:
 
-- <!--i:people--> **Ty masz kontrolę.** AI pomaga tylko wtedy, gdy o to poprosisz, i tylko przy elemencie, na który je wskażesz. Nic nie jest rozstrzygane za Ciebie.
-- <!--i:check--> **Przestaje kosztować.** Jeśli AI pomoże zrobić coś raz, wynik jest Twój. Użycie go ponownie jest darmowe, ile razy potrzebujesz wyniku.
-- <!--i:shieldcheck--> **Pozostaje uczciwe.** Praca wykonana przez AI tak mówi, a to, co tworzysz, niesie Twoje nazwisko, zamiast udawać kogoś innego. Nawet wbudowana pomoc działa w ten sposób: [Ask Lolly](/info/ask.html) odpowiada zdaniem z samego podręcznika i linkiem, nigdy zmyśloną odpowiedzią.
+- <!--i:people--> **Ty masz kontrolę.** AI pomaga tylko wtedy, gdy o to poprosisz, i tylko przy wskazanym fragmencie. Nic nie jest rozstrzygane za Ciebie.
+- <!--i:check--> **Koszty się kończą.** Jeśli AI raz pomoże coś stworzyć, wynik jest Twój. Ponowne użycie jest darmowe, niezależnie od tego, ile razy potrzebujesz wyniku.
+- <!--i:shieldcheck--> **Wszystko jest jawne.** Materiał stworzony przez AI jest tak oznaczony, a to, co tworzysz, nosi Twoje nazwisko, zamiast udawać cudzą pracę. Tak działa nawet wbudowana pomoc: [Ask Lolly](/info/ask.html) odpowiada zdaniem z podręcznika i linkiem, nigdy zmyśloną odpowiedzią.
 
+<!--i:eti-info-->
 ## Czym to nie jest
 
-- <!--i:check--> **Nie jest zakazem.** Narzędzia mogą używać AI tam, gdzie służy to pracy, a agenci są wspieraną grupą odbiorców - zobacz [Agenci AI](/info/ai-agents.html).
-- <!--i:seal--> **Nie jest deklaracją czystości.** Lolly odczytuje pochodzenie szeroko i zapisuje je uczciwie; nie udaje, że wykrywa każdy wygenerowany piksel w internecie.
-- <!--i:sunburst--> **Nie jest moralną paniką.** Powódź nie jest wrogiem. Wroga jest woda bez przypisanego pochodzenia.
+- <!--i:check--> **To nie zakaz.** Narzędzia mogą używać AI tam, gdzie służy to pracy, a agenci są wspieraną grupą odbiorców - zobacz [Agenci AI](/info/ai-agents.html).
+- <!--i:seal--> **To nie deklaracja czystości.** Lolly odczytuje szeroki zakres danych o proweniencji i uczciwie je zapisuje; nie udaje, że wykrywa każdy wygenerowany piksel w internecie.
+- <!--i:sunburst--> **To nie panika moralna.** Zalew treści nie jest wrogiem. Jest nim brak informacji o ich źródle.
 
-## Sprawdź te zobowiązania sam
+<!--i:eti-search-->
+## Sprawdź te zobowiązania samodzielnie
 
-Każde powyższe zobowiązanie jest egzekwowane w otwartej bazie kodu, a nie w PDF z polityką: ścieżka proweniencji, oznaczanie GEN AI i gwarancja braku trackerów mają testy, a strona [Verify It Yourself](/info/verify-yourself.html) prowadzi przez sprawdzanie twierdzeń na prawdziwym eksporcie.
+Każde z powyższych zobowiązań jest egzekwowane w otwartym kodzie, a nie w dokumencie PDF z polityką: ścieżka proweniencji, oznaczanie GEN AI i gwarancja braku modułów śledzących są objęte testami, a strona [Sprawdź samodzielnie](/info/verify-yourself.html) prowadzi przez weryfikację tych deklaracji na rzeczywistym eksporcie.

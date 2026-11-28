@@ -1,4 +1,11 @@
 {
   "name": "Halaman",
-  "description": "Susun semula, putar, ekstrak, padam, gabung atau pisahkan halaman PDF, atau tukar imej kepada PDF, pada peranti anda."
+  "description": "Susun semula, putar, ekstrak, padam, gabung atau pisahkan halaman PDF, atau tukar imej kepada PDF, pada peranti anda.",
+  "inputs.level.label": "Mampatan",
+  "inputs.level.help": "Sejauh mana imej terbenam dimampatkan. Lebih kuat bermaksud fail lebih kecil dan imej lebih lembut.",
+  "inputs.level.options.light": "Ringan - kekalkan kualiti tinggi",
+  "inputs.level.options.balanced": "Seimbang",
+  "inputs.level.options.strong": "Kuat - fail terkecil",
+  "inputs.grayscale.label": "Tukar imej kepada skala kelabu",
+  "inputs.grayscale.help": "Buang warna daripada imej untuk penjimatan tambahan - berguna untuk dokumen teks yang diimbas."
 }

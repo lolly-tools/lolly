@@ -411,7 +411,14 @@ type ExportStage = HTMLDivElement & { _lottieCleanup?: () => void };
  *        in `unit` (px/mm/cm/in/pt); blank falls back to the tool's native size.
  *        `dpi` sets raster resolution for physical units.
  */
-export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', dpi, composeStack, watermark, embedMeta, thumbnail, previewPage, previewTimeMs, thumbAssets, strongPassword, c2pa, imprint, madeWith, settleMs, signal, observeInputs }: RenderRowOpts = {}): Promise<RenderRowResult> {
+/** Render one row to a file. A render that is not a preview counts as busy
+ *  (lib/render-busy.ts), so idle preview work waits until the render ends. */
+export async function renderRowToBlob(row: BatchRow, host: HostV1, opts: RenderRowOpts = {}): Promise<RenderRowResult> {
+  const end = opts.thumbnail ? null : (await import('../lib/render-busy.ts')).beginRender();
+  try { return await renderRowToBlobOnce(row, host, opts); } finally { end?.(); }
+}
+
+async function renderRowToBlobOnce(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', dpi, composeStack, watermark, embedMeta, thumbnail, previewPage, previewTimeMs, thumbAssets, strongPassword, c2pa, imprint, madeWith, settleMs, signal, observeInputs }: RenderRowOpts = {}): Promise<RenderRowResult> {
   const tool = await getTool(row.toolId, row.artifactDigest);
   if (!isExportable(tool.manifest)) {
     throw new Error(`"${tool.manifest.name}" is render-only and cannot be exported.`);
@@ -494,8 +501,11 @@ export async function renderRowToBlob(row: BatchRow, host: HostV1, { format, wid
     if (watermark !== undefined) exportOpts.watermark = watermark;
     if (embedMeta !== undefined) exportOpts.embedMeta = embedMeta;
     if (thumbnail !== undefined) exportOpts.thumbnail = thumbnail;
-    // An SVG displayed as an image cannot use the page's installed brand fonts.
-    if (thumbnail && fmt === 'svg') exportOpts.convertPaths = true;
+    // An SVG displayed as an image cannot use the page's installed brand fonts. A child
+    // composed into another tool is one too, at any quality: its box is an <img>, so live
+    // text there draws in whatever the viewer's machine has, and only a machine with the
+    // face installed hides the problem.
+    if ((thumbnail || composeStack?.length) && fmt === 'svg') exportOpts.convertPaths = true;
     // Content Credentials: a REAL batch/zip render signs by default under the same
     // policy as the tool view's Export button (previously the whole batch pipeline
     // silently skipped signing). Compose children (embedMeta:false) and thumbnails
@@ -647,7 +657,13 @@ export async function mountTemplateMotion(host: HostV1, toolId: string, values: 
  * SVG, doesn't choke resvg. Falls back to a single whole-canvas export for a tool that
  * declares no page boxes.
  */
-export async function renderToolPages(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', thumbnail, thumbAssets, signal }: RenderRowOpts = {}): Promise<RenderPagesResult> {
+/** Render every page of a paged tool. Counts as busy unless it is a preview. */
+export async function renderToolPages(row: BatchRow, host: HostV1, opts: RenderRowOpts = {}): Promise<RenderPagesResult> {
+  const end = opts.thumbnail ? null : (await import('../lib/render-busy.ts')).beginRender();
+  try { return await renderToolPagesOnce(row, host, opts); } finally { end?.(); }
+}
+
+async function renderToolPagesOnce(row: BatchRow, host: HostV1, { format, width, height, unit = 'px', thumbnail, thumbAssets, signal }: RenderRowOpts = {}): Promise<RenderPagesResult> {
   const tool = await getTool(row.toolId, row.artifactDigest);
   if (!isExportable(tool.manifest)) {
     throw new Error(`"${tool.manifest.name}" is render-only and cannot be exported.`);

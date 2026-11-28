@@ -1,11 +1,11 @@
 # How Lolly Reads Files
 
-Someone sends you a PDF, a slide deck, a photo or a font, and you open it in Lolly. This page explains what happens to that file, what Lolly checks before it reads a single structure inside, and what you see when the file is damaged or built to cause trouble. For the full list of parsers and their limits, see [Parser Inventory](/info/parser-inventory.html).
+Someone sends you a PDF, a slide deck, a photo or a font, and you open it in Lolly. For the full list of parsers and their limits, see [Parser Inventory](/info/parser-inventory.html).
 
 <!--i:eti-file-->
 ## What a parser does
 
-A file is a sequence of bytes. To show you a picture, the words on a slide or the colours in a profile, Lolly has to turn those bytes into structure, and the code that does this is a parser. In the Lolly apps, every parser runs on your device, so opening a file does not upload it anywhere.
+A file is a sequence of bytes. To show you a picture, the words on a slide or the colours in a profile, Lolly has to turn those bytes into structure. The code that does this is a parser. In the Lolly apps, every parser runs on your device, so opening a file does not upload it anywhere.
 
 A file from someone else can be damaged, or made on purpose to cause trouble. It can claim to be far larger than it is, nest one part inside another thousands of times, or state a length that runs past its own end. A careless parser that believes those claims can hang, run out of memory or read the wrong bytes.
 
@@ -20,7 +20,7 @@ Four kinds of untrusted input reach a parser. Each parser checks its named limit
 
 - <!--i:hash--> **Limits first.** Every length, count and depth a file declares is checked before the parser acts on the value. A length is checked before the bytes it describes are read, because reading past the end of a buffer gives an empty value that quietly breaks the next check.
 - <!--i:document--> **One stated contract.** Each parser says in its header how it answers a bad file, and keeps to that answer everywhere.
-- <!--i:checklist--> **A fuzz target, and tests.** Every registered parser has a fuzz target: a harness that mutates real files, hundreds of times on every test run and thousands more in a weekly run, and fails on runaway recursion, a hang or a runaway allocation. Most also have a test file of their own that feeds them truncated, garbled and oversized input by hand. The weekly run keeps any input that breaks a parser, and once that input joins the saved set it is replayed on every test run.
+- <!--i:checklist--> **A fuzz target, and tests.** Every registered parser has a fuzz target: a harness that mutates real files, hundreds of times on every test run and thousands more in a weekly run, and fails on runaway recursion, a hang or a runaway allocation. Most also have their own test file that feeds them truncated, garbled and oversized input by hand. The weekly run keeps any input that breaks a parser, and once that input joins the saved set it is replayed on every test run.
 - <!--i:check--> **A list that cannot drift.** [Parser Inventory](/info/parser-inventory.html) is generated from a register, and CI fails when a listed parser loses its fuzz target or the register and the code disagree.
 
 <!--i:eti-chat-->

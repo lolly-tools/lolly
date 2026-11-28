@@ -37,6 +37,7 @@
  *     `window.__lollyNotify` (the desktop app's notification plugin) gets that;
  *     everything else uses the web Notification API. See shellNotify().
  */
+import { closeButtonHtml } from './close-button.ts';
 import { subscribe, jobsSnapshot, cancelJob, type Job, type JobStatus } from './jobs.ts';
 import { getFloatCluster } from './float-cluster.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -204,7 +205,9 @@ function structureSig(jobs: readonly Job[]): string {
   return `${expanded ? 'E' : 'C'}|${jobs.map(j => `${j.id}:${j.status}:${isIndef(j) ? 'i' : 'd'}:${j.cancellable ? 'x' : ''}`).join(',')}`;
 }
 
-function render(jobs: readonly Job[]): void {
+function render(all: readonly Job[]): void {
+  // A quiet job reports in its own view (lib/jobs.ts StartJobOpts.quiet).
+  const jobs = all.filter(j => !j.quiet);
   if (!root) return;
   maybeRequestPermission(jobs);
   fireCompletionNotices(jobs);
@@ -263,7 +266,7 @@ function barHtml(j: Job): string {
 
 function cancelBtnHtml(j: Job): string {
   if (!isActive(j) || !j.cancellable) return '';
-  return `<button type="button" class="job-x" data-act="cancel" data-id="${ESC(j.id)}" aria-label="${ESC(tRaw('Cancel job'))}" title="${ESC(tRaw('Cancel job'))}">\u2715</button>`;
+  return closeButtonHtml({ size: 'sm', className: 'job-x', label: tRaw('Cancel job'), attrs: { 'data-act': 'cancel', 'data-id': j.id, title: tRaw('Cancel job') } });
 }
 
 const STATUS_WORD: Record<Exclude<JobStatus, 'running'>, string> = {

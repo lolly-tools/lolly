@@ -1,9 +1,9 @@
 {
   "id": "filter",
   "name": "Filter",
-  "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.",
+  "description": "Photo effects: halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster).",
   "a11yLabel": "{{effect}} filter of the chosen image",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "engineVersion": "^1.341.0",
   "renditionOf": { "input": "image", "action": "c2pa.filtered" },
   "status": "official",
@@ -625,7 +625,7 @@
       "label": "Light",
       "section": "Ink",
       "type": "color",
-      "default": "#bff1ea",
+      "default": "",
       "showIf": {
         "effect": "scanline",
         "sc_colorSource": "tones"
@@ -636,7 +636,8 @@
       "label": "Mid",
       "section": "Ink",
       "type": "color",
-      "default": "#008878",
+      "default": "",
+      "help": "Leave Light, Mid and Shade empty for a ramp of the design system's lead colour. Set Mid alone and the other two follow.",
       "showIf": {
         "effect": "scanline",
         "sc_colorSource": "tones"
@@ -647,7 +648,7 @@
       "label": "Shade",
       "section": "Ink",
       "type": "color",
-      "default": "#01564a",
+      "default": "",
       "showIf": {
         "effect": "scanline",
         "sc_colorSource": "tones"
@@ -2358,7 +2359,7 @@
       "section": "Overlay",
       "type": "boolean",
       "default": false,
-      "help": "A gently-animated name card that draws in over the footage. Uses your profile name & headshot."
+      "help": "A name card that draws in over the footage, from your profile name and headshot. A GIF, APNG or video export plays it in, holds and plays it out."
     },
     {
       "id": "ltTheme",
@@ -2514,6 +2515,17 @@
       "min": 1,
       "max": 8000,
       "group": "export"
+    },
+    {
+      "id": "ovClear",
+      "label": "Clear background",
+      "section": "Overlay",
+      "type": "boolean",
+      "default": false,
+      "help": "Leave the picture out, so the logo and name card stand alone. PNG, WebP, GIF and APNG keep the ground clear; video sits on the surface colour.",
+      "showIf": {
+        "noFilter": true
+      }
     }
   ],
   "hooks": {

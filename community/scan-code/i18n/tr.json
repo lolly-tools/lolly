@@ -1,5 +1,4 @@
 {
   "name": "Tarama",
-  "description": "QR kodlarını ve barkodları cihazında oku, hiçbir şey buluta gönderilmez. Bir açıcı değil, bir okuyucu: bir kodun ne taşıdığını çözer, sınıflandırır ve açıklar - bağlantılar, Wi-Fi, kişiler, ürün kodları - ve bilinçli hareket etmeni sağlar. Kopyalama her zaman ilk eylemdir; açmak, katılmak ya da eklemek açık ve bilgilendirilmiş bir dokunuştur.",
-  "featured.blurb": "Herhangi bir kodu güvenle ve çevrimdışı oku"
+  "description": "QR kodlarını ve barkodları cihazında oku. Kopyalama her zaman ilk eylemdir; açmak, katılmak ya da eklemek açık ve bilgilendirilmiş bir dokunuştur."
 }

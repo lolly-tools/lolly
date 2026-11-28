@@ -23,14 +23,15 @@
 
 .job-toast {
   position: fixed;
-  right: 1rem;
+  /* Inside a side the system holds: the toast carries the only cancel for its job. */
+  right: calc(1rem + var(--safe-right));
   /* Inset past the edge dock logically (RTL-correct); 0px when nothing is docked. */
   margin-inline-end: var(--dock-w, 0px);
   /* Same --vv-bottom/--safe-bottom idiom as .perf-hud below, so the toast clears
      the iOS home-indicator gesture zone instead of sitting flush in it. */
   bottom: calc(var(--vv-bottom, 0px) + var(--safe-bottom) + 1rem);
   z-index: 9500;                 /* above content + the bottom snackbars (9000), below topbar dropdowns (99999+) and modals (top layer) */
-  width: min(360px, calc(100vw - 2rem));
+  width: min(360px, calc(100vw - 2rem - var(--safe-left) - var(--safe-right)));
   color: hsl(var(--foreground));
   font-family: inherit;
   /* The shared candy hues (tokens.css); aliased locally so the pill mini-bar and
@@ -139,34 +140,6 @@ html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: non
   .job-bar-fill { animation: none; transition: none; }
 }
 
-/* ── Cancel ✕ (pill + per-row) ──────────────────────────────────────────────*/
-.job-x {
-  flex: 0 0 auto;
-  /* Icon box rides the chrome icon scale with the glyph it holds. */
-  width: calc(24px * var(--a11y-fs));
-  height: calc(24px * var(--a11y-fs));
-  display: inline-flex; align-items: center; justify-content: center;
-  border: 0;
-  border-radius: var(--radius-round);
-  background: none;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  font-size: var(--fs-lg);
-  line-height: 1;
-}
-.job-x:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
-
-/* Touch hit-area (same 44pt HIG floor as topbar.css's coarse-pointer block).
-   min-width/min-height win over the explicit width/height above, so the glyph
-   stays put and only the tappable box grows. The only cancel for every
-   background job, so it can't be a coarse-pointer thumb-miss. */
-@media (pointer: coarse) {
-  .job-x {
-    min-width: 44px;
-    min-height: 44px;
-  }
-}
-
 /* ── Expanded panel ─────────────────────────────────────────────────────────*/
 .job-panel {
   border: 1px solid hsl(var(--border));
@@ -200,6 +173,16 @@ html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: non
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .job-row .job-x { grid-column: 2; grid-row: 1 / -1; align-self: center; }
+
+/* The cancel is the shared close button (lib/close-button.ts) at its small size. It is
+   the only cancel for every background job, so on a touch screen its box takes the 44px
+   floor (the same floor as topbar.css's coarse-pointer block) and cannot be a thumb-miss. */
+@media (pointer: coarse) {
+  .job-x {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
 .job-row-bar-wrap { grid-column: 1; }
 .job-row-meta {
   grid-column: 1;

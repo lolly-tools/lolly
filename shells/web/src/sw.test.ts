@@ -89,6 +89,14 @@ interface Harness {
   server: Map<string, string>;
   install: () => Promise<void>;
   activate: () => Promise<void>;
+  /** Post a message to the worker and await the work it hands to waitUntil. */
+  message: (data: unknown) => Promise<void>;
+  /** Every pathname the worker fetched from the network, in order. */
+  fetched: string[];
+  /** Paths the network answers with a redirect. */
+  redirects: Set<string>;
+  /** Paths the network answers with a text/html body. */
+  htmlPaths: Set<string>;
 }
 
 /** Evaluate the real sw.js in a sandbox and hand back its registered handlers. */
@@ -98,6 +106,11 @@ function loadServiceWorker(): Harness {
   const cacheStore = new Map<string, FakeCache>();
   const offline = { value: false };
   const server = new Map<string, string>();
+  const fetched: string[] = [];
+  /** Paths the network answers with a redirect (to a sign-in page, say). */
+  const redirects = new Set<string>();
+  /** Paths the network answers with a text/html body. */
+  const htmlPaths = new Set<string>();
 
   const cachesApi = {
     async open(name: string) {
@@ -120,10 +133,16 @@ function loadServiceWorker(): Harness {
       location: { origin: 'https://lolly.tools' },
     },
     caches: cachesApi,
-    fetch: async (req: { url: string }) => {
+    fetch: async (req: { url: string } | string, init: { redirect?: string } = {}) => {
       if (offline.value) throw new TypeError('Failed to fetch');
-      const path = new URL(req.url).pathname;
+      const path = new URL(typeof req === 'string' ? req : req.url).pathname;
+      fetched.push(path);
+      if (redirects.has(path)) {
+        if (init.redirect === 'error') throw new TypeError('Failed to fetch: redirect');
+        return { ...makeResponse('<!doctype html><title>Sign in</title>'), redirected: true };
+      }
       const body = server.get(path);
+      if (body !== undefined && htmlPaths.has(path)) return makeResponse(body, { headers: { 'content-type': 'text/html' } });
       return body === undefined ? makeResponse('not found', { status: 404 }) : makeResponse(body);
     },
     // The worker constructs responses from a string (the offline sentinel) and
@@ -158,6 +177,14 @@ function loadServiceWorker(): Harness {
       listeners.get('activate')!({ waitUntil: (p: Promise<unknown>) => { work = p; } });
       await work;
     },
+    message: async (data: unknown) => {
+      let work: Promise<unknown> = Promise.resolve();
+      listeners.get('message')!({ data, waitUntil: (p: Promise<unknown>) => { work = p; } });
+      await work;
+    },
+    fetched,
+    redirects,
+    htmlPaths,
   };
 }
 
@@ -324,11 +351,11 @@ describe('service worker: the app shell key', () => {
   test('install precaches the app shell and nothing else', async () => {
     // Whatever install writes into the generation bucket is a copy every later load is
     // served from until the next CACHE bump, so the list is the app shell alone.
-    // /catalog/previews/bundle.json used to be on it, and the cost was paid twice: a
-    // duplicate fetch on every cold load, and - when the file changed FORMAT (inlined
-    // SVG payload → manifest of URLs, the v15 bump) - a held copy of the old shape that
-    // lib/preview-bundle.ts can no longer read. Precached, that copy outlives the deploy;
-    // left to the /catalog/previews/ SWR route, it is one stale hop that self-heals.
+    // The old preview-look manifest used to be on it, and the cost was paid twice: a
+    // duplicate fetch on every cold load, and - when the file changed FORMAT (the v15
+    // bump) - a held copy of the old shape that the page could no longer read.
+    // Precached, that copy outlives the deploy; left to the /catalog/previews/ SWR
+    // route, it is one stale hop that self-heals.
     const h = loadServiceWorker();
     await h.install();
     const generation = [...h.caches.entries()].find(([name]) => name.startsWith('lolly-v'));
@@ -360,7 +387,7 @@ describe('service worker: the app shell key', () => {
     //
     // This list is the whole of PERSISTENT_CACHES, deliberately: every entry a
     // CACHE bump must NOT touch is asserted here, so the routine "bump the
-    // generation because sw.js changed" (v15 for the bundle.json format change)
+    // generation because sw.js changed" (v15 for the preview manifest format change)
     // is covered by a test rather than by reading the filter in activate. The two
     // added with that bump are 'lolly-installed' (sideloaded .lolly tools, which
     // have NO network home - wiping it uninstalls them) and 'lolly-ort-hf'.
@@ -378,6 +405,94 @@ describe('service worker: the app shell key', () => {
       assert.ok(h.caches.has(name), `${name} must survive a generation bump`);
     }
     assert.ok(!h.caches.has('lolly-v11'));
+  });
+});
+
+describe('service worker: the boot set a first visit loaded (plan 371)', () => {
+  const generation = (h: Harness): FakeCache => [...h.caches.entries()].find(([name]) => name.startsWith('lolly-v'))![1];
+
+  test('stores the build files the page loaded before the worker took control, once each', async () => {
+    const h = loadServiceWorker();
+    h.server.set('/_app/web-boot-a1.js', 'boot chunk');
+    h.server.set('/_app/web-boot-b2.css', 'boot sheet');
+    h.server.set('/fonts/SUSE%5Bwght%5D.woff2', 'font');
+    await h.install();
+    await h.message({ type: 'lolly:boot-set', urls: ['/_app/web-boot-a1.js', 'https://lolly.tools/_app/web-boot-b2.css', '/fonts/SUSE%5Bwght%5D.woff2', '/_app/web-boot-a1.js'] });
+    const cache = generation(h);
+    assert.equal(cache.entries.get('https://lolly.tools/_app/web-boot-a1.js'), 'boot chunk');
+    assert.equal(cache.entries.get('https://lolly.tools/_app/web-boot-b2.css'), 'boot sheet');
+    assert.equal(cache.entries.get('https://lolly.tools/fonts/SUSE%5Bwght%5D.woff2'), 'font');
+    assert.equal(h.fetched.filter(p => p === '/_app/web-boot-a1.js').length, 1, 'a repeated address is fetched once');
+    // The next visit's request for a boot chunk is answered from the worker, with no network.
+    h.fetched.length = 0;
+    assert.equal(await subresource(h, 'https://lolly.tools/_app/web-boot-a1.js'), 'boot chunk');
+    assert.deepEqual(h.fetched, []);
+    // A second hand-over fetches nothing already stored.
+    await h.message({ type: 'lolly:boot-set', urls: ['/_app/web-boot-a1.js'] });
+    assert.deepEqual(h.fetched, []);
+  });
+
+  test('takes only immutable build paths on its own origin, and ignores anything else it is sent', async () => {
+    const h = loadServiceWorker();
+    for (const path of ['/index.html', '/tools/qr-code/hooks.js', '/catalog/tools/index.json', '/api/auth/config', '/_app/x.js']) h.server.set(path, path);
+    await h.install();
+    await h.message({ type: 'lolly:boot-set', urls: ['/index.html', '/tools/qr-code/hooks.js', '/catalog/tools/index.json', '/api/auth/config',
+      'https://elsewhere.example/_app/x.js', '/_app/x.js?v=2', 42, null, { url: '/_app/x.js' }, 'not a url://'] });
+    await h.message({ type: 'something-else', urls: ['/_app/x.js'] });
+    await h.message({ type: 'lolly:boot-set', urls: '/_app/x.js' });
+    await h.message(null);
+    assert.deepEqual(h.fetched, [], 'nothing outside the immutable build paths is fetched or stored');
+    assert.equal([...generation(h).entries.keys()].some(k => k.includes('/_app/')), false);
+  });
+
+  test('the immutable routes match without Vary, and the hand-over never replaces a stored copy', async () => {
+    const h = loadServiceWorker();
+    await h.install();
+    const cache = generation(h);
+    const asked: unknown[] = [];
+    const match = cache.match.bind(cache);
+    cache.match = (req: { url?: string } | string, opts?: unknown) => { asked.push(opts); return match(req); };
+    // A copy the page stored itself (a module script request) is kept as it is.
+    cache.entries.set('https://lolly.tools/_app/web-boot-a1.js', 'stored by the page');
+    h.server.set('/_app/web-boot-a1.js', 'fetched again');
+    await h.message({ type: 'lolly:boot-set', urls: ['/_app/web-boot-a1.js'] });
+    assert.equal(cache.entries.get('https://lolly.tools/_app/web-boot-a1.js'), 'stored by the page');
+    assert.deepEqual(h.fetched, [], 'nothing fetched for a file already stored');
+    assert.equal(await subresource(h, 'https://lolly.tools/_app/web-boot-a1.js'), 'stored by the page');
+    assert.ok(asked.length >= 2 && asked.every(o => (o as { ignoreVary?: boolean } | undefined)?.ignoreVary === true),
+      'both the hand-over check and the cache-first route match with ignoreVary');
+  });
+
+  test('a page in place of a build file (text/html) is never stored', async () => {
+    const h = loadServiceWorker();
+    await h.install();
+    h.server.set('/_app/web-boot-a1.js', '<!doctype html><title>Sign in</title>');
+    h.htmlPaths.add('/_app/web-boot-a1.js');
+    await h.message({ type: 'lolly:boot-set', urls: ['/_app/web-boot-a1.js'] });
+    assert.equal(generation(h).entries.has('https://lolly.tools/_app/web-boot-a1.js'), false);
+  });
+
+  test('a build file that redirects is never stored under the chunk address', async () => {
+    const h = loadServiceWorker();
+    await h.install();
+    h.redirects.add('/_app/web-boot-a1.js');
+    await h.message({ type: 'lolly:boot-set', urls: ['/_app/web-boot-a1.js'] });
+    assert.equal(generation(h).entries.has('https://lolly.tools/_app/web-boot-a1.js'), false, 'no sign-in page under a JavaScript address');
+  });
+
+  test('caps the list, keeps failures out of the cache, and survives the network being away', async () => {
+    const h = loadServiceWorker();
+    await h.install();
+    const many = Array.from({ length: 260 }, (_, i) => `/_app/chunk-${i}.js`);
+    for (const path of many) h.server.set(path, path);
+    await h.message({ type: 'lolly:boot-set', urls: many });
+    assert.equal(h.fetched.length, 200, 'at most 200 addresses per hand-over');
+    h.fetched.length = 0;
+    await h.message({ type: 'lolly:boot-set', urls: ['/_app/missing.js'] });
+    assert.equal(generation(h).entries.has('https://lolly.tools/_app/missing.js'), false, 'a 404 is not stored');
+    h.offline.value = true;
+    await h.message({ type: 'lolly:boot-set', urls: ['/_app/offline.js'] });
+    assert.equal(generation(h).entries.has('https://lolly.tools/_app/offline.js'), false);
   });
 });
 

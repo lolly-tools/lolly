@@ -96,7 +96,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
       - name: Classify with trusted base policy
         id: scope
@@ -190,7 +190,7 @@ jobs:
           run_install: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
       - name: Install pinned dependencies
         timeout-minutes: 5
@@ -222,7 +222,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
 
       # Pinned to the last verified release: 8.30.1 has a confirmed silent
@@ -277,7 +277,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26' # includes the entryFile field required by the skip reporter
+          node-version: '^26.12.1' # includes the entryFile field required by the skip reporter
           cache: pnpm
 
       - name: Install (workspaces)
@@ -824,7 +824,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
 
       # Takes the newest report of each partition in this run, so after "Re-run
@@ -859,7 +859,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
 
       - name: Install (workspaces)
@@ -881,18 +881,24 @@ jobs:
           pnpm -C shells/tauri-mobile install --frozen-lockfile --prod
 
       - name: Typecheck (tsc -p, every project)
+        # The tests project outgrew Node's default heap: tsc aborted with an
+        # out-of-memory crash (exit 134) on two main pushes on 2026-11-27 while the
+        # same commits had passed as pull requests. The runner has 16 GB.
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: pnpm run typecheck
 
       - name: Typecheck must not have skipped the Tauri shells
         run: pnpm run typecheck:tauri --strict
 
-      # engine/README.md's module table is generated from the tree. Every merge
-      # moves its line counts, so a pull request no longer regenerates it: drift
-      # is a warning here, and generated-readmes.yml regenerates the table after
-      # each merge and proposes it as one bot pull request. Missing markers or a
-      # failing generator still fail this step.
-      - name: Engine module map builds (drift is regenerated after merge)
-        run: node scripts/gen-engine-modules.ts --check --allow-drift
+      # engine/README.md's module table is generated from the tree: one row per
+      # module with its purpose, export, test and fuzz status, in path order, and
+      # no line counts or totals, so two pull requests that touch different
+      # modules touch different lines. A pull request that adds, removes or
+      # renames a module, or changes one of those, commits its rows; this step
+      # lists any row that differs.
+      - name: Engine module map is current (stale? run node scripts/gen-engine-modules.ts)
+        run: node scripts/gen-engine-modules.ts --check
 
       # packages/rondo/generated/ is built from the vendored upstream by esbuild.
       # Rebuilding must be a no-op, so a patch or an upstream bump always lands
@@ -912,6 +918,14 @@ jobs:
       - name: Engine purity (no DOM/storage/network in engine/src)
         run: pnpm run check:engine-purity
 
+      # A compiler writes the builder's source paths into what it builds, and a path
+      # under a home directory publishes that person's user name. Every committed
+      # binary, minified file, source map and api/ bundle is scanned as bytes; the
+      # fix is a rebuild with remapped paths (scripts/lib/wasm-rustflags.ts), never
+      # an allowlist.
+      - name: No home-directory paths in committed binaries
+        run: pnpm run check:binary-paths
+
       # docs/build.ts's `pages` array is hand-maintained and the /info nav derives
       # from it, so a .md could be written and committed while staying unreachable
       # from the site - docs/ios-build.md was exactly that. Every docs/*.md must now
@@ -919,14 +933,12 @@ jobs:
       - name: Docs nav completeness (no orphaned docs/*.md)
         run: pnpm run check:docs-nav
 
-      # shells/web/src/README.md opens with per-directory and largest-file stats
-      # that a new contributor uses to decide where to look. They are generated,
-      # and every web merge moves them, so committing them in each pull request
-      # made every open web pull request conflict with the next merge. Drift is a
-      # warning here; generated-readmes.yml regenerates the stats after each merge.
-      # Missing markers or a failing generator still fail this step.
-      - name: Web shell code-map stats build (drift is regenerated after merge)
-        run: node scripts/gen-web-src-readme.ts --check --allow-drift
+      # shells/web/src/README.md lists the source files of 2,500 lines or more, in
+      # path order, with no counts (the counts are printed by --stats, never
+      # committed, because every change moved them and every two pull requests
+      # conflicted on them). The list changes only when a file crosses the line.
+      - name: Web shell large-file list is current (stale? run pnpm run build:web-src-readme)
+        run: node scripts/gen-web-src-readme.ts --check
 
       # The browser shell legitimately owns far more code than CLI. This gate is
       # about concentration inside individual modules, not cross-shell parity.
@@ -976,7 +988,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
 
       - name: Install (workspaces)
@@ -1013,7 +1025,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
 
       - name: Install (workspaces)
@@ -1043,7 +1055,7 @@ jobs:
           run_install: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
       # This job builds the creative web shell in release mode, and that shell
       # requires WebGPU. Its explicit web scope requires published browser
@@ -1088,7 +1100,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
 
       - name: Install (workspaces)
@@ -1132,7 +1144,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
 
       - name: Install (workspaces)
@@ -1237,7 +1249,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
 
       - name: Install (workspaces)
@@ -1482,7 +1494,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
@@ -1524,7 +1536,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
@@ -1575,7 +1587,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:

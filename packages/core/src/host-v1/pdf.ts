@@ -308,6 +308,15 @@ export interface PdfStampOpts {
   images: PdfStampImage[];
   texts?: PdfStampText[];
   paths?: PdfStampPath[];
+  /**
+   * Save with a classic cross-reference table and no object streams (v1.360). The
+   * default save is the compact form, whose cross-reference is a stream, and a Content
+   * Credential cannot be attached to that form: `host.c2pa.sign` extends a classic
+   * table. A tool that will sign the stamped bytes asks for this. The pages and marks
+   * are the same either way; the file is larger. Optional/additive: a host that
+   * predates it saves the compact form, and `host.c2pa.sign` then refuses the file.
+   */
+  classic?: boolean;
 }
 
 export interface PdfStampResult {

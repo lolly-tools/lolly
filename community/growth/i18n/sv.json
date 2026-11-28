@@ -1,4 +1,4 @@
 {
   "name": "Tillväxt",
-  "description": "Differentiell tillväxt: en linje som stöter bort sig själv tills den viker sig till korall. Starta från en ring, en explosion, rubrikbokstäver eller en logotyp och exportera resultatet som riktiga SVG-banor för plotter."
+  "description": "Differentiell tillväxt: en linje som viker sig till korall. Starta från en ring, en explosion, bokstäver eller en logotyp och exportera SVG-banor för plotter."
 }

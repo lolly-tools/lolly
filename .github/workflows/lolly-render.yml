@@ -1,0 +1,65 @@
+# SPDX-License-Identifier: MPL-2.0
+name: lolly-render same bytes
+
+# Plan 371 M3b: the lolly-render crate on a Linux x64 runner. The crate is built without
+# SIMD and with libm so that every machine writes the same PNG bytes. `cargo test` fails
+# when any pinned fixture, or any of the 48 drawn corpus pages in
+# crates/lolly-render/tests/corpus (SHA256SUMS), draws to bytes other than the ones
+# recorded on macOS arm64, and lists every page that differs. The Node binding is built and
+# checked per platform by lolly-render-addon.yml.
+on:
+  pull_request:
+    paths:
+      - 'crates/lolly-render/**'
+      - '.github/workflows/lolly-render.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'crates/lolly-render/**'
+      - '.github/workflows/lolly-render.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lolly-render-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  same-bytes:
+    name: Same bytes on Linux x64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/lolly-render
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      # The channel in crates/lolly-render/rust-toolchain.toml, with the two lint components.
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable branch, pinned 2026-08-04
+        with:
+          toolchain: 1.96.0
+          components: rustfmt, clippy
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            crates/lolly-render/target
+          key: lolly-render-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('crates/lolly-render/Cargo.lock', 'crates/lolly-render/rust-toolchain.toml') }}
+      - name: The toolchain in use
+        run: |
+          rustc --version
+          uname -m
+      - name: Format
+        run: cargo fmt --check
+      - name: Clippy, warnings as errors
+        run: cargo clippy --locked --all-targets -- -D warnings
+      - name: Pinned bytes, release build
+        run: cargo test --locked --release
+      - name: Pinned bytes, debug build
+        run: cargo test --locked

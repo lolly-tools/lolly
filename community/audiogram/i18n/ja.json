@@ -1,6 +1,6 @@
 {
   "name": "オーディオグラム",
-  "description": "ボイスクリップや曲を、音の動きに合わせて実際に動く、デザインシステムカラーの動画に変換します - バー、スペクトラム、リング、リッジライン、スコープから選べ、SNS投稿にすぐ使えます。",
+  "description": "ボイスクリップや曲を、音に合わせて動く、デザインシステムカラーの動画に変換します。",
   "a11yLabel": "アニメーションする波形を使った、{{default title \"an audio clip\"}}のオーディオグラムカード",
   "inputs.audio.label": "オーディオ",
   "inputs.audio.help": "ライブラリからトラックを選択するか、クリップをアップロードしてください。波形を描くためにデバイス上でデコードされ、音声がブラウザの外に出ることはありません。空欄のままにするとプレースホルダーの波形になります。エクスポートで音声を聞くには、ダウンロードオプションのオーディオトラックで「このツールの音声」を選択してください。",
@@ -18,5 +18,12 @@
   "inputs.size.options.story": "ストーリー (9:16)",
   "inputs.accent.label": "波形の色",
   "inputs.ink.label": "テキストカラー",
-  "inputs.bg.label": "背景"
+  "inputs.bg.label": "背景",
+  "inputs.targetLevel.label": "目標レベル",
+  "inputs.targetLevel.help": "コーチングのプロンプトにおいて『ちょうどよい』とみなすレベルです。",
+  "inputs.targetLevel.options.soft": "ソフト (近接マイク)",
+  "inputs.targetLevel.options.normal": "ノーマル (通常の話し声)",
+  "inputs.targetLevel.options.loud": "ラウド (部屋全体)",
+  "inputs.showTips.label": "コーチングのヒント",
+  "inputs.showTips.help": "「もっと近づいてください」「音が割れています」といったリアルタイムのヒントです。"
 }

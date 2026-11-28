@@ -27,13 +27,18 @@
 .fmt-trigger[aria-expanded="true"] .fmt-chev { transform: rotate(180deg); }
 /* The row anchors the dropdown. */
 .filename-extension { position: relative; }
+/* The panel is a mountBodyPopover panel mounted in the trigger's row. Its place
+   comes from placeFormatPanel (components/export-format-picker.ts) through the
+   two custom properties, 6px under the row with the row's end edge, and its width
+   follows the row through --fmt-row-w, as the in-flow panel's 100% did. A phone
+   sheet's `inset` below wins over both coordinates. */
 .fmt-pop {
-  position: absolute;
-  top: calc(100% + 6px);
-  inset-inline-end: 0;
+  position: fixed;
+  top: var(--fmt-top, auto);
+  left: var(--fmt-left, auto);
   z-index: 6;   /* over the sticky actions dock (3) and every settings row */
-  min-width: min(260px, 100%);
-  max-width: 100%;
+  min-width: min(260px, var(--fmt-row-w, 100%));
+  max-width: var(--fmt-row-w, 100%);
   max-height: min(420px, 55dvh);
   overflow-y: auto;
   padding: var(--sp-5);
@@ -118,15 +123,6 @@
     margin: -6px -4px 10px;
     padding: 0 4px 8px;
     border-bottom: 1px solid hsl(var(--border));
-  }
-  .fmt-pop-head button {
-    width: 44px;
-    height: 44px;
-    border: 0;
-    border-radius: var(--radius);
-    background: transparent;
-    color: inherit;
-    font-size: 22px;
   }
   .fmt-chip { min-height: 44px; padding-inline: 14px; }
   .fmt-show-all { min-height: 44px; }

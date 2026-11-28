@@ -129,6 +129,10 @@
         "label": "GLB"
       },
       {
+        "value": "gltf",
+        "label": "glTF"
+      },
+      {
         "value": "stl",
         "label": "STL"
       },
@@ -439,6 +443,10 @@
             "label": "GLB"
           },
           {
+            "value": "gltf",
+            "label": "glTF"
+          },
+          {
             "value": "stl",
             "label": "STL"
           },
@@ -667,7 +675,7 @@
     },
     "dropToAdd": {
       "field": "asset",
-      "accept": "image/svg+xml,model/*,application/octet-stream,.glb,.stl,.3mf"
+      "accept": "image/svg+xml,model/*,application/octet-stream,.glb,.gltf,.stl,.3mf"
     }
   },
   {
@@ -813,6 +821,10 @@
             "label": "GLB"
           },
           {
+            "value": "gltf",
+            "label": "glTF"
+          },
+          {
             "value": "stl",
             "label": "STL"
           },
@@ -954,7 +966,7 @@
     },
     "dropToAdd": {
       "field": "asset",
-      "accept": "image/svg+xml,model/*,application/octet-stream,.glb,.stl,.3mf"
+      "accept": "image/svg+xml,model/*,application/octet-stream,.glb,.gltf,.stl,.3mf"
     }
   },
   {
@@ -3053,6 +3065,40 @@
     "help": "How much of the loop the subject sits still at the end, as a fraction of it. At 0 the move starts again as soon as it finishes."
   },
   {
+    "id": "playClip",
+    "label": "Play model animation",
+    "type": "boolean",
+    "default": false,
+    "section": "Motion",
+    "showIf": {
+      "source": [
+        "model",
+        "collection",
+        "arrangement"
+      ]
+    },
+    "help": "Plays the animation clip saved inside a GLB or glTF model, when the file holds one. The clip runs at its own speed and repeats for the length of the loop. A model you choose starts with this on."
+  },
+  {
+    "id": "clipIndex",
+    "label": "Clip",
+    "type": "number",
+    "default": 0,
+    "section": "Motion",
+    "min": 0,
+    "max": 12,
+    "step": 1,
+    "showIf": {
+      "source": [
+        "model",
+        "collection",
+        "arrangement"
+      ],
+      "playClip": true
+    },
+    "help": "Which of the model's clips to play, counting from zero. Info on the preview lists how many the file holds."
+  },
+  {
     "id": "cameraMotion",
     "label": "Camera",
     "type": "select",
@@ -3086,6 +3132,10 @@
       {
         "value": "crane",
         "label": "Crane"
+      },
+      {
+        "value": "orbit",
+        "label": "Orbit"
       }
     ],
     "help": "Orbit to a view and choose Add camera key on the preview; two keys make a move, more make a path. Hold the view to compose the next key. The moves below are made from the current view instead. Orbit sweep turns a little each way and comes back. Push in comes closer over the loop. Dolly zoom narrows the lens while the camera pulls back: the subject stays the same size and the background slides; an orthographic camera ignores the lens, so it does nothing there. Reveal turn swings in from the side and settles on the current view. Crane comes down onto the current view. Convert to keys on the preview hands you the rows to edit."
@@ -3227,7 +3277,8 @@
         "pushin",
         "dolly",
         "reveal",
-        "crane"
+        "crane",
+        "orbit"
       ]
     },
     "options": [
@@ -3242,8 +3293,29 @@
       {
         "value": "linear",
         "label": "Constant speed"
+      },
+      {
+        "value": "standard",
+        "label": "Standard curve (design system)"
+      },
+      {
+        "value": "emphasised",
+        "label": "Emphasised curve (design system)"
+      },
+      {
+        "value": "exit",
+        "label": "Exit curve (design system)"
+      },
+      {
+        "value": "gentle",
+        "label": "Gentle spring (design system)"
+      },
+      {
+        "value": "bouncy",
+        "label": "Bouncy spring (design system)"
       }
-    ]
+    ],
+    "help": "The last five follow the design system's motion curves and springs, so a change to the system changes the move. A spring takes its own time: on a long move the camera arrives early and then holds."
   },
   {
     "id": "cameraLoop",
@@ -3258,7 +3330,8 @@
         "pushin",
         "dolly",
         "reveal",
-        "crane"
+        "crane",
+        "orbit"
       ]
     },
     "help": "Closes the loop for a GIF or a looping clip. A camera move that ends where it started, such as an orbit sweep, is already closed."
@@ -3300,8 +3373,17 @@
           "pushin",
           "dolly",
           "reveal",
-          "crane"
+          "crane",
+          "orbit"
         ]
+      },
+      {
+        "source": [
+          "model",
+          "collection",
+          "arrangement"
+        ],
+        "playClip": true
       }
     ]
   },

@@ -1,6 +1,6 @@
 {
   "name": "QR код",
-  "description": "QR кодове за линк, визитка за контакт, Wi-Fi мрежа, събитие в календара, местоположение или обикновен текст.",
+  "description": "Сканируеми кодове от всякакъв вид: QR, Micro QR, Data Matrix, Aztec и PDF417 - плюс баркодове за търговия и логистика от EAN-13 до MaxiCode.",
   "a11yLabel": "QR код, водещ към {{default url \"(no URL set)\"}}",
   "featured.blurb": "QR кодове във всеки брандов цвят",
   "inputs.url.label": "URL",

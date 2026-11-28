@@ -66,14 +66,31 @@
 .view-loading-mark .lolly-mark__spin-1 { animation: view-loading-spin 2.4s linear infinite; }
 .view-loading-mark .lolly-mark__spin-2 { animation: view-loading-spin 4.6s linear infinite reverse; }
 .view-loading-mark .lolly-mark__spin-3 { animation: view-loading-spin 7s linear infinite; }
+/* The mark carries both shadings and the theme shows one (components.css). The hidden
+   one must not spin: an animation on a display:none ring has nothing to draw, so the
+   browser cannot run it on the compositor and ran it on the main thread instead, a
+   style pass for the whole page on every frame while the card was up. The shown rings
+   spin on the compositor and keep turning while the main thread is busy. */
+:root:not([data-theme="dark"], [data-theme="brand"]) .view-loading-mark .lolly-mark__reverse :is(.lolly-mark__spin-1, .lolly-mark__spin-2, .lolly-mark__spin-3),
+:is([data-theme="dark"], [data-theme="brand"]) .view-loading-mark .lolly-mark__primary :is(.lolly-mark__spin-1, .lolly-mark__spin-2, .lolly-mark__spin-3) { animation: none; }
+/* A tool open shows the card on the plain ground the view it left gives way to: there
+   is nothing behind it to dim, and a dimmed ground would brighten at once as the tool
+   arrives. The card keeps its own shadow. It shows in the same frame the view leaves,
+   so it must be visible from that frame: its entrance starts half opaque and only
+   eases in, where the ordinary entrance starts from nothing and left a bare ground. */
+.view-loading--plain::backdrop { background: transparent; }
+.view-loading.view-loading--plain { animation: view-loading-plain-in calc(var(--dur-1) * 2 / 3) var(--ease-out); }
+@keyframes view-loading-plain-in { from { opacity: .5; } }
 @keyframes view-loading-spin { to { transform: rotate(360deg); } }
 @keyframes view-loading-in { from { opacity: 0; transform: translateY(6px) scale(.97); } }
 @media (prefers-reduced-motion: reduce) {
+  .view-loading.view-loading--plain,
   .view-loading,
   .view-loading-mark .lolly-mark__spin-1,
   .view-loading-mark .lolly-mark__spin-2,
   .view-loading-mark .lolly-mark__spin-3 { animation: none; }
 }
+html[data-a11y-motion="reduce"] .view-loading.view-loading--plain,
 html[data-a11y-motion="reduce"] .view-loading,
 html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-1,
 html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-2,
@@ -198,11 +215,6 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   padding: 16px 20px; border-bottom: 1px solid hsl(var(--border));
 }
 .save-dialog-head h2 { margin: 0; flex: 1 1 auto; font-size: var(--fs-xl); font-weight: 700; }
-.save-dialog-close {
-  flex: none; width: 30px; height: 30px; border: 0; border-radius: var(--radius);
-  background: none; color: hsl(var(--muted-foreground)); font-size: 22px; line-height: 1; cursor: pointer;
-}
-.save-dialog-close:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 
 .save-dialog-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
 

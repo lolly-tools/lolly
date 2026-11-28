@@ -41,6 +41,8 @@ import * as BL from './lofi-bass-layers.ts';
 import * as BS from './lofi-bass-stack.ts';
 import * as R from './lofi-winds.ts';
 import * as H from './lofi-house.ts';
+import * as TALK from './lofi-bass-talk.ts';
+import { finish } from './lofi-polish.ts';
 import * as C from './lofi-chop.ts';
 import * as SF from './lofi-surf.ts';
 import * as CO from './lofi-combo.ts';
@@ -105,7 +107,9 @@ export const LOFI_MIX: LofiMix = { keys: 1, bass: 1, lead: 1, drums: 1, fx: 1, r
 
 /** The tone filter's most open cutoff per mood (Hz); texture and each bar close it from there. */
 const MOOD_TONE: Record<LofiMood, number> = {
-  warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, sherbert: 16000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
+  dnbJump: 10500, dnbDark: 8500, dnbLiquid: 10500, dnbDeep: 8000, dnbRave: 10500,
+  warm: 7500, lateNight: 4300, rainy: 5400, lofiFocus: 6200, lofiDrift: 4800, lofiSoul: 6800, lofiFunk: 7800, lofiJazz: 7200, lofiZen: 7000, lofiCinema: 6500, italo: 11000, balearic: 10500,
+  sings: 8200, sugar: 11000, sherbert: 16000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
   country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 7000, arnhem: 9500, grunge: 7500, stoner: 6500, shoegaze: 7000,
   fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500, ska: 9500, punk: 10000, rnb: 8500,
   persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000, lofiHouse: 6000, salsa: 18000, surf: 11500, yacht: 12500, botanica: 12500, oompa: 9000, noosa: 11000, mandopop: 9500, cpop: 11500,
@@ -113,7 +117,7 @@ const MOOD_TONE: Record<LofiMood, number> = {
 };
 /** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +2 dB), in every genre of the family. */
 const SINGS_LEAD = 1.3;
-const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'arnhem', 'fantasy', 'dream', 'kpop', 'metal', 'ska', 'punk', 'rnb', 'lofiHouse', 'salsa', 'surf', 'yacht', 'botanica', 'oompa', 'mandopop', 'cpop', 'breakbeat', 'funkyHouse', 'ukGarage', 'privateSchool', 'noosa', 'jungle']);
+const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'arnhem', 'fantasy', 'dream', 'kpop', 'metal', 'ska', 'punk', 'rnb', 'lofiHouse', 'salsa', 'surf', 'yacht', 'botanica', 'oompa', 'mandopop', 'cpop', 'breakbeat', 'funkyHouse', 'ukGarage', 'privateSchool', 'noosa', 'jungle', 'italo', 'balearic', 'dnbJump', 'dnbDark', 'dnbLiquid', 'dnbDeep', 'dnbRave']);
 const DRUMS = new Set(LOFI_DRUM_VOICES);
 /**
  * Each part's designed level: first measured K-weighted and soloed (keys about -25 LUFS,
@@ -137,9 +141,9 @@ const SECTION_ROOM: Partial<Record<string, number>> = { intro: 1.25, break: 1.35
  */
 const LAYERED_SAWS = new Set<LofiMood>(['sherbert']);
 /** The styles built on drops, whose builds sweep a high-pass up the music. */
-const SWEEPS = new Set<LofiMood>(['sugar', 'sherbert', 'kpop', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'amapiano', 'citypop', 'dream', 'fantasy', 'breakbeat', 'funkyHouse', 'ukGarage', 'cpop', 'jungle']);
+const SWEEPS = new Set<LofiMood>(['dnbJump', 'dnbDark', 'dnbLiquid', 'dnbDeep', 'dnbRave', 'italo', 'sugar', 'sherbert', 'kpop', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'amapiano', 'citypop', 'dream', 'fantasy', 'breakbeat', 'funkyHouse', 'ukGarage', 'cpop', 'jungle']);
 /** The styles that throw a phrase's last lead note into the echo, and those that keep a little echo on the lead throughout. */
-const THROWS = new Set<LofiMood>(['reggae', 'synthwave', 'sugar', 'sherbert', 'kpop', 'dream', 'fantasy', 'triphop', 'rnb', 'citypop', 'chiptune', 'dubstep', 'amapiano', 'ska', 'lofiHouse', 'yacht', 'botanica', 'ukGarage', 'privateSchool', 'noosa', 'mandopop', 'cpop', 'jungle']);
+const THROWS = new Set<LofiMood>(['balearic', 'italo', 'reggae', 'synthwave', 'sugar', 'sherbert', 'kpop', 'dream', 'fantasy', 'triphop', 'rnb', 'citypop', 'chiptune', 'dubstep', 'amapiano', 'ska', 'lofiHouse', 'yacht', 'botanica', 'ukGarage', 'privateSchool', 'noosa', 'mandopop', 'cpop', 'jungle']);
 const ECHO_ALWAYS = new Set<LofiMood>(['synthwave', 'dream', 'reggae']);
 const ECHO_BED = 0.12;
 /** The drums' room send, at the middle of the arrangement; the room slider and the section scale the send. */
@@ -176,7 +180,7 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LiveLead,
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
   // The tuba had sat 8.8 dB under the round bass (soloed, K-weighted, in nine styles where a
   // bass plays whole: 8.1 to 9.9 dB), so it takes the whole difference (bassVariant says where).
-  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, didgeridoo: 1.1, log: 1, deep: 1, warp: 1, tuba: 2.75 },
+  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, didgeridoo: 1.1, log: 1, deep: 1, warp: 1, tuba: 2.75, fog: 1, jump: 1 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3, stack: 1, snap: 2 },
   hats: { hat: 1, shaker: 1.15, ride: 0.8, none: 0 },
 };
@@ -212,24 +216,32 @@ const LEAD_TRIM: Partial<Record<LiveLead, number>> = { angel: -0.2, balafon: 2.2
  * dont destroy the genre"; 2026-11-13, of lofi house: "the lead is quiet and the bass is
  * loud").
  */
-const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, arnhem: 3.0, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5, salsa: 1, surf: -4, yacht: 0.5, botanica: -0.5, noosa: -6.5, breakbeat: -3, funkyHouse: -3, ukGarage: -2, privateSchool: -4, jungle: -3 };
+const LEAD_SEAT: Partial<Record<LofiMood, number>> = { dnbJump: -1.8, dnbDark: -1.8, dnbLiquid: -1.8, dnbDeep: -1.8, dnbRave: -1.8, acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -3.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, arnhem: 3.0, sugar: -1.0, swing: -0.7, synthwave: -6, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5, salsa: 1, surf: -4, yacht: 0.5, botanica: -0.5, noosa: -6.5, breakbeat: -3, funkyHouse: -3, ukGarage: -2, privateSchool: -4, jungle: -3 };
 /** Each genre's seat for its bass (dB): the styles whose bass is the star play it louder than the rest. The club
  *  genres' are set so the mix under 150 Hz sits against the whole as their records' does (docs/generated-music.md):
  *  breakbeat's back, garage's a little up, private school's log drum kept soft; jungle's sub sits about 3.5 LU
  *  under its breaks (K-weighted), as eight jungle records' drops do. */
+/**
+ * Where a style's drums sit against the rest of its band (dB). A console's drums are a
+ * tick of its noise channel under the tune: chiptune's stems measured the other way
+ * round, the drums 6 dB over the lead and 12 dB over the arpeggio (2026-11-21).
+ */
+const DRUM_SEAT: Partial<Record<LofiMood, number>> = { chiptune: -5 };
 const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2, breakbeat: -4.5, ukGarage: 1, privateSchool: -1.5, jungle: -3, trailer: -3 };
 /**
  * The didgeridoo's cameo in the bass genres (engine/src/lofi-straya.ts), against its own level:
  * measured K-weighted in its bar, it sits about 3 to 4 dB under the bass stack it plays over.
  */
-const DIDGE_CAMEO_LEVEL: Partial<Record<LofiMood, number>> = { dubstep: 0.52, brostep: 0.52, dnb: 0.84 };
+/** The chopped voice's level in drum and bass, against a lead's. */
+const VOX_LEVEL = 0.6;
+const DIDGE_CAMEO_LEVEL: Partial<Record<LofiMood, number>> = { dubstep: 0.52, brostep: 0.52, dnb: 0.84, dnbJump: 0.84, dnbDark: 0.84, dnbRave: 0.84 };
 /**
  * Each genre's seat for the console's FM effects (dB, against Sugar's): its hook's loudness
  * through the drops, measured K-weighted, decides it, so a spin or a shot sits the same
  * few decibels under the tune in every style. Sherbert's stays 2 dB further back, as its
  * console is already busy.
  */
-const FM_SEAT: Partial<Record<LofiMood, number>> = { chiptune: -4.5, sherbert: 2.5, kpop: 2.5, synthwave: -7.2 };
+const FM_SEAT: Partial<Record<LofiMood, number>> = { chiptune: -6, sherbert: 2.5, kpop: 2.5, synthwave: -7.2 };
 /** Noosacore's didgeridoo is an undertone under the sea (engine/src/lofi-noosa.ts): measured K-weighted, about 7 to 8 dB under the lull it drones in. */
 const NOOSA_DIDGE = 0.5;
 /** Arnhem Land's singers together against its one voice (its lead seat is set for the one voice). */
@@ -377,7 +389,8 @@ export class LofiStation {
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -18; comp.knee.value = 10; comp.ratio.value = 2.5;
     comp.attack.value = 0.015; comp.release.value = 0.3;
-    comp.connect(this.out);
+    // A style's finish (lib/lofi-polish.ts): width and air after the compressor, for the styles mixed that way.
+    comp.connect(finish(ctx, settings.mood, this.out));
     this.shaper = ctx.createWaveShaper();
     this.shaper.oversample = settings.quality === 'high' ? '4x' : '2x';
     this.shaper.connect(comp);
@@ -738,7 +751,8 @@ export class LofiStation {
   private play({ at, spb, note, bar, lanes }: Queued): void {
     const t = Math.max(at, this.ctx.currentTime);
     // A featured bird is a hook laid over the band, not the band: an outro's fade leaves it whole.
-    const vel = note.vel * ((note.voice === 'magpie' || note.voice === 'kookaburra') && readBird(note.mod ?? 0).featured ? 1 : bar.level);
+    const seated = DRUMS.has(note.voice) ? 10 ** ((DRUM_SEAT[bar.tune.mood] ?? 0) / 20) : 1;
+    const vel = note.vel * seated * ((note.voice === 'magpie' || note.voice === 'kookaburra') && readBird(note.mod ?? 0).featured ? 1 : bar.level);
     if (DRUMS.has(note.voice) && !this.settings.drums) return;
     // An oompa band plays its own drums, unless a person chose a kit (lib/lofi-oompa.ts).
     if (DRUMS.has(note.voice) && OB.bandDrums(bar, this.settings.kit) && OB.drum(this.kit, lanes.drums, note, t, vel, bar, this.kitOf(bar.tune))) return;
@@ -819,7 +833,7 @@ export class LofiStation {
       case 'bass': {
         // A wobble's, growl's or screech's swing is cycles a beat (the voice wants Hz); the
         // other basses' `mod` is how the note is played, passed as it is.
-        const swings = bassV === 'wobble' || bassV === 'growl' || bassV === 'screech';
+        const swings = bassV === 'wobble' || bassV === 'growl' || bassV === 'screech' || bassV === 'fog' || bassV === 'jump';
         const mod = swings ? (note.mod ?? 0) / spb : (note.mod ?? 0);
         const level = vel * bassVariant(bassV, bar) * 10 ** ((BASS_SEAT[bar.tune.mood] ?? 0) / 20);
         // The Didgeridoo: its drone, on the player that also plays its rhythm when the drone turns into one.
@@ -830,6 +844,7 @@ export class LofiStation {
           if (bassV === 'tuba') OB.tuba(kit, OB.bandLane(kit, out, bar), bar.tune.seed, at, midi, vel, len, mod, lvl / Math.max(0.05, vel));
           else if (bassV === 'log') W.bass(kit, out, at, midi, lvl, len, mod, tn);
           else if (H.HOUSE_BASSES.has(bassV)) H.bass(kit, out, at, midi, lvl, len, tn);
+          else if (TALK.TALK_BASSES.has(bassV)) TALK.bass(bassV, kit, out, at, midi, lvl, len, mod, tn);
           else if (GA.GARAGE_BASSES.has(bassV)) GA.bass(kit, out, at, midi, lvl, len, mod, spb, tn);
           else V.bass(bassV, kit, out, at, midi, lvl, len, mod, tn);
         };
@@ -964,6 +979,13 @@ export class LofiStation {
         if (LP.LATIN_PERCUSSION.includes(latin)) { LP.perc(k, lanes.drums, t, note.midi, vel, latin, len); break; }
         if ((note.mod ?? 0) >= W.WORLD_PERC_FROM) W.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
         else V.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
+        break;
+      }
+      case 'vox': {
+        // Drum and bass's chopped voice (the composer's VOX_FIGURES): sung by the tune's chop
+        // singers in the chop's seat, a little under a lead.
+        const seat = this.leadSeat(lanes.lead, bar.tune.mood, 'chop');
+        for (const s of C.castOf('chop', bar)) C.chop(k, s.pan ? this.leadSeat(lanes.lead, bar.tune.mood, 'chop', s.pan) : seat, t + s.late, note.midi + s.shift, vel * VOX_LEVEL * s.level, len, 0, spb, (bar.tune.seed ^ s.salt) >>> 0, bar.index * 1000 + Math.round(note.beat * 48), s);
         break;
       }
       case 'hey':
@@ -1163,7 +1185,7 @@ export class LofiStation {
     const dust = tex * amount * DUST_MID * (t / 0.5) ** 3;
     set(this.crackle.gain, 0.06 * dust);
     set(this.hiss.gain, 0.0053 * dust);
-    set(this.rain.gain, this.settings.mood === 'rainy' ? (0.03 + x * 0.016) * tex : 0);
+    set(this.rain.gain, (this.settings.mood === 'rainy' || this.settings.mood === 'lofiDrift') ? (0.03 + x * 0.016) * tex : 0);
     set(this.tone.frequency, this.cutoff(this.lastOpen));
     set(this.drumTone.frequency, drumCutoff(this.cutoff(this.lastOpen)));
     const k = 1.05 + x * 1.3;   // gentle: warmth, never crunch

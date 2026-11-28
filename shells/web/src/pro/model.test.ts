@@ -9,7 +9,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  deriveColumns, constraintSignature, cellInput, isCellEditable, bulkTargets,
+  deriveColumns, inputsOutsideBatch, constraintSignature, cellInput, isCellEditable, bulkTargets,
 } from './model.ts';
 
 // Fixtures are typed loosely: the inline input `type` strings widen to `string`,
@@ -123,3 +123,25 @@ test('empty / manifest-less rows contribute no columns', () => {
   assert.deepEqual(deriveColumns([{ toolId: '', manifest: null }]), []);
   assert.deepEqual(deriveColumns([]), []);
 });
+
+test('a mode with nothing to export stays out of the table: its switch and its own inputs', () => {
+  const twoModes = {
+    render: { when: { input: 'mode', value: 'scan', set: { export: false } } },
+    inputs: [
+      { id: 'mode', type: 'select', default: 'make', options: ['make', 'scan'] },
+      { id: 'source', type: 'select', default: 'camera', options: ['camera', 'paste'], showIf: { mode: 'scan' } },
+      { id: 'scanText', type: 'longtext', showIf: { mode: 'scan', source: 'paste' } },
+      { id: 'url', type: 'url', showIf: { mode: 'make', payload: ['url', 'vcard'] } },
+      { id: 'color', type: 'color', showIf: { mode: 'make' } },
+      { id: 'title', type: 'text' },
+    ],
+  } as unknown as Parameters<typeof inputsOutsideBatch>[0];
+  assert.deepEqual([...inputsOutsideBatch(twoModes)].sort(), ['mode', 'scanText', 'source']);
+  assert.deepEqual(deriveColumns([{ toolId: 'two', manifest: twoModes }]).map((c) => c.key), ['url', 'color', 'title']);
+  // A keyed mode that still exports is an ordinary input, and so are its inputs.
+  const stillExports = { ...twoModes, render: { when: { input: 'mode', value: 'scan', set: { actions: [] } } } } as typeof twoModes;
+  assert.equal(inputsOutsideBatch(stillExports).size, 0);
+  assert.equal(inputsOutsideBatch(null).size, 0);
+  assert.equal(deriveColumns([{ toolId: 'two', manifest: stillExports }]).length, 6);
+});
+

@@ -1,5 +1,4 @@
 {
   "name": "Scansiona",
-  "description": "Leggi codici QR e codici a barre sul dispositivo, senza inviare nulla al cloud. Un lettore, non un apritore: decodifica, classifica e spiega cosa porta un codice - link, Wi-Fi, contatti, codici prodotto - e ti lascia agire in modo consapevole. Copia è sempre la prima azione; aprire, unirsi o aggiungere è un tocco esplicito e informato.",
-  "featured.blurb": "Leggi qualsiasi codice, in sicurezza e offline"
+  "description": "Leggi codici QR e codici a barre sul dispositivo. Copia è sempre la prima azione; aprire, unirsi o aggiungere è un tocco esplicito e informato."
 }

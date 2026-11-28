@@ -1,6 +1,6 @@
 # Templates and rendering
 
-The template is the picture. `template.html` is Handlebars markup filled with the current input values, and every export starts from it: the live canvas, the vector and raster files and the print PDF. This page covers writing the template and its styles so each of those exports comes out right, plus the sibling templates that produce data formats such as calendar files.
+`template.html` is Handlebars markup filled with the current input values. The live canvas, the vector and raster files and the print PDF all start from this template, and sibling templates produce data formats such as calendar files.
 
 <!--i:eti-code-->
 ## The template (`template.html`)
@@ -24,20 +24,20 @@ Templates are Handlebars and **logic-less by design**, so people who are not pro
 - `{{value}}` - HTML-escapes by default. Always use this for user input.
 - `{{{value}}}` - raw, no escape. Only for trusted, system-generated HTML.
 - Block helpers: `{{#if}}`, `{{#each}}`, `{{#unless}}`. No arbitrary JS.
-- `{{@canvasSize.width}}` and `{{@canvasSize.height}}` - the size the tool is being made at, in CSS pixels (engine v1.293): the export size someone chose, else the manifest's `render.width` and `render.height`. A tool that prints it declares `render.followsCanvasSize`, so the canvas redraws when the size changes ([When the canvas size changes](/info/tool-hooks.html#when-the-canvas-size-changes)).
+- `{{@canvasSize.width}}` and `{{@canvasSize.height}}` - the tool's current size in CSS pixels (engine v1.293): the export size someone chose, else the manifest's `render.width` and `render.height`. A tool that prints the size declares `render.followsCanvasSize`, so the canvas redraws when the size changes ([When the canvas size changes](/info/tool-hooks.html#when-the-canvas-size-changes)).
 
-`wordmark` is about as small as a template gets: one string, one face, one weight. Everything below came from the link's parameters flowing into `{{ }}` slots.
+`wordmark` is about as small as a template gets: one string, one face, one weight. The picture below comes from the link's parameters in `{{ }}` slots.
 
 ![The Wordmark canvas rendering the word Handlebars at weight 800, the whole output of a template whose only moving part is one text value](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHandlebars%26weight%3D800%26size%3D150%26full&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=at2-template-wordmark)
 
-**Helpers.** The engine registers these in `engine/src/template.ts`, which is the authority on the list:
+**Helpers.** The engine registers these in `engine/src/template.ts`, the authority on the list:
 
 | Helper | What it does |
 |---|---|
 | `{{default x "fallback"}}` | `x` unless it's null/undefined, then the fallback. |
 | `{{upper s}}` / `{{lower s}}` | Upper/lower-case a string. |
 | `{{eq a b}}` | Strict equality - use inside a condition, e.g. `{{#if (eq kind "note")}}`. |
-| `{{markdown body}}` | Render a **small Markdown subset** to safe HTML: `#`…`######` headings, `**bold**`, `*italic*`, `~~strike~~`, bullet and numbered lists, `[label](url)` links and `![alt](url)` images. Author text is HTML-escaped **before** any tag is introduced, and link/image URLs are scheme-allowlisted (links: http/https/mailto/tel; images add data:/blob:) - anything else renders as plain text. Images carry `class="md-image"` so a tool can size them. A list whose lines start with `>`, `<`, `^` or `v` gets a per-direction class (`md-arrow`, `md-arrow-left`, `md-arrow-up`, `md-arrow-down`) for matching arrow markers. The output is already safe HTML, so `{{markdown body}}` and `{{{markdown body}}}` both work. Used for `blocks` bodies, `table` cells and pasted Markdown. |
+| `{{markdown body}}` | Render a **small Markdown subset** to safe HTML: `#`…`######` headings, `**bold**`, `*italic*`, `~~strike~~`, bullet and numbered lists, pipe tables (`<table class="md-table">`, with `md-align-left`, `md-align-center` or `md-align-right` on an aligned column's cells, for your stylesheet to draw), `[label](url)` links and `![alt](url)` images. Author text is HTML-escaped **before** any tag is introduced, and link/image URLs are scheme-allowlisted (links: http/https/mailto/tel; images add data:/blob:). Any other URL renders as plain text. Images carry `class="md-image"` so a tool can size them. A list whose lines start with `>`, `<`, `^` or `v` gets a per-direction class (`md-arrow`, `md-arrow-left`, `md-arrow-up`, `md-arrow-down`) for matching arrow markers. The output is already safe HTML, so `{{markdown body}}` and `{{{markdown body}}}` both work. Used for `blocks` bodies, `table` cells and pasted Markdown. |
 | `{{arrow text}}` | A leading `>` `<` `^` `v` becomes `→ ← ↑ ↓` (for directional labels). |
 | `{{asset ref}}` | The resolved URL of an asset input. Use in `src`/`href`. |
 | `{{asset ref "width"}}` | A specific field of the asset (`width`, `height`, …). |
@@ -45,13 +45,13 @@ Templates are Handlebars and **logic-less by design**, so people who are not pro
 | `{{framing "imageFraming"}}` | Emits the placement style and overlay marker for a framed image. Takes the framing input's **id**; see [Framing an image](/info/tool-structured-inputs.html#framing-an-image-one-pattern-every-tool). |
 | `{{icsStamp d}}` / `{{rfcText s}}` / `{{csvCell s}}` | Data-format escaping for the sibling text templates; see [Data formats](#data-formats-json-csv-ics-vcf) below. |
 
-**Emoji need nothing from you.** Whatever emoji reach the rendered text, typed into a field, arriving in a `blocks` body or written into the template as a default, the runtime draws them from the emoji set the person chose, as pinned vector artwork, after every paint and again at export. The same link therefore looks the same on a phone, in the CLI and in a PDF. Where no set is chosen, or the set lacks a glyph, a neutral placeholder is drawn, never a system glyph; on a device with no set at all, the characters are left as the template wrote them. One limit applies: a template whose **root** is an `<svg>` is skipped whole, because SVG cannot put a picture inside a line of text. The export records one source ingredient for each distinct glyph it placed in the file's Content Credentials, so the set's licence travels with the file.
+**Emoji need nothing from you.** The runtime draws every emoji in the rendered text from the emoji set the person chose, as pinned vector artwork, after every paint and again at export. That covers emoji typed into a field, in a `blocks` body or written into the template as a default. The same link therefore looks the same on a phone, in the CLI and in a PDF. Where no set is chosen, or the set lacks a glyph, a neutral placeholder is drawn, never a system glyph. On a device with no set at all, the characters are left as the template wrote them. A template whose **root** is an `<svg>` is skipped whole, because SVG cannot put a picture inside a line of text. The export records one source ingredient in the file's Content Credentials for each distinct glyph it placed, so the set's licence travels with the file.
 
 The web sidebar adds an **Insert emoji** button to plain text, long text and plain block text fields, and a table column declared with `columnEditors: ["emoji"]` opens the same picker for its cells. URL, number, read-only and managed fields keep their usual controls. The picker asks for an emoji set on first use, can remember the set for new work and respects a set a document or link already pins.
 
 ### Canvas tools: readiness, the frame clock and GPU rendering
 
-A template may paint into a `<canvas>` instead of markup, as `3d`, `synth`, `gradient` and `spatial-photo` do. The export reads that canvas back as pixels, so three small contracts keep exports correct:
+A template may paint into a `<canvas>` instead of markup, as `synth`, `gradient`, `spatial-photo` and the retired `3d` do. The export reads that canvas back as pixels, so three contracts keep exports correct:
 
 | Contract | What to do | Without it |
 | --- | --- | --- |
@@ -59,7 +59,7 @@ A template may paint into a `<canvas>` instead of markup, as `3d`, `synth`, `gra
 | **The frame clock** | For animated output (GIF, APNG, animated WebP and frame-by-frame video), store `canvas.__lollyFrameRender = function (t) { … }` on the canvas element. It renders the exact frame at loop time `t` in `[0, 1)`; a still calls it with `0`, as set out below the table. While the shell drives frames it sets `canvas.__lollyFrameDriven = true`, so stop your own `requestAnimationFrame` loop from advancing while the flag is set. | The export cannot ask for an exact frame. A function stored on `window` instead of the canvas leaks across tool navigation. |
 | **Real-time video** | Mark the canvas `data-capture-stream`, and WebM or MP4 export records it live through `captureStream()` instead of frame by frame. | A self-looping animation is recorded frame by frame instead of as one continuous loop with no cut at the join. |
 
-The frame clock also receives two optional arguments: the clip length in seconds and the export's pixel size as `{ width, height }`. A function that declares only `t` ignores them. During a clip every call carries both, including the extra calls an export makes to find which parts of the frame stay still and the repaint that follows, so a tool that reads them sees the same length and size on every frame. A template drawn in markup rather than on a canvas can still carry a clock: give it a 0 by 0 `<canvas>` that paints nothing, as Growth and Certificate do.
+The frame clock also receives two optional arguments: the clip length in seconds and the export's pixel size as `{ width, height }`. A function that declares only `t` ignores them. During a clip every call carries both, including the extra calls an export makes to find which parts of the frame stay still and the repaint that follows. A template drawn in markup can still carry a clock: give it a 0 by 0 `<canvas>` that paints nothing, as Growth and Certificate do.
 
 A raster still (PNG, JPEG, WebP, AVIF, JPEG XL, TIFF, BMP and CMYK TIFF, and each size of an icon) calls every clock once with `t` 0, no clip length and the file's pixel size, after your `beforeExport` hook has run, and sets `__lollyFrameDriven` only while it makes that picture.
 
@@ -75,7 +75,7 @@ Certificate declares one, so a print file never catches a moment of its reveal.
 ::: details Which stills a still pose holds, and which it does not
 For a clock with `stillPose`, an SVG, SVGZ, PDF, CMYK PDF, Penpot, EPS (RGB and CMYK), EMF, WMF, DXF, Word, OpenDocument, PowerPoint, HTML, Markdown or plain-text still does two more things:
 
-- **It poses your tool first.** The shell sets the flag and calls the clock once, with `t` 0 and no size, before anything else in the export runs, your `beforeExport` hook included, so the hook already sees the finished pose. A capture the shell makes outside a tool's export, such as the docs pipeline's page capture, has no hook to run and makes the same call before it reads the page.
+- **It poses your tool first.** The shell sets the flag and calls the clock once, with `t` 0 and no size, before anything else in the export runs, including your `beforeExport` hook. The hook therefore sees the finished pose. A capture outside a tool's export, such as the docs pipeline's page capture, makes the same call before it reads the page.
 - **It keeps your tool still until the file is written.** The flag stays set while the export reads the page and is cleared afterwards, so your own loop cannot move a part under the export.
 
 **Not held, declared or not:** clips (GIF, APNG, animated WebP, animated SVG, WebM and MP4, which drive the clock frame by frame), sound, Lottie, IDML, Premiere XML and data files (JSON, CSV, calendar, contact, subtitle, stylesheet and palette files, and Markdown from a `template.md`). A ZIP or a Linux package holds each file inside under that file's own format. A sequence stage's still is the frame at its playhead, so the shell leaves the stage alone.
@@ -83,9 +83,9 @@ For a clock with `stillPose`, an SVG, SVGZ, PDF, CMYK PDF, Penpot, EPS (RGB and 
 CLI, TUI and MCP renders that go through the web shell get the same treatment.
 :::
 
-Leave `stillPose` off when `t` 0 is not a finished piece. Growth's `t` 0 is the bare seed, and a flat Lolly Chart's is the first frame of its entrance, which would land over the poster its `beforeExport` hook poses for SVG, SVGZ and PDF and over the self-animating SVG the hook builds for a chart with a frame column. Without the declaration those stills never call the clock or set the flag, and they read the page as your own loop left the page. Chart's 3-D scenes do declare the pose: called with `t` 0 and no clip length, their clock draws the finished scene, with every bar grown and the camera at its starting angle, so a still of a chart that rises into view shows the whole chart. A directed cinematic chart (a spotlight tour, a countdown, a pull-back reveal, a gate tunnel or a terrain flight) declares the pose too, and its still is the closing wide shot.
+Leave `stillPose` off when `t` 0 is not a finished piece. Growth's `t` 0 is the bare seed, and a flat Lolly Chart's is the first frame of its entrance, which would land over the poster its `beforeExport` hook poses for SVG, SVGZ and PDF and over the self-animating SVG the hook builds for a chart with a frame column. Without the declaration those stills never call the clock or set the flag, and they read the page as your own loop left the page. Chart's 3-D scenes do declare the pose: at `t` 0 with no clip length, their clock draws the finished scene, with every bar grown and the camera at its starting angle. A directed cinematic chart (a spotlight tour, a countdown, a pull-back reveal, a gate tunnel or a terrain flight) declares the pose too, and its still is the closing wide shot.
 
-**GPU rendering (WebGL, WebGPU).** Never let the export path read a GPU canvas directly. A WebGPU canvas is cleared as soon as its frame is presented and has no `preserveDrawingBuffer`, so anything read later is blank, and a WebGL canvas only survives the read with `preserveDrawingBuffer: true`, which costs memory and a copy per frame. Render into a detached scratch canvas instead and, inside the same frame callback, draw it onto the visible 2D canvas:
+**GPU rendering (WebGL, WebGPU).** Never let the export path read a GPU canvas directly. A WebGPU canvas is cleared as soon as its frame is presented and has no `preserveDrawingBuffer`, so a later read is blank. A WebGL canvas survives the read only with `preserveDrawingBuffer: true`, which costs memory and a copy per frame. Render into a detached scratch canvas instead, and draw that canvas onto the visible 2D canvas inside the same frame callback:
 
 ```js
 var view = document.getElementById('my-canvas');   // the template's canvas, plain 2D
@@ -96,7 +96,7 @@ gpu.width = view.width; gpu.height = view.height;
 function present() { ctx.clearRect(0, 0, view.width, view.height); ctx.drawImage(gpu, 0, 0); }
 ```
 
-Call `present()` at the end of every render, including inside `__lollyFrameRender`. The visible canvas then always holds the last frame, every export reader sees pixels and the tool is free to pick WebGPU or WebGL 2. The web shell needs WebGPU to start, so WebGL 2 is the fallback for a tool that cannot get a working WebGPU device. `3d` does this with three.js's `WebGPURenderer({ forceWebGL })`, falls back when there is no adapter or the device fails to start, and reports its choice as `data-backend` on the canvas. Feature-detect with `navigator.gpu.requestAdapter()`: an adapter that resolves to `null` means no WebGPU, whatever `navigator.gpu` says.
+Call `present()` at the end of every render, including inside `__lollyFrameRender`. The visible canvas then always holds the last frame, every export reader sees pixels and the tool can use WebGPU or WebGL 2. The web shell needs WebGPU to start, so WebGL 2 is the fallback for a tool that cannot get a working WebGPU device. `3d` does this with three.js's `WebGPURenderer({ forceWebGL })`, falls back when there is no adapter or the device fails to start, and reports its choice as `data-backend` on the canvas. Feature-detect with `navigator.gpu.requestAdapter()`: an adapter that resolves to `null` means no WebGPU, whatever `navigator.gpu` says.
 
 <!--i:eti-palette-->
 ## Styles (`styles.css`)
@@ -105,9 +105,9 @@ Styles are scoped automatically. Write top-level selectors for your own classes.
 
 ### Design system colours in templates and styles
 
-The canvas carries the design system's colours as CSS custom properties, so a template or `styles.css` can use them with no hook. They hold the colours of the artefact's own choices: its look (light or dark) and its colourway. Choose another colourway or look and every variable below takes that choice's colour as the tool redraws.
+The canvas carries the design system's colours as CSS custom properties, so a template or `styles.css` can use them with no hook. The colours follow the artefact's look (light or dark) and colourway. When the person chooses another colourway or look, every variable below takes the new colour as the tool redraws.
 
-These seven are the ones a tool written for any design system reads:
+A tool written for any design system reads these seven:
 
 | Variable | Holds |
 | --- | --- |
@@ -130,7 +130,7 @@ The rest depend on what the design system holds:
 | `--brand-token-<hex>` | Any colour token, by its path |
 
 ::: warning Always give a fallback
-Write each variable with a fallback, as in `var(--brand-secondary, #444)`. A role the design system does not define is left unset, so the fallback is what draws. The brand residue test (`tests/brand-residue.test.ts`) fails a tool template that reads any of these variables with no fallback.
+Write each variable with a fallback, as in `var(--brand-secondary, #444)`. A role the design system does not define is left unset, and the fallback draws. The brand residue test (`tests/brand-residue.test.ts`) fails a tool template that reads any of these variables with no fallback.
 :::
 
 ::: details Which token paints which variable
@@ -140,31 +140,31 @@ Both shells paint the variables from the same token reads, in the artefact's loo
 - Every colour token, whatever its path, also paints `--brand-token-` followed by the hex of the path's UTF-8 bytes, so `color.semantic.accent` paints `--brand-token-636f6c6f722e73656d616e7469632e616363656e74`. The name cannot collide with any other variable. Lolly Design writes a linked colour in this form, with the colour it had as the fallback; a tool rarely needs one.
 - The lead variables come from `host.tokens.family()`.
 
-A colour role's id is permanent, and renaming the role changes only its words: `--brand-<id>` keeps the same name. Ids that would clash with a variable Lolly paints for itself cannot be role ids: `on-` and `token-` names, `lead-count`, `warn` and `warn-ink`. A slot a role fills keeps its own variable, so on a design system whose role Main fills the lead colour, `--brand-primary` and `--brand-main` hold the same colour.
+A colour role's id is permanent. Renaming the role changes only its display name, and `--brand-<id>` keeps the same name. Ids that would clash with a variable Lolly paints for itself cannot be role ids: `on-` and `token-` names, `lead-count`, `warn` and `warn-ink`. A slot a role fills keeps its own variable, so on a design system whose role Main fills the lead colour, `--brand-primary` and `--brand-main` hold the same colour.
 :::
 
-The lead variables exist only when the design system has two or more colourways, and a canvas carries at most 16 of them; with one colourway there are none, and the canvas carries exactly the variables it always did. A second stripe that follows the second lead, and the partner colour when there is no family:
+The lead variables exist only when the design system has two or more colourways, and a canvas carries at most 16 of them. With one colourway there are none. This rule draws a second stripe in the second lead, or in the partner colour when there is no family:
 
 ```css
 .stripe + .stripe { background: var(--brand-lead-2, var(--brand-secondary, #444)); }
 ```
 
-The web shell and the CLI paint the same variables, and the lead variables come from one engine function in both, so a template renders the same in each. A Lolly Design page the CLI draws with no browser reads them too: a colour written as `var(--brand-primary, #1e293b)` draws the design system's colour, as in the app, and the fallback draws only when no token answers to that name. A variable with no fallback that no token answers sends the page to the browser tier ([Render with the CLI](/info/cli-rendering.html#a-lolly-design-deck-with-no-browser)). Until 2026-11-06 that route drew the fallback on every design system, so a CLI SVG, SVGZ or outlined PDF of a Design template came out in the template's own colours while the app drew the design system's.
+The web shell and the CLI paint the same variables, and the lead variables come from one engine function in both, so a template renders the same in each. A Lolly Design page the CLI draws with no browser reads the variables too: `var(--brand-primary, #1e293b)` draws the design system's colour, and the fallback draws only when no token has that name. A variable with no fallback and no matching token sends the page to the browser tier ([Render with the CLI](/info/cli-rendering.html#a-lolly-design-deck-with-no-browser)). Until 2026-11-06 that route drew the fallback on every design system, so a CLI SVG, SVGZ or outlined PDF of a Design template used the template's own colours.
 
 A role's variable exists only on a design system that declares that role, so a tool meant for any design system reads the slots above and leaves a role's name to the person choosing a colour. For a colour input that offers only the colourway leads, see [Colourway leads as swatches](/info/tool-inputs.html#colourway-leads-as-swatches). A tool whose colours are its content can opt out of colourway switching with `tokenAxes` ([Colours that are the content](/info/tool-manifest.html#colours-that-are-the-content)).
 
 ### Design system fonts in templates, styles and hooks
 
-A tool sets its words in the design system's fonts and never in a font of its own, so one tool draws the type of each design system. The canvas carries the fonts as two CSS custom properties:
+A tool sets its text in the design system's fonts, never in a font of its own. The canvas carries the fonts as two CSS custom properties:
 
 | Variable | Holds |
 | --- | --- |
 | `--font-brand` | The text font (`font.brand`) |
 | `--font-mono` | The mono font for code, data and readouts (`font.mono`) |
 
-A design system that declares no text font or no mono font gets the app's default, SUSE or SUSE Mono, so a tool needs no second rule for that case. Give a fallback all the same, as in `var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif)` or `var(--font-mono, 'SUSE Mono', ui-monospace, monospace)`, because a copy of the file outside the app has no variables.
+A design system that declares no text font or no mono font gets the app's default, SUSE or SUSE Mono. Still give a fallback, as in `var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif)` or `var(--font-mono, 'SUSE Mono', ui-monospace, monospace)`, because a copy of the file outside the app has no variables.
 
-Three places cannot read a CSS variable, and each one needs the font names instead:
+Three places cannot read a CSS variable and need the font names instead:
 
 - **Text that a hook writes into an `<svg>`.** A render with no browser reads the `font-family` attribute and not the stylesheet. Read the names with `host.tokens.resolve('{font.brand}')` and `host.tokens.resolve('{font.mono}')`. The `brandFonts` region in `community/_shared/brand-fonts.js` does this and returns lists ready for an attribute: add its marker lines to your `hooks.js` and run `pnpm run sync:shared` to fill them.
 - **Text drawn on a canvas.** Read `--font-brand` off the canvas with `getComputedStyle`, and wait for `document.fonts.load()` before the first draw. Otherwise the canvas draws a fallback font.
@@ -176,7 +176,7 @@ A list that starts with `system-ui`, `sans-serif` or another system font draws t
 
 ### What the vector export keeps
 
-SVG and PDF exports are not screenshots. The exporter reads each element's computed style and re-emits it as vector, so the CSS you choose decides whether a feature survives as geometry, is rasterised into the file or is dropped. A row marked *raster* still exports correctly, but that one element becomes a bitmap inside an otherwise vector file.
+The SVG and PDF exporter reads each element's computed style and writes the element again as vector. The CSS you choose decides whether a feature stays geometry, is rasterised into the file or is dropped. A row marked *raster* still exports correctly, but that element becomes a bitmap inside an otherwise vector file.
 
 | You write | In the SVG / PDF |
 |---|---|
@@ -194,33 +194,51 @@ SVG and PDF exports are not screenshots. The exporter reads each element's compu
 | `background-image` | Gradients become real gradients and a single image an `<image>`; `conic-gradient` rasterises. |
 | `transform` | 2-D transforms are kept. 3-D (`rotateY`, `perspective`) is not. |
 
-The `penpot` format keeps this same vector set, as editable Penpot shapes instead of SVG elements. What costs you those shapes is not the *raster* column: the lowering reads the exported SVG, and one `<clipPath>`, `<filter>`, `<pattern>`, `<mask>`, `<use>` or inline `<style>` anywhere in it puts the **whole** render on the board as a single picture instead. On an HTML layout those come from a rounded `overflow: hidden` box whose content reaches a corner, an `object-fit: cover` or circular image crop, a `background-image`, a `clip-path` and a blurred `text-shadow`. `box-shadow` is not one of them: the Penpot render draws shadows as geometry rather than as an SVG filter.
+The `penpot` format keeps the same vector set, as editable Penpot shapes instead of SVG elements. The *raster* column does not decide which shapes survive. The lowering reads the exported SVG, and one `<clipPath>`, `<filter>`, `<pattern>`, `<mask>`, `<use>` or inline `<style>` anywhere in that SVG puts the **whole** render on the board as a single picture. On an HTML layout those elements come from a rounded `overflow: hidden` box whose content reaches a corner, an `object-fit: cover` or circular image crop, a `background-image`, a `clip-path` and a blurred `text-shadow`. `box-shadow` does not cause this, because the Penpot render draws shadows as geometry, not as an SVG filter.
+
+### Motion that stays in the SVG
+
+An HTML template reaches the SVG file as flat vector groups, so its CSS animation does not come along by itself. A tool can ask for one animation to stay on an element by marking the element:
+
+```html
+<span class="word" data-svg-motion="my-rise 400ms cubic-bezier(0.05,0.7,0.1,1) 80ms">Word</span>
+```
+
+The value is the name of an `@keyframes` rule in your `styles.css`, then a duration in milliseconds, an easing and a delay in milliseconds, in that order. Anything else is ignored. A part of an inline `<svg>` in the template can carry the attribute too, as Timezone's reveal does. The element needs a box of its own, so inline text wants `display: inline-block`. Lengths in the keyframes are best in `em`, which the file resolves against the element's font size.
+
+The attribute plays nothing on the page, because the file and the canvas have different clocks. Three rules keep them apart:
+
+- **The page at rest is the finished piece.** Give an element its animation only during playback. A still export reads the page at rest, so a PNG or a PDF never catches an empty first frame. Declare a frame clock with `stillPose` as set out above, and have the clock arm the animations during a clip and take them away for a still.
+- **The plain SVG export keeps the motion.** Formats derived from the walk, such as Penpot, EMF and DXF, get one finished picture. In an `<img>`, where nothing can seek the animation, the file shows the finished picture too. Opened on its own in a browser, the file plays once and holds.
+- **Say how long the piece lasts.** Put `data-clip-ms` on the stage. The export's Duration field follows the value, and a box in Lolly Design gets a clip that long. Design's timeline then seeks the animation, so the frame on the board is the frame the video export draws.
+
+Quote is a working example.
 
 ### Letting the document bring its own CSS
 
-A tool can also give the person using it a stylesheet - Lolly Design does, as its `customCss`
-input. Three rules make that safe, and a tool that offers user CSS is expected to follow
-all three (`community/design/hooks.js` is the reference; `tests/design-custom-css.test.ts`
+A tool can let the person write a stylesheet, as Lolly Design does with its `customCss`
+input. A tool that offers user CSS is expected to follow three safety rules
+(`community/design/hooks.js` is the reference; `tests/design-custom-css.test.ts`
 is the test to copy):
 
 1. **Sanitise in the hook, never in the shell.** The hook neutralises `</style` and strips
-   `@import`, then hands back a string the template emits inside `<style>`. Doing it in the
-   hook is what makes the CLI's output identical to the browser's - a shell-side filter
-   would leave the headless render unfiltered.
-2. **Emit, then let the shell scope.** The shell re-scopes template `<style>` to the tool
-   canvas (`scopeTemplateStyles`), and its scoper handles top-level `@keyframes` correctly,
-   so real animations belong at the document level rather than nested per element.
+   `@import`, then hands back a string the template emits inside `<style>`. This keeps the
+   CLI's output identical to the browser's. A shell-side filter would leave the headless
+   render unfiltered.
+2. **Emit, then let the shell scope.** The shell scopes template `<style>` to the tool
+   canvas (`scopeTemplateStyles`) and handles top-level `@keyframes` correctly, so put
+   animations at the document level, not nested per element.
 3. **Give the CSS something to aim at.** Free-text rules need stable handles: Lolly Design stamps
    `data-frame-id` on each artboard, sanitised `data-frame-state` tokens from a per-frame
-   `state` field, and a per-box `cls` field whose tokens join the element's class list
-   (`.callout { … }`). Those pass through the same parse-and-re-serialise treatment as any
-   other free text - lowercased, cleaned to `[a-z0-9_-]` and refused where they'd collide
-   with the app's own namespaces (`lolly-`, `pr-`, `seq-`, `fc-`).
+   `state` field and a per-box `cls` field whose tokens join the element's class list
+   (`.callout { … }`). These tokens are parsed and re-serialised like any other free text.
+   They are lowercased, cleaned to `[a-z0-9_-]` and refused where they would collide with
+   the app's own namespaces (`lolly-`, `pr-`, `seq-`, `fc-`).
 
 ::: warning Custom JS is not offered, and should not be
 Hooks are closure-injected, not sandboxed, so a per-document script input would be stored
-XSS in every shared URL. The escape hatch that exists is composition: a `sandbox` tool link
-placed as a box.
+XSS in every shared URL. The alternative is composition: a `sandbox` tool link placed as
+a box.
 :::
 
 <!--i:eti-table-->
@@ -230,8 +248,8 @@ Some tools export data beside the rendered image: a calendar invite, a contact c
 
 ![One input model feeds template.html for the picture, sibling templates such as template.ics and template.csv for text formats, and the JSON export, which needs no template.](/info/diagrams/concepts/data-formats.svg)
 
-- **`json`** - no template needed. Add `"json"` to `render.formats` and the export is `{ tool, version, inputs: { … } }` (the resolved input values), serialized automatically.
-- **`csv` / `ics` / `vcf`** - add the format to `render.formats` **and** ship a sibling text template `template.<ext>` (e.g. `template.ics`). It's a Handlebars template hydrated against the same context as `template.html` (input values + hook `extras`), but **without HTML escaping** - so `{{title}}` emits the value verbatim. Escape per the target format with the built-in helpers:
+- **`json`** - no template needed. Add `"json"` to `render.formats` and the export is `{ tool, version, inputs: { … } }` (the resolved input values), serialised automatically.
+- **`csv` / `ics` / `vcf`** - add the format to `render.formats` **and** ship a sibling text template `template.<ext>` (e.g. `template.ics`). The sibling is a Handlebars template filled from the same context as `template.html` (input values + hook `extras`), but **without HTML escaping**: `{{title}}` emits the value verbatim. Escape per the target format with the built-in helpers:
   - `{{icsStamp meetingTime}}` - a `date`/`datetime-local` value → iCalendar basic form (`20260915T143000`).
   - `{{rfcText x}}` - escape an iCalendar (RFC 5545) **or** vCard (RFC 6350) text field (`\` `;` `,` newline).
   - `{{csvCell x}}` - quote a CSV field per RFC 4180 only when needed.
@@ -272,7 +290,7 @@ stage.__lollyPlayback = {
 
 `seek` must draw a frame directly, forwards or backwards, without starting another clock. `portableMarkup` supplies the authored markup with any prepared emoji artwork; leave out transient selection, caret and animation writes. Omit the method when the freshly filled template is enough. `animated: false` produces a still with no transport controls. Snippet's presentation runtime is a working example.
 
-The shell bundles the shared Sequence evaluator into the player when it builds, and the export embeds that code in the HTML, so playback needs no app server. Tools keep their own scene evaluation; they do not implement another transport or copy Lolly Design's keyframe maths. The CLI uses its browser render tier for trusted tools that declare portable presentations, as it does for Lolly Design's HTML export.
+The shell bundles the shared Sequence evaluator into the player at build time, and the export embeds that code in the HTML, so playback needs no app server. Tools keep their own scene evaluation and do not implement another transport or copy Lolly Design's keyframe maths. The CLI uses its browser render tier for trusted tools that declare portable presentations, as it does for Lolly Design's HTML export.
 
 ::: details What people get from an HTML export
 Lolly Design and Snippet offer HTML in the export format menu. The file embeds its fonts, images and playback code, and opens paused with play, replay, seek and fullscreen controls; a Lolly Design soundtrack adds mute and volume. Space or K toggles playback, the arrow keys seek, M toggles sound and F toggles fullscreen. Playback works offline.

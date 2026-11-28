@@ -1,6 +1,6 @@
 # Profiles, brands and tool configuration
 
-This page is for whoever decides what a Lolly instance is: which brand it wears, which tools it offers, what each tool may do and how people's own switches behave. All of that lives in files you can read and review, not in settings buried in an app. Each section below gives the file and the command that acts on that file.
+This page is for whoever decides what a Lolly instance is: which brand it wears, which tools it offers, what each tool may do and how people's own switches behave. All of that lives in files you can read and review, not in settings buried in an app.
 
 <!--i:eti-layers-->
 ## Profiles: brand + tool set
@@ -19,7 +19,7 @@ A **profile** binds a set of tool packs to a brand catalog. `profiles.json` at t
 }
 ```
 
-`lolly-demo` is [Lolly Demo](/info/lolly-demo.html), the brand lolly.tools and the published images ship. `lolly-start` is the blank starter, and the one a public clone and CI use. `suse` needs the private pack, which a public clone does not have. `suse-with-demo` is the SUSE profile with Lolly Demo offered as a second design system next to SUSE's own: its `companions` entry copies only the listed Lolly Demo assets into the served index. The file itself holds the full entries.
+`lolly-demo` is [Lolly Demo](/info/lolly-demo.html), the brand lolly.tools and the published images ship. `lolly-start` is the blank starter, and the one a public clone and CI use. `suse` needs the private pack, which a public clone does not have. `suse-with-demo` is the SUSE profile with Lolly Demo offered as a second design system next to SUSE's own: its `companions` entry copies only the listed Lolly Demo assets into the served index. The file itself has the full entries.
 
 A profile is chosen per command, not switched globally. Content lives in the packs and nowhere else, so there is no `tools/` or `catalog/` directory at the repository root to switch:
 
@@ -45,13 +45,13 @@ How a command finds its profile, and what the profile hands back. The first rule
 The resolver then answers "where does tool `<id>` live" (`toolFile`, `listToolFiles`, `readToolManifest`) and "where is the catalog" (`catalogFile`) from the profile's roots. **Later roots win on id collisions**, so a brand pack can override a community tool with the same id. The optional `exclude` list drops tool ids from this profile after that merge: a community tool one brand would rather not ship stays available to every other profile, and an id that is not there gives a warning, not an error.
 
 ::: details Shared asset roots, and the one copy a build writes
-A profile's optional `assets` list mounts **shared asset roots**, which is how one file belongs to every brand at once. A shared root is a directory holding its own `index.json` plus its files. Its entries are appended to the brand's asset index, and their addresses are the profile-independent `/catalog/packs/<rootName>/<file>`.
+A profile's optional `assets` list mounts **shared asset roots**, which is how one file belongs to every brand at once. A shared root is a directory with its own `index.json` plus its files. Its entries are appended to the brand's asset index, and their addresses are the profile-independent `/catalog/packs/<rootName>/<file>`.
 
-This repository ships two. `community/emoji-packs/` holds seven emoji sets (Twemoji Color, OpenMoji Color and Black, Fluent Flat and High Contrast, Noto Color and Blobmoji Color), each as one on-demand bundle. `community/fallback-fonts/` holds the [fallback fonts](/info/fallback-fonts.html) for the scripts a design system's own fonts do not cover. Every profile lists both, so every brand serves the same files with no copy in any catalog.
+This repository ships two. `community/emoji-packs/` has seven emoji sets (Twemoji Color, OpenMoji Color and Black, Fluent Flat and High Contrast, Noto Color and Blobmoji Color), each as one on-demand bundle. `community/fallback-fonts/` has the [fallback fonts](/info/fallback-fonts.html) for the scripts a design system's own fonts do not cover. Every profile lists both, so every brand serves the same files with no copy in any catalog.
 
 `readAssetIndex()` is the merged index every Node reader asks for, and the dev server assembles the same merge per request. Shared roots are additive: an asset id claimed by two roots is refused rather than settled by order, and a root that is not on disk is skipped rather than treated as a missing pack, so a build without a shared root still resolves everything else.
 
-One copy is written, because a browser still fetches `/tools/<id>/…` and `/catalog/…` over HTTP. `materializeInto(dest)` writes a real `tools/` and `catalog/` tree, each shared root to `catalog/packs/<name>/` and the merged index to `catalog/assets/index.json`. That tree is what a `dist/` build, an RPM payload or a container image carries. Nothing is written into your working tree, so a tool edit is an edit in its pack, committed there.
+One copy is written, because a browser still fetches `/tools/<id>/…` and `/catalog/…` over HTTP. `materializeInto(dest)` writes a real `tools/` and `catalog/` tree, each shared root to `catalog/packs/<name>/` and the merged index to `catalog/assets/index.json`. That tree is what a `dist/` build, an RPM payload or a container image contains. Nothing is written into your working tree, so a tool edit is an edit in its pack, committed there.
 :::
 
 <!--i:eti-package-->
@@ -67,15 +67,15 @@ pnpm run ingest:brand <source> --name <brand> [--label "Label"] [--register|--ac
 
 `<source>` is any container Penpot or Tokens Studio exports the same DTCG document in: a single `tokens.json`, a one-file-per-set directory or a `project.penpot` archive.
 
-- The extracted document is written to `catalog/assets/<ns>/tokens/brand.json` as the pack's core-tier `tokens` asset. `<ns>` is `<brand>` with hyphens removed, because an asset id cannot carry `-` in its first segment, so `--name acme-co` gives `assets/acmeco/…`.
+- The extracted document is written to `catalog/assets/<ns>/tokens/brand.json` as the pack's core-tier `tokens` asset. `<ns>` is `<brand>` with hyphens removed, because an asset id cannot have `-` in its first segment, so `--name acme-co` gives `assets/acmeco/…`.
 - Ingest also derives the pack's photo-treatment and icon-theme palette documents under `catalog/assets/<ns>/palette/`, so uploaded photos get on-brand washes and themable icons get colour pairings from the start. Icon themes are skipped when the palette has no accent.
-- `--register` adds the pack to `profiles.json`. `--activate` also builds and validates its catalog and prints the `LOLLY_PROFILE=<brand>` line that selects it; nothing is switched globally. `--out` picks another destination and `--force` overwrites an existing pack.
+- `--register` adds the pack to `profiles.json`. `--activate` also builds and validates its catalog and prints the `LOLLY_PROFILE=<brand>` line that selects the pack; nothing is switched globally. `--out` picks another destination and `--force` overwrites an existing pack.
 
 [Design Tokens](/info/design-tokens.html) covers the token model. People set up their own design system in the app with [Lolly Design System Setup](/info/brand-studio.html).
 
 ### Brand lock
 
-A brand's tokens asset can be marked read-only with `brandLock` on its index entry. The SUSE pack ships locked; `lolly-start` and Lolly Demo stay open, so people can hide, edit and reset their own copy.
+A brand's tokens asset can be marked read-only with `brandLock` on its index entry. The SUSE pack ships locked; `lolly-start` and Lolly Demo are open, so people can hide, edit and reset their own copy.
 
 The lock protects that design system's material. People can still create, select and edit their own local systems or make an editable copy of a locked one. `isLocked()` follows the selected system, and `installUserTokens` refuses edits to locked material while allowing creation and sync writes to a separate record. Tools and exports use the selected design system.
 
@@ -92,7 +92,7 @@ A catalog can offer design systems beside its own. List them as `companionDesign
 "companionDesignSystems": [{ "tokens": "lolly/tokens/brand", "label": "Lolly Starter" }]
 ```
 
-Each entry must be a tokens asset in the same index, or `lolly/tokens/brand`, the blank starter every web build carries. `validate:catalog` checks the list. A browser gets each companion once, as a local system the person can edit, reset to the original or remove, and the active system does not change. lolly.tools offers Lolly Starter beside Lolly Demo this way. A brand lock does not stop a list: the catalog's own system stays read-only and the companions sit beside it, so a locked catalog with no list simply offers none.
+Each entry must be a tokens asset in the same index, or `lolly/tokens/brand`, the blank starter every web build includes. `validate:catalog` checks the list. A browser gets each companion once, as a local system the person can edit, reset to the original or remove, and the active system does not change. lolly.tools offers Lolly Starter beside Lolly Demo this way. A brand lock does not stop a list: the catalog's own system stays read-only and the companions appear beside that system, so a locked catalog with no list offers none.
 
 ### Offer a second design system on an instance
 
@@ -117,11 +117,11 @@ Add a new profile rather than changing the one you run, and name what to bring:
 
 Each `assets` entry is an exact id, or a family when it ends in `/` or `-`. Only those rows and the files they name are copied, with their licences and rights records as they are. Previews, share cards, renditions and everything else in the other pack stay behind. Mounted rows are `on-demand`, so a person on your own system does not download them on first load.
 
-`brandTokens` is required in practice: with two tokens assets Lolly Work needs to be told which one is the instance's. Your own rows win any id both packs hold, so anything both packs call the same keeps your bytes. The merge exists only in the served index and in the built tree; neither pack's files change, and your first profile keeps building the same bytes.
+`brandTokens` is required in practice: with two tokens assets Lolly Work needs to be told which one is the instance's. Your own rows win any id both packs have. The merge exists only in the served index and in the built tree; neither pack's files change, and your first profile keeps building the same bytes.
 
 Check it with `node scripts/validate-catalog.ts --profile=acme-with-demo`, then build the shell and the pack under the new name. See [Design-system administration](/info/work-design-system-administration.html#offer-a-second-design-system) for what a person on Lolly Work sees.
 
-Lists follow the active design system by namespace, in the Assets view, the asset picker and search. A row a companion names belongs to it, a row in the namespace of the instance's tokens belongs to the instance's system, and anything else (a sample both use, an emoji set, a shared asset) is always listed. **All design systems** in the Assets toolbar shows everything. A saved session keeps drawing whichever system is active, because an asset is still found by its id.
+Lists follow the active design system by namespace, in the Assets view, the asset picker and search. A row a companion lists belongs to that companion, a row in the namespace of the instance's tokens belongs to the instance's system, and anything else (a sample both use, an emoji set, a shared asset) is always listed. **All design systems** in the Assets toolbar shows everything. A saved session keeps drawing whichever system is active, because an asset is still found by its id.
 
 On Lolly Work, an authenticated administrator can follow **Manage instance design systems** to inspect server sources and preview a change of default or a retirement. Stopping a connect download leaves the mounted catalog available. A newer server advertises revisions: safe views refresh on focus or reconnect, while an open tool or an editable local copy gets a notice and keeps its work. Older servers keep their existing refresh behaviour.
 
@@ -168,7 +168,7 @@ Two mechanisms narrow the catalog without forking the catalog itself.
 
 **A tool set per instance.** Point each instance at a different profile, or at a brand pack with a curated `tools/` root, so marketing, sales and IT each see a different library from one codebase.
 
-**Switches per person.** **Settings → Feature flags** holds them, stored on each person's profile so they sync. None of them ever gates an output format or any API.
+**Switches per person.** **Settings → Feature flags** has them, stored on each person's profile so they sync. None of them ever gates an output format or any API.
 
 | Switch | Default | An organisation can govern it |
 |---|---|---|
@@ -186,7 +186,7 @@ Two mechanisms narrow the catalog without forking the catalog itself.
 
 Turning a connector off withdraws that destination everywhere it is offered. Nearby discovery, which lets Lolly devices on the same network find each other when starting a collab, has no switch in this list; it is on by default, and an organisation can govern it too.
 
-**Strip metadata from uploads** scrubs EXIF, location (GPS) and other embedded metadata from images uploaded to Assets. Content Credentials are always kept either way, so a signed or AI-generated image keeps its credential whether the switch is on or off.
+**Strip metadata from uploads** scrubs EXIF, location (GPS) and other embedded metadata from images uploaded to Assets. Content Credentials are always kept, so a signed or AI-generated image keeps its credential whether the switch is on or off.
 
 **Print preflight** puts the *Before you export* prepress card (bleed, resolution, ink coverage, plate counts) above the Download button. It stays off by default so someone exporting a PNG for a chat message never meets prepress findings, and the card never blocks an export. It also honours the older `export.preflight` instance capability, which reads as governance defaulting the switch on, so members of an instance that granted it keep the card until they choose.
 
@@ -208,7 +208,7 @@ The look switches back after five minutes of calm without a break: pressure fair
 
 A notice says what happened, with **Undo** and **Keep**. For the temporary kind it says so: "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down." **Keep** makes a temporary switch last; letting the notice go by leaves the switch temporary. **Undo** turns the look off and stops that kind of automatic switching on that device, each kind separately: an Undo on a temporary switch stops temporary switching, and an Undo on the other kind stops switching for a slow device. While a first-run prompt is on screen, such as "Add your details to what you make?" or the welcome, the notice waits, and it appears once that prompt is answered or dismissed.
 
-**Settings → Feature flags** shows under the switch whether the look is on for good or for now and why, and which kind of automatic switching an Undo has turned off, with **Allow again**. Allow again clears every Undo but leaves the look as it is: Lolly checks again from the next time it starts. Lolly never switches the look at all once someone has set the switch by hand. The decisions are a preference on that device only (`lolly:perfUiAuto` in local storage), so they do not travel with the profile to another device. They hold what was decided, the reason and when, and never a pressure reading or a battery level.
+**Settings → Feature flags** shows under the switch whether the look is on for good or for now and why, and which kind of automatic switching an Undo has turned off, with **Allow again**. Allow again clears every Undo but leaves the look as it is: Lolly checks again from the next time it starts. Lolly never switches the look at all once someone has set the switch by hand. The decisions are a preference on that device only (`lolly:perfUiAuto` in local storage), so they do not travel with the profile to another device. They include what was decided, the reason and when, and never a pressure reading or a battery level.
 :::
 
 An optional organisation control plane, [Lolly Work](/info/work-governance.html), can govern the switches marked Yes. It sets the default used when a person has not chosen, and it can hide the switch entirely; a hidden switch's governed default wins over a stored personal value.
@@ -220,13 +220,13 @@ An optional organisation control plane, [Lolly Work](/info/work-governance.html)
 
 A tool's `status` controls how much trust it signals, enforced by the engine rather than by convention:
 
-- `experimental`: exports are watermarked by default, so work in progress cannot be mistaken for finished output. The engine sets that default, and the tool's own code cannot remove the watermark. The code that calls the export can turn it off for one export (`watermark: false`), and on-device utilities (`privacy: "on-device"`) never carry one.
+- `experimental`: exports are watermarked by default, so work in progress cannot be mistaken for finished output. The engine sets that default, and the tool's own code cannot remove the watermark. The code that calls the export can turn it off for one export (`watermark: false`), and on-device utilities (`privacy: "on-device"`) never have one.
 - `community`: no watermark, but flagged as community-maintained rather than brand-approved.
 - `official`: brand-approved, no watermark. The most-used value in `community/`.
 
 Promote a tool by changing one field in its manifest. Every surface shows the status, so a reader knows what they are picking up before opening the tool.
 
-![A gallery tile carrying the Experimental status badge that its manifest sets, the same field that turns the export watermark on by default](/t/url-shot?url=%2F%23%2Fu&width=1440&height=2400&dpi=192&waitMs=2400&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22voice-recorder%22%5D&tolerance=0.03&dark=1&filename=fq-experimental-badge)
+![A gallery tile carrying the Experimental status badge that its manifest sets, the same field that turns the export watermark on by default](/t/url-shot?url=%2F%23%2F&width=1440&height=2400&dpi=192&waitMs=2400&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22diagram-builder%22%5D&tolerance=0.03&dark=1&filename=fq-experimental-badge)
 
 The manifest is the source of truth, and each brand's `catalog/tools/index.json` is generated from the manifests. `validate:catalog` checks the schemas, asset checksums, file existence, `bindToProfile` fields, palette references and `replacedBy` chains, and fails CI when the generated index drifts from the manifests. After any `tool.json` or asset edit, rebuild and validate with the commands in [Publish and localize a tool](/info/tool-publishing.html).
 
@@ -239,12 +239,12 @@ Tool and asset ids are permanent contracts: version in the manifest, never renam
 
 Content profiles and brand packs configure what a build ships. Optional **Lolly Work** adds policy for the running organisation: OIDC identity and SCIM provisioning, group permissions, managed profile fields, tool-input restrictions, selected feature flags and export settings. It also configures shared catalogs, projects, approvals, delivery and usage reporting. Personal preferences do not override controls labelled **Managed by your organisation**.
 
-Keep that service's configuration in its own deployment. See its [configuration](/info/work-configuration.html) and [governance](/info/work-governance.html) guides, and [Choose a deployment](/info/deployment.html#organisation-services-with-lolly-work) for how it sits beside this app. Static builds keep using the settings on this page without an organisation service.
+Keep that service's configuration in its own deployment. See its [configuration](/info/work-configuration.html) and [governance](/info/work-governance.html) guides, and [Choose a deployment](/info/deployment.html#organisation-services-with-lolly-work) for how it works beside this app. Static builds keep using the settings on this page without an organisation service.
 
 <!--i:eti-code-->
 ## The services' own config
 
 - **CA service** reads `services/ca/.env` for provider credentials and certificate policy (`CA_CERT_DAYS` default 30, `CA_CERT_MAX_DAYS` default 365 and the allowed day set). Policy stays on the server; see [Content Credentials identity](/info/content-credentials-identity.html).
-- **MCP server** needs an access token (OAuth or bearer) unless the operator opens it with `LOLLY_MCP_ALLOW_ANONYMOUS=1`. A hosted server keeps a daily CPU and data-transfer budget (`LOLLY_BUDGET_CPU_SECONDS_PER_DAY`, `LOLLY_BUDGET_EGRESS_MB_PER_DAY`), a PNG area cap (`LOLLY_MCP_MAX_RASTER_PIXELS`) and request, answer and image size limits (`LOLLY_MCP_REQUEST_MAX_BYTES`, `LOLLY_MCP_RESPONSE_MAX_BYTES`, `LOLLY_MCP_MAX_IMAGE_BYTES`). [MCP server](/info/mcp.html) covers self-hosting, the limits and the tool surface.
+- **MCP server** needs an access token (OAuth or bearer) unless the operator opens it with `LOLLY_MCP_ALLOW_ANONYMOUS=1`. A hosted server has a daily CPU and data-transfer budget (`LOLLY_BUDGET_CPU_SECONDS_PER_DAY`, `LOLLY_BUDGET_EGRESS_MB_PER_DAY`), a PNG area cap (`LOLLY_MCP_MAX_RASTER_PIXELS`) and request, answer and image size limits (`LOLLY_MCP_REQUEST_MAX_BYTES`, `LOLLY_MCP_RESPONSE_MAX_BYTES`, `LOLLY_MCP_MAX_IMAGE_BYTES`). [MCP server](/info/mcp.html) covers self-hosting, the limits and the tool surface.
 
 The engine version and the time limits on tool hooks are fixed by the engine rather than set per deployment; [Host API](/info/host-api.html) and [Tool hooks](/info/tool-hooks.html) cover them.

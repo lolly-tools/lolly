@@ -959,6 +959,26 @@ test('template: markdown does bold, italic, strikethrough and paragraphs', () =>
   assert.equal(hydrate('{{{markdown t}}}', { t: 'a\n\nb' }), '<p>a</p><p>b</p>');
 });
 
+test('template: markdown renders a GFM table as a classed table, cells escaped and aligned', () => {
+  assert.equal(hydrate('{{{markdown t}}}', { t: '| A | B |\n| --- | --- |\n| 1 | 2 |' }),
+    '<table class="md-table"><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table>');
+  // Alignment from the delimiter row, formatting and an escaped pipe inside a cell, a
+  // short row padded, and the lines around the table kept as their own paragraphs.
+  assert.equal(hydrate('{{{markdown t}}}', { t: 'Intro\n| A | B |\n|:--|--:|\n| **x** \\| y | <b> |\n| only |\nafter' }),
+    '<p>Intro</p><table class="md-table"><thead><tr><th class="md-align-left">A</th><th class="md-align-right">B</th></tr></thead>'
+    + '<tbody><tr><td class="md-align-left"><strong>x</strong> | y</td><td class="md-align-right">&lt;b&gt;</td></tr>'
+    + '<tr><td class="md-align-left">only</td><td class="md-align-right"></td></tr></tbody></table><p>after</p>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: '| A |\n|:-:|' }),
+    '<table class="md-table"><thead><tr><th class="md-align-center">A</th></tr></thead></table>');
+});
+
+test('template: markdown with no table is as it was: pipes and rules stay text', () => {
+  assert.equal(hydrate('{{{markdown t}}}', { t: 'a | b\n---\nc' }), '<p>a | b<br>---<br>c</p>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: 'Heading\n---' }), '<p>Heading<br>---</p>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: '| A | B |\n| --- |' }), '<p>| A | B |<br>| --- |</p>', 'the cell counts differ, so no table');
+  assert.equal(hydrate('{{{markdown t}}}', { t: 'yes | no' }), '<p>yes | no</p>');
+});
+
 test('template: markdown renders bullet lists; lone * stays literal', () => {
   assert.equal(hydrate('{{{markdown t}}}', { t: '- one\n- **two**' }),
     '<ul><li>one</li><li><strong>two</strong></li></ul>');

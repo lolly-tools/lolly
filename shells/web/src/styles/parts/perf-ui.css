@@ -67,12 +67,9 @@ html[data-perf-ui] :is(
   .valid-result.is-valid .valid-hero-icon,
   .valid-result.is-trusted .valid-hero-icon,
   .valid-result.is-lolly .valid-hero-icon,
-  .valid-result.is-delivered .valid-hero-icon,
-  .valid-ai-flag,
-  .valid-ai-flag-ic svg
+  .valid-result.is-delivered .valid-hero-icon
 ) { animation-play-state: paused !important; }
-html[data-perf-ui] :is(.valid-result.is-valid, .valid-result.is-trusted, .valid-result.is-lolly, .valid-result.is-delivered) .valid-hero-icon::after,
-html[data-perf-ui] .valid-ai-flag::after { animation-play-state: paused !important; }
+html[data-perf-ui] :is(.valid-result.is-valid, .valid-result.is-trusted, .valid-result.is-lolly, .valid-result.is-delivered) .valid-hero-icon::after { animation-play-state: paused !important; }
 
 /* The Settings switches (.feature-flag-switch) have a white knob that, on a light track,
    is told apart only by its drop shadow, which the strip above removes: in a dark theme

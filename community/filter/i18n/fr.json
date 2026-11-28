@@ -1,5 +1,5 @@
 {
   "name": "Filtre",
-  "description": "Un seul outil pour tous les effets photo : choisis trame de demi-teintes, scanline, postérisation, voronoï, tramage ou art ASCII (vectoriel), ou duotone, étirement de pixels, mauvais tirage ou glitch (matriciel). Superpositions du système de design, caméra en direct et export dans autant de formats que chaque effet le permet.",
+  "description": "Effets photo : trame de demi-teintes, scanline, postérisation, voronoï, tramage ou art ASCII (vectoriel), ou duotone, pixel-stretch, défaut d'impression ou glitch (matriciel).",
   "featured.blurb": "Dix effets photo, vectoriels ou raster, dans un seul outil"
 }

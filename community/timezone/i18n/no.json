@@ -1,4 +1,4 @@
 {
   "name": "Tidssone",
-  "description": "Gjør steder og tidssoner om til motiver som følger designsystemet. Roter et vektoratlas eller en detaljert WebGL-globus, brett ut projeksjoner, merk folkene og stedene dine, og eksporter deretter motiver, en kameratur eller strukturerte tidsplaner."
+  "description": "Gjør steder og tidssoner om til motiver. Roter et vektoratlas eller en WebGL-globus, og eksporter deretter motiver, en kameratur eller strukturerte tidsplaner."
 }

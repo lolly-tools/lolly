@@ -1,6 +1,6 @@
 {
   "name": "Grafic",
-  "description": "Grafice de la prima lipire până la vizualizări avansate - recomandări de date explicate, mapare explicită a câmpurilor, 35 de familii clasice de grafice vectoriale, inclusiv Pareto, ținte bullet chart și bare de interval, șaisprezece forme statistice și editoriale, scene 3D cu adâncime reală, survoluri cinematografice, mișcare deterministă, descrieri accesibile și stiluri compilate din sistemul de design activ.",
+  "description": "Grafice de la prima lipire până la vizualizări avansate - 35 de familii vectoriale, scene 3D, survoluri, mișcare și stiluri din sistemul de design.",
   "featured.blurb": "Lipește un tabel - Grafic îl face clar, accesibil și evident aliniat brandului",
   "a11yLabel": "Grafic {{chartType}}{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Tip grafic",

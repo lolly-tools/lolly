@@ -306,6 +306,46 @@ describe('Timezone browser renderer', { skip }, () => {
       await page.close();
     }
   });
+  it('poses the reveal from the export clock and rests on the finished picture', async () => {
+    for (const renderer of ['vector', 'webgl']) {
+      const page = await open({ renderer, motion: 'reveal' });
+      try {
+        const read = (t: number, clipSec?: number) =>
+          page.evaluate(
+            ([at, sec]) => {
+              const root = document.querySelector('#tz-root') as any;
+              root.__timezone.draw(at, sec ?? undefined);
+              const cards = [...root.querySelectorAll('[data-section="locations"] [data-place-index]')];
+              return {
+                clipMs: +root.dataset.clipMs,
+                stillPose: root.querySelector('canvas').__lollyFrameRender.stillPose === true,
+                animations: root.getAnimations({ subtree: true }).length,
+                opacity: cards.map((g: any) => +getComputedStyle(g).opacity),
+              };
+            },
+            [t, clipSec ?? null] as const
+          );
+        const still = await read(0);
+        assert.equal(still.clipMs, 2840, 'the stage says how long the reveal lasts');
+        assert.equal(still.stillPose, true);
+        assert.equal(still.animations, 0, renderer + ': a still has nothing in motion');
+        assert.deepEqual(still.opacity, [1, 1, 1]);
+        const clip = still.clipMs / 1000;
+        const first = await read(0, clip);
+        assert.deepEqual(first.opacity, [0, 0, 0], renderer + ': the clip opens before any row');
+        const middle = await read(200 / still.clipMs, clip);
+        const [a, b, c] = middle.opacity as [number, number, number];
+        assert.ok(a > b && b > c, JSON.stringify(middle.opacity));
+        const again = await read(200 / still.clipMs, clip);
+        assert.deepEqual(again.opacity, middle.opacity, 'the same moment draws the same frame');
+        // The last two seconds of the clip are the finished picture.
+        const held = await read(1 - 2000 / still.clipMs, clip);
+        assert.deepEqual(held.opacity, [1, 1, 1]);
+      } finally {
+        await page.close();
+      }
+    }
+  });
   it('keyboard rotation commits the same view input and resources dispose after navigation', async () => {
     const page = await open({ motion: 'still' });
     try {

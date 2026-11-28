@@ -1,6 +1,6 @@
 /* #/convert - the on-device converter view. Sibling of valid.css (Verify). */
 @layer views {
-  .platform-layout.convert-view { max-width: 1120px; margin: 0 auto; padding: 88px 28px 48px; }
+  .platform-layout.convert-view { max-width: 1120px; margin: 0 auto; padding: calc(88px + var(--safe-top)) 28px 48px; } /* plus the status bar, which pushes the back pill down by the same amount (0 without an inset) */
   .convert-view .plat-header { display: block; margin: 0 0 24px; }
   .convert-view .plat-title { margin: 0 0 10px; }
   .convert-view .plat-sub { color: hsl(var(--muted-foreground)); margin: 4px 0 0; max-width: 60ch; }
@@ -104,7 +104,7 @@
   .convert-history-row p { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
   .convert-history input[type="search"] { min-height: 44px; padding: 10px; border: 1px solid hsl(var(--border)); border-radius: var(--radius-sm); background: hsl(var(--background)); color: inherit; }
   @media (max-width: 720px) {
-    .platform-layout.convert-view { padding: 82px 16px 32px; }
+    .platform-layout.convert-view { padding: calc(82px + var(--safe-top)) 16px 32px; }
     .convert-result { padding: 16px; }
     .convert-workbench { grid-template-columns: 1fr; gap: 24px; }
     .convert-preview { height: 180px; }

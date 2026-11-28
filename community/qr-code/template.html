@@ -1,16 +1,269 @@
+{{#if (eq mode "scan")}}
+<div class="sc" data-mode="{{source}}"{{#if qrAlertStyle}} style="{{qrAlertStyle}}"{{/if}}>
+
+  {{#if (eq source "camera")}}
+  <div class="sc-viewfinder" aria-label="Camera viewfinder">
+    {{#if scanFrameSrc}}
+    <svg class="sc-vf" data-live-preview viewBox="0 0 {{scanFrameW}} {{scanFrameH}}" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Live camera">
+      <image href="{{scanFrameSrc}}" x="0" y="0" width="{{scanFrameW}}" height="{{scanFrameH}}" preserveAspectRatio="xMidYMid slice"/>
+      <polygon points="{{scanCorners}}" class="sc-vf__quad"/>
+    </svg>
+    <div class="sc-vf__reticle" aria-hidden="true"></div>
+    {{#if scanEmpty}}<span class="sc-vf__label">Hold a code in the frame</span>{{/if}}
+    {{else}}
+      {{#if scanCameraReady}}
+      <span class="sc-start">
+        <svg class="sc-start__glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        <span>Start camera</span>
+      </span>
+      {{else}}
+      <span class="sc-vf__label sc-vf__label--centre">The camera needs a secure (https) address. Scan an <strong>Image</strong> or <strong>Text</strong> instead.</span>
+      {{/if}}
+    {{/if}}
+  </div>
+  {{/if}}
+
+  {{#if scanNotice}}
+  <p class="sc-note sc-note--alert" role="status">{{scanNotice}}</p>
+  {{/if}}
+
+  {{#if scanEmpty}}
+    {{#if (eq source "paste")}}<p class="sc-note">Paste a code's text in Code text.</p>{{/if}}
+    {{#if (eq source "image")}}<p class="sc-note"{{#if scanMiss}} role="status"{{/if}}>{{#if scanMiss}}No code found in this image.{{else}}Choose an image that holds a code.{{/if}}</p>{{/if}}
+  {{else}}
+    <div class="sc-result" data-kind="{{scanKind}}">
+      <div class="sc-result__head">
+        <span class="sc-kind">{{scanLabel}}</span>
+        {{#if scanFormat}}<span class="sc-fmt">{{scanFormat}}</span>{{/if}}
+      </div>
+
+      {{{scanValueHtml}}}
+
+      {{#if scanFieldsHtml}}<div class="sc-fields">{{{scanFieldsHtml}}}</div>{{/if}}
+
+      {{#if scanHasWarn}}
+      <div class="sc-warn" role="status">
+        <span class="sc-warn__h">Before you act</span>
+        <ul>{{{scanWarnHtml}}}</ul>
+      </div>
+      {{/if}}
+
+      <div class="sc-actions">
+        <button type="button" class="sc-btn sc-btn--primary" data-copy="{{scanCopy}}">Copy</button>
+        {{#if scanOpenUrl}}
+        <a class="sc-btn" href="{{scanOpenUrl}}" target="_blank" rel="noopener noreferrer nofollow" data-open>Open link…</a>
+        {{/if}}
+      </div>
+
+      <p class="sc-copy-status" role="status" aria-live="polite" data-export-hide></p>
+      <p class="sc-foot">Read on this device. Nothing was uploaded.</p>
+    </div>
+  {{/if}}
+
+  <script>
+  // Editor-runtime only (stripped on export): Copy the exact decoded value and
+  // toggle a masked secret's reveal. No network, no auto-actions.
+  (function () {
+    var root = document.currentScript && document.currentScript.parentElement;
+    if (!root) return;
+    function copyFallback(value) {
+      var active = document.activeElement;
+      var input = document.createElement('textarea');
+      input.value = value;
+      input.readOnly = true;
+      input.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
+      document.body.appendChild(input);
+      try {
+        input.focus({ preventScroll: true });
+        input.select();
+        input.setSelectionRange(0, value.length);
+        return !!(document.execCommand && document.execCommand('copy'));
+      } finally {
+        input.remove();
+        if (active && active.focus) active.focus({ preventScroll: true });
+      }
+    }
+    root.addEventListener('click', async function (e) {
+      var copyBtn = e.target.closest('[data-copy]');
+      if (copyBtn) {
+        e.stopPropagation();
+        var v = copyBtn.getAttribute('data-copy') || '';
+        if (copyBtn.disabled) return;
+        var hadFocus = document.activeElement === copyBtn;
+        var status = root.querySelector('.sc-copy-status');
+        if (status) status.textContent = '';
+        copyBtn.disabled = true; copyBtn.textContent = 'Copying…';
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            try { await navigator.clipboard.writeText(v); }
+            catch (err) { if (!copyFallback(v)) throw err; }
+          } else if (!copyFallback(v)) throw new Error('Clipboard unavailable');
+          if (status) status.textContent = 'Copied';
+        } catch (err) {
+          if (status) status.textContent = 'Could not copy. Select and copy the text above, or try again.';
+        } finally {
+          copyBtn.disabled = false; copyBtn.textContent = 'Copy';
+          if (hadFocus) copyBtn.focus({ preventScroll: true });
+        }
+        return;
+      }
+      // Keep the native link tap in this gesture; the canvas's Source annotation
+      // must not turn a result action into a settings picker on mobile.
+      if (e.target.closest('a[data-open]')) { e.stopPropagation(); return; }
+      var reveal = e.target.closest('[data-reveal]');
+      if (reveal) {
+        e.stopPropagation();
+        var span = reveal.parentElement.querySelector('[data-secret]');
+        if (span) {
+          var open = reveal.getAttribute('data-open') === '1';
+          span.textContent = open ? (span.getAttribute('data-mask') || '') : (span.getAttribute('data-secret') || '');
+          reveal.setAttribute('data-open', open ? '0' : '1');
+          reveal.textContent = open ? 'Reveal' : 'Hide';
+        }
+      }
+    });
+  })();
+  </script>
+</div>
+{{else}}
 {{{svgContent}}}
-{{#if qrHasWarnings}}
-<div class="qr-scan-warn" data-export-hide role="status">
-  <span class="qr-scan-warn__h">⚠ Scannability</span>
-  <ul>{{#each qrWarnings}}<li>{{this}}</li>{{/each}}</ul>
+{{#if qrNotes}}
+<div class="qr-notes" data-export-hide>
+  {{#if qrMotion}}
+  <button type="button" class="qr-play">{{qrPlayLabel}}</button>
+  {{/if}}
 </div>
+<script>
+(function () {
+  /* The replay button hangs under the canvas at screen size, outside the artwork. The
+     canvas and its frame clip what leaves them, so both are opened while the button is
+     on show and closed again when Motion is switched off. Where the stage has no room
+     under the canvas the fit is asked for a band at the foot, as the shell's own stage
+     chrome asks. Elsewhere (a gallery cover, a batch row, another shell) this does not
+     run and the button stays hidden. An export removes the block and this script.
+     Scannability warnings are not drawn here: the shell shows each one under the input
+     that causes it (inputNotices), so the canvas keeps its size. */
+  var cs = document.currentScript;
+  var canvas = cs && cs.parentNode;
+  if (!canvas || canvas.id !== 'tool-canvas') return;
+  var outer = canvas.parentElement;
+  var stage = outer && outer.parentElement;
+  if (!stage || typeof stage.getBoundingClientRect !== 'function') return;
+  var BAND = '--stage-reserve-bottom';
+  /* What the fit keeps clear at the foot without the notes, once a band is asked for.
+     A repaint hands the number to the next run of this script, so the band stays put. */
+  var kept = canvas.__qrFootOff ? canvas.__qrFootOff(true) : -1;
+  var queued = 0;
+  var mo = null;
+  var ro = null;
+  function band(px) {
+    var value = px ? px + 'px' : '';
+    if (stage.style.getPropertyValue(BAND) === value) return;
+    if (value) stage.style.setProperty(BAND, value); else stage.style.removeProperty(BAND);
+    canvas.dispatchEvent(new Event('canvas-resize'));
+  }
+  function off(handOver) {
+    var was = kept;
+    if (mo) mo.disconnect();
+    if (ro) ro.disconnect();
+    if (queued) cancelAnimationFrame(queued);
+    canvas.__qrFootOff = null;
+    if (handOver === true) return was;
+    canvas.style.overflow = '';
+    outer.style.overflow = '';
+    kept = -1;
+    band(0);
+    return -1;
+  }
+  function place(measureAgain) {
+    queued = 0;
+    var notes = canvas.querySelector('.qr-notes');
+    if (!notes) { off(); return; }
+    notes.setAttribute('data-foot', '');
+    canvas.style.overflow = 'visible';
+    outer.style.overflow = 'visible';
+    if (measureAgain) { kept = -1; band(0); }
+    if (kept < 0) {
+      var foot = parseFloat(outer.style.marginBottom) || 0;
+      var free = stage.getBoundingClientRect().bottom - outer.getBoundingClientRect().bottom - foot;
+      if (free >= Math.ceil(notes.getBoundingClientRect().height) + 6) return;
+      kept = foot;
+    }
+    /* A narrower canvas wraps the notes onto more lines, so measure after each fit. */
+    for (var i = 0; i < 3; i++) band(kept + Math.ceil(notes.getBoundingClientRect().height) + 6);
+  }
+  function soon(measureAgain) {
+    if (queued) cancelAnimationFrame(queued);
+    queued = requestAnimationFrame(function () { place(measureAgain); });
+  }
+  if (typeof MutationObserver === 'function') {
+    mo = new MutationObserver(function () { soon(false); });
+    mo.observe(canvas, { childList: true, subtree: true, characterData: true });
+  }
+  if (typeof ResizeObserver === 'function') {
+    var first = true;
+    ro = new ResizeObserver(function () { if (first) { first = false; return; } soon(true); });
+    ro.observe(stage);
+  }
+  canvas.__qrFootOff = off;
+  place(false);
+})();
+</script>
 {{/if}}
-{{#if qrLiveScanFail}}
-<div class="qr-scan-warn qr-scan-warn--live" data-export-hide role="status">
-  <span class="qr-scan-warn__h">⚠ This styling may not scan</span>
-  <p>A test decode of the rendered code came back empty. Reduce the logo, raise contrast, or simplify the module shape.</p>
-</div>
+{{#if qrMotion}}
+<script>
+(function () {
+  /* Re-runs on every paint, so `var` only and nothing on window. The code's
+     animations live in its own markup (hooks.js). This script decides when the
+     preview shows them: once when Motion is switched on, again on request, never
+     on a keystroke and never by itself for someone who asked for reduced motion.
+     At every other moment the animations sit at their end, which is the finished
+     code. */
+  var cs = document.currentScript;
+  var stage = cs && cs.parentNode;
+  var svg = stage && stage.querySelector ? stage.querySelector('svg[data-qr-motion]') : null;
+  if (!svg || typeof svg.getAnimations !== 'function') return;
+  function all() { return svg.isConnected ? svg.getAnimations({ subtree: true }) : []; }
+  function finish() { all().forEach(function (a) { try { a.finish(); } catch (e) { /* already at rest */ } }); }
+  function play() { all().forEach(function (a) { a.currentTime = 0; a.play(); }); }
+  function reduced() {
+    try {
+      return matchMedia('(prefers-reduced-motion: reduce)').matches ||
+        document.documentElement.getAttribute('data-a11y-motion') === 'reduce';
+    } catch (e) { return false; }
+  }
+
+  /* Export. The shell finds this clock on a canvas (bridge/frame-clock.ts). The
+     canvas is 0 x 0, paints nothing and is made here, so a shell that runs no
+     script still sees the code as the only thing drawn. A clip is t in [0, 1) of
+     `clipSec` seconds. A still has no clip length and always gets the finished
+     code, even when the preview is part way through. */
+  var clock = stage.querySelector('canvas.qr-clock');
+  if (!clock) {
+    clock = document.createElement('canvas');
+    clock.className = 'qr-clock';
+    clock.width = 0;
+    clock.height = 0;
+    clock.setAttribute('aria-hidden', 'true');
+    clock.style.cssText = 'position:absolute;width:0;height:0';
+    stage.appendChild(clock);
+  }
+  clock.__lollyFrameRender = function (t, clipSec) {
+    if (!(clipSec > 0)) { finish(); return; }
+    var ms = Math.min(1, Math.max(0, t)) * clipSec * 1000;
+    all().forEach(function (a) { a.pause(); a.currentTime = ms; });
+  };
+  clock.__lollyFrameRender.stillPose = true;
+
+  var button = stage.querySelector('.qr-play');
+  if (button) button.addEventListener('click', function (e) { e.stopPropagation(); if (!clock.__lollyFrameDriven) play(); });
+  var key = '{{qrMotionKey}}';
+  var inView = !!svg.closest('#tool-canvas, #tool-content');
+  var fresh = stage.__qrMotionPlayed !== key;
+  stage.__qrMotionPlayed = key;
+  if (inView && fresh && !reduced() && !clock.__lollyFrameDriven) return;
+  finish();
+})();
+</script>
 {{/if}}
-{{#if qrEclRaised}}
-<p class="qr-scan-info" data-export-hide role="status">Error correction was raised to High automatically so the logo stays scannable.</p>
 {{/if}}

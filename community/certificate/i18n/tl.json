@@ -1,6 +1,6 @@
 {
   "name": "Sertipiko",
-  "description": "Mga certificate ng pagkumpleto at parangal sa aktibong design system at sa colourway nito: apat na style, laki para sa print at social, at motion para sa pagbabahagi - isang pangalan kada isa, o buong roster mula sa CSV sa Bulk from rows.",
+  "description": "Mga certificate ng pagkumpleto at parangal: apat na style, laki para sa print at social, at motion - isang pangalan kada isa, o roster mula sa CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} para kay {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Uri",
   "inputs.certKind.help": "Itinatakda ang pananalita: ang pamagat, ang linya sa itaas ng dahilan ng certificate, at ang marka sa seal.",

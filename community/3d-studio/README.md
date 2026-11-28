@@ -1,6 +1,6 @@
 # 3D Studio
 
-Studio for extruded SVG artwork and GLB/STL/3MF product imagery, alone, as a collection of separate photographs, or arranged together in one scene.
+Studio for extruded SVG artwork and GLB/glTF/STL/3MF product imagery, alone, as a collection of separate photographs, or arranged together in one scene.
 
 [User guide](../../docs/3d-studio.md)
 
@@ -14,7 +14,9 @@ The manifest supplies Guided and Expert views over the same saved inputs. Hooks 
 - `shells/web/src/lib/studio3d/`: retained source, material, lighting, environment, camera and capture implementation. Objects that name the same bytes share one loaded asset; `environment.ts` generates the studio, soft box and window environments and decodes imported `.hdr`/`.exr` radiance maps. `inset.ts` repeats the inset three.js draws for a bevel, so the bevel check tests the outline that is rendered. `scene-host.ts` names the renderer contract that `StudioRenderer` implements.
 - Editor, multi-edit and batch/composition mount the same shell renderer. Exports await a successful render and re-render at the export's pixel size (the frame clock's third argument). `shells/web/src/bridge/frame-clock.ts` keeps a clip's length and size for every clock call in one capture. While a capture runs, the studio holds its frame: previews, gestures and input updates wait. A frame that fails to render fails the export.
 
-The existing `3d` tool keeps its own tool identity and saved sessions.
+The older `3d` tool is retired into this one. Its id, links and saved sessions keep opening the older tool, and "Open in 3D Studio" carries a document across (`threeDToStudio` in `shells/web/src/lib/tool-successors.ts`).
+
+A glTF model plays one of its baked clips when `playClip` is on. The clip time is `studioClipSeconds` in `engine/src/studio3d.ts`, a function of the export clock and the recipe. `shells/web/src/lib/studio3d/clip.ts` measures the model once over the whole clip and answers every later bounds question from that measurement. Each placed copy has bones and a mixer of its own (`instantiateStudioAsset` in `source.ts`), so a loaded source shared by two boxes holds no clip time. `tests/studio3d-clip.test.ts` holds those rules as arithmetic; no frame is drawn there.
 
 Run the scene and material tests with:
 

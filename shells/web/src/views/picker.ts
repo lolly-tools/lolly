@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { savedSessionEmbedUrl } from './picker-session-embed.ts';
 import { readRecentAssets, recordRecentAsset, readTabMemory, recordTabMemory } from '../lib/picker-memory.ts';
 import { projectImageCardHtml, libraryCardThumb, userCardThumb } from './picker-thumbnails.ts';
@@ -562,8 +563,7 @@ async function render(
       <header class="asset-picker-header">
         <h2 id="asset-picker-title">${escapeHtml(opts.title ?? (collect ? tRaw('Add to {name}', { name: collect.folderName }) : t('Choose an asset')))}</h2>
         <input type="search" class="asset-picker-search" placeholder="${escapeHtml(paneSearchPlaceholder('library', allowToolUrl))}" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(t('Search assets'))}">
-        <button type="button" class="asset-picker-close" aria-label="${escapeHtml(t('Close'))}">×</button>
-      </header>
+        ${closeButtonHtml({ className: 'asset-picker-close' })}</header>
       ${tabs.length > 1 ? `<div class="asset-picker-tabs" role="tablist" aria-label="${escapeHtml(t('Asset sources'))}">${tabs.map(tb => tabButtonHtml(tb, activeTab)).join('')}</div>` : ''}
       ${currentToolUrl ? `<div class="asset-picker-current">
         <span class="asset-picker-current-label"><span class="asset-picker-current-spark" aria-hidden="true">✦</span> ${t('Current image is from <strong>{name}</strong> - tweak it, or pick a different image below', { name: opts.currentToolName ?? t('a Lolly tool') })}</span>
@@ -2253,7 +2253,7 @@ async function render(
             return {
               slot: e.slot, toolId: e.toolId, label: e.label,
               toolName: t?.name ?? e.toolId, toolIcon: t?.icon ?? null,
-              thumb: e.thumb ?? null, updatedAt: e.updatedAt,
+              thumb: e.thumb ?? null, preview: e.preview ?? null, updatedAt: e.updatedAt,
             };
           })
           .sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')));
@@ -2697,7 +2697,7 @@ function userCard(ref: AssetRef): string {
         ${thumb}
         <span class="asset-picker-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
       </button>
-      <button type="button" class="asset-picker-card-delete" data-delete-id="${escapeHtml(ref.id)}" title="${escapeHtml(t('Delete'))}" aria-label="${escapeHtml(tRaw('Delete {name}', { name: String(name) }))}">×</button>
+      ${closeButtonHtml({ size: 'sm', danger: true, solid: true, className: 'asset-picker-card-delete', label: tRaw('Delete {name}', { name: String(name) }), attrs: { 'data-delete-id': ref.id, title: t('Delete') } })}
       ${upscaleButton(ref, String(name))}
       ${matteButton(ref, String(name))}
       ${vidMatteButton(ref, String(name))}

@@ -5,9 +5,9 @@
  * levels (too quiet / too loud / clipping) and, when the meter exposes the v1.19
  * spectral cues, the ROOM (electrical hum / background hiss / noisy).
  *
- * This is the VIDEO/`av` counterpart to voice-recorder's onLevel meter card: a video
- * tool's canvas shows the composited bookends, not a meter, so the shell draws the HUD
- * over the framing viewfinder instead. Two phases:
+ * This is the shell's counterpart to voice-recorder's onLevel meter card, for a tool
+ * whose canvas is not a meter: a video tool shows the composited bookends and Audiogram
+ * shows its card, so the shell draws the HUD over the stage instead. Two phases:
  *   - 'check'  (arming / sound-check, mic raw): silence is expected, so judge the room.
  *   - 'record' (the take): coach the speaking level; only flag a genuinely bad floor.
  */
@@ -24,8 +24,10 @@ export { coachAudio };
 export type { Coaching, CoachTarget, CoachPhase } from './audio-coach-core.ts';
 
 export interface CoachHud {
-  /** Update the audio-level section from a live meter sample. No-op if the HUD has no audio row. */
-  updateAudio(level: AudioLevel, opts?: { target?: CoachTarget; phase?: CoachPhase }): void;
+  /** Update the audio-level section from a live meter sample. No-op if the HUD has no audio row.
+   *  `tips: false` keeps the level bar and the reading and leaves the warning out, for a tool
+   *  whose "Coaching tips" input is off. */
+  updateAudio(level: AudioLevel, opts?: { target?: CoachTarget; phase?: CoachPhase; tips?: boolean }): void;
   /** Update the exposure section from a video-coaching verdict (shows only when there's a warning). */
   updateExposure(v: VideoCoaching): void;
   destroy(): void;
@@ -93,9 +95,10 @@ export function mountCoachHud(parent: HTMLElement, opts: { audio?: boolean } = {
       if (fill) fill.style.width = `${c.barPct}%`;
       if (peak) peak.style.left = `${c.peakPct}%`;
       if (db) db.textContent = c.dbText;
-      if (audioWarn) audioWarn.textContent = c.warning;
-      audioRow.classList.toggle('has-warn', c.warning !== '');
-      ({ msg: spokenA, at: spokenAAt } = speak(c.warning, spokenA, spokenAAt));
+      const warning = o?.tips === false ? '' : c.warning;
+      if (audioWarn) audioWarn.textContent = warning;
+      audioRow.classList.toggle('has-warn', warning !== '');
+      ({ msg: spokenA, at: spokenAAt } = speak(warning, spokenA, spokenAAt));
     },
     updateExposure(v) {
       expoRow.dataset.tone = v.tone;

@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 import * as THREE from 'three';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+import { clone as cloneWithSkeletons } from 'three/addons/utils/SkeletonUtils.js';
 import type { StudioSceneV1 } from '../../../../../packages/core/src/studio3d-v1.ts';
+import { studioBox } from './clip.ts';
 import type { StudioRead } from './source.ts';
 
 export interface StudioStage {
@@ -256,7 +258,9 @@ export function buildStudioStage(
 ): StudioStage {
   const group = new THREE.Group(),
     geometries = new Set<THREE.BufferGeometry>(),
-    materials = new Set<THREE.Material>();
+    materials = new Set<THREE.Material>(),
+    // A copy of a skinned subject owns its skeletons, each with a bone texture once drawn.
+    skeletons = new Set<THREE.Skeleton>();
   const mesh = (geometry: THREE.BufferGeometry, material: THREE.Material): THREE.Mesh => {
     geometries.add(geometry);
     materials.add(material);
@@ -325,7 +329,7 @@ export function buildStudioStage(
         ]
       );
       const copies = recipe.stage.atmosphereForms === 'copies' && subject;
-      const bounds = copies ? new THREE.Box3().setFromObject(subject) : null;
+      const bounds = copies ? studioBox(subject) : null;
       const subjectRadius = bounds ? bounds.getBoundingSphere(new THREE.Sphere()).radius : 0;
       const centre = bounds ? bounds.getCenter(new THREE.Vector3()) : new THREE.Vector3();
       const geometry = copies ? null : new THREE.SphereGeometry(1, 32, 24);
@@ -342,7 +346,13 @@ export function buildStudioStage(
         if (copies && subjectRadius > 1e-6) {
           // A copy shares the subject's geometry and materials; only its pose is its own.
           const pivot = new THREE.Group();
-          const copy = subject.clone(true);
+          // A copy of a skinned subject needs bones of its own, or it is drawn where the
+          // subject's bones are. The renderer poses a playing subject at the start of its
+          // clip before the copies are made, so every copy holds that one pose.
+          const copy = cloneWithSkeletons(subject);
+          copy.traverse((node) => {
+            if (node instanceof THREE.SkinnedMesh) skeletons.add(node.skeleton);
+          });
           copy.position.sub(centre);
           pivot.add(copy);
           // Words must stay readable: copies of a text scene only tilt, never turn
@@ -380,6 +390,7 @@ export function buildStudioStage(
     dispose: () => {
       for (const geometry of geometries) geometry.dispose();
       for (const material of materials) material.dispose();
+      for (const skeleton of skeletons) skeleton.dispose();
     },
   };
 }

@@ -1,6 +1,6 @@
 [package]
 name = "lolly-desktop"
-version = "1.2.1"
+version = "1.2.2"
 edition = "2021"
 
 [lib]
@@ -80,7 +80,7 @@ rand = "0.8"
 # daemon and no C dependency, so it builds the same on macOS/Linux/Windows. Runs its
 # own background thread; the invite exchange itself is plain std::net TCP, no async
 # runtime added.
-mdns-sd = "0.21"
+mdns-sd = "0.22"
 # Native LAN socket transport (src/native_transport.rs, plans/110 section 4): Noise
 # XX_25519_ChaChaPoly_BLAKE2s. The pure-Rust resolver (no `ring`/C dependency) keeps
 # cross-compilation to Linux/Windows/macOS - and later the Android NDK - unchanged.
@@ -94,7 +94,7 @@ snow = { version = "0.9", default-features = false, features = ["default-resolve
 arboard = "3"
 # Hot folder (plans/174 #9): inotify/FSEvents/ReadDirectoryChanges watcher
 # behind desktop_hotfolder_set. Non-recursive by design.
-notify = "8"
+notify = "9"
 # lolly:// deep links and file:// argv arrive as URLs; parse, never string-split.
 url = "2"
 

@@ -50,11 +50,11 @@ import { firstRunBannerMarkup } from './first-run-banner.ts';
 import { viewTopbarHtml, mountViewTopbar } from '../components/view-topbar.ts';
 import { mountFeaturedRow, resolveExamples } from '../components/featured-row.ts';
 import { armMotionPreviews, playMotionIn, stopMotionIn } from '../lib/preview-media.ts';
-import { galleryPreviewLooks, galleryLookHref, renderGalleryLook, galleryPreviewPriority } from '../lib/gallery-preview.ts';
-import { createPreviewQueue, holdWhileBusy } from '../lib/preview-queue.ts';
+import { galleryPreviewLooks, galleryLookHref, renderGalleryLook, storedGalleryLook, galleryPreviewPriority } from '../lib/gallery-preview.ts';
+import { holdWhileBusy } from '../lib/preview-queue.ts';
 import { galleryWelcomeStep, placeGalleryWelcome } from './gallery-welcome.ts';
 import { isProgrammeMember } from '../lib/workspace-templates.ts';
-import { loadGalleryLook, placeBakedCovers, withHeldLook } from './gallery-look-loader.ts';
+import { createLookQueue, loadGalleryLook, lookTask, placeBakedCovers, readStoredLook, slideFinished, withHeldLook } from './gallery-look-loader.ts';
 import { hydratePaged } from './gallery-paged-deck.ts';
 import { renderFeaturedVariant, coverFormats, displayFormatOf } from '../lib/featured-render.ts';
 import { currentTheme } from '../theme.ts';
@@ -81,7 +81,7 @@ import type { WebStateAPI } from '../bridge/state.ts';
 import type { WebProfileAPI } from '../bridge/profile.ts';
 import type { createAssetsAPI } from '../bridge/assets.ts';
 import type { WebTokensAPI } from '../bridge/tokens.ts';
-import type { PreviewsAPI } from '../bridge/previews.ts';
+import type { PreviewCacheAPI } from '../lib/preview-cache.ts';
 export { showGalleryWelcome } from './gallery-welcome.ts';
 
 /**
@@ -220,7 +220,7 @@ export type GalleryHost = HostV1 & {
   profile: WebProfileAPI;
   assets: ReturnType<typeof createAssetsAPI>;
   tokens?: WebTokensAPI;
-  previews?: PreviewsAPI;
+  previews?: PreviewCacheAPI;
 };
 
 // Section order for the filter pills. 'utility' is intentionally absent: the
@@ -441,13 +441,18 @@ function createGalleryLifecycle(viewEl: HTMLElement) {
   // the featured row (timers + drift loop) and the preview queue below
   // register their teardown here so neither keeps running after the user moves on.
   const cleanups: Array<() => void> = [];
-  const previewQueue = createPreviewQueue();
+  const previewQueue = createLookQueue();
   previewQueue.setPaused(true); // Wait for the welcome decision before rendering behind it.
   cleanups.push(() => previewQueue.destroy());
   cleanups.push(holdWhileBusy(previewQueue));   // no render starts while the person scrolls or types
   // Arrow keys walk the cards once one has focus (lib/arrow-nav.ts), landing on each
   // card's name link, so browsing never means tabbing through every dot and "+ New".
   cleanups.push(wireArrowNav(viewEl, { items: '.gtile', primary: '.gtile-name' }));
+  // What a card looks like before its preview is drawn. A Back from a tool that is still
+  // opening shows the old snapshot until this gallery looks the same (view-fade.ts
+  // viewSettled, which reads this attribute), so no card shows empty at the swap.
+  viewEl.setAttribute('data-settle-pending', '.gtile-hero--preview:not(.is-ready), .gcar:not(.has-art)');
+  cleanups.push(() => viewEl.removeAttribute('data-settle-pending'));
   (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => {
     for (const fn of cleanups.splice(0)) { try { fn(); } catch { /* best-effort teardown */ } }
   };
@@ -1356,17 +1361,16 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
         return { thumb, href };
       });
     };
-    slides.forEach((slide, i) => previewQueue.add(withHeldLook(gcar, slide, tool.id, i, {
-      priority: () => previewPriority(gcar, i === 0),
-      stale: () => !gcar.isConnected,
-      run: () => renderSlide(slide),
-    })));
+    // A stored look is read first; a missing one is drawn when the page is at rest (lookTask).
+    slides.forEach((slide, i) => previewQueue.add(withHeldLook(gcar, slide, tool.id, i, lookTask(previewQueue, gcar, () => previewPriority(gcar, i === 0), {
+      read: () => readStoredLook(gcar, slide, async () => (looks[i] ? storedGalleryLook(host, tool, i, looks[i]!) : null), () => galleryLookHref(tool.id, looks[i])),
+      draw: () => renderSlide(slide), done: () => slideFinished(slide),
+    }))));
     // A paged document also gets its single cover before we export the full deck.
-    if (gcar.dataset.paged === '1') previewQueue.add({
-      priority: () => previewPriority(gcar, false),
-      stale: () => !gcar.isConnected,
-      run: () => hydratePaged(host, gcar, toolId!, tool),
-    });
+    if (gcar.dataset.paged === '1') previewQueue.add(lookTask(previewQueue, gcar, () => previewPriority(gcar, false), {
+      read: () => hydratePaged(host, gcar, toolId!, tool, { storedOnly: true }),
+      draw: () => hydratePaged(host, gcar, toolId!, tool), done: () => gcar.dataset.pagedDone === '1',
+    }));
   }
 
   // The tool and first look of a card, for the baked cover pass (gallery-look-loader.ts).
@@ -2863,7 +2867,7 @@ function savedItem(entry: SavedEntry, bytes: number | undefined): string {
     subTag: 'small',
     subtitle,
     sizeBytes: bytes,
-    deleteAttr: `data-delete="${escape(entry.slot)}"`,
+    deleteAttr: { 'data-delete': entry.slot },
     deleteClass: 'saved-delete',
     deleteTitle: t('Delete'),
     deleteLabel: t('Delete'),

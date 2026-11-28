@@ -187,11 +187,7 @@ async function toSfnt(bytes: Uint8Array | null): Promise<Uint8Array | null> {
     const kind = sfntKind(bytes);
     if (kind === 'ttf' || kind === 'otf') return bytes;
     if (kind === 'woff') return woffToSfnt(bytes);
-    if (kind === 'woff2') {
-      const decompress = (await import('woff2-encoder/decompress')).default as (b: Uint8Array) => Promise<Uint8Array>;
-      const out = await decompress(bytes);
-      return out.length <= MAX_FONT_BYTES ? out : null;
-    }
+    if (kind === 'woff2') return await (await import('./woff2.ts')).decodeWoff2(bytes, { maxOutputBytes: MAX_FONT_BYTES });
   } catch { /* an unreadable container is reported by the caller */ }
   return null;
 }

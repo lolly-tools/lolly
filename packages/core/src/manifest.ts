@@ -222,6 +222,10 @@ export interface RenderSpec {
    *  Feature-detected on `host.speech.transcribeAvailable()`, never capability-
    *  gated - a shell without it mounts nothing and leaves the target untouched. */
   transcribe?: { source: string; target: string; format?: 'srt' | 'vtt' | 'words'; auto?: string };
+  /** `false` mounts no live camera controls although the tool has an `onFrame` hook
+   *  (engine 1.356). For a tool whose hook serves one mode: `when.set` turns the
+   *  controls on for that mode. Unset means on, as before. */
+  live?: boolean;
   /** Requested longest edge (px) for live-camera frames (see `MediaAPI`). */
   liveMaxEdge?: number;
   /** id of a number input whose value overrides `liveMaxEdge`: a user-facing
@@ -247,7 +251,30 @@ export interface RenderSpec {
   preview?: Record<string, unknown>;
   video?: Record<string, unknown>;
   actions?: unknown[];
+  /** Render settings that follow one input's value (engine 1.356). See {@link RenderWhen}. */
+  when?: RenderWhen;
   [key: string]: unknown;
+}
+
+/**
+ * `render.when`: while the input `input` holds `value` (or one of a list of values),
+ * the keys under `set` replace the same keys of the `render` block. At any other
+ * value the block is used as written. The engine's `resolveRender` reads it, and a
+ * runtime answers the block in effect through `getRender()`.
+ */
+export interface RenderWhen {
+  /** Id of a declared input. */
+  input: string;
+  /** The value, or the values, at which `set` applies. */
+  value: string | number | boolean | Array<string | number | boolean>;
+  set: {
+    export?: boolean;
+    webPreview?: boolean;
+    actions?: Array<'copy' | 'download' | 'save' | 'share'>;
+    live?: boolean;
+    liveFacing?: 'user' | 'environment';
+    liveCameraWhen?: { input: string; value: string };
+  };
 }
 
 /** A `composes` entry - a nested render exposed to the template as `{{asset <id>}}`. */

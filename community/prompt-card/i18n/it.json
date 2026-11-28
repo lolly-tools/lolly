@@ -1,6 +1,6 @@
 {
   "name": "Scheda prompt",
-  "description": "Impagina un prompt lungo in un'unica immagine compatta e leggibile per un modello multimodale - l'input immagine è spesso più economico delle stesse parole come token testuali.",
+  "description": "Impagina un prompt lungo in un'unica immagine per un modello multimodale - l'input immagine è spesso più economico delle stesse parole come token testuali.",
   "a11yLabel": "Prompt a immagine - incolla o trascina del testo sulla tela e viene disposto per stare dentro una piccola immagine",
   "inputs.text.label": "Testo",
   "inputs.text.help": "Incolla o trascina in un punto qualsiasi della tela per compilarlo.",

@@ -29,21 +29,25 @@ test('three checkpoints in QR Code show as named history bytes', async (context)
   const db = memory as unknown as IDBPDatabase;
   const history = createStateAPI(db as unknown as StateDb, createRevisionStore(db)).history!;
   const start = Date.parse('2026-09-27T09:00:00Z');
+  const head = atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==');
+  const png3000 = `data:image/png;base64,${btoa(head + 'B'.repeat(3000 - head.length))}`;
   for (let i = 0; i < 3; i++) {
     context.mock.timers.setTime(start + i * 2 * 60_000);
     const cursor = await history.current('qr-code:launch');
     const entry = await history.checkpoint('qr-code:launch', { __toolId: 'qr-code', __label: 'Launch', payload: 'url', url: `https://example.com/${i}` },
       { reason: 'automatic', expectedHead: cursor.head, expectedVersion: cursor.version });
-    await history.attachPreview(entry.id, `data:image/png;base64,${'B'.repeat(3000)}`);
+    // A real PNG of 3,000 bytes: the preview store keeps only bytes that are the
+    // picture they claim, and History counts the bytes it keeps (plan 373).
+    await history.attachPreview(entry.id, png3000);
   }
   const cursor = await history.current('qr-code:launch');
   await history.recovery.save('qr-code:launch', { __toolId: 'qr-code', url: 'https://example.com/typing' }, { writerId: 'tab', expectedHead: cursor.head, expectedVersion: cursor.version });
   const usage = await history.usage();
   assert.ok(usage.checkpoints > 0 && usage.checkpoints < 1024, `checkpoints ${usage.checkpoints} B: small documents, deflated`);
-  assert.equal(usage.previews, 3 * (3000 + 'data:image/png;base64,'.length));
+  assert.equal(usage.previews, 3 * 3000, 'each checkpoint counts its picture, stored once for all three');
   assert.ok(usage.recovery > 0, 'the recovery draft is counted');
   assert.equal(historyBytes(usage), usage.checkpoints + usage.previews + usage.recovery);
-  assert.match(historyParts(usage), /^Checkpoints \d+ B · Previews 8\.9 KB · Recovery drafts \d+ B$/);
+  assert.match(historyParts(usage), /^Checkpoints \d+ B · Previews 8\.8 KB · Recovery drafts \d+ B$/);
 });
 
 test('the row sentences: each part named, and what removing old checkpoints did', () => {

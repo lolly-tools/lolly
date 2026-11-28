@@ -1,6 +1,6 @@
 # Create on-brand content from approved DAM assets
 
-**Connect the approved library, give people a tool with permitted edits, then check the finished output before delivery.** This example uses an event card to show where source governance, creative constraints and final review apply. Lolly makes the file; Lolly Work supplies the connected catalog and governed shared services.
+**Connect the approved library, give people a tool with permitted edits, then check the finished output before delivery.** An event card shows where source governance, creative constraints and final review apply. Lolly makes the file, and Lolly Work supplies the connected catalog and governed shared services.
 
 ::: note Run it with your own assets
 The example is a sequence to run with your own assets, not a claim that every source supports every check. Use [the source directory](/info/work-provider-guides.html) to select an implemented connector.
@@ -31,13 +31,13 @@ The library administrator connects a narrow folder or section, previews its mapp
 Run the same selection as an allowed member and an excluded member.
 
 ::: warning A working connection does not prove member access
-A shared provider credential can see more than either person should see, so its successful authentication does not establish correct member access. [Use Lolly with your existing DAM](/info/use-with-dam.html) explains that boundary.
+A shared provider credential can see more than either person should see. Its successful authentication does not establish correct member access. [Use Lolly with your existing DAM](/info/use-with-dam.html) explains that boundary.
 :::
 
 <!--i:eti-image-->
 ## 2. Choose the image and make a variant
 
-The marketer opens the event tool, selects the intended original or supported representation and fills in the permitted fields. Keep the selected file identity when an asset has several attachments. A thumbnail is not a substitute for an original needed by production.
+The marketer opens the event tool, selects the intended original or supported representation and fills in the permitted fields. Keep the selected file identity when an asset has several attachments. A thumbnail is not a substitute for an original needed by production. A thumbnail cannot replace an original that production needs.
 
 Check that the selected asset is permitted for the intended audience and use. A DAM's approved flag does not establish all licence conditions. [Creative rights and credits](/info/creative-rights.html) explains recorded evidence, obligations and credit delivery.
 
@@ -46,12 +46,12 @@ Check that the selected asset is permitted for the intended audience and use. A 
 
 Make the first card and check its copy and layout. If the tool supports the needed variants, reuse the tool for each size or use [Lolly Batch](/info/batch.html) for rows of inputs. Keep protected copy and data fixed while changing permitted layout choices.
 
-Record the output requirements before checking the file. Optional [production checks](/info/production-checks.html) can measure supported facts such as dimensions, exact text or differences against a reference. An unchecked fact is not a pass, and those measurements do not replace creative or rights review.
+Record the output requirements before checking the file. Optional [production checks](/info/production-checks.html) can measure supported facts such as dimensions, exact text or differences against a reference. An unchecked fact is not a pass. These measurements do not replace creative or rights review.
 
 <!--i:eti-eye-->
 ## 4. Review the file that will leave
 
-Decide whether ordinary local export or an organisation delivery is the required path. A local export does not automatically acquire Lolly Work approval. For a supported organisation destination with a chain, Lolly Work stages exact bytes and routes that delivery for review. Approval of a source is separate from approval of this staged file.
+Decide whether the required path is a local export or an organisation delivery. A local export does not get Lolly Work approval automatically. For a supported organisation destination with an approval chain, Lolly Work stages the exact bytes and routes that delivery for review. Approval of a source is separate from approval of this staged file.
 
 Check the actual configuration with [Approvals](/info/work-approvals.html) and [Organisation delivery destinations](/info/work-delivery.html).
 
@@ -62,11 +62,11 @@ Do not promise an approval-controlled release for export paths that do not enfor
 <!--i:eti-upload-->
 ## 5. Deliver and rehearse a change
 
-Send to the configured destination and inspect the receipt. Confirm byte readback where the adapter supports it; receiving an upload acknowledgement alone does not prove publication or unchanged bytes.
+Send to the configured destination and inspect the receipt. Confirm byte readback where the adapter supports readback. An upload acknowledgement alone does not prove publication or unchanged bytes.
 
 Then change or withdraw a source upstream. Refresh the catalog and test listings, previews and new original reads. Record the observed delay and what happens to existing designs. Previously downloaded copies remain a separate responsibility.
 
 <!--i:eti-clipboard-->
 ## Keep a short acceptance record
 
-Record the tested source and file, tool and software revisions, allowed and refused users, output requirements, review decision and delivery result. Keep credentials and private source files out of public evidence. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) adds the administrator adoption perspective to this technical sequence.
+Record the tested source and file, tool and software revisions, allowed and refused users, output requirements, review decision and delivery result. Keep credentials and private source files out of public evidence. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) adds the administrator's view of adoption.

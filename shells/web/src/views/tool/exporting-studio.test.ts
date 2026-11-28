@@ -28,7 +28,7 @@ const read = (path: string) => readFileSync(join(SRC, path), 'utf8');
 
 /** The body of a top-level function, from its declaration to the next top-level declaration. */
 function functionBody(source: string, name: string): string {
-  const start = source.search(new RegExp(`^export (?:async )?function ${name}\\b`, 'm'));
+  const start = source.search(new RegExp(`^(?:export )?(?:async )?function ${name}\\b`, 'm'));
   assert.ok(start >= 0, `${name} is declared`);
   const rest = source.slice(start + 1);
   const next = rest.search(/^(?:export )?(?:async )?function |^\/\*\*/m);
@@ -55,7 +55,8 @@ test('both editor capture sites export through withStudioExport and prepare at e
 test('the batch row export checks the studio it mounted, without a second prepare', () => {
   const source = read('pro/render-export.ts');
   assert.match(source, /import \{ type StudioExportHooks, withStudioExport \} from '\.\.\/lib\/studio-export-guard\.ts';/);
-  const body = functionBody(source, 'renderRowToBlob');
+  // The export body; renderRowToBlob wraps it to count a render that is not a preview.
+  const body = functionBody(source, 'renderRowToBlobOnce');
   assert.match(
     body,
     /const blob = await withStudioExport\(\s*mounted\.studio,\s*canvas,\s*\(\) => runtime\.export\(target, fmt, exportOpts\),/
@@ -71,7 +72,7 @@ test('the batch row export checks the studio it mounted, without a second prepar
 });
 
 test('paged batch exports are checked the same way, at each page box size', () => {
-  const body = functionBody(read('pro/render-export.ts'), 'renderToolPages');
+  const body = functionBody(read('pro/render-export.ts'), 'renderToolPagesOnce');
   assert.match(body, /await withStudioExport\(mounted\.studio, canvas, \(\) => runtime\.export\(el, /);
   assert.doesNotMatch(body, /pages\.push\(await runtime\.export\(/);
   // A page renders with no dimension opts, so its laid-out box is its output size.

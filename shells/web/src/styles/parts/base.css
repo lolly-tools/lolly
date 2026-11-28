@@ -125,6 +125,10 @@ button, input, select, textarea, optgroup {
    the scrollbar width. A no-op with overlay scrollbars (macOS default); a real fix with
    classic ones. */
 html { scrollbar-gutter: stable; }
+/* iOS WebKit enlarges some runs of text by a rule of its own once the window has changed
+   width (a fold, a turn), so one screen size drew two type sizes depending on what came
+   before. The shell sets every size itself, and Large text is --a11y-fs (parts/a11y.css). */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 body {
   margin: 0;
@@ -286,7 +290,37 @@ em, i, cite { font-family: var(--font-italic, var(--font-brand)); }
   @media (prefers-reduced-motion: reduce) {
     .view-fade { display: none; }
   }
-  
+  /* A held snapshot (view-fade.ts, opening a tool) is a still picture of the view that
+     was left. Moving the nodes into the snapshot restarts their CSS animations, so the
+     gallery replayed its card and picture fade-ins under the loading card, and its
+     pulses on cards scrolled out of sight ran on the main thread (the browser cannot
+     hand those to the compositor), restyling and layerizing the whole page on every
+     frame while the tool loaded. Here every animation ends at once, at its last frame,
+     much as in the reduced-motion blocks above, and transitions jump to their end: the
+     view looks as it did when it was left, and the loading card is the one thing that
+     moves. The fade out is short (--dur-1, 120 ms) and eases out, so the tool comes in
+     quickly once its first render is ready. The view that was left can hold renders of
+     its own (multi-edit's canvases), so the render canvas and the export stages are
+     left out, as in the blocks above. Reduced motion makes no snapshot, so none of this
+     applies there. */
+  .view-fade--hold {
+    --view-fade-dur: var(--dur-1);
+    --view-fade-ease: var(--ease-out);
+  }
+  .view-fade--hold :not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *, .pro-export-canvas, .pro-export-canvas *, .me-scale, .me-scale *, .me-canvas, .me-canvas *),
+  .view-fade--hold :not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *, .pro-export-canvas, .pro-export-canvas *, .me-scale, .me-scale *, .me-canvas, .me-canvas *)::before,
+  .view-fade--hold :not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *, .pro-export-canvas, .pro-export-canvas *, .me-scale, .me-scale *, .me-canvas, .me-canvas *)::after {
+    animation-delay: 0s !important;
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition: none !important;
+  }
+  /* After its short beat a held snapshot clears to the plain ground: view-fade.ts
+     leaveAt() marks everything but the top bar (and what holds it) with this class. Out
+     of layout and paint altogether, because drawing the view that was left at all, not
+     its motion, was most of the cost of a tool open on a slow phone. */
+  .view-fade-gone { display: none !important; }
+
   /* Tool view is full-bleed - the sidebar provides its own visual edge. */
   .app-view.tool-view {
     padding: 0;
@@ -297,8 +331,12 @@ em, i, cite { font-family: var(--font-italic, var(--font-brand)); }
     padding: 48px 0
   }
   
+  /* Batch is a full-screen layer whose header is its first row, so the layer's own
+     padding takes in the status bar and the home indicator. Both insets are 0 on a
+     screen without them, where this is the 1em it always was. Stated here because
+     this important rule is the one that decides the padding (pro/pro.css cannot). */
   .pro-wrap {
-    padding: 1em 0 !important
+    padding: calc(1em + var(--safe-top)) 0 max(1em, var(--safe-bottom)) !important
   }
   
   .pro-col-head {

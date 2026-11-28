@@ -14,7 +14,7 @@ import { homedir } from 'node:os';
 import { verifyC2pa, resolveVerdict } from '@lolly/engine';
 import { getProfile, setProfile, backupData, listSessions } from '../store.ts';
 import { loadTrustAnchors, describeAnchors } from '../trust-anchors.ts';
-import { cleanControlChars, verdictHeadline, verdictFacts, verdictChecks, verdictApproval, verdictBrandPage, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
+import { cleanControlChars, verdictHeadline, verdictFacts, verdictChecks, verdictApproval, verdictBrandPage, verdictIntent, verdictSources, verdictFindings, verdictMetadata, findingLine } from '@lolly-tools/node-shell/verdict-report';
 import { exportSessions } from '../batch-export.ts';
 import { loadFavourites, loadHidden } from '../lib/asset-favourites.ts';
 import { loadToolFavourites } from '../lib/tool-favourites.ts';
@@ -167,6 +167,12 @@ export function Profile({ bridge, onNav, onQuit }: { bridge: TuiBridge; onNav: (
         const h = verdictHeadline(v, { elevateParts: true });
         push(h.detail ? `${h.glyph} ${h.name} - ${h.detail}` : `${h.glyph} ${h.name}`, h.tone);
         if (report.reason && report.state !== 'invalid') push(`  ${vclean(report.reason)}`, 'dim');
+        // Verify's six findings, from the helper `lolly validate` and MCP print from.
+        // No text analysis runs here, and the pixel scan below lands after this panel
+        // opens, so both inputs stay absent. The words carry the meaning.
+        for (const f of verdictFindings({ report, meta: verdictMetadata(bytes) })) {
+          push(`  ${findingLine(f)}`, f.tone === 'good' ? 'good' : f.tone === 'bad' ? 'bad' : f.tone === 'warn' ? 'warn' : 'fg');
+        }
         if (report.claim) {
           push(report.trusted
             ? '  (fields below are the CA-verified signer’s own claim)'

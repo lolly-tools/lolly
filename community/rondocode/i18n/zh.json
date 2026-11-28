@@ -1,4 +1,4 @@
 {
   "name": "Rondocode",
-  "description": "用代码写音乐，边输入边聆听：在 rondocode 实时编辑器中使用合成器、节奏模式和混音。可把歌曲导出为音频、分轨或 MIDI，并附带记录来源的 Content Credentials，也可保留其源码。"
+  "description": "用代码写音乐，边输入边聆听。可把歌曲导出为带 Content Credentials 的音频、分轨或 MIDI 文件，也可保留其源码。"
 }

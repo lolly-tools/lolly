@@ -33,6 +33,8 @@ async function compute(ctx: any) {
     _state: safeJson(state),
     _artwork: artwork(state),
     _data: exportData,
+    // How long the reveal lasts, for the stage to carry. 0 for every other motion.
+    tzClipMs: state.reveal?.clipMs || 0,
     // What the two overrides draw while they are left empty, for the web shell to
     // show on their chips: the theme's own background and text colours.
     autoColors: {

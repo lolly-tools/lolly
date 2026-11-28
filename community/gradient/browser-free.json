@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "tool": {
+    "id": "gradient",
+    "version": "1.4.2",
+    "digest": "165a624228677b91c867645a0b649145f552285bb11ce809fb900f10fc8df0b7"
+  },
+  "verdict": "resvg",
+  "measured": {
+    "date": "2026-11-27",
+    "profile": "lolly-demo",
+    "webShell": "3ade41c281180f385de232b8ff7d6b9eebfe16cd",
+    "renderers": {
+      "resvg": "2.6.2",
+      "engine": "1.359.0",
+      "chromium": "153.0.8010.12"
+    },
+    "bands": {
+      "threshold": 24,
+      "fillThreshold": 72,
+      "regionShare": 0.005,
+      "inkShare": 0.25,
+      "inkShift": 1.5,
+      "gradientLevels": 2
+    }
+  },
+  "cases": [
+    {
+      "name": "gradient-default",
+      "args": [],
+      "result": "refused",
+      "detail": "the drawing with a noise filter (feTurbulence), whose grain resvg draws differently; the drawing with a gradient that fades through transparency, which resvg blends a few levels away from the browser; a blend mode inside a filtered group, which resvg composites unlike the browser (a dark band along an edge)"
+    },
+    {
+      "name": "gradient-sunset-screen",
+      "args": [
+        "--count=3",
+        "--color1=#ff9a8b",
+        "--color2=#f2a65a",
+        "--color3=#ffd3bd",
+        "--blend=screen",
+        "--spread=95",
+        "--blur=10",
+        "--grain=30"
+      ],
+      "result": "refused",
+      "detail": "the drawing with a noise filter (feTurbulence), whose grain resvg draws differently; the drawing with a gradient that fades through transparency, which resvg blends a few levels away from the browser; a blend mode inside a filtered group, which resvg composites unlike the browser (a dark band along an edge)"
+    },
+    {
+      "name": "gradient-subdivide-nograin",
+      "args": [
+        "--mode=subdivide",
+        "--count=4",
+        "--color1=#0ea5e9",
+        "--color2=#1e3a8a",
+        "--color3=#f2a65a",
+        "--color4=#0f766e",
+        "--rows=4",
+        "--cols=4",
+        "--curvature=70",
+        "--detail=1",
+        "--grain=0"
+      ],
+      "result": "inside"
+    },
+    {
+      "name": "gradient-plain-noblur",
+      "args": [
+        "--blend=normal",
+        "--blur=0",
+        "--grain=0"
+      ],
+      "result": "refused",
+      "detail": "the drawing with a gradient that fades through transparency, which resvg blends a few levels away from the browser"
+    }
+  ]
+}

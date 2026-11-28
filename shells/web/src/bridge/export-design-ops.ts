@@ -64,6 +64,38 @@ function colorResolver(node: Element): (css: string) => string | null {
   };
 }
 
+/**
+ * The instant the operations draw a page at, read from the live page. While every row
+ * of the page stands as authored, every row is drawn at rest (`null`): that is how a
+ * page export of a deck lifts the sequence clock's hiding and poses each page at its
+ * rest moment before the shot (wiring.ts). While the clock hides a row (`seq-off`,
+ * OFF_CLASS in sequence-dom.ts) or holds one part way through a move (an enter, an
+ * exit, a keyframe, text arriving a unit at a time), the page shows a moment the
+ * operations do not draw, so the walker draws the page as it stands.
+ */
+export async function liveStillInstant(pages: readonly Element[]): Promise<{ at: null } | { reason: string }> {
+  const TIMED = '[data-t-start],[data-t-kf],[data-t-hold],[data-t-z],[data-t-rx],[data-t-ry]';
+  const timed: Element[] = [];
+  for (const page of pages) {
+    if (page.classList?.contains('seq-off') || page.querySelector?.('.seq-off')) return { reason: 'the sequence clock hides some of its layers at this moment' };
+    if (page.matches?.(TIMED)) timed.push(page);
+    timed.push(...(page.querySelectorAll?.(TIMED) ?? []));
+  }
+  if (!timed.length) return { at: null };
+  const { authoredStyleOf, sequencePoseOf } = await import('./sequence-dom.ts');
+  const same = (a: string, b: string) => (a.trim() === 'none' ? '' : a.trim()) === (b.trim() === 'none' ? '' : b.trim());
+  const opacity = (v: string) => { const n = Number.parseFloat(v); return Number.isFinite(n) ? n : 1; };
+  for (const el of timed) {
+    const box = el as HTMLElement;
+    const authored = authoredStyleOf(box);
+    const posed = sequencePoseOf(box) !== null
+      || (authored !== null && (Math.abs(opacity(box.style.opacity) - opacity(authored.opacity)) > 1e-3 || !same(box.style.transform, authored.transform) || !same(box.style.filter, authored.filter)))
+      || box.querySelector?.('.lly-u[style*="opacity"],.lly-u[style*="transform"]') !== null;
+    if (posed) return { reason: 'the sequence clock holds some of its layers part way through a move at this moment' };
+  }
+  return { at: null };
+}
+
 const MOTION = /\.(json|lottie|mp4|m4v|mov|webm)($|\?|#)/i;
 const SOUND = /\.(mp3|wav|ogg|m4a|flac)($|\?|#)/i;
 
@@ -147,11 +179,14 @@ export async function designOpsSvg(node: Element, opts: ExportOpts): Promise<Blo
   if (opts.watermark) return walkerBecause(opts, 'the export carries a watermark');
   const text = _host?.text;
   if (!text || !_host?.assets) return walkerBecause(opts, 'this shell has no text or asset host');
+  const instant = await liveStillInstant([node]);
+  if ('reason' in instant) return walkerBecause(opts, instant.reason);
   const d = exportDims(node, opts);
   const { designPageSvg } = await import('../../../../engine/src/design-page-svg.ts');
   let page: DesignPageSvg;
   try {
     page = await designPageSvg(doc.values, frameId, pageHost(node, opts, text, _host.assets), {
+      at: instant.at,
       dpi: d.dpi,
       size: { width: toCssLength(d.w), height: toCssLength(d.h), px: { w: toCssPx(d.w), h: toCssPx(d.h) } },
       meta: opts.meta,
@@ -181,12 +216,15 @@ export async function designOpsPdf(pageEls: readonly Element[], opts: ExportOpts
   if (opts.convertPaths === false) return why('the export keeps its words as live text');
   const text = _host?.text;
   if (!text || !_host?.assets) return why('this shell has no text or asset host');
+  const instant = await liveStillInstant(pageEls);
+  if ('reason' in instant) return why(instant.reason);
   const { designPagesPdf } = await import('../../../../engine/src/design-page-svg.ts');
   const m = opts.meta;
   const creator = m?.software || 'Lolly';
   let out: { pdf: Uint8Array | null; findings: ReadonlyArray<{ feature: string; id: string }> };
   try {
     out = await designPagesPdf(doc.values, ids as string[], pageHost(pageEls[0]!, opts, text, _host.assets), {
+      at: instant.at,
       ...((opts.dpi as number) > 0 ? { dpi: opts.dpi as number } : {}),
       // The document information the walker's PDF carries (applyPdfMeta).
       info: {

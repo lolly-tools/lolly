@@ -57,7 +57,7 @@
   },
   "shells/web/src/styles/parts/brand-studio.css": {
     "H4": 5,
-    "H5": 7
+    "H5": 6
   },
   "shells/web/src/styles/parts/collab.css": {
     "H4": 1
@@ -197,7 +197,7 @@
     "H5": 1
   },
   "shells/web/src/styles/parts/valid.css": {
-    "H4": 14,
+    "H4": 12,
     "H5": 8
   },
   "shells/web/src/styles/parts/welcome.css": {

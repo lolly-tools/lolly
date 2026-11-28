@@ -1,6 +1,6 @@
 {
   "name": "Palettlabb",
-  "description": "Låt en palett växa fram ur en frökulör - harmoniaccenter, perceptuella OKLab-toningar och WCAG/APCA-läsbarhetsmärken, med DTCG-tokens och CSV-export.",
+  "description": "Låt en palett växa fram ur en frökulör - harmoniaccenter, OKLab-toningar och WCAG/APCA-läsbarhetsmärken, med DTCG-tokens och CSV-export.",
   "inputs.seed.label": "Startfärg",
   "inputs.seed.help": "Färgen som hela paletten växer fram från - standard är ditt varumärkes primärfärg.",
   "inputs.harmony.label": "Harmoni",

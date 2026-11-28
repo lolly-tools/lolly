@@ -1,6 +1,6 @@
 {
   "name": "Gráfico",
-  "description": "Gráficos desde el primer pegado hasta la visualización avanzada - recomendaciones de datos explicadas, mapeo explícito de campos, 35 familias de gráficos vectoriales clásicos, incluidos Pareto, objetivos de bala y barras de rango, dieciséis articulaciones estadísticas y editoriales, escenas 3D con profundidad real, vuelos cinematográficos, movimiento determinista, descripciones accesibles y estilos compilados a partir del sistema de diseño activo.",
+  "description": "Gráficos desde el primer pegado hasta la visualización avanzada - 35 familias vectoriales, escenas 3D, sobrevuelos, movimiento y estilos del sistema de diseño.",
   "featured.blurb": "Pega una tabla - Gráfico la hace clara, accesible e inconfundiblemente fiel a tu marca",
   "a11yLabel": "gráfico {{chartType}}{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Tipo de gráfico",

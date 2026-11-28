@@ -1,6 +1,6 @@
 {
   "name": "Promptkort",
-  "description": "Sett en lang prompt i ett kompakt, lesbart bilde for en multimodal modell - bildeinndata er ofte billigere enn de samme ordene som teksttokener.",
+  "description": "Sett en lang prompt i ett bilde for en multimodal modell - bildeinndata er ofte billigere enn de samme ordene som teksttokener.",
   "a11yLabel": "Prompt til bilde - lim inn eller slipp tekst på lerretet, og det blir lagt ut for å passe inne i ett lite bilde",
   "inputs.text.label": "Tekst",
   "inputs.text.help": "Lim inn eller slipp hvor som helst på lerretet for å fylle dette.",

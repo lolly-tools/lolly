@@ -92,8 +92,9 @@ test('the new slot is unique: timestamp for a single-tool session, name-keyed fo
 test('it saves the copy with the source thumbnail and files it beside the original', () => {
   const body = bodyAfter(CODE, CORE_HEAD);
   // The LOADED data object is what gets saved - so referenced assets are shared, not re-encoded.
-  assert.match(body, /state\.save\(newSlot, data, entry\.thumb \|\| ''\)/,
-    'the copy reuses the source thumb and saves the same data (shared asset references)');
+  // The picture goes by reference (plan 373): the copy points at the same stored bytes.
+  assert.match(body, /state\.save\(newSlot, data, rowPicture\(entry\)\)/,
+    'the copy reuses the source picture and saves the same data (shared asset references)');
   assert.match(body, /const owner = ownerByRef\.get\(slot\);/, 'it looks up the source folder');
   assert.match(body, /if \(owner\) await store\.moveItem\(newSlot, owner\.id, 'session'\)/,
     'a filed session copies into the SAME folder; a loose one is left loose (no move)');

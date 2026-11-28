@@ -1,5 +1,4 @@
 {
   "name": "Escanear",
-  "description": "Lee códigos QR y de barras en el dispositivo, sin enviar nada a la nube. Un lector, no un abridor: decodifica, clasifica y explica lo que contiene un código - enlaces, Wi-Fi, contactos, códigos de producto - y te deja actuar con intención. Copiar es siempre la primera acción; abrir, unirse o añadir es un toque explícito e informado.",
-  "featured.blurb": "Lee cualquier código, de forma segura y sin conexión"
+  "description": "Lee códigos QR y de barras en el dispositivo. Copiar es siempre la primera acción; abrir, unirse o añadir es un toque explícito e informado."
 }

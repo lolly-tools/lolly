@@ -1,6 +1,6 @@
 {
   "name": "Palet Laboratuvarı",
-  "description": "Tek bir tohum renkten bir palet büyütün - uyum vurguları, algısal OKLab geçişleri ve WCAG/APCA okunabilirlik rozetleri, DTCG token'ları ve CSV dışa aktarımıyla.",
+  "description": "Tek bir tohum renkten bir palet büyüt - uyum vurguları, OKLab geçişleri ve WCAG/APCA okunabilirlik rozetleri, DTCG token'ları ve CSV dışa aktarımıyla.",
   "inputs.seed.label": "Başlangıç rengi",
   "inputs.seed.help": "Tüm paletin türediği renk - varsayılan olarak marka birincil rengin.",
   "inputs.harmony.label": "Uyum",

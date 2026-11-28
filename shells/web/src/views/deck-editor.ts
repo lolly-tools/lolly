@@ -22,6 +22,7 @@
  * the way free-canvas commits), never by poking sidebar DOM.
  */
 
+import { closeButton } from '../lib/close-button.ts';
 import {
   boxRect, withRect, moveBoxes, resizeRect, num,
   marqueeHit, alignBoxes, distributeBoxes, reorderZ, rotateGroup, selectionAABB, boxAABB,
@@ -1587,12 +1588,7 @@ export function initDeckEditor(opts: InitDeckEditorOpts): DeckEditorHandle {
         float: true,
         onChange: (hex) => { if (hex && hex !== 'transparent') onSet(hex); },
       });
-      const clr = document.createElement('button');
-      clr.type = 'button'; clr.className = 'deck-free__clear';
-      clr.textContent = '×';
-      clr.title = 'Clear - inherit the slide';
-      clr.setAttribute('aria-label', 'Clear colour - inherit the slide');
-      clr.disabled = !value;
+      const clr = closeButton({ size: 'sm', className: 'deck-free__clear', label: 'Clear colour - inherit the slide', attrs: { title: 'Clear - inherit the slide', disabled: !value } });
       clr.addEventListener('click', onClear);
       wrap.append(host, clr);
       return wrap;

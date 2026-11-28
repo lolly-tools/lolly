@@ -1,6 +1,6 @@
 {
   "name": "Audiogramme",
-  "description": "Transforme un extrait vocal ou une chanson en vidéo aux couleurs de ton système de design qui bouge vraiment avec le son - barres, spectre, anneau, crête ou oscilloscope, prête pour les réseaux sociaux.",
+  "description": "Transforme un extrait vocal ou une chanson en vidéo aux couleurs de ton système de design qui bouge avec le son.",
   "a11yLabel": "Carte audiogramme pour {{default title \"un extrait audio\"}} avec une forme d'onde animée",
   "inputs.audio.label": "Audio",
   "inputs.audio.help": "Choisis une piste dans ta bibliothèque ou importe un clip. Il est décodé sur ton appareil pour dessiner la forme d'onde - l'audio ne quitte jamais le navigateur. Laisse vide pour une forme d'onde de remplacement. Pour l'entendre dans l'export, choisis « Audio de cet outil » comme piste audio dans les options de téléchargement.",
@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Story (9:16)",
   "inputs.accent.label": "Couleur de la forme d'onde",
   "inputs.ink.label": "Couleur du texte",
-  "inputs.bg.label": "Fond"
+  "inputs.bg.label": "Fond",
+  "inputs.targetLevel.label": "Niveau cible",
+  "inputs.targetLevel.help": "Ce qui est considéré comme « idéal » pour les conseils d'accompagnement.",
+  "inputs.targetLevel.options.soft": "Doux · micro proche",
+  "inputs.targetLevel.options.normal": "Parole normale",
+  "inputs.targetLevel.options.loud": "Fort · pièce",
+  "inputs.showTips.label": "Conseils d'accompagnement",
+  "inputs.showTips.help": "Des messages en direct comme « rapproche-toi » ou « tu satures »."
 }

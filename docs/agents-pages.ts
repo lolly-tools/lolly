@@ -79,7 +79,8 @@ const SOURCE_URL = 'https://github.com/lolly-tools/lolly';
  */
 export const RENDER_GET_FORMATS: readonly string[] = [
   'svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'exr', 'hdr', 'penpot',
-  'html', 'md', 'txt', 'json', 'csv', 'ics', 'vcf', 'png',
+  'html', 'md', 'txt', 'json', 'csv', 'ics', 'vcf',
+  'srt', 'vtt', 'ttml', 'scc', 'css', 'scss', 'gpl', 'png',
 ];
 
 /** Content-Type per format - mimeForFormat in services/mcp/src/render.ts (test-pinned). */
@@ -99,11 +100,21 @@ export const RENDER_GET_MIME: Readonly<Record<string, string>> = {
   csv: 'text/csv',
   ics: 'text/calendar',
   vcf: 'text/vcard',
+  srt: 'text/plain',
+  vtt: 'text/vtt',
+  ttml: 'application/ttml+xml',
+  scc: 'text/plain',
+  css: 'text/css',
+  scss: 'text/x-scss',
+  gpl: 'text/plain',
   png: 'image/png',
 };
 
 /** Served with `; charset=utf-8` - isTextFormat in services/mcp/src/render.ts (test-pinned). */
-export const RENDER_GET_TEXT: readonly string[] = ['svg', 'html', 'md', 'txt', 'json', 'csv', 'ics', 'vcf', 'eps', 'eps-cmyk', 'dxf'];
+export const RENDER_GET_TEXT: readonly string[] = [
+  'svg', 'html', 'md', 'txt', 'json', 'csv', 'ics', 'vcf', 'eps', 'eps-cmyk', 'dxf',
+  'srt', 'vtt', 'ttml', 'scc', 'css', 'scss', 'gpl',
+];
 
 /**
  * Byte-stable on the render route - the set docs/mcp.md "Reproducibility" promises.
@@ -526,7 +537,7 @@ Lolly makes on-brand files (SVG, PNG, PDF, PPTX, video and more) from tool templ
 
 ## 2. The CLI: for larger work
 
-For every format, large files, batches and heavy automation, run Lolly on the user's own machine, with no limits. It needs Node.js 22.18 or later and pnpm.
+For every format, large files, batches and heavy automation, run Lolly on the user's own machine, with no limits. It needs pnpm and Node.js 22.23.4 or later on Node 22, 24.22.1 or later on Node 24, or 26.12.1 or later.
 
 \`\`\`bash
 git clone ${SOURCE_URL}.git

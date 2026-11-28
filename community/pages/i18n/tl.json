@@ -1,4 +1,11 @@
 {
   "name": "Mga Page",
-  "description": "Ayusin ulit, i-rotate, i-extract, burahin, i-merge o hatiin ang mga PDF page, o gawing PDF ang mga larawan, sa iyong device."
+  "description": "Ayusin ulit, i-rotate, i-extract, burahin, i-merge o hatiin ang mga PDF page, o gawing PDF ang mga larawan, sa iyong device.",
+  "inputs.level.label": "Compression",
+  "inputs.level.help": "Gaano kalakas i-compress ang mga naka-embed na larawan. Mas malakas, mas maliit ang file pero mas malabo ang mga larawan.",
+  "inputs.level.options.light": "Magaan - panatilihing mataas ang kalidad",
+  "inputs.level.options.balanced": "Balanseado",
+  "inputs.level.options.strong": "Malakas - pinakamaliit na file",
+  "inputs.grayscale.label": "Gawing grayscale ang mga larawan",
+  "inputs.grayscale.help": "Alisin ang kulay sa mga larawan para sa dagdag na tipid - kapaki-pakinabang para sa mga na-scan na dokumentong teksto."
 }

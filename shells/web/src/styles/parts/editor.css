@@ -926,7 +926,7 @@ html[data-a11y-motion="reduce"] .fc-zone { animation: none; }
    the focus ring - never restate them here). Local: the pill shape to match its chip,
    and the pointer-events opt back IN (the chip body is transparent, above). */
 .fc-offplayhead-go { pointer-events: auto; border-radius: var(--radius-pill); font-weight: 600; }
-.fc-offplayhead-x { pointer-events: auto; flex: 0 0 auto; border-radius: var(--radius-pill); margin-inline-start: calc(-1 * var(--sp-3)); }
+.fc-offplayhead-x { pointer-events: auto; margin-inline-start: calc(-1 * var(--sp-3)); }
 /* Frames-as-scenes invitation - the "Play your N frames in order?" prompt shown when the
    timeline opens on an un-sequenced frame doc (free-canvas.ts). Top-centre so it never
    sits over the docked timeline panel (bottom) or fights the object bar; a pointer-
@@ -1803,7 +1803,7 @@ button.fc-readout:empty { display: none; }
 .stage-nav {
   position: absolute;
   top: calc(var(--chrome-top) + var(--vv-top, 0px));
-  right: calc(var(--chrome-inset) + var(--vv-right, 0px));
+  right: calc(var(--chrome-inset-right) + var(--vv-right, 0px));
   z-index: 20;
   display: flex;
   align-items: center;

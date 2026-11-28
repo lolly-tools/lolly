@@ -1,6 +1,6 @@
 {
   "name": "Audiogram",
-  "description": "Zamień nagranie głosowe lub piosenkę w wideo w kolorach Twojego systemu projektowego, które faktycznie porusza się z dźwiękiem - słupki, spektrum, pierścień, linia grzbietowa lub oscyloskop, gotowe na social media.",
+  "description": "Zamień nagranie głosowe lub piosenkę w wideo w kolorach Twojego systemu projektowego, które porusza się z dźwiękiem.",
   "a11yLabel": "Karta audiogramu dla {{default title \"an audio clip\"}} z animowaną falą dźwiękową",
   "inputs.audio.label": "Audio",
   "inputs.audio.help": "Wybierz utwór z biblioteki lub prześlij klip. Jest dekodowany na twoim urządzeniu, aby narysować przebieg fali - dźwięk nigdy nie opuszcza przeglądarki. Zostaw puste dla przykładowego przebiegu fali. Aby usłyszeć go w eksporcie, wybierz \"Dźwięk tego narzędzia\" jako ścieżkę dźwiękową w opcjach pobierania.",
@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Historia (9:16)",
   "inputs.accent.label": "Kolor fali",
   "inputs.ink.label": "Kolor tekstu",
-  "inputs.bg.label": "Tło"
+  "inputs.bg.label": "Tło",
+  "inputs.targetLevel.label": "Poziom docelowy",
+  "inputs.targetLevel.help": "Co uznaje się za „w normie” dla wskazówek.",
+  "inputs.targetLevel.options.soft": "Cicho · blisko mikrofonu",
+  "inputs.targetLevel.options.normal": "Normalna mowa",
+  "inputs.targetLevel.options.loud": "Głośno · w pomieszczeniu",
+  "inputs.showTips.label": "Wskazówki",
+  "inputs.showTips.help": "Podpowiedzi na żywo, np. „podejdź bliżej” lub „przesterowanie”."
 }

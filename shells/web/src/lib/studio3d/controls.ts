@@ -45,6 +45,8 @@ export interface StudioControls {
   selected?: boolean;
   /** Place the handles on the selected object again, or take them away; set by handles.ts. */
   drawHandles?: () => void;
+  /** True when the lights' handles are drawn in the stage kit's layer (light-handles.ts), so the picture draws none. */
+  lightHandlesInLayer?: () => boolean;
   /** Take the handles off the stage for good: the mount is going. */
   clearHandles?: () => void;
   /** The source notes the Info panel shows; empty until the scene has loaded. */
@@ -209,7 +211,8 @@ export function setStudioMode(entry: StudioControls, mode: StudioMode): void {
   flags.moveLight = String(mode === 'lights');
   flags.tiltObject = String(mode === 'tilt');
   entry.canvas.style.cursor = mode === 'focus' ? 'crosshair' : mode === 'lights' ? 'move' : 'grab';
-  entry.handle.showLightHandles(mode === 'lights' ? { selected: selectedLight(entry) } : null);
+  // In the layer a handle can stand outside the frame; the picture draws its own only when there is no layer.
+  entry.handle.showLightHandles(mode === 'lights' && !entry.lightHandlesInLayer?.() ? { selected: selectedLight(entry) } : null);
   if (entry.ready) entry.render('preview');
   // A mode keeps the handles to itself: Tilt shows the ring alone, the others none.
   entry.drawHandles?.();

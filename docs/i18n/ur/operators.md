@@ -1,28 +1,31 @@
-# منظم کریں
+# انتظام کریں
 
-Lolly ہر شخص کی ڈیوائس پر چلتا ہے۔ جب ٹیم کو سائن اِن، مشترکہ پروجیکٹس، منظم ایسیٹس، ریویوز اور سرور جابز چاہییں تو تنظیم **Lolly Work** شامل کرتی ہے، اسی پروجیکٹ کا اوپن سورس تنظیمی سرور۔ یہ صفحات ان کے لیے ہیں جو اس سرور کو سیٹ اپ اور اس کی دیکھ بھال کرتے ہیں۔
+Lolly ہر شخص کی ڈیوائس پر چلتا ہے۔ یہ صفحات **Lolly Work** چلانے والوں کے لیے ہیں، جو سائن ان، مشترک پروجیکٹس، ضابطوں کے تحت ایسیٹس، جائزوں اور سرور جابز کے لیے پروجیکٹ کا اوپن سورس تنظیمی سرور ہے۔
 
-اس سے شروع کریں کہ ممبرز کو کیا ملتا ہے: [اپنی تنظیم میں Lolly استعمال کریں](/info/organisation.html)، یا سرور کی ذمہ داریوں کے لیے [Lolly Work architecture](/info/work-overview.html)۔
+ممبرز کو کیا ملتا ہے، یہ دیکھنے کے لیے [اپنی تنظیم میں Lolly استعمال کریں](/info/organisation.html) سے شروع کریں، یا سرور کے کام جاننے کے لیے [Lolly Work کا آرکیٹیکچر](/info/work-overview.html) دیکھیں۔
 
-## رسائی اور پالیسی طے کریں
+<!--i:eti-lock-->
+## رسائی اور پالیسی مقرر کریں
 
-- [Adoption & Governance](/info/adoption-governance.html) رول آؤٹ اور برانڈ اصولوں کے کردار کا احاطہ کرتا ہے۔
-- [Identity and sessions](/info/work-identity.html) سائن اِن اور گروپ میپنگ کا احاطہ کرتا ہے۔ [Roles and grants](/info/work-permissions.html) کردار، گرانٹس اور owner guard سمجھاتا ہے۔
-- [Policy and governance](/info/work-governance.html) ٹول اوور لیز، مقفل ان پٹس اور پالیسی کا احاطہ کرتا ہے۔ [Manage organisation AI policy](/info/work-ai-policy.html) منظوریاں اور عمل کی حدیں بیان کرتا ہے۔
-- [Account data controls](/info/work-account-lifecycle.html) اور [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) ایکسپورٹس، رخصتی، برقرار رکھنے اور ان کی حدوں کا احاطہ کرتے ہیں۔
-- [Profiles, brands and tool configuration](/info/configuration.html) بتاتا ہے کہ Lolly کا بلڈ کون سے ٹولز اور ڈیزائن سسٹمز رکھتا ہے۔
+- [اپنانا & نظم و نسق](/info/adoption-governance.html) متعارف کرانے کے عمل اور برانڈ کے اصولوں کے کردار کا احاطہ کرتا ہے۔
+- [شناخت اور سیشنز](/info/work-identity.html) سائن ان اور گروپ میپنگ کا احاطہ کرتا ہے۔ [کردار اور اجازتیں](/info/work-permissions.html) کرداروں، اجازتوں اور مالک کے تحفظ کی وضاحت کرتا ہے۔
+- [پالیسی اور نظم و نسق](/info/work-governance.html) ٹول اوورلیز، مقفل ان پٹس اور پالیسی کا احاطہ کرتا ہے۔ [تنظیم کی AI پالیسی کا انتظام کریں](/info/work-ai-policy.html) منظوریوں اور عمل درآمد کی حدوں کا احاطہ کرتا ہے۔
+- [اکاؤنٹ ڈیٹا کے کنٹرولز](/info/work-account-lifecycle.html) اور [Lolly Work اسٹوریج اور ڈیٹا کا لائف سائیکل](/info/work-data-lifecycle.html) ایکسپورٹس، رخصتی کے عمل، ڈیٹا رکھنے کی مدت اور ان کی حدود کا احاطہ کرتے ہیں۔
+- [پروفائلز، برانڈز اور ٹول کنفیگریشن](/info/configuration.html) بتاتا ہے کہ Lolly کے بلڈ میں کون سے ٹولز اور ڈیزائن سسٹمز ہوتے ہیں۔
 
-## ایسیٹس جوڑیں اور کام کا ریویو کریں
+<!--i:eti-link-->
+## ایسیٹس جوڑیں اور کام کا جائزہ لیں
 
-- [Use Lolly with your existing DAM](/info/use-with-dam.html) ماخذ کے اختیار اور مربوط پروڈکشن کی وضاحت کرتا ہے۔ [The SUSE Brandfolder account](/info/suse-brandfolder.html) اپنانے کا تجربہ درج کرتا ہے، اور [Plan a DAM transition](/info/dam-transition.html) بعد کی اختیاری منتقلی کا احاطہ کرتا ہے۔
+- [اپنے موجودہ DAM کے ساتھ Lolly استعمال کریں](/info/use-with-dam.html) ماخذ کے اختیار اور منسلک تخلیقی کام کی وضاحت کرتا ہے۔ [SUSE Brandfolder کی روداد](/info/suse-brandfolder.html) اپنانے کی ایک مثال درج کرتی ہے۔ [DAM کی منتقلی کا منصوبہ بنائیں](/info/dam-transition.html) بعد میں ہونے والی اختیاری منتقلی کا احاطہ کرتا ہے۔
 
-- [Design-system administration](/info/work-design-system-administration.html) ماخذ کی فہرست، ریویو شدہ تبدیلیوں اور رول بیک کا احاطہ کرتا ہے۔
-- [Catalog and content](/info/work-catalog.html) مشترکہ ایسیٹس اور ظاہر ہونے کے اصولوں کا احاطہ کرتا ہے۔ [Provider guides](/info/work-provider-guides.html) ہر ماخذ پلیٹ فارم کا سیٹ اپ اور تصدیق کی ضروریات دیتا ہے۔
-- [Approvals](/info/work-approvals.html) ریویو زنجیروں اور فرائض کی علیحدگی کا احاطہ کرتا ہے۔ [Rendering and sharing](/info/work-sharing.html) لنکس اور سرور آؤٹ پٹ کا احاطہ کرتا ہے۔
-- [Invite an agent to a document](/info/work-document-agents.html) محدود دستاویز رسائی، میعاد اور منسوخی کا احاطہ کرتا ہے۔ دعوت تعیناتی یا انفراسٹرکچر تک رسائی نہیں دیتی۔
+- [ڈیزائن سسٹم کا انتظام](/info/work-design-system-administration.html) ماخذوں کی فہرست، جائزہ شدہ تبدیلیوں اور سابقہ حالت پر واپسی کا احاطہ کرتا ہے۔
+- [کیٹلاگ اور مواد](/info/work-catalog.html) مشترک ایسیٹس اور انہیں دستیاب کرنے کے اصولوں کا احاطہ کرتا ہے۔ [فراہم کنندگان کی گائیڈز](/info/work-provider-guides.html) ہر ماخذ پلیٹ فارم کے سیٹ اپ اور تصدیق کے تقاضے دیتی ہیں۔
+- [منظوریاں](/info/work-approvals.html) جائزے کے سلسلوں اور ذمہ داریوں کی علیحدگی کا احاطہ کرتا ہے۔ [رینڈرنگ اور شیئرنگ](/info/work-sharing.html) لنکس اور سرور آؤٹ پٹ کا احاطہ کرتا ہے۔
+- [دستاویز میں ایجنٹ کو مدعو کریں](/info/work-document-agents.html) دستاویز تک محدود رسائی، میعاد ختم ہونے اور رسائی واپس لینے کا احاطہ کرتا ہے۔ دعوت تعیناتی یا انفراسٹرکچر تک رسائی نہیں دیتی۔
 
+<!--i:eti-search-->
 ## اگلا کام تلاش کریں
 
-- [بنائیں](/info/creators.html) میں تخلیقی کام اور ٹیم پلے بکس ہیں۔
-- [تعینات کریں](/info/operate.html) Lolly اور Lolly Work سرور کی تنصیب اور دیکھ بھال کا احاطہ کرتا ہے۔ انسٹینس کی ترتیب شخص کے content profile سے الگ ہے۔
-- [اعتماد](/info/trust.html) ڈیٹا کے بہاؤ، دستخط اور سیکیورٹی کی سرحدیں سمجھاتا ہے۔
+- [تخلیق کریں](/info/creators.html) میں تخلیقی کام اور ٹیموں کے عملی رہنما ہیں۔
+- [تعینات کریں](/info/operate.html) Lolly اور Lolly Work سرور کی انسٹالیشن اور دیکھ بھال کا احاطہ کرتا ہے۔ انسٹینس کی کنفیگریشن کسی شخص کے مواد کے پروفائل سے الگ ہے۔
+- [اعتماد](/info/trust.html) ڈیٹا کی منتقلی، دستخطوں اور سیکیورٹی کی حدود کی وضاحت کرتا ہے۔

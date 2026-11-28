@@ -265,6 +265,59 @@ function makeColocatedApis(geom?: HostV1['geom']) {
   return { color: makeColorApi(), geom: geom ?? makeGeomApi() };
 }
 
+/** The time an isolated hook has left to run. See `createHookBudget`. */
+export interface HookBudget {
+  /** The hook asked the owner for something: stop counting until the answer is sent. */
+  hostCallStarted(): void;
+  /** The owner answered: count again from the time that was left. */
+  hostCallEnded(): void;
+  /** The hook finished or its worker is gone: never expire. */
+  clear(): void;
+}
+
+/**
+ * A hook's execution budget for a worker executor, counted only while the hook's
+ * own code can be running.
+ *
+ * The budget exists to stop a wedged hook: a synchronous loop the owner cannot
+ * interrupt any other way than by ending the worker. Time the hook spends
+ * waiting on a `host.*` call is the owner's own work (decoding a clip, rendering
+ * a tune, a fetch), so that wait is not charged. Charging it ended the worker of
+ * any tool whose first host call took longer than the budget, and an ended
+ * worker cannot deliver the late result the runtime would still have applied.
+ * Calls nest: the count resumes when the last one in flight is answered.
+ */
+export function createHookBudget(ms: number, onExpire: () => void): HookBudget {
+  let left = ms;
+  let inFlight = 0;
+  let since = 0;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let done = false;
+  const run = (): void => {
+    since = Date.now();
+    timer = setTimeout(() => { timer = null; if (!done) { done = true; onExpire(); } }, Math.max(0, left));
+  };
+  run();
+  return {
+    hostCallStarted(): void {
+      if (done) return;
+      if (inFlight++ > 0 || timer === null) return;
+      clearTimeout(timer);
+      timer = null;
+      left -= Date.now() - since;
+    },
+    hostCallEnded(): void {
+      if (done || inFlight === 0) return;
+      if (--inFlight === 0) run();
+    },
+    clear(): void {
+      done = true;
+      if (timer !== null) clearTimeout(timer);
+      timer = null;
+    },
+  };
+}
+
 export interface HookWorkerCoreOpts {
   /** A shell-prepared synchronous numerical API for this worker realm. */
   geom?: HostV1['geom'];

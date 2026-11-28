@@ -31,7 +31,17 @@ function setup() {
   return { db, stores, state, history: state.history! };
 }
 const doc = (url: string, extra: Record<string, unknown> = {}) => ({ __toolId: 'qr-code', __label: 'Launch QR', url, ...extra });
-const THUMB = 'data:image/png;base64,iVBORw0KGgo=';
+// A real PNG: the preview store keeps only bytes that are the picture they claim.
+const THUMB = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==';
+/** A session's picture as the data URL a pack would carry (plan 373 keeps it by reference). */
+const tileOf = (state: ReturnType<typeof setup>['state'], slot: string) => state.pictureDataUrl!({ slot });
+/** A revision's picture, read from the preview store's rows as a data URL. */
+async function revisionPicture(stores: ReturnType<typeof setup>['stores'], id: string): Promise<string | null> {
+  const { dataUrlOfRow } = await import('./preview-store.ts');
+  const row = stores.get('preview-index')!.get(JSON.stringify(`rev:${id}`))?.value as { content: string } | undefined;
+  const blob = row ? stores.get('preview-blobs')!.get(JSON.stringify(row.content))?.value : undefined;
+  return blob ? dataUrlOfRow(blob as never) : null;
+}
 const visible = async (state: ReturnType<typeof setup>['state']) => (await state.list()).filter(row => !isHiddenSlot(row.slot)).map(row => row.slot);
 
 /** An explicit save, as the tool's Save as does it (automatic history's save). */
@@ -61,7 +71,7 @@ test('a saved creation goes back to its last explicit save, picture and time inc
   const row = (await state.list()).find(r => r.slot === 'qr-code:a')!;
   assert.equal((await state.load('qr-code:a'))?.url, 'https://example.com/saved');
   assert.equal(row.label, 'Launch QR');
-  assert.equal(row.thumb, THUMB, 'the thumbnail of the save comes back with its data');
+  assert.equal(await tileOf(state, 'qr-code:a'), THUMB, 'the thumbnail of the save comes back with its data');
   assert.equal(row.updatedAt, saved.at);
   const opened = await history.open('qr-code:a');
   assert.equal(opened.unsaved, false, 'the next open shows the saved state as saved');
@@ -100,7 +110,7 @@ test('a creation that was never explicitly saved leaves Projects, not for the tr
 });
 
 test('a state saved outside the editor counts as saved, and an editor that adopts it keeps its picture and time', async () => {
-  const { state, history } = setup();
+  const { state, history, stores } = setup();
   await explicitSave(history, 'qr-code:r', doc('https://example.com/v1'));
   await autoEdit(history, 'qr-code:r', doc('https://example.com/v1-edit'));
   // A rename in Projects, an import or a sync writes through state.save.
@@ -113,14 +123,15 @@ test('a state saved outside the editor counts as saved, and an editor that adopt
   const before = (await state.list()).find(r => r.slot === 'qr-code:r')!;
   const adopted = await history.checkpoint('qr-code:r', (await state.load('qr-code:r'))!, { reason: 'save', adopt: true, expectedHead: opened.head, expectedVersion: opened.version });
   const after = (await state.list()).find(r => r.slot === 'qr-code:r')!;
-  assert.equal(after.thumb, THUMB); assert.equal(after.updatedAt, before.updatedAt, 'opening does not reorder Projects');
+  assert.equal(await tileOf(state, 'qr-code:r'), THUMB); assert.equal(after.updatedAt, before.updatedAt, 'opening does not reorder Projects');
   assert.equal(adopted.at, before.updatedAt);
-  assert.equal(await history.preview(adopted.id), THUMB);
+  assert.equal(await revisionPicture(stores, adopted.id), THUMB);
+  assert.equal(stores.get('preview-blobs')!.size, 1, 'the session and its adopted revision share one stored picture');
   await autoEdit(history, 'qr-code:r', doc('https://example.com/after-rename-edit'));
   assert.equal((await history.discard('qr-code:r')).outcome, 'restored');
   const back = (await state.list()).find(r => r.slot === 'qr-code:r')!;
   assert.equal(back.label, 'Renamed in Projects', 'the rename survives a later discard');
-  assert.equal(back.thumb, THUMB);
+  assert.equal(await tileOf(state, 'qr-code:r'), THUMB);
 });
 
 test('a record saved before history existed is adopted on open instead of being rewritten', async () => {
@@ -129,7 +140,7 @@ test('a record saved before history existed is adopted on open instead of being 
   const before = (await state.list()).find(r => r.slot === 'qr-code:old')!;
   const entry = await history.checkpoint('qr-code:old', (await state.load('qr-code:old'))!, { reason: 'save', adopt: true, expectedHead: null, expectedVersion: null });
   const after = (await state.list()).find(r => r.slot === 'qr-code:old')!;
-  assert.equal(after.thumb, THUMB); assert.equal(after.updatedAt, before.updatedAt);
+  assert.equal(await tileOf(state, 'qr-code:old'), THUMB); assert.equal(after.updatedAt, before.updatedAt);
   assert.equal((await history.open('qr-code:old')).unsaved, false);
   await autoEdit(history, 'qr-code:old', doc('https://example.com/legacy-edit'));
   assert.equal((await history.discard('qr-code:old')).outcome, 'restored');

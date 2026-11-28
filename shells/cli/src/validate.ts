@@ -58,7 +58,7 @@ import { verifyC2pa, resolveVerdict, defaultTrustAnchors, c2paTrustAnchors, LOLL
 import type { DeepScanResult } from '@lolly-tools/node-shell/webshell-render';
 import type { Inspection } from '@lolly-tools/node-shell/inspect';
 import { verdictSlug } from '@lolly-tools/node-shell/verdict-slugs';
-import { cleanControlChars, verdictHeadline, verdictFacts, verdictChecks, verdictApproval, verdictBrandPage, verdictIntent, verdictSources } from '@lolly-tools/node-shell/verdict-report';
+import { cleanControlChars, verdictHeadline, verdictFacts, verdictChecks, verdictApproval, verdictBrandPage, verdictIntent, verdictSources, verdictFindings, verdictMetadata, findingLine, findingMarks } from '@lolly-tools/node-shell/verdict-report';
 import { expandHome, splitAnchorList, describeAnchorSet } from '@lolly-tools/node-shell/trust-anchors';
 import { EXIT, usageError } from './exit-codes.ts';
 import { useColor } from './output.ts';
@@ -98,6 +98,8 @@ export interface ValidateOpts {
    * one implementation the TUI and MCP consume too.
    */
   metadata?: boolean;
+  /** --verbose: print each finding's sentence under its line. */
+  verbose?: boolean;
 }
 
 /**
@@ -154,7 +156,7 @@ export interface ValidateFileOutcome {
 
 export async function validateFile(
   filePath: string,
-  { json = false, deep = false, trustAnchors, defaultAnchors = true, require: requireMode = 'credential', strict = false, metadata = false }: ValidateOpts = {},
+  { json = false, deep = false, trustAnchors, defaultAnchors = true, require: requireMode = 'credential', strict = false, metadata = false, verbose = false }: ValidateOpts = {},
 ): Promise<ValidateFileOutcome> {
   // --trust-anchor=<root.pem> is repeatable and comes from the REAL parser now (this
   // used to re-scan process.argv, because the old flag parser kept only the last
@@ -240,6 +242,13 @@ export async function validateFile(
     }
   }
 
+  // Verify's six findings, from the one shared helper the TUI and MCP print from. The
+  // metadata read is the engine's own and runs for every file, because four of the six
+  // slots read that metadata. No text was analysed here, so that input stays absent. A --deep scan
+  // passes the third-party marks it decoded. Findings never change the exit code.
+  const marks = findingMarks(deepScan);
+  const findings = verdictFindings({ report, meta: verdictMetadata(bytes), ...(marks.length ? { marks } : {}) });
+
   // The exit code is computed before the JSON is written so the envelope's `ok` and the
   // process's exit code cannot disagree.
   const exit = (inspection && strict && (await import('@lolly-tools/node-shell/inspect')).hasShareRisk(inspection))
@@ -255,6 +264,7 @@ export async function validateFile(
     //   metadata - the file report, when --metadata ran; null when it did not, and
     //              never a fabricated empty object, because "not examined" and "nothing
     //              found" are different answers.
+    //   findings - Verify's six findings in the engine's fixed order. Additive.
     //   anchors - WHICH trust anchors produced `resolved.trusted` (contract section 12 O1).
     //              Additive key under schemaVersion 1; consumers ignore what they
     //              do not know.
@@ -269,6 +279,7 @@ export async function validateFile(
         report,
         metadata: inspection,
         anchors: anchorFacts,
+        findings,
         ...(deep ? { deepScan, ...(deepErr ? { deepScanError: deepErr } : {}) } : {}),
       },
     };
@@ -288,6 +299,13 @@ export async function validateFile(
     const headline = paint(TONE_ANSI[h.tone], `${h.glyph} ${h.name}`) + (h.detail ? paint(DIM, ` - ${h.detail}`) : '');
     process.stdout.write(`${paint(BOLD, filePath)}${report.format ? paint(DIM, `  [${report.format}]`) : ''}\n${headline}\n`);
     if (report.reason && report.state !== 'invalid') process.stdout.write(paint(DIM, `  ${clean(report.reason)}\n`));
+    // The six findings, always all six. The words carry the meaning; colour only supports them.
+    for (const f of findings) {
+      const tone = f.tone === 'good' ? GREEN : f.tone === 'bad' ? RED : f.tone === 'warn' ? YELLOW : '';
+      const body = findingLine(f).slice(f.label.length + 2);
+      process.stdout.write(`  ${paint(DIM, `${f.label}:`)} ${tone ? paint(tone, body) : body}\n`);
+      if (verbose) process.stdout.write(paint(DIM, `    ${f.detail}\n`));
+    }
     if (report.claim && !report.madeWithLolly) {
       process.stdout.write(paint(DIM, report.trusted
         ? '  (fields below are the CA-verified signer’s own claim)\n'

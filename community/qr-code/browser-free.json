@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "tool": {
+    "id": "qr-code",
+    "version": "2.12.1",
+    "digest": "2e6dbd395c67cd6b25baf484277a9a0868037e08c32918aaa157f4a90f202dc7"
+  },
+  "verdict": "resvg",
+  "measured": {
+    "date": "2026-11-27",
+    "profile": "lolly-demo",
+    "webShell": "f534b765291226c9b00f6c575043204a5dd88492",
+    "renderers": {
+      "resvg": "2.6.2",
+      "engine": "1.358.0",
+      "chromium": "153.0.8010.12"
+    },
+    "bands": {
+      "threshold": 24,
+      "fillThreshold": 72,
+      "regionShare": 0.005,
+      "inkShare": 0.25,
+      "inkShift": 1.5,
+      "gradientLevels": 2
+    }
+  },
+  "cases": [
+    {
+      "name": "qr-code-url",
+      "args": [
+        "--url=https://lolly.tools"
+      ],
+      "result": "inside"
+    },
+    {
+      "name": "qr-code-motion-label",
+      "args": [
+        "--url=https://lolly.tools",
+        "--motion=rings",
+        "--frame=label"
+      ],
+      "result": "refused",
+      "detail": "text the outliner left live (a character no face here covers), which resvg sets in other faces than the browser; the drawing animates, and the browser draws a moment of the animation where resvg draws it still; rectangles with snapped edges (crispEdges) between whole pixels, which resvg rounds a pixel apart from the browser"
+    },
+    {
+      "name": "qr-code-radial-dots-leaf",
+      "args": [
+        "--url=https://lolly.tools",
+        "--fill=gradient",
+        "--gradientType=radial",
+        "--color=#134e4a",
+        "--color2=#a78bfa",
+        "--moduleShape=dot",
+        "--eyeShape=leaf"
+      ],
+      "result": "inside"
+    },
+    {
+      "name": "qr-code-logo-badge",
+      "args": [
+        "--url=https://lolly.tools",
+        "--logo=lolly/logo/primary",
+        "--frame=badge",
+        "--frameText=Scan me",
+        "--ecl=H",
+        "--moduleShape=rounded"
+      ],
+      "result": "refused",
+      "detail": "a vector picture that animates, which the browser draws at a moment of its animation and resvg draws still; a vector picture with a gradient that fades through transparency, which resvg blends a few levels away from the browser; text the outliner left live (a character no face here covers), which resvg sets in other faces than the browser; rectangles with snapped edges (crispEdges) between whole pixels, which resvg rounds a pixel apart from the browser"
+    },
+    {
+      "name": "qr-code-ean13",
+      "args": [
+        "--payload=ean13",
+        "--showText=true"
+      ],
+      "result": "refused",
+      "detail": "rectangles with snapped edges (crispEdges) between whole pixels, which resvg rounds a pixel apart from the browser"
+    },
+    {
+      "name": "qr-code-wifi-datamatrix",
+      "args": [
+        "--payload=wifi",
+        "--ssid=Studio Guest",
+        "--wifiKey=welcome-2026",
+        "--symbology=datamatrix",
+        "--frame=label",
+        "--frameText=Guest Wi-Fi"
+      ],
+      "result": "inside"
+    },
+    {
+      "name": "crisp-qr-1000",
+      "args": [
+        "--url=https://lolly.tools",
+        "--width=1000",
+        "--height=1000"
+      ],
+      "result": "inside"
+    },
+    {
+      "name": "crisp-qr-777",
+      "args": [
+        "--url=https://lolly.tools",
+        "--width=777",
+        "--height=777"
+      ],
+      "result": "inside"
+    },
+    {
+      "name": "crisp-ean13-702",
+      "args": [
+        "--payload=ean13",
+        "--showText=true",
+        "--width=702",
+        "--height=371"
+      ],
+      "result": "inside"
+    },
+    {
+      "name": "crisp-ean13-1000",
+      "args": [
+        "--payload=ean13",
+        "--showText=true",
+        "--width=1000",
+        "--height=1000"
+      ],
+      "result": "refused",
+      "detail": "rectangles with snapped edges (crispEdges) between whole pixels, which resvg rounds a pixel apart from the browser"
+    }
+  ]
+}

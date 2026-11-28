@@ -1,19 +1,19 @@
 {
   "name": "@lolly/ca-service",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "private": true,
   "description": "Lolly CA - OIDC-verified short-lived X.509 leaf issuance for on-device C2PA signing. Uses jose for OIDC verification.",
   "license": "MPL-2.0",
   "type": "module",
   "main": "handler.mjs",
   "engines": {
-    "node": ">=22.18.0"
+    "node": "^22.23.4 || ^24.22.1 || >=26.12.1"
   },
   "scripts": {
     "start": "node server.mjs",
     "gen-root": "node scripts/gen-root.mjs"
   },
   "dependencies": {
-    "jose": "^6.2.15"
+    "jose": "^6.2.18"
   }
 }

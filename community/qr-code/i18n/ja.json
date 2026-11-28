@@ -1,6 +1,6 @@
 {
   "name": "QRコード",
-  "description": "リンク、連絡先カード、Wi-Fiネットワーク、カレンダーの予定、位置情報、プレーンテキストのQRコードを作成します。",
+  "description": "あらゆる種類のスキャン可能なコード: QR、Micro QR、Data Matrix、Aztec、PDF417 - さらにEAN-13からMaxiCodeまでの流通・物流向けバーコードにも対応します。",
   "a11yLabel": "{{default url \"(no URL set)\"}} にリンクするQRコード",
   "featured.blurb": "ブランドカラーでQRコードを作成",
   "inputs.url.label": "URL",

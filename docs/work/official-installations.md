@@ -25,7 +25,7 @@ identify the upstream packages.
 | Dokploy | [Upstream blueprint](https://github.com/lolly-tools/lolly-work/tree/main/deploy/dokploy) | **Not ready.** The blueprint is generated and ready to import, but it has not been imported into a running Dokploy. Runtime acceptance on a target and admission to the public catalogue are pending |
 
 The [channel record](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/CHANNELS.md)
-shows which release each channel carries and how its latest publication attempt went.
+shows which release each channel has and how its latest publication attempt went.
 A failed or pending attempt never replaces a channel's last published version. The
 [distribution maintainer guide](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/README.md)
 records publication, account custody and update requirements; prepared channels stay
@@ -34,9 +34,9 @@ marked pending until real publication and acceptance receipts exist.
 **The Helm chart repository** is at
 `https://github.com/lolly-tools/lolly-work/releases/download/helm-index`. Its
 immutable packages use separate `chart-v*` releases with Sigstore bundles. Before you
-use it, confirm that `index.yaml` is public and lists the reviewed chart. Adding the
+use the repository, confirm that `index.yaml` is public and lists the reviewed chart. Adding the
 repository to Rancher is separate from inclusion in a built-in catalogue, and Artifact
-Hub's Verified publisher and Official labels are claimed only once actually granted.
+Hub's Verified publisher and Official labels are claimed only once granted.
 [Install on Kubernetes](platform-deployment.md#install-from-the-chart-repository-or-rancher)
 has the commands.
 
@@ -266,7 +266,7 @@ when you compare the new package files.
 ### Model files
 
 The 1.1.1 web app archive was built to fetch model files from `https://lolli.li`. On a
-network that cannot reach it, features that need those files do not work, and mirroring
+network that cannot reach that address, features that need those files do not work, and mirroring
 the archive does not change that, because the model address is set when the web app is
 built.
 
@@ -283,7 +283,7 @@ answers from the web app folder when the files are there, and otherwise passes t
 request to `instance.modelOrigin` (default `https://lolli.li`, see
 [configuration](configuration.md)). The browser then talks only to the instance, and
 the Lolly Work server talks to the model host. Set `modelOrigin` to `null` when the web app
-carries its own models or the installation offers none.
+has its own models or the installation offers none.
 
 <!--i:eti-help-->
 ## Operation and support

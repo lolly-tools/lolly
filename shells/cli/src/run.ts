@@ -25,7 +25,7 @@ import type { Lang, PlacedPictures } from '@lolly/engine';
 import { RONDO_ASSET_FORMAT, RondoSourceError, isRondoFileName, rondoFromFile, rondoSourceBytes } from '@lolly/engine';
 import { prerenderSongInputs } from '@lolly-tools/node-shell/audio';
 import type { InputValue } from '../../../engine/src/inputs.ts';
-import { syntheticInputs } from '../../../engine/src/inputs.ts';
+import { matchesShowIf, syntheticInputs } from '../../../engine/src/inputs.ts';
 import type { Runtime } from '../../../engine/src/runtime.ts';
 // NODE_FORMATS: the DOM-free/raster format split, shared with the TUI. Everything not
 // in it - raster, pdf, video - is produced by raster.ts (resvg fast path, else the
@@ -45,6 +45,9 @@ import { assertExportLocked, exportPasswordRefusal } from '@lolly-tools/node-she
 // (headless Chromium has no AV1 encoder, so an --export=avif used to write PNG).
 import { assertFormatBytes, sniffFormat, formatAllows } from '@lolly-tools/node-shell/format-sniff';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
+import { pixelWorkCount } from '@lolly-tools/node-shell/canvas';
+import { acceptedWarning, isResvgRefusal, noBrowserAdvice, toolAdmission, toolResvgRoute, type ResvgRefusal, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
+import { acceptedRoute } from '@lolly-tools/node-shell/export-route';
 import { cleanControlChars } from '@lolly-tools/node-shell/verdict-report';
 // url-shot: capture a live page via the scoped Chromium (shared with the TUI).
 import { captureUrl, captureParamsFrom } from '@lolly-tools/node-shell/url-capture';
@@ -201,6 +204,9 @@ export { needsBrowserTier };
 /** Shared print/security options plus the CLI-local text, HDR and imprint controls. */
 type CliExportOpts = ExportOpts & import('@lolly-tools/node-shell/pdf-finishing').PdfFinishingOpts & {
   fps?: number;
+  /** The tool's stylesheet and route admission, for the browser-free raster formats (resvg-admission.ts). */
+  toolStyles?: string | null;
+  resvgTool?: ToolRouteFact;
   password?: string;
   /** The resolved Imprint decision, forwarded to the DOM-free bridge for the one
    *  raster it produces there (BMP). Vector/data DOM-free formats ignore it. */
@@ -458,6 +464,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // directly rather than through parseUrlState (which treats it as reserved
   // and never surfaces it in `values`).
   const tool = await loadToolOrThrow(toolId, fetchFile, { lang: normalizeLang(params.lang) ?? undefined });
+  // Whether the browser-free route may draw this tool, judged on the files as loaded,
+  // before the annotation below changes the template.
+  const resvgTool = toolAdmission(tool);
   // Annotate the template as the web shell does (plans/222): the paint markers it
   // adds let a colour input bound to a brand token bind the exported shape to that
   // token even on this DOM-free path. Harmless otherwise - the data attributes have
@@ -987,7 +996,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
       // One-line result summary (input→output delta + the tool's a11y summary) so the
       // headless path reports what a transform did, not just a byte count. Matches the
       // TUI's utility result panel.
-      const inBytes = fileIn ? (values[fileIn.id] as { size?: number } | undefined)?.size : undefined;
+      // A file input that takes a list has a before size when the list holds one file.
+      const given = fileIn ? values[fileIn.id] : undefined;
+      const inBytes = ((Array.isArray(given) ? (given.length === 1 ? given[0] : undefined) : given) as { size?: number } | undefined)?.size;
       const label = runtime.getHydratedString(tool.manifest.a11yLabel).trim();
       const delta = typeof inBytes === 'number' ? `${inBytes.toLocaleString()} → ${buf.length.toLocaleString()} bytes` : `${buf.length.toLocaleString()} bytes`;
       note(`✓ ${label ? label + ' - ' : ''}${delta} → ${dest}`);
@@ -1214,9 +1225,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // detection floor. Reported, never silently dropped - but as a note, not a warning,
   // unless the caller explicitly asked for the mark (see the provenance block above).
   let imprintFloorSkip = false;
-  // A Design page drawn here from the drawing operations: its route and the credentialed pictures it drew (plan 326).
+  // A Design page drawn here from the drawing operations: its route and every credentialed picture the document places, on any page, as the web shell lists them (plan 326).
   const opsIngredients: IngredientCredential[] = [];
-  const routed: { record?: DesignExportRouteRecord } = {};
+  const routed: { record?: DesignExportRouteRecord | import('@lolly-tools/node-shell/export-route').NodeRouteRecord } = {};
 
   if (isCaptureTool(tool.manifest)) {
     // Capture tools (url-shot): drive the scoped Chromium straight at the target URL - 
@@ -1257,6 +1268,18 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     const u = unit || 'px';
     const qual = (v: number | null | undefined): string | number | undefined => (typeof v === 'number' && v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
     const exportOpts: CliExportOpts = { width: qual(width), height: qual(height) };
+    // The browser-free raster formats (BMP, JPEG XL, EXR, HDR) read the drawing's layout with the tool's stylesheet.
+    if (['bmp', 'jxl', 'jxl-lossless', 'exr', 'hdr'].includes(targetFormat.toLowerCase())) {
+      Object.assign(exportOpts, {
+        toolStyles: tool.styles ?? null, resvgTool, resvgPaged: !!tool.manifest.render?.paged,
+        allowBrowserFree: isOn(params['allow-browser-free']),
+        // A picture drawn here only because the user accepted that it may differ: said, and recorded.
+        onBrowserFreeAccepted: (accepted: ResvgRefusal[]) => {
+          warn('BROWSER_FREE_ACCEPTED', acceptedWarning(targetFormat.toUpperCase(), accepted), 'gate');
+          routed.record = acceptedRoute(toolResvgRoute());
+        },
+      });
+    }
     if (targetFormat === 'pdf' && tool.manifest.id === 'design') {
       // The finishing pass needs the same resolved controls the browser receives.
       exportOpts.c2pa = wantC2pa;
@@ -1370,8 +1393,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     exportOpts.onTextFallback = (run) => textFallbacks.push(run);
     const fillNotices: string[] = [];
     exportOpts.onFillNotice = (notice) => { if (!fillNotices.includes(notice)) fillNotices.push(notice); };
-    // A Design page this shell draws from the operations hands back its route and any
-    // credentialed picture's manifest, which the stamp below records (plan 326).
+    // A Design page this shell draws from the operations hands back its route and the
+    // manifest of every credentialed picture the document places, on any page, which the
+    // stamp below records, as the web shell does (plan 326).
     exportOpts.ingredientSink = opsIngredients;
     exportOpts.onExportRoute = (record) => { routed.record = record; };
 
@@ -1442,16 +1466,29 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     };
     const viaRaster = async (): Promise<Buffer> => {
       const { renderRaster } = await import('./raster.ts');
-      // A Design still is routed by the browser tier's own page (plan 326); one log line records that.
-      if (tool.manifest.id === 'design' && DESIGN_STILL_RASTER_FORMATS.includes(targetFormat.toLowerCase())) host.log('info', (await import('@lolly-tools/node-shell/export-route')).nodeRasterRoute(targetFormat));
+      // A Design PNG says which renderer drew it, and why, from its own route (plan 371,
+      // M3a); every other Design still is routed by the browser tier's own page (plan 326).
+      if (tool.manifest.id === 'design' && DESIGN_STILL_RASTER_FORMATS.includes(targetFormat.toLowerCase()) && targetFormat.toLowerCase() !== 'png') host.log('info', (await import('@lolly-tools/node-shell/export-route')).nodeRasterRoute(targetFormat));
       const res = await renderRaster({
         runtime, dom, manifest: tool.manifest, format: targetFormat, dims,
         emoji: { emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam },
         initial: values as Record<string, unknown>,
         ...(pageDesignSystem ? { designSystem: pageDesignSystem } : {}),
+        // Pixel work the tool's hooks did through the Node canvas keeps the PNG off resvg.
+        pixelWork: () => pixelWorkCount(dom.window.document, host.raster),
+        styles: tool.styles ?? null,
+        tool: resvgTool,
+        allowBrowserFree: isOn(params['allow-browser-free']),
+        log: (line) => host.log('info', line),
       });
       const bytes = Buffer.from(res.bytes);
       usedBrowser = res.usedBrowser;
+      // A Design page drawn here records its route and the credentialed pictures it drew,
+      // as a page written from the operations as SVG does (plan 326).
+      if (res.route) routed.record = res.route;
+      for (const ingredient of res.ingredients ?? []) {
+        if (!opsIngredients.some((p) => p.activeLabel === ingredient.activeLabel)) opsIngredients.push(ingredient);
+      }
       // Tier B == the web shell; it owns c2pa for that path - UNLESS an identity is
       // configured, in which case it was told `c2pa=off` above and this shell stamps.
       // `nodeEncoded` is the third case: the browser supplied only SOURCE PIXELS for an
@@ -1581,7 +1618,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
         if ((designPdfFallback || ['svg', 'svgz'].includes(targetFormat.toLowerCase())) && runtime.hookErrors.length) {
           assertRenderOk({ hookErrors: runtime.hookErrors, format: targetFormat, bytes: new Uint8Array() });
         }
-        if ((!designPdfFallback && !VECTOR_ESCALATABLE.has(targetFormat.toLowerCase())) || ['RenderIntegrityError', 'ExportHookError'].includes((e as Error)?.name)) throw e;
+        // A raster format the browser-free renderer refused (resvg-admission.ts) is handed on the same way.
+        if ((!designPdfFallback && !VECTOR_ESCALATABLE.has(targetFormat.toLowerCase()) && !isResvgRefusal(e)) || ['RenderIntegrityError', 'ExportHookError'].includes((e as Error)?.name)) throw e;
         domFreeError = e as Error;
         note(
           `Note: "${targetFormat}" has no browser-free path for this tool (${firstLine(domFreeError.message)}). ` +
@@ -1835,6 +1873,13 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   const recordLine = designRecordWords(await recordedDesignInFile(new Uint8Array(buf), finalFormat, runtime.lastExportMeta));
   if (recordLine) note(`Recorded the design system: ${recordLine}. Pass --no-madewith to leave the record out.`);
 
+  // What the tool's hooks say about its inputs (engine 1.358), one line per input on
+  // stderr, so piped bytes stay clean. A note, not a warning: the tool drew the file
+  // as asked, and --strict does not fail on these.
+  for (const [inputId, notice] of Object.entries(runtime.getNotices())) {
+    note(`Notice for --${inputId} (${notice.tone}): ${notice.text}`);
+  }
+
   // `--filename=<name>` names the file when no --output was given (contract B6). It is
   // resolved against the working directory, never against the tool or the catalog.
   const destPath = outputPath ?? (filenameFlag ? resolve(process.cwd(), filenameFlag) : null);
@@ -1982,6 +2027,8 @@ export function exportFailure(format: string, failure: Error, domFreeError: Erro
   const parts = [`Cannot export "${format}".`];
   if (domFreeError) parts.push(`No browser-free path: ${firstLine(domFreeError.message)}`);
   parts.push(`${domFreeError ? 'And the full render tier is unavailable' : 'Reason'}: ${firstLine(failure.message)}`);
+  // A job the browser-free route refused: the way forward (resvg-admission.ts noBrowserAdvice).
+  if (domFreeError && isResvgRefusal(domFreeError)) parts.push(noBrowserAdvice(domFreeError.refusals));
   parts.push('No file was written. Pass --html-fallback if an HTML artifact under a .html name is genuinely useful to you.');
   // A TYPED marker, not prose: `lolly smoke` (browser-free by budget rule) uses it to tell
   // "this tool needs the render tier I am not allowed to launch" from a real render bug,
@@ -2011,6 +2058,9 @@ export const CLI_FLAGS = new Set([
   // The enrolled signing identity (contract section 1.3). Both take a PATH - never key
   // material, which would be visible in `ps` to every user on the machine.
   'sign-key', 'sign-cert',
+  // `--allow-browser-free`: draw a picture the browser-free route refused only because it
+  // may differ (resvg-admission.ts REFUSAL_EFFECT), with a warning and a credential record.
+  'allow-browser-free',
   // The browser tier's diagnostic switch: keeps the headless page's console and network
   // log and writes them beside the output when a Tier-B render fails. Listed here so it
   // is never reported as "not an input of <tool>".
@@ -2044,7 +2094,9 @@ export const CLI_FLAGS = new Set([
  */
 const UNSUPPORTED_RESERVED: Record<string, string> = {
   copy: 'the CLI cannot reach a clipboard',
-  slot: 'saved slots are a GUI concept; the CLI is ephemeral',
+  // The CLI can read this device's saved projects (`lolly projects`), but a render
+  // takes its state from flags and links, never from a saved slot.
+  slot: 'a render does not open a saved session; `lolly projects show <slot>` prints one',
   full: 'there is no viewport to go full-bleed in',
   iframe: 'a CLI render is already the output alone, with no shell chrome to remove',
   options: 'the options panel is a GUI affordance',
@@ -2053,6 +2105,11 @@ const UNSUPPORTED_RESERVED: Record<string, string> = {
   // Presentation mode (plan 112) is a view state of a fullscreen shell. `s`, its
   // companion, IS honoured here - as the still-export slide filter - so it is not listed.
   present: 'there is no fullscreen to present into; `--s=<slide>` still selects one slide of a render',
+  // These three arrived after the list did and were read by nothing here, so a link
+  // carrying one rendered exactly as if it were absent, with no message.
+  kiosk: 'it loops a presentation, and there is no presentation to loop',
+  template: 'the CLI does not apply a template entry; give its values as flags',
+  preset: 'it applies only with template, which the CLI does not apply',
 };
 
 /**
@@ -2674,7 +2731,14 @@ export async function showToolInputsCli(toolId: string, opts: { lang?: Lang; jso
   const tryArgs = dropInputs.length === 1 ? ' pictures/*.png' : exampleFlag;
   process.stdout.write(`\nTry it:\n  lolly ${tool.manifest.id}${tryArgs} --output=${tool.manifest.id}.${format}\n\n`);
 
-  const essentials = allInputs.filter(i => i.required || !i.showIf).slice(0, 8);
+  // A tool whose render settings follow one input (`render.when`) gates the inputs of
+  // each mode on that input. One gated on that alone, at the value the tool opens
+  // with, is listed as it was before the tool had modes.
+  const modeId = tool.manifest.render.when?.input;
+  const modeOpensAt = modeId ? allInputs.find(i => i.id === modeId)?.default : undefined;
+  const openGate = (i: typeof allInputs[number]): boolean => !!modeId && !!i.showIf && Object.keys(i.showIf).length === 1
+    && Object.hasOwn(i.showIf, modeId) && matchesShowIf(i.showIf, { [modeId]: modeOpensAt });
+  const essentials = allInputs.filter(i => i.required || !i.showIf || openGate(i)).slice(0, 8);
   const shown = opts.full ? allInputs : essentials;
   // Keep the long-standing `Inputs:` anchor for docs and shell parsers; the
   // human count/detail follows it instead of replacing it.

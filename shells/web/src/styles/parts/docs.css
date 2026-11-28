@@ -138,7 +138,7 @@
 .docs-content h4 { line-height: 1.25; font-weight: 700; }
 .docs-content h1 {
   font-size: calc(3rem * var(--a11y-fs, 1)); color: var(--dark); line-height: 1.15; font-weight: 300;
-  margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem; padding-bottom: 2rem; /* closes on the divider: parts/docs-components.css */
 }
 .docs-content h2 {
   font-size: calc(1.75rem * var(--a11y-fs, 1)); font-weight: 350; color: var(--dark);
@@ -152,7 +152,7 @@
    article - in the reader it opens the article itself, which is where a title
    belongs in one column. */
 .docs-content > .docs-page-title:first-child,
-.docs-content > .docs-eyebrow:first-child + .docs-page-title { margin-top: 0; }
+.docs-content > .docs-crumbs:first-child + .docs-page-title { margin-top: 0; }
 .docs-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
 .docs-content h3 { font-size: calc(1.15rem * var(--a11y-fs, 1)); color: var(--dark); margin-top: 1.75rem; margin-bottom: 0.5rem; }
 .docs-content h4 { font-size: calc(1rem * var(--a11y-fs, 1)); color: var(--muted); margin-top: 1.25rem; margin-bottom: 0.35rem; }
@@ -168,7 +168,9 @@
 /* Bullets wear the lollipop; numbered steps keep their numbers, and list text reads at
    the body size (Andy, 2026-11-06). A step list that loses its numbers loses the order
    it is there to give, and /info has always shown them. */
-.docs-content ul > li { list-style-type: "🍭 "; }
+/* A banked figure draws its own lists (a dot, a tick, or nothing), so the lollipop
+   stays out of figures: beside a figure's own dot it read as two bullets. */
+.docs-content ul > li:not(.docs-figure-art li) { list-style-type: "🍭 "; }
 .docs-content a { color: var(--green); text-decoration: underline; }
 .docs-content a:hover { text-decoration: underline; }
 .docs-content strong { font-weight: 600; }
@@ -493,7 +495,8 @@
   top: calc(var(--chrome-top) * 2 + var(--chrome-h) + var(--vv-top, 0px));
   z-index: 45;
   margin: 0 -1.5rem 1.75rem;
-  padding: 0.6rem 1.5rem 0;
+  /* The ground reaches the edge; the links stand inside a side the system holds. */
+  padding: 0.6rem calc(1.5rem + var(--safe-right)) 0 calc(1.5rem + var(--safe-left));
   background: color-mix(in srgb, var(--ui-color-surface-canvas) 92%, transparent);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
@@ -707,9 +710,9 @@ html[data-a11y-motion="reduce"] .docs-top-ground { transition: none; }
 /* Full-bleed puts the sections row right under the app's top row in landing mode, at
    the page's own inset (the top row holds the back pill, the tabs and the avatar, so
    the row can no longer sit beside them). */
-.docs-reader--landing .docs-pathways-slot { margin: var(--docs-chrome-clear) 0 0; padding-inline: 1.5rem; }
+.docs-reader--landing .docs-pathways-slot { margin: var(--docs-chrome-clear) 0 0; padding-left: calc(1.5rem + var(--safe-left)); padding-right: calc(1.5rem + var(--safe-right)); }
 @media (max-width: 700px) {
-  .docs-reader--landing .docs-pathways-slot { padding-inline: 1rem; margin-top: var(--docs-chrome-clear); }
+  .docs-reader--landing .docs-pathways-slot { padding-left: calc(1rem + var(--safe-left)); padding-right: calc(1rem + var(--safe-right)); margin-top: var(--docs-chrome-clear); }
 }
 
 /* ── The three-zone formats table (#/docs/formats) ────────────────────────────

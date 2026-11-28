@@ -1,35 +1,37 @@
-# Lolly-architectuur
+# De architectuur van Lolly
 
-![Lolly-icoon - Grote groen-witte lollipop-snoep](/info/icon.svg)
+![Lolly-pictogram - Grote groene en witte lolly](/info/icon.svg)
 
-Deze pagina is voor mensen die de code van Lolly wijzigen: hoe de engine, de shells en de toolpakketten in elkaar passen, waar elk in de repository staat en de afspraken die elke wijziging begrenzen. Wil je weten wat Lolly doet en wie het gebruikt, lees dan eerst [Hoe Lolly werkt](/info/how-lolly-works.html).
+Deze pagina is voor mensen die de code van Lolly aanpassen: hoe de engine, de shells en de toolpakketten samenhangen, waar ze in de repository staan en welke uitgangspunten elke wijziging begrenzen. Lees eerst [Hoe Lolly werkt](/info/how-lolly-works.html) om te leren wat Lolly doet en wie Lolly gebruikt.
 
-Twee aanvullingen gaan dieper. [`engine/README.md`](../engine/README.md) is de module-voor-module-kaart van de engine, gegenereerd uit de code. [Threat Model & Trust Boundaries](/info/threat-model.html) leest dezelfde architectuur als vertrouwensgrenzen, en is de pagina voor elke vraag over wat de engine als niet-vertrouwd behandelt.
+[`engine/README.md`](https://github.com/lolly-tools/lolly/blob/main/engine/README.md) brengt de engine module voor module in kaart en wordt uit de code gegenereerd. [Dreigingsmodel & vertrouwensgrenzen](/info/threat-model.html) bekijkt dezelfde architectuur vanuit vertrouwensgrenzen en beschrijft wat de engine als onvertrouwd behandelt.
 
-## Het grote plaatje
+<!--i:eti-layers-->
+## Het totaalbeeld
 
-Tools zijn bovenaan gegevens. De engine in het midden weet niets van enig platform. De shells onderaan implementeren één contract, en de catalogi leveren de inhoud.
+Bovenaan zijn tools gegevens. De engine in het midden weet niets van welk platform dan ook. De shells onderaan implementeren één contract en de catalogi leveren de inhoud.
 
-![Tools leveren een manifest, sjabloon en hooks aan de gedeelde engine. Web-, Tauri- en terminalshells implementeren de HostV1-capabilitybrug en lezen tools en assets uit catalogi.](/info/diagrams/concepts/platform-layers.svg)
+![Tools leveren een manifest, sjabloon en hooks aan de gedeelde engine. Web-, Tauri- en terminalshells implementeren de HostV1-brug voor functionaliteit en lezen tools en assets uit catalogi.](/info/diagrams/concepts/platform-layers.svg)
 
-Als je het kunt beschrijven in pure gegevens en Handlebars, hoort het in de **engine**. Als het de DOM, het bestandssysteem, het netwerk of een browser- of besturingssysteem-API aanraakt, hoort het in de **host**, de kant van de shell van de brug. De engine is open source, en niets dat een bepaald merk of platform kent, komt in de engine.
+Alles wat je in pure gegevens en Handlebars kunt beschrijven, hoort in de **engine**. Alles wat de DOM, het bestandssysteem, het netwerk of een browser- of besturingssysteem-API aanspreekt, hoort in de **host**, de kant van de brug die bij de shell hoort. De engine is open source. Niets dat een specifiek merk kent, komt in de engine.
 
-## Repositorystructuur
+<!--i:eti-folder-shared-->
+## Indeling van de repository
 
-Lolly is één repository. Elke map hieronder is een gewone map erin, behalve `brands/suse`, een **privé** git-submodule met het SUSE-toolpakket en de catalogus, die een openbare clone niet ophaalt. Welke pakketten een build leest is een contentprofiel (`profiles.json`), per proces opgelost in plaats van globaal omgeschakeld. [Build Guide](/info/build-guide.html) geeft de clone-opdracht en hoe een wijziging in het privépakket wordt gecommit.
+Lolly is één repository. Elke map hieronder is een gewone map, behalve `brands/suse`: een **private** git-submodule met het SUSE-toolpakket en de catalogus, die een publieke kloon niet ophaalt. Een inhoudsprofiel (`profiles.json`) bepaalt welke pakketten een build leest. Elk proces bepaalt zijn eigen profiel en er is geen globale schakelaar. De [Buildgids](/info/build-guide.html) bevat het klooncommando en legt uit hoe je een wijziging binnen het private pakket commit.
 
-| Map | Wat ze bevat |
+| Map | Inhoud |
 |---|---|
-| `engine/` | De platformonafhankelijke kern: loader, runtime, inputs, sjablonen, URL-modus, eenheden en de formaatmodules |
+| `engine/` | De platformonafhankelijke kern: loader, runtime, invoer, sjablonen, URL-modus, eenheden en de formaatmodules |
 | `shells/` | De webapp, de Tauri-desktop- en mobiele apps, de CLI, de TUI en de browserextensie |
-| `packages/` | De SDK voor toolmakers (`@lolly-tools/core`), de gedeelde Node-shellonderdelen en de docs-renderer, onder andere |
-| `community/` | De merkonafhankelijke tools, plus de gedeelde emojipakketten |
-| `brands/` | Merkpakketten: `lolly-demo` (Lolly Demo, het design system dat lolly.tools draait), `lolly-start` (het lege startpunt) en het privé-`suse` |
-| `services/` | De optionele MCP-, certificaat- en Penpot-diensten, en de servercode die ze delen |
+| `packages/` | Onder andere de SDK voor toolmakers (`@lolly-tools/core`), de gedeelde onderdelen van de Node-shell en de documentatierenderer |
+| `community/` | De merkonafhankelijke tools en de gedeelde emojipakketten |
+| `brands/` | Merkpakketten: `lolly-demo` (Lolly Demo, het design system waarop lolly.tools draait), `lolly-start` (het lege startpunt) en het private `suse` |
+| `services/` | De optionele MCP-, certificaat- en Penpot-diensten en de servercode die ze delen |
 | `schemas/` | JSON Schema voor toolmanifesten, assetvermeldingen en assetverwijzingen |
-| `scripts/`, `tests/`, `docs/`, `api/` | Build- en catalogusscripts, de engine-testsuite, deze docs en de gegenereerde serverless bundels |
+| `scripts/`, `tests/`, `docs/`, `api/` | Build- en catalogusscripts, de testsuite van de engine, deze documentatie en de gegenereerde serverlessbundels |
 
-::: details De engine- en shellbestanden die je het eerst tegenkomt
+::: details De engine- en shellbestanden die je als eerste tegenkomt
 ```
 engine/src/
   index.ts          public surface: loader, runtime, template, inputs, url-mode
@@ -55,65 +57,69 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 ```
 :::
 
-Er is geen `tools/`- of `catalog/`-map in de root van de repository. `packages/node-shell/src/content-roots.ts` beantwoordt "waar staat tool `<id>`" en "waar staat de catalogus" uit `profiles.json` wanneer erom gevraagd wordt. Een echt paar `tools/` en `catalog/` wordt alleen in een build-uitvoer geschreven, zoals `dist/`, een RPM-payload of een containerimage, omdat een browser die twee paden via HTTP ophaalt.
+::: note Er is geen map `tools/` of `catalog/` in de hoofdmap van de repository
+`packages/node-shell/src/content-roots.ts` beantwoordt "waar staat tool `<id>`" en "waar is de catalogus" aan de hand van `profiles.json`. Een echt paar `tools/` en `catalog/` wordt alleen naar build-uitvoer geschreven, zoals `dist/`, een RPM-payload of een containerimage, omdat een browser die twee paden via HTTP ophaalt.
+:::
 
+<!--i:eti-monitor-->
 ## Waar Lolly draait
 
-Elk oppervlak gebruikt dezelfde engine en dezelfde toolbestanden.
+Elke interface gebruikt dezelfde engine en dezelfde toolbestanden.
 
-- **De webapp.** Een progressive web app die offline werkt zodra haar service worker de tools en assets in de cache heeft. Ze heeft geen account nodig; de status staat in IndexedDB op elk apparaat. Eén responsieve lay-out bedient desktop en telefoon: op een telefoon wordt de bediening een paneel en openen de exportinstellingen vanuit een zwevende pil.
-- **De desktop- en mobiele apps.** Tauri-pakketten van dezelfde webapp, met native bestandsdialogen, bestandssysteemstatus en volledig offline gebruik.
-- **De CLI.** `lolly <tool-id> --input=value --output=file.png` laadt dezelfde engine in een headless DOM en schrijft het bestand. Het is URL-modus over een ander transport, geen aparte implementatie. Zie [CLI](/info/cli.html).
-- **De TUI.** Een toetsenbord-eerst terminalapp op volledig scherm die de brug van de CLI hergebruikt, opgeslagen sessies op schijf bewaart (in de eigen map van de desktop-app wanneer de app is geïnstalleerd, anders onder `~/.lolly`) en alleen een afgebakende headless browser start wanneer een formaat er een nodig heeft. Zie [TUI](/info/tui.html).
+- **De webapp.** Een progressieve webapp. Hij werkt offline zodra zijn serviceworker de tools en assets heeft gecachet. Er is geen account nodig en de status staat op elk apparaat in IndexedDB. Eén responsieve lay-out bedient desktop en telefoon. Op een telefoon wordt de bediening een paneel en opent de exportbediening vanuit een zwevende pil.
+- **De desktop- en mobiele apps.** Tauri-pakketten van dezelfde webapp, met native bestandsdialogen, status in het bestandssysteem en volledig offline gebruik.
+- **De CLI.** `lolly <tool-id> --input=value --output=file.png` laadt dezelfde engine in een headless DOM en schrijft het bestand. Het is URL-modus via een ander transport. Zie [CLI](/info/cli.html).
+- **De TUI.** Een terminalapp op volledig scherm, primair bedoeld voor toetsenbordbediening. Hij hergebruikt de brug van de CLI en bewaart opgeslagen sessies op schijf: in de map van de desktopapp als die is geïnstalleerd, anders onder `~/.lolly`. Hij start alleen een headless browser met beperkte scope wanneer een formaat er een nodig heeft. Zie [TUI](/info/tui.html).
 
-![De gesplitste desktopweergave: bediening gegenereerd uit het manifest links, het live canvas rechts](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
+![De gesplitste desktopweergave: links bediening gegenereerd uit het manifest, rechts het live canvas](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
-Dezelfde tool op telefoonbreedte heeft geen tweede lay-out nodig: de bediening wordt een paneel bovenaan en het voorbeeld houdt het scherm.
+Op telefoonbreedte staat het bedieningspaneel bovenaan en vult het voorbeeld het scherm.
 
-![Een audiogram op een scherm van 430 px breed: het bedieningspaneel erboven, het afgeronde vierkante artwork eronder en de zwevende exportpil](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![Een audiogram op een scherm van 430px breed: het bedieningspaneel bovenaan, het afgewerkte vierkante ontwerp eronder en de zwevende exportpil](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-De webapp levert ook **Batch** (`#/batch`, `shells/web/src/pro/`), een raster in spreadsheetstijl dat veel rijen tegelijk rendert over één of meerdere tools; [Batch en Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) behandelt Batch. **Settings → Capabilities** brengt in kaart wat het platform zegt te kunnen.
+De webapp bevat ook **Batch** (`#/batch`, `shells/web/src/pro/`), een raster in spreadsheetstijl dat veel rijen tegelijk rendert met één of meerdere tools. Zie [Batch en Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design). **Settings → Capabilities** somt alles op wat het platform aangeeft te kunnen.
 
-![Batch bij een verse installatie: één lege rij die op een tool wacht, met het spreadsheetoppervlak en de knop Render op zijn plek voordat er gegevens komen](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
+![Batch op een nieuwe installatie: één lege rij wacht op een tool, met het spreadsheetoppervlak en de knop Render al op hun plek voordat er gegevens zijn](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-## Architecturale toezeggingen
+<!--i:eti-lock-->
+## Architectuurprincipes
 
-Deze beslissingen zijn genomen. Een ervan wijzigen is een grote onderneming, omdat ze elke andere beslissing in de codebase vormgeven.
+Deze beslissingen staan vast. Elke andere beslissing in de codebase hangt ervan af, dus er één wijzigen is een grote onderneming.
 
-### 1. Declaratieve tools, met een imperatief ontsnappingsluik
+### 1. Declaratieve tools, met een imperatieve uitweg
 
-Een tool is een manifest (`tool.json`), een sjabloon (`template.html`) en optionele `hooks.js`. **Het manifest declareert de inputs**, nooit het sjabloon: inputs worden niet afgeleid uit Handlebars-tokens. De meeste tools zijn alleen manifest en sjabloon, en daardoor kunnen niet-ontwikkelaars ze schrijven.
+Een tool bestaat uit een manifest (`tool.json`), een sjabloon (`template.html`) en optioneel `hooks.js`. **Het manifest declareert de invoer**. Invoer wordt nooit afgeleid van de Handlebars-tokens van het sjabloon. De meeste tools bestaan alleen uit een manifest en een sjabloon, zodat ook niet-ontwikkelaars ze kunnen maken.
 
-![De bediening van Street Map: een stadskeuzelijst, een themakeuze, gewichtsschuifregelaars en kleurtriggers, elk getekend uit een regel in het manifest](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&dark=1&filename=ov2-street-map-controls)
+![De bedieningsstack van Street Map: een keuzelijst voor de stad, een themakeuze, schuifregelaars voor lijndikte en kleurknoppen, elk afkomstig uit een regel in het manifest](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&dark=1&filename=ov2-street-map-controls)
 
-Tools die waarden berekenen, zoals QR-codering of grafiekvorming, voegen hooks toe: benoemde levenscyclusfuncties die de runtime aanroept met de capabilitybrug erin geïnjecteerd. Hooks zijn een portabiliteitscontract, geen beveiligingssandbox, en ze draaien binnen een tijdsbudget. Tools waarvan de hooks bewezen vrij zijn van paginaglobals dragen `isolate: true` en draaien in een Worker. [Tool hooks](/info/tool-hooks.html) bevat de levenscyclus en budgetten, en het [Threat Model](/info/threat-model.html) zegt wat de executor in de pagina wel en niet insluit.
+Tools die waarden berekenen, zoals QR-codering of het vormgeven van diagrammen, voegen hooks toe: benoemde levenscyclusfuncties die de runtime aanroept met de brug voor functionaliteit geïnjecteerd. Hooks zijn een portabiliteitscontract, geen beveiligingssandbox. Ze draaien binnen een tijdsbudget. Tools waarvan bewezen is dat hun hooks geen globale paginavariabelen gebruiken, hebben `isolate: true` en draaien in een Worker. [Toolhooks](/info/tool-hooks.html) beschrijft de levenscyclus en de budgetten. Het [Dreigingsmodel](/info/threat-model.html) beschrijft wat de executor in de pagina wel en niet afschermt.
 
-### 2. Tools en assets zijn data, geen gebundelde code
+### 2. Tools en assets zijn gegevens, geen gebundelde code
 
-De web- en Tauri-apps halen de tool- en assetcatalogi bij het opstarten op, zetten ze in de cache en werken met wat er is, dus een nieuwe tool of asset heeft geen app-release nodig. Assetbytes hebben een SHA-256-checksum, en de `id` en `version` van een asset sturen de ongeldigverklaring van de cache.
+De web- en Tauri-apps halen bij het opstarten de tool- en assetcatalogi op, cachen ze en werken met wat gecachet is. Een nieuwe tool of asset vereist geen apprelease. Assetbytes worden gecontroleerd met SHA-256-checksums. De `id` en `version` van een asset bepalen wanneer de cache ongeldig wordt.
 
-### 3. De capabilitybrug is de enige API die tools zien
+### 3. De brug voor functionaliteit is de enige API die tools zien
 
-Tools raken de DOM buiten hun sjabloon nooit aan, roepen `fetch` nooit rechtstreeks aan en lezen nooit het bestandssysteem. Ze roepen versiebeheerde `host.*`-methoden aan. De canonieke definitie van het contract is `packages/core/src/host-v1.ts`, de SDK voor toolmakers `@lolly-tools/core`, zodat een derde ertegen kan bouwen zonder van de engine afhankelijk te zijn; `engine/src/bridge/host-v1.ts` exporteert de types opnieuw.
+Tools raken de DOM buiten hun sjabloon nooit aan, roepen `fetch` nooit direct aan en lezen het bestandssysteem nooit. Ze roepen `host.*`-methoden met versienummers aan. Het contract is gedefinieerd in `packages/core/src/host-v1.ts`, in de SDK voor toolmakers `@lolly-tools/core`. Een derde partij kan op de SDK bouwen zonder afhankelijk te zijn van de engine. `engine/src/bridge/host-v1.ts` exporteert de typen ervan opnieuw.
 
-| Vereiste API | Wat ze doet |
+| Vereiste API | Wat die doet |
 |---|---|
-| `host.profile` | De gegevens van de gebruiker; vult inputs vooraf in via `bindToProfile` |
-| `host.assets` | Catalogusquery's, assetresolutie en de kiezer van de host |
+| `host.profile` | De gegevens van de gebruiker; vult invoer vooraf in via `bindToProfile` |
+| `host.assets` | Catalogusquery's, het opzoeken van assets en de kiezer van de host |
 | `host.state` | Invoerslots opslaan en laden: IndexedDB op het web, het bestandssysteem in Tauri, geheugen in de CLI |
 | `host.clipboard` | Tekst of een afbeelding naar het klembord schrijven, met terugvalopties per platform |
-| `host.export` | Het renderdoel rasteriseren of serialiseren, en het bestandstransformatiepad op het apparaat |
-| `host.log` | Gelaagde logging naar de host |
+| `host.export` | Het renderdoel rasteren of serialiseren en het pad voor bestandstransformatie op het apparaat |
+| `host.log` | Logregistratie met niveaus naar de host |
 
-Elke andere API is optioneel en additief: `tokens`, `text`, `color`, `geom`, `pdf`, `compose`, `media`, `recorder` en nog veel meer. Het manifest van een tool somt onder `requires` de optionele API's op die zijn hooks aanroepen zonder eerst te controleren, en een host die er een mist weigert de tool te laden; hooks detecteren de rest met feature detection. Een paar, zoals `recorder`, hebben ook een apparaatcapability nodig die de tool declareert. `packages/core/src/host-v1/apis.ts` somt ze allemaal op en [Host API](/info/host-api.html) documenteert elk ervan. Een methode toevoegen is een minor versie; er een verwijderen of wijzigen is een major versie, en v1 blijft werken wanneer v2 uitkomt.
+Elke andere API is optioneel en aanvullend: `tokens`, `text`, `color`, `geom`, `pdf`, `compose`, `media`, `recorder` en nog veel meer. In `requires` van een manifest staan de optionele API's die de hooks aanroepen zonder eerst te controleren. Een host die er één mist, weigert de tool te laden. Voor de rest controleren hooks of de functionaliteit beschikbaar is. Een paar, zoals `recorder`, vereisen ook een apparaatfunctie die de tool declareert. `packages/core/src/host-v1/apis.ts` somt ze allemaal op en [Host-API](/info/host-api.html) documenteert ze elk afzonderlijk. Een methode toevoegen betekent een minorversie. Een methode verwijderen of wijzigen betekent een majorversie en v1 blijft werken wanneer v2 verschijnt.
 
-### 4. Asset-id's zijn voor altijd
+### 4. Asset-id's blijven voor altijd
 
-`lolly/logo/primary` is een contract. Eenmaal gepubliceerd verandert een id nooit en wordt nooit hergebruikt. Een bytewijziging verhoogt `version` in de assetvermelding, en een vervanging zet `deprecated: true` en eventueel `replacedBy`, zodat bestaande verwijzingen altijd worden opgelost. Daardoor blijven opgeslagen sessies en gedeelde links jarenlang werken.
+`lolly/logo/primary` is een contract. Eenmaal gepubliceerd verandert een id nooit en wordt het nooit hergebruikt. Een wijziging van de bytes verhoogt `version` in de assetvermelding. Bij vervanging worden `deprecated: true` en optioneel `replacedBy` ingesteld. Bestaande verwijzingen blijven altijd werken, zodat opgeslagen sessies en gedeelde links jarenlang blijven werken.
 
-### 5. URL-modus is first-class
+### 5. URL-modus is volwaardig
 
-Elke input is uit te drukken als URL-parameter, dus een link is een afgerond bestand:
+Elke invoer kan als URL-parameter worden uitgedrukt, dus een link is een afgerond bestand:
 
 ```
 https://lolly.tools/t/qr-code?url=https://example.com&ecl=H
@@ -121,61 +127,64 @@ https://lolly.tools/t/qr-code?url=https://example.com&ecl=H
 
 ![Die link alleen, zonder iets anders erin, is het afgeronde bestand](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Fexample.com%26ecl%3DH%26full&width=760&height=760&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-url-mode-qr)
 
-Wijzig een parameter en je hebt een ander bestand. Dit hele palet is één basiskleur, een harmonie en een aantal stappen:
+Wijzig een parameter en je krijgt een ander bestand. Dit palet bestaat uit één basiskleur, een harmonie en een aantal stappen:
 
-![Negen stappen over vier kleurtinten, allemaal gegroeid uit de ene zaadkleur in de link](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3De0521a%26harmony%3Dtetrad-4%26steps%3D9%26full&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-url-palette)
+![Negen stappen over vier tinten, allemaal ontstaan uit de ene basiskleur in de link](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3De0521a%26harmony%3Dtetrad-4%26steps%3D9%26full&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-url-palette)
 
-De CLI bouwt dezelfde URL-status uit zijn argumenten en draait dezelfde pijplijn, dus de CLI kan niet afwijken van de app. `engine/src/url-mode.ts` parst en serialiseert; een set gereserveerde namen (`format`, `width`, `dpi`, `c2pa`, `z` en andere) wordt nooit aan een tool doorgegeven, en [Reserved URL parameters](/info/url-parameters.html) somt ze allemaal op. Assetinputs reizen met hun `id` en worden opgelost via `host.assets.get()` voordat het sjabloon wordt gevuld.
+De CLI bouwt dezelfde URL-status op uit zijn argumenten en voert dezelfde pijplijn uit, zodat de CLI niet van de app kan afwijken. `engine/src/url-mode.ts` parseert en serialiseert de URL-status. Gereserveerde namen (`format`, `width`, `dpi`, `c2pa`, `z` en andere) worden nooit aan een tool doorgegeven. [Gereserveerde URL-parameters](/info/url-parameters.html) somt ze allemaal op. Assetinvoer reist mee via `id` en wordt via `host.assets.get()` opgezocht voordat het sjabloon wordt ingevuld.
 
-### 6. Opslag loopt via de brug
+### 6. Opslag verloopt via de brug
 
-De webapp gebruikt IndexedDB, Tauri het bestandssysteem en de CLI geheugen. Tools zien alleen `host.state.save(slot, data)` en `host.state.load(slot)`, nooit `localStorage`. Mensen kunnen per tool meerdere benoemde sessies bewaren zonder account. Omdat de brug de enige naad is, is die status ook overdraagbaar: `shells/web/src/data-transfer.ts` leest haar terug naar één `lolly-backup`-bestand dat op elke andere installatie kan worden geïmporteerd ([Data transfer](/info/data-transfer.html)), en [Sync](/info/sync.html) stuurt dezelfde bundel naar opslag die de persoon kiest.
+De webapp gebruikt IndexedDB, Tauri het bestandssysteem en de CLI het geheugen. Tools zien alleen `host.state.save(slot, data)` en `host.state.load(slot)`, nooit `localStorage`. Mensen kunnen zonder account meerdere benoemde sessies per tool bewaren. Omdat de brug het enige koppelvlak is, is die status ook overdraagbaar. `shells/web/src/data-transfer.ts` exporteert de status als één `lolly-backup`-bestand dat in elke andere installatie kan worden geïmporteerd ([Gegevensoverdracht](/info/data-transfer.html)). [Sync](/info/sync.html) stuurt dezelfde bundel naar opslag die de persoon kiest.
 
-### 7. Volwassenheidslabels tonen wat een tool is
+### 7. Volwassenheidslabels geven aan wat een tool is
 
-Elke tool declareert `status: official | community | experimental`. De galerij sorteert op status, en experimentele tools plaatsen standaard een watermerk op hun exports: de runtime zet het watermerk aan tenzij de aanroeper `watermark: false` meegeeft, en tools op het apparaat zijn uitgezonderd. Welk proces een team ook rond de catalogus legt, het staat hier bovenop.
+Elke tool declareert `status: official | community | experimental`. De galerij sorteert op status. Experimentele tools voorzien hun exports standaard van een watermerk: de runtime zet het watermerk aan tenzij de aanroeper `watermark: false` meegeeft. Tools die op het apparaat werken zijn vrijgesteld. Het eigen catalogusproces van een team bouwt voort op deze labels.
 
-### 8. Inputs zijn getypeerd in het manifest
+### 8. Invoer krijgt een type in het manifest
 
-Een input declareert een `type`: `text`, `longtext`, `number`, `boolean`, `color`, `select`, `asset`, `date`, `time`, `datetime-local`, `url`, `blocks`, `vector`, `table` of `file`. De host rendert een besturingselement per type, dus tools schrijven geen besturingscode, en elke input kan `bindToProfile` dragen. Drie wegen het zwaarst:
+Een invoer declareert een `type`: `text`, `longtext`, `number`, `boolean`, `color`, `select`, `asset`, `date`, `time`, `datetime-local`, `url`, `blocks`, `vector`, `table` of `file`. De host rendert een bedieningselement voor elk type, zodat tools geen bedieningscode schrijven. Elke invoer kan `bindToProfile` bevatten. Drie typen zijn het belangrijkst:
 
-- **`asset`**, met `filter` en `allowUpload`, is de brug naar het assetsysteem. `allowUpload: false` beperkt een slot tot bibliotheekassets, en uploads van gebruikers delen de `AssetRef`-vorm van de bibliotheek.
-- **`blocks`** is een herhalende veldgroep die in een zijpaneel wordt bewerkt, gebruikt door Meeting Planner, Wayfinding, Diagrams en andere. Klikken op een gerenderd blok geeft de rij focus.
-- **`file`** houdt het eigen bestand van de gebruiker in het geheugen voor hulpprogramma's op het apparaat zoals Lolly Strip Hidden Data en Compress, en **`vector`** groepeert een vaste set getallen in één besturingselement.
+- **`asset`**, met `filter` en `allowUpload`, is de brug naar het assetsysteem. `allowUpload: false` beperkt een slot tot assets uit de bibliotheek. Uploads van gebruikers hebben dezelfde `AssetRef`-structuur als de bibliotheek.
+- **`blocks`** is een herhalende veldgroep die in een zijpaneel wordt bewerkt en door onder andere Meeting Planner, Wayfinding en Diagrams wordt gebruikt. Klikken op een gerenderd blok geeft de bijbehorende rij focus.
+- **`file`** bewaart het eigen bestand van de gebruiker in het geheugen voor hulpprogramma's op het apparaat, zoals Lolly Strip Hidden Data en Compress, en **`vector`** groepeert een vaste reeks getallen in één bedieningselement.
 
-### 9. Sjablonen zijn logicavrij
+### 9. Sjablonen bevatten geen logica
 
-Sjablonen zijn Handlebars, gekozen zodat niet-ontwikkelaars ze kunnen schrijven: `{{x}}` escapet, en `{{{x}}}` is een expliciete opt-in. Logica zit in `hooks.js`, waar ze expliciet en reviewbaar is. Veel sjablonen gebruiken `{{{` voor opmaak die een hook berekende, dus elke hook moet escapen wat hij doorgeeft. De helpers zijn `default`, `upper`, `lower`, `eq`, `markdown`, `asset`, `framing` en `media`, plus `icsStamp`, `rfcText`, `csvCell` en `arrow` voor aanverwante `.ics`-, `.vcf`- en `.csv`-sjablonen. [Templates and rendering](/info/tool-rendering.html) behandelt ze.
+Sjablonen gebruiken Handlebars, zodat niet-ontwikkelaars ze kunnen schrijven. `{{x}}` escapet en `{{{x}}}` is een expliciete opt-in. Logica staat in `hooks.js`, waar die kan worden beoordeeld. Veel sjablonen gebruiken `{{{` voor markup die een hook heeft berekend, dus elke hook moet escapen wat die doorgeeft. De helpers zijn `default`, `upper`, `lower`, `eq`, `markdown`, `asset`, `framing` en `media`, plus `icsStamp`, `rfcText`, `csvCell` en `arrow` voor bijbehorende `.ics`-, `.vcf`- en `.csv`-sjablonen. [Sjablonen en renderen](/info/tool-rendering.html) behandelt ze.
 
-### 10. Tools stellen tools samen
+### 10. Tools combineren tools
 
-Een tool kan de render van een andere tool insluiten zonder import tussen tools; de engine lost de compositie op. Een manifest kan `composes: [{ id, tool, inputs }]` declareren en het kind plaatsen met `{{asset <id>}}`, en een draagbare embed-URL (`https://lolly.tools/tool/<id>.svg?…`) rendert het kind lokaal, zo plaatst Lolly Design een live QR-code of grafiek. Een SVG-kind blijft vector in een SVG- of PDF-ouder. Kinderen zijn tussenproducten, nooit van een watermerk of stempel voorzien, en een shell die er een niet kan renderen laat het slot leeg terwijl de ouder nog steeds rendert. [Composition and brand overlays](/info/tool-composition.html) bevat de details.
+Een tool kan de render van een andere tool insluiten zonder imports tussen tools. De engine handelt de compositie af. Een manifest kan `composes: [{ id, tool, inputs }]` declareren en het onderliggende onderdeel plaatsen met `{{asset <id>}}`. Een overdraagbare insluit-URL (`https://lolly.tools/tool/<id>.svg?…`) rendert het onderdeel lokaal; Lolly Design plaatst zo een live QR-code of diagram. Een ingesloten SVG blijft vector in een bovenliggende SVG of PDF. Ingesloten onderdelen zijn tussenresultaten en krijgen nooit een watermerk of stempel. Een shell die een onderdeel niet kan renderen, laat het slot leeg en de bovenliggende tool rendert nog steeds. [Compositie en merkoverlays](/info/tool-composition.html) geeft de details.
 
+<!--i:eti-scissors-->
 ## Wat we bewust niet doen
 
-- **Geen willekeurige JavaScript in sjablonen.** Logica zit in `hooks.js`.
-- **Geen verplichte assetserver.** Mensen voegen hun eigen bestanden toe aan Assets in de app en geven werk door als sessie: een deellink voor inputs en instellingen, een `.lolly`-bestand wanneer ook uploads meereizen. Een gedeelde sessie kan een sjabloon worden in de keuzelijst van een tool. Een organisatie die een beheerde catalogus wil, kan de catalogus, goedkeuringen en het beleid van Lolly Work gebruiken, of het merkpakket in git beheren en wijzigingen daar reviewen.
-- **Geen afgedwongen toegangsbeheer.** De open app is standaard openbaar, en volwassenheidstags en watermerken dragen het merkrisico. Aanmelden bij de organisatie, rollen en beleid komen van Lolly Work wanneer een team ze wil.
-- **Geen centrale database.** Gebruikersstatus staat op elk apparaat, en optionele Sync kopieert die naar opslag die de persoon kiest, nooit naar een Lolly-database.
-- **Geen gedeeld codepad tussen tools en de engine.** De engine en de communitytools zijn open source, en een merkpakket zoals het private `brands/suse/` draagt zijn eigen tools en catalogus onder zijn eigen voorwaarden. Geen enkele tool importeert uit `engine/`, zodat de scheiding schoon blijft.
+- **Geen willekeurige JavaScript in sjablonen.** Logica staat in `hooks.js`.
+- **Geen verplichte assetserver.** Mensen voegen hun eigen bestanden toe aan Assets in de app en geven werk door als sessie: een deellink voor invoer en instellingen, een `.lolly`-bestand wanneer uploads ook meegaan. Een gedeelde sessie kan een sjabloon worden in de kiezer van een tool. Een organisatie die een beheerde catalogus wil, kan de catalogus, goedkeuringen en het beleid van Lolly Work gebruiken of het merkpakket in git beheren en wijzigingen daar beoordelen.
+- **Geen verplichte toegangscontrole.** De open app is standaard openbaar. Volwassenheidslabels en watermerken dragen het merkrisico. Aanmelding bij de organisatie, rollen en beleid komen van Lolly Work wanneer een team die wil.
+- **Geen centrale database.** De gebruikersstatus staat op elk apparaat en optionele Sync kopieert die naar opslag die de persoon kiest, nooit naar een Lolly-database.
+- **Geen gedeeld codepad tussen tools en de engine.** De engine en de communitytools zijn open source. Een merkpakket zoals het private `brands/suse/` bevat zijn eigen tools en catalogus onder zijn eigen voorwaarden. Geen enkele tool importeert uit `engine/`, zodat de scheiding helder blijft.
 
+<!--i:eti-refresh-->
 ## De levenscyclus van één render
 
 Iemand opent `https://lolly.tools/t/qr-code?url=https://example.com&ecl=H`:
 
-1. **Boot.** De webapp opent IndexedDB, bouwt de capabilitybrug en synchroniseert de tool- en assetcatalogi, of laadt ze uit de cache wanneer ze offline is.
-2. **Route.** Het pad kiest de toolweergave voor `qr-code`, met de query als beginwaarden.
+1. **Opstarten.** De webapp opent IndexedDB, bouwt de brug voor functionaliteit en synchroniseert de tool- en assetcatalogi of laadt ze offline uit de cache.
+2. **Routeren.** Het pad selecteert de toolweergave voor `qr-code`, met de query als beginwaarden.
 3. **Laden.** `loadTool` haalt `tool.json` op, valideert het tegen het schema en haalt het sjabloon, de stijlen en de hooks op.
-4. **De link parsen.** `parseUrlState` zet de parameters om in inputwaarden. Een assetverwijzing zoals `?logo=lolly/logo/primary` wordt een onopgeloste `{ id }`.
-5. **De runtime starten.** `createRuntime(tool, host, initialValues)` bouwt het inputmodel uit profielgegevens, standaardwaarden en de link, lost assetverwijzingen op, laadt de hooks en roept `onInit` aan.
-6. **Renderen.** De shell abonneert zich op de runtime, tekent de besturingselementen uit het model en schrijft het gevulde sjabloon in `#tool-canvas`.
-7. **Interactie.** Typen roept `runtime.setInput` aan, dat beperkingen toepast, `onInput` aanroept, het sjabloon opnieuw vult en opnieuw tekent.
-8. **Exporteren.** **Download** roept `runtime.export(node, format)` aan, en `host.export` van de shell maakt het bestand: een raster, een vector uit de DOM-walker, een PDF, een document of een van de andere formaten in `schemas/tool.schema.json`. Fysieke eenheden worden per formaat omgezet, en metadata en Content Credentials worden ingesloten waar het formaat ze kan bevatten. Experimentele tools krijgen hun watermerk van de host, niet van de tool. [Templates and rendering](/info/tool-rendering.html) en [Een bestand exporteren](/info/exporting.html) behandelen de exportstap.
+4. **De link parseren.** `parseUrlState` zet de parameters om in invoerwaarden. Een assetverwijzing zoals `?logo=lolly/logo/primary` wordt een nog niet opgeloste `{ id }`.
+5. **De runtime starten.** `createRuntime(tool, host, initialValues)` bouwt het invoermodel op uit profielgegevens, standaardwaarden en de link, zoekt assetverwijzingen op, laadt de hooks en roept `onInit` aan.
+6. **Renderen.** De shell abonneert zich op de runtime, tekent de bediening vanuit het model en schrijft het ingevulde sjabloon naar `#tool-canvas`.
+7. **Interactie.** Typen roept `runtime.setInput` aan, dat beperkingen toepast, `onInput` aanroept, het sjabloon opnieuw invult en opnieuw tekent.
+8. **Exporteren.** **Download** roept `runtime.export(node, format)` aan en `host.export` van de shell maakt het bestand: een raster, een vector uit de DOM-walker, een PDF, een document of een van de andere formaten in `schemas/tool.schema.json`. Fysieke eenheden worden per formaat omgerekend. Metadata en Content Credentials worden ingesloten waar het formaat die kan bevatten. Experimentele tools krijgen hun watermerk van de host, niet van de tool. [Sjablonen en renderen](/info/tool-rendering.html) en [Een bestand exporteren](/info/exporting.html) behandelen de exportstap.
 
-![Het exportpaneel dat ?options opent: het paar bestandsnaam en formaat, de uitvoergrootte en de bediening die het bestand schrijft](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
+![Het exportpaneel dat ?options opent: het paar bestandsnaam en formaat, het uitvoerformaat en de bediening die het bestand schrijft](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
-Dezelfde levenscyclus draait in Tauri, en in de CLI met een headless DOM, waar de uitvoer naar een bestand of stdout gaat.
+Dezelfde levenscyclus draait in Tauri en in de CLI met een headless DOM, waar de uitvoer naar een bestand of stdout gaat.
 
+<!--i:eti-stamp-->
 ## Licenties
 
-Code, inclusief `engine/`, `shells/`, `services/`, `schemas/` en de documentatiegenerator, is MPL-2.0, in één openbare repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly). Documentatieproza is CC BY-SA 4.0. Merkpakketten dragen hun eigen voorwaarden in de `NOTICE.md` van elk pakket: de communitytools zijn MPL-2.0, en het privé-SUSE-pakket is eigendom van SUSE. [About](/info/about.html) bevat de volledige licentienotitie.
+Code, inclusief `engine/`, `shells/`, `services/`, `schemas/` en de documentatiegenerator, valt onder MPL-2.0 en staat in één publieke repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly). Documentatietekst valt onder CC BY-SA 4.0. Merkpakketten hebben hun eigen voorwaarden in de `NOTICE.md` van elk pakket: de communitytools vallen onder MPL-2.0 en het private SUSE-pakket is propriëtaire software van SUSE. [Over](/info/about.html) bevat de volledige licentietoelichting.

@@ -42,7 +42,10 @@
   /* Padding, not margin: a top margin here collapses through the view into the body
      and moves the whole page down, floating navigation and all. The top clears the
      floating navigation by the same tokens the navigation is placed with. */
-  padding: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-7)) var(--sp-7) var(--sp-7);
+  --wh-gutter: var(--sp-7);
+  /* The side terms end the card where the navigation above ends, inside a side the
+     system holds (its clock and status column on a folding phone). */
+  padding: calc(var(--chrome-top) + var(--chrome-h) + var(--wh-gutter)) calc(var(--wh-gutter) + var(--safe-right)) var(--wh-gutter) calc(var(--wh-gutter) + var(--safe-left));
 }
 .welcome-hero-card {
   /* The rhythm: one padding, one line for the sentence, and the mark sized from them. */
@@ -130,9 +133,8 @@
 /* The label's line box carries room for descenders, so centring the box left the
    letters about 1px high. Trimmed to cap height and baseline, the pill centres the
    letters themselves (Andy, 2026-11-14). Browsers without text-box keep the old box. */
-.welcome-hero-go:not(.welcome-hero-go--sub) > .btn-label { text-box: trim-both cap alphabetic; }
+.welcome-hero-go > .btn-label { text-box: trim-both cap alphabetic; }
 /* The blank install's button carries a second, smaller line under its label. */
-.welcome-hero-go--sub { flex-direction: column; gap: 0; }
 /* The colour row on a blank install. The swatches are the card's one saturated
    thing, so they carry the emphasis a filled button would: no dark pill here.
    Each swatch is a target-sized button drawing a smaller disc, so the discs
@@ -141,9 +143,6 @@
 /* Lolly Demo: Start making and the quiet links share the row under the colours. */
 .welcome-hero-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-4) var(--sp-8); }
 .welcome-hero-well { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-7); }
-.welcome-hero-well-label { margin: 0; font-size: var(--fs-lg); line-height: 1.25; }
-.welcome-hero-well-label strong { font-weight: 600; }
-.welcome-hero-well-label span { color: var(--ui-color-text-muted); font-size: var(--fs-sm); margin-inline-start: var(--sp-3); }
 .welcome-hero-swatches { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-inline-start: calc(var(--wh-swatch-inset) * -1); }
 .welcome-hero-well { --wh-swatch-size: calc(28px * var(--a11y-fs)); --wh-swatch-inset: calc((var(--ui-size-target) - var(--wh-swatch-size)) / 2); }
 .welcome-hero-swatch {
@@ -179,7 +178,6 @@
 .welcome-hero-swatch:disabled { cursor: progress; }
 .welcome-hero-well[aria-busy="true"] .welcome-hero-swatch::before { opacity: .6; }
 .welcome-hero-link:disabled { color: var(--ui-color-text-muted); cursor: progress; }
-.welcome-hero-go-sub { font-size: var(--fs-xs); font-weight: 400; opacity: .85; }
 .welcome-hero-more {
   margin: 0;
   display: flex;
@@ -351,6 +349,6 @@ html[data-a11y-motion="reduce"] .welcome-hero-close::before { transition: none; 
 }
 @media (max-width: 760px) {
   .welcome-hero,
-  .welcome-hero-leaving { padding: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-4)) var(--sp-4) var(--sp-4); }
+  .welcome-hero-leaving { --wh-gutter: var(--sp-4); }
 }
 }

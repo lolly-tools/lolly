@@ -105,8 +105,9 @@
      inset and `--chrome-h` grows with Large text, so the prompt cannot slide
      under either the native Tauri switcher or the top-right controls. */
   top: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-4) + var(--vv-top, 0px));
-  right: calc(2em + var(--vv-right, 0px));
-  width: min(340px, calc(100vw - 2rem));
+  /* Stands inside a side the system holds, as the cluster above does (tokens.css). */
+  right: calc(max(2em, var(--safe-right) + 0.5rem) + var(--vv-right, 0px));
+  width: min(340px, calc(100vw - 2rem - var(--safe-left) - var(--safe-right)));
   padding: 15px 16px 14px;
   display: grid;
   grid-template-columns: auto 1fr;
@@ -167,16 +168,7 @@
 
 .personalize-nudge-close {
   position: absolute; top: 7px; right: 7px;
-  /* The box holds a ✕ glyph that already scales - at a fixed 26px the 1.2 glyph
-     fills it edge to edge and the hit target stops growing with everything else. */
-  width: calc(26px * var(--a11y-fs)); height: calc(26px * var(--a11y-fs));
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: calc(18px * var(--a11y-fs)); line-height: 1;
-  color: hsl(var(--muted-foreground));
-  background: transparent; border: 0; border-radius: 8px; cursor: pointer;
-  transition: background var(--dur-1), color var(--dur-1);
 }
-.personalize-nudge-close:hover { color: hsl(var(--foreground)); background: hsl(var(--muted) / .6); }
 
 .personalize-nudge :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 
@@ -196,7 +188,8 @@
     position: relative;
     top: auto; right: auto;
     width: auto;
-    margin: calc(4.4rem + var(--safe-top)) .6rem 12px;
+    /* The side terms end the card where the top bar ends, inside a side the system holds. */
+    margin: calc(4.4rem + var(--safe-top)) calc(.6rem + var(--safe-right)) 12px calc(.6rem + var(--safe-left));
     box-shadow: none;
   }
   .gallery:not(.has-featured) .personalize-nudge:not([hidden]) ~ .tool-masonry { padding-top: 0; }
@@ -289,20 +282,9 @@
 .gallery-search:focus {
   border-color: hsl(var(--ring));
 }
-/* ✕ clear button - shared by Tools + Catalogue (component-audit rec 11; previously
-   the gallery built this with inline JS styles and the catalog borrowed projects'
-   .projects-search-clear). Shown/hidden via the `hidden` attribute, so re-assert
-   the UA default against the `display:inline-flex` below. */
-.gallery-search-clear {
-  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
-  width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs)); display: inline-flex; align-items: center; justify-content: center;
-  border: 0; border-radius: var(--radius-round); background: transparent; color: hsl(var(--muted-foreground));
-  font-size: var(--fs-md); line-height: 1; cursor: pointer;
-  transition: background var(--dur-1), color var(--dur-1);
-}
-.gallery-search-clear[hidden] { display: none; }
-.gallery-search-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
-.gallery-search-clear:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+/* The clear button, shared by Tools and Catalogue: the shared close button
+   (lib/close-button.ts) at its small size. Only its place in the field is set here. */
+.gallery-search-clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); }
 
 /* Spotlight chord hint (plans/99 section 2f) - the ⌃␣ <kbd> chip right-aligned inside
    the box. Advertises Control-Space ONLY (⌘Space stays bound but silent - the
@@ -1013,7 +995,11 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 
 .gtile:hover .tool-card-icon svg { opacity: 1; }
 .gtile:hover .gtile-desc { color: hsl(var(--foreground)); }
-.gtile.is-navigating { opacity: 0.6; }
+/* The pressed card while its tool opens. The dim rides filter, like the hidden tools'
+   dim above, and for the same reason: the entrance cascade's card-in fill pins the
+   opacity property at 1, so an opacity dim never showed on a card the cascade had
+   revealed. opacity: 1 keeps .is-navigating's own 0.45 below from stacking on it. */
+.gtile.is-navigating { opacity: 1; filter: opacity(0.6); }
 /* Cold-load entrance: a quick, satisfying cascade. JS arms the reveal
    (.reveal-armed → tiles start hidden) and an IntersectionObserver adds .is-in
    per tile with a staggered --reveal-delay. So the above-the-fold batch cascades
@@ -1845,10 +1831,7 @@ html[data-a11y-previews="hidden"] .published-card-media .published-card-icon { d
   border-color: hsl(var(--primary) / 0.4);
 }
 
-/* Round icon button - no longer rendered on gallery cards (tile actions live in
-   the context menu + selection toolbar now), but still the close button of the
-   folder overlay's dialogs (folder-overlay.ts), so the base class stays here in
-   the always-loaded sheet. */
+/* The component library keeps this legacy round icon-button specimen. */
 .gtile-iconbtn {
   /* Aria-labelled, no visible text, so the glyph and its tap target take the
      multiplier. (The svg below is 1em against the button's inherited, UNSCALED
@@ -2176,7 +2159,7 @@ html[data-a11y-previews="hidden"] .tool-meta-dialog .meta-look-thumb { display: 
 .gallery-topright {
   position: fixed;
   z-index: 99999;
-  right: calc(var(--chrome-inset) + var(--vv-right, 0px));
+  right: calc(var(--chrome-inset-right) + var(--vv-right, 0px));
   top: calc(var(--chrome-top) + var(--vv-top, 0px));
   /* Inset past the edge dock (lib/edge-dock.ts) logically, so it flips with RTL; 0px when
      nothing is docked. margin-inline-end offsets a right-anchored fixed element inward. */
@@ -2252,14 +2235,6 @@ html[data-a11y-previews="hidden"] .tool-meta-dialog .meta-look-thumb { display: 
 .gallery-bulkbar-actions { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; }
 .gallery-bulkbar-actions .btn { display: inline-flex; align-items: center; gap: var(--sp-3); }
 .gallery-bulkbar-actions .btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
-.gallery-bulkbar-clear {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: calc(30px * var(--a11y-fs)); height: calc(30px * var(--a11y-fs)); flex: none;
-  border-radius: var(--radius-pill); cursor: pointer;
-  font-size: var(--fs-xl); line-height: 1; color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted) / .6); border: none;
-}
-.gallery-bulkbar-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 /* Icon-only when the labels would wrap or overflow (lib/bulk-bar.ts fitBulkBar sets
    .is-compact by measuring). Labels are clipped, not removed, so each button keeps its
    accessible name; the label is also its tooltip. */

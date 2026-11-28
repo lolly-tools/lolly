@@ -5,6 +5,7 @@ import { escape as esc } from '../utils.ts';
 import { t } from '../i18n.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { wireRecordPanels } from './valid-record.ts';
+import { wireFindings } from './valid-findings.ts';
 import '../styles/parts/valid-actions.css';
 
 type ActionElement = HTMLButtonElement | HTMLAnchorElement;
@@ -91,6 +92,7 @@ const SPECS: readonly ActionSpec[] = [
     icon: 'document',
     selector: '[data-forensic="ocr"]',
     group: 'Inspect',
+    keepLocal: true,
   },
   {
     id: 'model-ai',
@@ -212,15 +214,17 @@ const SPECS: readonly ActionSpec[] = [
     icon: 'search',
     selector: '[data-imprint-rescan]',
     group: 'Inspect',
-    reveal: '.valid-wm--action',
+    reveal: '[data-imprint-rescan-block]',
+    keepLocal: true,
   },
   {
     id: 'watermark',
     label: 'Check watermarks in all images',
     icon: 'search',
-    selector: '[data-deep-scan-enable]',
+    selector: '[data-deepscan-offer="offer"] [data-deep-scan-enable]',
     group: 'Inspect',
     global: true,
+    keepLocal: true,
     note: 'Downloads a detector once (~90 MB)',
     reveal: '[data-deepscan-banner]',
   },
@@ -264,6 +268,7 @@ function reveal(element: HTMLElement): void {
 
 export function wireVerifyActions(view: HTMLElement, report: HTMLElement): void {
   wireRecordPanels(report);
+  wireFindings(report);
   const toolbar = document.createElement('section');
   toolbar.className = 'valid-actions';
   toolbar.setAttribute('aria-label', t('Asset actions'));

@@ -19,7 +19,7 @@
   }
   .background-delivery {
     position: fixed;
-    inset: auto 1rem 5rem auto;
+    inset: auto calc(1rem + var(--safe-right)) 5rem auto;
     z-index: 300;
     box-sizing: border-box;
     width: min(28rem, calc(100vw - 2rem));

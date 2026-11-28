@@ -9,7 +9,7 @@
  },
  "covers": {
   "design": {
-   "version": "1.52.2",
+   "version": "1.52.3",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/design.light.webp"
@@ -20,7 +20,7 @@
    }
   },
   "darkroom": {
-   "version": "2.6.0",
+   "version": "2.7.0",
    "light": {
     "templateId": "warm-portrait",
     "file": "/catalog/previews/covers/darkroom.light.webp"
@@ -31,7 +31,7 @@
    }
   },
   "filter": {
-   "version": "1.7.0",
+   "version": "1.8.0",
    "light": {
     "templateId": "colour-scanlines",
     "file": "/catalog/previews/covers/filter.light.webp"
@@ -64,7 +64,7 @@
    }
   },
   "qr-code": {
-   "version": "2.8.0",
+   "version": "2.12.1",
    "light": {
     "templateId": "website",
     "file": "/catalog/previews/covers/qr-code.light.svg"
@@ -75,7 +75,7 @@
    }
   },
   "quote-card": {
-   "version": "1.0.0",
+   "version": "1.1.0",
    "light": {
     "templateId": "speaker",
     "file": "/catalog/previews/covers/quote-card.light.webp"
@@ -86,7 +86,7 @@
    }
   },
   "3d-studio": {
-   "version": "0.11.0",
+   "version": "0.14.0",
    "light": {
     "templateId": "studio-object",
     "file": "/catalog/previews/covers/3d-studio.light.webp"
@@ -97,7 +97,7 @@
    }
   },
   "timezone": {
-   "version": "1.1.2",
+   "version": "1.3.1",
    "light": {
     "templateId": "around-the-world",
     "file": "/catalog/previews/covers/timezone.light.webp"
@@ -105,24 +105,6 @@
    "dark": {
     "templateId": "around-the-world",
     "file": "/catalog/previews/covers/timezone.dark.webp"
-   }
-  },
-  "org-chart": {
-   "version": "1.2.0",
-   "light": {
-    "file": "/catalog/previews/covers/org-chart.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/org-chart.dark.svg"
-   }
-  },
-  "meeting-planner": {
-   "version": "1.3.1",
-   "light": {
-    "file": "/catalog/previews/covers/meeting-planner.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/meeting-planner.dark.svg"
    }
   },
   "agenda": {
@@ -145,15 +127,6 @@
    "dark": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/work-avatar.dark.webp"
-   }
-  },
-  "3d": {
-   "version": "1.3.3",
-   "light": {
-    "file": "/catalog/previews/covers/3d.light.webp"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/3d.dark.webp"
    }
   },
   "wayfinding-signage": {
@@ -187,17 +160,6 @@
     "file": "/catalog/previews/covers/diagram-builder.dark.svg"
    }
   },
-  "backdrop": {
-   "version": "1.1.3",
-   "light": {
-    "templateId": "brand-starter",
-    "file": "/catalog/previews/covers/backdrop.light.webp"
-   },
-   "dark": {
-    "templateId": "brand-starter",
-    "file": "/catalog/previews/covers/backdrop.dark.webp"
-   }
-  },
   "icon": {
    "version": "1.1.4",
    "light": {
@@ -210,7 +172,7 @@
    }
   },
   "gradient": {
-   "version": "1.3.1",
+   "version": "1.4.2",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/gradient.light.webp"
@@ -329,7 +291,7 @@
    }
   },
   "multi-page-pdf": {
-   "version": "1.2.0",
+   "version": "1.2.1",
    "light": {
     "templateId": "annual-report",
     "file": "/catalog/previews/covers/multi-page-pdf.light.webp"
@@ -395,7 +357,7 @@
    }
   },
   "audiogram": {
-   "version": "2.8.0",
+   "version": "2.10.0",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/audiogram.light.webp"

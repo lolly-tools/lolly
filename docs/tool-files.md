@@ -1,6 +1,6 @@
 # Assets and file utilities
 
-A tool takes pictures and files in two ways. An `asset` input lets people pick from the design system's library or their own uploads, for logos, photos and other brand imagery. A `file` input takes a person's own file into memory so a utility can transform the bytes and hand them straight back, the way a converter or a metadata stripper works.
+An `asset` input lets people pick logos, photos and other brand imagery from the design system's library or their own uploads. A `file` input takes a person's own file into memory so a utility, such as a converter or a metadata stripper, can transform the bytes and hand them back.
 
 <!--i:eti-images-->
 ## `asset` - library or device upload
@@ -30,34 +30,34 @@ An `asset` input opens the host's asset picker and stores the chosen `AssetRef`,
 
 `filter` narrows the picker further: `{ "tags": [...], "namespace": "..." }` is passed to `host.assets.query()`.
 
-**Pictures the tool ships.** An `asset` value, such as one an example look sets, can also name a picture in the tool's own `assets/` folder by the path the site serves it at: `/tools/<tool-id>/assets/<file>`. The file must sit directly in that folder and end in `.svg`, `.png`, `.jpg` or `.webp`. The web shell reads it through its verified catalog fetch, and the CLI, the TUI and the MCP server read it from the tool's folder. [Example looks](/info/tool-manifest.html#example-looks-examples) shows the value to write.
+**Pictures the tool ships.** An `asset` value, such as one an example look sets, can also name a picture in the tool's own `assets/` folder by its served path: `/tools/<tool-id>/assets/<file>`. The file must sit directly in that folder and end in `.svg`, `.png`, `.jpg` or `.webp`. The web shell reads the file through its verified catalog fetch, and the CLI, the TUI and the MCP server read the file from the tool's folder. [Example looks](/info/tool-manifest.html#example-looks-examples) shows the value to write.
 
 ![The Image row in the Filter tool - a thumbnail slot and a Choose asset button that opens the host's picker, with nothing about pickers in the manifest](/t/url-shot?url=%2F%23%2Ftool%2Ffilter&width=1440&height=900&dpi=192&waitMs=2000&css=%23tool-canvas%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.input-row%3Ahas%28.asset-picker-trigger%5Bdata-input-id%3D%22image%22%5D%29&dark=1&filename=at2-input-asset-picker)
 
 ### Uploads from the person's device
 
-With `allowUpload: true`, the picker offers the person's **image library** beside the catalog. People add images from their device, and the host stores the bytes exactly as they arrived, because a silent re-encode would break a Content Credential's hard binding. It offers to downscale only a very large file. Stripping metadata is a separate preference the person opts into (**Strip metadata from uploads**, off by default).
+With `allowUpload: true`, the picker offers the person's **image library** beside the catalog. The host stores uploaded bytes exactly as they arrived, because a silent re-encode would break a Content Credential's hard binding. The host offers to downscale only a very large file. Stripping metadata is a separate opt-in preference (**Strip metadata from uploads**, off by default).
 
-The library has no limit on the number of images; the only limit is the device's storage, checked before each write. It is shared by every tool and managed in **Settings → Storage → My images**. SVG uploads are cleaned of scripts and event handlers on the way in and stay vector.
+The library has no limit on the number of images. The only limit is the device's storage, checked before each write. Every tool shares the library, and people manage the library in **Settings → Storage → My images**. SVG uploads are cleaned of scripts and event handlers on upload and stay vector.
 
 These images stay on the device. Their `AssetRef.source` is `"user"`, and their `user/…` id means something only on the device that holds the bytes, so they are left out of share links ([URL Mode](/info/url-mode.html)). Tools treat `user` and `library` assets the same, and no tool code takes part in the upload.
 
 ### A pasted tool link becomes an image
 
-Every `asset` input also accepts a **Lolly tool link** pasted into the picker's search box: a share link copied from another tool (`…/#/tool/qr-code?url=…`) or an embed URL (`…/tool/qr-code.svg?…`). The host renders that tool through `host.compose` and places the result in the slot, after the person picks the render format and size. This is the person's counterpart to an authored [`composes`](/info/tool-composition.html): no manifest declaration, and it works in every tool's image inputs.
+Every `asset` input also accepts a **Lolly tool link** pasted into the picker's search box: a share link copied from another tool (`…/#/tool/qr-code?url=…`) or an embed URL (`…/tool/qr-code.svg?…`). The person picks the render format and size, and the host renders that tool through `host.compose` and places the result in the slot. This is the person's counterpart to an authored [`composes`](/info/tool-composition.html). It needs no manifest declaration and works in every tool's image inputs.
 
-The picker offers SVG and bitmap render formats for any image slot. SVG is the default, because it stays crisp, goes into SVG and PDF exports as true vector and rasterises cleanly for PNG; a `vector` slot offers SVG only. The asset's identity is the canonical embed URL, so it is kept in saved sessions and share links and renders again on load, like a library id. The picker offers this wherever the shell can compose; the `compose` capability gates only authored `composes`.
+The picker offers SVG and bitmap render formats for any image slot. SVG is the default: it stays crisp, goes into SVG and PDF exports as vector and rasterises cleanly for PNG. A `vector` slot offers SVG only. The asset's identity is the canonical embed URL, so the asset is kept in saved sessions and share links and renders again on load, like a library id. The picker accepts tool links wherever the shell can compose. The `compose` capability gates only authored `composes`.
 
 <!--i:eti-file-->
 ## `file` - the user's own file (on-device utilities)
 
-A `file` input takes a file the person picks into memory and hands its raw bytes to the tool. It suits content-transform utilities, the file jobs people would otherwise hand to a stranger's website: strip metadata, crop, compress, convert.
+A `file` input reads a file the person picks into memory and hands its raw bytes to the tool. Use it for content-transform utilities: strip metadata, crop, compress, convert.
 
 ::: note Nothing is stored or uploaded
-A `file` value lives only in memory on the device. It is never written into a link, because binary data has no shareable form, never saved with a session and never uploaded. That is the privacy promise of an on-device utility, and the rules below keep that promise.
+A `file` value lives only in memory on the device. It is never written into a link, never saved with a session and never uploaded. The rules below keep that privacy promise of an on-device utility.
 :::
 
-With `layout: "canvas"` ([layouts](/info/tool-manifest.html#layout-and-sidebar)), a single `file` input becomes the working area itself: the drop zone `strip-data` opens with.
+With `layout: "canvas"` ([layouts](/info/tool-manifest.html#layout-and-sidebar)), a single `file` input becomes the working area, as in the drop zone `strip-data` opens with.
 
 ![Lolly Strip Hidden Data's canvas - a drag-and-drop file zone with a Choose a file button and the note that nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=1800&walker=1&format=svg&cropSelector=%23tool-content&dark=1&filename=auth-file-input)
 
@@ -113,4 +113,6 @@ function exportFile({ model }) {
 ```
 
 In the template, a `<button data-export-file>Download…</button>` runs the hook. Use `onInit` and `onInput` to return extras the template shows, such as the metadata that was found. `strip-data` is the reference.
+
+Keep instructions off the working surface. The canvas can carry the shell's own help tip: an element with the class `help-tip-host` that holds a `<button class="help-tip-btn">` and a `<span class="help-tip-pop" hidden>` as its direct child. The shell shows the tip on hover, on focus and on a press, and Escape closes the tip and returns focus to the button. `redact` is the reference.
 

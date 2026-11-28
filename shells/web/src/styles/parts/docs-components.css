@@ -51,6 +51,50 @@
 }
 html[data-a11y-contrast="high"] :is(.docs-content, .docs-landing) { --eti-accent: var(--ui-color-text-accent); }
 
+/* ── The section divider: a horizon in place of a hard rule ─────────────────
+   A hairline that is strongest at its centre and fades out at both ends, with a soft
+   glow of the same colour under the line. The colour is the icons' accent above
+   (--eti-accent), so the divider follows the loaded design system, its theme and its
+   colourway on /info and in the app, and matches the detail of the icon that follows.
+   One definition: --docs-rule-hairline is the line alone (a heading's own top rule
+   draws the line through border-image), and --docs-rule is the line with its glow, for
+   the box that opens a section and the box that closes the page title. */
+.docs-content {
+  --docs-rule-line: color-mix(in oklab, var(--eti-accent) 75%, transparent);
+  --docs-rule-glow: color-mix(in oklab, var(--eti-accent) 20%, transparent);
+  --docs-rule-hairline: linear-gradient(90deg, transparent, var(--docs-rule-line) 50%, transparent);
+  --docs-rule:
+    var(--docs-rule-hairline) top / 100% 1px no-repeat,
+    radial-gradient(ellipse 50% 100% at 50% 0, var(--docs-rule-glow), transparent 72%) top / 100% 100% no-repeat;
+}
+/* High contrast asks for edges that do not fade: a full line in the border colour, no glow. */
+html[data-a11y-contrast="high"] .docs-content {
+  --docs-rule-glow: transparent;
+  --docs-rule-hairline: linear-gradient(var(--ui-color-border-default), var(--ui-color-border-default));
+}
+/* The page title closes on the divider, and a heading's top rule is the line alone. */
+.docs-content h1 { position: relative; }
+.docs-content h1::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 100%;
+  block-size: 2rem;
+  background: var(--docs-rule);
+  pointer-events: none;
+}
+/* A title in the band over the article already sits on the band's own edge. */
+.docs-masthead h1::after { content: none; }
+.docs-content h2 { border-image: var(--docs-rule-hairline) 1; }
+/* Paper and forced colours drop backgrounds, so both get a plain rule back. */
+@media print, (forced-colors: active) {
+  .docs-content h1::after,
+  .docs-content .md-section-icon::before { content: none; }
+  .docs-content h1 { border-block-end: 1px solid var(--ui-color-border-default); }
+  .docs-content .md-section-icon { border-block-start: 1px solid var(--ui-color-border-default); }
+  .docs-content h2 { border-image: none; }
+}
+
 /* ── Admonition: ::: note | warning | check ───────────────────────────────
    A tinted panel led by a large two-tone icon: info, warning or circle-check.
    Each kind has a tone. A note is neutral, a warning takes the docs' caution ink
@@ -509,13 +553,23 @@ html[data-a11y-contrast="high"] .docs-content .doc-note--warning { --doc-note-to
 
 /* ── Section icon: <!--i:eti-…--> on a line of its own, before a heading ──────
    A large two-tone icon that opens the section under it, so a long page can be
-   scanned by its pictures as well as its headings. It carries the section's rule, as
-   a row of technology marks does, and the heading follows straight under it. */
+   scanned by its pictures as well as its headings. It carries the section's divider
+   (the horizon defined with the icon colours above), as a row of technology marks
+   does, and the heading follows straight under the icon. */
 .docs-content .md-section-icon {
+  position: relative;
   display: flex;
   margin: 40px 0 14px;
   padding-block-start: 32px;
-  border-block-start: 1px solid var(--ui-color-border-default);
+}
+.docs-content .md-section-icon::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 0;
+  block-size: 4.5rem;
+  background: var(--docs-rule);
+  pointer-events: none;
 }
 .docs-content .md-section-icon svg { width: 3.5rem; height: 3.5rem; flex: none; }
 .docs-content .md-section-icon + :is(h2, h3) { margin-block-start: 0; padding-block-start: 0; border-block-start: 0; }
@@ -636,23 +690,47 @@ html[data-a11y-motion="reduce"] .docs-content .md-steps > ol.icon-list > li.ic {
 
 /* ── Where the page sits, and where reading goes next (plan 354 D3) ─────────
    Generated from the manifest by docs/build.ts (pageWayfinding), both readers:
-   the section label over the title, and Previous and Next after the article.
-   The label is the house eyebrow; the pager is two quiet cards at the reading
-   measure, the next one aligned to the inline end. */
-.docs-eyebrow {
+   the trail over the title, and Previous and Next after the article.
+   The trail is a breadcrumb and is drawn as one: the words as written at the small
+   text size, the section a link, a hairline chevron between the steps. It is a way
+   back up, not a label for the heading, so it is not set in capitals, not tracked
+   and not bold. The pager is two quiet cards at the reading measure, the next one
+   aligned to the inline end. */
+.docs-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-2);
   margin: 0;
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  letter-spacing: var(--ui-type-tracking-label);
-  text-transform: uppercase;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-md);
+  font-weight: 400;
+  line-height: 1.4;
   color: var(--ui-color-text-muted);
 }
-.docs-content > .docs-eyebrow { margin-bottom: var(--sp-4); }
-:is([dir="rtl"], :lang(hi), :lang(bn)) .docs-eyebrow { letter-spacing: normal; text-transform: none; }
-/* Below 1100 px the page bar above the article already names the section and the page,
-   and its sheet lists the groups, so the label would only repeat it and push the first
-   paragraph down (plan 354's phone layout). */
-@media (max-width: 1099px) { .docs-eyebrow { display: none; } }
+.docs-crumbs li { display: inline-flex; align-items: center; gap: var(--sp-2); margin: 0; padding: 0; }
+.docs-crumbs li::marker { content: none; }
+/* The step mark: two hairlines, the house arrow, pointing the way the text reads. */
+.docs-crumbs li + li::before {
+  content: "";
+  flex: none;
+  width: .4em;
+  height: .4em;
+  border-block-start: 1.5px solid currentColor;
+  border-inline-end: 1.5px solid currentColor;
+  rotate: 45deg;
+  opacity: .7;
+}
+[dir="rtl"] .docs-crumbs li + li::before { rotate: -45deg; }
+.docs-crumbs a { color: inherit; text-decoration: none; border-radius: var(--radius-xs); }
+.docs-crumbs a:hover,
+.docs-crumbs a:focus-visible { color: var(--ui-color-text-default); text-decoration: underline; text-underline-offset: .2em; }
+.docs-content > .docs-crumbs { margin-bottom: var(--sp-4); }
+/* Below 1100 px the page bar above the article already gives the section and the page,
+   and its sheet lists the groups, so the trail would only repeat the bar and push the
+   first paragraph down (plan 354's phone layout). */
+@media (max-width: 1099px) { .docs-crumbs { display: none; } }
 .docs-content .docs-pager {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

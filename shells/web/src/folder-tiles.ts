@@ -9,6 +9,7 @@
  * Previews are stored-thumb + metadata only: we never live-render here. A batch
  * session has no single thumbnail, so it shows a package glyph plus metadata badges.
  */
+import { closeButtonHtml, type CloseButtonAttr } from './lib/close-button.ts';
 import { escape, safeHref } from './utils.ts';
 import { icon } from './lib/icons.ts';
 import { tRaw } from './i18n.ts';
@@ -18,6 +19,8 @@ import { tRaw } from './i18n.ts';
 export { BATCH_SLOT_PREFIX, isBatchSlot } from './lib/batch-slots.ts';
 // Local binding for isBatchSlot used below (a re-export creates no in-scope name).
 import { isBatchSlot, isMusicSlot } from './lib/batch-slots.ts';
+import { hasPicture, previewImg } from './components/preview-image.ts';
+import type { SessionPreviewRef } from '../../../engine/src/session-preview.ts';
 
 /** A host.state.list() row as the tiles read it. */
 export interface SessionEntry {
@@ -25,7 +28,10 @@ export interface SessionEntry {
   toolId?: string;
   label?: string | null;
   filename?: string | null;
+  /** A legacy data URL, for a record whose picture has not moved yet. */
   thumb?: string | null;
+  /** The picture by reference (session format 5), read by components/preview-image.ts. */
+  preview?: SessionPreviewRef | null;
   updatedAt?: string | null;
 }
 
@@ -50,6 +56,8 @@ export interface SessionTileMeta {
 /** One cell of a folder tile's 2×2 mosaic, resolved by the caller. */
 export interface MemberPreview {
   thumb?: string | null;
+  preview?: SessionPreviewRef | null;
+  slot?: string;
   url?: string | null;
   batch?: boolean;
 }
@@ -159,8 +167,8 @@ export function sessionTile(entry: SessionEntry, { toolName = '', sizeBytes = 0,
 
   const cover = batch
     ? `<span class="tile-cover tile-cover--batch" aria-hidden="true">${PACKAGE_ICON}</span>`
-    : entry.thumb
-      ? `<img class="tile-cover" src="${escape(entry.thumb)}" alt="" loading="lazy" decoding="async">`
+    : hasPicture(entry)
+      ? previewImg({ ...entry, toolId: entry.toolId }, 'class="tile-cover" alt="" loading="lazy" decoding="async"', 'tile-cover tile-cover--empty')
       : `<span class="tile-cover tile-cover--empty" aria-hidden="true"></span>`;
 
   // Intended output spec, drawn from the tool's index entry (primary format + canvas
@@ -265,9 +273,8 @@ export function folderTile(folder: { id: string; name: string; items?: readonly 
   count = count ?? folder.items?.length ?? 0;
   const cells = memberPreviews.slice(0, 4).map(p => {
     if (p.batch) return `<span class="folder-cell folder-cell--batch" aria-hidden="true">${PACKAGE_ICON}</span>`;
-    const src = p.thumb || p.url;
-    return src
-      ? `<img class="folder-cell" src="${escape(src)}" alt="" loading="lazy" decoding="async">`
+    return hasPicture(p)
+      ? previewImg(p, 'class="folder-cell" alt="" loading="lazy" decoding="async"', 'folder-cell folder-cell--empty')
       : `<span class="folder-cell folder-cell--empty" aria-hidden="true"></span>`;
   }).join('');
   // A folder-SHAPED cover (plans/133 WP-1): a tabbed silhouette so containers
@@ -369,8 +376,8 @@ export interface SessionRowOpts {
   /** Size chip; only rendered when there are bytes to show (matches both views). */
   sizeBytes?: number;
   sizeClass?: string;
-  /** Delete button; only rendered when an attribute is supplied. */
-  deleteAttr?: string;
+  /** Delete button; accepts a bare attribute name or unescaped attribute values. */
+  deleteAttr?: string | Readonly<Record<string, CloseButtonAttr>>;
   deleteClass?: string;
   deleteLabel?: string;
   deleteTitle?: string;
@@ -390,8 +397,8 @@ export function sessionRow(entry: SessionEntry, opts: SessionRowOpts): string {
 
   const thumb = (batch && opts.batchIcon)
     ? `<span class="${opts.thumbClass} ${opts.batchThumbClass ?? `${opts.thumbClass}--batch`}" aria-hidden="true">${opts.batchIcon}</span>`
-    : entry.thumb
-      ? `<img class="${opts.thumbClass}" src="${escape(entry.thumb)}" alt=""${opts.thumbImgAttrs ? ` ${opts.thumbImgAttrs}` : ''}>`
+    : hasPicture(entry)
+      ? previewImg(entry, `class="${opts.thumbClass}" alt=""${opts.thumbImgAttrs ? ` ${opts.thumbImgAttrs}` : ''}`, `${opts.thumbClass} ${opts.emptyThumbClass ?? `${opts.thumbClass}--empty`}`)
       : `<span class="${opts.thumbClass} ${opts.emptyThumbClass ?? `${opts.thumbClass}--empty`}" aria-hidden="true">${opts.emptyThumbContent ?? ''}</span>`;
 
   const openBtn = opts.openAttrs
@@ -407,7 +414,7 @@ export function sessionRow(entry: SessionEntry, opts: SessionRowOpts): string {
     ? `<span class="${opts.sizeClass ?? 'session-size'}">${fmtBytes(opts.sizeBytes)}</span>`
     : '';
   const deleteBtn = opts.deleteAttr
-    ? `<button type="button"${clsAttr(opts.deleteClass)} ${opts.deleteAttr}${opts.deleteTitle ? ` title="${escape(opts.deleteTitle)}"` : ''} aria-label="${escape(opts.deleteLabel ?? '')}">&#x2715;</button>`
+    ? closeButtonHtml({ size: 'sm', danger: true, className: opts.deleteClass, label: opts.deleteLabel ?? '', attrs: { ...(typeof opts.deleteAttr === 'string' ? { [opts.deleteAttr]: true } : opts.deleteAttr), title: opts.deleteTitle || undefined } })
     : '';
 
   return `

@@ -1,6 +1,6 @@
 {
   "name": "音訊圖",
-  "description": "把語音片段或歌曲變成隨聲音真實律動的影片，配色採用你的設計系統 - 長條、頻譜、環形、山脊或示波器樣式，隨時可用於社群媒體。",
+  "description": "把語音片段或歌曲變成隨聲音律動的影片，配色採用你的設計系統。",
   "a11yLabel": "為 {{default title \"an audio clip\"}} 製作附動態波形的音訊圖卡片",
   "inputs.audio.label": "音訊",
   "inputs.audio.help": "從你的媒體庫選擇曲目,或上傳一段片段。系統會在你的裝置上解碼以繪製波形 - 音訊絕不會離開瀏覽器。留空則顯示預留波形。若要在匯出檔案中聽到聲音,請在下載選項中將「音訊軌道」設為「此工具的音訊」。",
@@ -18,5 +18,12 @@
   "inputs.size.options.story": "限時動態 (9:16)",
   "inputs.accent.label": "波形顏色",
   "inputs.ink.label": "文字顏色",
-  "inputs.bg.label": "背景"
+  "inputs.bg.label": "背景",
+  "inputs.targetLevel.label": "目標音量",
+  "inputs.targetLevel.help": "決定提示訊息認定「剛剛好」音量的標準。",
+  "inputs.targetLevel.options.soft": "輕柔 · 貼近麥克風",
+  "inputs.targetLevel.options.normal": "一般說話",
+  "inputs.targetLevel.options.loud": "宏亮 · 房間收音",
+  "inputs.showTips.label": "錄音提示",
+  "inputs.showTips.help": "即時顯示「靠近一點」或「音量過大」等提示。"
 }

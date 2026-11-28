@@ -1,6 +1,6 @@
 {
   "name": "마크다운 슬라이드",
-  "description": "Markdown이나 JSON 스펙을 몇 초 만에 편집 가능한 네이티브 PowerPoint 덱으로 바꿔요 - 진짜 텍스트, 글머리 기호, 표, 디자인 시스템 테마까지 그대로 담겨요. 덱을 가장 빠르게 만드는 텍스트 우선 경로이고, 슬라이드를 손으로 직접 배치하거나 애니메이션을 넣고 싶다면 디자인 캔버스를 이용하세요. 차트와 다이어그램은 다른 Lolly 도구에서 가져와요. 편집 가능한 .pptx는 물론 PDF와 PNG로도 내보내요.",
+  "description": "Markdown이나 JSON 스펙을 편집 가능한 네이티브 PowerPoint 덱으로 바꿔요. 편집 가능한 .pptx는 물론 PDF와 PNG로도 내보내요.",
   "a11yLabel": "슬라이드 {{_slideCount}}개로 된 프레젠테이션 덱",
   "inputs.size.label": "덱 크기",
   "inputs.size.help": "전체 덱에 하나의 크기예요 - PowerPoint는 모든 슬라이드에 같은 크기를 적용해요.",

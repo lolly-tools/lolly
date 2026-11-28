@@ -1,6 +1,6 @@
 {
   "name": "팔레트 랩",
-  "description": "하나의 시드 색상에서 팔레트를 키워보세요 - 조화 강조색, 지각적 OKLab 램프와 WCAG/APCA 가독성 배지, DTCG 토큰과 CSV 내보내기까지.",
+  "description": "하나의 시드 색상에서 팔레트를 키워보세요 - 조화 강조색, OKLab 램프와 WCAG/APCA 가독성 배지, DTCG 토큰과 CSV 내보내기까지.",
   "inputs.seed.label": "시드 색상",
   "inputs.seed.help": "전체 팔레트가 자라나는 색상이에요 - 기본값은 브랜드 기본색이에요.",
   "inputs.harmony.label": "조화",

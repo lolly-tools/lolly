@@ -1,4 +1,4 @@
 {
   "name": "Synth",
-  "description": "Un instrument vizual la care cânți. Patru scene rulează live pe GPU: cerneală fluidă, un roi de particule care zboară spre titlul sau logoul tău, un câmp de feedback și propria cameră. Fiecare culoare vine din paleta sistemului de design, iar imaginea se mișcă după cursor, o piesă muzicală și un controler MIDI. Exportă o imagine statică sau o buclă fără cusătură."
+  "description": "Un instrument vizual la care cânți. Imaginea se mișcă după cursor, o piesă muzicală și un controler MIDI. Exportă o imagine statică sau o buclă fără cusătură."
 }

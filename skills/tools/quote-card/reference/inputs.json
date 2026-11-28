@@ -7,6 +7,13 @@
     "default": "The best tools disappear, so the work can speak."
   },
   {
+    "id": "phrase",
+    "label": "Phrase to emphasise",
+    "type": "text",
+    "default": "",
+    "help": "Copy a few words from the quote. Marker draws across them; other layouts set them in a stronger colour."
+  },
+  {
     "id": "name",
     "label": "Name",
     "type": "text",
@@ -52,7 +59,6 @@
     "label": "Layout",
     "type": "select",
     "default": "beside",
-    "display": "segmented",
     "options": [
       {
         "value": "beside",
@@ -61,6 +67,89 @@
       {
         "value": "centred",
         "label": "Words only"
+      },
+      {
+        "value": "type",
+        "label": "Big type"
+      },
+      {
+        "value": "glyph",
+        "label": "Big quotation mark"
+      },
+      {
+        "value": "pull",
+        "label": "Pull quote"
+      },
+      {
+        "value": "citation",
+        "label": "Citation"
+      },
+      {
+        "value": "portrait",
+        "label": "Portrait"
+      },
+      {
+        "value": "marker",
+        "label": "Marker"
+      }
+    ]
+  },
+  {
+    "id": "source",
+    "label": "Source",
+    "type": "text",
+    "default": "",
+    "section": "Source",
+    "help": "The book, paper, talk or article it comes from. Leave a field empty and it leaves nothing behind."
+  },
+  {
+    "id": "publication",
+    "label": "Publication",
+    "type": "text",
+    "default": "",
+    "section": "Source"
+  },
+  {
+    "id": "date",
+    "label": "Date",
+    "type": "text",
+    "default": "",
+    "section": "Source",
+    "placeholder": "1843"
+  },
+  {
+    "id": "url",
+    "label": "Link",
+    "type": "url",
+    "default": "",
+    "section": "Source"
+  },
+  {
+    "id": "motion",
+    "label": "Motion",
+    "type": "select",
+    "default": "none",
+    "help": "Video, GIF and SVG play the motion. Placed in Design, the picture plays on the timeline. PNG, PDF and other stills always show the finished card.",
+    "options": [
+      {
+        "value": "none",
+        "label": "None"
+      },
+      {
+        "value": "word",
+        "label": "Word by word"
+      },
+      {
+        "value": "line",
+        "label": "Line by line"
+      },
+      {
+        "value": "sweep",
+        "label": "Marker sweep"
+      },
+      {
+        "value": "draw",
+        "label": "Graphic first"
       }
     ]
   }

@@ -1,6 +1,6 @@
 {
   "name": "Audiogram",
-  "description": "Bir ses klibini veya şarkıyı, sesle gerçekten hareket eden, tasarım sisteminin renklerinde bir videoya dönüştür - çubuklar, spektrum, halka, sırt çizgisi veya osiloskop, sosyal medyaya hazır.",
+  "description": "Bir ses klibini veya şarkıyı, sesle gerçekten hareket eden, tasarım sisteminin renklerinde bir videoya dönüştür.",
   "a11yLabel": "{{default title \"an audio clip\"}} için animasyonlu dalga formuyla Audiogram kartı",
   "inputs.audio.label": "Ses",
   "inputs.audio.help": "Kitaplığından bir parça seç ya da bir klip yükle. Dalga formunu çizmek için cihazında çözülür - ses tarayıcıdan asla çıkmaz. Yer tutucu bir dalga formu için boş bırak. Dışa aktarımda duymak için indirme seçeneklerinde Ses parçası olarak \"Bu aracın sesi\"ni seç.",
@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Hikaye (9:16)",
   "inputs.accent.label": "Dalga formu rengi",
   "inputs.ink.label": "Metin rengi",
-  "inputs.bg.label": "Arka plan"
+  "inputs.bg.label": "Arka plan",
+  "inputs.targetLevel.label": "Hedef seviye",
+  "inputs.targetLevel.help": "Yönlendirme mesajları için neyin 'tam kararında' sayıldığı.",
+  "inputs.targetLevel.options.soft": "Yumuşak · yakın mikrofon",
+  "inputs.targetLevel.options.normal": "Normal konuşma",
+  "inputs.targetLevel.options.loud": "Yüksek sesli · oda",
+  "inputs.showTips.label": "Yönlendirme ipuçları",
+  "inputs.showTips.help": "‘yaklaş’ veya ‘sesin kırpılıyor’ gibi canlı yönlendirmeler."
 }

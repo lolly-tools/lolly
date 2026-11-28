@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { requestDock, releaseDock, isDocked, type PanelId } from '../lib/edge-dock.ts';
-import { icon } from '../lib/icons.ts';
-import { t } from '../i18n.ts';
+import { closeButton } from '../lib/close-button.ts';
 import { mountModal, type ModalHandle } from './modal.ts';
 import './docked-panel.css';
 
@@ -23,11 +22,7 @@ export function mountDockedPanel(opts: {
   head.className = 'export-popup-head';
   const title = document.createElement('h2');
   title.textContent = opts.title;
-  const dismiss = document.createElement('button');
-  dismiss.type = 'button';
-  dismiss.className = 'export-popup-close';
-  dismiss.innerHTML = icon('close', { size: 18 });
-  dismiss.setAttribute('aria-label', t('Close'));
+  const dismiss = closeButton({ className: 'export-popup-close' });
   head.append(title, dismiss);
   opts.content.classList.add('docked-panel-body');
   panel.append(head, opts.content);

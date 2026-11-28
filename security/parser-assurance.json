@@ -190,11 +190,24 @@
         "file-metadata"
       ],
       "details": {
-        "inputSource": "raw bytes of any uploaded raster, vector or MP4 or QuickTime video",
+        "inputSource": "raw bytes of any uploaded raster, vector, audio, MP4, QuickTime, Matroska or Office file",
         "bounds": "`MAX_FIELDS = 64`, `MAX_VALUE_CHARS = 2048`, `MAX_TEXT_SCAN = 16 MB`, `MAX_GIF_BLOCKS = 1_000_000`, `MAX_MPF_IMAGES = 16`, `MAX_GAINMAP_SNIFF = 8192`",
         "directTests": "`tests/file-metadata.test.ts`",
         "fuzzCoverage": "`file-metadata` (`extractFileMetadata`)",
-        "notes": "Best-effort throughout: a malformed block yields fewer fields, never an exception. PDF is out of scope here and goes through `host.pdf.analyze`. Second parse path, added 2026-07-31: `readMpfIndex` reads a JPEG's CIPA DC-007 multi-picture index (both byte orders) over the `jpeg-segments.ts` walker, so a declared second image - an HDR gain map, an MPO - is NAMED in the reveal instead of being sniffed as an unexplained appended payload and flagged `sensitive`. Nothing the index claims is trusted: an image is reported only once its declared range lies inside the buffer and starts on an SOI."
+        "notes": "Best-effort throughout: a malformed block yields fewer fields, never an exception. PDF is out of scope here and goes through `host.pdf.analyze`. Second parse path, added 2026-07-31: `readMpfIndex` reads a JPEG's CIPA DC-007 multi-picture index (both byte orders) over the `jpeg-segments.ts` walker, so a declared second image - an HDR gain map, an MPO - is NAMED in the reveal instead of being sniffed as an unexplained appended payload and flagged `sensitive`. Nothing the index claims is trusted: an image is reported only once its declared range lies inside the buffer and starts on an SOI. Reading more carriers, added 2026-11-26: a TIFF's XMP packet (tag 0x02BC), the ISO `cprt` box and QuickTime `©cpy` atom in MP4 user data, and the tag carriers in `tag-readers.ts` (ID3v2, Vorbis comments, Matroska tags, DOCX and PPTX property parts), which report stated rights and credit only. Rights and credit values lose their control characters before they are returned."
+      }
+    },
+    "engine/src/tag-readers.ts": {
+      "family": "Audio, video and animation",
+      "fuzzTargets": [
+        "file-metadata"
+      ],
+      "details": {
+        "inputSource": "raw bytes of an uploaded MP3, FLAC, Ogg Opus, Ogg Vorbis, Matroska, WebM, DOCX or PPTX file, handed over by `file-metadata.ts`",
+        "bounds": "`MAX_TAG_FIELDS = 32`, `MAX_VALUE_CHARS = 2048`, `MAX_TAG_BYTES = 4 MiB`, `MAX_ID3_TAGS = 4`, `MAX_ID3_FRAMES = 1024`, `MAX_VORBIS_COMMENTS = 1024`, `MAX_VORBIS_KEY_BYTES = 64`, `MAX_FLAC_BLOCKS = 128`, `MAX_OGG_PAGES = 64`, `MAX_EBML_SEGMENT_CHILDREN = 65536`, `MAX_EBML_TAG_ELEMENTS = 2048`, `MAX_OFFICE_ENTRIES = 4096`, `MAX_OFFICE_PROPERTIES = 512`; Office parts go through `zip.ts` and `office-xml.ts` with `OFFICE_MAX_XML_BYTES`",
+        "directTests": "`tests/file-metadata-rights.test.ts`",
+        "fuzzCoverage": "`file-metadata` (`extractFileMetadata`, seeded with one file per carrier)",
+        "notes": "Read only and best effort: a structure that does not read yields fewer fields and no reader throws. Reports what a file states about rights and credit (ID3 `TCOP`, `WCOP`, `USER`, `TPE1`; Vorbis `LICENSE`, `COPYRIGHT`, `ARTIST`; Matroska `COPYRIGHT`, `LICENSE`, `TERMS_OF_USE`, `ARTIST`; `docProps/core.xml` `dc:rights` and `dc:creator`; custom properties named licence, license or copyright), each with the carrier and tag as its source. Nothing is interpreted and two statements are never merged. Every offset is checked before the read and every declared length against the bytes that remain. A nested Matroska SimpleTag is not followed, so the walk has no recursion. Removal stays with `strip-audio.ts`, which fails closed and has walkers of its own."
       }
     },
     "engine/src/strip-metadata.ts": {
@@ -810,7 +823,7 @@
         "bounds": "128 MiB encoded input/output; 16 MP decode, 8 MP encode, 16384 per edge; 384 MiB codec allocation budget and 768 MiB WASM ceiling; one worker, 120-second deadline; XML limited to 1 MiB and 4096 boxes",
         "directTests": "`tests/jxl.test.ts`, `tests/jxl.browser.test.ts`",
         "fuzzCoverage": "`jxl` mutates real grayscale, P3, PQ, animation and auxiliary-channel fixtures through the disposable worker and bounded XML reader",
-        "notes": "Pinned libjxl 0.12.0 parses compressed images. Animation and extra channels are refused for still decode; compressed metadata is not inflated by the XML reader. Cancellation terminates the worker. Native browser support is not required."
+        "notes": "Pinned libjxl 0.13.0 parses compressed images. Animation and extra channels are refused for still decode; compressed metadata is not inflated by the XML reader. Cancellation terminates the worker. Native browser support is not required."
       }
     },
     "packages/node-shell/src/jxl-codec.ts": {
@@ -823,7 +836,7 @@
         "bounds": "128 MiB encoded input/output; 16 MP decode, 8 MP encode, 16384 per edge; 384 MiB codec allocation budget and 768 MiB WASM ceiling; one worker, 120-second deadline; XML limited to 1 MiB and 4096 boxes",
         "directTests": "`tests/jxl.test.ts`, `tests/jxl.browser.test.ts`",
         "fuzzCoverage": "`jxl` mutates real grayscale, P3, PQ, animation and auxiliary-channel fixtures through the disposable worker and bounded XML reader",
-        "notes": "Pinned libjxl 0.12.0 parses compressed images. Animation and extra channels are refused for still decode; compressed metadata is not inflated by the XML reader. Cancellation terminates the worker. Native browser support is not required."
+        "notes": "Pinned libjxl 0.13.0 parses compressed images. Animation and extra channels are refused for still decode; compressed metadata is not inflated by the XML reader. Cancellation terminates the worker. Native browser support is not required."
       }
     },
     "engine/src/deep-png.ts": {
@@ -1306,7 +1319,7 @@
         "bounds": "96 MiB input, 96 MiB per archive entry and 256 MiB extracted, a 64 MiB zstd window, 32 megapixels of decoded pixel layers, 128 MiB of returned pictures, 48 MiB of model JSON, 128 levels of layers and 384 of object nesting, 500000 layers; 1 GiB WASM memory cap with a 1 MiB stack; a trap retires the instance",
         "directTests": "`tests/affinity.test.ts`, the vendored crate's own `cargo test` unit and property tests, `scripts/affinity-corpus.ts` (51 public documents, SHA-256 pinned)",
         "fuzzCoverage": "`affinity` mutates a header-only container and, when fetched, the four smallest public documents, through the Node loader, running both operations.",
-        "notes": "Pinned vectorcraft-affinity 05d5f99 (MIT OR Apache-2.0). Afread-derived with no specification and AI-assisted; the account is in its UPSTREAM.md and was accepted on 2026-11-02. Every archive entry is CRC-checked. The model JSON is bounded again by the shared TypeScript wrapper and then mapped by the pure engine module design-map-affinity.ts, which caps pages, boxes and canvas size. The reader denies panics and unsafe code."
+        "notes": "Pinned vectorcraft-affinity 1b744ea (0.24.0, MIT OR Apache-2.0). Afread-derived with no specification and AI-assisted; the account is in its UPSTREAM.md and was accepted on 2026-11-02. Every archive entry is CRC-checked. The model JSON is bounded again by the shared TypeScript wrapper and then mapped by the pure engine module design-map-affinity.ts, which caps pages, boxes and canvas size. The reader denies panics and unsafe code."
       }
     },
     "packages/node-shell/src/camera-raw.ts": {
@@ -1319,7 +1332,7 @@
         "bounds": "192 MiB input, 64 megapixels, 256 MiB for any one buffer, and a refusal before development when input, sensor data and the 16-bit frame together would pass 480 MiB; 512 MiB WASM memory cap with a 1 MiB stack; 24 warnings of 400 characters; a trap retires the instance; the web shell runs it on a worker with a 3 minute budget",
         "directTests": "`tests/camera-raw.test.ts`, `tests/camera-raw-cli.test.ts`, `shells/web/src/bridge/camera-raw-worker-client.test.ts`, the vendored crate's own `cargo test` (134 unit and 86 integration tests, including hostile-file and truncation tests), `scripts/camera-raw-corpus.ts`",
         "fuzzCoverage": "`camera-raw` mutates small synthetic Bayer DNG and TIFF/EP files through the Node loader. Real files from `scripts/camera-raw-corpus.ts` are decoded by that script, not fuzzed.",
-        "notes": "Pinned storytold photocraft raw 97a83f07 (MIT OR Apache-2.0), clean-room caveats recorded in its UPSTREAM.md; the JPEG XL decoder is left out. DNG colour is exact; every other format is a per-file fit to the embedded JPEG and is labelled approximate colour. The decoder forbids unsafe code and denies unwrap, expect and panic."
+        "notes": "Pinned storytold photocraft raw 97a83f07 with three later upstream hostile-input fixes (MIT OR Apache-2.0), clean-room caveats recorded in its UPSTREAM.md; the JPEG XL decoder is left out. DNG colour is exact; every other format is a per-file fit to the embedded JPEG and is labelled approximate colour. The decoder forbids unsafe code and denies unwrap, expect and panic."
       }
     },
     "packages/node-shell/src/indd.ts": {
@@ -1478,6 +1491,33 @@
         "notes": "Reads cmap formats 4 and 12 only; other formats report no coverage. Reading stops at the first format 4 end code that does not ascend and at the first format 12 group that overlaps or goes backwards; the spec requires both in ascending order. WOFF2 and collections are refused by name. The subset path refuses before any work on outlines other than TrueType and on restricting fsType values (font-subset-policy.ts), then re-parses the output with the same reader."
       }
     },
+    "packages/node-shell/src/woff2.ts": {
+      "family": "Text and fonts",
+      "fuzzTargets": [
+        "woff2-preflight"
+      ],
+      "details": {
+        "inputSource": "A WOFF2 font a person uploads or a design system imports, a Google Font stored on the device, a fallback font, a face a captured web page loaded, and a font a text document or release pins; every WOFF2 decode in the web app, CLI and MCP server goes through `decodeWoff2`",
+        "bounds": "32 MiB input; the header, table directory and collection directory are read with google/woff2's own rules before the decoder runs; the Brotli target (the sum of stored table lengths), the header area and the declared totalSfntSize at most 30 MiB, and the Brotli target at most 100 times the file size; base128 lengths at most five bytes with no leading zero or overflow; collection indices inside the table directory; each decode in its own Web Worker or worker thread with a fresh instance of the decoder module, at most four at once, ended after the font or after 20 seconds; decoder output at most the caller's limit, no longer than the declared totalSfntSize or the padded end of its last table, zero after that table, and refused unless every table record lies inside the returned bytes",
+        "directTests": "`packages/node-shell/test/woff2.test.ts`, `tests/woff2-decode.browser.test.ts`",
+        "fuzzCoverage": "`woff2-preflight` mutates a real WOFF2 webfont and a crafted collection header through `preflightWoff2`; the decoder behind the guard has its own row (`woff2-kernel.ts`)",
+        "notes": "Guards the Rust decoder module (`packages/node-shell/wasm/woff2-kernel`, wuff 0.2.10 with brotli-decompressor 6.2.0), which replaced woff2-encoder 2.0.0 (google/woff2 4721483 with Brotli 1.0.3, in the range of CVE-2026-111497); no Brotli code from Google's C decoder is in the decode path any more. The module is compiled once per page or process and instantiated afresh for each font, so a font's decode memory ends with the font. Where no worker can start, the font is refused; nothing decodes in the page. A fresh worker per decode costs about 35 ms per font in Node and about 7 ms in Chromium; the 23-font corpus, a worker per font, took 1.3 to 1.6 s in Node and 0.5 to 0.9 s in a Chromium production build, against 2.0 s and 1.4 to 2.1 s with the old decoder."
+      }
+    },
+    "packages/node-shell/src/woff2-kernel.ts": {
+      "family": "Text and fonts",
+      "fuzzTargets": [
+        "woff2-decode",
+        "woff2-rebuild"
+      ],
+      "details": {
+        "inputSource": "The WOFF2 bytes `decodeWoff2` hands its worker after the preflight: uploads, stored Google Fonts, fallback fonts, captured page fonts, pinned text-document and release fonts, brand catalog fonts for instance packs",
+        "bounds": "32 MiB input and 30 MiB of decompressed tables, checked in the module before it allocates; the Brotli stream read in RFC 7932 mode, so the large-window extension (windows up to 1 GiB) is refused; wuff's own limits (a compression ratio of at most 100, 128 MiB of rebuilt font, glyph point and instruction counts); a failed allocation is a refusal with a reason; 256 MiB WASM memory cap with a 1 MiB stack; the module imports nothing from the host; one instance per font",
+        "directTests": "`packages/node-shell/test/woff2.test.ts` (the 23-font corpus byte for byte, a collection against the C++ decoder, declared sizes refused inside the module with its memory measured, RFC 7932 streams), the adapter's `cargo test`",
+        "fuzzCoverage": "`woff2-decode` mutates whole files (a real webfont, the same tables compressed again, a two-font collection) straight into the module without the preflight; `woff2-rebuild` mutates the decompressed tables and compresses them again, so the glyf, loca and hmtx rebuilding is reached. A trap counts as a finding.",
+        "notes": "wuff is a hand port of google/woff2 (MIT); brotli-decompressor is Dropbox's Rust Brotli decoder (BSD-3-Clause or MIT), a separate code base from Google's C decoder, built without its `unsafe` feature so its own `forbid(unsafe_code)` applies, as it does in alloc-no-stdlib. wuff has no unsafe code; the Lolly adapter forbids unsafe in its decoding module and allows it only for the exported symbol names. Of the linked crates, only `bytes` (1.12.1, past RUSTSEC-2026-0007) contains unsafe code, in the buffer traits wuff reads and writes through. brotli-decompressor 6.2.0 is the release that returns an error for the block switch behind CVE-2026-111497; earlier releases panic on such a stream."
+      }
+    },
     "packages/node-shell/src/pdf-redact-keep.ts": {
       "family": "Documents, interchange and design systems",
       "fuzzTargets": [
@@ -1515,6 +1555,47 @@
         "directTests": "`tests/design-md.test.ts`, `tests/brand-page-cli.test.ts`",
         "fuzzCoverage": "`design-md` mutates a file the writer produced, one with a colour role block and a hand-written one with fenced token blocks",
         "notes": "The format is alpha, so the target version is recorded. Prose is kept as text and never acted on. Scope hints are reported, and a file with no hints can still mislead a reader. A colour role block is bounded at 256 KiB and read field by field: ids against the role id rule, colours as literals only. One that fails costs the roles, and the file's tokens stand."
+      }
+    },
+    "crates/lolly-render/src/admit.rs (admit_json)": {
+      "family": "Lolly Design documents, links and agent requests",
+      "fuzzTargets": [
+        "lolly-render-envelope"
+      ],
+      "details": {
+        "inputSource": "The lolly-render envelope (a compiled Design page's drawing operations with its pictures as base64) handed to the Rust crate by a Node shell through `crates/lolly-render-node`, behind `LOLLY_DESIGN_RASTER=lolly-render`; the binding takes any string or Buffer, so the bytes are untrusted",
+        "bounds": "`MAX_INPUT_BYTES = 64 MiB`, checked in the binding before the copy and again by the reader; serde `deny_unknown_fields` and the default recursion limit of 128; output 8192 px a side and 32 Mi pixels; 1,024 operations and 1,024 resources; 1,048,576 path segments; 1 MiB of outline per run and 16 MiB per page; 256 gradient stops; 64 clip points; 4,096 dashes; 10,000 lines and 100,000 runs; coordinates within 1e6, strokes within 1e4, ids of 256 characters; 256 refusals kept; a panic is caught at the binding as the `internal` refusal",
+        "directTests": "`crates/lolly-render/tests/render.rs`, `tests/malformed.rs` (41 malformed inputs, each with its code), `tests/corpus.rs`, `tests/lolly-render-addon.test.ts` and the binding's own unit tests",
+        "fuzzCoverage": "`lolly-render-envelope` sends mutated envelopes (the eight core fixtures at a quarter of their size) through the binding's `admit`, and draws each admitted page of at most 2^20 pixels; the crate's own `render.rs` mutation test runs 400 mutations per fixture in `cargo test`",
+        "notes": "Every input comes back as a value: drawn, or refused with codes from `REFUSAL_CODES`. A refusal with an unlisted code or `internal` is a finding. Recorded run on 2026-11-23: 20,000 mutations, no finding. The binding is native and built with cargo, so the target skips by name where it is not built (tests/expected-skips.json)."
+      }
+    },
+    "crates/lolly-render/src/picture.rs (decode)": {
+      "family": "Images and colour",
+      "fuzzTargets": [
+        "lolly-render-jpeg",
+        "lolly-render-png",
+        "lolly-render-webp"
+      ],
+      "details": {
+        "inputSource": "PNG, JPEG and WebP bytes a Design document places (catalog assets, uploads, pictures inside imported files), carried as envelope resources to the lolly-render crate; the type is read from the bytes, never from the declared type",
+        "bounds": "`MAX_PICTURE_BYTES = 32 MiB` encoded; `MAX_PICTURE_SIDE = 8192`; `MAX_PICTURE_PIXELS = 16 Mi` each and 64 Mi per page; zune-jpeg with its maximum width and height set; image-webp with a memory limit of 8 bytes a pixel; png 0.18 with its default limits; 16-bit, CMYK, profiles other than sRGB, PNG gamma or chromaticities of their own, cICP/mDCV/cLLI, Exif turns and animation each refused by code before decoding",
+        "directTests": "`crates/lolly-render/src/picture.rs` unit tests, `tests/fuzz.rs`, `tests/malformed.rs` (truncated, forged-size, 16-bit, profile, CMYK, turned, animated and wrong-type pictures)",
+        "fuzzCoverage": "`lolly-render-png`, `lolly-render-jpeg` and `lolly-render-webp` send mutated 16 x 12 seed pictures (crates/lolly-render/tests/seeds) placed on a 64 x 48 page through the binding; `tests/fuzz.rs` runs the same seeds straight through `decode` in `cargo test` (1,500 mutations per seed, 50,000 in the recorded run)",
+        "notes": "Pure-Rust decoders built without SIMD: png 0.18.1, zune-jpeg 0.5.15 without its x86 and neon features, image-webp 0.2.4. Recorded runs on 2026-11-23: 20,000 mutations per target through the binding and 50,000 per seed in Rust, no finding."
+      }
+    },
+    "shells/web/src/lib/gltf-container.ts": {
+      "family": "Documents, interchange and design systems",
+      "fuzzTargets": [
+        "gltf-container"
+      ],
+      "details": {
+        "inputSource": "An uploaded or catalog `.glb` or `.gltf` model, on the 3D Studio load path and at library upload",
+        "bounds": "`MODEL_MAX_BYTES = 32 MiB` for the file and for the embedded data decoded from it; an accessor with no buffer view, which the loader fills with zeros, may declare at most `GLTF_MAX_UNBACKED_COUNT = 3,000,000` elements, and all such accessors together `GLTF_MAX_UNBACKED_BYTES = 256 MiB`; `GLTF_MANIFEST_MAX_BYTES = 2,000,000` for the manifest; `GLTF_MAX_JSON_DEPTH = 64`, checked by a bracket scan before `JSON.parse`; a `data:` header of at most 256 characters; a buffer's payload must match its declared `byteLength` within 3 bytes of padding",
+        "directTests": "`tests/studio3d-gltf.test.ts`",
+        "fuzzCoverage": "`gltf-container` mutates a self-contained `.gltf`, the equivalent `.glb`, one with an embedded picture and both containers with an external reference",
+        "notes": "Throws a plain `Error` for anything it will not read. A `.gltf` is accepted only when every buffer and image is a base64 `data:` URI or an image in a buffer view; any other URI is refused by its text, and nothing is fetched, resolved or read from disk. An accepted `.gltf` is rewritten as a `.glb` with no URI left in it and then goes through the same `inspectGlb` an uploaded `.glb` does. Lengths are measured and checked before the one allocation that holds the decoded bytes. Mesh and texture decoding after this point is three.js's GLTFLoader, behind a loading manager that refuses every URL that is not `data:` or `blob:`."
       }
     }
   }

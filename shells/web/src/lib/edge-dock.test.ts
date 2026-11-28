@@ -196,6 +196,24 @@ test('Export is a tab beside any other panel, never half of a split', () => {
   assert.deepEqual(visibleSlots(), ['neuro'], 'a background dock leaves the tab the user was on in front');
 });
 
+test('a window resize leaves a tabbed column alone: two tabs are not the two halves of a split', () => {
+  reset();
+  ED.requestDock('inspector', panel('pi'), { label: 'Inspector' });
+  ED.requestDock('export', panel('px'), { label: 'Export', background: true });
+  assert.ok(document.querySelector('.edge-dock-tabs'));
+  window.dispatchEvent(new window.Event('resize'));
+  for (const slot of document.querySelectorAll<HTMLElement>('.edge-dock-slot')) {
+    assert.equal(slot.style.height, '', `${slot.dataset.slot} keeps the full column`);
+    assert.equal(slot.style.flex, '');
+  }
+  // Two stacked panels still take their split from a resize.
+  reset();
+  ED.requestDock('neuro', panel('pn'));
+  ED.requestDock('transcript', panel('pt'));
+  window.dispatchEvent(new window.Event('resize'));
+  assert.notEqual(document.querySelector<HTMLElement>('.edge-dock-slot')!.style.height, '', 'the top half of a split is still sized');
+});
+
 test('Inspector and Export use tabs even as the only two full panels', () => {
   reset();
   ED.requestDock('inspector', panel('pi'), { label: 'Inspector' });

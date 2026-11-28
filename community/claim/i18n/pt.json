@@ -1,6 +1,6 @@
 {
   "name": "Claim",
-  "description": "Reivindique seu nome em qualquer mídia que você já criou - imagem, PDF, vídeo ou áudio. Carimbe seu autor, direitos autorais e licença como Content Credentials (também um Imprint raster durável), preservando qualquer credencial já presente no arquivo - tudo no seu dispositivo, antes de enviá-lo a qualquer lugar.",
+  "description": "Reivindique seu nome em qualquer mídia - imagem, PDF, vídeo ou áudio. Carimbe seu autor, direitos autorais e licença como Content Credentials, no seu dispositivo.",
   "a11yLabel": "Incorpore credenciais na sua imagem",
   "inputs.creator.label": "Artista / autor",
   "inputs.creator.help": "Seu nome - incorporado como autor/criador da imagem (EXIF Artist, XMP dc:creator e o Content Credential).",

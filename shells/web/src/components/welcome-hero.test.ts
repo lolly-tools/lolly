@@ -2,7 +2,7 @@
 /**
  * The first-visit greeting in place (components/welcome-hero.ts): it sits at the top
  * of the gallery, offers one action by audience, settles the welcome on any explicit
- * choice (and acknowledges the privacy notice it carries), leaves both alone on a
+ * choice, leaves it alone on a
  * route change, moves rather than repeats when the gallery re-mounts, arrives in the
  * gallery's first paint rather than before or after it, and keeps maintenance waiting
  * only while the mark draws.
@@ -27,8 +27,6 @@ globalThis.KeyboardEvent = dom.window.KeyboardEvent;
 const { showWelcomeHero, closeWelcomeHero, adoptWelcomeHero, languageMayBeWrong } = await import('./welcome-hero.ts');
 const { welcomeSettled, isWelcomeDismissed, WELCOME_DISMISSED_KEY } = await import('../lib/welcome-gate.ts');
 
-const PRIVACY = { privacy: { text: 'No accounts, no tracking. Your work stays on this device.', href: '/info/trust/privacy' }, ackPrivacy: (): void => { acked++; } };
-let acked = 0;
 
 const gallery = (): HTMLElement => {
   document.body.innerHTML = '<div class="gallery"><section class="featured"></section></div>';
@@ -53,9 +51,11 @@ async function maintenanceMayStart(): Promise<boolean> {
 test('the greeting opens at the top of the gallery, one sentence and one action', async () => {
   await fresh();
   const root = gallery();
-  const done = showWelcomeHero(root, { audience: 'demo', ...PRIVACY });
+  const done = showWelcomeHero(root, { audience: 'demo' });
   assert.equal(root.firstElementChild, hero(), 'the opening frame, above the featured row');
-  assert.equal(hero()!.querySelector('h2')!.textContent, 'Make the next thing beautiful.');
+  assert.equal(hero()!.querySelector('h2')!.textContent, 'Make it yours');
+  assert.equal(hero()!.querySelector('.welcome-hero-quiet'), null, 'no privacy line on the card; the gallery\'s own notice says what is stored');
+  assert.doesNotMatch(hero()!.textContent ?? '', /stays on this device|What we store|One colour is enough/);
   assert.equal(hero()!.querySelectorAll('.welcome-hero-go').length, 1, 'one primary action');
   assert.equal(hero()!.querySelector('.welcome-hero-go')!.getAttribute('data-choice'), 'make');
   assert.equal(hero()!.querySelector('.fauna-slot'), null, 'one thing to look at: the mark, no drawing beside the action');
@@ -64,11 +64,12 @@ test('the greeting opens at the top of the gallery, one sentence and one action'
   await done;
 });
 
-test('a blank install is offered Make it yours, and Lolly Demo Start making', async () => {
+test('a blank install is offered Design System Setup, and Lolly Demo Start making', async () => {
   await fresh();
-  const done = showWelcomeHero(gallery(), { audience: 'blank', ...PRIVACY });
+  const done = showWelcomeHero(gallery(), { audience: 'blank' });
   assert.equal(hero()!.querySelector('.welcome-hero-go')!.getAttribute('data-choice'), 'brand');
-  assert.match(hero()!.querySelector('.welcome-hero-go')!.textContent ?? '', /One colour is enough/);
+  assert.match(hero()!.querySelector('.welcome-hero-go')!.textContent ?? '', /Open Design System Setup/);
+  assert.equal((hero()!.textContent ?? '').match(/Make it yours/g)?.length, 1, 'the title says so once');
   closeWelcomeHero();
   await done;
 });
@@ -77,7 +78,7 @@ test('a blank install with a host to install through is offered colours in place
   await fresh();
   // The row only needs the host to exist until a colour is pressed.
   const brandHost = {} as NonNullable<Parameters<typeof showWelcomeHero>[1]['brandHost']>;
-  const done = showWelcomeHero(gallery(), { audience: 'blank', ...PRIVACY, brandHost });
+  const done = showWelcomeHero(gallery(), { audience: 'blank', brandHost });
   assert.equal(hero()!.querySelector('.welcome-hero-go'), null, 'no filled button: the colours carry the emphasis');
   assert.equal(hero()!.querySelectorAll('.welcome-hero-swatch[data-colour]').length, 5);
   const own = hero()!.querySelector('button[data-well-own]');
@@ -87,7 +88,8 @@ test('a blank install with a host to install through is offered colours in place
     assert.ok(swatch.getAttribute('aria-label'), 'each colour has a name');
     assert.equal(swatch.getAttribute('aria-pressed'), 'false');
   }
-  assert.match(hero()!.querySelector('.welcome-hero-well-label')!.textContent ?? '', /Make it yours\s+One colour is enough/);
+  assert.equal(hero()!.querySelector('.welcome-hero-well-label'), null, 'the title is the row\'s label');
+  assert.equal(hero()!.querySelector('.welcome-hero-well')!.getAttribute('aria-labelledby'), 'welcome-hero-title');
   assert.equal(hero()!.querySelector('[data-well-undo]'), null, 'nothing to undo before a colour is chosen');
   closeWelcomeHero();
   await done;
@@ -96,7 +98,7 @@ test('a blank install with a host to install through is offered colours in place
 test('Lolly Demo keeps Start making and offers the colours above the button', async () => {
   await fresh();
   const brandHost = {} as NonNullable<Parameters<typeof showWelcomeHero>[1]['brandHost']>;
-  const done = showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY, brandHost });
+  const done = showWelcomeHero(gallery(), { audience: 'demo', brandHost });
   assert.equal(hero()!.querySelector('.welcome-hero-go')!.getAttribute('data-choice'), 'make');
   assert.equal(hero()!.querySelectorAll('.welcome-hero-swatch[data-colour]').length, 5);
   assert.ok(hero()!.querySelector('button[data-well-own]'));
@@ -105,25 +107,24 @@ test('Lolly Demo keeps Start making and offers the colours above the button', as
   await done;
 });
 
-test('Start making opens Design, and settles the welcome and the privacy notice', async () => {
+test('Start making opens Design and settles the welcome', async () => {
   await fresh();
-  const done = showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY });
+  const done = showWelcomeHero(gallery(), { audience: 'demo' });
   click('[data-choice="make"]');
   assert.equal(await done, 'make');
   assert.equal(location.hash, '#/tool/design?template=brand-starter', 'Design, on the lorikeet poster');
   assert.equal(hero(), null);
   assert.equal(isWelcomeDismissed(), true);
-  assert.ok(acked > 0, 'the privacy notice the band carried is acknowledged');
 });
 
 test('the close button and Escape dismiss for good', async () => {
   await fresh();
-  let done = showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY });
+  let done = showWelcomeHero(gallery(), { audience: 'demo' });
   click('[data-choice="dismiss"]');
   assert.equal(await done, 'dismiss');
   assert.equal(localStorage.getItem(WELCOME_DISMISSED_KEY), '1');
   await fresh();
-  done = showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY });
+  done = showWelcomeHero(gallery(), { audience: 'demo' });
   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
   assert.equal(await done, 'dismiss');
   assert.equal(isWelcomeDismissed(), true);
@@ -131,7 +132,7 @@ test('the close button and Escape dismiss for good', async () => {
 
 test('dismissing animates the card away, then takes it out of the page', async () => {
   await fresh();
-  const done = showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY });
+  const done = showWelcomeHero(gallery(), { audience: 'demo' });
   click('[data-choice="dismiss"]');
   assert.equal(await done, 'dismiss');
   assert.equal(hero(), null, 'the greeting counts as gone at once');
@@ -144,7 +145,7 @@ test('dismissing animates the card away, then takes it out of the page', async (
 
 test('a route change takes the greeting down without settling anything', async () => {
   await fresh();
-  const done = showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY });
+  const done = showWelcomeHero(gallery(), { audience: 'demo' });
   window.dispatchEvent(new dom.window.HashChangeEvent('hashchange'));
   await done;
   assert.equal(hero(), null);
@@ -153,9 +154,9 @@ test('a route change takes the greeting down without settling anything', async (
 
 test('a gallery re-mount moves the same greeting instead of drawing a second', async () => {
   await fresh();
-  const first = showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY });
+  const first = showWelcomeHero(gallery(), { audience: 'demo' });
   const el = hero();
-  const again = showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY });
+  const again = showWelcomeHero(gallery(), { audience: 'demo' });
   assert.equal(again, first, 'the same promise');
   assert.equal(hero(), el, 'the same element, now in the new gallery');
   assert.equal(document.querySelectorAll('.welcome-hero').length, 1);
@@ -166,7 +167,7 @@ test('a gallery re-mount moves the same greeting instead of drawing a second', a
 test('a decision made while the page loads waits out of the page, then arrives with the gallery', async () => {
   await fresh();
   document.body.innerHTML = '<main id="view"><p class="loading">Loading</p></main>';
-  const done = showWelcomeHero(null, { audience: 'demo', ...PRIVACY });
+  const done = showWelcomeHero(null, { audience: 'demo' });
   assert.equal(hero(), null, 'never shown in the loading view, so nothing there is pushed down');
   const root = gallery();
   adoptWelcomeHero(root);
@@ -212,13 +213,13 @@ test('the mark waits to be seen, draws once, and maintenance waits only for the 
   await fresh();
   Object.assign(globalThis, { IntersectionObserver: SeenObserver });
   try {
-    const done = showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY });
+    const done = showWelcomeHero(gallery(), { audience: 'demo' });
     assert.ok(!hero()!.classList.contains('is-drawing') && !hero()!.classList.contains('is-settled'), 'not drawn before the band is seen');
     assert.equal(await maintenanceMayStart(), false, 'held while the mark waits and draws');
     show();
     assert.ok(hero()!.classList.contains('is-drawing'), 'drawing once in view');
     // A gallery re-mount mid-drawing shows the mark finished rather than drawing it twice.
-    void showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY });
+    void showWelcomeHero(gallery(), { audience: 'demo' });
     assert.ok(hero()!.classList.contains('is-settled'));
     assert.equal(localStorage.getItem('lolly-welcome-mark-drawn'), '1', 'a later visit shows the finished mark');
     assert.equal(await maintenanceMayStart(), true, 'released once drawn');

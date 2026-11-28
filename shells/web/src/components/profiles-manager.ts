@@ -76,6 +76,7 @@ import {
 import type { ColorProfilesHost, ProfileEntry } from '../lib/color-profiles.ts';
 import type { RenderingIntent } from '@lolly/engine';
 import { mountModal } from './modal.ts';
+import { wireFileDropZone } from '../lib/file-drop-zone.ts';
 import {
   PRESS_CONDITIONS, conditionFor, locationHint, fetchSourceFor, sourceIsExact,
   fetchPressProfile,
@@ -83,6 +84,7 @@ import {
 import type { FetchSource, PressCondition } from '../lib/press-conditions.ts';
 import { originContradicted } from '../lib/press-profile-embed.ts';
 import { icon } from '../lib/icons.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { announce } from '../a11y.ts';
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -318,8 +320,7 @@ export function openProfilesPanel(opts: ProfilesPanelOpts): Promise<void> {
       <div class="labp">
         <header class="labp-head">
           <h2 class="labp-title">${escape(t('Colour profiles'))}</h2>
-          <button type="button" class="labp-close" data-labp-close
-            aria-label="${escape(t('Close'))}">×</button>
+          ${closeButtonHtml({ className: 'labp-close', attrs: { 'data-labp-close': true } })}
         </header>
         ${/* Says what a profile BECOMES and that it stays here. It used to say "from
               your printer" and "a fourth comparison target", both of which the code
@@ -615,36 +616,20 @@ export function openProfilesPanel(opts: ProfilesPanelOpts): Promise<void> {
       file.click();
     }
 
-    async function take(files: FileList | null): Promise<void> {
-      if (!files?.length) return;
-      drop.classList.add('is-busy');
-      for (const f of Array.from(files)) {
+    wireFileDropZone(drop, file, {
+      async onFile(f) {
         const r = await ingestProfile(opts.host, f).catch(() => ({ error: 'unreadable' as const }));
         if (!isIngestFailure(r)) {
           say('');
           await opts.onIngest?.(r.digest);
-          continue;
+          return;
         }
         say(r.error === 'unreadable'
           ? t('That file isn’t a profile this can read.')
           : t('This profile has no gamut to compare against.'));
-      }
-      drop.classList.remove('is-busy');
-      file.value = '';
-      await refresh();
-    }
-
-    file.addEventListener('change', () => { void take(file.files); });
-    for (const evt of ['dragenter', 'dragover', 'dragleave', 'drop']) {
-      drop.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); });
-    }
-    for (const evt of ['dragenter', 'dragover']) {
-      drop.addEventListener(evt, () => drop.classList.add('is-dragover'));
-    }
-    for (const evt of ['dragleave', 'drop']) {
-      drop.addEventListener(evt, () => drop.classList.remove('is-dragover'));
-    }
-    drop.addEventListener('drop', (e) => { void take((e as DragEvent).dataTransfer?.files ?? null); });
+      },
+      onComplete: refresh,
+    });
 
     el.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;

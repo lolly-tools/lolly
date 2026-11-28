@@ -167,7 +167,7 @@ export const FORMAT_TOOL_HINTS: Record<string, string> = {
   TTF: '#/tool/font-convert',
   OTF: '#/tool/font-convert',
   // The PDF utilities.
-  PDF: '#/tool/compress-pdf',
+  PDF: '#/tool/pages',
   // A course package comes out of a Design deck's export panel and nowhere else.
   SCORM: '#/tool/design',
 };

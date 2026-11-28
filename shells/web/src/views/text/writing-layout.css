@@ -16,7 +16,7 @@
 .write-line-focus::before { content: ""; position: absolute; top: var(--write-line-y,0px); height: var(--write-line-height,1.6em); inset-inline: 0; width: min(100%,calc(var(--write-measure,100%) + 2 * var(--ui-space-panel))); margin-inline: auto; background: var(--ui-color-selection-surface); pointer-events: none; }
 .write-line-mirror { position: absolute; inset: 0 auto auto 0; visibility: hidden; pointer-events: none; }
 .write-workspace .write-fullscreen-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--ui-space-panel); padding: var(--ui-space-control-inline) var(--ui-space-panel); }
-.write-workspace.write-distraction { position: fixed; inset: 0; z-index: 10000; width: 100%; height: 100dvh; margin: 0; padding: 0; display: flex; flex-direction: column; background: var(--ui-color-surface-canvas); }
+.write-workspace.write-distraction { position: fixed; inset: 0; z-index: 10000; width: 100%; height: 100dvh; margin: 0; padding: var(--safe-top, 0px) 0 0; box-sizing: border-box; display: flex; flex-direction: column; background: var(--ui-color-surface-canvas); }
 .write-distraction > .text-heading, .write-distraction .text-document-toolbar, .write-distraction .text-editor-footer, .write-distraction .text-empty-help, .write-distraction .text-result, .write-distraction .text-result-tabs, .write-distraction .write-format, .write-distraction .text-editor-tools > span { display: none !important; }
 .write-distraction > [data-document] { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .write-distraction .text-work-area { min-height: 0; flex: 1; grid-template-columns: minmax(0,1fr) !important; gap: 0; }

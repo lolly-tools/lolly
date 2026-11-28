@@ -1,6 +1,6 @@
 # URL Mode
 
-Every Lolly tool opens from a link that already holds your choices. Send a colleague a QR code with their address filled in. Put a chart on a web page that redraws from its own link. Make two hundred name badges in a build step. Each one is the same kind of link, and none of them needs an account, a cookie or a server to remember anything.
+Every Lolly tool opens from a link that holds your choices, with no account, cookie or server to remember them. Use a link to send a filled-in QR code, embed a chart that redraws from its link or make two hundred name badges in a build step.
 
 ::: figure url-mode-anatomy
 A link has three parts: the tool, its inputs and a few reserved words that say what to do with the result.
@@ -13,13 +13,13 @@ A link has three parts: the tool, its inputs and a few reserved words that say w
 https://lolly.tools/t/qr-code?url=https%3A%2F%2Fexample.com&color=%23033633&format=png&export
 ```
 
-`/t/qr-code` is the tool. `url` and `color` are two of its inputs, each called by the `id` it has in the tool's manifest. `format=png&export` are reserved words that download a PNG as soon as the page opens. Everything else in a link is the design.
+`/t/qr-code` is the tool. `url` and `color` are inputs, named by their `id` in the tool's manifest. `format=png&export` are reserved words that download a PNG when the page opens. Everything else in a link is the design.
 
-The `/t/<id>` path is the canonical form. The address bar shows it once a tool has loaded, and Share and the embed URLs build on this form. The older hash form, `/#/tool/<id>?…`, still opens the same tool. A bare tool id as the path also works: `/qr-code?url=…` forwards to `/t/qr-code?url=…`.
+The `/t/<id>` path is the canonical form. The address bar shows this form once a tool loads, and Share and the embed URLs build on this form. The hash form `/#/tool/<id>?…` also opens the tool. A bare tool id as the path forwards: `/qr-code?url=…` goes to `/t/qr-code?url=…`.
 
 ![A QR code rendered straight from the URL, in the dark green passed as ?color](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Fexample.com%26color%3D%25230c322c&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=exp-url-qr-color&try=1)
 
-Parameters stack freely. This link sets five inputs, makes the canvas 600 by 600, hides the sidebar and downloads `event-qr.png`:
+Parameters combine. This link sets five inputs, makes the canvas 600 by 600, hides the sidebar and downloads `event-qr.png`:
 
 ```
 /t/qr-code?url=https://example.com/event&color=%230c322c&background=%23ffffff&ecl=H&padding=4&format=png&export&filename=event-qr&w=600&h=600&full
@@ -52,7 +52,7 @@ lolly qr-code --url=https://example.com --export=png --output=my-qr.png
 ```
 :::
 
-The CLI reads the same names through the same conversion code, written as `--key=value` instead of `?key=value`. Two things differ. `--export=<fmt>` takes the format, because writing a file is the export. `--output` gives the file's path, and without it the file goes to stdout:
+The CLI reads the same names as `--key=value` instead of `?key=value`, through the same conversion code. Two things differ. `--export=<fmt>` takes the format. `--output` gives the file's path; without that flag, the file goes to stdout:
 
 ```bash
 lolly qr-code --url=https://example.com --export=svg > qr.svg   # pipe SVG onward
@@ -60,7 +60,7 @@ lolly qr-code                                                  # list the tool's
 ```
 
 ::: warning A bare --export beside --format
-`--format=<fmt>` is accepted as another spelling of `--export=<fmt>`. Never pass a bare `--export` with `--format`: the bare form is read as the format `1` and the render stops.
+`--format=<fmt>` is another spelling of `--export=<fmt>`. Never pass a bare `--export` with `--format`: the bare form is read as the format `1` and the render stops.
 :::
 
 <!--i:eti-external-link-->
@@ -68,13 +68,13 @@ lolly qr-code                                                  # list the tool's
 
 ### Share a link
 
-The web app writes your inputs and result settings to the address bar as you work, so the address is always a bookmark of what you see. **Share** builds a cleaner link: the design and your chosen link options, without your editor selection, viewport or open panels.
+The web app writes your inputs and result settings to the address bar as you work. The address is always a bookmark of what you see. **Share** builds a link with the design and your chosen link options, without your editor selection, viewport or open panels.
 
-A shared link leaves out anything personal unless you choose to include it, such as the details from your profile. [What a link carries](/info/url-app-links.html#what-a-link-carries) lists what travels, what stays on your device and when to send a `.lolly` file instead.
+A shared link leaves out personal details, such as those from your profile, unless you choose to include them. [What a link carries](/info/url-app-links.html#what-a-link-carries) lists what travels, what stays on your device and when to send a `.lolly` file instead.
 
 ### Embed a tool in a page
 
-Add the `iframe` flag to embed a tool with its inputs filled in. The frame shows only the tool's rendered output, with none of the app's controls. It keeps nothing on the visitor's device: no saved session and no history entry.
+Add the `iframe` flag to embed a tool with its inputs filled in. The frame shows only the tool's rendered output. The frame keeps no saved session and no history entry on the visitor's device.
 
 ```html
 <iframe src="https://brand.example.com/t/qr-code?url=https://example.com&iframe"
@@ -82,29 +82,29 @@ Add the `iframe` flag to embed a tool with its inputs filled in. The frame shows
 ```
 
 ::: note Framing from another site
-A Lolly site frames inside its own origin and not inside anyone else's, because it ships `frame-ancestors 'self'` in its Content-Security-Policy. That stops a page you do not control from laying an invisible frame over Lolly's export buttons. Framing within one origin, such as your own marketing page showing your own Lolly, needs no change. To allow another site, the operator adds that origin to `frame-ancestors` in the deployment's Content-Security-Policy ([Deployment](/info/deployment.html)), naming each origin rather than allowing every site.
+Only pages on a Lolly site's own origin can frame that site, because the site ships `frame-ancestors 'self'` in its Content-Security-Policy. This stops a page you do not control from laying an invisible frame over Lolly's export buttons. Framing within one origin, such as your own marketing page showing your own Lolly, needs no change. To allow another site, the operator adds that origin to `frame-ancestors` in the deployment's Content-Security-Policy ([Deployment](/info/deployment.html)). Name each origin. Do not allow every site.
 :::
 
 ### Tool composition (portable embed URL)
 
-One tool can show another tool's render through a link that looks like an image address. Its query is ordinary URL-mode parameters:
+One tool can show another tool's render through a link that looks like an image address. The query has ordinary URL-mode parameters:
 
 ```html
 <img src="https://lolly.tools/tool/qr-code.svg?url=https://example.com&color=0c322c">
 ```
 
-**Nothing is fetched from `lolly.tools`.** A shell recognises this exact shape and renders the named tool on the device, showing a placeholder pixel until the render is ready. Anything that does not match the grammar exactly is treated as an ordinary image, and that strict match is the security boundary.
+**Nothing is fetched from `lolly.tools`.** A shell recognises this exact shape and renders the named tool on the device. A placeholder pixel shows until the render is ready. Anything that does not match the grammar exactly is an ordinary image. That strict match is the security boundary.
 
-The extension is the author's choice of fidelity. An `svg` child stays a true vector when the parent exports SVG or PDF, and rasterises crisply for PNG. A `png`, `jpg`, `jpeg` or `webp` child embeds as an image. `pdf` is in the grammar but is not inlined as a child.
+The extension sets the fidelity. An `svg` child stays vector when the parent exports SVG or PDF, and rasterises for PNG. A `png`, `jpg`, `jpeg` or `webp` child embeds as an image. `pdf` is in the grammar but is not inlined as a child.
 
-A child draws in the theme and [colourway](/info/colourways.html) of the document it sits in, so a QR code in a dark document is dark. A link that carries its own `_themes` keeps that choice for the groups it names.
+A child draws in the theme and [colourway](/info/colourways.html) of its document. A link that carries its own `_themes` keeps that choice for the groups it names.
 
-Lolly Design uses this path: a tool placed in a Lolly Design document is an embed URL rendered this way. Both this form and the declarative `composes` block in a manifest need the tool to declare the `compose` capability; [Composition and brand overlays](/info/tool-composition.html) covers the declarative form.
+A tool placed in a Lolly Design document is an embed URL rendered this way. This form and the declarative `composes` block in a manifest both need the tool to declare the `compose` capability. [Composition and brand overlays](/info/tool-composition.html) covers the declarative form.
 
 ::: details How a child's theme choices combine with the document's
-The document's choices fill in the groups the link does not name: `_themes={"":"light"}` inside a dark Beach document draws the child light, in Beach. A document that made no choice of its own draws in the choices its design system is set to, so those fill in the rest instead.
+The document's choices fill in the groups the link does not name: `_themes={"":"light"}` inside a dark Beach document draws the child light, in Beach. When the document made no choice, its design system's choices fill in the rest.
 
-In the web app this holds in the tool view, a framed tool, a multi-edit card, a batch row and a document export alike. A pasted tool link keeps its `_themes` in the canonical id it is stored under, so it reopens in the same choice; choices inherited from the document never enter the id. The CLI writes the same id, so a link it writes back keeps the child's `_themes`, but the CLI does not yet draw the child in those choices.
+In the web app this holds in the tool view, a framed tool, a multi-edit card, a batch row and a document export. A pasted tool link keeps its `_themes` in its stored canonical id and reopens in the same choice. Choices inherited from the document never enter the id. The CLI writes the same id, so a link the CLI writes back keeps the child's `_themes`. The CLI does not yet draw the child in those choices.
 :::
 
 ### Automate in a build step
@@ -124,11 +124,11 @@ lolly qr-code \
 <!--i:eti-lock-->
 ## Long and private links
 
-A readable link such as `?color=30BA78&theme=dark` can be edited by hand. A complex document is different. A Lolly Design file with dozens of boxes, each with coordinates, colours and text, runs to thousands of characters. Pasted links, social crawlers, QR codes and some servers still fail past about 2,000.
+A readable link such as `?color=30BA78&theme=dark` can be edited by hand. A Lolly Design file with dozens of boxes, each with coordinates, colours and text, runs to thousands of characters. Pasted links, social crawlers, QR codes and some servers fail past about 2,000.
 
 ### Packed links (`z`)
 
-For those, the app compresses the whole readable query into one `z` parameter:
+For those, the app compresses the readable query into one `z` parameter:
 
 ```
 /t/design?background=…&boxes=…&format=png   ← readable (for example 2,729 characters)
@@ -139,29 +139,29 @@ For those, the app compresses the whole readable query into one `z` parameter:
 The address bar switches to the packed form once the readable query passes about 1,800 characters.
 :::
 
-The app packs only when packing is shorter. On a short link the compression framing costs more than it saves, so links stay readable below the threshold. The Share dialog offers a **Shortest link** checkbox, ticked for large documents, that shows the saving.
+The app packs only when packing is shorter. On a short link the compression framing costs more than it saves, so links stay readable below the threshold. The Share dialog's **Shortest link** checkbox, ticked for large documents, shows the saving.
 
-A packed link decodes the same everywhere. The engine's `expandQuery()` turns `z` back into the plain query before anything reads it, so the web app, the CLI (`lolly <id> --z=1eJ…`) and pasted-link composition all behave as they do with the readable form. On-visit flags such as `export`, `full` and `_v` can ride beside `z` in readable form and still work.
+Before anything reads the query, the engine's `expandQuery()` turns `z` back into the plain query. The web app, the CLI (`lolly <id> --z=1eJ…`) and pasted-link composition all treat a packed link like the readable form. On-visit flags such as `export`, `full` and `_v` still work in readable form next to `z`.
 
 ::: details How the z codec works
 `z`'s value is `<tag><payload>`. Tag `1` is raw DEFLATE (RFC 1951, a frozen standard) through the platform's own `CompressionStream`, carried as base64url. It is the default and the shortest form in characters.
 
 Tag `2` is the same DEFLATE bytes carried as unpadded upper-case base32 (RFC 4648). It runs to about 20% more characters, but every character is in a QR code's alphanumeric set, which costs 5.5 bits a character instead of 8. The Share dialog's **QR** button writes large links this way, and the printed code comes out a version or two smaller.
 
-Both tags decode everywhere, and the tag versions the codec so a later variant cannot break a link written today. The packed form compresses the app's own canonical readable query, so there is no second encoding to keep in step and no lookup table on any server. A link packed in a browser decodes the same in Node's `zlib` and the CLI.
+Both tags decode everywhere. The tag versions the codec, so a later variant cannot break a link written today. The packed form compresses the app's canonical readable query: there is no second encoding to keep in step and no lookup table on any server. A link packed in a browser decodes the same in Node's `zlib` and the CLI.
 :::
 
-**Past what a link can hold.** When a document's readable content passes 256 KiB and the document has a saved copy, the address keeps its place, view and saved `slot` instead of the document, and a reload restores the document from that copy. **Share** says when a link cannot carry the document, points you at the `.lolly` file and offers a link that opens the saved copy on this device only ([What a link carries](/info/url-app-links.html#what-a-link-carries)).
+**Past what a link can hold.** When a document's readable content passes 256 KiB and the document has a saved copy, the address has its place, view and saved `slot` instead of the document. A reload restores the document from that copy. **Share** says when a link cannot carry the document, points you to the `.lolly` file and offers a link that opens the saved copy on this device only ([What a link carries](/info/url-app-links.html#what-a-link-carries)).
 
 ### Encrypted links (`zx`)
 
-A password can lock a link, with no server and no account. Tick **Password-protect this link** in the Share dialog and set a password, and the link changes to the `zx` form. On-visit flags still ride alongside in readable form.
+A password can lock a link, with no server and no account. Tick **Password-protect this link** in the Share dialog and set a password. The link changes to the `zx` form. On-visit flags still travel next to the encrypted value in readable form.
 
-The state is compressed, then encrypted with AES-256-GCM under a key derived from the password with PBKDF2-SHA256. Opening the link asks for the password and decrypts in the recipient's browser. A wrong password asks again; cancelling loads the tool at its defaults.
+The state is compressed, then encrypted with AES-256-GCM under a key derived from the password with PBKDF2-SHA256. Opening the link asks for the password and decrypts in the recipient's browser. A wrong password asks again. Cancelling loads the tool at its defaults. The CLI takes the password as a flag, `--zx=<token> --link-password=<password>`. The CLI never falls back to the defaults: a missing or wrong password exits 6 and renders nothing.
 
 - **The password never travels.** The link holds only the ciphertext with a random salt and IV. Send the password another way. Nothing stores the password, so nothing can recover a lost one.
-- **It opens interactively only.** An encrypted link opens in Lolly, but it cannot be embedded as an image, because the embed path renders without a person to ask. It renders at the defaults there.
-- **It is its own codec.** `zx` is `<tag><base64url>` of `salt‖iv‖ciphertext`, versioned apart from `z`. `expandQuery` never touches it: decryption happens only where the app can ask for the password.
+- **It cannot be embedded.** An encrypted link opens in Lolly. The embed path has no person to ask for the password, so an embedded image renders at the defaults.
+- **It is its own codec.** `zx` is `<tag><base64url>` of `salt‖iv‖ciphertext`, versioned apart from `z`. `expandQuery` never touches the encrypted value. Decryption happens only where a password is given: when the app asks for one or the CLI is passed `--link-password`.
 
 <!--i:eti-map-pin-->
 ## Where to go next

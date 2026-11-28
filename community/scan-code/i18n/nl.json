@@ -1,5 +1,4 @@
 {
   "name": "Scan",
-  "description": "Lees QR-codes en barcodes op je apparaat, zonder dat er iets naar een cloud gaat. Een lezer, geen opener: hij decodeert, classificeert en legt uit wat een code bevat - links, Wi-Fi, contacten, productcodes - zodat jij bewust kunt handelen. Kopiëren is altijd de eerste actie; openen, verbinden of toevoegen is een expliciete, weloverwogen tik.",
-  "featured.blurb": "Lees elke code, veilig en offline"
+  "description": "Lees QR-codes en barcodes op je apparaat. Kopiëren is altijd de eerste actie; openen, verbinden of toevoegen is een expliciete, weloverwogen tik."
 }

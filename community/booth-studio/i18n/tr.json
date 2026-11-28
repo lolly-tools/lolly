@@ -1,6 +1,6 @@
 {
   "name": "Stant",
-  "description": "Bir 3D etkinlik standını sponsor görselleriyle donat. Bir görsel bırakmak için herhangi bir panele tıkla, bir stand tasarımı seç ve sponsor sunumu için bir sabit görsel ya da döner sahne oluştur.",
+  "description": "Bir 3D etkinlik standını sponsor görselleriyle donat. Bir stand tasarımı seç ve sponsor sunumu için bir sabit görsel ya da döner sahne oluştur.",
   "a11yLabel": "Sponsor görselleriyle giydirilmiş {{default design \"an inline\"}} etkinlik stantının 3D maketi",
   "inputs.design.label": "Stant tasarımı",
   "inputs.design.help": "Stant şekli. Panel çalışman tasarımlar arasında taşınır - bir arka duvar arka duvar olarak kalır.",

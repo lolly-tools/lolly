@@ -1,84 +1,103 @@
 # Yedek yazı tipleri
 
-Bir tasarım sisteminin yazı tipleri çoğu zaman dünyadaki yazı sistemlerinin yalnızca bir kısmını kapsar. Lolly Demo başlıkları Outfit, metni SUSE ile dizer ve bu yazı tiplerinin hiçbirinde Kiril, Yunan, Arap, İbrani, Devanagari, Bengal, Tay, Çin, Japon veya Kore harfleri yoktur. Bir belge, tasarım sisteminin yazı tiplerinin çizemediği harfler içerdiğinde Lolly bu harfleri açık bir Noto yazı tipiyle çizer; böylece dışa aktarma, sözcükleri bir görsele çevirmek yerine onları vektör anahatları olarak korur.
+Bir tasarım sisteminin yazı tipleri bir harfi çizemediğinde Lolly, harfi açık bir Noto yazı tipiyle çizer; böylece dışa aktarma harfi görsel yerine vektör dış çizgi olarak korur. Lolly Demo'nun yazı tipleri, başlıklar için Outfit ve metin için SUSE, Kiril, Yunan, Arap, İbrani, Devanagari, Bengal, Tay, Çin, Japon veya Kore harflerini içermez.
 
-Tasarım sisteminin yazı tipleri her zaman önce gelir, tasarım sisteminin listelediği sırayla. Outfit'te Vietnam harfleri yoktur; bu yüzden Vietnamca bir başlık bunları, Lolly Demo'nun listesindeki sonraki yazı tipi olan SUSE'den alır. Bir yedek yazı tipi yalnızca bu yazı tiplerinin hiçbirinin çizemediği karakterleri çizer; böylece bir marka yazı tipi, başka bir yazı sistemindeki bir sözcüğün içinde bile sahip olduğu her harfi, rakamı ve işareti korur. Bir Çince karakteri olan bir marka yazı tipi o karakteri de korur.
+Tasarım sisteminin yazı tipleri, listelendikleri sırayla her zaman önce gelir. Outfit Vietnamca harfleri içermez; bu yüzden Vietnamca bir başlık bunları Lolly Demo'nun listesindeki sonraki yazı tipi olan SUSE'den alır. Yedek yazı tipi, yalnızca bu yazı tiplerinin hiçbirinin çizemediği karakterleri çizer. Bir marka yazı tipi, başka bir yazı sistemindeki sözcüğün içinde bile, Çin karakterleri dahil sahip olduğu her harfi, rakamı ve işareti korur.
 
-## Pakete neler dahil
+<!--i:eti-package-->
+## Pakette neler var
 
-On beş yazı tipi; hepsi sabitlenmiş bir commit'teki Google Fonts'tan gelir ve hepsi SIL Open Font License 1.1 altındadır. Her dosya indirme boyutuyla gösterilir.
+Tümü Google Fonts'tan sabitlenmiş bir commit'ten alınan on beş yazı tipi. Her dosya indirme boyutuyla gösterilir.
 
 | Yazı sistemi | Yazı tipi | Sürüm | İndirme |
 |---|---|---|---|
-| Arapça, Urduca ve Farsça harfler dahil | Noto Sans Arabic | 2.012 | 211 KB |
-| İbranice | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (Hintçe, Marathi, Nepalce) | Noto Sans Devanagari | 2.007 | 151 KB |
-| Bengalce | Noto Sans Bengali | 3.011 | 139 KB |
-| Tayca | Noto Sans Thai | 2.002 | 62 KB |
+| Urduca ve Farsça harfler dahil Arap | Noto Sans Arabic | 2.012 | 211 KB |
+| İbrani | Noto Sans Hebrew | 3.001 | 37 KB |
+| Devanagari (Hintçe, Marathice, Nepalce) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengal | Noto Sans Bengali | 3.011 | 139 KB |
+| Tay | Noto Sans Thai | 2.002 | 62 KB |
 | Kiril | Noto Sans, Kiril harfleri | 2.015 | 115 KB, italik 132 KB |
-| Yunanca | Noto Sans, Yunan harfleri | 2.015 | 77 KB, italik 83 KB |
-| Latin, Vietnamca ve diğer aksanlı harfler dahil | Noto Sans, Latin harfleri | 2.015 | 316 KB, italik 350 KB |
-| Basitleştirilmiş Çince, GB 2312 karakterleri | Noto Sans SC | 2.004 | 2.0 MB |
-| Geleneksel Çince, Big5 karakterleri | Noto Sans TC | 2.004 | 3.8 MB |
-| Japonca, Shift_JIS karakterleri | Noto Sans JP | 2.004 | 2.2 MB |
-| Korece, her Hangul hecesi ve KS X 1001 karakterleri | Noto Sans KR | 2.004 | 2.5 MB |
+| Yunan | Noto Sans, Yunan harfleri | 2.015 | 77 KB, italik 83 KB |
+| Vietnamca ve diğer aksanlı harfler dahil Latin | Noto Sans, Latin harfleri | 2.015 | 316 KB, italik 350 KB |
+| Basitleştirilmiş Çince, GB 2312 karakterleri | Noto Sans SC | 2.004 | 2,0 MB |
+| Geleneksel Çince, Big5 karakterleri | Noto Sans TC | 2.004 | 3,8 MB |
+| Japonca, Shift_JIS karakterleri | Noto Sans JP | 2.004 | 2,2 MB |
+| Korece, her Hangul hecesi ve KS X 1001 karakterleri | Noto Sans KR | 2.004 | 2,5 MB |
 
-Her yazı tipinin ağırlık ekseni bütün olarak korunur; bu yüzden bir tasarımın istediği her ağırlık yine çizilir ve kalın bir Çince, Japonca veya Korece başlık kalın olur. Noto Sans yazı tiplerinin genişlik ekseni normalde sabitlenmiştir, bu da her dosyayı yarıya indirir; Çince, Japonca ve Korece yazı tiplerinin genişlik ekseni yoktur. Noto Sans yazı sistemine göre bölünmüştür; bu yüzden bir Kiril sözcük yalnızca Kiril harflerini indirir. Anahatlar, hiç değiştirilmemiş özgün anahatlardır.
+Her yazı tipi kalınlık eksenindeki tüm kalınlıkları korur; böylece kalın bir Çince, Japonca veya Korece başlık kalın görünür. Noto Sans yazı tiplerinin genişlik ekseni normalde sabitlenmiştir; bu, her dosyanın boyutunu yarıya indirir. Çince, Japonca ve Korece yazı tiplerinde genişlik ekseni yoktur. Noto Sans yazı sistemine göre bölünmüştür; bu yüzden Kiril alfabesindeki bir sözcük yalnızca Kiril harflerini indirir. Dış çizgiler özgün kaynaktakiyle aynıdır.
 
-Yazı tipleri tek bir paylaşılan klasörde durur, `community/fallback-fonts`; emoji setleri nasıl paylaşılıyorsa aynı şekilde her tasarım sistemine `/catalog/packs/fallback-fonts/` adresinden sunulur. `scripts/import-fallback-fonts.ts`, dosyaları `scripts/data/fallback-fonts.json` içinde sabitlenmiş özgün yazı tiplerinden üretir, her özgün dosyayı kayıtlı SHA-256 değerine karşı denetler ve lisans metinlerini yazı tiplerinin yanına yazar.
+::: details Yazı tiplerinin yeri ve nasıl derlendikleri
+Yazı tipleri tek bir ortak klasörde, `community/fallback-fonts` içinde bulunur ve emoji setleri gibi `/catalog/packs/fallback-fonts/` yolundan her tasarım sistemine sunulur. `scripts/import-fallback-fonts.ts`, dosyaları `scripts/data/fallback-fonts.json` içinde sabitlenmiş kaynak yazı tiplerinden derler, her kaynak dosyayı kayıtlı SHA-256 özetiyle denetler ve lisans metinlerini yazı tiplerinin yanına yazar.
+:::
 
+<!--i:eti-globe-->
 ## Çince, Japonca ve Korece
 
-Bütün bir Çince, Japonca veya Korece yazı tipi 9.6 MB ile 17.8 MB arasındadır; bu yüzden bu yazı tiplerinin her biri okurlarının her gün kullandığı ulusal karakter kümesine, ayrıca akan metnin noktalama işaretlerine, kanasına, tam genişlikli biçimlerine ve simgelerine göre kesilir:
+Kırpılmamış bir Çince, Japonca veya Korece yazı tipi 9,6 MB ile 17,8 MB arasındadır. Her biri kendi ulusal karakter kümesiyle ve düz metindeki noktalama işaretleri, kana, tam genişlikli biçimler ve sembollerle sınırlanır:
 
-- Basitleştirilmiş Çince: GB 2312, yaygın 6,763 hanzi ve simgeleri, toplam 7,522 karakter.
-- Geleneksel Çince: Big5, 13,053 hanzi'si ve simgeleri, toplam 13,629 karakter. Hong Kong Supplementary Character Set dahil değildir.
-- Japonca: Windows'un ve web'in okuduğu biçimiyle Shift_JIS; yani JIS X 0208 ile 髙 ve 﨑 gibi adların ihtiyaç duyduğu NEC ve IBM eklemeleri, her kana ve yarım genişlikli katakana, toplam 7,432 karakter.
-- Korece: 11,172 Hangul hecesinin tamamı ve KS X 1001 ile onun 4,888 hanja'sı, toplam 17,082 karakter.
+- Basitleştirilmiş Çince: GB 2312, yaygın 6.763 hanzi ve sembolleri, toplam 7.522 karakter.
+- Geleneksel Çince: Big5, 13.053 hanzi ve sembolleri, toplam 13.629 karakter. Hong Kong Ek Karakter Kümesi dahil değildir.
+- Japonca: Windows ve web'in okuduğu biçimiyle Shift_JIS, yani 髙 ve 﨑 gibi adların ihtiyaç duyduğu NEC ve IBM ekleriyle JIS X 0208, tüm kana ve yarım genişlikli katakana, toplam 7.432 karakter.
+- Korece: 11.172 Hangul hecesinin tümü ve 4.888 hanja içeren KS X 1001, toplam 17.082 karakter.
 
-Latin, Yunan ve Kiril harfleri bu dört yazı tipinin dışında bırakılır, çünkü onları tasarım sisteminin yazı tipleri ve yukarıdaki yazı tipleri çizer. Kümeler Encoding Standard'ın sabitlenmiş bir commit'teki dizin dosyalarından okunur; bu yüzden yeniden derleme aynı dosyaları verir.
+Bu dört yazı tipi, tasarım sisteminin yazı tiplerinin ve yukarıdaki yazı tiplerinin çizdiği Latin, Yunan ve Kiril harflerini dışarıda bırakır. Kümeler, Encoding Standard'ın sabitlenmiş bir commit'teki dizin dosyalarından gelir; bu yüzden yeniden derleme aynı dosyaları verir.
 
-Çince, Japonca ve Korece karakterlerin çoğunu paylaşır ama her biri bunların birçoğunu farklı çizer. Aynı 直 karakteri Çincede bir biçimde, Japoncada başka bir biçimde yazılır. Bu yüzden bir metin parçası paylaşılan karakterlerinin hepsini bu yazı tiplerinden birinden alır, asla ikisinden değil, ve Lolly o yazı tipini şu sırayla seçer:
+Çince, Japonca ve Korece karakterlerinin çoğunu paylaşır ama birçoğunu farklı çizer. Örneğin 直, Çincede bir şekilde, Japoncada başka bir şekilde yazılır. Bir metin parçası, ortak karakterlerinin tamamını bu yazı tiplerinden yalnızca birinden alır, asla ikisinden almaz. Lolly yazı tipini şu sırayla seçer:
 
-1. Metin parçasının dili; öğesinin veya belgede çevresindeki en yakın öğenin `lang` değerinden. Sertifikanın Language ayarı gibi bir aracın dil ayarı bunu belirler. Lolly'nin kendi arayüzünün dili ve tasarım sisteminin dili sayılmaz; bu yüzden bir belge herkes için aynı dışa aktarılır.
-2. Metin parçasının yazı sistemi: kana Japonca, Hangul Korece demektir. Parçanın kendisinde ikisi de yoksa bütün belge okunur; bu yüzden Japonca bir belgede yalnızca kanji'den oluşan bir başlık Japonca çizilir. Hem kana hem Hangul içeren bir belge burada hiçbir şeyi kesinleştirmez.
-3. Parçada ya da yoksa belgede yalnızca Geleneksel Çincenin kullandığı 體 veya 說 gibi bir karakter, aynı metin yalnızca Basitleştirilmiş Çincenin kullandığı bir karakter de içermedikçe Geleneksel Çince demektir.
+1. Parçanın dili, kendi öğesinin veya belgede onu çevreleyen en yakın öğenin `lang` değerinden alınır. Sertifikadaki Language gibi bir aracın dil ayarı bunu belirler. Lolly'nin kendi arayüzünün dili ve tasarım sisteminin dili hesaba katılmaz; böylece belge herkes için aynı şekilde dışa aktarılır.
+2. Parçanın yazı sistemi: kana Japonca, Hangul Korece anlamına gelir. Parçada ikisi de yoksa Lolly belgeyi okur; böylece Japonca bir belgedeki yalnızca kanji içeren başlık Japonca çizilir. Hem kana hem Hangul içeren bir belge bu adımda bir sonuca varılmasını sağlamaz.
+3. Parçada veya yoksa belgede 體 veya 說 gibi yalnızca Geleneksel Çincenin kullandığı bir karakter varsa bu, Geleneksel Çince anlamına gelir; ancak aynı metinde yalnızca Basitleştirilmiş Çincenin kullandığı bir karakter de varsa bu kural geçerli olmaz.
 4. Aksi halde Basitleştirilmiş Çince.
 
-Seçilen yazı tipinde olmayan bir karakter asla diğer üç yazı tipinden birinden alınmaz. Aşağıda anlatıldığı gibi görsel olarak kalır. Seçilen yazı tipinde olmayan kana veya Hangul, örneğin Japonca işaretlenmiş bir satırdaki Korece sözcükler, yine Japonca veya Korece yazı tipinden gelebilir; ama yalnızca o yazı tipi satırın hiçbir paylaşılan karakterini çizmeyecekse.
+Seçilen yazı tipinde olmayan bir karakter diğer üç yazı tipinden asla alınmaz. Görsel olarak kalır. Japonca olarak işaretlenmiş bir satırdaki Korece sözcükler gibi, seçilen yazı tipinde olmayan kana veya Hangul yine de Japonca veya Korece yazı tipinden gelebilir; ancak yalnızca o yazı tipi satırın hiçbir ortak karakterini çizmeyecekse.
 
-Sayfada, bu dillerden ikisini içeren bir tuval her iki yazı tipini de listeler ve tarayıcı paylaşılan karakterleri ilkiyle çizer. Dışa aktarma her metin parçasını kendi yazı tipiyle çizer.
+Sayfada, bu dillerden ikisini içeren bir tuval her iki yazı tipini de listeler ve tarayıcı ortak karakterleri ilk yazı tipiyle çizer. Dışa aktarma her parçayı kendi yazı tipiyle çizer.
 
-## Bir yazı tipi ne zaman iner
+<!--i:eti-download-->
+## Yazı tipi ne zaman indirilir
 
-Bir belge, tasarım sisteminin hiçbir yazı tipinin çizemediği bir karakter içermedikçe hiçbir şey inmez. İngilizce bir belge veya tasarım sisteminin kapsadığı herhangi bir dildeki belge asla yedek yazı tipi indirmez. İngilizce bir satırdaki ★ veya ※ gibi bir simge asla Çince, Japonca veya Korece bir yazı tipi indirmez.
+Belge, tasarım sistemindeki hiçbir yazı tipinin çizemediği bir karakter içerene kadar hiçbir şey indirilmez. İngilizce bir satırdaki ★ veya ※ gibi bir sembol hiçbir zaman Çince, Japonca veya Korece yazı tipi indirmez.
 
-Bir belge bir yazı tipine ilk kez ihtiyaç duyduğunda Lolly o tek yazı tipini, o tek yazı sistemi için indirir ve cihazında tutar. Japonca bir belge yalnızca Japonca yazı tipini, 2.2 MB, Geleneksel Çince bir belge de 3.8 MB'lık Geleneksel yazı tipini indirir. O andan sonra yazı sistemi çevrimdışı çizilir ve katalog temizlendiğinde yazı tipi kalır. Yazı tipi kataloğun kendi dosyalarının yanında tutulur, asla yüklediğin yazı tiplerinin arasında değil; bu yüzden markanın yazı tipi listesinde görünmez.
+Bir belge ilk kez yedek yazı tipine ihtiyaç duyduğunda Lolly yalnızca o yazı tipini indirir ve cihazında tutar. Japonca bir belge yalnızca 2,2 MB'lık Japonca yazı tipini, Geleneksel Çince bir belge ise 3,8 MB'lık Geleneksel Çince yazı tipini indirir. Bundan sonra yazı sistemi çevrimdışı çizilir ve katalog temizlendiğinde yazı tipi kalır. Yazı tipi, yüklediğin yazı tiplerinin arasında değil, kataloğun dosyalarıyla birlikte tutulur ve markanın yazı tipi listesinde görünmez.
 
 Komut satırı, terminal uygulaması ve MCP sunucusu aynı dosyaları diskten okur; bu yüzden indirme gerekmez.
 
+<!--i:eti-eye-->
 ## Sayfada ve dışa aktarmada
 
-Sayfa, dışa aktarmayla aynı yedek yazı tipini kullanır. Bu olmasaydı bir tarayıcı bu harfleri bir sistem yazı tipiyle çizerdi, dışa aktarma ise Noto kullanırdı ve bunları içeren bir satırın genişliği ikisi arasında değişirdi. Lolly yedek yazı tipini yalnızca o tuvalde, tasarım sisteminin yazı tipi listesinin sonuna, tasarım sisteminin kendi yazı tiplerinden sonra ve herhangi bir sistem yazı tipinden önce ekler. Kendi yazı tipi listesini stillerinde veya öğelerinde belirleyen bir araç yedek yazı tipini aynı yere alır: listenin verdiği yazı tiplerinden sonra ve herhangi bir sistem yazı tipinden önce. Tasarım sisteminin kapsadığı bir tuval yazı tipi listesini tamamen eskisi gibi korur.
+Sayfa, dışa aktarmayla aynı yedek yazı tipini kullanır; böylece bu harfleri içeren bir satırın genişliği ikisinde de aynıdır. Lolly yalnızca o tuvalde yedek yazı tipini tasarım sisteminin kendi yazı tiplerinden sonra ve tüm sistem yazı tiplerinden önce ekler. Stillerinde veya öğelerinde kendi yazı tipi listesini belirleyen bir araç da yedek yazı tipini aynı konumda alır. Tasarım sisteminin kapsadığı bir tuvalin yazı tipi listesi değişmez.
 
-Sayfa, bir yazı tipi listesi `system-ui` veya Helvetica gibi bir sistem yazı tipiyle başlıyorsa listeye dokunmaz, çünkü dışa aktarma o metni tasarım sisteminin yazı tipleriyle çizer, sayfa ise çizmez.
+Yazı tipi listesi `system-ui` veya Helvetica gibi bir sistem yazı tipiyle başlıyorsa sayfa listeyi olduğu gibi bırakır; çünkü dışa aktarma o metni tasarım sisteminin yazı tipleriyle çizerken sayfa böyle yapmaz.
 
-Bir PDF'te, hangi metin ayarını seçersen seç sözcükler yedek yazı tipiyle çizilmiş anahatlara dönüşür; çünkü canlı PDF metni, gömülü yazı tipinde olmayan bir yazı sistemini taşıyamaz. SVG, EMF, EPS, DXF ve WMF'te metin anahatlara dönüştürüldüğünde anahatlara dönüşürler; metin canlı bırakıldığında onları eskisi gibi okuyucunun kendi yazı tipleri çizer. Bir yedek yazı tipi bir dışa aktarmanın bir kısmını çizdiğinde dışa aktarma paneli şuna benzer bir not gösterir:
+PDF'te, metin ayarı ne olursa olsun sözcükler yedek yazı tipinde dış çizgilere dönüşür; çünkü canlı PDF metni, gömülü yazı tipinde olmayan bir yazı sistemini taşıyamaz. SVG, EMF, EPS, DXF ve WMF'te, metin dış çizgilere dönüştürüldüğünde onlar da dış çizgilere dönüşür. Metin canlı tutulduğunda bunları okuyucunun kendi yazı tipleri çizer. Dışa aktarmanın bir bölümünü yedek yazı tipi çizdiğinde, dışa aktarma paneli şöyle bir not gösterir:
 
-> Japonca metin Noto Sans JP ile çizildi, çünkü bu tasarım sisteminin yazı tiplerinde bu harfler yok.
+> Japonca metin Noto Sans JP ile çizilir; çünkü bu tasarım sisteminin yazı tipleri o harfleri içermiyor.
 
-Komut satırı aynı cümleyi bir not olarak yazdırır.
+Komut satırı aynı cümleyi not olarak yazdırır.
 
-## Görsel olarak kalanlar
+<!--i:eti-image-->
+## Neler görsel olarak kalır
 
-Dört ulusal kümenin dışındaki bir karakter için yedek yazı tipi yoktur. 𠮷 gibi nadir karakterler, Hong Kong için eklenen ek kümedeki karakterler ve Tamil, Etiyopya veya Süryani gibi yedek yazı tipi olmayan yazı sistemleri aynı şekilde ele alınır. Bir PDF'te birini içeren satır 300 dpi'lık bir görsel olarak girer ve dışa aktarma paneli yazı sistemlerini listeler. Bir SVG'de metin parçası canlı metin olarak kalır ve onu okuyucunun kendi yazı tipleri çizer.
+𠮷 veya bir Hong Kong ek karakteri gibi dört ulusal kümenin dışındaki bir karakterin yedek yazı tipi yoktur. 𠮷 gibi nadir karakterler, Hong Kong için ek kümeyle eklenen karakterler ve Tamil, Etiyopya veya Süryani gibi yedek yazı tipi olmayan yazı sistemlerinin tümü aynı şekilde işlenir. Tamil, Etiyopya veya Süryani gibi bir yazı sisteminin de yedek yazı tipi yoktur. PDF'te böyle metin içeren satır 300 dpi görsel olarak eklenir ve dışa aktarma paneli yazı sistemlerini listeler. SVG'de metin parçası, okuyucunun kendi yazı tiplerinin çizdiği canlı metin olarak kalır.
 
+::: details EPS, WMF ve EMF dışa aktarmalarında
+**Outline fonts** açık olan EPS, WMF veya EMF'te başvurulacak canlı metin yoktur; bu yüzden metin parçası burada da 300 dpi görsel olarak eklenir. Görsel, metnin rengini yalnızca harflerin olduğu yerde boyar; böylece arka plan görünür. Dışa aktarma paneli yazı sistemlerini listeler. Görsel yalnızca dik çizilir; bu yüzden döndürülmüş veya eğilmiş bir metin parçası, parçayı alıntılayan bir mesajla dışa aktarmayı durdurur. WMF veya EMF'te görsel, maske ve boyamadan oluşan bir bitmap işlem çiftidir. Microsoft Office ve LibreOffice bunları amaçlandığı gibi çizer. Inkscape gibi bunları yok sayan bir uygulama, sözcükleri beyaz bir kutu üzerinde gösterir.
+
+**Outline fonts** kapalı olan bir EMF, böyle bir parçayı okuyucunun kendi yazı tiplerinin çizdiği canlı metin olarak tutar. Harf aralığı olan metin gibi, canlı EMF metninin taşıyamadığı parçalar istisnadır. Lolly o parçayı dış çizgilere dönüştürür; bu yüzden hiçbir yazı tipinin çizemediği bir parça orada da görsel olarak eklenir.
+:::
+
+::: warning DXF dışa aktarması, hiçbir yazı tipinin çizemediği metinde durur
+DXF, dış çizgilere ihtiyaç duyan kesim makinelerine ve CAD yazılımlarına gider; bu yüzden hiçbir yazı tipinin çizemediği bir metin parçası DXF dışa aktarmasını durdurur. Mesaj parçayı alıntılar ve yazı sistemini belirtir. O harfleri içeren bir yazı tipi ekle veya SVG ya da PDF dışa aktar.
+:::
+
+<!--i:eti-checklist-->
 ## Dışa aktarmadan önceki denetim
 
-Lolly Design'ın **Before you export** kartı ve `lolly check` komutunun `render` denetimleri, hiçbir yazı tipinin çizemediği metni bildirir. Yedek yazı tiplerini bir dışa aktarmanın saydığı gibi sayarlar, her yazı tipinin sahip olduğu karakterlerin aynı listelerinden; bu yüzden bir yedek yazı tipinin çizdiği metin bildirilmez. Tamil gibi yedek yazı tipi olmayan bir yazı sistemi ile ulusal kümelerin dışındaki bir Çince, Japonca veya Korece karakter yine de bildirilir, çünkü dışa aktarma bunları görsel olarak veya canlı metin olarak çizer. Denetim bu listeleri katalogdan okur ve hiçbir yazı tipi indirmez.
+Lolly Design'ın **Before you export** kartı ve `lolly check` komutunun `render` denetimleri, hiçbir yazı tipinin çizemediği metinleri bildirir. Yedek yazı tiplerini, dışa aktarmanın yaptığı gibi, aynı yazı tipi bazındaki karakter listelerinden hesaba katarlar; bu yüzden yedek yazı tipinin çizdiği metin bildirilmez. Tamil gibi yedek yazı tipi olmayan bir yazı sistemi ve ulusal kümelerin dışındaki bir Çince, Japonca veya Korece karakter yine de bildirilir; çünkü dışa aktarma bunları görsel veya canlı metin olarak çizer ve DXF dışa aktarması bunlarda durur. Denetim bu listeleri katalogdan okur ve hiçbir yazı tipi indirmez.
 
-## Lisanslar ve atıflar
+<!--i:eti-stamp-->
+## Lisanslar ve kaynak belirtimleri
 
-Her yedek yazı tipi SIL Open Font License 1.1 altındadır ve her katalog girdisi bu lisansı lisans metninin bir özetiyle (hash) kaydeder; böylece [Yaratıcı haklar ve atıflar](/info/creative-rights.html) içindeki hak kuralları lisansı diğer her yazı tipininki gibi okur. Lisans metinleri yazı tiplerinin yanında durur. Noto Sans dosyaları bir Reserved Font Name bildirmez. Çince, Japonca ve Korece yazı tipleri Adobe'nindir ve Source adını saklı tutar; kesilmiş dosyalar bu adı kullanmayan Noto adlarını korur.
+Her yedek yazı tipi SIL Open Font License 1.1 kapsamındadır. Her katalog girdisi bu lisansı, lisans metninin özetiyle birlikte kaydeder; böylece [Yaratıcı hakları ve kaynak belirtimleri](/info/creative-rights.html) içindeki hak kuralları lisansı diğer yazı tiplerinin lisansları gibi okur. Lisans metinleri yazı tiplerinin yanında bulunur. Noto Sans dosyaları hiçbir Reserved Font Name belirtmez. Çince, Japonca ve Korece yazı tipleri Adobe'ye aittir ve Source adını saklı tutar. Kırpılmış dosyalar, bu adı kullanmayan Noto adlarını korur.
 
-Lisans, koşullarının bu yazı tipleriyle yapılmış belgelere uygulanmadığını söyler. Bir dışa aktarma, tasarım sisteminin kendi yazı tiplerinde olduğu gibi yalnızca kullandığı harflerin çizilmiş anahatlarını içerir ve Lolly bir yedek yazı tipi için hiçbir yazı tipi programı, hiçbir atıf satırı ve hiçbir yeni Content Credentials girdisi eklemez.
+Lisans, şartlarının bu yazı tipleriyle oluşturulan belgelere uygulanmadığını söyler. Dışa aktarılan dosya, tasarım sisteminin kendi yazı tiplerinde olduğu gibi, yalnızca kullandığı harflerin dış çizgilerini içerir. Lolly, yedek yazı tipi için yazı tipi programı, kaynak belirtme satırı veya yeni bir içerik kimlik bilgisi kaydı eklemez.

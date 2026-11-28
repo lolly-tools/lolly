@@ -1,6 +1,6 @@
 # Settings
 
-Settings is where you change how Lolly works for you: your details, the design system you use, accessibility, what is stored on this device and what is ready offline. Open it with **Settings** in the bar at the foot of the home screen, or from your avatar menu. It opens on **Preferences**, with four more tabs alongside.
+Settings has your details, your design system, accessibility, storage on this device and offline downloads. Open **Settings** from the bar at the foot of the home screen or from your avatar menu, and it opens on **Preferences**.
 
 | Tab | Address | What it holds |
 |---|---|---|
@@ -10,73 +10,73 @@ Settings is where you change how Lolly works for you: your details, the design s
 | **Capabilities** | `#/settings?tab=caps` | Everything Lolly can do, as searchable cards |
 | **Activity & stats** | `#/settings?tab=activity` | The catalogue, your local counters and recent work |
 
-Each tab has its own address, and old `#/profile` and `#/d` links still open the right place, down to individual settings.
+Old `#/profile` and `#/d` links still open the right place, down to individual settings.
 
 <!--i:eti-sliders-->
 ## Preferences
 
-Preferences is one long page with a **settings rail** down the side and a **Search settings** field above the rail that filters it as you type. Every section opens directly from a link of the form `#/settings?focus=<section-id>`, for example `#/settings?focus=storage-section`.
+Preferences is one long page with a **settings rail** down the side. The **Search settings** field above the rail filters the rail as you type. Each section has a link of the form `#/settings?focus=<section-id>`, such as `#/settings?focus=storage-section`.
 
 - <!--i:usercheck--> **Your details** - your name, contact details and headshot, and the **Use my details to create** switch. [Profiles](/info/profile.html) explains how tools use them.
 - <!--i:seal--> **Content Credentials** - the optional verified identity that signs your exports. See [Content Credentials](/info/content-credentials-identity.html).
 - <!--i:palette--> **Design systems** - switch, add, hide or remove design systems. [Lolly Design System Setup](/info/brand-studio.html#manage-your-design-systems) covers each action.
 - <!--i:moon--> **Appearance** - the theme (Light, Dark or Brand, which paints the app in your palette), **Your colourway** when the design system offers more than one ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)) and **Interface follows the design system**.
-- <!--i:sparkle--> **Emoji** - the set your emoji are drawn from when you start something new, with its artwork licence, and how strongly your palette recolours them (**Off**, **Subtle**, **Strong**, **Full**, **Mono** or **Duotone**). **Keep skin tones and flags** leaves those in their own colours. Work you already made keeps the set it was made with.
+- <!--i:sparkle--> **Emoji** - the emoji set for new work, with its artwork licence, and how strongly your palette recolours emoji (**Off**, **Subtle**, **Strong**, **Full**, **Mono** or **Duotone**). **Keep skin tones and flags** leaves those in their own colours. Work you already made keeps its set.
 - <!--i:eyeoff--> **Accessibility** - four comfort switches, plus Sound and Neurospicy Mode. See [Accessibility](#accessibility).
 - <!--i:link--> **Connected services** - storage you connect, such as Dropbox, Google Drive, OneDrive, Nextcloud or S3, and **Sync across devices**. See [Sync your devices](/info/sync.html).
 - <!--i:globe--> **Trusted sites** - the sites a Lolly Design web-page box or a Lolly Sandbox demo may contact without asking, and, where the server offers it, **Allow pages from any site**. The [Privacy Policy](/info/privacy.html) lists what each request sends.
 - <!--i:download--> **Your renders** - **Save my renders to my library** keeps a copy of each image, audio clip and video you download in Assets, under a Renders tag.
 - <!--i:database--> **Storage** - what Lolly keeps on this device, and the buttons that clear or carry your data. See [Storage](#storage).
 - <!--i:cpu--> **Available offline** - download what you need before you lose the connection. See [Available offline](#available-offline).
-- <!--i:folder--> **Hot folder** - in the desktop app, watch one folder and pull anything dropped into it into Lolly, through the same chooser a drag-and-drop gets.
+- <!--i:folder--> **Hot folder** - in the desktop app, Lolly watches one folder and brings in anything dropped there, through the same chooser as drag and drop.
 - <!--i:clock--> **Your activity** - what you have made on this device, counted locally.
-- <!--i:sliders--> **Feature flags** - turn parts of the app on or off, such as **Print preflight** or **Strip metadata from uploads**. **Performance UI** gives the app a simpler look that is cheaper to draw. Lolly can turn it on by itself on a device that struggles, and the line under the switch says when and why, with **Allow again** ([how it decides](/info/configuration.html#curating-what-people-see)).
+- <!--i:sliders--> **Feature flags** - turn parts of the app on or off, such as **Print preflight** or **Strip metadata from uploads**. **Performance UI** gives the app a simpler look that is cheaper to draw. Lolly can turn Performance UI on by itself on a slow device. The line under the switch then says when and why, with **Allow again** ([how it decides](/info/configuration.html#curating-what-people-see)).
 - <!--i:server--> **Lolly instance** - where this install gets its tools and catalogue. See [Lolly instance](#lolly-instance).
 
-The theme cards are live previews and apply the moment you pick one, on this device only.
+The theme cards are live previews. A theme applies as soon as you pick one, on this device only.
 
 ![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ### Accessibility
 
-**Settings → Preferences → Accessibility** holds four comfort settings for the app around your work. Each is off until you turn it on, and none of them reaches inside a tool canvas or an export, so a calmer app never moves a pixel of the file you ship.
+**Settings → Preferences → Accessibility** holds four comfort settings for the app. Each is off until you turn it on, and none of them reaches inside a tool canvas or an export, so a calmer app never moves a pixel of the file you ship. Each is off by default. None of them changes a tool canvas or an export.
 
 - <!--i:pause--> **Reduce motion** turns off the app's transitions, slides and flourishes.
-- <!--i:photos--> **Hide colourful previews** swaps the gallery's preview artwork for calm icon-and-text cards, and quietens project thumbnails so they stay recognisable without shouting.
+- <!--i:photos--> **Hide colourful previews** swaps the gallery's preview artwork for icon-and-text cards and tones down project thumbnails, which stay recognisable.
 - <!--i:sliders--> **High contrast** strengthens the app's borders, text and focus rings. Your brand colours and the canvas stay as you set them.
 - <!--i:font--> **Large text** enlarges the app's labels, menus and button text.
 
 **Dominant hand** (Right or Left) sets which side the controls take when Lolly shows two panes, on a foldable or a near-square tablet. **Swap sides** in a pane's header changes this too.
 
-These settings live on your profile, so they travel in a profile export and arrive on the next install with your name and sessions. A small device-only copy applies them before the first paint.
+These settings live on your profile, so they travel in a profile export with your name and sessions. A device-only copy applies them before the first paint.
 
-The same card holds **Sound**, a gentle layer of assistive sounds for what you do (arriving in the gallery, a Content Credentials result, closing a panel), and **Neurospicy Mode**, a calm focus track. Turning Neurospicy on opens a small player in the corner that follows you across the app. There you pick a track, skip, set the volume and minimise or close the player. Tracks include Lolly's own generated stations, ambient loops and beats, your own audio and internet radio stations, which need a connection. Both are off by default and remembered, and turning Sound off mutes the focus track too. The profile menu and **This device** carry the same switch.
+The same card has **Sound**, soft assistive sounds for actions such as arriving in the gallery, a Content Credentials result or closing a panel. It also has **Neurospicy Mode**, a calm focus track. Turning Neurospicy on opens a small player in the corner that stays with you across the app. In the player you pick a track, skip, set the volume and minimise or close the player. Tracks include Lolly's generated stations, ambient loops and beats, your own audio and internet radio stations, which need a connection. Both are off by default and remembered. Turning Sound off also mutes the focus track. The profile menu and **This device** carry the same switch.
 
-Under the Sound switch, a slider sets what those sounds are made of. Toward the round **Bouba** blob they become soft drops, bubbles and a little bass; toward the spiky **Kiki** star they become dry ticks, scratches and metal; the middle keeps Lolly's chimes and notes. If wet, bubbly sounds or sharp, scratchy ones are hard for you to bear, move toward the other end. The slider works while Sound is off, so you can choose before anything plays, and letting go of the slider plays a short sample.
+A slider under the Sound switch sets what the sounds are made of. Toward the round **Bouba** blob they become soft drops, bubbles and a little bass. Toward the spiky **Kiki** star they become dry ticks, scratches and metal. The middle keeps Lolly's chimes and notes. If the sounds at one end are hard for you to bear, move toward the other end. The slider works while Sound is off, and letting go of the slider plays a short sample.
 
 ::: details The generated stations
-The generated stations make their music as they play, with no samples and no recorded voices, each tune with its own instruments, groove and running order.
+The generated stations compose their music as they play, with no samples and no recorded voices. Each tune has its own instruments, groove and running order.
 
-- **Lolly Sings** is a family of stations. The original Lolly Sings is the bright, melodic one: major keys, a lead that carries every tune, and bossa, shuffle and chiptune colours. Each genre also has a station of its own, from Sugar and K-pop to Country, Jazz, Metal and D&B.
+- **Lolly Sings** is a family of stations. The original Lolly Sings is bright and melodic: major keys, a lead in every tune, and bossa, shuffle and chiptune colours. Each genre also has its own station, from Sugar and K-pop to Country, Jazz, Metal and D&B.
 - The **Lofi stations** (Warm, Late night and Rainy) are endless lo-fi beats.
 
-On a generated station, next and previous move between tunes rather than tracks, and every tune comes from a seed, so it plays the same wherever you share or save it (see [Generated music](/info/generated-music.html)). Under the transport, **Mood** switches between the Lofi stations, **Drums** takes the kit out and **Texture** runs from clean to a dusty record. A row of small icon buttons follows, each with its name in a tooltip on hover or a long press:
+On a generated station, next and previous move between tunes. Each tune comes from a seed, so the tune plays the same wherever you share or save it (see [Generated music](/info/generated-music.html)). Under the transport, **Mood** switches between the Lofi stations, **Drums** takes the kit out and **Texture** runs from clean to a dusty record. A row of icon buttons follows. Hover or long-press a button to see its name:
 
 - The music note, **Open in the music generator**, opens the tune at `#/music`, where you can change its instruments section by section.
-- The link, **Share this tune or moment**, offers a link that plays the same tune for anyone who opens the link, or one that also starts where you are and shows the visualiser with your current preset and colours.
+- The link, **Share this tune or moment**, offers a link that plays the same tune, or one that also starts where you are and shows the visualiser with your current preset and colours.
 - The folder, **Save to library**, keeps the tune in your assets.
 - The lightning bolt, **Light visualiser**, is a switch, described below.
 
-A saved tune is listed with its station's group, by key and tempo, and plays the same tune again whenever you pick it, repeating like any track or moving on in forward mode. It stores only the station and the tune's number, a few bytes, and the music is made again as it plays. You can rename or delete a saved tune in your assets, and use it as a video's music bed. Lolly Demo and Lolly Start each come with six saved tunes from the stations.
+A saved tune is listed under its station's group, by key and tempo. Picking the saved tune plays the same tune again, repeating like any track or moving on in forward mode. It stores only the station and the tune's number, a few bytes, and the music is composed again as it plays. You can rename or delete a saved tune in your assets, and use it as a video's music bed. Lolly Demo and Lolly Start each come with six saved tunes.
 
-The visualiser listens to every track at a steady level, so a quiet track moves the picture as much as a loud one, whatever the volume. Each Lolly Sings genre, and a saved tune from one, offers **Light visualiser**, which shows simple level bars so the music has the processing time it needs. It starts on for touch screens and for devices with four cores or fewer or 4 GB of memory or less.
+The visualiser hears every track at a steady level, so a quiet track moves the picture as much as a loud one, at any volume. Each Lolly Sings genre, and a saved tune from one, offers **Light visualiser**: simple level bars that leave the music the processing time it needs. Light visualiser starts on for touch screens and for devices with four cores or fewer or 4 GB of memory or less.
 :::
 
-The interface is keyboard-navigable, custom controls carry labels for screen readers and each tool's live preview is exposed as one labelled image describing what it shows.
+You can use the interface by keyboard. Custom controls carry labels for screen readers. Each tool's live preview is one labelled image that describes what it shows.
 
 ### Storage
 
-The storage meter accounts for every byte this install holds, category by category, against what the browser reports.
+The storage meter shows every byte this install holds, by category, against what the browser reports.
 
 ![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
@@ -89,15 +89,15 @@ Under the meter:
 
 ### Available offline
 
-Lolly caches screens as you visit them, which only covers where you have already been. **Available offline** is for the trip you can see coming: download the parts you will need and watch one progress bar, and everything you took keeps working with no connection.
+Lolly caches only the screens you have visited. **Available offline** downloads the parts you will need, with one progress bar, and they keep working with no connection.
 
 - <!--i:monitor--> **App, catalogue and guides** - **The app** (every view, editor and font, including screens you have never opened), the **Catalogue** (all of it, or **Choose by tag**) and **Guides & docs** (this documentation in your language, screenshots included).
 - <!--i:cpu--> **AI models** - each on-device model on its own row with its size: Speech voices, Upscaling models, Background removal, Text recognition, Lolly Verify deep scan, Durable credential, Rewriter model, Ask matching model, AI text detector and Singing voices. A model over 50 MB is marked **large download**.
 - <!--i:wrench--> **Tools** - each tool downloads on its own, or **Download all** takes every tool. A tick means ready offline.
 
-**Download everything** at the top takes the app, the catalogue scope you chose, the guides and all the tools. Tick **Include all the AI models** to add the models, or download a model by its own row; the singing voices are only ever downloaded from their own row. An organisation's policy can turn AI downloads off, and the rows then tell you.
+**Download everything** at the top takes the app, the catalogue scope you chose, the guides and all the tools. Tick **Include all the AI models** to add the models, or download a model from its own row. The singing voices download only from their own row. An organisation's policy can turn AI downloads off, and the rows then show that.
 
-Downloads resume where they stopped if you cancel or lose the connection, and refresh themselves when you are back online, fetching only what a release changed. If the browser has not granted persistent storage, **Protect downloads** asks for it: the difference between "downloaded" and "downloaded until the browser wants the space back".
+Downloads resume where they stopped if you cancel or lose the connection. Back online, they refresh and fetch only what a release changed. If the browser has not granted persistent storage, **Protect downloads** asks for that permission. Without the permission, the browser may delete downloads when it wants the space back.
 
 ### Lolly instance
 
@@ -106,20 +106,20 @@ Downloads resume where they stopped if you cancel or lose the connection, and re
 - **Design-system source** shows where the supplied design system comes from.
 - **Instance console** opens a deployment's admin pages, where it offers them.
 - **Change** points the desktop app at another instance. A browser cannot load tools and assets across origins, so on the web the section offers **Open a workspace** instead.
-- **Leave** removes the instance's design system, tools and catalogue, and your own work stays. See [Use Lolly at your organisation](/info/organisation.html#leaving).
+- **Leave** removes the instance's design system, tools and catalogue. Your own work stays. See [Use Lolly at your organisation](/info/organisation.html#leaving).
 - When you are signed in to an organisation, **Sign out** ends this session and **Sign out everywhere** ends your sessions on every device, this one included.
 
 <!--i:eti-monitor-->
 ## This device
 
-- <!--i:monitor--> **This Machine** - screen, input, graphics, memory, codecs, storage backend and more, read live from this session. Nothing is stored and nothing is sent. It opens by itself on a wide screen, where the tab lays out in two columns.
-- <!--i:neurobeat--> **Sound** - the interface sounds and the Neurospicy focus loops, the one switch on this tab that writes anything.
-- <!--i:database--> **Storage** - a read-only view of the meter in [Preferences](#storage), which is where you clear or carry your data.
+- <!--i:monitor--> **This Machine** - screen, input, graphics, memory, codecs, storage backend and more, read live from this session. Nothing is stored or sent. On a wide screen this panel opens by itself and the tab uses two columns.
+- <!--i:neurobeat--> **Sound** - the interface sounds and the Neurospicy focus loops. Sound is the only switch on this tab that writes anything.
+- <!--i:database--> **Storage** - a read-only view of the meter. Clear or carry your data in [Preferences](#storage).
 
 <!--i:eti-palette-->
 ## Design system
 
-The active design system, set out to read. When this browser holds two or more design systems, a strip of small covers at the top lists them: choose one to make it active, and **Undo** in the notice that follows puts the previous one back.
+The active design system, set out to read. When this browser holds two or more design systems, a strip of covers at the top lists them. Choose one to make it active. **Undo** in the notice that follows puts the previous one back.
 
 ![The Design system tab on Lolly Demo: a strip of covers for switching systems, then the cover with its logo, name, note and the counts that open each page](/t/url-shot?url=%2F%23%2Fsettings%3Ftab%3Dbrand&width=1440&height=900&dpi=192&waitMs=2400&format=svg&walker=1&dark=1&filename=settings-design-system)
 
@@ -132,37 +132,37 @@ The tab opens on a cover painted in the system's own colours, with its logo, its
 - <!--i:sliders--> **Tokens** - radius, spacing, effects and gradients.
 - <!--i:document--> **Print & CMYK** - the colours locked to an exact ink, and the press conditions a CMYK PDF can declare.
 
-Switching is the only change this tab makes. You edit a design system in [Lolly Design System Setup](/info/brand-studio.html) at `#/start`, which the cover links to. A read-only system says so on its cover; local systems you create stay editable. `/b` and `/brand` are shortlinks straight to this tab.
+Switching is the only change this tab makes. Edit a design system in [Lolly Design System Setup](/info/brand-studio.html) at `#/start`, which the cover links to. A read-only system says so on its cover. Local systems you create stay editable. `/b` and `/brand` are shortlinks to this tab.
 
 <!--i:eti-grid-->
 ## Capabilities
 
-Every part of the platform is written up as a card, in twelve groups: Experiences, Platforms & runtimes, Accessibility & languages, Export formats, Import formats, Print production, Automation & AI, Determinism & reproducibility, Brand & design system, Privacy & data ownership, Security & access control and Architecture (for builders). Each group folds and shows its card count. A card opens into a dialog with that capability's features and, for about half of them, the screenshot this documentation uses.
+Every part of the platform has a card, in twelve groups: Experiences, Platforms & runtimes, Accessibility & languages, Export formats, Import formats, Print production, Automation & AI, Determinism & reproducibility, Brand & design system, Privacy & data ownership, Security & access control and Architecture (for builders). Each group folds and shows its card count. A card opens a dialog with that capability's features and, for about half the cards, the screenshot this documentation uses.
 
-The search field above the groups filters the cards as you type and opens whichever groups still hold a match. It says how many capabilities it is searching, and a query with no match says so in words.
+The search field above the groups filters the cards as you type and opens the groups that hold a match. The field shows how many capabilities it searches. A query with no match says so in words.
 
-This tab is written documentation of what Lolly can do, kept in step with these guides. It does not probe the machine you are on; **This device** does that.
+This tab documents what Lolly can do, in step with these guides. It does not probe the machine you are on; **This device** does that.
 
 <!--i:eti-gauge-->
 ## Activity & stats
 
-The build first: how many tools are loaded, how many export formats exist, how many surfaces the platform runs on and how many brand assets the catalogue carries, with a **Catalogue** panel breaking down what ships in this build.
+First the build: the number of tools loaded, export formats, surfaces the platform runs on and brand assets in the catalogue. A **Catalogue** panel breaks down what ships in this build.
 
-Then your own side: **Your activity** counts what you have made on this device, and **Recent creations** and **Latest exports** are stacks you can swipe through, each appearing once there is something to show. Both open an item as it was. These counters stay on the device; an optional Lolly Work instance keeps its own [organisation telemetry and audit records](/info/privacy.html#organisation-services-with-lolly-work).
+Then your own work: **Your activity** counts what you have made on this device. **Recent creations** and **Latest exports** are stacks you can swipe through, shown once they have something. Both open an item as it was. These counters stay on the device. An optional Lolly Work instance keeps its own [organisation telemetry and audit records](/info/privacy.html#organisation-services-with-lolly-work).
 
 <!--i:eti-link-->
 ## Deep links
 
-Every tab and section of Settings has its own link, which you can bookmark or paste. [Lolly Search](/info/search.html) points its **Settings** results at the same registry Settings renders from, so a section cannot be renamed out from under a search result.
+Every tab and section of Settings has its own link to bookmark or paste. [Lolly Search](/info/search.html) builds its **Settings** results from the same registry as Settings, so a renamed section never breaks a search result.
 
 ::: details Every form of link
 
 - **A tab:** `#/settings?tab=brand`, `#/settings?tab=caps`, `#/settings?tab=device`, `#/settings?tab=activity`.
 - **A Preferences section:** `#/settings?focus=<section-id>`, such as `#/settings?focus=offline-section`.
 - **A section, exactly:** its id as a bare flag, such as `#/settings?dash-storage`, `#/settings?dash-logos`, `#/settings?dash-colourways` or `#/settings?cap-formats`. The older `#/settings?dash-lock` and `#/settings?dash-palette-wheel` links open the cover and the Colour page.
-- **A section by keyword:** `#/settings?print`, `#/settings?formats`, `#/settings?palette` (the Colour page) or `#/settings?tokens`. Keywords can be shared: `print` belongs to both the brand tab's print reference and the Print production group, and the first in page order wins. Use the id when it matters which.
+- **A section by keyword:** `#/settings?print`, `#/settings?formats`, `#/settings?palette` (the Colour page) or `#/settings?tokens`. Two sections can share a keyword: `print` belongs to both the brand tab's print reference and the Print production group, and the first in page order wins. Use the id to pick one.
 
-A deep link switches to the tab that owns the target, opens any group it is folded inside, then scrolls to it, settling for a moment while the sections above it finish laying out. The retired `#/platform` and `#/capabilities` addresses fold into Settings with their deep-link flags intact.
+A deep link switches to the tab that has the target and opens any group the target is folded inside. It then scrolls to the target once the sections above finish laying out. The retired `#/platform` and `#/capabilities` addresses open in Settings with their deep-link flags intact.
 :::
 
 ---

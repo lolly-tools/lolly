@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import { assetViewerKind } from '../../lib/asset-viewer-source.ts';
 import { mountAssetFormatViewer } from '../../components/asset-format-viewer.ts';
 import { mountAssetViewerDetails } from '../../components/asset-viewer-details.ts';
@@ -56,7 +57,7 @@ import { readTuneRecord, tuneLicence, tuneLicenceChoices, withTuneLicence } from
 import { lollyBadge } from '../../lib/lolly-badge.ts';
 import { projectRefSubject } from '../../org/project-catalog-submit.ts';
 import { openCatalogSubmit, uploadSubject } from '../../lib/catalog-submit.ts';
-import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, applyAssetGround, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, startableTemplate, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
+import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, applyAssetGround, attachZoom, groundSwitchHtml, readAssetGround, writeAssetGround, catalogAddedText, emojiPackMeta, emojiPackPin, iconThemeById, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, startableTemplate, svgTextToDataUrl } from './shared.ts';
 import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
 import type { EmojiPrefsHost } from '../../lib/emoji-prefs.ts';
 import { audioCardArt, wireAudioViz } from './details-shared.ts';
@@ -460,7 +461,7 @@ export function buildSheet(dt: DetailsCtx): void {
   const content = `
       <header class="cat-details-header">
         ${dt.controls.editingHtml()}
-        <button type="button" class="cat-details-close" data-act="close" aria-label="${escapeText(t('Close'))}">×</button>
+        ${closeButtonHtml({ className: 'cat-details-close', attrs: { 'data-act': 'close' } })}
       </header>
       <div class="cat-details-preview${zoomable ? ' is-zoomable' : ''}">
         <span class="cat-unsaved-pill" data-unsaved hidden>${t('Edits not saved')}</span>
@@ -524,7 +525,7 @@ export function buildSheet(dt: DetailsCtx): void {
         ${dt.rondo.rondoSectionHtml()}
         <div class="cat-details-tech" data-usage hidden></div>
         ${(isTextAsset && !dt.isSkillAsset) || canOcr || canReadDoc || canReadVector ? `<div class="cat-details-tsig" data-tsig hidden></div>` : ''}
-        ${themable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colours')}</span>${cat.thumbs.iconSwatchRow(dt.dTheme)}</div>` : ''}
+        ${themable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colours')}</span><div class="cat-group-colours-row">${cat.thumbs.iconSwatchRow(dt.dTheme)}${groundSwitchHtml()}</div></div>` : ''}
         ${treatable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colour')}</span>${cat.thumbs.treatmentSwatchRow(dt.dTreatment)}</div>` : ''}
       </div>`; dt.content = content;
   let destroyModelPreview: (() => void) | undefined;
@@ -727,7 +728,7 @@ export function paintPassport(dt: DetailsCtx): void {
     void (async () => {
       try {
         if (!dt.dBaseSvg) dt.dBaseSvg = await (await fetch(ref.url)).text();
-        const th = cat.iconThemes.find(x => x.id === dt.dTheme);
+        const th = iconThemeById(cat, dt.dTheme);
         const img = dlg.querySelector<HTMLImageElement>('.cat-thumb');
         if (img && th) img.src = svgTextToDataUrl(restyleIconTheme(dt.dBaseSvg, th) || dt.dBaseSvg);
       } catch { /* leave the base preview */ }
@@ -836,6 +837,13 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       }
       return;
     }
+    // Dark ground: the same switch as the grid's, beside the pairs it changes. The grid,
+    // this sheet and every other switch follow through syncAssetGround.
+    if (target.closest('.cat-ground')) {
+      writeAssetGround(readAssetGround() === 'dark' ? 'light' : 'dark');
+      cat.wiring.syncAssetGround();
+      return;
+    }
     // Colour treatment swatch (raster photos): wash the preview in place via the live CSS
     // filter, keep the modal open. Checked before the icon branch - treat buttons also carry
     // .cat-dl-theme, but this .cat-dl-treat branch owns them.
@@ -859,7 +867,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       });
       try {
         if (!dt.dBaseSvg) dt.dBaseSvg = await (await fetch(ref.url)).text();
-        const th = dt.dTheme ? cat.iconThemes.find(x => x.id === dt.dTheme) : null;
+        const th = iconThemeById(cat, dt.dTheme) ?? null;
         const img = dlg.querySelector<HTMLImageElement>('.cat-thumb');
         if (img) img.src = th ? svgTextToDataUrl(restyleIconTheme(dt.dBaseSvg, th) || dt.dBaseSvg) : ref.url;
       } catch { /* recolour is best-effort - leaves the base preview */ }

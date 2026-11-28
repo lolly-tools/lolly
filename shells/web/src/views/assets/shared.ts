@@ -10,6 +10,7 @@ import { t } from '../../i18n.ts';
 import { mountZoomHud } from '../../components/zoom-hud.ts';
 import type { TextSignalPanel } from '../valid-text.ts';
 import { icon } from '../../lib/icons.ts';
+import { escape as escapeText } from '../../utils.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { perfUiOn } from '../../feature-flags.ts';
 import { halfWindow, offsetToUv } from '../../lib/loupe-gl.ts';
@@ -27,6 +28,7 @@ import { workspaceTemplateOf, type WorkspaceTemplate } from '../../lib/workspace
 import { actionButtonContent } from '../../components/action-button.ts';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
 import type { IconTheme } from '../../../../../engine/src/icon-theme.ts';
+import { COLOURWAY_LOOK_PREFIX, ON_DARK_SUFFIX } from '../../../../../engine/src/brand-treatments.ts';
 
 export interface AssetDownloadAppearance {
   theme: IconTheme | null;
@@ -324,7 +326,7 @@ export interface CatalogHost extends HostV1 {
     // The meta-only annotation write (AI-signals note, declare-AI-origins): no
     // quota metering, no pin-preserve - the stored bytes are untouched.
     _updateUserAssetMeta(id: string, meta: Record<string, unknown>, patch?: { aiGenerated?: 'full' | 'partial' | null }): Promise<void>;
-    _iconThemes?(): Promise<IconTheme[]>;
+    _iconThemes?(forAssetId?: string, ground?: AssetGround): Promise<IconTheme[]>;
     _photoTreatments?(): Promise<PhotoTreatment[]>;
     _queryEverySystem?(filter?: AssetQuery): Promise<AssetRef[]>;
     _assetScope?(): Promise<AssetScope | null>;
@@ -379,6 +381,37 @@ export const groundFlipped = (): boolean => readAssetGround() !== appScheme();
 /** Mark an element whose assets sit on the other ground (the grid, the details sheet). */
 export function applyAssetGround(el: Element | null | undefined): void {
   el?.toggleAttribute('data-ground-flipped', groundFlipped());
+}
+
+// The Dark ground switch. The ground behind every asset follows the app's scheme; this
+// switch puts it on dark (or back on light), so artwork drawn for the other surface can
+// be checked, and the icon colours a colourway offers follow it (iconThemeForGround).
+// One label, pressed while the ground is dark, so the button reads the same way in
+// either theme. The toolbar holds one, so does each icon group's Colours row and so
+// does an asset's own Colours row in the details sheet; wiring.ts syncAssetGround
+// keeps them in step.
+export function groundSwitchHtml(): string {
+  const dark = readAssetGround() === 'dark';
+  const label = t('Dark ground');
+  return `<button type="button" class="cat-showhidden cat-ground${dark ? ' is-on' : ''}" aria-pressed="${dark}" aria-label="${escapeText(label)}" title="${escapeText(label)}">${icon('moon', { size: 15 })}<span class="cat-btn-label">${label}</span></button>`;
+}
+// The icon colours a colourway gives depend on the ground. On a light ground a strip
+// offers the colourway's own pairing (`colourway-<id>`); on a dark ground it offers that
+// colourway's pairing for a dark ground (`colourway-<id>--on-dark`), whose two tones are
+// both light enough to read there (engine/src/brand-treatments.ts colourwayInks). The
+// Dark ground switch therefore moves every swatch and every chosen pair with the ground.
+/** The same colourway's pairing for a ground. An id no colourway made comes back as it is. */
+export function iconThemeForGround(id: string | null | undefined, ground: AssetGround): string | null {
+  if (!id) return null;
+  if (!id.startsWith(COLOURWAY_LOOK_PREFIX)) return id;
+  const light = id.endsWith(ON_DARK_SUFFIX) ? id.slice(0, -ON_DARK_SUFFIX.length) : id;
+  return ground === 'dark' ? `${light}${ON_DARK_SUFFIX}` : light;
+}
+/** The offered pairing an id names. A pairing chosen on the other ground answers with the
+ *  same colourway's pairing for the ground the strip is on now. */
+export function iconThemeById(cat: { iconThemes: IconTheme[]; iconThemeGround: AssetGround }, id: string | null | undefined): IconTheme | undefined {
+  const want = iconThemeForGround(id, cat.iconThemeGround);
+  return want ? cat.iconThemes.find(th => th.id === want) : undefined;
 }
 
 // Sentinel "theme" = the asset's own bytes, unchanged. Downloading the original

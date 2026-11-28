@@ -957,9 +957,6 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
 }
 .preflight-modal-close {
   margin-inline-start: 4px;
-  border: none; background: none; cursor: pointer;
-  font-size: calc(18px * var(--a11y-fs)); line-height: 1;
-  color: hsl(var(--muted-foreground)); padding: var(--sp-1) var(--sp-3);
 }
 .preflight-modal-body {
   display: flex; flex-direction: column; gap: var(--sp-4);
@@ -1765,9 +1762,9 @@ box-shadow:none;
 .preflight-fix { display: block; min-height: 44px; margin-block-start: var(--sp-3); white-space: normal; }
 
 /* The design-system record card (tool-actions markup.ts madeWithRow, plans/319): a
-   pre-checked toggle, then the exact words the export writes and the description as
-   it will read. Outside Content protection, so it is in view at the moment of export.
-   `.section-card` sets display:flex, so the hidden attribute needs its own rule. */
+   pre-checked toggle, then the exact words the export writes. The first card inside
+   the Content claims fold. `.section-card` sets display:flex, so the hidden attribute
+   needs its own rule. */
 .export-madewith { gap: var(--sp-2); }
 .export-madewith[hidden] { display: none; }
 .madewith-line {
@@ -1777,8 +1774,6 @@ box-shadow:none;
   overflow-wrap: anywhere;
 }
 .madewith-line[data-madewith-record] { color: hsl(var(--foreground)); }
-.madewith-description { font-size: var(--fs-xs);  color: color-mix(in srgb, var(--ui-color-text-muted) 50%, var(--ui-color-border-default));
- }
 
 /* Licence picker (tool-actions markup.ts licenceRow), inside Content protection. */
 .export-licence-pick {

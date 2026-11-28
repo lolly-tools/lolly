@@ -165,6 +165,8 @@ interface Entry {
   selected?: boolean;
   /** Place the selected object's handles on the frame just drawn; set by gestures.ts. */
   drawHandles?: () => void;
+  /** True when the lights' handles are drawn in the stage kit's layer; set by gestures.ts. */
+  lightHandlesInLayer?: () => boolean;
   /** Take the handles off the stage; set by gestures.ts. */
   clearHandles?: () => void;
   /**
@@ -462,7 +464,7 @@ export async function mountToolStudio(
         current.ready &&
         !canvas.__lollyFrameDriven &&
         current.options.setInput !== undefined &&
-        studioAnimated(current.recipe) &&
+        (studioAnimated(current.recipe) || current.handle.playsClip) &&
         now - last > 50
       ) {
         last = now;
@@ -507,6 +509,12 @@ export async function mountToolStudio(
     });
     if (generation !== entry.generation || options.isCurrent?.() === false) return;
     entry.ready = true;
+    // The tool's hook writes a clip length when a loop, a light or the camera moves. Whether
+    // a model file holds a baked clip is only known here, once the file has loaded, so a
+    // model that plays one states the length the same way and the export sheet's Duration
+    // follows.
+    if (entry.handle.playsClip && !(Number(marker.dataset.clipMs) > 0))
+      marker.dataset.clipMs = String(Math.round(recipe.motion.seconds * 1000));
     syncStudioControls(entry);
     entry.render('preview');
     status(entry, '', 'ready');
@@ -611,8 +619,9 @@ export function destroyToolStudio(container?: Element): void {
     if (!container || entry.container === container) destroy(entry);
 }
 
-/** Save the mounted preview without preparing a second export scene or shader set. */
-export function captureStudioThumbnail(root: HTMLElement, maxWidth = 720, maxHeight = 560): string | null {
+/** Draw the mounted preview into a canvas fitted inside the tile, without
+ *  preparing a second export scene or shader set. The preview writer encodes the canvas. */
+export function captureStudioCanvas(root: HTMLElement, maxWidth = 720, maxHeight = 560): HTMLCanvasElement | null {
   const canvas = root.querySelector<HTMLCanvasElement>('canvas.lolly-studio-canvas');
   const entry = canvas && owners.get(canvas);
   if (!canvas || !entry?.ready || entry.capturing || entry.closed) return null;
@@ -624,5 +633,10 @@ export function captureStudioThumbnail(root: HTMLElement, maxWidth = 720, maxHei
   const context = output.getContext('2d');
   if (!context) return null;
   context.drawImage(canvas, 0, 0, output.width, output.height);
-  return output.toDataURL('image/png');
+  return output;
+}
+
+/** The same picture as a PNG data URL (the catalog preview build's capture). */
+export function captureStudioThumbnail(root: HTMLElement, maxWidth = 720, maxHeight = 560): string | null {
+  return captureStudioCanvas(root, maxWidth, maxHeight)?.toDataURL('image/png') ?? null;
 }

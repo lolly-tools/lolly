@@ -1,5 +1,5 @@
 {
   "name": "暗房",
-  "description": "用胶片风格、Adobe XMP 预设、.cube LUT 和设计系统颜色为照片和视频调色。可通过导出 LUT 或“视频调色”复用某种风格。可打开 Photoshop 和 GIMP 图层，用于定位、混合和导出图像。",
+  "description": "用胶片风格、Adobe XMP 预设、.cube LUT 和设计系统颜色为照片和视频调色。可打开 Photoshop 和 GIMP 图层。",
   "featured.blurb": "用胶片风格、LUT 和品牌色为照片调色"
 }

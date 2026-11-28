@@ -1,6 +1,6 @@
 {
   "name": "QR 코드",
-  "description": "링크, 연락처 카드, Wi-Fi 네트워크, 캘린더 일정, 위치, 일반 텍스트까지 QR 코드로 만들어요.",
+  "description": "모든 종류의 스캔 가능한 코드예요: QR, Micro QR, Data Matrix, Aztec, PDF417 - 그리고 EAN-13부터 MaxiCode까지 소매와 물류용 바코드도 만들어요.",
   "featured.blurb": "브랜드 색상 그대로 만드는 QR 코드",
   "a11yLabel": "{{default url \"(설정된 URL 없음)\"}}(으)로 연결되는 QR 코드",
   "inputs.url.label": "URL",

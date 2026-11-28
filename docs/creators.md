@@ -1,16 +1,16 @@
 # Create
 
-You fill in a few fields and a finished file comes out, with the fonts, the colours and the layout already decided, on your own device. Because the brand rules are in the tool, it is never your name on the off-brand file. Pick the lane that matches what you are doing today.
+Fill in a few fields and get a finished file on your own device, with the fonts, colours and layout already decided. The brand rules are in the tool, so your name is never on an off-brand file.
 
-New here? Start with **[Make your first file](/info/make-something.html)**. [How Lolly works](/info/how-lolly-works.html) shows how a tool you use can also run from a script or a colleague's phone, and [Questions & answers](/info/faq.html) covers what people ask before they trust a free tool.
+If you are new, start with **[Make your first file](/info/make-something.html)**. [How Lolly works](/info/how-lolly-works.html) shows how a tool can also run from a script or a colleague's phone. [Questions & answers](/info/faq.html) covers what people ask before they trust a free tool.
 
 <!--i:eti-pen-tool-->
 ## Make
 
 Pick a tool and fill it in, or lay a page out freely on the Lolly Design canvas.
 
-- **[Make your first file](/info/make-something.html)** - one short lesson with nothing to set up: a QR code, downloaded and saved as an editable copy.
-- **[Using Lolly](/info/using.html)** - the canvas, the controls, saving, Projects and phone use: how the app itself behaves.
+- **[Make your first file](/info/make-something.html)** - a short lesson with no setup: a QR code, downloaded and saved as an editable copy.
+- **[Using Lolly](/info/using.html)** - the canvas, the controls, saving, Projects and phone use.
 - **[Lolly Design](/info/design.html)** - the free canvas, for layouts no template covers: a poster, a deck, a motion piece.
 - **[Templates](/info/templates.html)** - start from a saved layout instead of a blank tool.
 - **[Text in Lolly Design](/info/text-composition.html)** - headings, flowing text and type that fits its box.
@@ -45,9 +45,9 @@ Your design system decides what every tool looks like.
 <!--i:eti-animation-->
 ## Animate
 
-Text that moves, scenes on a timeline and motion that stays on-brand. A motion export is drawn frame by frame from a driven clock rather than recorded off the screen, so the same link makes the same clip.
+Moving text, scenes on a timeline and on-brand motion. A motion export is drawn frame by frame from a driven clock, not recorded from the screen, so the same link makes the same clip.
 
-- **[Animating](/info/animating.html)** - keyframes, real depth and a scene camera.
+- **[Animating](/info/animating.html)** - keyframes, depth and a scene camera.
 - **[The sequence editor](/info/sequence-editor.html)** - clips, overlay lanes, trim and split, transitions and the audio mix.
 - **[Wide Colour and HDR](/info/hdr-editing.html)** - colour beyond the usual range, on screens and in formats that can show the extra range.
 
@@ -56,16 +56,16 @@ Text that moves, scenes on a timeline and motion that stays on-brand. A motion e
 
 Record a clean take with a count-in and a level meter, or put yourself in front of your slides.
 
-- **[The Lolly Design timeline](/info/design.html#timeline-sequence)** - recording a voiceover straight onto the timeline.
-- **[Make your first file](/info/make-something.html#other-first-projects)** - the audiogram, for when you would rather be heard than seen.
-- **[Music generator](/info/music-generator.html)** - make a track of your own in any genre, free to use with credit. [Free background music](/info/background-music.html) has a sample of every genre, and [Generated music](/info/generated-music.html) explains how the music is made.
+- **[The Lolly Design timeline](/info/design.html#timeline-sequence)** - record a voiceover onto the timeline.
+- **[Make your first file](/info/make-something.html#other-first-projects)** - the audiogram, to be heard without appearing on camera.
+- **[Music generator](/info/music-generator.html)** - make your own track in any genre, free to use with credit. [Free background music](/info/background-music.html) has a sample of every genre. [Generated music](/info/generated-music.html) explains how the music is made.
 - **[Presenting with camera](/info/presenting.html)** - your camera, logo and name over a deck or Countdown, with private controls in a separate window.
 - **[Live pages that take the clicker](/info/interactive-pages.html)** and **[Agenda screens](/info/agenda.html)** - pages and programmes for the room.
 
 <!--i:eti-users-->
 ## Collaborate
 
-Two people, two devices, one design, edited live, with no account and no server in the middle.
+Two people on two devices edit one design live, with no account and no server in the middle.
 
 - **[Working together](/info/collaborate.html)** - private collabs between devices, and work collabs through your organisation's Lolly Work.
 - **[Using Lolly](/info/using.html#sharing-your-work)** - a share link that carries the whole state, or one `.lolly` file.
@@ -74,7 +74,7 @@ Two people, two devices, one design, edited live, with no account and no server 
 <!--i:eti-download-->
 ## Post
 
-Send it where it was asked for: a link, a print-true PDF, a video, a deck or a folder of variants, all from the same source.
+Send a link, a print-true PDF, a video, a deck or a folder of variants, all from the same source.
 
 - **[Export a file](/info/exporting.html)** - print units, bleed and crop marks, video, batch runs and the export panel.
 - **[Every format Lolly can open and make](/info/formats.html)** - the full in-and-out list.
@@ -84,5 +84,5 @@ Send it where it was asked for: a link, a print-true PDF, a video, a deck or a f
 ## Team playbooks and comparisons
 
 - **For your team:** [sales](/info/sales.html), [marketing](/info/marketing.html), [the newsroom](/info/press.html) and [legal](/info/legal.html).
-- **[How Lolly compares](/info/positioning.html)** - what Lolly is good at, and when to reach for something else.
+- **[How Lolly compares](/info/positioning.html)** - what Lolly is good at, and when to use something else.
 - **[Lolly compared, tool by tool](/info/compare.html)** - Canva, Adobe, Figma, Penpot, brand portals, rendering APIs and online converters.

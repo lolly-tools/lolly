@@ -1,6 +1,6 @@
 {
   "name": "Booth",
-  "description": "Hias booth acara 3D dengan karya seni sponsor. Klik panel mana pun untuk meletakkan gambar di atasnya, pilih desain booth, lalu render gambar diam atau turntable untuk presentasi sponsor.",
+  "description": "Hias booth acara 3D dengan karya seni sponsor. Pilih desain booth, lalu render gambar diam atau turntable untuk presentasi sponsor.",
   "a11yLabel": "Mockup 3D booth acara {{default design \"an inline\"}} yang dihias dengan karya seni sponsor",
   "inputs.design.label": "Desain booth",
   "inputs.design.help": "Bentuk stand. Artwork panel Anda terbawa lintas desain - back wall tetap back wall.",

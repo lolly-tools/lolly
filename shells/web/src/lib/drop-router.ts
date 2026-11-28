@@ -79,7 +79,7 @@ const DESIGN_EXT_RE = /\.(fig|penpot|idml|indd|af|afdesign|afphoto|afpub|aftempl
 // the blank-MIME backstop. .svgz is media/library only (svgz-as-design would need a
 // gunzip step in parseDesignFile).
 // Reusable binary assets own their containers; a 3MF/MOGRT ZIP is not a design document.
-const LIBRARY_ASSET_EXT_RE = /\.(mogrt|3mf|glb|stl|ttf|otf|woff2?)$/i;
+const LIBRARY_ASSET_EXT_RE = /\.(mogrt|3mf|glb|gltf|stl|ttf|otf|woff2?)$/i;
 // Camera raw files (DNG, CR2, NEF...) are developed on the device and stored as ordinary pictures.
 const MEDIA_EXT_RE = /\.(dng|cr2|cr3|nef|nrw|arw|srf|sr2|pef|orf|rw2|raf|png|apng|jpe?g|webp|gif|avif|jxl|heic|heif|svg|svgz|bmp|ico|cur|mp4|webm|mov|mp3|wav|ogg|oga|opus|m4a|aac|flac|mid|midi|mod|xm|it|s3m|stm|mtm|rondo|json|lottie)$/i;
 // A rondocode song (plan 301): `.rondo` is rondo-language text and `.rondo.json` a
@@ -173,10 +173,9 @@ export function takePendingDesignSystemFile(): File | null {
 
 let pendingToolFile: { toolId: string; file: File } | null = null;
 
-/** Consume a file stashed for a specific tool (e.g. compress-pdf). Single use;
- *  returns null when the stash belongs to a different tool. NOTE: views/tool.ts
- *  does not consume this yet - until it does, the compress route simply lands
- *  the user on the tool's own (empty) drop canvas. */
+/** Consume a file stashed for a specific tool (Pages, for the compress route). Single
+ *  use; returns null when the stash belongs to a different tool. The tool view takes
+ *  the file on mount and seeds the tool's file input (views/tool/setup.ts). */
 export function takePendingToolFile(toolId: string): File | null {
   if (pendingToolFile?.toolId !== toolId) return null;
   const f = pendingToolFile.file;
@@ -629,7 +628,7 @@ export function dropChooserChoices(s: Sniff, ctx: ChooserContext): DialogChoice[
     if (!choices.some((c) => c.id === 'design-system')) {
       choices.push({ id: 'design-system', label: t('Use as the design system') });
     }
-    if (has('compress-pdf')) choices.push({ id: 'compress', label: t('Compress this PDF') });
+    if (has('pages')) choices.push({ id: 'compress', label: t('Compress this PDF') });
   }
   // An office file gives up its pictures OR its content. Both routes are offered here, in
   // ONE sheet: the deck ingest's own chooser is skipped when this one already asked
@@ -1733,8 +1732,10 @@ export async function openDropChooser(
         );
         break;
       case 'compress':
-        pendingToolFile = { toolId: 'compress-pdf', file: first };
-        routeToConsumer('#/tool/compress-pdf', onToolRoute('compress-pdf'));
+        // Compress is an operation of Pages. The operation goes in the address, where it
+        // outranks whatever operation Pages was last left on; the PDF goes in the stash.
+        pendingToolFile = { toolId: 'pages', file: first };
+        routeToConsumer('#/tool/pages?operation=compress', onToolRoute('pages'));
         break;
       case 'spreadsheet':
         pendingSpreadsheetFile = first;

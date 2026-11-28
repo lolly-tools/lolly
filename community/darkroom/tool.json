@@ -1,9 +1,9 @@
 {
   "id": "darkroom",
   "name": "Darkroom",
-  "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Reuse a look through LUT export or Grade a video. Opens Photoshop and GIMP layers for positioning, blending and image export.",
+  "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Opens Photoshop and GIMP layers.",
   "a11yLabel": "Graded photo preview - {{default preset \"custom\"}} look",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "engineVersion": "^1.341.0",
   "renditionOf": { "input": "image", "action": "c2pa.color_adjustments", "unlessSet": ["layers"] },
   "status": "community",
@@ -122,6 +122,8 @@
       "penpot",
       "webm",
       "mp4",
+      "gif",
+      "apng",
       "exr",
       "hdr",
       "tiff",
@@ -2177,6 +2179,17 @@
       "min": 1,
       "max": 8000,
       "group": "export"
+    },
+    {
+      "id": "wipe",
+      "label": "Before and after wipe",
+      "section": "View",
+      "type": "boolean",
+      "default": false,
+      "help": "A clip that opens on the untouched picture, then a seam crosses once and leaves the graded one. Export it as WebM, MP4, GIF or APNG. A still export shows the graded picture.",
+      "showIf": {
+        "splitPreview": false
+      }
     }
   ],
   "openWith": [

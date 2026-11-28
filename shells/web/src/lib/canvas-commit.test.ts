@@ -71,7 +71,7 @@ test('__lollySubscribe forwards to runtime.subscribe and returns the unsubscribe
   const unsub = canvas.__lollySubscribe!((s) => seen.push(s));
   assert.equal(listeners.size, 1);
   // A later emission reaches the subscriber…
-  const snapshot: RuntimeState = { model, hydrated: '<x/>' };
+  const snapshot: RuntimeState = { model, hydrated: '<x/>', notices: {} };
   listeners.forEach((fn) => fn(snapshot));
   assert.equal(seen.length, 1);
   assert.strictEqual(seen[0], snapshot);

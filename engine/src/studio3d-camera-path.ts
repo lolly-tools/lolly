@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Camera paths: keys captured from the live view, sampled deterministically over the loop. */
 import type { StudioCameraKeyV1, StudioSceneV1, StudioVector3 } from '@lolly-tools/core';
+import { kfBindEase, kfEaseAt, kfEaseToken } from './keyframes.ts';
+import { kfSpring, kfSpringToken } from './kf-spring.ts';
 
 export type StudioValues = Record<string, unknown>;
 export const STUDIO_CAMERA_KEY_LIMIT = 12;
@@ -27,6 +29,56 @@ export function studioRestPose(scene: StudioSceneV1): StudioCameraKeyV1 {
   };
 }
 
+/** Every value Camera easing takes, the three the tool shipped with first. */
+export const STUDIO_CAMERA_EASES = [
+  'linear',
+  'smooth',
+  'flow',
+  'standard',
+  'emphasised',
+  'exit',
+  'gentle',
+  'bouncy',
+] as const;
+export type StudioCameraEase = (typeof STUDIO_CAMERA_EASES)[number];
+
+/**
+ * The design system's curves and springs a camera leg can follow, as the token each one
+ * reads and the fixed value it plays where the system has no such token. A spring runs
+ * in real time, so on a long leg the camera arrives early and holds the key.
+ */
+export const STUDIO_SYSTEM_EASES: Readonly<Record<string, { path: string; fallback: string }>> =
+  Object.freeze({
+    standard: { path: 'motion.curve.standard', fallback: kfEaseToken('cubic-bezier(0.2,0,0,1)') },
+    emphasised: {
+      path: 'motion.curve.emphasised',
+      fallback: kfEaseToken('cubic-bezier(0.05,0.7,0.1,1)'),
+    },
+    exit: { path: 'motion.curve.exit', fallback: kfEaseToken('cubic-bezier(0.3,0,0.8,0.15)') },
+    gentle: { path: 'motion.spring.gentle', fallback: kfSpringToken(kfSpring(120, 20, 1)) },
+    bouncy: { path: 'motion.spring.bouncy', fallback: kfSpringToken(kfSpring(400, 20, 1)) },
+  });
+
+/** The keyframe ease a system easing plays: the live token, else its fixed value. */
+const SYSTEM_EASE_TOKENS = new Map(
+  Object.entries(STUDIO_SYSTEM_EASES).map(([name, ease]) => [
+    name,
+    kfBindEase(ease.path, ease.fallback) ?? ease.fallback,
+  ])
+);
+
+/** A spring passes its key before it settles, so each value stays in a saved key's range. */
+const POSE_LIMITS: readonly (readonly [number, number])[] = [
+  [-720, 720],
+  [-60, 80],
+  [15, 80],
+  [0.05, 3],
+  [-25, 25],
+  [-25, 25],
+  [-25, 25],
+  [0, 500],
+];
+
 /** Catmull-Rom through four values; t runs 0 to 1 between the middle two. */
 function spline(p0: number, p1: number, p2: number, p3: number, t: number): number {
   const t2 = t * t,
@@ -40,7 +92,13 @@ function spline(p0: number, p1: number, p2: number, p3: number, t: number): numb
   );
 }
 
-function mix(keys: StudioCameraKeyV1[], leg: number, t: number, ease: string): StudioCameraKeyV1 {
+function mix(
+  keys: StudioCameraKeyV1[],
+  leg: number,
+  t: number,
+  ease: string,
+  legMs?: number
+): StudioCameraKeyV1 {
   const a = keys[leg]!,
     b = keys[leg + 1]!;
   const pick = (key: StudioCameraKeyV1): number[] => [
@@ -61,8 +119,15 @@ function mix(keys: StudioCameraKeyV1[], leg: number, t: number, ease: string): S
       spline(pick(before)[i]!, pick(a)[i]!, pick(b)[i]!, pick(after)[i]!, t)
     );
   } else {
-    const s = ease === 'linear' ? t : t * t * (3 - 2 * t);
+    const system = SYSTEM_EASE_TOKENS.get(ease);
+    const s = system
+      ? kfEaseAt(system, t, legMs)
+      : ease === 'linear'
+        ? t
+        : t * t * (3 - 2 * t);
     values = pick(a).map((v, i) => v + (pick(b)[i]! - v) * s);
+    if (system)
+      values = values.map((v, i) => Math.min(POSE_LIMITS[i]![1], Math.max(POSE_LIMITS[i]![0], v)));
   }
   // Focus at 0 means automatic on either key, so a leg touching automatic stays automatic.
   const focus = a.focus > 0 && b.focus > 0 ? values[7]! : 0;
@@ -103,7 +168,13 @@ export function studioCameraPose(
       b = keys[leg + 1]!;
     if (phase >= a.at && phase <= b.at) {
       const span = b.at - a.at;
-      return mix(keys, leg, span > 0 ? (phase - a.at) / span : 1, motion.ease);
+      return mix(
+        keys,
+        leg,
+        span > 0 ? (phase - a.at) / span : 1,
+        motion.ease,
+        span * scene.motion.seconds * 1000
+      );
     }
   }
   return { ...last, at: phase };
@@ -118,7 +189,14 @@ export function studioCameraTravels(scene: StudioSceneV1): boolean {
 }
 
 /** The camera moves that are made from the live view rather than authored key by key. */
-export const STUDIO_CAMERA_PRESETS = ['sweep', 'pushin', 'dolly', 'reveal', 'crane'] as const;
+export const STUDIO_CAMERA_PRESETS = [
+  'sweep',
+  'pushin',
+  'dolly',
+  'reveal',
+  'crane',
+  'orbit',
+] as const;
 export type StudioCameraPreset = (typeof STUDIO_CAMERA_PRESETS)[number];
 /** Every value the Camera select offers, in the order it offers them. */
 export const STUDIO_CAMERA_MOTIONS = ['still', 'keys', ...STUDIO_CAMERA_PRESETS] as const;
@@ -131,6 +209,7 @@ const PRESET_NAMES: Record<StudioCameraPreset, string> = {
   dolly: 'Dolly',
   reveal: 'Reveal',
   crane: 'Crane',
+  orbit: 'Orbit',
 };
 
 /** How far the shell puts the camera from the target at zoom 1 (shells/web stage.ts). */
@@ -181,7 +260,7 @@ export function studioIsCameraPreset(kind: string): kind is StudioCameraPreset {
  * The keys a camera move is made of, drawn from the live view. `amount` (0.25 to 2)
  * scales the sweep angle, the push, the crane and the reveal's arc. An orthographic
  * camera ignores the field of view, so a dolly zoom under one makes no keys at all and
- * the camera holds still.
+ * the camera holds still. An orbit is always one whole turn, so the amount leaves it alone.
  */
 export function studioCameraPreset(
   kind: StudioCameraPreset,
@@ -233,6 +312,13 @@ export function studioCameraPreset(
         }),
         presetKey(view, 1, {}),
       ];
+    case 'orbit':
+      // One whole turn about the target, from the live view and back to the same view,
+      // with the elevation and the distance held. The turn is two keys 360 degrees
+      // apart, so the evaluator interpolates the angle itself: no frame inside the clip
+      // repeats the first, and the frame after the last is the first again. The angle
+      // rises, which is the direction the older 3D tool's orbit went.
+      return [presetKey(view, 0, {}), presetKey(view, 1, { azimuth: view.azimuth + 360 })];
   }
 }
 

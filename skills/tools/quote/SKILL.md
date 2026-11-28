@@ -7,7 +7,7 @@ description: "Operate the Lolly Sales Quote tool (quote) using its declared inpu
 
 Tool ID: `quote`. Tool version: `1.1.0`. Engine range: `^1.82.0`.
 
-A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type. Paste the lines from a spreadsheet or your CRM.
+A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

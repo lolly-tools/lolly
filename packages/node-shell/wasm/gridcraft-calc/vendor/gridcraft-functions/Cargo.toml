@@ -1,6 +1,6 @@
 [package]
 name = "gridcraft-functions"
-version = "0.14.2"
+version = "0.19.1"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 rust-version = "1.95"

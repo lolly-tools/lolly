@@ -19,6 +19,7 @@ import { join } from 'node:path';
 import { strFromU8, unzipSync } from 'fflate';
 import type { LearningBlock, LearningModule } from '../packages/core/src/learning-v1.ts';
 import { newLearningModule } from '../engine/src/learning/module.ts';
+import { writeBrowserFreeFixture } from './helpers/browser-free-fixture.ts';
 
 const root = await mkdtemp(join(tmpdir(), 'lolly-learning-cli-test-'));
 after(() => rm(root, { recursive: true, force: true }));
@@ -47,6 +48,9 @@ await writeFile(
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" width="120" height="80">' +
     '<rect x="4" y="4" width="112" height="72" fill="{{shade}}"/></svg>'
 );
+// The fixture's own record admits it to the browser-free route, written last so the
+// digest is over its final files: the first test checks the route's bytes.
+writeBrowserFreeFixture(join(root, 'tools', TOOL_ID));
 
 process.env.LOLLY_ROOT = root;
 const { learningCli, renderLearningSession } = await import('../shells/cli/src/learning.ts');

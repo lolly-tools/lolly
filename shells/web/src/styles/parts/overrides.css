@@ -76,7 +76,7 @@ body > svg:not([style]) {
 .chrome-topleft {
   position: fixed;
   z-index: 99999;
-  left: calc(var(--chrome-inset) + var(--vv-left, 0px));
+  left: calc(var(--chrome-inset-left) + var(--vv-left, 0px));
   top: calc(var(--chrome-top) + var(--vv-top, 0px));
   display: flex;
   align-items: center;

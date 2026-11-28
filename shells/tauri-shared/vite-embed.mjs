@@ -220,14 +220,21 @@ export function bundleRepoDirs({ outDirDefault, mode, seedProfile }) {
  * into the binary. Embedding them pushes the crate past linkable size (the
  * desktop build died on exactly this), so prune them back out after the copy:
  * the apps download them on first use, the same as web.
+ *
+ * The docs' link-preview cards (public/info/og, about 118 MB of PNG that
+ * compression cannot shrink) go the same way for a different reason: no page
+ * shows one. A docs page names its card only in a meta tag, by absolute URL on
+ * the public site, for other sites' link previews. An installed app serves no
+ * link previews, so the cards were weight nothing read.
  */
 export function pruneEmbeddedDownloads({ outDirDefault }) {
   const RUNTIME_FETCHED = ['models'];
+  const NEVER_READ_IN_APP = ['info/og'];
   return {
     name: 'prune-embedded-downloads',
     writeBundle(options) {
       const outDir = options.dir ?? outDirDefault;
-      for (const dir of RUNTIME_FETCHED) {
+      for (const dir of [...RUNTIME_FETCHED, ...NEVER_READ_IN_APP]) {
         rmSync(resolve(outDir, dir), { recursive: true, force: true });
       }
     },
@@ -271,8 +278,8 @@ export function assertDistState({ outDirDefault, mode }) {
         must(`viz-presets/${preset.id}.json`, 'every listed MilkDrop artist preset must embed');
       }
       mustNot('models', 'runtime-downloaded models must never embed (pruneEmbeddedDownloads)');
+      mustNot('info/og', 'the docs link-preview cards must never embed (pruneEmbeddedDownloads)');
       if (mode === 'neutral') {
-        must('catalog/previews/bundle.json', 'gallery thumbnails embed so first run paints instead of live-rendering every tile');
         mustNot('catalog/og', 'the neutral seed carries no og cards');
         mustNot('catalog/assets/lolly/loops', 'excluded asset family (NEUTRAL_EXCLUDED_ASSET_PREFIXES)');
         mustNot('catalog/assets/lolly/modules', 'excluded asset family (NEUTRAL_EXCLUDED_ASSET_PREFIXES)');

@@ -14,14 +14,14 @@ import { CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, OUTPUT_LICENCE_C
 import { durableSupport, liveCaptureSupport } from '../../bridge/format-support.js';
 import { helpTip } from '../../components/help-tip.js';
 import { t, tRaw } from '../../i18n.ts';
-import { getAudioTake, onAudioTakeChange, saveTakeMp3, saveTakeNative, takeNativeExt, takesAudioInput } from '../../lib/audio-take.ts';
+import { getAudioTake, onAudioTakeChange, saveTakeMp3, saveTakeNative, takeNameFrom, takeNativeExt, takesAudioInput } from '../../lib/audio-take.ts';
 import { exportAffordance, getExportPolicy } from '../../lib/export-policy.ts';
 import { icon } from '../../lib/icons.ts';
 import { escape as escapeText } from '../../utils.js';
 import { costPanelHtml } from '../cost-panel.ts';
 import { formatOptionsHtml } from '../export-depth.ts';
 import { durableCardHtml, isDurableFmt } from '../export-durable-card.ts';
-import { formatPanelHtml, formatTriggerHtml, wireFormatPicker } from '../export-format-picker.ts';
+import { formatTriggerHtml, wireFormatPicker } from '../export-format-picker.ts';
 import { packageOptionsHtml, saveAsBridge, saveAsButtonHtml } from '../export-package-options.ts';
 import { preflightRowHtml } from '../export-preflight.ts';
 import { jellyActive } from '../../lib/jelly.ts';
@@ -29,7 +29,7 @@ import { DEFAULT_PRINT_MARKS, fmtLabel, formatExperience, isC2paFmt, isCmykFmt, 
 import { bindOp, type ActionsCtx } from './context.ts';
 
 export function buildFormatOptions(ta: ActionsCtx): void {
-  const { ICON_H, ICON_W, c2paInitDays, c2paInitOn, canPackage, experience, exportDefaults, formats, initialFmt, manifest } = ta;
+  const { ICON_H, ICON_W, c2paInitDays, c2paInitOn, canPackage, exportDefaults, formats, initialFmt, manifest } = ta;
   // Tier 1 - filename · format. The format selector is the highest-priority
   // control; the filename rides alongside it as the natural "name.format" pair.
   //
@@ -57,7 +57,6 @@ export function buildFormatOptions(ta: ActionsCtx): void {
             ${formatOptions}
           </select>
           ${formatTriggerHtml(initialFmt ?? formats[0] ?? '', fmtLabel)}
-          ${formatPanelHtml(formats, initialFmt ?? formats[0] ?? '', fmtLabel, experience.current?.().recommendedFormats)}
         `
             : ''
         }
@@ -469,10 +468,9 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
           ${madeWithTip!.pop}
         </label>
         <p class="madewith-line" data-madewith-record></p>
-        <p class="madewith-line madewith-description" data-madewith-description></p>
       </div>`
     : ''; ta.madeWithRow = madeWithRow;
-  const hasProtection = hasPdf || hasZip || c2paFormats.length > 0 || imprintFmts.length > 0 || hasLicence; ta.hasProtection = hasProtection;
+  const hasProtection = hasPdf || hasZip || c2paFormats.length > 0 || imprintFmts.length > 0 || hasLicence || hasMadeWith; ta.hasProtection = hasProtection;
   // Collapsed by default. Pre-opened only when an inner card carries an EXPLICIT
   // deep-linked setting - a URL-sourced password, a URL-sourced C2PA choice, or a
   // linked imprint/durable flag - so a share link still surfaces its setting without
@@ -497,9 +495,9 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   const protectionRow = hasProtection
     ? `
       <div class="section-card export-protection${protectionOpen ? ' is-open' : ''}" data-protection-section style="display:${protectionVisibleInitial ? 'flex' : 'none'}">
-        <button type="button" class="protection-head" data-action="protection-toggle" aria-expanded="${protectionOpen}">${icon('shield', { className: 'protection-icon' })}<span>${t('Protection')}</span></button>
+        <button type="button" class="protection-head" data-action="protection-toggle" aria-expanded="${protectionOpen}">${icon('shield', { className: 'protection-icon' })}<span>${t('Content claims')}</span></button>
         <div class="protection-body" data-protection-body style="display:${protectionOpen ? 'flex' : 'none'}">
-          ${licenceRow}${ta.rights.rowHtml()}${pdfPassRow}${c2paRow}${imprintRow}${durableRow}
+          ${madeWithRow}${licenceRow}${ta.rights.rowHtml()}${pdfPassRow}${c2paRow}${imprintRow}${durableRow}
         </div>
       </div>`
     : ''; ta.protectionRow = protectionRow;
@@ -976,7 +974,7 @@ export function paintBar(ta: ActionsCtx): void {
   // Settings lead the export flow; the report and delivery actions follow them.
   const initialExperience = formatExperience(ta.initialExperience, ta.initialFmt ?? ta.formats[0] ?? '');
   el.innerHTML = `
-    ${actions.includes('download') ? `${recordingRow}<div class="export-file-group">${filenameRow}${dimsRow}${timingRow}${aspectWarnRow}${fidelityWarnRow}</div><div class="export-options-group">${notesHandoutRow}${cmykRow}${printRow}${pkgRow}${settingsRow}${videoQualityRow}<details class="section-card export-video-options" data-video-options open><summary hidden>${escapeText(t('Audio and colour settings'))}</summary>${audioRow}${loudnessRow}${hdrRow}</details></div>${ta.madeWithRow}${protectionRow}<div class="export-ingredient-note" data-ingredient-note hidden></div>${protectionRow ? '' : ta.rights.rowHtml()}${preflightRow}${costRow}${sendRow}` : ''}
+    ${actions.includes('download') ? `${recordingRow}<div class="export-file-group">${filenameRow}${dimsRow}${timingRow}${aspectWarnRow}${fidelityWarnRow}</div><div class="export-options-group">${notesHandoutRow}${cmykRow}${printRow}${pkgRow}${settingsRow}${videoQualityRow}<details class="section-card export-video-options" data-video-options open><summary hidden>${escapeText(t('Audio and colour settings'))}</summary>${audioRow}${loudnessRow}${hdrRow}</details></div>${protectionRow}<div class="export-ingredient-note" data-ingredient-note hidden></div>${protectionRow ? '' : ta.rights.rowHtml()}${preflightRow}${costRow}${sendRow}` : ''}
     <div class="export-actions-dock">
       <p class="export-outcome-summary" data-export-outcome${initialExperience.summary ? '' : ' hidden'}>${escapeText(initialExperience.summary ?? '')}</p>
       ${manifest.status === 'experimental' ? `<p class="export-experimental-note" role="note">${escapeText(t('This tool is experimental, so every export carries a watermark.'))}</p>` : ''}
@@ -1019,8 +1017,7 @@ export function paintBar(ta: ActionsCtx): void {
       const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-action]');
       const take = getAudioTake();
       if (!btn || !take) return;
-      const value = runtime.getModel().find(i => i.id === 'name')?.value;
-      const name = typeof value === 'string' ? value : undefined;
+      const name = takeNameFrom(runtime.getModel());
       if (btn.dataset.action === 'take-native') {
         void saveTakeNative(host, take, name);
         return;

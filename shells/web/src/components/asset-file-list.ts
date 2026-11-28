@@ -3,6 +3,7 @@
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { assetFiles, selectAssetFile, selectedAssetFile, type AssetFile } from '../lib/asset-files.ts';
 import { instancePath } from '../lib/instance.ts';
+import { setInstanceImage } from '../lib/instance-image.ts';
 import { tRaw } from '../i18n.ts';
 import { iconNode } from '../lib/icon-node.ts';
 export function mountAssetFileList(into: HTMLElement, ref: AssetRef, choose: (file: AssetRef) => void, accepts?: (file: AssetRef) => boolean): void {
@@ -24,7 +25,7 @@ export function mountAssetFileList(into: HTMLElement, ref: AssetRef, choose: (fi
       b.title = b.disabled ? tRaw('This slot cannot use this file type') : file.name;
       const image = document.createElement('span'); image.className = 'asset-file-thumb';
       const fallback = () => { const glyph = iconNode('image'); if (glyph) image.replaceChildren(glyph); };
-      if (file.thumbnail) { const img = document.createElement('img'); img.src = instancePath(file.thumbnail); img.alt = ''; img.loading = 'lazy'; img.addEventListener('error', () => { img.remove(); fallback(); }, { once: true }); image.append(img); }
+      if (file.thumbnail) { const img = document.createElement('img'); img.alt = ''; img.loading = 'lazy'; img.addEventListener('error', () => { img.remove(); fallback(); }, { once: true }); image.append(img); setInstanceImage(img, instancePath(file.thumbnail)); }
       else fallback();
       const info = document.createElement('span'); info.className = 'asset-file-info';
       const name = document.createElement('strong'); name.textContent = file.name;

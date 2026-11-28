@@ -1,6 +1,6 @@
 {
   "name": "Kartu Prompt",
-  "description": "Susun prompt panjang menjadi satu gambar yang ringkas dan mudah dibaca untuk model multimodal - input gambar sering lebih murah daripada kata-kata yang sama sebagai token teks.",
+  "description": "Susun prompt panjang menjadi satu gambar untuk model multimodal - input gambar sering lebih murah daripada kata-kata yang sama sebagai token teks.",
   "a11yLabel": "Prompt ke Gambar - tempel atau letakkan teks pada kanvas dan itu akan ditata agar pas di dalam satu gambar kecil",
   "inputs.text.label": "Teks",
   "inputs.text.help": "Tempel atau letakkan di mana saja pada kanvas untuk mengisi ini.",

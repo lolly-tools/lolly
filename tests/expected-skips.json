@@ -1509,7 +1509,14 @@
     },
     {
       "file": "tests/docs-nav-budget.test.ts",
-      "fullName": "a page names its section over the title and ends with Previous and Next in rail order",
+      "fullName": "no trail says its own page title again, and a section's own page has no trail",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-nav-budget.test.ts",
+      "fullName": "a page shows its trail over the title and ends with Previous and Next in rail order",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
@@ -1971,7 +1978,7 @@
     },
     {
       "file": "tests/gallery-preview.browser.test.ts",
-      "fullName": "every gallery tool gets a cover before extra templates, including tools below the fold",
+      "fullName": "every tool near the screen gets a cover before an extra template is drawn; a tool below the fold gets one when the page comes near",
       "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
       "capability": "environment",
       "owner": "tests"
@@ -3787,6 +3794,76 @@
       "fullName": "the mount copies a named file set, no audio, skills, slides, renditions, cards or previews",
       "reason": "brands/suse is not checked out",
       "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render.test.ts",
+      "fullName": "lolly-render draws engine pages, the same bytes twice",
+      "reason": "lolly-render is not built here: run `cargo build --release` in crates/lolly-render (or set LOLLY_RENDER_BIN)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render.test.ts",
+      "fullName": "lolly-render refuses a page it does not draw, by name, and writes nothing",
+      "reason": "lolly-render is not built here: run `cargo build --release` in crates/lolly-render (or set LOLLY_RENDER_BIN)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render-addon.test.ts",
+      "fullName": "LOLLY_DESIGN_RASTER=lolly-render draws the page with the crate, the same pixels as the test binary",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render-addon.test.ts",
+      "fullName": "a page the crate refuses goes on to the default route, and the log says why",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render-addon.test.ts",
+      "fullName": "a refused page comes back as a value with its stable codes, the first one named",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render-addon.test.ts",
+      "fullName": "the binding draws each core fixture to the bytes the test binary writes, on the thread pool too",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/fuzz-regression.test.ts",
+      "fullName": "fuzz lolly-render-envelope: 300 seeded mutations stay bounded",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/fuzz-regression.test.ts",
+      "fullName": "fuzz lolly-render-jpeg: 300 seeded mutations stay bounded",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/fuzz-regression.test.ts",
+      "fullName": "fuzz lolly-render-png: 300 seeded mutations stay bounded",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/fuzz-regression.test.ts",
+      "fullName": "fuzz lolly-render-webp: 300 seeded mutations stay bounded",
+      "reason": "the lolly-render Node addon is not built here: run `cargo build --release` in crates/lolly-render-node (or set LOLLY_RENDER_ADDON)",
+      "capability": "environment",
       "owner": "tests"
     }
   ]

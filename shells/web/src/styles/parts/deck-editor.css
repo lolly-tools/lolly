@@ -537,19 +537,6 @@
 .deck-free__colour { display: inline-flex; align-items: center; gap: 2px; }
 .deck-free__cpick { display: inline-flex; }
 .deck-free__colour.is-unset .deck-free__cpick { opacity: 0.55; }
-.deck-free__clear {
-  font: inherit;
-  font-size: calc(0.8rem * var(--a11y-fs));
-  line-height: 1;
-  padding: 2px 3px;
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
-  color: hsl(var(--muted-foreground, 220 10% 45%));
-  cursor: pointer;
-}
-.deck-free__clear:hover:not(:disabled) { background: color-mix(in oklab, hsl(var(--primary, 231 60% 55%)) 14%, transparent); }
-.deck-free__clear:disabled { opacity: 0.25; cursor: default; }
 .deck-free__btn--link { font-size: calc(0.7rem * var(--a11y-fs)); padding: 3px 7px; }
 /* Marquee-drag surface (below the boxes) + the rubber-band rectangle it draws. */
 .deck-free__bg { position: absolute; inset: 0; z-index: 0; pointer-events: auto; }

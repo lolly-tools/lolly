@@ -1,53 +1,58 @@
 # Cum funcționează Lolly
 
-Un instrument Lolly păstrează regulile pentru un fel de fișier: layoutul, tipografia, culorile și ce părți pot schimba ceilalți. Tu, un coleg, un script sau un agent AI completați câmpurile, iar fiecare fișier iese corect. Această pagină arată cine ce face și cele patru trasee de la un instrument la un fișier terminat.
+Un instrument Lolly conține regulile pentru un tip de fișier: layoutul, tipografia, culorile și ce părți pot schimba ceilalți. Tu, un coleg, un script sau un agent AI completați câmpurile, iar fiecare fișier respectă acele reguli.
 
+<!--i:eti-repeat-->
 ## Un instrument, regulile tale, multe fișiere
 
-Regulile brandului trăiesc în instrument, nu în fiecare fișier pe care îl face. Pune instrumentul la punct o dată și fiecare rezultat moștenește aceeași tipografie, culoare și spațiere, fie că e un singur card, fie o foaie de calcul cu rânduri în o duzină de limbi.
+Regulile brandului se află în instrument. Configurează instrumentul o singură dată și fiecare rezultat primește aceeași tipografie, culoare și spațiere, de la un card la o foaie de calcul cu rânduri într-o duzină de limbi.
 
-![Un instrument de wordmark cu un câmp completat: tipografia, culoarea și spațierea au fost stabilite când a fost făcut instrumentul](/info/shots/aud-rules-in-the-tool.svg)
+![Un instrument wordmark cu un câmp completat: tipografia, culoarea și spațierea au fost stabilite la crearea instrumentului](/info/shots/aud-rules-in-the-tool.svg)
 
-Persoana care face al suta fișier doar tastează cuvintele. Cum verifici munca și cine o verifică rămâne decizia ta. Lolly face mai mic ce merită verificat și următorul fișier mai rapid de făcut.
+Persoana care creează al o sutălea fișier doar introduce cuvintele. Tu decizi cum se verifică munca și cine o verifică. Lolly lasă mai puțin de verificat și accelerează crearea următorului fișier.
 
-## Cine atinge un instrument
+<!--i:eti-users-->
+## Cine lucrează cu un instrument
 
-Urmărește un card de campanie printr-o organizație și apar trei perechi de mâini. Fiecare se sprijină pe precedenta.
+Trei roluri dintr-o organizație lucrează la același card de campanie.
 
-![Un designer stabilește regulile o dată într-un instrument; un dezvoltator îl rulează dintr-un script și oricine îi poate completa câmpurile; amândoi fac fișiere terminate](/info/diagrams/concepts/asset-relay.svg)
+![Un designer stabilește regulile o singură dată într-un instrument; un dezvoltator îl rulează dintr-un script și oricine îi poate completa câmpurile; ambele căi produc fișiere finalizate](/info/diagrams/concepts/asset-relay.svg)
 
 ::: timeline
-- <!--i:pentool--> **Un designer stabilește regulile.** Aranjează cardul în Design cu tipografia și culorile brandului, apoi alege ce câmpuri rămân deschise. O face o singură dată, deci nimeni nu mai localizează cardul de mână.
-- <!--i:code--> **Un dezvoltator scalează instrumentul.** Același instrument rulează într-un script nocturn prin linia de comandă, deci o diagramă proaspătă sau o versiune într-o limbă nouă sosește fără ca cineva să redeschidă designul.
-- <!--i:people--> **Oricine îl completează.** Un reprezentant de vânzări într-un avion, fără rețea și fără pregătire în design, deschide instrumentul și face cardul pentru ședința de mâine.
+- <!--i:pentool--> **Un designer stabilește regulile.** Aranjează cardul în Lolly Design cu tipografia și culorile brandului, apoi alege ce câmpuri rămân deschise. Face asta o singură dată, așa că nimeni nu mai localizează manual cardul.
+- <!--i:code--> **Un dezvoltator extinde utilizarea instrumentului.** Același instrument rulează într-un script nocturn prin linia de comandă. Un grafic actualizat sau o versiune într-o limbă nouă apare fără ca cineva să redeschidă designul.
+- <!--i:people--> **Oricine îl completează.** Un reprezentant de vânzări aflat în avion, fără rețea și fără pregătire în design, deschide instrumentul și creează cardul pentru întâlnirea de mâine.
 :::
 
-Diagrama proaspătă din pasul dezvoltatorului este o randare ca aceasta, făcută dintr-un șir de date și câteva setări, fără ca cineva să deschidă un fișier de design:
+Graficul actualizat al dezvoltatorului este o randare ca aceasta, creată dintr-un șir de date și câteva setări:
 
-![O diagramă cu arii suprapuse, cu titlu, ale cărei trei serii sunt în benzi dintr-o paletă rece, cu axe, legendă și titlu plasate de șablon, nu de mână](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3FchartType%3Darea%26stackMode%3Dstacked%26palette%3Dcool%26heading%3DProduct%2520mix%2520by%2520quarter%26full&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-lifecycle-chart)
+![Un grafic cu arii suprapuse și titlu, cu cele trei serii în benzi dintr-o paletă rece, în care axele, legenda și titlul sunt plasate de șablon, nu manual](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3FchartType%3Darea%26stackMode%3Dstacked%26palette%3Dcool%26heading%3DProduct%2520mix%2520by%2520quarter%26full&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-lifecycle-chart)
 
-Minutul ușor al reprezentantului este posibil doar datorită grijii designerului și scriptului dezvoltatorului. Fiecare rol lucrează cu același instrument, nu cu un produs separat.
+Minutul în care reprezentantul termină treaba depinde de regulile designerului și de scriptul dezvoltatorului. Fiecare rol lucrează cu același instrument.
 
-## Patru trasee spre un fișier
+<!--i:eti-train-->
+## Patru căi către un fișier
 
-Fiecare traseu rulează același motor pe același instrument, deci fișierul făcut de un script se potrivește cu cel pe care îl previzualizezi în aplicație.
+Fiecare cale rulează același motor pe același instrument, așa că fișierul creat de un script corespunde celui pe care îl previzualizezi în aplicație.
 
-![Parametrii URL și argumentele din linia de comandă devin același model de intrare, rulat printr-un singur runtime și punte de export comune](/info/diagrams/concepts/one-render-path.svg)
+![Parametrii URL și argumentele din linia de comandă devin același model de intrare, procesat printr-un mediu de execuție și o punte de export comune](/info/diagrams/concepts/one-render-path.svg)
 
-- <!--i:people--> **În aplicație, pe rând.** Deschide un instrument, completează câmpurile și apasă **Export**. [Fă primul tău fișier](/info/make-something.html) te ghidează prin unul.
-- <!--i:layers--> **În aplicație, mai multe deodată.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) ia un tabel lipit sau importat și randează un fișier terminat pe rând.
-- <!--i:cpu--> **Dintr-un script sau de un agent AI.** [CLI](/info/cli.html) rulează un instrument fără interfață, iar [serverul MCP](/info/mcp.html) lasă un agent să descopere și să ruleze instrumente. Și un link către un instrument poartă intrările lui, deci un link este o cerere completă.
-- <!--i:server--> **Prin serverul organizației tale.** [Lolly Work](/info/organisation.html) randează pe server sub autentificarea și politica de instrumente ale organizației tale, păstrează joburi pe care le poate relua și ține rezultatul pentru descărcare sau livrare aprobată.
+- <!--i:people--> **În aplicație, unul câte unul.** Deschide un instrument, completează câmpurile și apasă **Export**. [Creează primul tău fișier](/info/make-something.html) te ghidează printr-un exemplu.
+- <!--i:layers--> **În aplicație, mai multe deodată.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) preia un tabel lipit sau importat și randează un fișier finalizat pentru fiecare rând.
+- <!--i:cpu--> **Dintr-un script sau de la un agent AI.** [CLI](/info/cli.html) rulează un instrument fără interfață grafică, iar [serverul MCP](/info/mcp.html) permite unui agent să descopere și să ruleze instrumente. Un link către un instrument include și intrările lui, așa că un link este o cerere completă.
+- <!--i:server--> **Prin serverul organizației tale.** [Lolly Work](/info/organisation.html) randează pe server conform autentificării și politicii organizației tale privind instrumentele, păstrează sarcini pe care le poate relua și reține rezultatul pentru descărcare sau livrare aprobată.
 
-Ce traseu poate folosi un job depinde de formatele instrumentului și de ce poate face gazda: unele formate cer un browser, deci linia de comandă le predă unui nivel de browser. [Randează cu CLI](/info/cli-rendering.html) listează ce formate se randează unde.
+Calea pe care o poate folosi o sarcină depinde de formatele instrumentului și de capacitățile gazdei. Unele formate au nevoie de un browser, așa că linia de comandă le trimite unui nivel de execuție în browser. [Randează cu CLI](/info/cli-rendering.html) listează unde se randează fiecare format.
 
+<!--i:eti-monitor-->
 ## Ce rulează unde
 
-Crearea, editarea și exportul rulează pe dispozitivul tău, fără cont. O funcție care are nevoie de server, precum Sync sau trimiterea unui fișier la un serviciu conectat, se conectează doar când folosești acea funcție. Cu Lolly Work, proiectele comune, editarea live în echipă, aprobările și joburile pe server folosesc serverul organizației tale. [Ce rulează unde](/info/compare.html#what-runs-where) pune cele două părți una lângă alta.
+Crearea, editarea și exportul rulează pe dispozitivul tău, fără cont. O funcție care are nevoie de un server, precum Sync sau trimiterea unui fișier către un serviciu conectat, se conectează doar când o folosești. Cu Lolly Work, proiectele partajate, editarea live în echipă, aprobările și sarcinile de pe server folosesc serverul organizației tale. [Ce rulează unde](/info/compare.html#what-runs-where) prezintă cele două părți alăturat.
 
+<!--i:eti-graduation-cap-->
 ## Citește în continuare
 
-- [Fă primul tău fișier](/info/make-something.html), ca să încerci acum.
-- [Start](/info/quickstart.html), ca să-ți pui propriul sistem de design.
+- [Creează primul tău fișier](/info/make-something.html), ca să încerci acum.
+- [Începe](/info/quickstart.html), ca să adaugi propriul sistem de design.
 - [Automatizează](/info/builders.html), pentru linia de comandă, linkuri și agenți.
-- [Arhitectura Lolly](/info/overview.html), pentru contribuitori: motorul, shell-urile și regulile care le țin împreună.
+- [Arhitectura Lolly](/info/overview.html), pentru contribuitori: motorul, interfețele care îl găzduiesc și regulile care le țin împreună.

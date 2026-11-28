@@ -19,7 +19,7 @@ import { compileDesignDraw, describeDesignDrawPictures, layoutDesignDrawText, ou
 import { designDrawPdf, designDrawPdfFindings, type DesignPdfInfo, type DesignPdfPage } from './design-draw-pdf.ts';
 import { designDrawSvg, svgEscape } from './design-draw-svg.ts';
 import { injectSvgMeta } from './image-meta.ts';
-import { imageDimensions } from './penpot-file.ts';
+import { imageDimensions, svgIntrinsicSize } from './penpot-file.ts';
 import type { TextShaperV1 } from './design-text-measure.ts';
 import type { DrawStrikeMetrics } from './design-draw.ts';
 
@@ -131,6 +131,8 @@ export interface DesignPageSvgOptions {
   size?: { width: string; height: string; px: { w: number; h: number } };
   /** The export's metadata block (`ExportOpts.meta`). */
   meta?: Parameters<typeof injectSvgMeta>[1];
+  /** The still's instant in seconds, or null for every row at rest (`DesignDrawCompileOpts.at`). */
+  at?: number | null;
 }
 
 /** One frame compiled for export: its operations, its pictures' own bytes and what it does not carry. */
@@ -145,14 +147,18 @@ export interface DesignPageDrawing {
  * One frame of a Design document compiled for export: the operations with their text
  * laid out and outlined and their pictures described, and the pictures' bytes. The
  * first frame in page order when `frameId` is absent; an unknown frame, or a document
- * with no frame, is refused.
+ * with no frame, is refused. Timed rows are drawn as they stand at `opts.at`, 0 when
+ * absent, against the whole document's sequence (`DesignDrawCompileOpts.at`).
  */
-export async function designPageDrawing(values: Record<string, unknown>, frameId: string | undefined, host: DesignPageSvgHost, opts: { dpi?: number } = {}): Promise<DesignPageDrawing> {
+export async function designPageDrawing(values: Record<string, unknown>, frameId: string | undefined, host: DesignPageSvgHost, opts: { dpi?: number; at?: number | null } = {}): Promise<DesignPageDrawing> {
   const frames = designFrames(values);
   const frame = frameId === undefined ? frames[0] : frames.find((f) => f.id === frameId);
   if (!frame) throw new Error(frameId === undefined ? 'This document has no frame to export as a page.' : `There is no visible frame "${frameId}" in this document.`);
   const page = compileDesignDraw(frame.rows as never, { width: frame.width, height: frame.height }, {
     effects: true, colors: 'resolved',
+    // The still's instant (0 when the export names none), against the whole document's sequence.
+    ...(opts.at !== undefined ? { at: opts.at } : {}),
+    ...(Array.isArray(values.boxes) ? { timeline: values.boxes as never } : {}),
     ...(host.resolveColor ? { resolveColor: host.resolveColor } : {}),
     ...(host.fonts ? { fonts: host.fonts } : {}),
   });
@@ -169,7 +175,8 @@ export async function designPageDrawing(values: Record<string, unknown>, frameId
     if (found?.media === 'motion' || found?.media === 'audio') return { width: 0, height: 0, media: found.media };
     const mime = found?.bytes ? pictureMime(found.bytes) : null;
     if (!found?.bytes || !mime) { unread.add(ref); return null; }
-    const size = imageDimensions(found.bytes, mime) ?? (found.width && found.height ? { w: found.width, h: found.height } : null);
+    // A vector picture's own size unrounded, as the browser places one (`svgIntrinsicSize`).
+    const size = (mime === 'image/svg+xml' ? svgIntrinsicSize(found.bytes) : imageDimensions(found.bytes, mime)) ?? (found.width && found.height ? { w: found.width, h: found.height } : null);
     pictures.set(ref, { bytes: found.bytes, mime });
     return size ? { width: size.w, height: size.h } : null;
   });
@@ -184,7 +191,10 @@ export async function designPageDrawing(values: Record<string, unknown>, frameId
 
 /** One frame of a Design document as a standalone SVG drawn from its operations (see `designPageDrawing`). */
 export async function designPageSvg(values: Record<string, unknown>, frameId: string | undefined, host: DesignPageSvgHost, opts: DesignPageSvgOptions = {}): Promise<DesignPageSvg> {
-  const { frame, page, pictures } = await designPageDrawing(values, frameId, host, opts.dpi === undefined ? {} : { dpi: opts.dpi });
+  const { frame, page, pictures } = await designPageDrawing(values, frameId, host, {
+    ...(opts.dpi === undefined ? {} : { dpi: opts.dpi }),
+    ...(opts.at === undefined ? {} : { at: opts.at }),
+  });
   const hrefs = new Map([...pictures].map(([ref, p]) => [ref, dataUrl(p.bytes, p.mime)]));
   let svg = designDrawSvg(page, {
     assetHref: (ref) => hrefs.get(ref),
@@ -212,13 +222,16 @@ export type DesignPdfPlacement = (frame: { width: number; height: number }) => {
  * caller hands the document to another renderer whole.
  */
 export async function designPagesPdf(values: Record<string, unknown>, frameIds: readonly string[] | undefined, host: DesignPageSvgHost,
-  opts: { dpi?: number; info?: DesignPdfInfo; place?: DesignPdfPlacement } = {}): Promise<{ pdf: Uint8Array | null; findings: DrawFinding[] }> {
+  opts: { dpi?: number; at?: number | null; info?: DesignPdfInfo; place?: DesignPdfPlacement } = {}): Promise<{ pdf: Uint8Array | null; findings: DrawFinding[] }> {
   const ids = frameIds ?? designFrames(values).map((f) => f.id);
   if (!ids.length) throw new Error('This document has no frame to export as a page.');
   const pages: DesignPdfPage[] = [];
   const findings: DrawFinding[] = [];
   for (const id of ids) {
-    const drawing = await designPageDrawing(values, id, host, opts.dpi === undefined ? {} : { dpi: opts.dpi });
+    const drawing = await designPageDrawing(values, id, host, {
+      ...(opts.dpi === undefined ? {} : { dpi: opts.dpi }),
+      ...(opts.at === undefined ? {} : { at: opts.at }),
+    });
     findings.push(...drawing.findings, ...designDrawPdfFindings(drawing.page, drawing.pictures));
     const placed = opts.place?.(drawing.frame) ?? { size: { w: drawing.frame.width * 0.75, h: drawing.frame.height * 0.75 } };
     pages.push({ page: drawing.page, pictures: drawing.pictures, size: placed.size, ...(placed.artwork ? { artwork: placed.artwork } : {}) });

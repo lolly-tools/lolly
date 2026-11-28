@@ -205,7 +205,10 @@ function mount({
   experience = {},
   madeWith,
   privacy,
+  render,
 }: {
+  /** The render block in effect, as the engine's runtime answers (`render.when`). */
+  render?: (manifestRender: Record<string, unknown>) => Record<string, unknown>;
   seqMs: number | null /** A bed's own length stamped as data-clip-ms (the audiogram). */;
   clipMs?: number | null;
   videoDuration?: number;
@@ -276,6 +279,7 @@ function mount({
       setMadeWith: (on: boolean) => { madeWithOn = on; },
       madeWithPreview: async () => { madeWithReads++; return madeWith.preview; },
     } : {}),
+    ...(render ? { getRender: () => render(manifest.render) } : {}),
     getModel: () => live,
     setInput: async (id: string, value: unknown) => {
       inputWrites.push({ id, value });
@@ -389,6 +393,41 @@ function mount({
 
 /** Let the MutationObserver callback (a microtask) run. */
 const settle = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+
+// Render settings that follow an input (`render.when`): the bar is built from the block
+// in effect, so the mount after a mode flip holds the other mode's controls and none of
+// the first one's. The flip itself is a new mount (views/tool-render-mode.ts).
+test('the export bar is built from the render block in effect, not from the manifest block', () => {
+  const inputs = [{ id: 'mode', type: 'select' }];
+  const make = mount({ seqMs: null, formats: ['png', 'svg'], inputs, toolId: 'two-modes', render: (own) => own });
+  assert.ok(make.panel.querySelector('[data-action="format"]'), 'make mode: the format picker');
+  assert.ok(make.panel.querySelector('[data-action="download"]'), 'make mode: Download');
+  assert.ok(make.panel.querySelector('[data-action="copy"]'), 'make mode: Copy');
+  make.dispose();
+
+  // The same manifest, mounted while the keyed input holds the other value.
+  const scan = mount({ seqMs: null, formats: ['png', 'svg'], inputs, toolId: 'two-modes',
+    render: (own) => ({ ...own, export: false, webPreview: true, actions: [] }) });
+  assert.equal(scan.panel.innerHTML, '', 'scan mode: no bar, no sheet');
+  assert.equal(scan.panel.querySelector('[data-action="download"], [data-action="copy"], [data-action="format"], [data-action="save"]'), null);
+  scan.dispose();
+
+  // No export, the default actions: the document is still kept, so Save stays.
+  const kept = mount({ seqMs: null, formats: ['png', 'svg'], inputs, toolId: 'two-modes',
+    render: (own) => ({ ...own, export: false }) });
+  assert.ok(kept.panel.querySelector('[data-action="save"]'));
+  assert.equal(kept.panel.querySelector('[data-action="download"], [data-action="format"]'), null);
+  kept.dispose();
+});
+
+test('the actions under `set` choose the buttons of an exporting mode', () => {
+  const only = mount({ seqMs: null, formats: ['png'], toolId: 'two-modes',
+    render: (own) => ({ ...own, actions: ['download'] }) });
+  assert.ok(only.panel.querySelector('[data-action="download"]'));
+  assert.equal(only.panel.querySelector('[data-action="copy"]'), null);
+  assert.equal(only.panel.querySelector('[data-action="save"]'), null);
+  only.dispose();
+});
 
 test('the portable mount offers .lolly for a single-format tool and never sends that choice to the renderer', async () => {
   const h = mount({ seqMs: null, formats: ['png'], portable: true });
@@ -2510,19 +2549,20 @@ const PERSIMMON_PREVIEW = {
   plainDescription: 'Made with https://lolly.tools : Chart',
 };
 
-test('the Design system card is pre-checked, outside Protection, and shows the exact words it writes', async () => {
+test('the Design system card is pre-checked, inside Content claims, and shows the exact words the export writes', async () => {
   const h = mount({ seqMs: null, formats: ['png'], madeWith: { preview: PERSIMMON_PREVIEW } });
   await settle();
   const card = h.panel.querySelector('[data-madewith-section]') as HTMLElement;
   assert.ok(card, 'the card is rendered');
   assert.equal(card.hidden, false);
-  assert.equal(card.closest('[data-protection-section]'), null, 'never folded into the collapsed Protection group');
+  const fold = card.closest('[data-protection-section]') as HTMLElement;
+  assert.ok(fold, 'the card is inside the Content claims fold');
+  assert.equal(fold.style.display, 'flex', 'the fold shows while the card applies');
+  assert.equal(card.querySelector('[data-madewith-description]'), null, 'no description line; the help tip explains');
   const toggle = card.querySelector('[data-action="madewith"]') as HTMLInputElement;
   assert.equal(toggle.checked, true, 'pre-checked');
   assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records: Acme <Client> · Colourway: Persimmon',
     'the label is typed text, shown exactly as it will be written');
-  assert.equal(card.querySelector('[data-madewith-description]')!.textContent,
-    'Description: Made with https://lolly.tools : Chart (Persimmon colourway)');
   h.dispose();
 });
 
@@ -2532,7 +2572,6 @@ test('a recorded brand page shows on the card in the same line, and unticking th
   await settle();
   const card = h.panel.querySelector('[data-madewith-section]') as HTMLElement;
   assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records: Acme <Client> · Colourway: Persimmon · Brand page: https://acme.example/brand/acme/');
-  assert.equal(card.querySelector('[data-madewith-description]')!.textContent, 'Description: Made with https://lolly.tools : Chart (Persimmon colourway)', 'the description does not change');
   const toggle = card.querySelector('[data-action="madewith"]') as HTMLInputElement;
   toggle.checked = false;
   toggle.dispatchEvent(new Event('change', { bubbles: true }));
@@ -2550,7 +2589,6 @@ test('unticking the card turns the runtime switch off and shows the plain descri
   assert.equal(h.madeWith(), false);
   assert.equal(card.hidden, false, 'still visible, so it can be ticked again');
   assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records nothing about the design system.');
-  assert.equal(card.querySelector('[data-madewith-description]')!.textContent, 'Description: Made with https://lolly.tools : Chart');
   h.dispose();
 });
 
@@ -2632,7 +2670,6 @@ test('on HTML the record reaches only the credential: no description line, and n
   assert.equal(c2pa.checked, true, 'on by default');
   assert.equal(card.hidden, false);
   assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records: Acme <Client> · Colourway: Persimmon');
-  assert.equal((card.querySelector('[data-madewith-description]') as HTMLElement).hidden, true, 'an HTML file has no description to write');
   c2pa.checked = false;
   c2pa.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
   assert.equal(card.hidden, true, 'with the credential off, an HTML file carries none of the record');

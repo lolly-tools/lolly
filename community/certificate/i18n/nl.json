@@ -1,6 +1,6 @@
 {
   "name": "Certificaat",
-  "description": "Certificaten voor afronding en onderscheiding in het actieve designsysteem en de kleurvariant ervan: vier stijlen, print- en socialformaten en beweging om te delen - één naam per keer, of een hele lijst uit een CSV in Bulk vanuit rijen.",
+  "description": "Certificaten voor afronding en onderscheiding: vier stijlen, print- en socialformaten en beweging - één naam per keer, of een lijst uit een CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} voor {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Soort",
   "inputs.certKind.help": "Bepaalt de tekst: de titel, de regel boven waar het certificaat voor is en het teken op het zegel.",

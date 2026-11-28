@@ -74,6 +74,20 @@ export function genreTaglines(): Readonly<Record<string, string>> {
     funkyHouse: t('Disco loop, Latin percussion and vocal chops'),
     ukGarage: t('Swung two-step drums, organ stabs and chops'),
     privateSchool: t('Mellow amapiano, soft log drum and sax'),
+    dnbJump: t('Bouncing jump-up stabs over a deep sub'),
+    dnbDark: t('A torn, driven reese and tense breaks'),
+    dnbLiquid: t('Rhodes, strings and a voice over rolling breaks'),
+    dnbDeep: t('A long sub, sparse pads and room'),
+    dnbRave: t('Piano stabs, chopped voices and fast breaks'),
+    italo: t('Octave synth bass, arpeggios, claps and cowbell'),
+    balearic: t('Sunset groove, nylon guitar and hand drums'),
+    lofiFocus: t('Steady felt piano, few notes, no surprises'),
+    lofiDrift: t('Slow pads and felt piano, barely a beat'),
+    lofiSoul: t('Rhodes, a soul bass and finger snaps'),
+    lofiFunk: t('Wurlitzer, popping bass and a lazy backbeat'),
+    lofiJazz: t('Piano, upright bass, brushes and a ride'),
+    lofiZen: t('Koto and guzheng over a soft beat'),
+    lofiCinema: t('Strings, grand piano and a cello tune'),
   };
 }
 

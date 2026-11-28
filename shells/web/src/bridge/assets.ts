@@ -362,10 +362,11 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
   const inFlight = new Map<string, Promise<Blob>>();
   // The looks a design system's colourways make, per token document. A changed system is
   // a new document, so its looks are read again; the same one is read once.
-  // `themes` is what a strip offers; `resolvable` adds each colourway's pairing for a dark
-  // ground, which an auto icon picks and a piece can carry.
-  type ColourwayLooks = { themes: IconTheme[]; resolvable: IconTheme[]; treatments: PhotoTreatment[] };
-  const NO_LOOKS: ColourwayLooks = { themes: [], resolvable: [], treatments: [] };
+  // `themes` is what a strip offers on a light ground and `onDark` what it offers on a
+  // dark one: each colourway's pairing for a dark ground, under the colourway's own name.
+  // `resolvable` holds both, which an auto icon picks from and a piece can carry.
+  type ColourwayLooks = { themes: IconTheme[]; onDark: IconTheme[]; resolvable: IconTheme[]; treatments: PhotoTreatment[] };
+  const NO_LOOKS: ColourwayLooks = { themes: [], onDark: [], resolvable: [], treatments: [] };
   const colourwayLookCache = new WeakMap<object, ColourwayLooks>();
   const colourwayLooks = async (): Promise<ColourwayLooks> => {
     let doc: unknown = null;
@@ -373,9 +374,15 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     if (!doc || typeof doc !== 'object') return NO_LOOKS;
     let looks = colourwayLookCache.get(doc);
     if (!looks) {
-      const { colourwayIconThemes, colourwaySurfaceIconThemes, colourwayPhotoTreatments } = await import('../../../../engine/src/brand-treatments.ts');
+      const { colourwayIconThemes, colourwaySurfaceIconThemes, colourwayPhotoTreatments, ON_DARK_SUFFIX } = await import('../../../../engine/src/brand-treatments.ts');
       try {
-        looks = { themes: colourwayIconThemes(doc), resolvable: colourwaySurfaceIconThemes(doc), treatments: colourwayPhotoTreatments(doc) };
+        const themes = colourwayIconThemes(doc);
+        const resolvable = colourwaySurfaceIconThemes(doc);
+        const onDark = themes.flatMap((th) => {
+          const pair = resolvable.find(r => r.id === `${th.id}${ON_DARK_SUFFIX}`);
+          return pair ? [{ id: pair.id, c1: pair.c1, c2: pair.c2, ...(th.label ? { label: th.label } : {}) }] : [];
+        });
+        looks = { themes, onDark, resolvable, treatments: colourwayPhotoTreatments(doc) };
       } catch { looks = NO_LOOKS; }
       colourwayLookCache.set(doc, looks);
     }
@@ -768,9 +775,13 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * canonical first (engine/src/brand-treatments.ts `colourwayIconThemes`). [] when the
      * system has no colourways, so no colour strip shows. The icon's own colours are not
      * listed: a strip leads with "Original", which is the plain id with no suffix.
+     * `ground` is the surface the icons are shown on: on `dark` each colourway gives its
+     * pairing for a dark ground (`<id>--on-dark`), under the same name and in the same order.
      */
-    async _iconThemes(_forAssetId?: string): Promise<IconTheme[]> {
-      return colourwayTreatmentsOffered() ? (await colourwayLooks()).themes : [];
+    async _iconThemes(_forAssetId?: string, ground: 'light' | 'dark' = 'light'): Promise<IconTheme[]> {
+      if (!colourwayTreatmentsOffered()) return [];
+      const looks = await colourwayLooks();
+      return ground === 'dark' ? looks.onDark : looks.themes;
     },
 
     /**
@@ -1538,7 +1549,7 @@ function pickFormat(meta: AssetMetaRecord, requested?: string): AssetFormat {
   if (meta.type === 'raster') return meta.formats.find(f => /^(png|webp|jpe?g|gif|avif|heic|heif|tiff?|jxl)$/i.test(f.format)) ?? meta.formats[0]!;
   // A lottie entry carries the animation (json) plus a static poster variant;
   // tools always want the animation regardless of listing order.
-  if (meta.type === 'model') return meta.formats.find(f => /^(glb|stl|3mf)$/i.test(f.format)) ?? meta.formats[0]!;
+  if (meta.type === 'model') return meta.formats.find(f => /^(glb|gltf|stl|3mf)$/i.test(f.format)) ?? meta.formats[0]!;
   if (meta.type === 'lottie') return meta.formats.find(f => f.format === 'json') ?? meta.formats[0]!;
   // A video entry may ship a still poster alongside the clip; always resolve to the
   // clip (a <video> needs the real container), regardless of listing order.

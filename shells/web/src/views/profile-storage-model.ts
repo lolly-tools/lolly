@@ -162,7 +162,7 @@ export function renderSessRow(s: SessionEntry, bytes: number, ctx: SessionRowCon
     subClass: 'store-sess-sub',
     subtitle,
     sizeBytes: bytes,
-    deleteAttr: `data-del-session="${escapeHtml(s.slot)}"`,
+    deleteAttr: { 'data-del-session': s.slot },
     deleteClass: 'store-sess-del',
     deleteLabel: tRaw('Delete {name}', { name: label }),
   });

@@ -27,7 +27,8 @@
  * onInit/onInput/onFrame/onLevel/exportFile.
  */
 import { Worker } from 'node:worker_threads';
-import { HOOK_BUDGET_MS, inRealmHookExecutor } from '@lolly/engine';
+import { HOOK_BUDGET_MS, createHookBudget, inRealmHookExecutor } from '@lolly/engine';
+import type { HookBudget } from '@lolly/engine';
 import { workerRpcMethods, introspectHost, gatherHostSeeds } from '@lolly/engine';
 import type { HookExecutor, Hooks } from '@lolly/engine';
 import type {
@@ -69,7 +70,7 @@ interface Mount {
   host: HostV1;
   allowedRpc: Set<string>;
   worker: Worker;
-  invokes: Map<number, { resolve: (v: unknown) => void; reject: (e: unknown) => void; timer: NodeJS.Timeout; report?: (patch: Record<string, unknown>, opts?: { ready?: boolean }) => void }>;
+  invokes: Map<number, { resolve: (v: unknown) => void; reject: (e: unknown) => void; budget: HookBudget; report?: (patch: Record<string, unknown>, opts?: { ready?: boolean }) => void }>;
 }
 
 let runSeq = 0;
@@ -88,7 +89,7 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
   const threadUrl = opts.threadUrl ?? new URL('./hook-worker.thread.ts', import.meta.url);
 
   const teardown = (mount: Mount, reason: Error): void => {
-    for (const p of mount.invokes.values()) { clearTimeout(p.timer); p.reject(reason); }
+    for (const p of mount.invokes.values()) { p.budget.clear(); p.reject(reason); }
     mount.invokes.clear();
     mount.worker.removeAllListeners();
     void mount.worker.terminate();
@@ -106,10 +107,15 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
     const nsObj = (mount.host as unknown as Record<string, Record<string, unknown>>)[ns];
     const fn = nsObj?.[method];
     if (typeof fn !== 'function') { reply(false, undefined, `no host.${m.method}`); return; }
+    // The thread's hooks are waiting on this process from here until the reply is sent.
+    const waiting = [...mount.invokes.values()].map((p) => p.budget);
+    for (const b of waiting) b.hostCallStarted();
     try {
       reply(true, await (fn as (...a: unknown[]) => unknown).apply(nsObj, m.args));
     } catch (e) {
       reply(false, undefined, e instanceof Error ? e.message : String(e));
+    } finally {
+      for (const b of waiting) b.hostCallEnded();
     }
   };
 
@@ -120,9 +126,6 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
     // customization hook never finishes linking on Node 22, and hooks.js needs
     // nothing from them. Type stripping is a default, not a flag.
     const worker = new Worker(threadUrl, { env: {}, stdout: false, stderr: false, execArgv: [], workerData: { geometryBackend: geometryBackendOf(host.geom), geometryStrict: geometrySelectionIsStrict(host.geom) } });
-    // A thread must never keep the owning process alive on its own: the CLI
-    // exits when the render is written, worker or not.
-    worker.unref();
     const mount: Mount = { host, allowedRpc: new Set(), worker, invokes: new Map() };
     const hostShape: HostShape = introspectHost(host);
     if (strict) delete hostShape.capture;
@@ -146,13 +149,18 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
           const p = mount.invokes.get(done.callId);
           if (!p) return;
           mount.invokes.delete(done.callId);
-          clearTimeout(p.timer);
+          p.budget.clear();
           if (done.ok) p.resolve(done.patch); else p.reject(new Error(done.error ?? 'hook failed'));
         }
       });
       worker.on('error', (err: unknown) => { clearTimeout(timer); const e = new NodeHookIsolationError(`hook thread crashed: ${err instanceof Error ? err.message : String(err)}`); reject(e); teardown(mount, e); });
       worker.on('exit', (code) => { if (code !== 0) teardown(mount, new NodeHookIsolationError(`hook thread exited (${code})`)); });
     });
+    // A thread must never keep the owning process alive on its own: the CLI
+    // exits when the render is written, worker or not. This comes AFTER the
+    // listeners above, because adding a 'message' listener refs the thread's port
+    // again, and an unref made before that point is undone.
+    worker.unref();
 
     worker.postMessage({
       t: 'init', runId,
@@ -178,16 +186,16 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
       const callId = ++callSeq;
       const { host: _omit, report, ...rest } = (ctx ?? {}) as Record<string, unknown> & { host?: unknown; report?: (p: Record<string, unknown>) => void };
       return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => {
+        const budget = createHookBudget(NODE_WORKER_HOOK_BUDGET_MS[name], () => {
           if (!mount.invokes.has(callId)) return;
           teardown(mount, new NodeHookIsolationError(`${name} exceeded its ${NODE_WORKER_HOOK_BUDGET_MS[name]}ms isolated execution budget`));
-        }, NODE_WORKER_HOOK_BUDGET_MS[name]);
-        mount.invokes.set(callId, { resolve, reject, timer, report });
+        });
+        mount.invokes.set(callId, { resolve, reject, budget, report });
         try {
           worker.postMessage({ t: 'invoke', runId, callId, name, ctx: rest });
         } catch (e) {
           mount.invokes.delete(callId);
-          clearTimeout(timer);
+          budget.clear();
           reject(new NodeHookIsolationError(`could not invoke isolated ${name}: ${(e as Error).message}`));
         }
       });

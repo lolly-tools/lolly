@@ -10,7 +10,9 @@
    Atoms come from the primitives (.btn, .field-*, .chip, .card). Tokens only, so every
    theme and brand palette follows with no work here. */
 
-.prepare-view { padding: 88px 28px 48px; }
+/* The top padding clears the floating back row, which sits below the status bar
+   (the inset is 0 on a screen without one). */
+.prepare-view { padding: calc(88px + var(--safe-top)) 28px 48px; }
 .prepare-page { max-width: 1180px; margin: 0 auto; }
 /* With the inspection panel docked at the edge the page no longer needs the width the
    aside took, and a shorter measure keeps the text column readable. */
@@ -37,9 +39,10 @@
 .prep-card[hidden] { display: none; }
 .prep-card-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-2) var(--sp-4); margin: 0 0 var(--sp-4); }
 .prep-card-title { margin: 0; font-size: var(--ui-type-lead); font-weight: 700; letter-spacing: -.01em; }
+/* The Sources help tip has three notes, so the popover keeps a readable line length. */
+.prep-card-head > .help-tip-pop { max-inline-size: 34rem; }
 .prep-card-sub { flex: 1 1 16rem; margin: 0; color: var(--ui-color-text-muted); font-size: var(--fs-md); line-height: 1.5; }
-.prep-hint, .prep-limits, .prep-footnote { margin: 0; color: var(--ui-color-text-muted); font-size: var(--fs-sm); line-height: 1.5; }
-.prep-limits { margin-block-start: var(--sp-3); }
+.prep-hint { margin: 0; color: var(--ui-color-text-muted); font-size: var(--fs-sm); line-height: 1.5; }
 .prep-status { margin: var(--sp-3) 0 0; min-height: 1.4em; color: var(--ui-color-text-muted); font-size: var(--fs-md); line-height: 1.5; }
 .prep-status[data-tone="error"] { color: hsl(var(--destructive-text)); }
 .prep-alert { margin: 0; padding: var(--sp-3); border-radius: var(--ui-radius-control); background: hsl(var(--destructive) / .1); color: hsl(var(--destructive-text)); font-size: var(--fs-md); line-height: 1.5; }
@@ -246,11 +249,10 @@
   .prepare-panel:not(.is-docked) .prep-sources { order: 1; }
   .prepare-panel:not(.is-docked) .prepare-layout > .prep-side { order: 2; position: static; max-height: none; }
   .prepare-panel:not(.is-docked) .prep-copies { order: 3; }
-  .prepare-panel:not(.is-docked) .prep-footnote { order: 4; }
   .prep-compare-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
-  .prepare-view { padding: 82px 12px 32px; }
+  .prepare-view { padding: calc(82px + var(--safe-top)) 12px 32px; }
   .prep-card { padding: var(--sp-4); }
   .prep-file { grid-template-columns: auto minmax(0, 1fr); }
   .prep-file-actions { grid-column: 2; justify-content: flex-start; }

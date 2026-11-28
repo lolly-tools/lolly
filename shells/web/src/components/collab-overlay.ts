@@ -70,6 +70,7 @@
  * silhouette below.
  */
 
+import { injectStyleOnce } from '../lib/inject-style.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { collabLabelColor } from '../lib/collab-label-color.ts';
 import { stepCursorSwing, type CursorSwing } from './collab-cursor-motion.ts';
@@ -164,12 +165,7 @@ const CSS = `
  * layers (and the focus module borrowing this one) share a single `<style>`.
  */
 export function ensureOverlayStyles(doc: Document | null | undefined): void {
-  const d = doc ?? (typeof document !== 'undefined' ? document : null);
-  if (!d || d.getElementById(STYLE_ID)) return;
-  const style = d.createElement('style');
-  style.id = STYLE_ID;
-  style.textContent = CSS;
-  d.head.appendChild(style);
+  injectStyleOnce(STYLE_ID, CSS, doc);
 }
 
 // ── Geometry ──────────────────────────────────────────────────────────────────

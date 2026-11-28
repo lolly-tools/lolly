@@ -1,11 +1,9 @@
 # Organisation delivery destinations
 
-Your team finishes a poster, and it has to reach the campaign archive exactly as approved. This
-page is for the admin who sets up those fixed organisation destinations in Lolly Work, and for
-the people and automations that send to them. Delivery sends one finished Lolly export to a
-destination your organisation owns: S3-compatible storage (such as AWS S3, MinIO, Ceph RGW or
-Garage), WebDAV (including Nextcloud and ownCloud), an HMAC-signed HTTPS receiver, Brandfolder
-or Cloudinary.
+Your team finishes a poster, and it has to reach the campaign archive exactly as approved.
+Delivery sends one finished Lolly export to a destination your organisation owns: S3-compatible
+storage (such as AWS S3, MinIO, Ceph RGW or Garage), WebDAV (including Nextcloud and ownCloud),
+an HMAC-signed HTTPS receiver, Brandfolder or Cloudinary.
 
 <!--i:eti-external-link-->
 ## How delivery differs from a source
@@ -99,7 +97,7 @@ Set the referenced secret in the deployment environment:
 LW_DESTINATION_CAMPAIGN_ARCHIVE='<accessKeyId>:<secretAccessKey>'
 ```
 
-`publicBaseUrl` is optional and means exactly what it says: when present, Lolly Work marks the
+`publicBaseUrl` is optional: when present, Lolly Work marks the
 destination public and returns the matching object URL in the receipt. An unguessable public URL
 is not access control.
 
@@ -208,7 +206,7 @@ A private progress record is saved before creation and again with the created as
 processing or verification failure retries that known asset without uploading or creating it
 again. If the create response is lost, Brandfolder documents no idempotency key, so the delivery
 stops with an uncertain-outcome message. An operator must reconcile the asset before another
-create is attempted; do not create a fresh delivery just to get past the message. The adapter does
+create is attempted; do not create a fresh delivery to get past the message. The adapter does
 not assign collection membership.
 
 ### Configure Cloudinary writes
@@ -282,7 +280,7 @@ round trip is needed.
 <!--i:eti-upload-->
 ## What happens when you send
 
-A raw body is accepted only when it carries Lolly's C2PA export assertion. Before anything leaves,
+A raw body is accepted only when it has Lolly's C2PA export assertion. Before anything leaves,
 Lolly Work records its SHA-256 and stages the exact bytes in the configured BlobStore.
 
 ::: figure work-delivery-lifecycle
@@ -313,7 +311,7 @@ A delivery waits for approval when its destination has a chain, then is queued, 
 service principal, and `POST /api/v1/renders/:id/deliveries` does the same for a succeeded
 [durable render](renders.md). The JSON body is `{ "destinationId": "campaign-archive", "name": "Launch
 poster" }`; an optional `format` must equal the recorded format and cannot override that format. Both
-routes run one code path, and a durable render also checks that its owner still holds the tool and
+routes run one code path, and a durable render also checks that its owner still has the tool and
 `export.server`.
 
 When the job completes, Lolly Work records a SHA-256 over the actual output bytes, independently of the
@@ -347,7 +345,7 @@ How chains work is on [Approvals](approvals.md).
 <!--i:eti-user-check-->
 ## Who may send
 
-`delivery.create` is the right to send to a fixed organisation destination. Members carry it by
+`delivery.create` is the right to send to a fixed organisation destination. Members have it by
 default, because the operator has already chosen, credentialed and enabled each destination. The
 destination's `groups` and resource grants narrow it further:
 

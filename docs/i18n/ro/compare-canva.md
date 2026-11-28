@@ -2,26 +2,30 @@
 
 _Ultima verificare: 28 septembrie 2026._
 
-Dacă echipa ta face astăzi postări sociale, diapozitive și fluturași în Canva, această pagină spune unde face Lolly aceeași sarcină și unde Canva rămâne mai potrivit.
+Dacă echipa ta creează postări pentru rețele sociale, diapozitive și pliante în Canva, această pagină spune unde Lolly face aceeași treabă și unde Canva se potrivește mai bine.
 
+<!--i:eti-award-->
 ## Ce face Canva mai bine
 
-Canva combină o bibliotecă mare de șabloane și stock, aplicații și fluxuri de echipă găzduite într-un singur serviciu administrat. Acel conținut gata făcut și acea experiență ajută când ai nevoie de un punct de pornire astăzi. Vezi [șabloanele Canva](https://www.canva.com/templates/) și [piața de aplicații](https://www.canva.com/apps/). Editarea lui live are și un istoric de operare îndelungat la o scară pe care work collab-urile Lolly nu au atins-o.
+Canva combină o bibliotecă mare de șabloane și resurse de stoc, aplicații și fluxuri de lucru găzduite pentru echipe într-un singur serviciu administrat. Conținutul gata făcut ajută când ai nevoie de un punct de pornire chiar azi. Vezi [șabloanele Canva](https://www.canva.com/templates/) și [magazinul de aplicații](https://www.canva.com/apps/). Editarea live în Canva are un istoric îndelungat de funcționare la o scară pe care colaborările de lucru Lolly nu au atins-o.
 
+<!--i:eti-blend-->
 ## Unde se suprapun
 
-Ambele te lasă să pornești de la un șablon și să produci o grafică terminată fără să fii designer. Ambele acceptă munca în echipă și controale de brand: [Canva le împachetează în planurile sale business](https://www.canva.com/canva-business/), în timp ce Lolly ține separate aplicația creativă și serverul organizației.
+Ambele permit unei persoane fără pregătire în design să pornească de la un șablon și să producă o grafică finalizată. Ambele acceptă munca în echipă și controale de brand. [Canva le include în planurile sale pentru companii](https://www.canva.com/canva-business/). Lolly păstrează separate aplicația de creație și serverul organizației.
 
-## Cum face Lolly sarcina comună
+<!--i:eti-lolly-->
+## Cum face Lolly munca pe care o au în comun
 
-Un instrument Lolly codifică schimbările pe care le pot face oamenii, iar același instrument rulează în browser, în aplicația desktop sau în CLI. Un layout făcut pe canvasul Lolly Design poate deveni un [instrument cu reguli](/info/create-a-tool.html), iar un instrument poate face multe fișiere dintr-un tabel de valori.
+Un instrument Lolly stabilește modificările pe care le pot face oamenii. Același instrument rulează în browser, în aplicația desktop sau în CLI. Un layout creat pe canvasul Lolly Design poate deveni un [instrument cu reguli](/info/create-a-tool.html). Un instrument poate crea multe fișiere dintr-un tabel de valori.
 
-![Canvasul liber Lolly Design, unde culorile, fonturile și resursele oferite sunt ale sistemului de design](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Canvasul liber al Lolly Design, unde culorile, fonturile și resursele disponibile sunt cele ale sistemului de design](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
-Lolly de sine stătător păstrează crearea și exportul pe dispozitiv, fără cont, și funcționează offline după ce resursele sunt salvate. Două persoane pot edita live într-un [collab privat](/info/collaborate.html), de la dispozitiv la dispozitiv. Content Credentials sunt active implicit pentru exporturile acceptate și le poți opri.
+Lolly folosit independent creează și exportă pe dispozitiv, fără cont. Funcționează offline după ce resursele sale sunt salvate. Două persoane pot edita live într-o [colaborare privată](/info/collaborate.html), de la dispozitiv la dispozitiv. Content Credentials sunt activate implicit pentru exporturile acceptate și le poți dezactiva.
 
-## Cu o organizație
+<!--i:eti-building-->
+## Într-o organizație
 
-Lolly Work, rulat pe serverul propriu al organizației tale, adaugă autentificare, proiecte comune, work collab-uri live, resurse aprobate și politici. [Ce rulează unde](/info/compare.html#what-runs-where) pune cele două părți una lângă alta, cu limitele comune fiecărei comparații.
+Lolly Work, rulat pe propriul server al organizației tale, adaugă autentificare, proiecte partajate, colaborări de lucru live, resurse aprobate și politici. [Ce rulează unde](/info/compare.html#what-runs-where) pune cele două părți una lângă alta, cu limitele comune tuturor comparațiilor.
 
-Canva este o marcă comercială a proprietarului ei. Această pagină descrie unde se suprapun cele două produse și nu este afiliată cu Canva.
+Canva este o marcă comercială a deținătorului său. Această pagină descrie unde se suprapun cele două produse și nu este afiliată cu Canva.

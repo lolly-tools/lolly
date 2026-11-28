@@ -1,50 +1,53 @@
 # Lolly comparat, instrument cu instrument
 
-Dacă folosești deja alt produs, aceste pagini spun dacă Lolly înlocuiește acel produs, funcționează alături de el sau nu se potrivește muncii tale. Fiecare începe cu ce face mai bine celălalt produs.
+Aceste pagini spun dacă Lolly înlocuiește un alt produs, funcționează alături de acel produs sau nu se potrivește muncii tale. Fiecare pagină începe cu ceea ce face mai bine celălalt produs.
 
 _Ultima verificare: 28 septembrie 2026._
 
-## Compară pe produs
+<!--i:eti-grid-->
+## Compară după produs
 
-- [Lolly și Canva](/info/compare-canva.html) - șabloane, design de zi cu zi și producție de brand comună.
-- [Lolly și Adobe](/info/compare-adobe.html) - editare, conversie, ieșire profesională și Content Credentials.
-- [Lolly și Figma](/info/compare-figma.html) - design, colaborare live și producție reutilizabilă de resurse.
-- [Lolly și Penpot](/info/compare-penpot.html) - design open source, tokenuri comune și munca organizației.
+- [Lolly și Canva](/info/compare-canva.html) - șabloane, design de zi cu zi și producție de brand în echipă.
+- [Lolly și Adobe](/info/compare-adobe.html) - editare, conversie, rezultate profesionale și Content Credentials.
+- [Lolly și Figma](/info/compare-figma.html) - design, colaborare live și producție de resurse reutilizabile.
+- [Lolly și Penpot](/info/compare-penpot.html) - design open-source, tokenuri comune și muncă în organizație.
 - [Lolly și portalurile de brand](/info/compare-brand-portals.html) - biblioteci aprobate, șabloane blocate, identitate, revizuire și raportare.
-- [Lolly și API-urile de randare](/info/compare-render-apis.html) - generare automată pe dispozitivul tău, în CI sau pe propriul server, și [cum te muți](/info/work-move-from-render-api.html) de la Bannerbear sau Placid.
+- [Lolly și API-urile de randare](/info/compare-render-apis.html) - generare automată pe dispozitivul tău, în CI sau pe propriul server și [cum migrezi](/info/work-move-from-render-api.html) de la Bannerbear sau Placid.
 - [Lolly și convertoarele de fișiere online](/info/compare-converters.html) - conversia formatelor pe propriul dispozitiv.
 
-Pentru vederea capacitate cu capacitate, vezi [Cum se compară Lolly](/info/positioning.html). Fiecare comparație are dată; o afirmație care nu mai corespunde unuia dintre produse trebuie corectată.
+[Cum se compară Lolly](/info/positioning.html) oferă comparația funcție cu funcție. Fiecare comparație este datată. O afirmație care nu mai corespunde unuia dintre produse trebuie corectată.
 
+<!--i:eti-map-pin-->
 ## Ce rulează unde
 
-Fiecare comparație acoperă două părți ale unui singur proiect open source. **Lolly** este motorul, aplicațiile și instrumentele. **Lolly Work** este serverul organizației, întreținut în [depozitul lolly-work](https://github.com/lolly-tools/lolly-work). Ambele sunt MPL-2.0, iar o organizație decide ce servicii Lolly Work pornește.
+Fiecare comparație acoperă două părți ale aceluiași proiect open-source. **Lolly** înseamnă motorul, aplicațiile și instrumentele. **Lolly Work** este serverul organizației, întreținut în [depozitul lolly-work](https://github.com/lolly-tools/lolly-work). Ambele sunt MPL-2.0, iar o organizație decide ce servicii Lolly Work activează.
 
 ::: cols
 ## Pe dispozitivul tău: Lolly
 
-- Fără cont pentru folosirea de sine stătătoare
+- Fără cont pentru utilizare independentă
 - Creare, editare, conversie și export
 - Funcționează offline după ce instrumentele și resursele necesare sunt salvate
 - Content Credentials semnate pe dispozitiv
-- Collab-uri private între două dispozitive, fără server
+- Colaborări private între două dispozitive, fără server
 
 ## Pe serverul organizației tale: Lolly Work
 
-- Single sign-on, provizionare SCIM, roluri și politici
-- Cataloage comune, proiecte de echipă și work collab-uri
-- Aprobări, raportare de utilizare și înregistrări de audit
-- Randare pe server, joburi recuperabile și livrare aprobată
+- Autentificare unică, provizionare SCIM, roluri și politici
+- Cataloage partajate, proiecte de echipă și colaborări de lucru
+- Aprobări, raportarea utilizării și înregistrări de audit
+- Randare pe server, sarcini recuperabile și livrare aprobată
 - Semnare pe server cu identitatea organizației
 :::
 
-Folosirea de sine stătătoare păstrează fișierele pe dispozitiv. Alegerea proiectelor comune, a unui work collab, a unei randări pe server sau a livrării trimite datele de care are nevoie acea funcție la serverul organizației tale.
+Utilizarea independentă păstrează fișierele pe dispozitiv. Alegerea proiectelor partajate, a unei colaborări de lucru, a unei randări pe server sau a livrării trimite datele necesare acelei funcții către serverul organizației tale.
 
+<!--i:eti-info-->
 ## Ce presupune fiecare comparație
 
-Aceste limite se aplică fiecărei pagini din acest set, deci sunt enunțate o singură dată aici:
+Aceste limite se aplică fiecărei pagini din acest set:
 
-- **Lolly Work collab-urile rulează astăzi pe un singur nod de server.** Scala și istoricul lor de operare diferă de produsele găzduite consacrate. [Starea și harta Lolly Work](/info/work-status.html) înregistrează limitele curente.
-- **Site-ul de la [lolly.work](https://lolly.work) este un sandbox demo.** O instalare durabilă a unei organizații are nevoie de stocare persistentă și de un operator; [Instalează Lolly Work](/info/work-install.html) le acoperă pe amândouă.
-- **Nu există taxă de licență software per loc** pentru Lolly sau un Lolly Work găzduit propriu. Găzduirea, stocarea și operarea costă totuși bani.
-- **O semnătură nu este un semnatar de încredere.** Un verificator trebuie să aibă încredere în certificatul care a semnat un fișier înainte să arate semnatarul ca de încredere; [Identitate Content Credentials](/info/content-credentials-identity.html) explică cum.
+- **Colaborările Lolly Work rulează în prezent pe un singur nod de server.** Amploarea și istoricul lor de funcționare diferă de cele ale produselor găzduite consacrate. [Starea și planurile Lolly Work](/info/work-status.html) consemnează limitele actuale.
+- **Site-ul de la [lolly.work](https://lolly.work) este un mediu demonstrativ de testare.** O instalare durabilă pentru organizație are nevoie de stocare persistentă și de un operator. [Instalează Lolly Work](/info/work-install.html) le acoperă pe ambele.
+- **Nu există o taxă de licență software per utilizator** pentru Lolly sau pentru un Lolly Work găzduit pe infrastructura proprie. Găzduirea, stocarea și operarea costă în continuare bani.
+- **O semnătură nu înseamnă un semnatar de încredere.** Un verificator arată semnatarul ca fiind de încredere doar când are încredere în certificatul care a semnat fișierul. [Identitatea Content Credentials](/info/content-credentials-identity.html) explică cum.

@@ -120,6 +120,9 @@ export const STUDIO_INSTANCE_KEYS: readonly string[] = [
   'artwork',
   'modelAsset',
   'modelFormat',
+  // A model's own animation belongs to the model, so a saved studio leaves both alone.
+  'playClip',
+  'clipIndex',
   'words',
   'wordFont',
   'wordWeight',

@@ -382,7 +382,7 @@ function bells(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   mod.connect(index).connect(car.frequency);
   const amp = ctx.createGain();
   amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.09 * vel, t + 0.002);
+  amp.gain.exponentialRampToValueAtTime(0.18 * vel, t + 0.002);
   amp.gain.exponentialRampToValueAtTime(EPS, t + ring);
   car.connect(amp).connect(out);
 }
@@ -585,8 +585,9 @@ function chipArp(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
   lp.frequency.value = 7000;
   const amp = ctx.createGain();
   amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.045 * vel, t + 0.002);
-  amp.gain.setValueAtTime(0.045 * vel, t + len * 0.6);
+  // The arpeggio is half the sound of a console tune: it sat 12 dB lower, 12 dB under the drums (2026-11-21).
+  amp.gain.exponentialRampToValueAtTime(0.18 * vel, t + 0.002);
+  amp.gain.setValueAtTime(0.18 * vel, t + len * 0.6);
   amp.gain.exponentialRampToValueAtTime(EPS, t + len);
   lp.connect(amp).connect(out);
   pulseOsc(k, 0.25, mtof(midi), t, t + len + 0.02).connect(lp);
@@ -1085,13 +1086,12 @@ function kalimba(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
 // ── bass ──────────────────────────────────────────────────────────────────────
 
 /**
- * A bass note. `mod` is the note's movement (LofiNote.mod): for a wobble or a growl the
+ * A bass note (the wobble, the growl, the foghorn and jump-up are the talking basses,
+ * played by lib/lofi-bass-talk.ts, which the station calls itself). `mod` is the note's movement (LofiNote.mod): for a wobble or a growl the
  * filter's swing in Hz (the station turns cycles a beat into Hz), on a slap bass 1 for a
  * popped note.
  */
 export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod = 0, tone: Tone = PLAIN_TONE): void {
-  if (style === 'wobble') { wobble(k, out, t, midi, vel, dur, mod, tone); return; }
-  if (style === 'growl') { growl(k, out, t, midi, vel, dur, mod, tone); return; }
   if (style === 'reese') { reese(k, out, t, midi, vel, dur, tone); return; }
   if (style === 'slap') { fmSlap(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }
   if (style === 'screech') { screech(k, out, t, midi, vel, dur, mod, tone); return; }
@@ -1211,74 +1211,6 @@ export function sub(k: VoiceKit, out: AudioNode, t: number, f: number, vel: numb
   osc(k, 'sine', f > 70 ? f / 2 : f, t, t + dur + 0.2).connect(g).connect(out);
 }
 
-/** Wobble: a saw and a square through a resonant low-pass whose cutoff swings at `rate` Hz. */
-function wobble(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, rate: number, tone: Tone): void {
-  const { ctx } = k;
-  const f = mtof(midi);
-  const end = t + dur + 0.1;
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.Q.value = 7;
-  lp.frequency.value = 700 * tone.bright;
-  const lfo = osc(k, 'sine', Math.max(0.5, rate), swingFrom(t, rate, tone), end);
-  const depth = ctx.createGain();
-  depth.gain.value = 620 * tone.bright;
-  lfo.connect(depth).connect(lp.frequency);
-  const amp = ctx.createGain();
-  amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.2 * vel, t + 0.005);
-  amp.gain.setTargetAtTime(EPS, t + dur, 0.02);
-  const [push, ws] = drivenBy(ctx, tone.drive);
-  lp.connect(push);
-  ws.connect(amp).connect(out);
-  osc(k, 'sawtooth', f, t, end).connect(lp);
-  const sq = osc(k, 'square', f, t, end);
-  sq.detune.value = 7;
-  const sg = ctx.createGain();
-  sg.gain.value = 0.6;
-  sq.connect(sg).connect(lp);
-  if (tone.sub !== false) sub(k, out, t, f, vel, dur);
-}
-
-/** Growl: a driven saw stack through two band-passes that sweep apart and back, a vowel that talks. */
-function growl(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, rate: number, tone: Tone): void {
-  const { ctx } = k;
-  const f = mtof(midi);
-  const end = t + dur + 0.08;
-  const pre = ctx.createGain();
-  pre.gain.value = 0.45 * tone.drive;
-  const ws = driven(ctx);
-  ws.oversample = '2x';   // a hard-driven growl aliases into a sizzle without it
-  const fizz = ctx.createBiquadFilter();
-  fizz.type = 'lowpass';
-  fizz.frequency.value = 3600;
-  const amp = ctx.createGain();
-  amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.24 * vel, t + 0.004);
-  amp.gain.setTargetAtTime(EPS, t + dur, 0.015);
-  const lfo = osc(k, 'triangle', Math.max(1, rate), swingFrom(t, Math.max(1, rate), tone), end);
-  for (const [hz, swing] of [[520, 380], [1500, -700]] as const) {
-    const bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.frequency.value = hz * tone.bright;
-    bp.Q.value = 6;
-    const d = ctx.createGain();
-    d.gain.value = swing;
-    lfo.connect(d).connect(bp.frequency);
-    ws.connect(bp).connect(fizz);
-  }
-  fizz.connect(amp);
-  pre.connect(ws);
-  amp.connect(out);
-  for (const cents of tone.take === undefined ? [-10, 0, 9] : tone.take === 0 ? [-10, 4] : [-4, 9]) {
-    const o = osc(k, 'sawtooth', f * 1.04, t, end);
-    o.frequency.exponentialRampToValueAtTime(f, t + 0.05);   // a small "yoi" into pitch
-    o.detune.value = cents;
-    o.connect(pre);
-  }
-  if (tone.sub !== false) sub(k, out, t, f, vel * 0.9, dur);
-}
-
 /**
  * Reese: three saws a few cents apart, so they beat against each other, under a slowly
  * moving low-pass, then driven hard into a clipper (the dirt) and smoothed after it so
@@ -1290,22 +1222,29 @@ function reese(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   const end = t + dur + 0.15;
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
-  lp.frequency.value = 900 * tone.bright;
+  lp.frequency.value = 1250 * tone.bright;
   lp.Q.value = 2;
   const drift = osc(k, 'sine', 0.3 + k.rng() * 0.2, t, end);
   const d = ctx.createGain();
-  d.gain.value = 420;
+  d.gain.value = 600;
   drift.connect(d).connect(lp.frequency);
   const push = ctx.createGain();
   push.gain.value = 1.3 * tone.drive;
   const smooth = ctx.createBiquadFilter();
   smooth.type = 'lowpass';
-  smooth.frequency.value = 3200;
+  smooth.frequency.value = 6500;
+  // The tear: a lift near 2.4 kHz after the clipper, where a produced reese rips (measured
+  // 2026-11-21: this reese sat 21 dB down from 2 to 4 kHz, produced ones 6 to 14).
+  const tear = ctx.createBiquadFilter();
+  tear.type = 'peaking';
+  tear.frequency.value = 2400;
+  tear.Q.value = 1;
+  tear.gain.value = 7;
   const amp = ctx.createGain();
   amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.13 * vel, t + 0.02);
+  amp.gain.exponentialRampToValueAtTime(0.115 * vel, t + 0.02);
   amp.gain.setTargetAtTime(EPS, t + dur, 0.05);
-  lp.connect(push).connect(driven(ctx)).connect(smooth).connect(amp).connect(out);
+  lp.connect(push).connect(driven(ctx)).connect(tear).connect(smooth).connect(amp).connect(out);
   for (const cents of tone.take === undefined ? [-14, 0, 13] : tone.take === 0 ? [-14, 6] : [-6, 13]) {
     const o = osc(k, 'sawtooth', f, t, end);
     o.detune.value = cents;
@@ -1551,7 +1490,7 @@ function screech(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
   const [push, ws] = drivenBy(ctx, 0.65 * tone.drive, true);
   const fizz = ctx.createBiquadFilter();
   fizz.type = 'lowpass';
-  fizz.frequency.value = 4800;
+  fizz.frequency.value = 9500;
   const amp = ctx.createGain();
   amp.gain.setValueAtTime(EPS, t);
   amp.gain.exponentialRampToValueAtTime(0.2 * vel, t + 0.004);
@@ -1595,8 +1534,8 @@ function electro(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
   lp.Q.value = 5;
-  lp.frequency.setValueAtTime(3400 * tone.bright, t);
-  lp.frequency.exponentialRampToValueAtTime(520 * tone.bright, t + Math.min(0.18, len));
+  lp.frequency.setValueAtTime(5200 * tone.bright, t);
+  lp.frequency.exponentialRampToValueAtTime(700 * tone.bright, t + Math.min(0.18, len));
   const [push, ws] = drivenBy(ctx, 1.1 * tone.drive);
   const hp = ctx.createBiquadFilter();
   hp.type = 'highpass';

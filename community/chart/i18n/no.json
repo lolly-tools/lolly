@@ -1,6 +1,6 @@
 {
   "name": "Diagram",
-  "description": "Diagrammer fra første innliming til avansert visualisering - forklarte dataanbefalinger, eksplisitt feltmapping, 35 klassiske vektorfamilier inkludert Pareto, bullet-mål og områdestolper, seksten statistiske og redaksjonelle presentasjonsformer, 3D-scener med ekte z-akse, filmatiske kamerakjøringer, deterministisk bevegelse, tilgjengelige beskrivelser og stiler kompilert fra det aktive designsystemet.",
+  "description": "Diagrammer fra første innliming til avansert visualisering - 35 vektorfamilier, 3D-scener, kamerakjøringer, bevegelse og stiler fra designsystemet.",
   "featured.blurb": "Lim inn en tabell - Diagram gjør den tydelig, tilgjengelig og umiskjennelig i tråd med designsystemet",
   "a11yLabel": "{{chartType}}-diagram{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Diagramtype",

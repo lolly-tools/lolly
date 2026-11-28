@@ -1,6 +1,6 @@
 {
   "name": "Markdown Slaytları",
-  "description": "Markdown ya da bir JSON şemasını saniyeler içinde gerçek, düzenlenebilir bir PowerPoint destesine dönüştür - gerçek metin, madde işaretleri, tablolar ve tasarım sistemi teması. Bir desteye giden hızlı, metin öncelikli yol; slaytları elle düzenlemek ya da canlandırmak istediğinde Tasarım tuvaline geç. Grafikler ve diyagramlar diğer Lolly araçlarından gelir. .pptx (düzenlenebilir) olarak dışa aktarır, ayrıca PDF ve PNG olarak da.",
+  "description": "Markdown ya da bir JSON şemasını yerel, düzenlenebilir bir PowerPoint destesine dönüştür. .pptx (düzenlenebilir) olarak dışa aktarır, ayrıca PDF ve PNG olarak da.",
   "a11yLabel": "{{_slideCount}} slaytlık sunum destesi",
   "inputs.size.label": "Sunum boyutu",
   "inputs.size.help": "Tüm sunum için tek boyut - PowerPoint her slayta aynı boyutu verir.",

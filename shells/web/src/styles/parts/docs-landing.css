@@ -718,7 +718,6 @@ html[data-theme="dark"] .ai-point strong{color:hsl(var(--foreground))}
 .founded-badge img{display:block;width:15em;max-width:100%;height:auto}
 .behind-foot .behind-links{margin-top:0;justify-content:flex-start}
 @media(max-width:800px){.behind-cols{grid-template-columns:1fr}}
-.behind-eyebrow{display:inline-block;font-size:.6875rem;text-transform:uppercase;letter-spacing:.14em;font-weight:700;color:var(--green);margin-bottom:1.1rem}
 .behind-para{font-size:1.0625rem;line-height:1.85;color:var(--muted);margin:0}
 .behind-para strong{color:var(--dark);font-weight:700}
 html[data-theme="dark"] .behind-para strong{color:hsl(var(--foreground))}
@@ -1030,7 +1029,6 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgb(238 145 56 / .13)}
 .import-lede-text{max-width:46rem}
 .import-mascot{width:clamp(180px,22vw,340px);flex-shrink:0}
 @media(max-width:820px){.import-lede{flex-direction:column;text-align:center}}
-.import-eyebrow{display:inline-block;font-size:.6875rem;text-transform:uppercase;letter-spacing:.14em;font-weight:700;color:var(--green);background:rgba(80,195,105,.12);padding:.4em .9em;border-radius:2em;margin-bottom:1.25rem}
 .import-section h2{color:var(--dark);margin-bottom:1.25rem}
 .import-lead{font-size:1.0625rem;line-height:1.8;color:var(--muted);margin:0}
 .import-lead strong{color:var(--dark);font-weight:700}
@@ -1581,7 +1579,8 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
 .work-copy{grid-area:copy;min-width:0}
 /* The product's name over the heading (plan 341: the band used to leave "Lolly Work"
    to the two link labels). */
-.work-eyebrow{margin:0 0 .3rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text))}
+/* The band's name is a one-step trail: a link to the organisation guide. */
+.work-crumbs{display:flex;margin:0 0 .3rem}
 .work-heading{font-size:1.375rem;font-weight:800;text-transform:none;letter-spacing:0;margin:0 0 .4rem;text-wrap:balance}
 .work-line{margin:0;color:var(--band-primary);max-width:58ch;font-size:1rem;line-height:1.55;text-wrap:pretty}
 /* The three points (Andy, 2026-11-14: one line and three short points, "easy to read,

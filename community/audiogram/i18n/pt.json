@@ -1,6 +1,6 @@
 {
   "name": "Audiograma",
-  "description": "Transforme um clipe de voz ou uma música em um vídeo nas cores do seu sistema de design que realmente se move com o som - barras, espectro, anel, cordilheira ou osciloscópio, pronto para redes sociais.",
+  "description": "Transforme um clipe de voz ou uma música em um vídeo nas cores do seu sistema de design que se move com o som.",
   "a11yLabel": "Cartão de audiograma para {{default title \"an audio clip\"}} com forma de onda animada",
   "inputs.audio.label": "Áudio",
   "inputs.audio.help": "Escolha uma faixa da sua biblioteca ou envie um clipe. Ela é decodificada no seu dispositivo para desenhar a forma de onda - o áudio nunca sai do navegador. Deixe vazio para uma forma de onda de exemplo. Para ouvi-la na exportação, escolha \"Áudio desta ferramenta\" como Faixa de áudio nas opções de download.",
@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Story (9:16)",
   "inputs.accent.label": "Cor da forma de onda",
   "inputs.ink.label": "Cor do texto",
-  "inputs.bg.label": "Fundo"
+  "inputs.bg.label": "Fundo",
+  "inputs.targetLevel.label": "Nível alvo",
+  "inputs.targetLevel.help": "O que é considerado “ideal” para as dicas de orientação.",
+  "inputs.targetLevel.options.soft": "Suave · microfone próximo",
+  "inputs.targetLevel.options.normal": "Fala normal",
+  "inputs.targetLevel.options.loud": "Alto · ambiente",
+  "inputs.showTips.label": "Dicas de orientação",
+  "inputs.showTips.help": "Dicas em tempo real como “aproxime-se mais” ou “você está saturando o áudio”."
 }

@@ -28,11 +28,11 @@
  * stays down. Built on mountModal (components/modal.ts): a sheet from the bottom on a
  * phone (parts/music-browser.css) and a centred panel on a wider screen.
  */
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import { t } from '../../i18n.ts';
 import { escape as escapeHtml } from '../../utils.ts';
-import { icon } from '../../lib/icons.ts';
 import { mountModal } from '../../components/modal.ts';
-import { GENRE_GROUPS, genreIconSvg, genreTitle, type GenreCategory } from '../../lib/genre-icons.ts';
+import { PICKER_GROUPS, cardTitle, genreCard, genreIconSvg, type GenreCategory } from '../../lib/genre-icons.ts';
 import { paintGenreTiles } from './genre-colours.ts';
 import { genreManageList, type GenreManageList } from './genre-manage.ts';
 import { cascade, motionOn } from './instrument-popup.ts';
@@ -115,17 +115,18 @@ export function cardToward<T extends Placed>(cards: readonly T[], from: T, key: 
 export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement | null; onClose?: () => void; host?: unknown } = {}): { close(): void } {
   const n = ++opened;
   const wide = window.matchMedia(WIDE).matches;
-  const now = h.current();
+  // A genre's flavours share one card: the card is pressed while any of them plays.
+  const now = genreCard(h.current());
   const titleId = `msg-title-${n}`;
   const titles = CATEGORY_TITLE();
   const card = (m: LofiMood): string => `
         <button type="button" class="msg-card" data-genre-card="${m}" aria-pressed="${m === now}" tabindex="-1">
           <span class="msg-icon" aria-hidden="true">${genreIconSvg(m, 26)}</span>
-          <span class="msg-name">${escapeHtml(genreTitle(m))}</span>
+          <span class="msg-name">${escapeHtml(cardTitle(m))}</span>
         </button>`;
-  const known = new Set<string>(GENRE_GROUPS.flatMap(g => g.moods));
+  const known = new Set<string>(PICKER_GROUPS.flatMap(g => g.moods));
   const prefsNow = (): GenrePrefs => h.genrePrefs?.() ?? { favourites: new Set(), hidden: new Set() };
-  const recent = (h.recent?.() ?? []).filter((m): m is LofiMood => known.has(m) && (m === now || !prefsNow().hidden.has(m))).slice(0, 6);
+  const recent = [...new Set((h.recent?.() ?? []).map(m => genreCard(m as LofiMood)))].filter((m): m is LofiMood => known.has(m) && (m === now || !prefsNow().hidden.has(m))).slice(0, 6);
   const favouritesRow = `
     <section class="msg-group" data-favourites aria-labelledby="msg-g-${n}-fav" hidden>
       <h3 class="msb-family-title" id="msg-g-${n}-fav">${escapeHtml(t('Favourites'))}</h3>
@@ -136,7 +137,7 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
       <h3 class="msb-family-title" id="msg-g-${n}-recent">${escapeHtml(t('Recent'))}</h3>
       <div class="msg-grid">${recent.map(card).join('')}</div>
     </section>` : '';
-  const groups = GENRE_GROUPS.map(g => `
+  const groups = PICKER_GROUPS.map(g => `
     <section class="msg-group" data-group aria-labelledby="msg-g-${n}-${g.id}">
       <h3 class="msb-family-title" id="msg-g-${n}-${g.id}">${escapeHtml(titles[g.id])}</h3>
       <div class="msg-grid">${g.moods.map(card).join('')}</div>
@@ -147,7 +148,7 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
       <div class="msb-title-row">
         <h2 class="msb-title" id="${titleId}">${escapeHtml(t('Genre'))}</h2>
         ${h.setGenrePref ? `<button type="button" class="msb-chip msg-manage-btn" data-manage-toggle aria-pressed="false" title="${escapeHtml(t('Star favourite genres and hide the ones you never want'))}">${escapeHtml(t('Manage'))}</button>` : ''}
-        <button type="button" class="btn btn--ghost btn--sm msb-close" data-close aria-label="${escapeHtml(t('Close'))}" title="${escapeHtml(t('Close'))}">${icon('close', { size: 18 })}</button>
+        ${closeButtonHtml({ className: 'msb-close', attrs: { 'data-close': true, title: t('Close') } })}
       </div>
       <input type="search" class="field-input msg-search" data-genre-search placeholder="${escapeHtml(t('Search genres'))}" aria-label="${escapeHtml(t('Search genres'))}" autocomplete="off" spellcheck="false">
     </div>
@@ -272,9 +273,11 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
     if (btn.matches('[data-close]')) { modal.close('button'); return; }
     if (btn.matches('[data-manage-toggle]')) { setManaging(!managing); return; }
     const mood = btn.matches('[data-genre-card]') ? btn.dataset.genreCard : undefined;
-    const pick = GENRE_GROUPS.flatMap(g => g.moods).find(m => m === mood);
+    const pick = PICKER_GROUPS.flatMap(g => g.moods).find(m => m === mood);
     if (!pick) return;
     modal.close('picked');
+    // A genre with flavours keeps the flavour playing, or starts on its first; the chips under the bar change flavour.
+    if (pick === genreCard(h.current())) { if (pick !== h.current()) return; }
     h.pick(pick);
   });
   // The arrow keys move through the cards on show; the card left focused is their one Tab stop.

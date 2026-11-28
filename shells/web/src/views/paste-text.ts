@@ -11,6 +11,7 @@
  * sink - because every string here is static chrome copy.
  */
 
+import { closeButton } from '../lib/close-button.ts';
 import '../styles/script-audio.css';   // the shared overlay/panel look (lazy chunk)
 import { trapFocus, type FocusTrap } from '../lib/focus-trap.ts';
 import { NAV_EVENTS } from '../utils.ts';
@@ -65,9 +66,7 @@ export function openPasteTextDialog(host: PickerHost): Promise<AssetRef | null> 
 
     const head = el('header', 'script-audio-head');
     head.appendChild(el('span', undefined, t('Paste text')));
-    const closeBtn = el('button', 'script-audio-close', '×');
-    closeBtn.type = 'button';
-    closeBtn.setAttribute('aria-label', t('Close'));
+    const closeBtn = closeButton({ className: 'script-audio-close' });
     head.appendChild(closeBtn);
 
     const body = el('div', 'script-audio-body');

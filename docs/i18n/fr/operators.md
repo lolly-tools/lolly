@@ -1,28 +1,31 @@
-# Gérer
+# Administrer
 
-Lolly tourne sur l'appareil de chaque personne. Quand une équipe a besoin de connexion, de projets partagés, de ressources encadrées, de revues et de tâches serveur, une organisation ajoute **Lolly Work**, le serveur d'organisation open source du même projet. Ces pages s'adressent à la personne qui met en place et entretient ce serveur.
+Lolly fonctionne sur l'appareil de chaque personne. Ces pages s'adressent à qui administre **Lolly Work**, le serveur d'organisation open source du projet pour la connexion, les projets partagés, les ressources encadrées, les revues et les tâches serveur.
 
-Commence par [Use Lolly at your organisation](/info/organisation.html) pour voir ce que les membres obtiennent, ou [Lolly Work architecture](/info/work-overview.html) pour ce dont le serveur est responsable.
+Commence par [Utiliser Lolly dans ton organisation](/info/organisation.html) pour voir ce dont les membres disposent, ou par [Architecture de Lolly Work](/info/work-overview.html) pour savoir ce que fait le serveur.
 
-## Définir l'accès et la politique
+<!--i:eti-lock-->
+## Définir les accès et la politique
 
-- [Adoption & Governance](/info/adoption-governance.html) couvre le déploiement et le rôle des règles de marque.
-- [Identity and sessions](/info/work-identity.html) couvre la connexion et la correspondance des groupes. [Roles and grants](/info/work-permissions.html) explique les rôles, les autorisations et la garde du propriétaire.
-- [Policy and governance](/info/work-governance.html) couvre les surcouches d'outils, les entrées verrouillées et la politique. [Manage organisation AI policy](/info/work-ai-policy.html) couvre les approbations et les limites d'exécution.
-- [Account data controls](/info/work-account-lifecycle.html) et [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) couvrent les exports, le départ, la conservation et leurs limites.
-- [Profiles, brands and tool configuration](/info/configuration.html) couvre les outils et les design systems qu'un build de Lolly embarque.
+- [Adoption & gouvernance](/info/adoption-governance.html) décrit le déploiement et le rôle des règles de marque.
+- [Identité et sessions](/info/work-identity.html) décrit la connexion et la correspondance des groupes. [Rôles et autorisations](/info/work-permissions.html) explique les rôles, les autorisations et la protection du propriétaire.
+- [Politique et gouvernance](/info/work-governance.html) décrit les surcharges d'outils, les entrées verrouillées et la politique. [Gérer la politique d'IA de l'organisation](/info/work-ai-policy.html) décrit les approbations et les limites d'exécution.
+- [Contrôles des données de compte](/info/work-account-lifecycle.html) et [Stockage et cycle de vie des données de Lolly Work](/info/work-data-lifecycle.html) décrivent les exports, le départ des membres, la conservation et leurs limites.
+- [Profils, marques et configuration des outils](/info/configuration.html) décrit les outils et design systems qu'une compilation de Lolly contient.
 
-## Connecter les ressources et relire le travail
+<!--i:eti-link-->
+## Connecter les ressources et examiner le travail
 
-- [Use Lolly with your existing DAM](/info/use-with-dam.html) explique l'autorité de la source et la production connectée. [The SUSE Brandfolder account](/info/suse-brandfolder.html) consigne l'expérience d'adoption, et [Plan a DAM transition](/info/dam-transition.html) couvre une migration ultérieure facultative.
+- [Utiliser Lolly avec ton DAM actuel](/info/use-with-dam.html) explique l'autorité de la source et la production connectée. [Le récit de SUSE avec Brandfolder](/info/suse-brandfolder.html) retrace une adoption. [Planifier une transition de DAM](/info/dam-transition.html) décrit un changement ultérieur facultatif.
 
-- [Design-system administration](/info/work-design-system-administration.html) couvre l'inventaire des sources, les changements relus et le retour arrière.
-- [Catalog and content](/info/work-catalog.html) couvre les ressources partagées et les règles d'exposition. [Provider guides](/info/work-provider-guides.html) donne les exigences de mise en place et de vérification de chaque plateforme source.
-- [Approvals](/info/work-approvals.html) couvre les chaînes de revue et la séparation des tâches. [Rendering and sharing](/info/work-sharing.html) couvre les liens et la sortie serveur.
-- [Invite an agent to a document](/info/work-document-agents.html) couvre l'accès délimité à un document, l'expiration et la révocation. Une invitation n'accorde aucun accès au déploiement ni à l'infrastructure.
+- [Administration du design system](/info/work-design-system-administration.html) décrit l'inventaire des sources, les changements examinés et le retour en arrière.
+- [Catalogue et contenu](/info/work-catalog.html) décrit les ressources partagées et les règles d'exposition. [Guides des fournisseurs](/info/work-provider-guides.html) donne les exigences de configuration et de vérification de chaque plateforme source.
+- [Approbations](/info/work-approvals.html) décrit les chaînes de revue et la séparation des tâches. [Rendu et partage](/info/work-sharing.html) décrit les liens et les sorties du serveur.
+- [Inviter un agent dans un document](/info/work-document-agents.html) décrit l'accès limité au document, l'expiration et la révocation. Une invitation ne donne aucun accès au déploiement ni à l'infrastructure.
 
-## Trouver la tâche suivante
+<!--i:eti-search-->
+## Trouver la prochaine tâche
 
-- [Create](/info/creators.html) contient les tâches créatives et les guides d'équipe.
-- [Deploy](/info/operate.html) couvre l'installation et la maintenance de Lolly et d'un serveur Lolly Work. La configuration d'une instance est distincte du profil de contenu d'une personne.
-- [Trust](/info/trust.html) explique les flux de données, les signatures et les frontières de sécurité.
+- [Créer](/info/creators.html) contient les tâches créatives et les guides pratiques d'équipe.
+- [Déployer](/info/operate.html) décrit l'installation et la maintenance de Lolly et d'un serveur Lolly Work. La configuration d'une instance est distincte du profil de contenu d'une personne.
+- [Confiance](/info/trust.html) explique les flux de données, les signatures et les frontières de sécurité.

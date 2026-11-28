@@ -2,8 +2,6 @@
 
 <a id="work-storage-and-data-lifecycle"></a>
 
-This page is for whoever runs a Lolly Work instance and has to answer two questions: what does the service hold about people, and what happens when someone leaves or asks for their data to be removed?
-
 Lolly Work keeps shared work, uploaded files, comments, saved versions, audit records and optional usage events in its database and file storage. Each kind has its own retention rule, listed below. One command, `lw users erase`, removes a person's account and the records linked to the account. It never deletes shared work to make that possible, and it cannot reach copies on people's devices, in downloads or in backups, so plan for those separately.
 
 Start with [Account data controls](account-lifecycle.md) for the export, offboard and erase commands, then use the inventory below to check each store your deployment turns on.
@@ -177,7 +175,7 @@ Until the purge, a tombstone still counts in the erasure preview for the people 
 
 A document's history keeps two things. `session_revisions` holds the newest 20 whole-document revisions, which older shells read. `session_versions` holds the versions people see in History.
 
-A version is written 2 minutes after live editing pauses (or every 10 minutes while it continues), when a live document closes, on every save over the API (including each session a bulk edit changes), when someone saves a named version, and twice for each restore: once for the state it replaced, which Undo restores, and once for the state it produced. A version's content is stored once per document and content (`session_version_contents`), so repeated states cost no extra bytes, and an automatic version whose content equals the newest version is not written at all. `session_version_totals` is one row with the instance's total of that content, which the instance cap reads; it holds no document data.
+A version is written 2 minutes after live editing pauses (or every 10 minutes while it continues), when a live document closes, on every save over the API (including each session a bulk edit changes), when someone saves a named version, and twice for each restore: once for the state it replaced, which Undo restores, and once for the state it produced. A version's content is stored once per document and content (`session_version_contents`), so repeated states cost no extra bytes, and an automatic version whose content equals the newest version is not written. `session_version_totals` is one row with the instance's total of that content, which the instance cap reads; it has no document data.
 
 Retention, applied whenever a version is written:
 
@@ -190,7 +188,7 @@ Content no version uses any more is deleted with the last version that used that
 
 [History across documents](api.md#history-across-documents) lists one person's readable versions from many documents at once, without their content. It stores nothing new: an index on the version time (migration 0076) serves its order.
 
-Versions hold no email address. The API names people by their first and last name (or the part of their email before the `@`), agents by their label and guests as "Guest". Audit entries for saves, name and pin changes, restores and deletions hold ids, counts and the pin, never inputs or names.
+Versions have no email address. The API names people by their first and last name (or the part of their email before the `@`), agents by their label and guests as "Guest". Audit entries for saves, name and pin changes, restores and deletions include ids, counts and the pin, never inputs or names.
 
 Source anchors: `migrations/0053_session_versions.sql`, `migrations/0072_session_version_annotations.sql`, `migrations/0076_session_version_history.sql`, `server/src/versions/`, `server/src/collab/rooms.ts` and the version blocks of `server/src/store/types.ts`.
 

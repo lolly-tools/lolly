@@ -1,28 +1,31 @@
 # Gestionar
 
-Lolly se ejecuta en el dispositivo de cada persona. Cuando un equipo necesita inicio de sesión, proyectos compartidos, recursos gobernados, revisiones y trabajos de servidor, una organización añade **Lolly Work**, el servidor de organización de código abierto del mismo proyecto. Estas páginas son para quien configura y mantiene ese servidor.
+Lolly se ejecuta en el dispositivo de cada persona. Estas páginas son para quien opere **Lolly Work**, el servidor de código abierto del proyecto para organizaciones, con inicio de sesión, proyectos compartidos, recursos gestionados, revisiones y trabajos de servidor.
 
-Empieza con [Use Lolly at your organisation](/info/organisation.html) para ver qué obtienen los miembros, o con [Lolly Work architecture](/info/work-overview.html) para saber de qué se encarga el servidor.
+Empieza por [Usar Lolly en tu organización](/info/organisation.html) para ver qué reciben sus miembros, o por [Arquitectura de Lolly Work](/info/work-overview.html) para saber qué hace el servidor.
 
-## Define el acceso y las políticas
+<!--i:eti-lock-->
+## Configura el acceso y la política
 
-- [Adoption & Governance](/info/adoption-governance.html) cubre el despliegue y el papel de las reglas de marca.
-- [Identity and sessions](/info/work-identity.html) cubre el inicio de sesión y la asignación de grupos. [Roles and grants](/info/work-permissions.html) explica los roles, las concesiones y la protección del propietario.
-- [Policy and governance](/info/work-governance.html) cubre las superposiciones de herramientas, las entradas bloqueadas y las políticas. [Manage organisation AI policy](/info/work-ai-policy.html) cubre las aprobaciones y los límites de ejecución.
-- [Account data controls](/info/work-account-lifecycle.html) y [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) cubren las exportaciones, las bajas, la conservación y sus límites.
-- [Profiles, brands and tool configuration](/info/configuration.html) cubre qué herramientas y design systems lleva una compilación de Lolly.
+- [Adopción & gobernanza](/info/adoption-governance.html) explica la implantación y el papel de las reglas de marca.
+- [Identidad y sesiones](/info/work-identity.html) explica el inicio de sesión y la asignación de grupos. [Roles y permisos](/info/work-permissions.html) explica los roles, los permisos y la protección del propietario.
+- [Política y gobernanza](/info/work-governance.html) explica las superposiciones de herramientas, las entradas bloqueadas y la política. [Gestionar la política de IA de la organización](/info/work-ai-policy.html) explica las aprobaciones y los límites de ejecución.
+- [Controles de datos de la cuenta](/info/work-account-lifecycle.html) y [Almacenamiento y ciclo de vida de los datos de Lolly Work](/info/work-data-lifecycle.html) explican las exportaciones, las bajas, la retención y sus límites.
+- [Perfiles, marcas y configuración de herramientas](/info/configuration.html) explica qué herramientas y design systems incluye una compilación de Lolly.
 
+<!--i:eti-link-->
 ## Conecta recursos y revisa el trabajo
 
-- [Use Lolly with your existing DAM](/info/use-with-dam.html) explica la autoridad de la fuente y la producción conectada. [The SUSE Brandfolder account](/info/suse-brandfolder.html) recoge la experiencia de adopción, y [Plan a DAM transition](/info/dam-transition.html) cubre un traslado posterior opcional.
+- [Usar Lolly con tu DAM actual](/info/use-with-dam.html) explica la autoridad de las fuentes y la producción conectada. [El relato de SUSE sobre Brandfolder](/info/suse-brandfolder.html) documenta una adopción. [Planificar una transición de DAM](/info/dam-transition.html) explica un posible traslado posterior.
 
-- [Design-system administration](/info/work-design-system-administration.html) cubre el inventario de fuentes, los cambios revisados y la reversión.
-- [Catalog and content](/info/work-catalog.html) cubre los recursos compartidos y las reglas de exposición. [Provider guides](/info/work-provider-guides.html) da la configuración y los requisitos de verificación de cada plataforma de origen.
-- [Approvals](/info/work-approvals.html) cubre las cadenas de revisión y la separación de funciones. [Rendering and sharing](/info/work-sharing.html) cubre los enlaces y la salida del servidor.
-- [Invite an agent to a document](/info/work-document-agents.html) cubre el acceso acotado a documentos, la caducidad y la revocación. Una invitación no concede acceso al despliegue ni a la infraestructura.
+- [Administración del design system](/info/work-design-system-administration.html) explica el inventario de fuentes, los cambios revisados y la reversión.
+- [Catálogo y contenido](/info/work-catalog.html) explica los recursos compartidos y las reglas de exposición. [Guías de proveedores](/info/work-provider-guides.html) detalla los requisitos de configuración y verificación de cada plataforma de origen.
+- [Aprobaciones](/info/work-approvals.html) explica las cadenas de revisión y la separación de funciones. [Renderizado y uso compartido](/info/work-sharing.html) explica los enlaces y la salida del servidor.
+- [Invitar a un agente a un documento](/info/work-document-agents.html) explica el acceso de alcance limitado al documento, la caducidad y la revocación. Una invitación no concede acceso al despliegue ni a la infraestructura.
 
+<!--i:eti-search-->
 ## Encuentra la siguiente tarea
 
-- [Create](/info/creators.html) tiene las tareas creativas y las guías de equipo.
-- [Deploy](/info/operate.html) cubre la instalación y el mantenimiento de Lolly y de un servidor de Lolly Work. La configuración de una instancia es independiente del perfil de contenido de una persona.
-- [Trust](/info/trust.html) explica los flujos de datos, las firmas y los límites de seguridad.
+- [Crear](/info/creators.html) reúne las tareas creativas y las guías de trabajo en equipo.
+- [Desplegar](/info/operate.html) explica cómo instalar y mantener Lolly y un servidor de Lolly Work. La configuración de una instancia es independiente del perfil de contenido de una persona.
+- [Confianza](/info/trust.html) explica los flujos de datos, las firmas y los límites de seguridad.

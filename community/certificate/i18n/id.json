@@ -1,6 +1,6 @@
 {
   "name": "Sertifikat",
-  "description": "Sertifikat penyelesaian dan penghargaan dalam sistem desain aktif beserta colourway-nya: empat gaya, ukuran cetak dan media sosial, serta gerakan untuk berbagi - satu nama sekaligus, atau seluruh daftar dari CSV di Massal dari baris.",
+  "description": "Sertifikat penyelesaian dan penghargaan: empat gaya, ukuran cetak dan media sosial, serta gerakan - satu nama sekaligus, atau seluruh daftar dari CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} untuk {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Jenis",
   "inputs.certKind.help": "Menentukan kata-katanya: judul, baris di atas tujuan sertifikat, dan tanda pada segel.",

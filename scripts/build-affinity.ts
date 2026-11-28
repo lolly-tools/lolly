@@ -4,14 +4,16 @@ import { copyFileSync, mkdirSync, readFileSync, readdirSync, statSync, writeFile
 import { gzipSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { wasmBuildEnv } from './lib/wasm-rustflags.ts';
 
 const source = fileURLToPath(new URL('../packages/node-shell/wasm/affinity/', import.meta.url));
 const target = fileURLToPath(new URL('../plans/artifacts/342/affinity-target/', import.meta.url));
 mkdirSync(target, { recursive: true });
 // 1 GiB memory ceiling and a 1 MiB stack, linked in so a hostile file cannot grow past them.
+// wasmBuildEnv adds the path remaps that keep the checkout and the Cargo home out of the module.
 execFileSync('cargo', ['build', '--release', '--locked', '--target', 'wasm32-unknown-unknown', '--target-dir', target], {
   cwd: source, stdio: 'inherit',
-  env: { ...process.env, RUSTFLAGS: '-C link-arg=--max-memory=1073741824 -C link-arg=-zstack-size=1048576' },
+  env: wasmBuildEnv(['-C', 'link-arg=--max-memory=1073741824', '-C', 'link-arg=-zstack-size=1048576']),
 });
 copyFileSync(join(target, 'wasm32-unknown-unknown/release/lolly_affinity.wasm'), join(source, 'affinity.wasm'));
 const wasm = readFileSync(join(source, 'affinity.wasm'));

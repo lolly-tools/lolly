@@ -74,6 +74,7 @@ import { homedir, tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
+import { NODE_FLOOR_WORDS, nodeMeetsFloor, unsupportedNodeMessage } from '../packages/node-shell/src/node-patch-level.ts';
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(REPO, 'dist', 'cli-sidecar');
@@ -154,20 +155,29 @@ function defaultNodeCandidates(): string[] {
   return [...new Set(out)];
 }
 
+/** The version a Node binary reports, or '' when it does not run. */
+function nodeVersionOf(path: string): string {
+  return spawnSync(path, ['-p', 'process.versions.node'], { encoding: 'utf8' }).stdout?.trim() ?? '';
+}
+
+// The sidecar carries this Node to every desktop install, so a Node without the Brotli fix
+// for CVE-2026-111497 is never chosen and never accepted from --node.
 const requestedNode = flag('node');
 const resolvedNode = requestedNode
-  ?? defaultNodeCandidates().find(seaCapable);
+  ?? defaultNodeCandidates().find((path) => seaCapable(path) && nodeMeetsFloor(nodeVersionOf(path)));
 if (!resolvedNode) {
   throw new Error(
-    'No clean SEA-capable Node runtime was found. Pass --node=<path> to an official Node 22+ binary; ' +
-    'the current runtime may already contain a NODE_SEA blob or have SEA disabled.',
+    `No clean SEA-capable Node runtime was found. Pass --node=<path> to an official Node binary, ${NODE_FLOOR_WORDS}; ` +
+    'the current runtime may already contain a NODE_SEA blob, have SEA disabled or be older than that.',
   );
 }
 const NODE_BINARY: string = resolvedNode;
 if (requestedNode && !seaCapable(requestedNode)) {
   throw new Error(`--node=${requestedNode} is not a clean SEA-capable Node runtime.`);
 }
-const NODE_VERSION = spawnSync(NODE_BINARY, ['-p', 'process.versions.node'], { encoding: 'utf8' }).stdout.trim();
+const NODE_VERSION = nodeVersionOf(NODE_BINARY);
+const nodeRefusal = unsupportedNodeMessage(NODE_VERSION);
+if (nodeRefusal) throw new Error(`--node=${NODE_BINARY}: ${nodeRefusal}`);
 
 // ── 1. the ESM bundle ─────────────────────────────────────────────────────────
 /** Packages left external: native addons, wasm carriers, and ink's devtools import. */
@@ -221,6 +231,7 @@ cpSync(join(REPO, 'packages/node-shell/wasm/affinity'), join(LIB, 'wasm/affinity
 cpSync(join(REPO, 'packages/node-shell/wasm/layout-kernel'), join(LIB, 'wasm/layout-kernel'), {
   recursive: true, filter: (source) => basename(source) !== 'target',
 });
+cpSync(join(REPO, 'packages/node-shell/wasm/woff2-kernel'), join(LIB, 'wasm/woff2-kernel'), { recursive: true, filter: (source) => basename(source) !== 'target' });
 
 const result = await build({
   // The output names matter: shells/cli/src/tui.ts starts the TUI by looking for
@@ -232,6 +243,9 @@ const result = await build({
     cli: join(REPO, 'shells/cli/bin/lolly.ts'),
     tui: join(REPO, 'shells/tui/src/main.tsx'),
     'rebrand-worker': join(REPO, 'shells/cli/src/rebrand-worker.ts'),
+    // Each WOFF2 font decodes in a worker thread of its own (woff2-node.ts looks for
+    // `./_woff2-worker.js` beside its chunk and hands it the module from wasm/woff2-kernel).
+    '_woff2-worker': join(REPO, 'packages/node-shell/src/woff2-worker.ts'),
   },
   outdir: join(LIB, 'dist'),
   bundle: true,
@@ -255,7 +269,7 @@ const result = await build({
 });
 
 const outputs = Object.keys(result.metafile.outputs);
-for (const name of ['cli', 'tui', 'rebrand-worker']) {
+for (const name of ['cli', 'tui', 'rebrand-worker', '_woff2-worker']) {
   if (!outputs.some(o => o.endsWith(`/dist/${name}.js`))) {
     throw new Error(`esbuild produced no dist/${name}.js (outputs: ${outputs.join(', ')})`);
   }

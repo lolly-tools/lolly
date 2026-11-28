@@ -1854,15 +1854,73 @@ export function imageDimensions(bytes: Uint8Array, mtype?: string): { w: number;
   }
   const looksSvg = mtype === 'image/svg+xml' || (b.length > 5 && (b[0] === 0x3c || (b[0] === 0xef && b[3] === 0x3c)));
   if (looksSvg) {
-    const head = new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096)));
-    const tag = /<svg\b([^>]*)>/i.exec(head);
-    if (!tag) return null;
-    const a = parseAttrs(tag[1]!);
-    const vb = (a.viewbox ?? '').trim().split(/[\s,]+/).map(Number);
-    const vbW = vb.length === 4 && Number.isFinite(vb[2]) ? vb[2]! : 0, vbH = vb.length === 4 && Number.isFinite(vb[3]) ? vb[3]! : 0;
-    const w = parseLen(a.width, vbW, vbW), h = parseLen(a.height, vbH, vbH);
-    return w > 0 && h > 0 ? { w: Math.round(w), h: Math.round(h) } : null;
+    // Whole pixels for the callers that store a pixel size (Penpot media, a file's
+    // details). A caller that places the picture reads `svgIntrinsicSize` instead.
+    const size = svgIntrinsicSize(b);
+    return size ? { w: Math.round(size.w), h: Math.round(size.h) } : null;
   }
+  return null;
+}
+
+/** CSS px per unit for the absolute lengths an SVG root's width, height and font size can carry. */
+const SVG_ROOT_UNIT_PX: Record<string, number> = { '': 1, px: 1, pt: 4 / 3, pc: 16, in: 96, cm: 96 / 2.54, mm: 96 / 25.4 };
+const SVG_ROOT_LENGTH = /^\s*([0-9]*\.?[0-9]+(?:e[+-]?\d+)?)\s*(px|pt|pc|in|cm|mm|em|rem|%)?\s*$/i;
+
+/**
+ * The root's font size in CSS px, for an em or rem width or height: the inline style's
+ * winning declaration first (the last one, or the last marked important), then the
+ * `font-size` attribute, then the initial 16 px. Zero when the root gives a size this
+ * reader does not resolve (a keyword such as `larger`), so a side in em is then not
+ * read as a size of its own.
+ */
+function svgRootFontPx(a: Record<string, string>): number {
+  let styled: string | undefined, important = false;
+  for (const declaration of (a.style ?? '').split(';')) {
+    const m = /^\s*font-size\s*:\s*(.*?)\s*(!\s*important)?\s*$/i.exec(declaration);
+    if (!m) continue;
+    const marked = m[2] !== undefined;
+    if (marked || !important) { styled = m[1]; important ||= marked; }
+  }
+  const given = styled ?? a['font-size'];
+  if (given === undefined) return 16;
+  const m = SVG_ROOT_LENGTH.exec(given);
+  if (!m) return 0;
+  const n = Number.parseFloat(m[1]!), unit = (m[2] ?? '').toLowerCase();
+  // A relative font size on the root is relative to the initial 16 px.
+  const px = unit === '%' ? (16 * n) / 100 : unit === 'em' || unit === 'rem' ? 16 * n : n * SVG_ROOT_UNIT_PX[unit]!;
+  return Number.isFinite(px) && px > 0 ? px : 0;
+}
+
+/**
+ * An SVG's own size in CSS px, read the way a browser reads one for an `<img>`: an
+ * absolute width and height first (em and rem against the root's own font size), then
+ * one of them with the viewBox's aspect for the other, then the viewBox alone (`natural`
+ * false: the picture has an aspect and no size of its own). A percentage is not a size
+ * of its own. Unrounded, because the browser places a picture by the exact aspect: a
+ * 44.725 by 19.706 logo read as 45 by 20 is placed 1.3 px narrower at 90 px tall than
+ * the browser draws the logo. Null when the root gives neither a size nor a viewBox.
+ */
+export function svgIntrinsicSize(bytes: Uint8Array): { w: number; h: number; natural: boolean } | null {
+  const head = new TextDecoder().decode(bytes.subarray(0, Math.min(bytes.length, 8192)));
+  const tag = /<svg\b([^>]*)>/i.exec(head);
+  if (!tag) return null;
+  const a = parseAttrs(tag[1]!);
+  const length = (value: string | undefined): number => {
+    const m = SVG_ROOT_LENGTH.exec(value ?? '');
+    if (!m) return 0;
+    const unit = (m[2] ?? '').toLowerCase();
+    if (unit === '%') return 0;
+    const n = Number.parseFloat(m[1]!) * (unit === 'em' || unit === 'rem' ? svgRootFontPx(a) : SVG_ROOT_UNIT_PX[unit]!);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  };
+  const vb = (a.viewbox ?? '').trim().split(/[\s,]+/).map(Number);
+  const vbW = vb.length === 4 && Number.isFinite(vb[2]) && vb[2]! > 0 ? vb[2]! : 0;
+  const vbH = vb.length === 4 && Number.isFinite(vb[3]) && vb[3]! > 0 ? vb[3]! : 0;
+  const w = length(a.width), h = length(a.height);
+  if (w && h) return { w, h, natural: true };
+  if (w && vbW && vbH) return { w, h: (w * vbH) / vbW, natural: true };
+  if (h && vbW && vbH) return { w: (h * vbW) / vbH, h, natural: true };
+  if (vbW && vbH) return { w: vbW, h: vbH, natural: false };
   return null;
 }
 

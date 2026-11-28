@@ -5,9 +5,9 @@ description: "Operate the Lolly Backdrop tool (backdrop) using its declared inpu
 
 # Backdrop
 
-Tool ID: `backdrop`. Tool version: `1.1.3`. Engine range: `^1.0.0`.
+Tool ID: `backdrop`. Tool version: `1.2.0`. Engine range: `^1.0.0`.
 
-Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds.
+Backdrops from your design system's colours: sixteen GPU effects. Export stills or motion loops for heroes, walls and meeting backgrounds.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

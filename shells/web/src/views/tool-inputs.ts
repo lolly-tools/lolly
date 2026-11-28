@@ -28,8 +28,8 @@ import {
   toHtmlTable,
   readXlsx,
 } from '@lolly/engine';
-import type { TableValue } from '@lolly/engine';
-import { matchesShowIf } from '@lolly/engine';
+import { matchesShowIf, type TableValue } from '@lolly/engine';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { mountInputEmoji, wireEmojiCells } from '../components/input-emoji.ts';
 import { wireTableWorkbench } from './table-workbench-launcher.ts';
 import { tableInputHtml, tableGhostCells } from './table-input-html.ts';
@@ -45,6 +45,7 @@ import { blockColourFieldHtml, colourInputHtml, paintAutoColours,
 import { helpTip, wireHelpTips, linkHelpDescriptions } from '../components/help-tip.ts';
 import { customSliderHtml, mountCustomSlider, rulerDialFor, SLIDER_DRAG_EVENT } from '../components/custom-slider.ts';
 import { canSkipInputsRebuild, staticInputControl } from './inputs-sync.ts';
+import { applyInputNotices } from './input-notices.ts';
 import { dragTravel } from '../lib/pointer-wrap.ts';
 import { jellyActive, jellyEnabled } from '../lib/jelly.ts';
 import { BANDS, bandMeta, labelledBands, resolveBands, sectionGlyph, type Band } from '../lib/section-bands.ts';
@@ -73,7 +74,7 @@ import {
 } from './block-tree.ts';
 import { getTool } from '../bridge/tool-loader.ts';
 import { brandFontFamilies } from '../user-fonts.ts';
-import { mountSidebarLiveControls } from './live-controls.ts';
+import { mountSlotExtras } from './picture-handoff-control.ts';
 import { mountCurvePlots, wireDateTimePickers } from './tool-input-enhancers.ts';
 
 import type { AssetRef, ComposeAPI, InputFile } from '@lolly-tools/core/host-v1';
@@ -267,9 +268,10 @@ function syncInputs(
 ): InputModelItem[] {
   if (canSkipInputsRebuild(el, model, prevModel)) {
     patchEditedBlockPreview(el); paintAutoColours(el, runtime); // the tool's colours can move without a rebuild
-    return model;
-  }
-  renderInputs(el, model, runtime, host, onDirty, toolId);
+  } else renderInputs(el, model, runtime, host, onDirty, toolId);
+  // What the tool's hooks say about its inputs (engine 1.358), under each control.
+  // After either path: a notice changes on the keystrokes that skip the rebuild.
+  applyInputNotices(el, runtime.getNotices?.());
   return model;
 }
 
@@ -1450,7 +1452,7 @@ export function renderInputs(
         const ri = tr.sectionRowIndex;
         const ctl = tr.querySelector('.table-rowctl');
         if (ctl) {
-          ctl.innerHTML = `<button type="button" class="table-del-row" data-table-del-row="${ri}" aria-label="Remove row ${ri + 1}">✕</button>`;
+          ctl.innerHTML = closeButtonHtml({ size: 'sm', danger: true, className: 'table-del-row', label: `Remove row ${ri + 1}`, attrs: { 'data-table-del-row': ri } });
           const del = ctl.querySelector('button');
           if (del) wireDelRow(del);
         }
@@ -2513,7 +2515,7 @@ export function renderInputs(
   // them into the source asset input's slot-actions row after this rebuild wiped
   // the panel. A no-op unless the mounted tool registered a controller
   // (live-controls.ts) - /multi's fanRuntime never does.
-  mountSidebarLiveControls(el, runtime);
+  mountSlotExtras(el, runtime, host, toolId);
 }
 
 // Starting value for a freshly-added block field. An explicit `default` wins;
@@ -2871,7 +2873,7 @@ function controlHtml(
           hasValue
             ? `<div class="asset-slot-preview">
           ${thumb}
-          <button type="button" class="asset-clear" data-clear-id="${id}" aria-label="Clear selection">&#x2715;</button>
+          ${closeButtonHtml({ size: 'sm', solid: true, className: 'asset-clear', label: 'Clear selection', attrs: { 'data-clear-id': id } })}
         </div>
         <div class="asset-slot-caption" title="${escape(currentLabel)}">${spark}${escape(currentLabel)}</div>`
             : ''
@@ -2906,7 +2908,7 @@ function controlHtml(
       const accept = Array.isArray(input.accept) ? input.accept.join(',') : '';
       const chosenRow = (r: InputFile, idx?: number): string => {
         const meta = `${escape(r.name)}${r.size ? ` · ${fmtBytes(r.size)}` : ''}`;
-        return `<div class="file-chosen"><span class="file-name" title="${escape(r.name)}">${meta}</span><button type="button" class="file-clear"${idx == null ? '' : ` data-file-index="${idx}"`} aria-label="Remove ${escape(r.name)}">&#x2715;</button></div>`;
+        return `<div class="file-chosen"><span class="file-name" title="${escape(r.name)}">${meta}</span>${closeButtonHtml({ size: 'sm', className: 'file-clear', label: `Remove ${r.name}`, attrs: { 'data-file-index': idx == null ? undefined : idx } })}</div>`;
       };
       if (input.multiple) {
         // A batch input holds an ARRAY of FileRefs (empty when none). The trigger adds
@@ -3159,7 +3161,7 @@ function controlHtml(
             <button type="button" class="block-asset-edit block-asset-edit--baked" data-block-rebake="${fieldId}" title="Re-bake - from ${escape(bakedName)}" aria-label="Re-bake image from ${escape(bakedName)}">&#8635;</button>`
                 : ''
             }
-            ${has ? `<button type="button" class="block-asset-clear" data-block-asset-clear="${fieldId}" aria-label="Remove ${escape(f.label ?? 'image')}">&#x2715;</button>` : ''}
+            ${has ? closeButtonHtml({ size: 'sm', className: 'block-asset-clear', label: `Remove ${f.label ?? 'image'}`, attrs: { 'data-block-asset-clear': fieldId } }) : ''}
           </div>`,
             ' block-control--full'
           );
@@ -3494,7 +3496,7 @@ async function openEmbedEditor(
         <header class="embed-editor-head">
           <span class="embed-editor-spark" aria-hidden="true">&#10022;</span>
           <h2 class="embed-editor-title">${titleVerb} ${titleSlot} <span class="embed-editor-from">from ${escape(desc!.name)}</span></h2>
-          <button type="button" class="embed-editor-close" aria-label="Close">&times;</button>
+          ${closeButtonHtml({ className: 'embed-editor-close' })}
         </header>
         <div class="embed-editor-body">
           <div class="embed-editor-form">

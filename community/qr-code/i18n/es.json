@@ -1,6 +1,6 @@
 {
   "name": "Código QR",
-  "description": "Códigos QR para un enlace, una tarjeta de contacto, una red Wi-Fi, un evento de calendario, una ubicación o texto sencillo.",
+  "description": "Códigos escaneables de todo tipo: QR, Micro QR, Data Matrix, Aztec y PDF417 - además de códigos de barras de comercio y logística, de EAN-13 a MaxiCode.",
   "a11yLabel": "Código QR que enlaza con {{default url \"(sin URL configurada)\"}}",
   "featured.blurb": "Códigos QR en cualquier color de marca",
   "inputs.url.label": "URL",

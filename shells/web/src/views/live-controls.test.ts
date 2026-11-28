@@ -324,6 +324,78 @@ test('sidebar: a tool with NO asset input pins a standalone camera row at the to
   lc.dispose();
 });
 
+// ── Render settings that follow an input (`render.when`, engine 1.356) ─────────────
+
+/** A two-mode tool: makes a picture with a logo, and reads with the camera in `scan`. */
+function twoModeRuntime(mode: 'make' | 'scan') {
+  const own = { live: false, when: { input: 'mode', value: 'scan', set: { live: true, liveFacing: 'environment', liveCameraWhen: { input: 'source', value: 'camera' } } } };
+  const starts: Array<{ source?: string; facingMode?: string }> = [];
+  let live = false;
+  const model: Array<{ id: string; type?: string; value: unknown; showIf?: unknown }> = [
+    { id: 'mode', type: 'select', value: mode },
+    { id: 'source', type: 'select', value: 'camera', showIf: { mode: 'scan' } },
+    { id: 'logo', type: 'asset', value: null, showIf: { mode: 'make' } },
+  ];
+  const rt = {
+    hasFrameHook: true,
+    isLive: () => live,
+    startLive: async (o?: { source?: string; facingMode?: string }) => { starts.push(o ?? {}); live = true; return true; },
+    stopLive: () => { live = false; },
+    getModel: () => model,
+    manifest: { id: 'two-modes', render: own },
+    // The engine's answer: the manifest block, or the block with `set` laid over.
+    getRender: () => (mode === 'scan' ? { ...own, ...own.when.set } : own),
+  };
+  return { rt, starts, model };
+}
+
+test('render.when: `live: false` mounts no camera controls in the default mode, and never opens the camera', async () => {
+  const { rt, starts, model } = twoModeRuntime('make');
+  const h = makeHost();
+  const lc = createLiveControls({ runtime: rt, host: h.host, t, announce: () => {}, fetchSvgMarkup: h.fetchSvgMarkup });
+  assert.equal(lc.enabled, false);
+  assert.equal(lc.sourceInputId, null);
+  registerLiveControls(rt as object, lc);
+  const panel = panelWithAssetRow(false);
+  mountSidebarLiveControls(panel, rt);
+  assert.equal(panel.querySelector('[data-live-cluster]'), null, 'the logo card gains no Play or camera button');
+  lc.syncFromModel(model);
+  await tick();
+  assert.deepEqual(starts, [], 'a default-mode mount asks for no camera');
+  panel.remove();
+  lc.dispose();
+});
+
+test('render.when: the keyed mode turns the controls on, with its own camera settings and a row of its own', async () => {
+  const { rt, starts, model } = twoModeRuntime('scan');
+  const h = makeHost();
+  const lc = createLiveControls({ runtime: rt, host: h.host, t, announce: () => {}, fetchSvgMarkup: h.fetchSvgMarkup });
+  assert.equal(lc.enabled, true);
+  // The logo input is hidden in this mode, so the controls do not ride its card.
+  assert.equal(lc.sourceInputId, null);
+  registerLiveControls(rt as object, lc);
+  const panel = document.createElement('div');
+  panel.innerHTML = '<label class="input-row">Mode</label>';
+  document.body.appendChild(panel);
+  mountSidebarLiveControls(panel, rt);
+  assert.ok(panel.querySelector('[data-live-cluster="__standalone__"] [data-live-camera]'));
+  lc.syncFromModel(model);
+  await tick();
+  assert.equal(starts.length, 1, 'liveCameraWhen under `set` starts the camera');
+  assert.equal(starts[0]?.facingMode, 'environment', 'liveFacing under `set` chooses the rear camera');
+  panel.remove();
+  lc.dispose();
+});
+
+test('a tool with no render.when keeps an asset input as its source whatever showIf says', () => {
+  const r = makeRuntime(null);
+  (r.rt.getModel()[1] as { showIf?: unknown }).showIf = { effect: 'none' };
+  const h = makeHost();
+  const lc = createLiveControls({ runtime: r.rt, host: h.host, t, announce: () => {}, fetchSvgMarkup: h.fetchSvgMarkup });
+  assert.equal(lc.sourceInputId, 'image');
+  lc.dispose();
+});
+
 test('sidebar: an unregistered runtime (e.g. /multi fanRuntime) is a no-op', () => {
   const panel = panelWithAssetRow(false);
   mountSidebarLiveControls(panel, { not: 'registered' });

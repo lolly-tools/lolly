@@ -10,6 +10,8 @@
    the spacer holds Batch out on the right, and the row wraps on a narrow screen. */
 .projects-roothead {
   display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); margin: 0 0 var(--sp-3);
+  /* The row sits just under the top bar, beside a status column the system may hold on a side. */
+  padding-left: var(--safe-left); padding-right: var(--safe-right);
 }
 .projects-batch-btn {
   font-weight: 500;
@@ -492,12 +494,6 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
    .projects-render.btn / .modal-danger. */
 .projects-bulk-danger.btn { color: hsl(var(--destructive-text, 0 70% 50%)); }
 .projects-bulk-danger.btn:hover { background: hsl(var(--destructive, 0 70% 50%) / 0.1); }
-.projects-bulkbar-clear {
-  display: inline-flex; align-items: center; justify-content: center; width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); flex: none;
-  border: 0; border-radius: var(--radius-round); background: hsl(var(--muted)); color: hsl(var(--foreground));
-  cursor: pointer; font-size: var(--fs-md); line-height: 1;
-}
-.projects-bulkbar-clear:hover { background: hsl(var(--border)); }
 /* Icon-only when the labels would wrap or overflow (lib/bulk-bar.ts fitBulkBar sets
    .is-compact by measuring). Labels are clipped, not removed, so each button keeps its
    accessible name; the label is also its tooltip. */
@@ -567,7 +563,6 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
   .projects-chip { padding-top: 9px; padding-bottom: 9px; }
   .folder-menu-item { min-height: calc(44px * var(--a11y-fs)); }
   .movepicker-row { min-height: calc(44px * var(--a11y-fs)); }
-  .movepicker-close { width: calc(40px * var(--a11y-fs)); height: calc(40px * var(--a11y-fs)); font-size: calc(18px * var(--a11y-fs)); }
   .movepicker-crumb { min-height: calc(32px * var(--a11y-fs)); display: inline-flex; align-items: center; }
 }
 
@@ -581,9 +576,6 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
 .projects-movepicker::backdrop { background: hsl(0 0% 0% / 0.42); }
 .movepicker-head { display: flex; align-items: center; gap: 10px; padding: 16px 16px 8px; }
 .movepicker-title { margin: 0; font-size: calc(15px * var(--a11y-fs)); font-weight: 700; flex: 1; }
-.movepicker-close {
-  border: 0; background: none; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: var(--fs-xl); padding: 4px;
-}
 .movepicker-crumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 0 16px 10px; font-size: var(--fs-sm); }
 .movepicker-crumb { border: 0; background: none; color: hsl(var(--muted-foreground)); cursor: pointer; padding: 2px 4px; border-radius: 4px; font-size: var(--fs-sm); }
 .movepicker-crumb:hover { color: hsl(var(--foreground)); }

@@ -5,9 +5,9 @@ description: "Operate the Lolly Filter tool (filter) using its declared inputs a
 
 # Filter
 
-Tool ID: `filter`. Tool version: `1.7.0`. Engine range: `^1.341.0`.
+Tool ID: `filter`. Tool version: `1.8.0`. Engine range: `^1.341.0`.
 
-One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.
+Photo effects: halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster).
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 
@@ -143,6 +143,7 @@ Required host APIs: none. Device capabilities: none.
 | liveRes | number |  |
 | width | number |  |
 | height | number |  |
+| ovClear | boolean |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

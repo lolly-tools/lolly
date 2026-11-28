@@ -9,6 +9,7 @@
  * the caller multiplies by the canvas's box on the page; the canvas itself is never read.
  */
 import * as THREE from 'three';
+import { studioBox } from './clip.ts';
 
 /** A turn by the ring snaps to this many degrees. */
 export const STUDIO_TURN_SNAP = 15;
@@ -70,7 +71,7 @@ export interface StudioFootprint {
  */
 export function studioFootprint(object: THREE.Object3D, floor: number): StudioFootprint | null {
   object.updateMatrixWorld(true);
-  const box = new THREE.Box3().setFromObject(object);
+  const box = studioBox(object);
   if (box.isEmpty()) return null;
   const center = new THREE.Vector3((box.min.x + box.max.x) / 2, floor, (box.min.z + box.max.z) / 2);
   const diagonal = Math.hypot(box.max.x - box.min.x, box.max.z - box.min.z) / 2;
@@ -125,6 +126,47 @@ export function studioProject(camera: THREE.Camera, point: THREE.Vector3): Studi
   const ndc = point.clone().project(camera);
   if (!Number.isFinite(ndc.x) || !Number.isFinite(ndc.y)) return null;
   return [(ndc.x + 1) / 2, (1 - ndc.y) / 2];
+}
+
+/**
+ * The place of a light's handle, as fractions of the frame. A light in front of the camera
+ * stands where the light is seen, which may be outside the frame: a rim light or a side
+ * light usually is. A light behind the camera cannot be seen at all, so `behind` is true
+ * and `point` is a direction from the middle of the frame (x to the right, y down, length
+ * one) for the caller to stand the handle beyond the frame's edge on that side.
+ */
+export function studioLightPoint(camera: THREE.Camera, position: THREE.Vector3): { point: StudioScreenPoint; behind: boolean } {
+  const seen = studioProject(camera, position);
+  if (seen) return { point: seen, behind: false };
+  camera.updateMatrixWorld();
+  const view = position.clone().applyMatrix4(camera.matrixWorldInverse);
+  const length = Math.hypot(view.x, view.y);
+  // Straight behind the eye there is no side to choose, so the handle stands above the frame.
+  return { point: length > 1e-6 ? [view.x / length, -view.y / length] : [0, -1], behind: true };
+}
+
+/**
+ * Keep a handle in reach. `to` is where the handle would stand and `from` is a point
+ * inside `rect` (the point the lights aim at). When `to` is outside `rect`, the answer is
+ * the point where the line from `from` to `to` leaves `rect`, so the handle stands at the
+ * edge on the side its light is on. `held` says whether the point was moved.
+ */
+export function studioHoldInRect(
+  from: readonly [number, number],
+  to: readonly [number, number],
+  rect: { left: number; top: number; right: number; bottom: number },
+): { point: [number, number]; held: boolean } {
+  const inside = to[0] >= rect.left && to[0] <= rect.right && to[1] >= rect.top && to[1] <= rect.bottom;
+  if (inside || !(rect.right > rect.left) || !(rect.bottom > rect.top)) return { point: [to[0], to[1]], held: false };
+  const fx = Math.min(rect.right, Math.max(rect.left, from[0])), fy = Math.min(rect.bottom, Math.max(rect.top, from[1]));
+  const dx = to[0] - fx, dy = to[1] - fy;
+  let t = 1;
+  if (dx > 0) t = Math.min(t, (rect.right - fx) / dx);
+  if (dx < 0) t = Math.min(t, (rect.left - fx) / dx);
+  if (dy > 0) t = Math.min(t, (rect.bottom - fy) / dy);
+  if (dy < 0) t = Math.min(t, (rect.top - fy) / dy);
+  t = Math.max(0, t);
+  return { point: [fx + dx * t, fy + dy * t], held: true };
 }
 
 /**

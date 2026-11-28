@@ -178,3 +178,39 @@ test('a request that changes the page proportions, or a page not at its authored
     assert.match(logs.at(-1)![1], /not at its authored size/);
   });
 });
+
+// ─── the instant a page's operations are drawn at, read from the live page ────
+
+test('liveStillInstant: every row at rest while the page stands as authored, the walker while the clock moves or hides a row', async () => {
+  const { liveStillInstant } = await import('./export-design-ops.ts');
+  const { applySequenceTime, restoreSequenceTime } = await import('./sequence-dom.ts');
+  const host = document.createElement('div');
+  host.innerHTML = '<div data-sequence data-seq-ms="6000"><div data-pdf-page data-frame-id="scene" style="width:100px;height:100px">'
+    + '<div class="lolly-box" data-box-id="still" style="width:10px;height:10px"></div>'
+    + '<div class="lolly-box" data-box-id="hook" data-t-start="0" data-t-dur="3000" data-t-enter="fade" data-t-enter-ms="400" style="width:40px;height:40px"></div>'
+    + '<div class="lolly-box" data-box-id="cta" data-t-start="3000" data-t-dur="3000" style="width:40px;height:40px"></div>'
+    + '</div></div>';
+  document.body.append(host);
+  const stage = host.querySelector('[data-sequence]') as HTMLElement;
+  const page = host.querySelector('[data-frame-id]') as HTMLElement;
+  try {
+    // Untouched by any clock: the page is its authored self.
+    assert.deepEqual(await liveStillInstant([page]), { at: null });
+    // Mid-fade at 0.1 s, and the second clip hidden: neither is drawn from the operations.
+    applySequenceTime(stage, 100);
+    assert.ok('reason' in await liveStillInstant([page]));
+    // At 1 s the first clip is at rest but the second is still hidden by the clock.
+    applySequenceTime(stage, 1000);
+    assert.match(String((await liveStillInstant([page]) as { reason?: string }).reason), /hides/);
+    // A page export lifts the hiding at the page's rest moment: every row at rest again.
+    for (const el of page.querySelectorAll('.seq-off')) el.classList.remove('seq-off');
+    assert.deepEqual(await liveStillInstant([page]), { at: null });
+    // The same lifted page mid-fade is still a moment the operations do not draw.
+    applySequenceTime(stage, 100);
+    for (const el of page.querySelectorAll('.seq-off')) el.classList.remove('seq-off');
+    assert.match(String((await liveStillInstant([page]) as { reason?: string }).reason), /part way through a move/);
+  } finally {
+    restoreSequenceTime(stage);
+    host.remove();
+  }
+});

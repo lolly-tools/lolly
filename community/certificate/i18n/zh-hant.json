@@ -1,6 +1,6 @@
 {
   "name": "證書",
-  "description": "以目前的設計系統及其配色方案製作結業與獎項證書：四種樣式、列印與社群尺寸，以及分享用的動態效果，一次一個姓名，或在「依資料列批次製作」中用 CSV 匯入整份名單。",
+  "description": "結業與獎項證書：四種樣式、列印與社群尺寸，以及動態效果，一次一個姓名，或用 CSV 匯入整份名單。",
   "a11yLabel": "{{default titleText \"Certificate\"}} 頒給 {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "種類",
   "inputs.certKind.help": "決定文字內容：標題、說明證書用途的上方一行，以及印章上的標記。",

@@ -69,11 +69,19 @@ export function validateManifest(manifest: unknown): ValidationResult {
     if (input.tokenBindingsField && (input.type !== 'blocks' || !input.fields?.some(field => field.id === input.tokenBindingsField && (field.type ?? 'text') === 'text'))) errors.push({ path: `/inputs/${index}/tokenBindingsField`, message: 'must name a declared text sub-field of this blocks input' });
   }
   if (ok) errors.push(...assetOpenErrors(manifest as { id: string; openWith?: AssetOpenIntentV1[]; inputs?: { id: string; type: string; multiple?: boolean }[] }));
+  if (ok) errors.push(...renderWhenErrors(manifest as { render?: { when?: { input?: unknown } }; inputs?: { id: string }[] }));
   if (ok) errors.push(...renditionOfErrors(manifest as { renditionOf?: { input: string }; inputs?: { id: string; type: string }[] }));
   return {
     valid: errors.length === 0,
     errors,
   };
+}
+
+/** `render.when` must be keyed on an input the tool declares, or the condition could never hold. */
+function renderWhenErrors(manifest: { render?: { when?: { input?: unknown } }; inputs?: { id: string }[] }): ValidationIssue[] {
+  const keyed = manifest.render?.when?.input;
+  if (typeof keyed !== 'string' || (manifest.inputs ?? []).some(input => input.id === keyed)) return [];
+  return [{ path: '/render/when/input', message: 'must be the id of a declared input' }];
 }
 
 function formatError(err: ErrorObject): ValidationIssue {

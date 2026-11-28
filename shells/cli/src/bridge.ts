@@ -102,7 +102,8 @@ import {
 // stance as images.ts: the import is free, the native module loads lazily, and both
 // factories return null on a lean install so the capability stays honestly absent.
 import { createNodePdfRedact } from '@lolly-tools/node-shell/pdf-redact';
-import { createNodeRasterAPI } from '@lolly-tools/node-shell/canvas';
+import { createNodeRasterAPI, pixelWorkCount } from '@lolly-tools/node-shell/canvas';
+import { acceptRefusals, admitForResvg, dedupeRefusals, earlyStop, readLayout, ResvgRefusedError, routeRefusals, type ResvgRefusal, type SvgPlacement, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
 import type { DecodeLimits } from '@lolly-tools/node-shell/canvas';
 // host.speech (Kokoro TTS + Whisper transcription). RELATIVE for the same MCP-bundle
 // reason; it resolves transformers.js lazily and returns null when the runtime is
@@ -241,6 +242,20 @@ function urlAssetKind(mime: string, id: string): { type: 'vector' | 'raster' | '
 /** Options `host.export.render` reads beyond ExportOpts: the engine-hydrated
  *  data/text payload and the physical-unit qualifier threaded to the emitters. */
 interface CliExportRenderOpts extends ExportOpts {
+  /** Told the resolved DRAFT mark decision (the runtime's `watermark`) at the start of
+   *  every export, so the browser-free PNG route can refuse a page the browser marks. */
+  onDraftMark?: (on: boolean) => void;
+  /** The tool's stylesheet, which the browser-free raster formats read for the drawing's layout. */
+  toolStyles?: string | null;
+  /** Whether the tool may take the browser-free raster route (resvg-admission.ts `toolAdmission`).
+   *  A caller that says nothing gets no route. */
+  resvgTool?: ToolRouteFact;
+  /** `--allow-browser-free`: draw a picture whose every refusal only may differ (resvg-admission.ts `acceptRefusals`). */
+  allowBrowserFree?: boolean;
+  /** The tool is a paged document (`render.paged`), whose pages the browser-free route does not draw. */
+  resvgPaged?: boolean;
+  /** Told what was accepted when such a picture is drawn, so the caller can warn and keep a record. */
+  onBrowserFreeAccepted?: (accepted: ResvgRefusal[]) => void;
   c2pa?: boolean;
   durable?: boolean;
   dataText?: string;
@@ -1181,9 +1196,9 @@ export async function createCliBridge(
 const rootSvgOf = drawnRootSvg;
 /**
  * What a Design page drawn from the operations hands back to run.ts, which stamps the
- * credential (plan 326): the route that drew it, through `onExportRoute`, and each
- * credentialed picture's manifest, into `ingredientSink`. Both survive the runtime's
- * copies of the options because they are references.
+ * credential (plan 326): the route that drew it, through `onExportRoute`, and the manifest
+ * of each credentialed picture the document places, on any page, into `ingredientSink`.
+ * Both survive the runtime's copies of the options because they are references.
  */
 async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-tools/core/host-v1').IngredientCredential[]): Promise<void> {
   const o = opts as { ingredientSink?: import('@lolly-tools/core/host-v1').IngredientCredential[]; onExportRoute?: (record: import('../../../engine/src/design-export-route.ts').DesignExportRouteRecord) => void };
@@ -1200,6 +1215,37 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
       const fillUses: FillUse[] = [];
       const collectFill = (uses: FillUse[]): void => { fillUses.push(...uses); };
       const reportFill = (): void => { const filled = fillNotice(fillUses); if (filled) opts.onFillNotice?.(filled); };
+      // The browser-free raster formats (BMP, JPEG XL, EXR, HDR) draw what the PNG route
+      // draws: the text outlined as the SVG export outlines it, the drawing placed as the
+      // page places it, and only an SVG that resvg-admission.ts admits. A refusal is
+      // thrown by type, and run.ts hands the job to the browser tier.
+      const resvgSource = async (svg: Element, format: string, width: number, height: number): Promise<{ svg: string; placement: SvgPlacement }> => {
+        const { placement, refusals: layout } = readLayout(node, svg, width, height, opts.toolStyles);
+        const early = [
+          ...routeRefusals({ tool: opts.resvgTool ?? { id: 'unnamed', browserFree: false, untrusted: false }, paged: !!opts.resvgPaged, draftMark: !!opts.watermark, canvasPixels: pixelWorkCount(node.ownerDocument, host.raster) > 0 }),
+          ...layout,
+        ];
+        // With no browser tier to take the job, every reason is read, so the failure offers
+        // --allow-browser-free only where the flag would draw the picture.
+        const thorough = !opts.allowBrowserFree && early.length > 0 && !(await import('@lolly-tools/node-shell/design-still')).browserTierState().available;
+        if (earlyStop(early, { accept: opts.allowBrowserFree, thorough })) throw new ResvgRefusedError(early, format);
+        let fallbackFaces = false;
+        if (opts.text !== 'live') {
+          const res = await outlineSvgText(svg, host, {
+            getComputedStyle: w.getComputedStyle ? (el: Element) => { try { return w.getComputedStyle(el); } catch { return null; } } : null,
+          });
+          for (const f of res.fallbacks) opts.onTextFallback?.(f);
+          const filled = fillNotice(res.filled);
+          if (filled) { fallbackFaces = true; opts.onFillNotice?.(filled); }
+        }
+        const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
+        const admitted = await admitForResvg(raw, width, height, { fallbackFaces }, placement);
+        const all = acceptRefusals(dedupeRefusals([...early, ...admitted.refusals]), opts.allowBrowserFree);
+        if ('refused' in all) throw new ResvgRefusedError(all.refused, format);
+        if (all.accepted.length) opts.onBrowserFreeAccepted?.(all.accepted);
+        return { svg: admitted.svg, placement };
+      };
+      opts.onDraftMark?.(!!opts.watermark);
       const unavailable = node.matches('[data-export-error]') ? node : node.querySelector('[data-export-error]');
       // HTML is the runnable template, not a captured result.
       if (format !== 'html' && unavailable) throw new Error(unavailable.getAttribute('data-export-error') || 'The tool is not ready to export.');
@@ -1264,14 +1310,28 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
       if ((format === 'svg' || format === 'svgz') && opts.sourceDocument?.toolId === 'design') {
         // The snapshot precedes the story-composition hook; the browser owns that page.
         if (String(opts.sourceDocument.values.textDocument ?? '').trim()) throw new Error(`This Design page needs a browser engine for ${format.toUpperCase()} because the document composes text stories`);
-        const { designOpsSvgNode } = await import('@lolly-tools/node-shell/design-ops-svg');
-        const page = await designOpsSvgNode(node, opts, host, { repoRoot: REPO_ROOT });
-        if (page && 'svg' in page) {
-          await noteDesignOps(opts, page.ingredients);
-          const bytes = new TextEncoder().encode(page.svg);
-          return new Blob([format === 'svgz' ? gzip(bytes) as BlobPart : bytes], { type: 'image/svg+xml' });
+        // A caller that draws the operations itself (the lolly-render route in
+        // design-still.ts) takes the compiled page through the sink; the SVG is not written.
+        const drawingSink = (opts as { drawingSink?: unknown }).drawingSink;
+        if (typeof drawingSink === 'function') {
+          const { designOpsDrawingNode } = await import('@lolly-tools/node-shell/design-ops-svg');
+          const compiled = await designOpsDrawingNode(node, opts, host, { repoRoot: REPO_ROOT });
+          if (compiled && 'drawing' in compiled) {
+            await noteDesignOps(opts, compiled.ingredients);
+            drawingSink(compiled.drawing);
+            return new Blob([], { type: 'image/svg+xml' });
+          }
+          if (compiled) designOpsReason = compiled.reason;
+        } else {
+          const { designOpsSvgNode } = await import('@lolly-tools/node-shell/design-ops-svg');
+          const page = await designOpsSvgNode(node, opts, host, { repoRoot: REPO_ROOT });
+          if (page && 'svg' in page) {
+            await noteDesignOps(opts, page.ingredients);
+            const bytes = new TextEncoder().encode(page.svg);
+            return new Blob([format === 'svgz' ? gzip(bytes) as BlobPart : bytes], { type: 'image/svg+xml' });
+          }
+          if (page) designOpsReason = page.reason;
         }
-        if (page) designOpsReason = page.reason;
       }
       if (format === 'svg' || format === 'svgz') {
         const svg = rootSvgOf(node);
@@ -1468,7 +1528,6 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         //   2. no `hdr=` → the raster is 8-bit sRGB and float would be padding.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('EXR/HDR export needs the template\'s root drawable to be a vector image (HTML-layout tools have no browser-free raster here - use the desktop app or the web shell)');
-        const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         // Lazy: pulls in resvg (a native module) and the engine's EXR/Radiance writers
         // only when a pro format is actually asked for.
         const { renderDeepRaster, deepFormatMime } = await import('@lolly-tools/node-shell/raster');
@@ -1479,10 +1538,15 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
           const d = parseDimension(v);
           return d ? Math.max(1, Math.round(toPixels(d, dpi))) : fallback;
         };
+        const width = px(opts.width, parseFloat(svg.getAttribute('width') as string) || 1280);
+        const height = px(opts.height, parseFloat(svg.getAttribute('height') as string) || 720);
+        // A float format with no `hdr=` refuses before anything is drawn (renderDeepRaster).
+        const source = opts.hdr ? await resvgSource(svg, format, width, height) : { svg: '', placement: undefined };
         const { bytes, mime } = await renderDeepRaster({
-          svg: raw,
-          width: px(opts.width, parseFloat(svg.getAttribute('width') as string) || 1280),
-          height: px(opts.height, parseFloat(svg.getAttribute('height') as string) || 720),
+          svg: source.svg,
+          width,
+          height,
+          ...(source.placement ? { placement: source.placement } : {}),
           format,
           hdr: opts.hdr ?? null,
           depth: opts.depth,
@@ -1496,7 +1560,6 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         if (opts.durable) throw new Error('JPEG XL neural watermarking needs the browser engine.');
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('JPEG XL HTML rendering needs a browser engine.');
-        const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         const { rasterizeSvgToRgba } = await import('@lolly-tools/node-shell/raster');
         const { runJxl } = await import('@lolly-tools/node-shell/jxl');
         const { jxlWithXmp } = await import('../../../engine/src/jxl-container.ts');
@@ -1508,7 +1571,8 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         const width = px(opts.width, parseFloat(svg.getAttribute('width') as string) || 1280);
         const height = px(opts.height, parseFloat(svg.getAttribute('height') as string) || 720);
         if (width * height > 8_000_000 || width > 16384 || height > 16384) throw new Error('JPEG XL encoding is limited to 8 megapixels.');
-        const frame = await rasterizeSvgToRgba(raw, width, height);
+        const source = await resvgSource(svg, format, width, height);
+        const frame = await rasterizeSvgToRgba(source.svg, width, height, { placement: source.placement });
         const pixels = opts.imprint !== false && canCarryWatermark(width, height)
           ? embedWatermark(frame.data, { width, height, ...(format === 'jxl-lossless' ? { strength: LOSSLESS_STRENGTH } : {}) }) : frame.data;
         const result = await runJxl({ operation: 'encode', bytes: pixels, width, height, options: { quality: opts.quality, lossless: format === 'jxl-lossless' } });
@@ -1523,19 +1587,16 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         // resolves opts.imprint to false and it is skipped.
         const svg = rootSvgOf(node);
         if (!svg) throw new Error('BMP export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)');
-        const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         const { rasterizeSvgToBmp } = await import('@lolly-tools/node-shell/raster');
         const dpi = opts.dpi ?? 300;
         const px = (v: string | number | undefined, fallback: number): number => {
           const d = parseDimension(v);
           return d ? Math.max(1, Math.round(toPixels(d, dpi))) : fallback;
         };
-        const bytes = await rasterizeSvgToBmp(
-          raw,
-          px(opts.width, parseFloat(svg.getAttribute('width') as string) || 1280),
-          px(opts.height, parseFloat(svg.getAttribute('height') as string) || 720),
-          { imprint: opts.imprint !== false },
-        );
+        const width = px(opts.width, parseFloat(svg.getAttribute('width') as string) || 1280);
+        const height = px(opts.height, parseFloat(svg.getAttribute('height') as string) || 720);
+        const source = await resvgSource(svg, format, width, height);
+        const bytes = await rasterizeSvgToBmp(source.svg, width, height, { imprint: opts.imprint !== false, placement: source.placement });
         return new Blob([bytes as BlobPart], { type: 'image/bmp' });
       }
       // The remedy list is NODE_FORMATS itself, not a hand-kept copy of it: the two

@@ -1,12 +1,12 @@
 {
   "id": "timezone",
   "name": "Timezone",
-  "version": "1.1.2",
+  "version": "1.3.1",
   "engineVersion": "^1.186.0",
   "status": "official",
   "category": "event",
   "singleInstance": true,
-  "description": "Turn places and timezones into artwork that follows the design system. Rotate a vector atlas or a detailed WebGL globe, unfold projections, label your people and places, then export artwork, a camera tour or structured schedules.",
+  "description": "Turn places and timezones into artwork. Rotate a vector atlas or a WebGL globe, then export artwork, a camera tour or structured schedules.",
   "a11yLabel": "World timezone artwork with labelled places and local times",
   "tags": [
     "timezone",
@@ -34,6 +34,8 @@
       "webm",
       "mp4",
       "gif",
+      "apng",
+      "webp-anim",
       "json",
       "csv",
       "md",
@@ -207,7 +209,7 @@
       "type": "text",
       "default": "",
       "section": "Time",
-      "help": "Optional reference clock. IANA identifier, e.g. Europe/London. Scheduled times use UTC when blank."
+      "help": "Optional reference clock: a city (Nuremberg) or an IANA identifier (Europe/London). Scheduled times use UTC when blank."
     },
     {
       "id": "ambiguity",
@@ -236,6 +238,14 @@
       "max": 1440,
       "step": 1,
       "display": "slider"
+    },
+    {
+      "id": "showHourQuality",
+      "label": "Mark early and late hours",
+      "type": "boolean",
+      "default": false,
+      "section": "Time",
+      "help": "Each place's time turns amber before 08:00 and from 20:00, and red before 06:00 and from 22:00, in that place's own time."
     },
     {
       "id": "clockStyle",
@@ -538,12 +548,24 @@
         {
           "value": "unfold",
           "label": "Unfold & return"
+        },
+        {
+          "value": "reveal",
+          "label": "Reveal times"
         }
-      ]
+      ],
+      "help": "Reveal times plays once and holds: each place comes in after the one before, then its time. Tour, orbit and unfold are loops."
     },
     {
       "id": "duration",
       "label": "Loop seconds",
+      "showIf": {
+        "motion": [
+          "tour",
+          "orbit",
+          "unfold"
+        ]
+      },
       "type": "number",
       "default": 12,
       "section": "Motion",
@@ -575,7 +597,7 @@
           "Edit the Places table. Replace the example cities, press Enter to move down, or paste a city list or spreadsheet. Add a country code to disambiguate. Labels, notes, colours and timezone fills are optional; pop the table out for more room.",
           "Compose the artwork. The map fills the available width; choose Fit whole map to keep the entire globe in frame. Drag to rotate, Shift-drag to roll, and scroll to zoom. Set artwork size in Export.",
           "Share a moment. Leave time on Now for a live clock, or schedule a moment in a reference timezone. Export JSON, CSV, Markdown or a calendar event.",
-          "Make it move. Choose Map only for a clean animation, retaining locations for tours and regions. Choose Tour, Orbit or Unfold, then export MP4, WebM or GIF. Match export duration to the animation duration for a complete loop."
+          "Make it move. Choose Map only for a clean animation, retaining locations for tours and regions. Choose Tour, Orbit or Unfold for a loop, or Reveal times to bring the places in once and hold. Export MP4, WebM, GIF, APNG or animated WebP. For a loop, match export duration to the loop seconds."
         ]
       }
     ]
@@ -585,7 +607,7 @@
       "label": "Global webinar",
       "values": {
         "heading": "Ideas without borders.",
-        "eyebrow": "The global webinar",
+        "eyebrow": "",
         "annotation": "A conversation that travels with you.",
         "footer": "Save your place \u2192",
         "timeMode": "now",
@@ -648,7 +670,7 @@
       "label": "Infrastructure atlas",
       "values": {
         "heading": "Always connected.",
-        "eyebrow": "Global infrastructure",
+        "eyebrow": "",
         "annotation": "Follow the sun. Know every region.",
         "footer": "",
         "timeMode": "now",

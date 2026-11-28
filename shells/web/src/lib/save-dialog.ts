@@ -22,6 +22,7 @@
  * runtime, or the store shapes.
  */
 
+import { closeButtonHtml } from './close-button.ts';
 import { mountModal } from '../components/modal.ts';
 import { escape } from '../utils.ts';
 import { offerUserToolSubmit } from './catalog-submit.ts';
@@ -185,7 +186,7 @@ export function openSaveDialog(deps: SaveDialogDeps): void {
   const content = `
     <div class="save-dialog-head">
       <h2>${escape(title)}</h2>
-      <button type="button" class="save-dialog-close" data-act="close" aria-label="${escape(t('Close'))}">&times;</button>
+      ${closeButtonHtml({ className: 'save-dialog-close', attrs: { 'data-act': 'close' } })}
     </div>
     <div class="save-dialog-body">
       <div class="save-cards">

@@ -32,7 +32,7 @@ test('the note says which instance was set aside, once, and a tap takes it away'
   const note = document.getElementById('lolly-instance-set-aside');
   assert.ok(note);
   assert.equal(note.getAttribute('role'), 'status');
-  assert.equal(note.textContent, 'lolly.example.org is signed with a key this app does not trust. Showing the tools built into this app.');
+  assert.equal(note.textContent, 'lolly.example.org is signed with a key this app has not accepted. Showing the tools built into this app. Connect to it again in Settings to accept its key.');
   assert.equal(document.documentElement.dataset.catalogInstance, 'set-aside');
   // It is not the refusal state: the bundled catalog verified and tools are on screen.
   assert.notEqual(document.documentElement.dataset.catalogTrust, 'refused');
@@ -46,13 +46,38 @@ test('the note says which instance was set aside, once, and a tap takes it away'
   assert.equal(document.documentElement.dataset.catalogInstance, 'set-aside');
 });
 
+test('in the apps a tap or Enter on the note opens the way back, once', async () => {
+  // A fresh copy of the module: the note is said once per page load.
+  const fresh = await import(new URL('./integrity.ts?reconnect', import.meta.url).href) as typeof import('./integrity.ts');
+  let opened = 0;
+  fresh.noteInstanceCatalogSetAside('https://lolly.example.org/team', () => { opened++; });
+  const note = document.getElementById('lolly-instance-set-aside')!;
+  assert.equal(note.tabIndex, 0, 'reachable from the keyboard');
+  note.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Enter' }));
+  assert.equal(opened, 1);
+  assert.equal(document.getElementById('lolly-instance-set-aside'), null);
+  note.dispatchEvent(new dom.window.Event('click'));
+  assert.equal(opened, 1, 'the note acts once');
+});
+
+test('the note can be shown once more, as the way back after the connect step was closed', () => {
+  assert.equal(document.getElementById('lolly-instance-set-aside'), null);
+  let opened = 0;
+  noteInstanceCatalogSetAside('https://lolly.example.org/team', () => { opened++; }, true);
+  const note = document.getElementById('lolly-instance-set-aside');
+  assert.ok(note, 'shown again');
+  note.dispatchEvent(new dom.window.Event('click'));
+  assert.equal(opened, 1);
+});
+
 test('sync sets the instance aside only on a trust failure and tries the bundled catalog once', () => {
   const source = readFileSync(new URL('./sync.ts', import.meta.url), 'utf8');
   const branch = source.slice(source.indexOf('if (isCatalogTrustFailure(e) && getInstanceBase())'));
   assert.ok(branch.length < source.length, 'the fallback branch is present');
   const body = branch.slice(0, branch.indexOf('noteCatalogIntegrityFailure(e)'));
   assert.match(body, /suspendInstanceBase\(\)/);
-  assert.match(body, /noteInstanceCatalogSetAside\(setAside\)/);
+  // The note, and in the apps the connect step, come from one call.
+  assert.match(body, /offerSetAsideInstance\(setAside, /);
   assert.match(body, /return syncCatalog\(host, onAssetsReady, maintenanceGate, signInRequired\)/);
   // The retry runs with no instance in use, so a second refusal cannot loop.
   assert.match(readFileSync(new URL('../lib/instance.ts', import.meta.url), 'utf8'), /if \(was\) \{ suspended = was; base = ''; instanceSession = null; \}/);

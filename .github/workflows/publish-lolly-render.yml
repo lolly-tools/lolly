@@ -1,0 +1,104 @@
+# SPDX-License-Identifier: MPL-2.0
+# Publish the lolly-render Node binding to npm: @lolly-tools/render and its five platform
+# packages, with npm Trusted Publishing and provenance (the publish-core.yml way, no token).
+#
+# Only a person can start this, and four things must all hold before anything is published:
+# - it is a manual dispatch of main in lolly-tools/lolly;
+# - the `confirm` input reads exactly "publish @lolly-tools/render <version>";
+# - <version> is the Lolly release version (tauri.conf.json), which every package declares;
+# - no package is still `private: true`. They are private in the tree on purpose, so nothing
+#   can be published by accident; the release commit flips them.
+# The publish job then waits for approval in the release-npm environment, the way
+# release-images.yml waits in release-images, and only that job holds the OIDC identity.
+#
+# Before the first release: create the release-npm environment with required reviewers and
+# a main-only branch policy, and on npmjs.com name this repository, this workflow file and
+# that environment as the Trusted Publisher of each of the six packages.
+name: Publish lolly-render to npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Lolly release version to publish; must equal tauri.conf.json and every lolly-render package
+        required: true
+        type: string
+      confirm:
+        description: Type exactly "publish @lolly-tools/render <version>"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-lolly-render
+  cancel-in-progress: false
+
+jobs:
+  admit:
+    name: Check the request
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.repository == 'lolly-tools/lolly'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: The confirmation, the version and the package flags
+        env:
+          VERSION: ${{ inputs.version }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::not a release version: $VERSION"; exit 1; }
+          [ "$CONFIRM" = "publish @lolly-tools/render $VERSION" ] || { echo "::error::the confirm input does not read: publish @lolly-tools/render $VERSION"; exit 1; }
+          release=$(jq -r .version shells/tauri-desktop/src-tauri/tauri.conf.json)
+          [ "$release" = "$VERSION" ] || { echo "::error::main declares $release, not $VERSION"; exit 1; }
+          for pkg in crates/lolly-render-node/package.json crates/lolly-render-node/npm/*/package.json; do
+            [ "$(jq -r .version "$pkg")" = "$VERSION" ] || { echo "::error::$pkg is not $VERSION"; exit 1; }
+            [ "$(jq -r '.private // false' "$pkg")" = "false" ] || { echo "::error::$pkg is still private: flip it in the release commit"; exit 1; }
+          done
+          jq -e --arg v "$VERSION" '.optionalDependencies | to_entries | all(.value == $v)' crates/lolly-render-node/package.json > /dev/null \
+            || { echo "::error::an optional dependency is not pinned to $VERSION"; exit 1; }
+
+  build:
+    needs: [admit]
+    uses: ./.github/workflows/lolly-render-addon.yml
+
+  publish:
+    name: Publish with provenance
+    needs: [admit, build]
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.repository == 'lolly-tools/lolly'
+    environment: release-npm
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      # npm Trusted Publishing exchanges this job's OIDC identity for a short-lived publish
+      # credential and signs the provenance statement. No npm token is read.
+      id-token: write
+    steps:
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '^26.12.1'
+          registry-url: 'https://registry.npmjs.org'
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: lolly-render-node-packages
+          path: packed
+      - name: Publish the platform packages, then the main package
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          ls -l packed
+          main="packed/lolly-tools-render-$VERSION.tgz"
+          [ -f "$main" ] || { echo "::error::no $main"; exit 1; }
+          count=0
+          for tarball in packed/lolly-tools-render-*-"$VERSION".tgz; do
+            npm publish "$tarball" --provenance --access public
+            count=$((count + 1))
+          done
+          [ "$count" -eq 5 ] || { echo "::error::$count platform packages, expected 5"; exit 1; }
+          npm publish "$main" --provenance --access public

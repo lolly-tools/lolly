@@ -1,6 +1,6 @@
 {
   "name": "مخطط صوتي",
-  "description": "حوّل مقطع صوتي أو أغنية إلى فيديو بعلامتك التجارية يتحرك فعلاً مع الصوت - أعمدة، طيف، حلقة، تلال أو نطاق، جاهز لمواقع التواصل.",
+  "description": "حوّل مقطع صوتي أو أغنية إلى فيديو بألوان نظام التصميم لديك يتحرك مع الصوت.",
   "a11yLabel": "بطاقة مخطط صوتي لـ{{default title \"an audio clip\"}} مع موجة صوتية متحركة",
   "inputs.audio.label": "الصوت",
   "inputs.audio.help": "اختر مقطعا من مكتبتك أو ارفع مقطعا صوتيا. يتم فك ترميزه على جهازك لرسم الموجة الصوتية - الصوت لا يغادر المتصفح أبدا. اتركه فارغا لموجة صوتية نائبة. لسماعه في التصدير، اختر \"صوت هذه الأداة\" كمسار الصوت في خيارات التنزيل.",
@@ -18,5 +18,12 @@
   "inputs.size.options.story": "قصة (9:16)",
   "inputs.accent.label": "لون الموجة",
   "inputs.ink.label": "لون النص",
-  "inputs.bg.label": "الخلفية"
+  "inputs.bg.label": "الخلفية",
+  "inputs.targetLevel.label": "المستوى المستهدف",
+  "inputs.targetLevel.help": "ما يعتبر «مضبوطا تماما» بالنسبة لرسائل الإرشاد.",
+  "inputs.targetLevel.options.soft": "هادئ · ميكروفون قريب",
+  "inputs.targetLevel.options.normal": "كلام عادي",
+  "inputs.targetLevel.options.loud": "مرتفع · غرفة",
+  "inputs.showTips.label": "نصائح الإرشاد",
+  "inputs.showTips.help": "رسائل مباشرة مثل «اقترب أكثر» أو «الصوت مقصوص»."
 }

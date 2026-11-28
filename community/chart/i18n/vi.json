@@ -1,6 +1,6 @@
 {
   "name": "Biểu đồ",
-  "description": "Biểu đồ từ lần dán đầu tiên đến trực quan hóa nâng cao - gợi ý dữ liệu có giải thích, ánh xạ trường dữ liệu rõ ràng, 35 nhóm vector cổ điển gồm cả Pareto, mục tiêu dạng bullet và thanh khoảng, mười sáu kiểu thể hiện thống kê và biên tập, cảnh 3D có trục z thật, chuyến bay điện ảnh, chuyển động xác định, mô tả dễ tiếp cận và phong cách được biên soạn từ hệ thống thiết kế đang dùng.",
+  "description": "Biểu đồ từ lần dán đầu tiên đến trực quan hóa nâng cao - 35 nhóm vector, cảnh 3D, chuyến bay, chuyển động và phong cách từ hệ thống thiết kế.",
   "featured.blurb": "Dán một bảng - Biểu đồ giúp nó rõ ràng, dễ tiếp cận và chắc chắn đúng thương hiệu của bạn",
   "a11yLabel": "{{chartType}} biểu đồ{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Loại biểu đồ",

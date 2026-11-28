@@ -1,27 +1,31 @@
 # Lolly og Canva
 
-_Sist kontrollert: 28. september 2026._
+_Sist sjekket: 28. september 2026._
 
-Hvis teamet ditt lager innlegg til sosiale medier, lysbilder og flygeblad i Canva i dag, sier denne siden hvor Lolly gjør den samme jobben og hvor Canva forblir det bedre valget.
+Hvis teamet ditt lager innlegg til sosiale medier, lysbilder og flygeblader i Canva, sier denne siden hvor Lolly gjør den samme jobben og hvor Canva passer bedre.
 
+<!--i:eti-award-->
 ## Hva Canva gjør bedre
 
-Canva kombinerer et stort mal- og stockbibliotek, apper og vertsbaserte teamarbeidsflyter i én administrert tjeneste. Det ferdige innholdet og opplevelsen hjelper når du trenger et utgangspunkt i dag. Se [Canvas maler](https://www.canva.com/templates/) og [appmarkedsplass](https://www.canva.com/apps/). Live-redigeringen har også en lang driftshistorikk i en skala Lollys work collabs ikke har nådd.
+Canva kombinerer et stort bibliotek med maler og arkivmateriale, apper og vertsbaserte arbeidsflyter for team i én administrert tjeneste. Det ferdige innholdet hjelper når du trenger et utgangspunkt i dag. Se [Canvas maler](https://www.canva.com/templates/) og [appmarkedsplass](https://www.canva.com/apps/). Canvas levende redigering har en lang driftshistorikk i en skala Lollys arbeidssamarbeid ikke har nådd.
 
+<!--i:eti-blend-->
 ## Hvor de overlapper
 
-Begge lar noen starte fra en mal og lage en ferdig grafikk uten å være designer. Begge støtter teamarbeid og merkevarekontroller: [Canva pakker disse i sine bedriftsabonnementer](https://www.canva.com/canva-business/), mens Lolly holder den kreative appen og organisasjonsserveren adskilt.
+Begge lar en som ikke er designer begynne med en mal og lage ferdig grafikk. Begge støtter teamarbeid og merkevarekontroller. [Canva samler dette i bedriftsabonnementene sine](https://www.canva.com/canva-business/). Lolly holder den kreative appen og organisasjonsserveren atskilt.
 
-## Hvordan Lolly gjør den overlappende jobben
+<!--i:eti-lolly-->
+## Slik gjør Lolly den overlappende jobben
 
-Et Lolly-verktøy koder endringene folk kan gjøre, og det samme verktøyet kjører i nettleseren, skrivebordsappen eller CLI-et. En layout laget på Lolly Design-lerretet kan bli et [verktøy med regler](/info/create-a-tool.html), og ett verktøy kan lage mange filer fra en tabell med verdier.
+Et Lolly-verktøy fastsetter hvilke endringer folk kan gjøre. Det samme verktøyet kjører i nettleseren, skrivebordsappen eller kommandolinjeverktøyet. En layout laget på Lolly Design-lerretet kan bli et [verktøy med regler](/info/create-a-tool.html). Ett verktøy kan lage mange filer fra en tabell med verdier.
 
-![Lolly Designs frie lerret, der fargene, skriftene og ressursene som tilbys, er designsystemets egne](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
+![Det frie lerretet i Lolly Design, der fargene, skrifttypene og ressursene som tilbys, er designsystemets egne](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3D__blank__&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=aud-open-canvas)
 
-Frittstående Lolly fortsetter å lage og eksportere på enheten, uten konto, og fungerer uten nett når ressursene er lagret. To personer kan redigere live i en [private collab](/info/collaborate.html), enhet til enhet. Content Credentials er på som standard for støttede eksporter, og du kan slå dem av.
+Frittstående Lolly lager og eksporterer på enheten, uten konto. Appen fungerer uten nett når ressursene er lagret. To personer kan redigere samtidig i et [privat samarbeid](/info/collaborate.html), fra enhet til enhet. Content Credentials er på som standard for støttede eksporter, og du kan slå dem av.
 
+<!--i:eti-building-->
 ## Med en organisasjon
 
-Lolly Work, kjørt på organisasjonens egen server, legger til pålogging, delte prosjekter, live work collabs, godkjente ressurser og policyer. [What runs where](/info/compare.html#what-runs-where) setter de to delene side om side, med grensene hver sammenligning deler.
+Lolly Work, som kjører på organisasjonens egen server, legger til pålogging, delte prosjekter, levende arbeidssamarbeid, godkjente ressurser og policyer. [Hva kjører hvor](/info/compare.html#what-runs-where) viser de to delene side om side, med begrensningene alle sammenligningene deler.
 
-Canva er et varemerke tilhørende eieren. Denne siden beskriver hvor de to produktene overlapper og er ikke tilknyttet Canva.
+Canva er et varemerke som tilhører eieren. Denne siden beskriver hvor de to produktene overlapper og er ikke tilknyttet Canva.

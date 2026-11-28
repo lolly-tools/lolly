@@ -66,6 +66,7 @@
  * the runtime - trim-offer.ts's precedent.
  */
 
+import { closeButtonHtml } from '../close-button.ts';
 import '../../styles/parts/type-compare.css'; // .tycmp* rules - rides this module's lazy chunk
 
 import { escape } from '../../utils.ts';
@@ -615,7 +616,7 @@ function noteText(card: CompareCard, t: TFn): string {
  * the wrong face. The exception is `no-source`, where nothing is ever coming:
  * there the interface face is all there is, and the card says so in words.
  */
-function cardHtml(card: CompareCard, text: string, t: TFn): string {
+function cardHtml(card: CompareCard, text: string, t: TFn, tRaw: TFn): string {
   const ready = card.state === 'ready';
   const noSource = card.reason === 'no-source';
   // The face only paints when it is REALLY loaded.
@@ -625,10 +626,7 @@ function cardHtml(card: CompareCard, text: string, t: TFn): string {
   // Idle is the pre-fetch state, declined or not: both offer the same press, and
   // a decline is not a refusal - somebody may change their mind on the card.
   const fetch = card.state === 'idle' && card.needsFetch;
-  // t(), NOT escape(t()): the translator has already escaped the family it
-  // interpolated, and escaping that again is what puts "&amp;amp;" in an
-  // accessible name.
-  const remove = t('Remove {family}', { family: card.family });
+  const remove = tRaw('Remove {family}', { family: card.family });
   // What the card is, and why it is in the state it is in. The <article> is the
   // one thing an AT user can land on that is not a button, and a loading card
   // has no button at all - so the description belongs here, where the keyboard
@@ -646,8 +644,7 @@ function cardHtml(card: CompareCard, text: string, t: TFn): string {
       <header class="tycmp-card-head">
         <span class="tycmp-glyph" aria-hidden="true">${icon('font', { size: 16 })}</span>
         <span class="tycmp-family">${escape(card.family)}</span>
-        <button type="button" class="tycmp-x" data-tycmp-remove="${escape(card.id)}"
-          aria-label="${remove}" title="${remove}">${icon('close', { size: 14 })}</button>
+        ${closeButtonHtml({ size: 'sm', className: 'tycmp-x', label: remove, attrs: { 'data-tycmp-remove': card.id, title: remove } })}
       </header>
       ${card.label ? `<p class="tycmp-label">${escape(card.label)}</p>` : ''}
       ${specimen}
@@ -669,8 +666,8 @@ function cardHtml(card: CompareCard, text: string, t: TFn): string {
  * control, the drop zone - is the mount's, because none of it changes with the
  * cards.
  */
-export function compareCardsHtml(cards: readonly CompareCard[], text: string, t: TFn): string {
-  return cards.map((card) => cardHtml(card, text, t)).join('');
+export function compareCardsHtml(cards: readonly CompareCard[], text: string, t: TFn, tRaw: TFn): string {
+  return cards.map((card) => cardHtml(card, text, t, tRaw)).join('');
 }
 
 // ── Pure: the ownership grammar the Type room paints with (plan 182 sections 4.2, 6.5) ──
@@ -970,7 +967,7 @@ export function mountTypeCompare(el: HTMLElement, ctx: TypeCompareCtx): TypeComp
     const memo = focusMemo();
     landedOnCard = null;
     // Sink 2 of 2: the cards, from the pure compareCardsHtml().
-    cardsEl.innerHTML = compareCardsHtml(cards, specimen, t);
+    cardsEl.innerHTML = compareCardsHtml(cards, specimen, t, tRaw);
     if (emptyEl) emptyEl.hidden = cards.length > 0;
     if (dropEl) dropEl.classList.toggle('is-full', cards.length >= MAX_COMPARE_CARDS);
     if (memo) restoreFocus(memo);

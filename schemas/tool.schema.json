@@ -475,6 +475,11 @@
           "pattern": "^[a-z0-9]+(/[a-z0-9][a-z0-9-]*)+$",
           "description": "For onFrame tools: catalog id of an ANIMATED SVG asset the shell plays as a live, no-camera source (an off-screen <img> of the animation, sampled into onFrame like a camera would be) so the tool can show off its effect on a moving subject without a webcam. The shell auto-plays it when present; a still export still captures the current frame. Ignored by tools without onFrame."
         },
+        "live": {
+          "type": "boolean",
+          "default": true,
+          "description": "For onFrame (live camera) tools: set false to mount no live camera controls (engine 1.356). For a tool whose onFrame hook serves one mode only, with render.when.set turning the controls on for that mode. Unset means on."
+        },
         "liveFacing": {
           "type": "string",
           "enum": [
@@ -482,6 +487,104 @@
             "environment"
           ],
           "description": "For onFrame (live camera) tools: which camera to open by default - 'user' (front, the default) or 'environment' (rear). A code reader / document scanner wants 'environment'. The user can still flip front/rear from the live controls; this only sets the initial camera. Honoured where the shell can choose a facing; ignored on a single-camera device and by shells without a camera."
+        },
+        "when": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "input",
+            "value",
+            "set"
+          ],
+          "properties": {
+            "input": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Id of a declared input whose value selects the render settings."
+            },
+            "value": {
+              "description": "The input value at which `set` applies, or a list of such values. Read the way an input's showIf reads one pair.",
+              "oneOf": [
+                {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": [
+                      "string",
+                      "number",
+                      "boolean"
+                    ]
+                  }
+                }
+              ]
+            },
+            "set": {
+              "type": "object",
+              "additionalProperties": false,
+              "minProperties": 1,
+              "properties": {
+                "export": {
+                  "type": "boolean",
+                  "description": "render.export while the condition holds."
+                },
+                "webPreview": {
+                  "type": "boolean",
+                  "description": "render.webPreview while the condition holds."
+                },
+                "actions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "copy",
+                      "download",
+                      "save",
+                      "share"
+                    ]
+                  },
+                  "description": "render.actions while the condition holds."
+                },
+                "live": {
+                  "type": "boolean",
+                  "description": "render.live while the condition holds."
+                },
+                "liveFacing": {
+                  "type": "string",
+                  "enum": [
+                    "user",
+                    "environment"
+                  ],
+                  "description": "render.liveFacing while the condition holds."
+                },
+                "liveCameraWhen": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "input",
+                    "value"
+                  ],
+                  "properties": {
+                    "input": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "description": "render.liveCameraWhen while the condition holds."
+                }
+              },
+              "description": "The render keys that replace the tool's own while the condition holds: export, webPreview, actions and the live camera keys live, liveFacing and liveCameraWhen. No other key can be set."
+            }
+          },
+          "description": "Render settings that follow one input's value (engine 1.356). While `input` holds `value`, the keys under `set` replace the same keys of this render block; at any other value the block is used as written. One block keyed on one input. The engine resolves it (resolveRender, runtime.getRender()), so every shell reads one answer. A tool that uses it needs engineVersion >=1.356.0."
         },
         "liveCameraWhen": {
           "type": "object",

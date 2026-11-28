@@ -25,6 +25,7 @@ import { getCollabSessionSource } from '../../lib/collab-session-source.ts';
 import { getSessionSource } from '../../lib/session-source.ts';
 import { takeAssetOpeningSeed } from '../../lib/asset-open-handoff.ts';
 import { mountHistoryRole, takeCarriedMountState, takeEphemeralState, pendingLiveCollab } from '../../lib/collab-live-mount.ts';
+import { inputsOfMount, takeRenderMount, watchRenderMode } from '../tool-render-mode.ts';
 import { createMemoryStateAPI } from '../../lib/ephemeral-state.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { captureNeutralPinned } from '../../lib/capture-neutral.ts';
@@ -35,10 +36,11 @@ import { prepareToolDesignSystemContext } from '../tool-design-system-context.ts
 import { fpsTick, startFrameFps, stopFrameFps } from '../../lib/frame-fps.ts';
 import { takeAutomationExportPassword } from '../../lib/automation-export-secret.ts';
 import { addressAfterLinkPassword, withoutLinkPassword } from '../../lib/export-password.ts';
-import { replaceRouteUrl } from '../../lib/url-state.ts';
+import { flushAddressWrites, replaceRouteUrl } from '../../lib/url-state.ts';
 import { inferDesignIntent } from '../design-workspace.ts';
 import { createHistory, historyTokenLinks } from '../tool-history.ts';
 import { mountBackPill } from '../../components/back-pill.ts';
+import { unwireHelpTips, wireHelpTips } from '../../components/help-tip.ts';
 import { autoOpenToolGuide, showToolGuide } from '../../components/tool-guide.ts';
 import { toolGuideRows } from '../../lib/tool-guides.ts';
 import { zipBulkFiles } from '../../lib/bulk-files.ts';
@@ -164,7 +166,8 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   // A no-op for ordinary readable links. Done once so every consumer below agrees.
   tview.urlParams = await expandQuery(tview.urlParams ?? '');
 
-  const carriedMount = takeCarriedMountState(toolId); tview.carriedMount = carriedMount as ToolViewCtx['carriedMount'];
+  const renderMount = takeRenderMount(toolId); tview.renderMount = renderMount;
+  const carriedMount = takeCarriedMountState(toolId) ?? renderMount; tview.carriedMount = carriedMount as ToolViewCtx['carriedMount'];
   const openedSession = await openToolSession(tview.host.state, tview.tool.manifest, parseUrlState(tview.urlParams, tview.tool.manifest), carriedMount?.slot); tview.openedSession = openedSession;
   const {
     values,
@@ -1178,7 +1181,10 @@ export function mountActions(tview: ToolViewCtx): void {
     }
   ); tview.actionsApi = actionsApi;
   if (!tview.isFull && !tview.autoExport && !tview.autoCopy) mountLifecycle.add('recovery notice', mountRecoveryNotice(viewEl, {
-    manifest: tview.tool.manifest, automatic: !!actionsApi?.history, canSave: !!actionsApi?.save,
+    // A file input of another mode of the tool (`render.when`) cannot be loaded in this
+    // mount, so the notice does not speak of imported files on its account.
+    manifest: { ...tview.tool.manifest, inputs: [...inputsOfMount(tview.tool.manifest, Object.fromEntries(runtime.getModel().map((m) => [m.id, m.value])))] },
+    automatic: !!actionsApi?.history, canSave: !!actionsApi?.save,
     shared: !!collabHandle || !!ephemeralState || !!getCollabSessionSource(), collab: collabHandle?.history,
     scope: slot ?? toolId, opened: openedSession.values, onSave: () => tview.openSaveAs?.(),
   }));
@@ -1198,6 +1204,31 @@ export function mountActions(tview: ToolViewCtx): void {
       }));
       if (tview.tool.manifest.designTool && typeof templateId === 'string') mountLifecycle.add('rules tool notice', notices.mountRulesToolNotice({
         toolId, name: tview.tool.manifest.name, savedVersion: tview.initialValues.__toolVersion, version: tview.tool.manifest.version,
+      }));
+    });
+  }
+  // Render settings that follow an input (`render.when`): when the keyed input changes
+  // the block in effect, mount this view again so the export sheet, the action bar and
+  // the preview are all built from the new answer (views/tool-render-mode.ts).
+  mountLifecycle.add('render mode', watchRenderMode({
+    toolId, manifest: tview.tool.manifest, runtime, mounted: tview.renderAtMount,
+    inputs: () => tview.inputsEl,
+    remount: () => { flushAddressWrites(); window.dispatchEvent(new Event('lolly:remount')); },
+  }));
+  // A tool that moved into another one says so, and offers to open this document there
+  // (views/tool-retired-notice.ts). The catalog index holds both facts and the names.
+  const successorId = tview.indexEntry?.deprecated === true ? tview.indexEntry.replacedBy : null;
+  const successor = typeof successorId === 'string' ? tview.catalog.tools?.find((entry) => entry.id === successorId) : null;
+  if (successor && !tview.isFull && !tview.autoExport && !tview.autoCopy) {
+    void import('../tool-retired-notice.ts').then((notice) => {
+      if (!viewEl.isConnected) return;
+      const named = successor as { id: string; name?: unknown; en?: { name?: unknown } };
+      mountLifecycle.add('retired tool notice', notice.mountRetiredToolNotice({
+        body: viewEl.querySelector<HTMLElement>('.sidebar-body') ?? tview.stageEl,
+        toolId, name: tview.tool.manifest.name, successorId: successor.id,
+        successorName: typeof named.name === 'string' ? named.name : String(named.en?.name ?? successor.id),
+        values: () => Object.fromEntries(runtime.getModel().map((input) => [input.id, input.value])),
+        open: (href) => { location.hash = href; },
       }));
     });
   }
@@ -1571,6 +1602,14 @@ export async function mountLiveControls(tview: ToolViewCtx): Promise<void> {
         onBake: runtime.manifest.designTool ? undefined : (key) => tview.session.bakeFraming(key),
       });
     }
+  }
+
+  // A tool's canvas may carry the shell's own help tip: a .help-tip-host holding a
+  // .help-tip-btn and a hidden .help-tip-pop. The canvas node outlives every
+  // repaint, so one delegated wiring covers markup the template draws again.
+  if (contentEl) {
+    wireHelpTips(contentEl);
+    mountLifecycle.add('canvas help tips', () => unwireHelpTips(contentEl));
   }
 
   // File-input tools: the whole canvas accepts a dropped file - drag-and-drop, or

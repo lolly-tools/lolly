@@ -29,7 +29,7 @@ export const PRESET_PHASES = [0, 0.25, 0.5, 0.75, 1];
 type Values = Record<string, unknown>;
 
 /** One pinned move: a value set chosen to show what the move is made of. */
-export const CAMERA_PRESET_SETS: { kind: string; values: Values }[] = [
+export const CAMERA_PRESET_SETS: { kind: string; values: Values; source?: string }[] = [
   {
     kind: 'sweep',
     values: { cameraMotion: 'sweep', cameraAmount: 1.5, cameraEase: 'flow', cameraLoop: true },
@@ -60,6 +60,18 @@ export const CAMERA_PRESET_SETS: { kind: string; values: Values }[] = [
     kind: 'crane',
     values: { cameraMotion: 'crane', camera: { elevation: 60, panX: 0.4 } },
   },
+  {
+    // The full turn that the older 3D tool's camera made, added for its retirement.
+    kind: 'orbit',
+    source: 'camera orbit for retiring the 3d tool',
+    values: {
+      cameraMotion: 'orbit',
+      cameraEase: 'linear',
+      cameraLoop: true,
+      camera: { azimuth: -40, elevation: 22, zoom: 0.9, panX: 0.2 },
+      focusDistance: 4,
+    },
+  },
 ];
 
 function json(value: unknown): string {
@@ -82,10 +94,10 @@ export function presetFixture(values: Values): Values {
 }
 
 export function writeCameraPresets(): number {
-  for (const { kind, values } of CAMERA_PRESET_SETS)
+  for (const { kind, values, source } of CAMERA_PRESET_SETS)
     writeFileSync(
       join(here, `05-camera-${kind}.json`),
-      json({ source: 'plan 267 lane D', ...presetFixture(values) })
+      json({ source: source ?? 'plan 267 lane D', ...presetFixture(values) })
     );
   return CAMERA_PRESET_SETS.length;
 }

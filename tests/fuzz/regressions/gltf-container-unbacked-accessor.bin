@@ -1,0 +1,1 @@
+{"asset":{"version":"2.0","generator":"lolly test"},"scene":0,"scenes":[{"nodes":[0]}],"nodes":[{"mesh":0,"name":"Triangle"}],"meshes":[{"primitives":[{"attributes":{"POSITION":0},"indices":1}]}],"buffers":[{"uri":"data:application/octet-stream;base64,","byteLength":0}],"bufferViews":[],"accessors":[{"componentType":5126,"count":4000000000,"type":"MAT4"}]}

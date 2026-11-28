@@ -20,16 +20,15 @@
  *      this generation's cache, then the separate PIN_CACHE bucket that holds
  *      tools the user pinned "available offline" (lib/offline-pins.ts).
  *
- *   4. Preview images + the preview-look manifest under /catalog/previews/ →
+ *   4. Preview images and the gallery cover manifest under /catalog/previews/ →
  *      STALE-WHILE-REVALIDATE: serve the cached copy instantly (no blocking
  *      network on repeat loads, and they work offline) while a background fetch
  *      freshens the cache for next time. Previews are regenerable, non-critical
- *      art (a one-load-stale thumbnail is harmless, and a stale look self-heals -
- *      preview-bundle.ts rejects a sig mismatch and live-renders), so unlike the
- *      catalog INDEX they don't need to be fetch-fresh. This is the repeat-visit
- *      request cut: dozens of preview + manifest requests become cache hits. It
- *      is also the ONLY thing that caches bundle.json - nothing precaches it, so
- *      a cold load fetches it exactly once, from the page.
+ *      art (a one-load-stale thumbnail is harmless), so unlike the catalog INDEX
+ *      they don't need to be fetch-fresh. This is the repeat-visit request cut:
+ *      dozens of preview requests become cache hits. Nothing under
+ *      /catalog/previews/ is precached, so a cold load fetches each file once,
+ *      from the page.
  *
  *   5. The /info docs site → NETWORK-FIRST per URL out of its own persistent
  *      bucket (INFO_CACHE, filled by the offline download manager) - real
@@ -56,6 +55,10 @@
  * entries on activate (a one-time clear of anything already gone stale).
  */
 
+// v19: the page hands over the build files it loaded before this worker took control
+// (the boot chunks, the boot stylesheet, the preloaded fonts), and the worker stores the
+// ones it lacks (cacheBootSet, the 'lolly:boot-set' message). A first visit loads those
+// files before any worker exists, so until now a second visit fetched all of them again.
 // v18: /brand (the static brand standards page) joins BYPASS_PATTERNS. A worker from
 // before this one stores a /brand visit under the shell key, so the bump drops that
 // generation on activate and the offline app boots into the app again.
@@ -65,15 +68,10 @@
 // dead weight; the bump lets activate drop it rather than leave it on disk.
 // v16: the PWA share target ships (plan 202 WP4.3) - one POST branch in fetch,
 // plus SHARE_CACHE on the activate keep-list.
-// v15: /catalog/previews/bundle.json changed FORMAT (plans/155 Task 2.4) - it went from
-// a 2.64 MB payload with each look's SVG inlined to a 29 KB manifest of look URLs, and
-// left PRECACHE_URLS with it. A format change is exactly what a generation bump is for:
-// this SWR route caches the manifest in THIS bucket, so without the bump a returning
-// visitor is served the old inlined file first (stale-while-revalidate answers from
-// cache), and lib/preview-bundle.ts - which now reads only `src` - sees entries that
-// carry `svg` alone, returns null for every one of them, and the whole gallery falls
-// back to live engine renders for a load. It self-heals on the NEXT visit; the bump
-// means there is no first one to pay for it.
+// v15: the gallery's old preview-look manifest (/catalog/previews/bundle.json, since
+// removed) changed FORMAT and left PRECACHE_URLS. A format change is what a generation
+// bump is for: this SWR route caches in THIS bucket, so without the bump a returning
+// visitor is served the old file first.
 // v14: the Kokoro speech buckets ('transformers-cache', 'lolly-speech') join
 // the activate keep-list - before this, every SW update deleted the ~92 MB
 // model and the voice bins.
@@ -81,7 +79,7 @@
 // gains a cache-first rule, and three page-owned unversioned buckets join
 // lolly-pins: lolly-app (pre-downloaded build assets), lolly-ort (the ONNX
 // runtime for /verify's deep scan), lolly-info (the /info docs site).
-const CACHE = 'lolly-v18';
+const CACHE = 'lolly-v19';
 
 // Tools pinned "available offline": the page writes /tools/<id>/* copies into
 // this SEPARATE, unversioned bucket (shells/web/src/lib/offline-pins.ts - keep
@@ -174,16 +172,16 @@ const NETWORK_TIMEOUT_MS = 2500;
 // meeting-planner map bundle (d3 + countries-110m) was paid by every visitor on install
 // regardless of ever opening that tool; it now caches network-first under /tools/ on
 // first actual use, so meeting-planner still works offline for anyone who's opened it
-// once online. The preview-look manifest was here too, on the same reasoning, and cost
-// the same way: it made every cold load fetch /catalog/previews/bundle.json TWICE (once
-// here, once from the page), for a file the /catalog/previews/ stale-while-revalidate
-// route below already caches on its first real use.
+// once online. The old preview-look manifest was here too, on the same reasoning, and
+// cost the same way: every cold load fetched it TWICE (once here, once from the page),
+// for a file the /catalog/previews/ stale-while-revalidate route below already caches
+// on its first real use.
 const PRECACHE_URLS = [
   SHELL_URL,
 ];
 
-// Preview images + the look manifest (bundle.json): stale-while-revalidate (see strategy
-// #4). Matched BEFORE the /catalog/ bypass, exactly like /catalog/fonts/ above.
+// Preview images and the cover manifest (covers.json): stale-while-revalidate (see
+// strategy #4). Matched BEFORE the /catalog/ bypass, exactly like /catalog/fonts/ above.
 const PREVIEW_PATTERN = /^\/catalog\/previews\//;
 
 // Cache-first: content-hashed Vite build output, plus the bundled variable fonts
@@ -280,6 +278,53 @@ self.addEventListener('activate', event => {
   );
 });
 
+// The build files a page loaded before this worker controlled it. A first visit
+// downloads the boot chunks, the boot stylesheet and the preloaded fonts before any
+// worker exists, so none of them passed through the cache-first route below, and a
+// second visit fetched every one of them again (plan 371: second-visit first paint
+// 623 ms against 259 ms once they were cached). The page posts their addresses once
+// it is controlled; only immutable build paths on this origin are accepted, at most
+// BOOT_SET_MAX of them, and a file already stored is skipped. The fetch here is
+// answered by the browser's HTTP cache (or a 304 revalidation where the host sends
+// no-cache), so this does not download the files a second time.
+const BOOT_SET_MAX = 200;
+const BOOT_SET_MESSAGE = 'lolly:boot-set';
+
+async function cacheBootSet(urls) {
+  const cache = await caches.open(CACHE);
+  const wanted = [];
+  for (const raw of urls.slice(0, BOOT_SET_MAX)) {
+    if (typeof raw !== 'string') continue;
+    let url;
+    try { url = new URL(raw, self.location.origin); } catch { continue; }
+    if (url.origin !== self.location.origin || url.search || url.hash) continue;
+    if (!IMMUTABLE_PATTERNS.some(p => p.test(url.pathname))) continue;
+    if (!wanted.includes(url.href)) wanted.push(url.href);
+  }
+  await Promise.all(wanted.map(async href => {
+    // Any copy already stored, whichever request stored it, stays: never replace it.
+    if (await cache.match(href, IMMUTABLE_MATCH)) return;
+    try {
+      // No redirects: a build file that redirects (to a sign-in page, say) is not that file,
+      // and storing the page under the chunk's address would break every later load.
+      const response = await fetch(href, { credentials: 'same-origin', redirect: 'error' });
+      if (!response || !response.ok || response.redirected) return;
+      // A page (a sign-in screen a proxy put in place of the file) is never a build file or a font.
+      if (/text\/html/i.test(response.headers.get('content-type') || '')) return;
+      // Checked again: a page request may have stored a copy while this fetch ran, and that copy stays.
+      if (await cache.match(href, IMMUTABLE_MATCH)) return;
+      await cache.put(href, response);
+    } catch { /* offline, gone or redirected: the cache-first route fills it on the next real use */ }
+  }));
+}
+
+self.addEventListener('message', event => {
+  const data = event.data;
+  if (!data || data.type !== BOOT_SET_MESSAGE || !Array.isArray(data.urls)) return;
+  // Only a page of this origin can reach this worker; the list is still checked above.
+  event.waitUntil(cacheBootSet(data.urls));
+});
+
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
@@ -302,7 +347,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Preview images + the look manifest under /catalog/previews/: stale-while-revalidate.
+  // Preview images and the cover manifest under /catalog/previews/: stale-while-revalidate.
   // Checked BEFORE the /catalog/ bypass so they're cached (repeat loads = cache hits, and
   // offline), while the catalog INDEX just below still bypasses to stay fetch-fresh.
   if (PREVIEW_PATTERN.test(url.pathname)) {
@@ -399,10 +444,18 @@ async function receiveShare(event) {
 // bucket the offline download manager fills - so a pre-downloaded install
 // serves every chunk/font offline even when this CACHE generation is fresh
 // and empty (immutable content-hashed filenames make the fallback safe).
+// The immutable routes match WITHOUT the response's Vary: a content-hashed build file or
+// an app font on this origin is the same bytes for every request. A host that answers
+// with `Vary: Origin` (vite preview does) would otherwise keep a copy stored from one kind
+// of request (the boot-set hand-over's plain fetch) from ever answering another (a module
+// script or a font, which carry an Origin header): the second visit missed, and offline
+// every boot file came back 503.
+const IMMUTABLE_MATCH = { ignoreVary: true };
+
 async function cacheFirst(event) {
   const { request } = event;
   const cache = await caches.open(CACHE);
-  const cached = await cache.match(request);
+  const cached = await cache.match(request, IMMUTABLE_MATCH);
   if (cached) return cached;
   const downloaded = await caches.match(request, { cacheName: APP_CACHE }).catch(() => undefined);
   if (downloaded) {
@@ -541,7 +594,7 @@ async function networkFirstInfo(event) {
 // Stale-while-revalidate for preview art: serve the cached copy immediately (fast, offline-
 // capable) and kick off a background fetch that refreshes the cache for next time. With
 // nothing cached yet, wait on the network. Only ok responses are cached, so a transient 404/
-// 5xx never poisons the cache. Used for /catalog/previews/ (thumbnails + the look manifest) -
+// 5xx never poisons the cache. Used for /catalog/previews/ (thumbnails + the cover manifest) -
 // regenerable art where one-load staleness is harmless, unlike the fetch-fresh catalog index.
 async function staleWhileRevalidate(event) {
   const { request } = event;

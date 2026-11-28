@@ -1,8 +1,8 @@
 # Use Lolly at your organisation
 
-Your organisation can run its own Lolly: the same app, with the tools and design systems it chose. This page shows how to reach it, sign in and what changes once you do.
+Your organisation can run its own Lolly: the same app, with the tools and design systems it chose. Find out how to reach it, sign in and what changes.
 
-If you are planning the organisation's setup, [Use Lolly with your existing DAM](/info/use-with-dam.html) explains how an approved library can stay in place while people start producing content in Lolly. [Content sovereignty](/info/content-sovereignty.html) describes the wider control over creation, governance, storage and portability.
+For planning the organisation's setup, [Use Lolly with your existing DAM](/info/use-with-dam.html) explains how an approved library can stay in place while people make content in Lolly. [Content sovereignty](/info/content-sovereignty.html) describes the wider control over creation, governance, storage and portability.
 
 ::: note What you need from your organisation
 The web address of its Lolly, or a `.lolly` setup file your organisation made. lolly.tools on its own does not connect to an organisation.
@@ -11,7 +11,7 @@ The web address of its Lolly, or a `.lolly` setup file your organisation made. l
 <!--i:eti-globe-->
 ## In a browser
 
-Open the address your organisation gave you. If the page asks you to sign in, press **Sign in** and follow the sign-in page it opens. After that it works like any Lolly, with your organisation's tools and design systems.
+Open the address your organisation gave you. If the page asks you to sign in, press **Sign in** and follow the sign-in page it opens. After that, Lolly works as usual, with your organisation's tools and design systems.
 
 You can also start from lolly.tools: open the **Settings** view, and on the **Lolly instance** card press **Open a workspace**, enter the address and press **Open this instance**. The browser goes to your organisation's own address, because a browser cannot load another Lolly's tools from lolly.tools.
 
@@ -24,7 +24,7 @@ The app starts with its bundled tools. To connect, open the **Settings** view an
 
 1. Choose **Connect to a Lolly instance**.
 2. Enter your organisation's web address and press **Check & connect**.
-3. Press **Use this instance**. The next screen, **Import your data (optional)**, brings saved work across from a Lolly backup; press **Skip** if you have none.
+3. Press **Use this instance**. The next screen, **Import your data (optional)**, brings saved work across from a Lolly backup. Press **Skip** if you have none.
 4. Sign in if the app asks.
 
 Tools from a connected instance run with the same trust as the app's own, so connect only to one you trust. Your organisation may instead send you a `.lolly` setup file that connects the app for you.
@@ -33,14 +33,14 @@ To switch later, use **Change** again, or **Leave** on the same card.
 
 ### Signing in with a code
 
-In the desktop and mobile apps, the sign-in screen also offers a short code, when your organisation's Lolly supports code sign-in. Press **Open sign-in in browser**, sign in and approve the code there. Or open the address it shows on a phone or computer where you are already signed in, and enter the code. The code lasts about ten minutes.
+In the desktop and mobile apps, the sign-in screen also offers a short code when your organisation's Lolly supports code sign-in. Press **Open sign-in in browser**, sign in and approve the code there. Or open the address the screen shows on a phone or computer where you are already signed in, and enter the code. The code lasts about ten minutes.
 
 <!--i:eti-sliders-->
 ## What is different there
 
-- **Some controls are set for you.** A control your organisation governs shows **Managed by** and the organisation's name, or **Managed by your organisation**. A fixed control cannot be changed, and a menu may offer only some of its choices. Some controls are not shown at all. Which rule fixed a control, and why, is in your organisation's console; ask whoever runs your organisation's Lolly.
+- **Some controls are set for you.** A control your organisation governs shows **Managed by** and the organisation's name, or **Managed by your organisation**. A fixed control cannot be changed, and a menu may offer only some of its choices. Some controls are hidden. Your organisation's console records which rule fixed a control and why. Ask whoever runs your organisation's Lolly.
 - **Some design systems are locked.** A design system your organisation supplies shows a lock and stays read-only. To try changes, make an editable copy in **Settings → Preferences → Design systems**.
-- **Only its tools are listed.** A tool your organisation does not offer is not shown at all.
+- **Only its tools are listed.** A tool your organisation does not offer is not shown.
 - **Shared projects.** If your organisation shares projects with you, **Projects** shows a **Team projects** tile. These sessions live on the organisation's server. Open one to work on it, or start a [work collab](/info/collaborate.html#collabs-through-lolly-work-optional) from **Share** when available.
 - **Some exports may need approval.** Where your organisation asks for approval, **Request approval** takes the place of **Download**, and a tool may offer fewer formats.
 - **Your home may open on templates.** If your organisation publishes templates to you, as it might for a partner company, your home opens on them instead of the first-visit greeting. Each template is one card, with **Your copy** to carry on and **New version** when the template changes. See [Partner templates](/info/work-partner-templates.html).
@@ -80,12 +80,12 @@ Your organisation hosts [Lolly Work](https://github.com/lolly-tools/lolly-work) 
 - **Administration.** An audit record of governed actions, and usage reporting under the instance's telemetry policy for clients that send usage events. Lolly's own apps send none today.
 :::
 
-If you are setting up the service, start with [Deployment](/info/deployment.html#organisation-services-with-lolly-work). The public demo at [lolly.work](https://lolly.work) is a sandbox; use your organisation's own address for work you need to keep.
+To set up the service, start with [Deployment](/info/deployment.html#organisation-services-with-lolly-work). The public demo at [lolly.work](https://lolly.work) is a sandbox. Use your organisation's own address for work you need to keep.
 
 <!--i:eti-palette-->
 ## Another organisation's brand
 
-A partner, client or sponsor may send you their brand as a design-system file (`.lolly`) rather than an address. Opening that kind of file connects the app to nothing: it adds their design system beside your own on this device. A setup file from your own organisation is different, because it connects the app to the organisation's Lolly, and the preview shows what opening a file will do before anything changes. [Working with partners](/info/partners.html) covers both sides of working in another organisation's brand.
+A partner, client or sponsor may send you their brand as a design-system file (`.lolly`) instead of an address. Opening that file connects the app to nothing. The file adds their design system beside your own on this device. A setup file from your own organisation connects the app to the organisation's Lolly. Before anything changes, the preview shows what opening a file will do. [Working with partners](/info/partners.html) covers both sides of working in another organisation's brand.
 
 <!--i:eti-unlink-->
 ## Leaving

@@ -1,6 +1,6 @@
 {
   "name": "Audiogram",
-  "description": "Gör om ett röstklipp eller en låt till en video i designsystemets färger som verkligen rör sig med ljudet - staplar, spektrum, ring, ridgeline eller oscilloskop, redo för sociala medier.",
+  "description": "Gör om ett röstklipp eller en låt till en video i designsystemets färger som rör sig med ljudet.",
   "a11yLabel": "Audiogramkort för {{default title \"an audio clip\"}} med en animerad ljudvågform",
   "inputs.audio.label": "Ljud",
   "inputs.audio.help": "Välj ett spår från ditt bibliotek eller ladda upp ett klipp. Det avkodas på din enhet för att rita vågformen - ljudet lämnar aldrig webbläsaren. Lämna tomt för en platshållar-vågform. För att höra det i exporten, välj \"Det här verktygets ljud\" som Ljudspår i nedladdningsalternativen.",
@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Story (9:16)",
   "inputs.accent.label": "Vågformsfärg",
   "inputs.ink.label": "Textfärg",
-  "inputs.bg.label": "Bakgrund"
+  "inputs.bg.label": "Bakgrund",
+  "inputs.targetLevel.label": "Målnivå",
+  "inputs.targetLevel.help": "Vad som räknas som ”precis lagom” för vägledningstipsen.",
+  "inputs.targetLevel.options.soft": "Mjuk · nära mikrofonen",
+  "inputs.targetLevel.options.normal": "Normalt tal",
+  "inputs.targetLevel.options.loud": "Högt · rum",
+  "inputs.showTips.label": "Vägledningstips",
+  "inputs.showTips.help": "Direktmeddelanden som ”kom närmare” eller ”du klipper”."
 }

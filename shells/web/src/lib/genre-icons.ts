@@ -12,7 +12,7 @@
 import type { LofiMood } from '../../../../engine/src/lofi-compose.ts';
 import { icon, type IconName } from './icons.ts';
 import { musicIconBody, strokeSvg, strokeSvgNode, type InstrumentIcon } from './instrument-icons.ts';
-import { LOFI_MOOD_LABEL } from './neurospicy-lofi.ts';
+import { GENRE_FAMILIES, LOFI_MOOD_LABEL, LOFI_ONLY_MOODS, genreFamilyOf, flavourLabel, genreCardOf } from './neurospicy-lofi.ts';
 
 /** Glyphs only the generator draws. Lucide (ISC): shuffle, disc-3, headphones,
  *  ice-cream-cone, flower, mountain, radio, speaker, castle, sailboat, tree-palm and clapperboard. Lolly's own: a wrapped sweet, a surfboard,
@@ -36,6 +36,8 @@ const OWN = {
   lantern: '<path d="M12 2v2"/><path d="M8.5 4h7"/><path d="M8.5 4C5 6 5 15 8.5 18h7c3.5-3 3.5-12 0-14"/><path d="M12 4v14"/><path d="M10 4.4c-1.6 3.5-1.6 9.7 0 13.2"/><path d="M14 4.4c1.6 3.5 1.6 9.7 0 13.2"/><path d="M8.5 18h7"/><path d="M12 18v4"/>',
   clapperboard: '<path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>',
   palm: '<path d="M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"/><path d="M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"/><path d="M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"/><path d="M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"/>',
+  mirrorball: '<path d="M12 2v3"/><circle cx="12" cy="13.5" r="8.5"/><path d="M3.5 13.5h17"/><path d="M5 9h14"/><path d="M5 18h14"/><path d="M12 5c-3 2.6-3 14.4 0 17"/><path d="M12 5c3 2.6 3 14.4 0 17"/>',
+  sunset: '<path d="M12 10V3"/><path d="m4.9 10.9 1.4 1.4"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.1 10.9-1.4 1.4"/><path d="M22 22H2"/><path d="m9 6 3 3 3-3"/><path d="M16 18a4 4 0 0 0-8 0"/>',
   tuba: '<path d="M10 2.5h12"/><path d="M11.5 2.5c.8 2.8 2.2 4.4 4 5.2"/><path d="M20.5 2.5c-.8 2.8-2.2 4.4-4 5.2"/><path d="M16 8v3.6"/><ellipse cx="12" cy="16" rx="7" ry="5"/><path d="M8 11.4V8.5"/><path d="M11.5 11V8.5"/><path d="M5 16H2.5"/>',
 } as const;
 type OwnGlyph = keyof typeof OWN;
@@ -64,6 +66,9 @@ export const GENRE_ICON: Record<LofiMood, GenreGlyph> = {
   breakbeat: { set: 'scissors' }, funkyHouse: { set: 'aperture' }, ukGarage: { set: 'neuroBeat' }, privateSchool: { set: 'graduationCap' },
   jungle: { own: 'palm' },
   trailer: { own: 'clapperboard' },
+  italo: { own: 'mirrorball' }, balearic: { own: 'sunset' },
+  dnbJump: { set: 'zap' }, dnbDark: { set: 'moon' }, dnbLiquid: { set: 'waves' }, dnbDeep: { inst: 'audioWaveform' }, dnbRave: { set: 'sparkle' },
+  lofiFocus: { set: 'timer' }, lofiDrift: { set: 'cloud' }, lofiSoul: { set: 'heart' }, lofiFunk: { set: 'zap' }, lofiJazz: { inst: 'piano' }, lofiZen: { own: 'flower' }, lofiCinema: { own: 'clapperboard' },
 };
 
 /** The shapes of a genre's icon, inside its `<svg>`. */
@@ -92,21 +97,52 @@ export type GenreCategory = typeof GENRE_CATEGORIES[number];
  *  roots (ska with them: Andy, 2026-11-14); the soul, jazz and groove styles; dance music for a club; the bass-heavy and
  *  synth styles; and the styles of one tradition or place. */
 const GROUP_MOODS: Record<GenreCategory, readonly LofiMood[]> = {
-  chill: ['warm', 'lateNight', 'rainy', 'lofiHouse', 'triphop', 'dream', 'citypop', 'sings', 'fantasy', 'botanica', 'noosa'],
+  chill: ['warm', 'lateNight', 'rainy', 'lofiHouse', 'balearic', 'triphop', 'dream', 'citypop', 'sings', 'fantasy', 'botanica', 'noosa'],
   rock: ['rock', 'punk', 'grunge', 'stoner', 'metal', 'shoegaze', 'surf', 'country', 'ska'],
   soul: ['blues', 'jazz', 'swing', 'soul', 'funk', 'rnb', 'hiphop', 'yacht', 'reggae'],
-  club: ['nudisco', 'funkyHouse', 'ukGarage', 'breakbeat', 'dnb', 'jungle', 'electro', 'privateSchool'],
+  club: ['italo', 'nudisco', 'funkyHouse', 'ukGarage', 'breakbeat', 'dnb', 'jungle', 'electro', 'privateSchool'],
   bass: ['dubstep', 'brostep', 'sugar', 'sherbert', 'synthwave', 'chiptune', 'acid', 'trailer'],
   world: ['persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'spanish', 'straya', 'arnhem', 'kpop', 'salsa', 'oompa', 'mandopop', 'cpop'],
 };
 
-/** Which group each genre is listed under. */
-export const GENRE_CATEGORY = Object.fromEntries(
-  GENRE_CATEGORIES.flatMap(id => GROUP_MOODS[id].map(mood => [mood, id] as const)),
-) as Record<LofiMood, GenreCategory>;
+/**
+ * Lofi and drum and bass are each one genre with flavours (Andy, 2026-11-21;
+ * lib/neurospicy-lofi.ts GENRE_FAMILIES). The picker shows one card for a family (its
+ * first flavour, the one a newcomer starts on) and the chips under the genre button move
+ * between the flavours. Each flavour keeps its own id, so an old link or saved tune still
+ * plays the flavour it was made with.
+ */
+export const LOFI_FAMILY: readonly LofiMood[] = LOFI_ONLY_MOODS;
+export const LOFI_CARD: LofiMood = LOFI_ONLY_MOODS[0]!;
+/** Whether `mood` is a flavour of a genre that has flavours. */
+export const isFlavour = (mood: LofiMood): boolean => genreFamilyOf(mood) !== undefined;
+/** A genre's card in the picker: its family's one card for any flavour, otherwise the genre itself. */
+export const genreCard = (mood: LofiMood): LofiMood => genreCardOf(mood);
+/** A card's title: the family's for a family's card ("Lofi", "D&B"), otherwise the genre's. */
+export const cardTitle = (card: LofiMood): string => (genreFamilyOf(card)?.moods[0] === card ? genreFamilyOf(card)!.title : genreTitle(card));
+/** A genre's full title where a flavour should read as its genre first: "Lofi · Late night", "D&B · Dark". */
+export function fullTitle(mood: LofiMood): string {
+  const family = genreFamilyOf(mood);
+  return family ? `${family.title} · ${flavourLabel(mood)}` : genreTitle(mood);
+}
 
-/** The picker's groups: each category's genres, A to Z by title. */
+/** Which group each genre is listed under (a flavour with its genre's first flavour). */
+export const GENRE_CATEGORY = Object.fromEntries([
+  ...GENRE_CATEGORIES.flatMap(id => GROUP_MOODS[id].map(mood => [mood, id] as const)),
+  ...GENRE_FAMILIES.flatMap(f => f.moods.map(mood => [mood, GENRE_CATEGORIES.find(id => GROUP_MOODS[id].includes(f.moods[0]!))!] as const)),
+]) as Record<LofiMood, GenreCategory>;
+
+/**
+ * Every genre with a page of its own (/info/music/), by group, A to Z by title. The seven
+ * newer Lofi flavours are not here: they are flavours of Lofi, reached from its chips.
+ */
 export const GENRE_GROUPS: ReadonlyArray<{ id: GenreCategory; moods: readonly LofiMood[] }> = GENRE_CATEGORIES.map(id => ({
   id,
   moods: [...GROUP_MOODS[id]].sort((a, b) => genreTitle(a).localeCompare(genreTitle(b), 'en', { sensitivity: 'base' })),
+}));
+
+/** The picker's cards, by group, A to Z by title: the genres, with Lofi's flavours as one card. */
+export const PICKER_GROUPS: ReadonlyArray<{ id: GenreCategory; moods: readonly LofiMood[] }> = GENRE_CATEGORIES.map(id => ({
+  id,
+  moods: [...new Set(GROUP_MOODS[id].map(genreCard))].sort((a, b) => cardTitle(a).localeCompare(cardTitle(b), 'en', { sensitivity: 'base' })),
 }));

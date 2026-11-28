@@ -1,59 +1,119 @@
-<main class="utility"><div class="pages-root" data-operation="{{operation}}" data-pages="{{pagesText}}" data-total-pages="{{totalPages}}">
-  {{#unless hasFile}}<section class="empty"><div class="mark" aria-hidden="true">▤</div><h1>Arrange PDF pages</h1><p>Choose PDFs or images, then drag every page into the order you need. Images become pages of the new PDF.</p><button class="btn btn--primary" type="button" data-file-pick>Choose files…</button><small>Processed on this device. Never uploaded.</small></section>{{/unless}}
-  {{#if hasFile}}<section class="card">
-    <header><div><strong title="{{fileName}}">{{fileName}}</strong><span>{{fileSize}}</span></div><button type="button" class="btn btn--ghost quiet" data-file-pick>Add files…</button></header>
+<main class="utility"><div class="pages-root" data-operation="{{operation}}" data-pages="{{pagesText}}" data-total-pages="{{totalPages}}" data-file-count="{{fileCount}}">
+  {{#unless hasFile}}<section class="empty">
+    <h1>{{#if isPageOp}}Drop PDFs or images here{{else}}Drop a PDF here{{/if}}</h1>
+    <div class="field help-tip-host"><span class="field-label"><label for="pages-action">Action</label><button type="button" class="help-tip-btn" aria-label="What this action does" aria-expanded="false" aria-controls="pages-tip-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button></span><select class="field-select" id="pages-action" data-input-id="operation">
+      <option value="reorder" {{#if (eq operation "reorder")}}selected{{/if}}>Reorder / combine</option>
+      <option value="rotate" {{#if (eq operation "rotate")}}selected{{/if}}>Rotate</option>
+      <option value="extract" {{#if (eq operation "extract")}}selected{{/if}}>Extract</option>
+      <option value="delete" {{#if (eq operation "delete")}}selected{{/if}}>Delete</option>
+      <option value="merge" {{#if (eq operation "merge")}}selected{{/if}}>Merge as selected</option>
+      <option value="split" {{#if (eq operation "split")}}selected{{/if}}>Split</option>
+      <option value="compress" {{#if (eq operation "compress")}}selected{{/if}}>Compress</option>
+      <option value="sign" {{#if (eq operation "sign")}}selected{{/if}}>Sign</option>
+    </select><span class="help-tip-pop" id="pages-tip-action" hidden>{{#if isCompress}}Compress shrinks a PDF by recompressing its images: text and vector graphics stay as they are, and a digital signature in the PDF stops verifying once the file is saved again.{{/if}}{{#if isSign}}Sign places your signature on a page, with an optional Content Credential or password lock.{{/if}}{{#if isPageOp}}1-based pages and ranges, for example 1-3,7,10-. Reorder accepts a new sequence such as 3,1-2, or drag the previews. Rotate, Extract and Delete also take a press on a preview. Each comma-separated range becomes a PDF when splitting.{{/if}}<button type="button" class="close-btn close-btn--sm close-btn--inherit help-tip-close" tabindex="-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>
+    <button class="btn btn--primary" type="button" data-file-pick>{{#if isPageOp}}Choose files…{{else}}Choose a PDF…{{/if}}</button>
+  </section>{{/unless}}
+  {{#if hasFile}}<section class="panel">
+    <header class="files" aria-label="Selected files">
+      {{#each documents}}<span class="chip">{{#if number}}<b>{{number}}</b>{{/if}}<span class="chip-name" title="{{name}}">{{name}}</span><small>{{pageLabel}}</small><button class="chip-remove" type="button" data-remove-file="{{index}}" aria-label="Remove {{name}}">×</button></span>{{/each}}
+      <button type="button" class="btn btn--ghost" data-file-pick>{{#if isPageOp}}Add files…{{else}}Replace PDF{{/if}}</button>
+    </header>
 
-    <section class="documents" aria-label="Selected files">
-      {{#each documents}}<div class="document"><span class="document-number">{{number}}</span><span class="document-name" title="{{name}}">{{name}}</span><small>{{pageLabel}}</small><button class="btn btn--ghost btn--sm" type="button" data-remove-file="{{index}}" aria-label="Remove {{name}}">×</button></div>{{/each}}
-    </section>
-
-    <section class="controls" aria-label="Page operation settings">
-      <label><span>Action</span><select class="field-select field-select--sm" data-input-id="operation">
+    <section class="controls" aria-label="Operation settings">
+      <div class="field help-tip-host"><span class="field-label"><label for="pages-action">Action</label><button type="button" class="help-tip-btn" aria-label="What this action does" aria-expanded="false" aria-controls="pages-tip-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button></span><select class="field-select" id="pages-action" data-input-id="operation">
         <option value="reorder" {{#if (eq operation "reorder")}}selected{{/if}}>Reorder / combine</option>
         <option value="rotate" {{#if (eq operation "rotate")}}selected{{/if}}>Rotate</option>
         <option value="extract" {{#if (eq operation "extract")}}selected{{/if}}>Extract</option>
         <option value="delete" {{#if (eq operation "delete")}}selected{{/if}}>Delete</option>
         <option value="merge" {{#if (eq operation "merge")}}selected{{/if}}>Merge as selected</option>
         <option value="split" {{#if (eq operation "split")}}selected{{/if}}>Split</option>
-      </select></label>
-      <label class="pages-field"><span>{{selectionLabel}}</span><input class="field-input field-input--sm" data-input-id="pages" type="text" value="{{pagesText}}" aria-describedby="pages-help"></label>
-      {{#if isRotate}}<label><span>Turn</span><select class="field-select field-select--sm" data-input-id="rotation">
+        <option value="compress" {{#if (eq operation "compress")}}selected{{/if}}>Compress</option>
+        <option value="sign" {{#if (eq operation "sign")}}selected{{/if}}>Sign</option>
+      </select><span class="help-tip-pop" id="pages-tip-action" hidden>{{#if isCompress}}Compress shrinks a PDF by recompressing its images: text and vector graphics stay as they are, and a digital signature in the PDF stops verifying once the file is saved again.{{/if}}{{#if isSign}}Sign places your signature on a page, with an optional Content Credential or password lock.{{/if}}{{#if isPageOp}}1-based pages and ranges, for example 1-3,7,10-. Reorder accepts a new sequence such as 3,1-2, or drag the previews. Rotate, Extract and Delete also take a press on a preview. Each comma-separated range becomes a PDF when splitting.{{/if}}<button type="button" class="close-btn close-btn--sm close-btn--inherit help-tip-close" tabindex="-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>
+      {{#if isPageOp}}<label class="field field--grow"><span>{{selectionLabel}}</span><input class="field-input" data-input-id="pages" type="text" value="{{pagesText}}"></label>
+      {{#if isRotate}}<label class="field"><span>Turn</span><select class="field-select" data-input-id="rotation">
         <option value="90" {{#if (eq rotationText "90")}}selected{{/if}}>90° clockwise</option>
         <option value="180" {{#if (eq rotationText "180")}}selected{{/if}}>180°</option>
         <option value="270" {{#if (eq rotationText "270")}}selected{{/if}}>270° clockwise</option>
       </select></label>{{/if}}
-      {{#if hasImages}}<label><span>Image pages</span><select class="field-select field-select--sm" data-input-id="imagePageSize">
+      {{#if hasImages}}<label class="field"><span>Image pages</span><select class="field-select" data-input-id="imagePageSize">
         <option value="image" {{#if (eq imagePageSize "image")}}selected{{/if}}>Match each image</option>
         <option value="a4" {{#if (eq imagePageSize "a4")}}selected{{/if}}>A4</option>
         <option value="letter" {{#if (eq imagePageSize "letter")}}selected{{/if}}>US Letter</option>
       </select></label>
-      {{#if fitsPaper}}<label><span>Margin (mm)</span><input class="field-input field-input--sm" data-input-id="imageMargin" type="number" min="0" max="50" step="1" value="{{imageMarginText}}"></label>{{/if}}{{/if}}
-      <small id="pages-help">{{pagesHelp}}</small>
+      {{#if fitsPaper}}<label class="field field--short"><span>Margin (mm)</span><input class="field-input" data-input-id="imageMargin" type="number" min="0" max="50" step="1" value="{{imageMarginText}}"></label>{{/if}}{{/if}}{{/if}}
+      {{#if isCompress}}{{#if available}}<div class="field field--seg"><span id="pages-level">Compression</span><div class="badge-select badge-select--segmented" role="radiogroup" aria-labelledby="pages-level"><button type="button" role="radio" class="badge-select-opt{{#if (eq level "light")}} is-on{{/if}}" data-level="light" aria-checked="{{#if (eq level "light")}}true{{else}}false{{/if}}" tabindex="{{#if (eq level "light")}}0{{else}}-1{{/if}}"><span class="badge-select-label">Light</span></button><button type="button" role="radio" class="badge-select-opt{{#if (eq level "balanced")}} is-on{{/if}}" data-level="balanced" aria-checked="{{#if (eq level "balanced")}}true{{else}}false{{/if}}" tabindex="{{#if (eq level "balanced")}}0{{else}}-1{{/if}}"><span class="badge-select-label">Balanced</span></button><button type="button" role="radio" class="badge-select-opt{{#if (eq level "strong")}} is-on{{/if}}" data-level="strong" aria-checked="{{#if (eq level "strong")}}true{{else}}false{{/if}}" tabindex="{{#if (eq level "strong")}}0{{else}}-1{{/if}}"><span class="badge-select-label">Strong</span></button></div></div>
+      <label class="check"><input class="field-check" type="checkbox" data-input-id="grayscale" {{#if grayscale}}checked{{/if}}><span>Convert images to greyscale</span></label>{{/if}}{{/if}}
+      {{#if isSign}}{{#if available}}<label class="field field--short"><span>Page</span><input class="field-input" type="number" min="1" max="{{totalPages}}" step="1" value="{{pageNo}}" data-input-id="signaturePage"></label>
+      <label class="field field--short"><span>Width (pt)</span><input class="field-input" type="number" min="0.1" max="{{pageW}}" step="1" value="{{positionWidth}}" data-sign-width></label>{{/if}}{{/if}}
     </section>
+    {{#if onlyFirst}}<p class="status">{{onlyFirst}}</p>{{/if}}
+    {{#if error}}<p class="status status--bad" role="alert">{{error}}</p>{{/if}}
 
-    {{#if error}}<div class="notice bad"><strong>Cannot continue</strong><span>{{error}}</span></div>{{/if}}
-    {{#if available}}
-      <nav class="preview-nav" aria-label="Preview window">
-        <button type="button" class="btn btn--ghost quiet" data-preview-window="{{previousWindow}}" {{#unless hasPrevious}}disabled{{/unless}}>← Previous</button>
+    {{#if isPageOp}}{{#if available}}
+      {{#if paged}}<nav class="preview-nav" aria-label="Preview window">
+        <button type="button" class="btn btn--ghost" data-preview-window="{{previousWindow}}" {{#unless hasPrevious}}disabled{{/unless}}>← Previous</button>
         <label>From position <input class="field-input field-input--sm field-input--auto" type="number" min="1" max="{{orderLength}}" data-input-id="previewPage" value="{{previewStart}}"></label>
         <span>{{previewStart}}–{{previewEnd}} of {{orderLength}}</span>
-        <button type="button" class="btn btn--ghost quiet" data-preview-window="{{nextWindow}}" {{#unless hasNext}}disabled{{/unless}}>Next →</button>
-      </nav>
+        <button type="button" class="btn btn--ghost" data-preview-window="{{nextWindow}}" {{#unless hasNext}}disabled{{/unless}}>Next →</button>
+      </nav>{{/if}}
       <section class="strip" aria-label="PDF page previews">
-        {{#each preview}}<figure class="page {{#if chosen}}chosen{{/if}}" data-page-card data-page="{{page}}" data-occurrence="{{occurrence}}" data-chosen="{{#if chosen}}true{{else}}false{{/if}}" draggable="{{#if ../isReorder}}true{{else}}false{{/if}}" title="{{sourceName}}, page {{localPage}} · {{sizeLabel}}">
+        {{#each preview}}<figure class="page{{#if ../canSelect}}{{#if chosen}} chosen{{/if}}{{/if}}" data-page-card data-page="{{page}}" data-occurrence="{{occurrence}}" data-chosen="{{#if chosen}}true{{else}}false{{/if}}" draggable="{{#if ../isReorder}}true{{else}}false{{/if}}" title="{{sourceName}}, page {{localPage}} · {{sizeLabel}}">
           <div class="page-preview"><div class="page-paper" style="width:{{previewWidth}}px;height:{{previewHeight}}px">{{#if svg}}{{{svg}}}{{else}}<span class="missing-preview">Page {{localPage}}<br>Preview unavailable</span>{{/if}}</div></div>
-          {{#if ../canSelect}}<button type="button" class="btn btn--ghost page-select quiet" data-page-select aria-pressed="{{#if chosen}}true{{else}}false{{/if}}">{{#if chosen}}✓ Selected{{else}}Select page{{/if}}</button>{{/if}}
-          <figcaption><span class="page-number">{{page}}</span><span class="page-origin">{{origin}}</span></figcaption>
-          {{#if ../isReorder}}<div class="page-moves"><button class="btn btn--ghost btn--sm" type="button" data-page-move="-1" aria-label="Move position {{ordinal}} left" {{#if first}}disabled{{/if}}>←</button><span aria-hidden="true">⠿ drag</span><button class="btn btn--ghost btn--sm" type="button" data-page-move="1" aria-label="Move position {{ordinal}} right" {{#if last}}disabled{{/if}}>→</button></div><label class="move-to">Move to <input class="field-input field-input--sm field-input--auto" type="number" min="1" max="{{../orderLength}}" value="{{ordinal}}" data-move-to aria-label="Move position {{ordinal}} to position"></label>{{/if}}
+          {{#if caption}}<figcaption>{{#unless ../isReorder}}<span class="page-number">{{page}}</span>{{/unless}}{{#if origin}}<span class="page-origin">{{origin}}</span>{{/if}}{{#if ../canSelect}}<button type="button" class="btn btn--ghost btn--sm page-select" data-page-select aria-pressed="{{#if chosen}}true{{else}}false{{/if}}">{{#if chosen}}✓ Selected{{else}}Select{{/if}}</button>{{/if}}</figcaption>{{/if}}
+          {{#if ../isReorder}}<div class="page-moves"><button class="btn btn--ghost btn--sm" type="button" data-page-move="-1" aria-label="Move position {{ordinal}} left" {{#if first}}disabled{{/if}}>←</button><input class="field-input field-input--sm" type="number" min="1" max="{{../orderLength}}" value="{{ordinal}}" data-move-to aria-label="Move position {{ordinal}} to position"><button class="btn btn--ghost btn--sm" type="button" data-page-move="1" aria-label="Move position {{ordinal}} right" {{#if last}}disabled{{/if}}>→</button></div>{{/if}}
         </figure>{{/each}}
-        {{#if previewUnavailable}}<p class="muted preview-note">Some previews could not be rendered. Page positions still work; export validates the actual PDF. {{previewError}}</p>{{/if}}
       </section>
-      {{#if pending}}<div class="notice" role="status">Preparing page result…</div>{{/if}}
-      {{#if ready}}<div class="result" role="status"><strong>{{summary}}</strong><span>{{operations}}</span>{{#if sizeAfter}}<span>Output size {{sizeAfter}}</span>{{/if}}</div>{{/if}}
+      {{#if previewUnavailable}}<p class="status">Some previews could not be drawn. Page positions still work. {{previewError}}</p>{{/if}}
       {{#if hasChanges}}<section class="changes" aria-label="What changes in the new PDF"><strong>What changes</strong><ul>{{#each changes}}<li class="change change--{{outcome}}" data-change-outcome="{{outcome}}">{{message}}</li>{{/each}}</ul></section>{{/if}}
-      <button type="button" class="btn btn--primary download" data-export-file data-export-archive="{{archiveName}}" data-busy-label="Working…" {{#unless ready}}disabled{{/unless}}>{{#if isSplit}}Download split PDFs{{else}}Download PDF{{/if}}</button>
-      <p class="muted">PDF pages keep their original size, and the new file keeps the first PDF's document details.</p>
-    {{/if}}
+      <div class="save">{{#if signedNote}}<p class="save-note save-note--signed" data-signed-note>{{signedLead}}<strong>digitally signed</strong>{{signedRest}}</p>{{/if}}<button type="button" class="btn btn--primary" data-export-file data-export-archive="{{archiveName}}" data-busy-label="Working…" {{#unless ready}}disabled{{/unless}}>{{#if isSplit}}Download split PDFs{{else}}Download PDF{{/if}}</button>
+        {{#if pending}}<span class="status" role="status">Preparing…</span>{{/if}}
+        {{#if ready}}<span class="status" role="status"><strong>{{summary}}</strong> · {{operations}}{{#if sizeAfter}} · {{sizeAfter}}{{/if}}</span>{{/if}}</div>
+    {{/if}}{{/if}}
+
+    {{#if isCompress}}{{#if available}}
+      <div class="save save--lead">
+        {{#if done}}<p class="saving" role="status"><strong>{{savedLead}}</strong><span>{{savedDetail}}</span></p>{{/if}}
+        {{#if noGain}}<p class="status" role="status">Already well optimised</p>{{/if}}
+        {{#if pending}}<p class="status" role="status">Built when you download</p>{{/if}}
+        {{#if signedNote}}<p class="save-note save-note--signed" data-signed-note>{{signedLead}}<strong>digitally signed</strong>{{signedRest}}</p>{{/if}}
+        <button type="button" class="btn btn--primary" data-export-file data-busy-label="Compressing…">Download compressed PDF</button>
+        <p class="save-note">{{#if signedPdf}}Only images are recompressed.{{else}}Only images are recompressed, and a digital signature on the PDF stops being valid once the file is saved again.{{/if}}</p>
+      </div>
+    {{/if}}{{/if}}
+
+    {{#if isSign}}{{#if available}}
+      <div class="workspace">
+        <div class="sign-controls">
+          <div class="draw-box" data-ink="{{inkValue}}">
+            <svg class="ink-pad" viewBox="0 0 600 180" preserveAspectRatio="none" role="img" aria-label="Draw your signature with a finger, stylus or mouse">
+              <path class="guide" d="M28 145H572" />
+              {{#each inkPaths}}<path class="ink-stroke" d="{{d}}" />{{/each}}
+            </svg>
+            {{#if hasInk}}<div class="ink-actions"><button type="button" class="btn btn--ghost btn--sm" data-ink-action="undo">Undo</button><button type="button" class="btn btn--ghost btn--sm" data-ink-action="clear">Clear</button></div>{{else}}<span class="ink-cue" aria-hidden="true">Sign here</span>{{/if}}
+          </div>
+          <button type="button" class="btn" data-input-action="pick" data-input-id="signature" data-clear-input="signatureInk">{{#if signatureUrl}}Replace signature image…{{else}}Choose signature image…{{/if}}</button>
+          {{#if signatureUrl}}<button type="button" class="btn btn--ghost" data-remove-image="signature">Remove signature image</button>{{/if}}
+          <button type="button" class="btn" data-input-action="pick" data-input-id="initials">{{#if initialsUrl}}Replace initials image…{{else}}Add initials image…{{/if}}</button>
+          {{#if initialsUrl}}<button type="button" class="btn btn--ghost" data-remove-image="initials">Remove initials</button>{{/if}}
+          <label class="check"><input class="field-check" type="checkbox" data-input-id="signatureDate" {{#if signatureDate}}checked{{/if}}><span>Add today’s date</span></label>
+          <label class="check"><input class="field-check" type="checkbox" data-input-id="seal" {{#if seal}}checked{{/if}}><span>Add Content Credential</span></label>
+          <label class="check"><input class="field-check" type="checkbox" data-input-id="lock" {{#if lock}}checked{{/if}}><span>Lock with password</span></label>
+        </div>
+        <div class="page-stage"><div class="sign-page" data-page-w="{{pageW}}" data-page-h="{{pageH}}" data-position='{{posJson}}' data-group-width="{{groupWidth}}" data-group-height="{{groupHeight}}" style="width:{{pageDisplayW}}px;aspect-ratio:{{pageW}}/{{pageH}}">
+          {{#if pageSvg}}{{{pageSvg}}}{{else}}<div class="paper">Page {{pageNo}} preview unavailable</div>{{/if}}
+          {{#if hasInk}}<svg class="placed-signature" tabindex="0" viewBox="{{inkViewBox}}" preserveAspectRatio="none" style="left:{{xPct}}%;top:{{yPct}}%;width:{{wPct}}%;height:{{hPct}}%" aria-label="Drawn signature placement. Drag or use arrow keys to move.">{{#each inkPaths}}<path d="{{d}}" />{{/each}}</svg>
+          {{else}}{{#if signatureUrl}}<img class="placed-signature" tabindex="0" draggable="false" src="{{signatureUrl}}" style="left:{{xPct}}%;top:{{yPct}}%;width:{{wPct}}%;height:{{hPct}}%" alt="Signature placement. Drag or use arrow keys to move.">{{else}}<div class="placed-signature placeholder" style="left:{{xPct}}%;top:{{yPct}}%;width:{{wPct}}%;height:{{hPct}}%"></div>{{/if}}{{/if}}
+          <svg class="extra-marks" viewBox="0 0 {{pageW}} {{pageH}}" aria-label="Initials and date preview"><g>
+            {{#if initialsMark}}<image href="{{initialsUrl}}" x="{{initialsMark.x}}" y="{{initialsMark.y}}" width="{{initialsMark.width}}" height="{{initialsMark.height}}" preserveAspectRatio="none" />{{/if}}
+            {{#if dateMark}}<text x="{{dateMark.x}}" y="{{dateMark.y}}" dy="{{dateMark.size}}" font-size="{{dateMark.size}}" font-family="{{dateFont}}" fill="#141414">{{dateMark.text}}</text>{{/if}}
+          </g></svg>
+        </div></div>
+      </div>
+      <div class="save">{{#if signedNote}}<p class="save-note save-note--signed" data-signed-note>{{signedLead}}<strong>digitally signed</strong>{{signedRest}}</p>{{/if}}{{#if lock}}<button type="button" class="btn btn--primary" data-export-file data-export-password="true" data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{else}}<button type="button" class="btn btn--primary" data-export-file data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{/if}}
+        {{#if pending}}<span class="status" role="status">Preparing…</span>{{/if}}
+        <p class="save-note">{{#if signerName}}Signing as {{signerName}}. {{/if}}This is a visible signature, not an identity-verification service.</p></div>
+    {{/if}}{{/if}}
   </section>{{/if}}
 </div></main>
 <script>(function(){
@@ -62,6 +122,18 @@
   if(!root||root.dataset.wired)return;root.dataset.wired='1';
   var canvas=root.closest('[data-lolly-canvas]'),commit=canvas&&canvas.__lollyCommit,model=canvas&&canvas.__lollyModel;
   if(!commit)return;
+  // Compress and Sign work on one PDF, and the file input adds to a list. So in those two a
+  // file that arrives takes the place of the files already there: Replace PDF replaces.
+  var onePdf=root.dataset.operation==='compress'||root.dataset.operation==='sign',fileCount=Number(root.dataset.fileCount)||0,before=canvas.__pagesOnePdf;
+  if(onePdf&&model){
+    canvas.__pagesOnePdf=fileCount;
+    if(before>0&&fileCount>before){var source=model().find(function(i){return i.id==='source';}),arrived=source&&Array.isArray(source.value)?source.value.slice(before):[];if(arrived.length){canvas.__pagesOnePdf=arrived.length;commit('source',arrived);return;}}
+  }else delete canvas.__pagesOnePdf;
+  // The signed-PDF line is read out once. Each paint replaces the panel, so the words go into a
+  // status region of their own only when they differ from the words last read out.
+  var signedLine=root.querySelector('[data-signed-note]'),signedWords=signedLine?signedLine.textContent:'';
+  if(!signedWords)delete canvas.__pagesSignedSaid;
+  else if(canvas.__pagesSignedSaid!==signedWords){var said=document.createElement('span');said.className='visually-hidden';said.setAttribute('role','status');root.appendChild(said);setTimeout(function(){if(!said.isConnected)return;said.textContent=signedWords;canvas.__pagesSignedSaid=signedWords;},150);}
   var total=Math.max(0,Number(root.dataset.totalPages)||0),operation=root.dataset.operation||'reorder';
   function expand(text){
     var out=[];String(text||'').split(',').forEach(function(part){var m=/^\s*(\d+)(?:-(\d*))?\s*$/.exec(part);if(!m)return;var a=Number(m[1]),b=m[2]===undefined?a:(m[2]?Number(m[2]):total);if(a<1||a>total||b<1||b>total)return;var step=a<=b?1:-1;for(var n=a;;n+=step){out.push(n);if(n===b)break;}});return out;
@@ -91,5 +163,39 @@
     card.addEventListener('drop',function(e){if(operation!=='reorder'||dragged===null)return;e.preventDefault();var from=dragged,to=Number(card.dataset.occurrence),r=card.getBoundingClientRect();if(e.clientX>r.left+r.width/2)to++;if(from<to)to--;move(from,to);dragged=null;card.classList.remove('drop-target');});
     card.addEventListener('click',function(e){if(operation!=='rotate'&&operation!=='extract'&&operation!=='delete')return;if(e.target.closest('button')&&!e.target.closest('[data-page-select]'))return;var page=Number(card.dataset.page),order=currentOrder(),at=order.indexOf(page);if(at>=0)order=order.filter(function(n){return n!==page;});else order.push(page);order.sort(function(a,b){return a-b;});setOrder(order);});
   });
+  // Compression level: a radiogroup. A press or an arrow key chooses.
+  var levels=Array.prototype.slice.call(root.querySelectorAll('[data-level]'));
+  levels.forEach(function(b,at){b.addEventListener('click',function(){commit('level',b.dataset.level);});b.addEventListener('keydown',function(e){var step=e.key==='ArrowRight'||e.key==='ArrowDown'?1:(e.key==='ArrowLeft'||e.key==='ArrowUp'?-1:0);if(!step)return;e.preventDefault();commit('level',levels[(at+step+levels.length)%levels.length].dataset.level);});});
   root.querySelectorAll('[data-remove-file]').forEach(function(b){b.addEventListener('click',function(){if(!model)return;var row=model().find(function(i){return i.id==='source';}),files=row&&Array.isArray(row.value)?row.value.slice():[];var index=Number(b.dataset.removeFile);if(index<0||index>=files.length)return;files.splice(index,1);commit('pages','1-');commit('previewPage',1);commit('source',files);});});
+
+  // Sign: the signature pad, then the placed signature on the page.
+  root.querySelectorAll('[data-remove-image]').forEach(function(b){b.addEventListener('click',function(){commit(b.dataset.removeImage,null);});});
+  var draw=root.querySelector('.draw-box'),pad=root.querySelector('.ink-pad');
+  function tokens(){return String(draw&&draw.dataset.ink||'').split(/\s+(?=M)/).filter(Boolean);}
+  function setInk(parts){var value=parts.join(' ');if(draw)draw.dataset.ink=value;commit('signatureInk',value);}
+  if(draw&&pad){
+    var live=null,NS='http://www.w3.org/2000/svg',MIN=2;
+    function point(e){var r=pad.getBoundingClientRect();return[Math.round((e.clientX-r.left)*600/r.width*10)/10,Math.round((e.clientY-r.top)*180/r.height*10)/10];}
+    function path(points){var d='M'+points[0][0]+','+points[0][1];for(var i=1;i<points.length;i++)d+='L'+points[i][0]+','+points[i][1];if(points.length===1)d+='L'+points[0][0]+','+points[0][1];return d;}
+    pad.addEventListener('pointerdown',function(e){e.preventDefault();pad.setPointerCapture(e.pointerId);var el=document.createElementNS(NS,'path'),p=point(e);el.setAttribute('class','ink-stroke live');el.setAttribute('d',path([p]));pad.appendChild(el);live={points:[p],el:el,id:e.pointerId};});
+    pad.addEventListener('pointermove',function(e){if(!live||live.id!==e.pointerId)return;var p=point(e),last=live.points[live.points.length-1],dx=p[0]-last[0],dy=p[1]-last[1];if(dx*dx+dy*dy<MIN*MIN)return;live.points.push(p);live.el.setAttribute('d',path(live.points));});
+    function finish(e,cancel){if(!live||live.id!==e.pointerId)return;var item=live;live=null;if(cancel){if(item.el.parentNode)item.el.parentNode.removeChild(item.el);return;}var parts=tokens();parts.push(path(item.points));setInk(parts);}
+    pad.addEventListener('pointerup',function(e){finish(e,false);});pad.addEventListener('pointercancel',function(e){finish(e,true);});
+    root.querySelectorAll('[data-ink-action]').forEach(function(button){button.addEventListener('click',function(){var parts=tokens();if(button.dataset.inkAction==='undo')parts.pop();else parts=[];setInk(parts);});});
+  }
+
+  var page=root.querySelector('.sign-page'),sig=root.querySelector('.placed-signature'),widthInput=root.querySelector('[data-sign-width]');
+  function pos(){var p={};try{p=JSON.parse(page&&page.getAttribute('data-position')||'{}');}catch(e){}return{x:Number(p.x)||0,y:Number(p.y)||0,width:Math.max(12,Number(p.width)||144)};}
+  function bounds(x,y,width){var pw=Number(page.dataset.pageW)||612,ph=Number(page.dataset.pageH)||792,p=pos(),ratio=width/p.width,gw=(Number(page.dataset.groupWidth)||width)*ratio,gh=(Number(page.dataset.groupHeight)||12)*ratio,s=Math.min(1,pw/gw,ph/gh);return{x:Math.max(0,Math.min(pw-gw*s,x)),y:Math.max(0,Math.min(ph-gh*s,y)),width:width*s};}
+  function place(x,y,width){if(page)commit('signaturePosition',bounds(x,y,Math.max(.1,Number(width)||144)));}
+  if(widthInput)widthInput.addEventListener('change',function(){var p=pos();place(p.x,p.y,Number(widthInput.value));});
+  if(page&&sig){var start=null,marks=page.querySelector('.extra-marks g');
+    function shifted(e){var r=page.getBoundingClientRect(),pw=Number(page.dataset.pageW)||612,ph=Number(page.dataset.pageH)||792;return bounds(start.p.x+(e.clientX-start.x)*pw/r.width,start.p.y+(e.clientY-start.y)*ph/r.height,start.p.width);}
+    function paint(p){sig.style.left=(p.x/Number(page.dataset.pageW)*100)+'%';sig.style.top=(p.y/Number(page.dataset.pageH)*100)+'%';if(marks)marks.setAttribute('transform','translate('+(p.x-pos().x)+' '+(p.y-pos().y)+')');}
+    sig.addEventListener('pointerdown',function(e){if(e.button!==0)return;e.preventDefault();sig.setPointerCapture(e.pointerId);start={x:e.clientX,y:e.clientY,p:pos()};});
+    sig.addEventListener('pointermove',function(e){if(start)paint(shifted(e));});
+    sig.addEventListener('pointerup',function(e){if(!start)return;var p=shifted(e);start=null;place(p.x,p.y,p.width);});
+    sig.addEventListener('pointercancel',function(){if(start)paint(start.p);start=null;});
+    sig.addEventListener('keydown',function(e){var d=e.shiftKey?10:1,p=pos(),x=p.x,y=p.y;if(e.key==='ArrowLeft')x-=d;else if(e.key==='ArrowRight')x+=d;else if(e.key==='ArrowUp')y-=d;else if(e.key==='ArrowDown')y+=d;else return;e.preventDefault();place(x,y,p.width);});
+  }
 })();</script>

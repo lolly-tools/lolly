@@ -28,7 +28,7 @@
 // so the import has to be the lazy one. Both public functions below are already
 // async, so the await is invisible to callers.
 import type { ToolIntegrityOpts } from '../../../../engine/src/loader.ts';
-import { getInstanceBase, instanceFetch, instancePath } from '../lib/instance.ts';
+import { getInstanceBase, instanceCatalogKeyId, instanceFetch, instancePath } from '../lib/instance.ts';
 import type { CatalogSnapshot } from './snapshot.ts';
 import { CatalogRefusedError, isAccessRefused, noteCatalogRefused } from '../lib/catalog-access.ts';
 
@@ -118,6 +118,22 @@ function sameOriginInstanceKey(
 ): (() => Promise<import('./instance-key.ts').InstanceCatalogKey | null>) | null {
   const pageOrigin = globalThis.location?.origin ?? null;
   const tauri = (globalThis as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ !== undefined;
+  // An app connected to an instance: the one key the person accepted at connect, asked
+  // of that instance over the app's own instance transport.
+  const acceptedKeyId = keys.connectedInstanceKeyId({ pageOrigin, instanceBase: getInstanceBase(), tauri, acceptedKeyId: instanceCatalogKeyId() });
+  if (acceptedKeyId) {
+    // The instance's address, which may hold a path: the key document sits under that
+    // address, and the saved copy is kept under the same string.
+    const instance = getInstanceBase();
+    return () => keys.resolveInstanceCatalogKey({
+      origin: instance,
+      fetch: (url, init) => instanceFetch(url, init),
+      load: store.readInstanceKey,
+      save: store.saveInstanceKey,
+      forget: store.forgetInstanceKey,
+      expectedKeyId: acceptedKeyId,
+    });
+  }
   if (!pageOrigin || !keys.instanceKeyAllowed({ pageOrigin, instanceBase: getInstanceBase(), tauri })) return null;
   return () => keys.resolveInstanceCatalogKey({
     origin: pageOrigin,
@@ -227,22 +243,34 @@ let setAsideNoted = false;
  * and the tools built into the app are shown. Said once: the note leaves after a few
  * seconds or on a tap, because a note that stays covers the controls below. The state
  * stays readable on the root element for any surface that shows the state later.
+ * With `reconnect` (the apps), a tap or Enter on the note also calls `reconnect`.
+ * `again` shows the note once more, for the apps after the connect step was closed.
  */
-export function noteInstanceCatalogSetAside(instanceBase: string): void {
+export function noteInstanceCatalogSetAside(instanceBase: string, reconnect?: () => void, again = false): void {
   if (typeof document === 'undefined' || !document.body) return;
   document.documentElement.dataset.catalogInstance = 'set-aside';
-  if (setAsideNoted) return;
+  if (setAsideNoted && !again) return;
   setAsideNoted = true;
   let host = instanceBase;
   try { host = new URL(instanceBase).host; } catch { /* keep the raw value */ }
   const id = 'lolly-instance-set-aside';
-  trustBadge(id, `${host} is signed with a key this app does not trust. Showing the tools built into this app.`);
+  // A fresh element, so an earlier note's timer cannot take this one away early.
+  if (again) document.getElementById(id)?.remove();
+  trustBadge(id, `${host} is signed with a key this app has not accepted. Showing the tools built into this app. Connect to it again in Settings to accept its key.`);
   const note = document.getElementById(id);
   if (!note) return;
   note.style.pointerEvents = 'auto';
   note.style.cursor = 'pointer';
   const dismiss = (): void => { note.remove(); };
-  note.addEventListener('click', dismiss, { once: true });
+  // In the apps the note is also the way back: a tap opens the connect step for this
+  // instance, where its key is shown and accepting it is the person's own choice.
+  let acted = false;
+  const act = (): void => { if (acted) return; acted = true; dismiss(); reconnect?.(); };
+  note.addEventListener('click', act, { once: true });
+  if (reconnect) {
+    note.tabIndex = 0;
+    note.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
+  }
   setTimeout(dismiss, SET_ASIDE_NOTE_MS);
 }
 

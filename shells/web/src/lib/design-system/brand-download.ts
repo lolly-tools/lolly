@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { closeButtonHtml } from '../close-button.ts';
 import { mountModal } from '../../components/modal.ts';
 import { escape as escapeHtml } from '../../utils.ts';
 import { t } from '../../i18n.ts';
@@ -22,7 +23,7 @@ export async function openBrandDownload(host: BrandPackageHost, system: string):
     const selected = new Set<string>();
     const keyOf = (item: ContentChoice): string => `${item.kind}:${item.id}`;
     const modal = mountModal(`
-      <header class="bd-head"><div><p class="bd-eyebrow">${t('TAKE YOUR BRAND WITH YOU')}</p><h2 class="modal-title">${t('Download {name}', { name: record.label })}</h2></div><button type="button" class="bd-close" data-bd-close aria-label="${t('Close')}">${icon('close', { size: 20 })}</button></header>
+      <header class="bd-head"><div><h2 class="modal-title">${t('Download {name}', { name: record.label })}</h2></div>${closeButtonHtml({ className: 'bd-close', attrs: { 'data-bd-close': true } })}</header>
       <p class="bd-intro">${t('One .lolly file. Ready to open on another device or share with your team.')}</p>
       <fieldset class="bd-modes"><legend class="visually-hidden">${t('What to include')}</legend>
         <label><input type="radio" name="brand-download-mode" value="brand" checked><span><strong>${t('Brand only')}</strong><small>${t('Tokens, fonts, logos and published versions.')}</small></span></label>

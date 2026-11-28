@@ -1,6 +1,6 @@
 # Design tool contract
 
-A tool made with [Share with rules](/info/create-a-tool.html) is an ordinary tool: a manifest, a template and hooks, compiled from a Lolly Design document. This page is for engineers working on that compiler, its package format or the Rules interface. It states which part owns which job, what the compiled tool guarantees and how installed revisions stay fixed.
+A tool made with [Share with rules](/info/create-a-tool.html) is an ordinary tool: a manifest, a template and hooks, compiled from a Lolly Design document. Engineers on that compiler, its package format or the Rules interface learn here which part owns which job, what the compiled tool guarantees and how installed revisions stay fixed.
 
 The pure compiler is `engine/src/design-tool/compiler.ts`, and the versioned declarations and evaluator live in `packages/core/src/design-tool-v1.ts`.
 
@@ -23,7 +23,7 @@ Input validation, declarative property evaluation and export permissions. No bra
 
 **The shared renderer.** `community/_shared/design-renderer.js` contains shared renderer regions, and `scripts/build-design-tool-renderer.ts` joins the ordered canonical regions with the declarative evaluator. Run `pnpm run build:design-renderer` after changing either source, and `pnpm run check:design-renderer` to check for drift. Ordinary Lolly Design and generated tools use the same compute helpers.
 
-**Generated hooks.** They run in the existing strict sideload worker. They rebuild a variant from its immutable definition, then apply one atomic choice and input evaluation. There is no privileged fallback in the page. Text inputs are literal: a text recipe joins declared text inputs and literal separators without evaluating code.
+**Generated hooks.** They run in the strict sideload worker. They rebuild a variant from its immutable definition, then apply one atomic choice and input evaluation. There is no privileged fallback in the page. Text inputs are literal: a text recipe joins declared text inputs and literal separators without evaluating code.
 
 **Dynamic variants.** They keep their authored boxes and an optional `layoutTracks` collection. The compiler validates ownership and track records and uses the same Rust layout solver through `host.layout`. Content controls can change intrinsic text and image sizes without replacing authored geometry. Computed positions are disposable, and export receipts bind the painted layout to the current input values.
 
@@ -33,7 +33,7 @@ Flex and grid layouts follow one participation rule. The engine states the rule 
 - **Hidden.** The member, or one of its owners, has `hidden` set. It gives up its slot and its grid cell, including a cell it names explicitly, and the other members close the gap. The solver does not place or size it, and Hug sizing leaves it out, so a hidden container keeps its stored size as a hidden group does. A hidden member still follows its owner when the owner moves or a group is resized, and it is laid out again when shown.
 - **Absolute.** The member has `layoutAbsolute` set. It keeps its own position inside the container and takes no slot.
 
-Timeline and presentation state never change participation. Start time, duration, the sequence lane, a reversible cut (`ignored`), Enter and Exit transitions, presentation build steps and keyframes apply when the page is painted, not when it is laid out. A timed member keeps its slot for the whole document: before it starts, while it enters, after it exits and before its build step is revealed. Its siblings stay where they are during playback and in presenter mode, and a still export taken at any moment uses the same layout. To let siblings close the gap, hide the member or move it out of the container instead of animating it away.
+Timeline and presentation state never change participation. Start time, duration, the sequence lane, a reversible cut (`ignored`), Enter and Exit transitions, presentation build steps and keyframes apply when the page is painted, not when it is laid out. A timed member always keeps its slot: before it starts, while it enters, after it exits and before its build step is revealed. Its siblings stay where they are during playback and in presenter mode, and a still export taken at any moment uses the same layout. To let siblings close the gap, hide the member or move it out of the container instead of animating it away.
 
 The solver never receives timing fields, and they are left out of the layout cache key, content-sized text included. Changing them does no layout work: an evaluator that has already laid out the document returns the same geometry without measuring text or calling the solver again.
 

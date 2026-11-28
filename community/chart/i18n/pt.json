@@ -1,6 +1,6 @@
 {
   "name": "Gráfico",
-  "description": "Gráficos da primeira colagem até a visualização avançada - recomendações de dados explicadas, mapeamento explícito de campos, 35 famílias clássicas de gráficos vetoriais, incluindo Pareto, metas em gráfico bullet e barras de intervalo, dezesseis formas estatísticas e editoriais, cenas 3D com profundidade real, sobrevoos cinematográficos, movimento determinístico, descrições acessíveis e estilos compilados a partir do sistema de design ativo.",
+  "description": "Gráficos da primeira colagem até a visualização avançada - 35 famílias vetoriais, cenas 3D, sobrevoos, movimento e estilos do sistema de design.",
   "featured.blurb": "Cole uma tabela - o Gráfico deixa tudo claro, acessível e inconfundivelmente alinhado à marca",
   "a11yLabel": "{{chartType}} gráfico{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Tipo de gráfico",

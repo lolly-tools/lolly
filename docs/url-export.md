@@ -1,6 +1,6 @@
 # Links that do something on open
 
-A Lolly link can do more than show a design. It can download the file, ready it for pasting, open at print size, present a deck or sit inside another page with no controls. Each recipe below is one example you can copy, with a link to the reserved word's row in [Reserved URL parameters](/info/url-parameters.html).
+A Lolly link can download the file, ready it for pasting, open at print size, present a deck or sit inside another page with no controls. Each recipe below is an example to copy, with a link to the reserved word's row in [Reserved URL parameters](/info/url-parameters.html).
 
 Most of these words are presence flags: the key alone is enough, and any value is ignored.
 
@@ -17,15 +17,15 @@ Add `export` and the file downloads as soon as the tool finishes rendering. `for
 ::: timeline
 - <!--i:link--> **The link opens.** The tool reads its inputs and the reserved words from the address.
 - <!--i:layers--> **The tool renders.** The app waits until the canvas has settled and the design system's colours are ready.
-- <!--i:download--> **The file downloads.** No click is needed, because a download needs no gesture from the person.
+- <!--i:download--> **The file downloads.** No click is needed.
 :::
 
 Without `format`, the download uses the first format the tool lists. Without `filename`, the file is named after the tool id, as in `qr-code.png`.
 
-`format=` takes any value in the tool's `render.formats`. A format the tool does not list falls back gracefully. [Every format Lolly can open and make](/info/formats.html) says what each format is for, and the fold below gives the value to write in a link.
+`format=` takes any value in the tool's `render.formats`. A format the tool does not list falls back gracefully. [Every format Lolly can open and make](/info/formats.html) says what each format is for.
 
 ::: details Every format value
-Not every tool offers every format. The `render.formats` list in `schemas/tool.schema.json` is the authority on the whole set.
+Not every tool offers every format. The `render.formats` list in `schemas/tool.schema.json` defines the full set.
 
 | Value | What you get |
 |---|---|
@@ -80,9 +80,9 @@ A tool that supports a transparent background has a `transparentBg` input. Pass 
 /t/qr-code?url=https://example.com&color=%230c322c&transparentBg=1&format=png&export&filename=qr-transparent
 ```
 
-PNG, WebP and AVIF keep the transparency, and so does SVG, which then has no background shape. JPG and PDF ignore the setting.
+PNG, WebP, AVIF and SVG keep the transparency; the SVG then has no background shape. JPG and PDF ignore the setting.
 
-Tools that export a vector format also get a `convertPaths` input from the engine, the **Convert paths** control. `?convertPaths=1` outlines text and `?convertPaths=0` keeps it live. It is off by default, so text stays live unless a link or the export panel asks for outlines. A tool that sets `render.convertPaths: false` has no such control, and the parameter does nothing.
+Tools that export a vector format also get a `convertPaths` input from the engine: the **Convert paths** control. `?convertPaths=1` outlines text and `?convertPaths=0` keeps text live. It is off by default, so text stays live unless a link or the export panel asks for outlines. It is off by default. A tool that sets `render.convertPaths: false` has no such control, and the parameter does nothing.
 
 <!--i:eti-copy-->
 ## Copy to the clipboard
@@ -94,7 +94,7 @@ Tools that export a vector format also get a `convertPaths` input from the engin
 /t/qr-code?url=https://example.com&format=png&copy
 ```
 
-The copy waits for your first click on the page. A browser allows a clipboard write only in answer to a gesture, so the app highlights the **Copy** button and copies on the click. Use `export` instead when nobody will be there to click. `copy` is for "open this link, then paste". The CLI ignores it and writes to `--output` or stdout.
+The copy waits for your first click on the page. A browser allows a clipboard write only after a gesture, so the app highlights the **Copy** button and copies on the click. Use `export` when nobody will be there to click. `copy` is for "open this link, then paste". The CLI ignores `copy` and writes to `--output` or stdout.
 
 <!--i:eti-crop-->
 ## Set the size
@@ -154,9 +154,9 @@ Four flags change what the person sees when the link opens.
 ![The export panel already expanded at the foot of the sidebar, one click from a download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-popup&dark=1&filename=exp-options-panel)
 :::
 
-`full` and `options` pull in opposite directions: one hides the chrome, the other opens the export chrome. If both appear, `full` wins, because a collapsed sidebar leaves nowhere to show the export panel. Both are web only.
+If `full` and `options` both appear, `full` wins, because a collapsed sidebar leaves nowhere to show the export panel. Both are web only.
 
-`nostage` has a second meaning on a tool that exports: the `html` export drops its fixed-size frame and fills the whole window, with the tool's content as the page body and no centred card or grey backdrop. It matches the **Full page** toggle in the export panel. On a tool with no export, the Share dialog offers the visitor page as **Open as a web page (no controls)** and ticks it by default.
+On a tool that exports, `nostage` makes the `html` export drop its fixed-size frame and fill the window, with the tool's content as the page body and no centred card or grey backdrop. It matches the **Full page** toggle in the export panel. On a tool with no export, the Share dialog offers the visitor page as **Open as a web page (no controls)** and ticks that box by default.
 
 <!--i:eti-monitor-->
 ## Present a deck
@@ -170,9 +170,9 @@ Four flags change what the person sees when the link opens.
 /t/design?z=…&present&kiosk     ← wrap at the end, for a screen in a lobby
 ```
 
-A timed document that is not made of frames starts its playback instead, and `kiosk` loops the playback. Give each frame a `dur` for how long a sign stays on each slide.
+A timed document without frames starts its playback instead, and `kiosk` loops the playback. Give each frame a `dur` for how long a sign stays on each slide.
 
-Without `present`, `s` is a still filter: `?s=2&format=png&export` downloads slide 2 alone, so every slide has an image link of its own. [Presenting](/info/design.html#presenting) covers the deck in the app, and [Presenting with camera](/info/presenting.html) puts your camera over the deck.
+Without `present`, `s` is a still filter: `?s=2&format=png&export` downloads only slide 2. [Presenting](/info/design.html#presenting) covers the deck in the app, and [Presenting with camera](/info/presenting.html) puts your camera over the deck.
 
 <!--i:eti-scissors-->
 ## Print-ready output
@@ -200,17 +200,17 @@ Both CMYK formats use the same engine geometry: the PDF as vectors with declared
 
 In `pdf-cmyk` the line marks are DeviceCMYK `1 1 1 1`, so they print on every plate. In `cmyk-tiff` they are written into the pixels as all four channels at full ink (`C=M=Y=K=255`), after the RGB to CMYK pass so they are not remapped. In the RGB `pdf` they are black. Registration prints on all four plates in both CMYK formats.
 
-In `pdf-cmyk` the colour bar becomes a brand verification strip. The four solid process primaries (C, M, Y, K) come first as a fixed reference. After a wider gap, each brand colour that substituted in this artwork appears as an RGB swatch touching its CMYK substitution, so a press operator can confirm the swap happened. Only the inks really used are shown, capped by the margin's width and at 12 brand cells. The RGB `pdf` and the `cmyk-tiff`, which converts each pixel with no exact substitution to check, show a general process, overprint and tint bar instead.
+In `pdf-cmyk` the colour bar becomes a brand verification strip. The four solid process primaries (C, M, Y, K) come first as a fixed reference. After a wider gap, each brand colour that substituted in this artwork appears as an RGB swatch touching its CMYK substitution, so a press operator can confirm the swap happened. Only the inks used are shown, capped by the margin's width and at 12 brand cells. The RGB `pdf` and the `cmyk-tiff`, which converts each pixel with no exact substitution to check, show a general process, overprint and tint bar instead.
 :::
 
 ::: details What the provenance credit says
 The `prov` credit takes its text from the export's authorship metadata: the export time *{YYYY-MM-DD HH:MM}* at the top left, *"Made with https://lolly.tools"* at the top right and *"{Tool} by {Author}"* up the bottom left. It sits outside the trim, so the final cut removes the credit.
 
-The author appears only when you have chosen to share your details (Settings → **Your details** → **Use my details to create**). When the export records a colourway, the tool's name carries it as the description does, as in *"Chart (Beach colourway) by Sam Rivera"*. With the **Design system** card off, or `_madewith=0`, the credit keeps its plain form. The design system's own name never appears in the credit.
+The author appears only when you have chosen to share your details (Settings → **Your details** → **Use my details to create**). When the export records a colourway, the tool's name carries the colourway, as in *"Chart (Beach colourway) by Sam Rivera"*. With the **Design system** card off, or `_madewith=0`, the credit keeps its plain form. The design system's own name never appears in the credit.
 :::
 
 ::: details When a Print PDF claims PDF/X-4
-A named condition tells a RIP what the DeviceCMYK values mean, but PDF/X-4 also wants the profile itself inside the file. Lolly's one bundled CMYK profile, Coated FOGRA39, converts colours for the default condition but is not embedded, because it is ICC version 4.3 and PDF/X-4 accepts versions up to 4.2. So a named condition writes the output intent and not the `GTS_PDFXVersion` conformance claim.
+A named condition tells a RIP what the DeviceCMYK values mean, but PDF/X-4 also needs the profile inside the file. Lolly's one bundled CMYK profile, Coated FOGRA39, converts colours for the default condition but is not embedded, because it is ICC version 4.3 and PDF/X-4 accepts versions up to 4.2. So a named condition writes the output intent and not the `GTS_PDFXVersion` conformance claim.
 
 Load a CMYK profile of your own, in Lolly Colour Lab or the export panel's Colour profile control, and choose its *Embed* row (`profile=own` in a link). The profile is embedded as the `DestOutputProfile`, and the file claims PDF/X-4 unless something else in the export makes the claim untrue: RGB artwork the CMYK pass could not convert, `marks=prov` (its credit is set in a standard font that is not embedded) or a strong password (X-4 forbids encryption). The output intent is written either way.
 
@@ -220,7 +220,7 @@ The intent declares the registered condition only where the profile itself prove
 <!--i:eti-animation-->
 ## Motion
 
-Motion formats take their settings from the link too: `fps`, `seconds`, `wait`, `codec` and `vq` match the export panel's Frame rate, Duration, Start after, Codec and Quality controls. `motionblur` adds blur and `seqrange` exports part of a movie. Their rows in [Reserved URL parameters](/info/url-parameters.html#motion-and-timed-documents) give the ranges.
+Motion formats take `fps`, `seconds`, `wait`, `codec` and `vq` from the link. They match the export panel's Frame rate, Duration, Start after, Codec and Quality controls. `motionblur` adds blur and `seqrange` exports part of a movie. Their rows in [Reserved URL parameters](/info/url-parameters.html#motion-and-timed-documents) give the ranges.
 
 ```
 /t/flythrough?format=mp4&fps=60&seconds=8&codec=h264&export
@@ -230,20 +230,20 @@ Pin `codec=h264` when the file has to play everywhere. Left on Auto, the encoder
 
 ### Contact sheets
 
-A still export of a timed composition renders the frame at the playhead: what you see on the stage is what goes into the file. A contact sheet asks for more, with `cuts=N` stills sampled at equal intervals across the sequence for a storyboard, a thumbnail sheet or a social carousel.
+A still export of a timed composition renders the frame at the playhead. A contact sheet asks for `cuts=N` stills sampled at equal intervals across the sequence, for a storyboard, a thumbnail sheet or a social carousel.
 
 ::: figure url-export-contact-sheet
 Six cuts of a twelve-second sequence sample at 1, 3, 5, 7, 9 and 11 seconds.
 :::
 
-With `N` above 1 and `pdf` chosen, you get one PDF of `N` pages in time order. With `png`, `jpg`, `webp` or `svg` you get a ZIP of `N` files (`-01` to `-0N`), because PDF is the only still format that holds several frames, so choose a `.zip` output filename. `1` is the single playhead frame.
+With `N` above 1, `pdf` gives one PDF of `N` pages in time order. `png`, `jpg`, `webp` or `svg` give a ZIP of `N` files (`-01` to `-0N`), because PDF is the only still format that holds several frames. Choose a `.zip` output filename. `1` is the single playhead frame.
 
-Values are clamped to 1 to 64: a contact sheet is for a person to look at, and 64 is already an 8 by 8 wall. Anything unparseable falls back to 1 rather than failing the export. For exact times instead of even ones, use `sampletimes=0,1.5,3` (MCP `sampleTimes: [0, 1.5, 3]`).
+Values are clamped to 1 to 64; 64 is already an 8 by 8 wall. Anything unparseable falls back to 1 and does not fail the export. For exact times instead of even ones, use `sampletimes=0,1.5,3` (MCP `sampleTimes: [0, 1.5, 3]`).
 
 The export panel's **Frames** field makes the same request ([Exporting](/info/exporting.html#stills-from-a-timed-composition)).
 
 ::: details Contact sheets on the CLI and MCP
-Web auto-export, the CLI and MCP carry the same `cuts` request to the browser renderer, and the CLI and MCP refuse a sampling request for a format that cannot take one. Ordinary web exports keep each format's own behaviour. The uniform sheet samples layer motion, while an embedded video keeps its parked poster frame; use a draft movie to review video. Explicit raster `sampletimes` requests drive supported media through the movie compositor.
+Web auto-export, the CLI and MCP send the same `cuts` request to the browser renderer. The CLI and MCP refuse a sampling request for a format that cannot take one. Ordinary web exports keep each format's own behaviour. The uniform sheet samples layer motion, while an embedded video keeps its parked poster frame; use a draft movie to review video. Explicit raster `sampletimes` requests drive supported media through the movie compositor.
 :::
 
 <!--i:eti-history-->
@@ -256,4 +256,4 @@ A saved session is a named snapshot of input values stored in the browser. `slot
 /t/qr-code?slot=homepage-qr&format=png&export
 ```
 
-A slot exists only on the device that saved the session. The CLI has no saved-session store, so it ignores `slot`; to move a session to another device, send its `.lolly` file ([What a link carries](/info/url-app-links.html#what-a-link-carries)).
+A slot exists only on the device that saved the session. On the CLI, `slot` has no effect, and the CLI prints a warning. To move a session to another device, send its `.lolly` file ([What a link carries](/info/url-app-links.html#what-a-link-carries)).

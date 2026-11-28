@@ -485,6 +485,12 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
       'Drop a Figma <b>.fig</b> / SVG, a Penpot <b>.penpot</b>, a Photoshop <b>.psd</b> or <b>.psb</b>, an Illustrator <b>.ai</b> or <b>.pdf</b>, a PowerPoint <b>.pptx</b>, or an InDesign <b>.idml</b> (File → Export → InDesign Markup). For a Premiere-compatible <b>.xml</b> or XML + media ZIP, choose Replace the board. (For editable text from a Figma <b>SVG</b>, uncheck “Outline text” on export.)'
     ) +
     '</p>' +
+    // A Markdown deck is words, not a drawing: it comes in as slides laid out by the
+    // design system's own layouts (slide-masters.ts slidesFromMarkdown), whatever the
+    // choice below says.
+    (importArtboardCapable
+      ? `<p class="fc-import-hint">${t('A Markdown <b>.md</b> deck comes in as slides, after what is on the canvas.')}</p>`
+      : '') +
     // The per-import choice (plans/104 section 337, widened 2026-09-02): one page onto
     // the board, every page as an artboard, or every frame as a timed scene. Each
     // option is present only where the tool can honour it; a tool with neither
@@ -544,7 +550,7 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
   const fileEl = document.createElement('input');
   fileEl.type = 'file';
   fileEl.accept =
-    '.fig,.svg,.penpot,.zip,.psd,.psb,.ai,.pdf,.pptx,.idml,.indd,.af,.afdesign,.afphoto,.afpub,.aftemplate,.dxf,.xml,.fcpxml,.otio,.edl,.json,image/svg+xml,application/zip,application/pdf,application/illustrator,application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    '.md,.markdown,text/markdown,.fig,.svg,.penpot,.zip,.psd,.psb,.ai,.pdf,.pptx,.idml,.indd,.af,.afdesign,.afphoto,.afpub,.aftemplate,.dxf,.xml,.fcpxml,.otio,.edl,.json,image/svg+xml,application/zip,application/pdf,application/illustrator,application/vnd.openxmlformats-officedocument.presentationml.presentation';
   fileEl.style.display = 'none';
   panel.appendChild(fileEl);
   chooseBtn.addEventListener('click', (e) => {
@@ -568,7 +574,15 @@ export function openImportPanel(fc: FcCtx, anchor: HTMLElement): void {
     tplBox.checked = true;
     chooseBtn.disabled = true;
     try {
-      if (importMode === 'scenes') {
+      if (importArtboardCapable && /\.(md|markdown)$/i.test(f.name)) {
+        const made = await fc.slideMasters.slidesFromMarkdown(await f.text());
+        if (!made) throw new Error(t('This design system has no slide layouts, so a Markdown deck cannot be laid out.'));
+        if (!made.slides) throw new Error(t('No slides were found in this file.'));
+        status.classList.add('is-ok');
+        status.textContent = [made.slides === 1 ? t('Added 1 slide.') : t('Added {n} slides.', { n: made.slides }), ...made.notes].join(' ');
+        // The panel closes in a moment; what did not come across stays on the stage.
+        if (made.notes.length) fc.stage.flash(made.notes.join(' '));
+      } else if (importMode === 'scenes') {
         // The user chose "As timed scenes": frames become timed scenes (importAsScenes above).
         const n = await importAsScenes(fc, f, (m: string) => {
           status.textContent = m;

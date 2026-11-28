@@ -16,7 +16,8 @@
 .app-history.has-selection { padding-block-end: calc(var(--sp-8) * 3); }
 
 /* ── Header: name, where it lives, two quiet doors ───────────────────────── */
-.app-history-header { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); margin-block-end: var(--sp-7); }
+/* The page keeps its width; the two rows at its head stand inside a side the system holds. */
+.app-history-header { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); margin-block-end: var(--sp-7); padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .app-history-heading { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3); min-width: 0; }
 .app-history h1 { margin: 0; font-size: var(--ui-type-heading); line-height: 1.15; letter-spacing: var(--ui-type-tracking-tight); }
 .app-history-source { display: inline-flex; align-items: center; gap: var(--sp-1); padding: var(--sp-1) var(--sp-3); border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted); font-size: var(--ui-type-caption); color: var(--ui-color-text-muted); }
@@ -29,7 +30,7 @@
 /* ── Toolbar: view, search, filters and layout on one line ───────────────── */
 .app-history-controls { margin-block-end: var(--sp-7); }
 .app-history-filters { display: flex; flex-direction: column; gap: var(--sp-3); }
-.app-history-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+.app-history-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); padding-left: var(--safe-left); padding-right: var(--safe-right); }
 .app-history-tabs { flex: none; }
 .app-history-tabs .view-seg-btn { flex: none; padding-inline: var(--sp-4); }
 .app-history-layout { flex: none; }
@@ -184,13 +185,11 @@ html[data-a11y-previews="hidden"] .app-history-cover img { filter: saturate(.5) 
 .app-history-bulkbar-actions .btn { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .app-history-bulk-danger.btn { color: hsl(var(--destructive-text)); }
 .app-history-bulk-danger.btn:hover { background: hsl(var(--destructive) / .1); }
-.app-history-bulkbar-clear { display: inline-flex; align-items: center; justify-content: center; flex: none; width: var(--ui-size-control); height: var(--ui-size-control); padding: 0; border: 0; border-radius: var(--ui-radius-choice-round); background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); cursor: pointer; }
-.app-history-bulkbar-clear:hover { background: var(--ui-color-border-default); }
 .app-history-bulkbar.is-compact .app-history-bulkbar-actions .btn > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 @media (max-width: 960px) {
   .app-history.has-detail .app-history-content { grid-template-columns: minmax(0, 1fr); }
-  .app-history.has-detail .app-history-detail { position: fixed; inset: 0 0 0 auto; top: 0; width: min(100%, 420px); height: 100dvh; box-sizing: border-box; z-index: var(--ui-layer-overlay); box-shadow: var(--ui-elevation-sheet); }
+  .app-history.has-detail .app-history-detail { position: fixed; inset: 0 0 0 auto; top: 0; width: min(100%, calc(420px + var(--safe-right))); height: 100dvh; box-sizing: border-box; padding-top: var(--safe-top, 0px); padding-right: var(--safe-right); z-index: var(--ui-layer-overlay); box-shadow: var(--ui-elevation-sheet); }
 }
 @media (max-width: 640px) {
   .app-history { padding-inline: var(--sp-7); padding-block-start: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-4)); }

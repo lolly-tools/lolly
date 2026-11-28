@@ -375,42 +375,148 @@ function _qbContrast(c1, c2) {
   return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
 }
 // o: { fg, bg, eyeColor, gradStops, padding, hasLogo, logoScale, ecl }
-function _qbScanWarnings(o) {
+// Each check answers with the input that causes it, so the shell can show the line
+// under that control (inputNotices) and the user fixes it where it is.
+function _qbScanChecks(o) {
   var w = [];
   var bg = o.bg || '#ffffff';
   // Contrast: the WEAKEST ink (a gradient's lightest stop, or the eye colour) vs bg.
-  var inks = [o.fg];
-  if (o.eyeColor && String(o.eyeColor) !== '') inks.push(o.eyeColor);
-  if (o.gradStops && o.gradStops.length) inks = inks.concat(o.gradStops);
-  var minC = Infinity;
-  for (var i = 0; i < inks.length; i++) { var cr = _qbContrast(inks[i], bg); if (cr != null && cr < minC) minC = cr; }
+  var inks = [{ c: o.fg, input: 'color', what: 'the modules' }];
+  if (o.eyeColor && String(o.eyeColor) !== '') inks.push({ c: o.eyeColor, input: 'eyeColor', what: 'the eyes' });
+  // The first stop of a ramp is the module colour. Every later stop comes from the second colour.
+  if (o.gradStops && o.gradStops.length) {
+    for (var g = 1; g < o.gradStops.length; g++) inks.push({ c: o.gradStops[g], input: 'color2', what: 'the second colour' });
+  }
+  var minC = Infinity, weakest = inks[0];
+  for (var i = 0; i < inks.length; i++) {
+    var cr = _qbContrast(inks[i].c, bg);
+    if (cr != null && cr < minC) { minC = cr; weakest = inks[i]; }
+  }
   if (minC < 3 && minC !== Infinity) {
-    w.push('Low contrast (' + minC.toFixed(1) + ':1) between the code and its background - many scanners need at least 3:1. Darken the modules or lighten the background.');
+    w.push({ input: weakest.input, text: 'Low contrast (' + minC.toFixed(1) + ':1). Scanners need at least 3:1: darken ' + weakest.what + ' or lighten the background.' });
   }
   // Polarity: scanners expect dark modules on a light field.
   var fgRgb = _qbHexToRgb(o.fg), bgRgb = _qbHexToRgb(bg);
   if (fgRgb && bgRgb && _qbLum(fgRgb) > _qbLum(bgRgb)) {
-    w.push('The modules are lighter than the background. Most scanners expect dark modules on a light background, so this may not read - swap the two colours.');
+    w.push({ input: 'background', text: 'The modules are lighter than the background. Most scanners expect dark on light: swap the two colours.' });
   }
   // Quiet zone.
   var pad = Number(o.padding);
   if (Number.isFinite(pad) && pad < 4) {
-    w.push('Quiet zone is ' + pad + ' module' + (pad === 1 ? '' : 's') + ' - keep at least 4 clear modules around the code so scanners can find it.');
+    w.push({ input: 'padding', text: 'Quiet zone is ' + pad + ' module' + (pad === 1 ? '' : 's') + '. Keep at least 4 clear modules around the code.' });
   }
-  // Logo occlusion vs the error-correction budget (ecl already raised to H when a logo is set).
-  if (o.hasLogo) {
-    // Clamp to the same [8,32]% the renderer enforces, plus the quiet ring, so the
-    // estimate matches the actual footprint rather than an out-of-range input.
-    var scale = Math.min(32, Math.max(8, Number(o.logoScale) || 22)) / 100;
-    var frac = scale + (Number(o.logoPad) > 0 ? 0.03 : 0); // the plate is a touch wider than the mark
-    var area = frac * frac;                       // centred square footprint
-    var budget = ({ L: 0.07, M: 0.15, Q: 0.25, H: 0.30 })[o.ecl] || 0.30;
-    if (area > budget * 0.8) {
-      w.push('The logo covers about ' + Math.round(area * 100) + '% of the code - near the ' + Math.round(budget * 100)
-        + '% the error correction can recover. Shrink it if the code stops scanning.');
+  // The logo against what error correction can rebuild, counted on the real symbol
+  // (o.logoLoad, from _qbLogoLoad). Without a symbol there is nothing to count.
+  if (o.hasLogo && o.logoLoad) {
+    var load = o.logoLoad;
+    if (load.worst > 1) {
+      w.push({ input: 'logoScale', tone: 'error', text: 'The logo hides more of the code than error correction can rebuild, so this code is unlikely to scan. Make the logo or its padding smaller.' });
+    } else if (load.worst > _QB_LOGO_HEADROOM) {
+      w.push({ input: 'logoScale', text: 'The logo uses about ' + Math.round(load.worst * 100) + '% of what error correction can rebuild, which leaves little for glare, wear or a poor camera. '
+        + 'Make the logo or its padding smaller if the code stops scanning.' });
     }
   }
   return w;
+}
+// The logo plate from the inputs: the mark's side as a share of the code, the clear ring
+// around it in modules, and the plate's shape. One reading for the renderer and the count.
+function _qbLogoPlate(options) {
+  return {
+    scale: Math.min(32, Math.max(8, Number(options.logoScale) || 22)) / 100,
+    // Number.isFinite guard, not `Number(x) == null` (which is ALWAYS false -
+    // Number returns NaN, never null - so an undefined logoPad used to make the
+    // whole plate NaN and silently disable the knockout).
+    pad: Number.isFinite(Number(options.logoPad)) ? Math.max(0, Number(options.logoPad)) : 1,
+    shape: options.logoShape || 'rounded',
+  };
+}
+// The share of the correction budget a logo may use before the warning shows. The rest
+// is kept for what a real scan loses to glare, print wear and focus.
+var _QB_LOGO_HEADROOM = 0.8;
+// What a centred logo plate costs a QR symbol, counted on the symbol itself. A codeword
+// is 8 modules, and one hidden module is enough to lose the codeword. Each Reed-Solomon
+// block rebuilds at most half its correction codewords, so the block that is hit hardest
+// decides whether the code still reads. `model` is the encoder's QRCodeModel; `logo` is
+// the renderer's own { scale, pad, shape }, so the count matches the plate that is drawn.
+// Returns { hidden, capacity, total, worst } where worst is hidden/capacity in the
+// hardest-hit block, or null when there is no symbol to count.
+function _qbLogoLoad(model, logo) {
+  if (!model || !logo) return null;
+  var n = model.moduleCount, t = model.typeNumber;
+  if (!n || !t) return null;
+  var half = (logo.scale * n + 2 * logo.pad) / 2, mid = n / 2;
+  function hiddenAt(r, c) {
+    var dx = c + 0.5 - mid, dy = r + 0.5 - mid;
+    return logo.shape === 'circle' ? Math.sqrt(dx * dx + dy * dy) <= half : Math.abs(dx) <= half && Math.abs(dy) <= half;
+  }
+  // Modules that hold no data: finders with their separators and format bits, the
+  // timing lines, alignment patterns and, from version 7, the version blocks.
+  var align = QRUtil.PATTERN_POSITION_TABLE[t - 1] || [], last = align.length - 1;
+  function fixedAt(r, c) {
+    if ((r < 9 && c < 9) || (r < 9 && c >= n - 8) || (r >= n - 8 && c < 9)) return true;
+    if (r === 6 || c === 6) return true;
+    if (t >= 7 && ((r < 6 && c >= n - 11) || (c < 6 && r >= n - 11))) return true;
+    for (var i = 0; i <= last; i++) for (var j = 0; j <= last; j++) {
+      if ((i === 0 && j === 0) || (i === 0 && j === last) || (i === last && j === 0)) continue;
+      if (Math.abs(r - align[i]) <= 2 && Math.abs(c - align[j]) <= 2) return true;
+    }
+    return false;
+  }
+  // Which block each codeword belongs to, in the order the symbol stores them: data
+  // codewords dealt across the blocks in turn, then correction codewords the same way.
+  var blocks = QRRSBlock.getRSBlocks(t, model.errorCorrectLevel), owner = [], i, b, maxData = 0, maxEc = 0;
+  for (b = 0; b < blocks.length; b++) {
+    maxData = Math.max(maxData, blocks[b].dataCount);
+    maxEc = Math.max(maxEc, blocks[b].totalCount - blocks[b].dataCount);
+  }
+  for (i = 0; i < maxData; i++) for (b = 0; b < blocks.length; b++) if (i < blocks[b].dataCount) owner.push(b);
+  for (i = 0; i < maxEc; i++) for (b = 0; b < blocks.length; b++) if (i < blocks[b].totalCount - blocks[b].dataCount) owner.push(b);
+  // Walk the modules in the encoder's own order (two columns at a time from the right,
+  // up then down, skipping the timing column) and mark each codeword a hidden module hits.
+  var lost = [], bit = 0, row = n - 1, inc = -1;
+  for (var col = n - 1; col > 0; col -= 2) {
+    if (col === 6) col--;
+    for (;;) {
+      for (var k = 0; k < 2; k++) {
+        if (fixedAt(row, col - k)) continue;
+        if (hiddenAt(row, col - k)) lost[bit >> 3] = true;
+        bit++;
+      }
+      row += inc;
+      if (row < 0 || row >= n) { row -= inc; inc = -inc; break; }
+    }
+  }
+  var hidden = 0, capacity = 0, worst = 0, per = [];
+  for (b = 0; b < blocks.length; b++) per.push(0);
+  for (i = 0; i < owner.length; i++) if (lost[i]) { hidden++; per[owner[i]]++; }
+  for (b = 0; b < blocks.length; b++) {
+    var can = Math.floor((blocks[b].totalCount - blocks[b].dataCount) / 2);
+    capacity += can;
+    worst = Math.max(worst, can ? per[b] / can : Infinity);
+  }
+  return { hidden: hidden, capacity: capacity, total: owner.length, worst: worst, dataModules: bit };
+}
+function _qbScanWarnings(o) {
+  return _qbScanChecks(o).map(function (c) { return c.text; });
+}
+// The checks as the shell's input notices: one line under the input that causes it.
+function _qbScanNotices(checks) {
+  var out = {};
+  for (var i = 0; i < checks.length; i++) {
+    if (!out[checks[i].input]) out[checks[i].input] = { tone: checks[i].tone || 'warning', text: checks[i].text };
+  }
+  return out;
+}
+// A failed test read has no measured cause, so its line goes under the styling most
+// likely to have caused the miss: the logo, then the module shape, then whatever
+// else makes the code a branded one.
+var _QB_READ_FAILED = 'A test read of this code came back empty. Reduce the logo, raise the contrast or simplify the module shape.';
+function _qbReadFailInput(args) {
+  if (args._logoUrl) return 'logoScale';
+  if (_qbShape(args.moduleShape) !== 'square') return 'moduleShape';
+  if (_qbEyeShape(args.eyeShape) !== 'square') return 'eyeShape';
+  if (args.fill === 'gradient' || args.fill === 'mix') return 'fill';
+  return 'frame';
 }
 
 // ─── Live scannability check (plans/162 Part 3, WP-K2) ───────────────────────
@@ -430,29 +536,105 @@ function _qbIsBranded(args) {
 async function _qbLiveScan(svgContent, expected, host) {
   try {
     if (!host || !host.scan || typeof host.scan.detect !== 'function') return null;
-    if (!host.raster || typeof host.raster.canRaster !== 'function' || !host.raster.canRaster()) return null;
-    if (typeof OffscreenCanvas === 'undefined') return null;
-    // A concrete size so the rasteriser has intrinsic dimensions (the code SVG
-    // is authored at 100%/viewBox). 512 is plenty for a phone-camera-grade decode.
-    var svg = String(svgContent).replace('width="100%" height="100%"', 'width="512" height="512"');
-    var src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-    var bmp = await host.raster.decode(src);
-    if (!bmp || !bmp.width) return null;
-    var w = bmp.width, h = bmp.height;
-    var cv = new OffscreenCanvas(w, h);
-    var ctx = cv.getContext('2d');
-    if (!ctx) return null;
-    ctx.fillStyle = '#ffffff';           // flatten (a transparent-bg code needs a field)
-    ctx.fillRect(0, 0, w, h);
-    ctx.drawImage(bmp, 0, 0);
-    var img = ctx.getImageData(0, 0, w, h);
-    var hits = await host.scan.detect({ data: img.data, width: w, height: h }, { formats: ['qr_code'] });
+    var img = await _qbCodePixels(svgContent, host);
+    if (!img) return null;
+    var hits = await host.scan.detect({ data: img.data, width: img.width, height: img.height }, { formats: ['qr_code'] });
     if (!hits || !hits.length) return 'fail';
     if (expected && hits[0].rawValue !== expected) return 'fail';
     return 'ok';
   } catch (e) {
     return null; // our own failure is never the user's warning
   }
+}
+
+// The finished code as pixels on a white field (a transparent code needs one).
+// The shell rasterises the SVG where the hooks run in the page. From a hook Worker
+// the shell refuses host.raster.decode, and the Worker draws the code itself.
+async function _qbCodePixels(svgContent, host) {
+  if (typeof OffscreenCanvas === 'undefined') return null;
+  var bmp = null;
+  if (host.raster && typeof host.raster.canRaster === 'function' && host.raster.canRaster()) {
+    // A concrete size so the rasteriser has intrinsic dimensions (the code SVG
+    // is authored at 100%/viewBox). 512 is plenty for a phone-camera-grade decode.
+    var svg = String(svgContent).replace('width="100%" height="100%"', 'width="512" height="512"');
+    try { bmp = await host.raster.decode('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)); }
+    catch (e) { bmp = null; }
+  }
+  if (!bmp || !bmp.width) return _qbDrawCode(String(svgContent));
+  var w = bmp.width, h = bmp.height;
+  var cv = new OffscreenCanvas(w, h);
+  var ctx = cv.getContext('2d');
+  if (!ctx) return null;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(bmp, 0, 0);
+  return ctx.getImageData(0, 0, w, h);
+}
+
+function _qbAttr(tag, name) {
+  var m = new RegExp('(?:^|\\s)' + name + '="([^"]*)"').exec(tag);
+  return m ? m[1] : null;
+}
+
+// A Worker cannot decode an SVG, so the code is drawn again from the markup this
+// file wrote: filled rects, paths and circles, the frame's translate and a logo
+// the Worker can decode. A cover at rest (opacity 0), strokes and words are left
+// out, and none of those lies over the modules. A logo it cannot decode (an SVG
+// mark) leaves its plate empty, which hides the same modules from a scanner.
+async function _qbDrawCode(svg) {
+  if (typeof Path2D !== 'function') return null;
+  var box = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg);
+  if (!box) return null;
+  var w = Math.round(Number(box[1])), h = Math.round(Number(box[2]));
+  if (!(w > 0 && h > 0) || w * h > 4000000) return null;
+  var cv = new OffscreenCanvas(w, h);
+  var ctx = cv.getContext('2d');
+  if (!ctx) return null;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  var moved = [];       // one entry per open <g>: whether it translated
+  var skip = '';        // the element whose contents are being passed over
+  var re = /<(\/?)([a-zA-Z]+)([^>]*)>/g, m;
+  while ((m = re.exec(svg))) {
+    var closing = m[1] === '/', name = m[2], tag = m[3];
+    if (skip) { if (closing && name === skip) skip = ''; continue; }
+    if (name === 'style' || name === 'defs' || name === 'text') { if (!closing) skip = name; continue; }
+    if (name === 'g') {
+      if (closing) { if (moved.pop()) ctx.restore(); continue; }
+      var t = /translate\(([-\d.]+)[ ,]+([-\d.]+)\)/.exec(_qbAttr(tag, 'transform') || '');
+      moved.push(!!t);
+      if (t) { ctx.save(); ctx.translate(Number(t[1]), Number(t[2])); }
+      continue;
+    }
+    if (closing || _qbAttr(tag, 'opacity') === '0') continue;
+    if (name === 'image') {
+      var data = /^data:image\/(?:png|jpeg|webp);base64,(.+)$/.exec(_qbAttr(tag, 'href') || '');
+      if (!data || typeof createImageBitmap !== 'function' || typeof atob !== 'function') continue;
+      try {
+        var raw = atob(data[1]), bytes = new Uint8Array(raw.length);
+        for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+        var logo = await createImageBitmap(new Blob([bytes]));
+        var side = Number(_qbAttr(tag, 'width')), fit = Math.min(side / logo.width, side / logo.height);
+        ctx.drawImage(logo, Number(_qbAttr(tag, 'x')) + (side - logo.width * fit) / 2,
+          Number(_qbAttr(tag, 'y')) + (side - logo.height * fit) / 2, logo.width * fit, logo.height * fit);
+      } catch (e) { /* the plate stays empty */ }
+      continue;
+    }
+    var fill = _qbAttr(tag, 'fill');
+    if (fill == null) { var st = /fill:\s*([^;]+)/.exec(_qbAttr(tag, 'style') || ''); fill = st ? st[1].trim() : '#000000'; }
+    if (fill === 'none') continue;
+    ctx.fillStyle = fill;
+    if (name === 'rect') {
+      ctx.fillRect(Number(_qbAttr(tag, 'x')), Number(_qbAttr(tag, 'y')), Number(_qbAttr(tag, 'width')), Number(_qbAttr(tag, 'height')));
+    } else if (name === 'path') {
+      ctx.fill(new Path2D(_qbAttr(tag, 'd') || ''), _qbAttr(tag, 'fill-rule') === 'evenodd' ? 'evenodd' : 'nonzero');
+    } else if (name === 'circle') {
+      ctx.beginPath();
+      ctx.arc(Number(_qbAttr(tag, 'cx')), Number(_qbAttr(tag, 'cy')), Number(_qbAttr(tag, 'r')), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  return ctx.getImageData(0, 0, w, h);
 }
 
 // grad = { stops:[hex…], type:'linear'|'radial', angle:deg } or null (solid).
@@ -568,7 +750,7 @@ function _qbRenderBranded(modules, length, xsize, ysize, options, shape, eyeShap
 var _QB_FRAMES = ['none', 'label', 'badge', 'arrow'];
 function _qbFrame(v) { return _QB_FRAMES.indexOf(v) >= 0 ? v : 'none'; }
 
-function _qbFrameWrap(body, W, H, frame, text, color, bg, esc) {
+function _qbFrameWrap(body, W, H, frame, text, color, bg, esc, rise) {
   text = (text == null ? '' : String(text)).trim();
   var M = frame === 'badge' ? 46 : 0;          // card margin
   var cap = text ? 96 : 0;                      // caption band
@@ -583,6 +765,8 @@ function _qbFrameWrap(body, W, H, frame, text, color, bg, esc) {
   }
   out += '<g transform="translate(' + M + ',' + M + ')">' + body + '</g>';
   var ty = M + H + gap + cap * 0.5;
+  // With motion the arrow and the words are one group, so they rise together.
+  if (rise && text) out += '<g style="' + rise + '">';
   if (frame === 'arrow' && text) {
     var ax = oW / 2, ay = M + H + gap * 0.4, aw = 26, ah = 16;
     out += '<path d="M' + _qbN(ax - aw) + ',' + _qbN(ay) + ' L' + _qbN(ax) + ',' + _qbN(ay + ah)
@@ -594,7 +778,87 @@ function _qbFrameWrap(body, W, H, frame, text, color, bg, esc) {
     out += '<text x="' + _qbN(oW / 2) + '" y="' + _qbN(ty) + '" text-anchor="middle" dominant-baseline="middle"'
       + ' font-family="' + _QB_FONT + '" font-size="46" font-weight="700" fill="' + color + '">' + esc(text) + '</text>';
   }
+  if (rise && text) out += '</g>';
   return { w: oW, h: oH, content: out };
+}
+
+// ─── Motion ──────────────────────────────────────────────────────────────────
+// Opt-in. The code fades in outward from its three finder eyes, the call to
+// action rises in, and then the finished code holds still long enough to scan.
+//
+// The modules are not regrouped or redrawn. Covers in the background colour lie
+// over the finished code and lift one after another, each leaving a larger
+// square around every eye uncovered. A cover at rest has opacity 0, written as
+// an attribute, so the finished file is the same code as with motion off in
+// every renderer, including the ones that play nothing.
+//
+// The animations are CSS on the elements, with their keyframes in the file, so
+// the SVG plays by itself, a Design timeline can seek through the clip, and a
+// video export samples the same moments. Where nothing can seek (the file as a
+// picture in a page) the last rule takes the animations away and the code is
+// finished.
+var _QB_HOLD_MS = 2400;        // over two seconds of finished code, after frame rounding
+var _QB_LONG_MS = 700;         // used where the design system gives no motion
+var _QB_MEDIUM_MS = 400;
+var _QB_EASE = 'cubic-bezier(0.05,0.7,0.1,1)';
+var _QB_RISE_PX = 16;          // about a third of the call to action's 46 unit type
+// A cover starts at .999, not 1. The web shell's frame capture copies only the
+// styles that differ from an element's defaults, so a cover at exactly 1 would be
+// captured at its attribute, 0, and the first frames of a clip would show the
+// finished code.
+var _QB_MOTION_CSS = '@keyframes qr-lift{from{opacity:.999}}'
+  + '@keyframes qr-fade{from{opacity:0}}'
+  + '@keyframes qr-rise{from{opacity:0;transform:translateY(' + _QB_RISE_PX + 'px)}}'
+  + '@media (scripting:none){[data-qr-motion] *{animation:none!important}}';
+
+function _qbMotionTiming(m) {
+  var longMs = m && m.longMs > 0 ? Math.round(m.longMs) : _QB_LONG_MS;
+  var mediumMs = m && m.mediumMs > 0 ? Math.round(m.mediumMs) : _QB_MEDIUM_MS;
+  return { longMs: longMs, mediumMs: mediumMs, ease: (m && m.ease) || _QB_EASE };
+}
+
+// How long the piece is: the modules, then the call to action if there is one, then the hold.
+function _qbClipMs(timing, hasLabel) {
+  return timing.longMs + (hasLabel ? timing.mediumMs : 0) + _QB_HOLD_MS;
+}
+
+function _qbPoly(points) {
+  var d = '';
+  for (var i = 0; i < points.length; i++) d += (i ? 'L' : 'M') + _qbN(points[i][0]) + ',' + _qbN(points[i][1]);
+  return d + 'Z';
+}
+
+// The covers for a code `length` modules wide drawn at `s` units a module inside
+// `pad` quiet modules, on a W by H field of colour `bg`.
+function _qbMotionCovers(length, s, pad, W, H, timing, bg) {
+  // At most eleven steps out from the eyes, so a large code stays a small file.
+  // The smallest QR symbol is 21 modules wide, so there are always steps to take.
+  var per = Math.max(1, Math.ceil((length - 7) / 11));
+  var steps = Math.ceil((length - 7) / per);
+  var liftMs = Math.round(timing.longMs * 0.4);
+  var near = (3.5 + pad) * s, far = (length - 3.5 + pad) * s;
+  var field = _qbPoly([[0, 0], [W, 0], [W, H], [0, H]]);
+  var out = '';
+  for (var k = 0; k <= steps; k++) {
+    var d = field;
+    if (k > 0) {
+      // What this cover leaves open: a square around each eye, as one outline once they meet.
+      var half = (3.5 + (k - 1) * per) * s;
+      var a0 = Math.max(0, near - half), a1 = Math.min(W, near + half);
+      var b0 = Math.max(0, far - half), b1 = Math.min(W, far + half);
+      if (a1 < b0) {
+        d += _qbPoly([[a0, a0], [a1, a0], [a1, a1], [a0, a1]])
+          + _qbPoly([[b0, a0], [b1, a0], [b1, a1], [b0, a1]])
+          + _qbPoly([[a0, b0], [a1, b0], [a1, b1], [a0, b1]]);
+      } else {
+        d += _qbPoly([[a0, a0], [b1, a0], [b1, a1], [a1, a1], [a1, b1], [a0, b1]]);
+      }
+    }
+    var delay = Math.round(k * (timing.longMs - liftMs) / steps);
+    out += '<path d="' + d + '" fill="' + bg + '" fill-rule="evenodd" opacity="0" shape-rendering="crispEdges"'
+      + ' style="animation:qr-lift ' + liftMs + 'ms linear ' + delay + 'ms both"/>';
+  }
+  return out;
 }
 
 QRCode.prototype.svg = function(opt) {
@@ -627,14 +891,7 @@ QRCode.prototype.svg = function(opt) {
     ? { stops: options.gradStops, type: options.gradType === 'radial' ? 'radial' : 'linear', angle: Number(options.gradAngle) || 0, mix: options.gradMix === true }
     : null;
   var _logo = (options.logoUrl && String(options.logoUrl) !== '')
-    ? { url: options.logoUrl,
-        scale: Math.min(32, Math.max(8, Number(options.logoScale) || 22)) / 100,
-        // Number.isFinite guard, not `Number(x) == null` (which is ALWAYS false -
-        // Number returns NaN, never null - so an undefined logoPad used to make the
-        // whole plate NaN and silently disable the knockout).
-        pad: Number.isFinite(Number(options.logoPad)) ? Math.max(0, Number(options.logoPad)) : 1,
-        shape: options.logoShape || 'rounded',
-        bg: options.bg || '#ffffff' }
+    ? Object.assign({ url: options.logoUrl, bg: options.bg || '#ffffff' }, _qbLogoPlate(options))
     : null;
   // A custom eyeColor alone (square modules, square eyes) must still route to the
   // branded renderer - the legacy loop paints every module in one colour and would
@@ -676,9 +933,25 @@ QRCode.prototype.svg = function(opt) {
   // frame is 'none' (default) outW/outH/content are the untouched 600×600 code,
   // so an unframed render is byte-identical.
   var _frame = _qbFrame(options.frame);
+  // Motion (opt-in): covers go over the modules, and nothing about the modules changes.
+  var _timing = options.motion ? _qbMotionTiming(options.motion) : null;
+  var _rootAttrs = '';
+  var _rise = '';
+  if (_timing) {
+    var _hasLabel = _frame !== 'none' && String(options.frameText == null ? '' : options.frameText).trim() !== '';
+    if (options.background === 'none') {
+      // Nothing to cover a transparent code with, so the code fades in as one piece.
+      modrect = '<g style="animation:qr-fade ' + _timing.longMs + 'ms linear 0ms both">' + modrect + '</g>';
+    } else {
+      modrect += _qbMotionCovers(length, xsize, options.padding, width, height, _timing, options.background);
+    }
+    defs = '<style>' + _QB_MOTION_CSS + '</style>' + defs;
+    _rise = 'transform-box:fill-box;transform-origin:center;animation:qr-rise ' + _timing.mediumMs + 'ms ' + _timing.ease + ' ' + _timing.longMs + 'ms both';
+    _rootAttrs = ' data-qr-motion="" data-clip-ms="' + _qbClipMs(_timing, _hasLabel) + '"';
+  }
   var outW = width, outH = height, content = defs + bgrect + modrect;
   if (_frame !== 'none') {
-    var fr = _qbFrameWrap(content, width, height, _frame, options.frameText, options.color, options.background, _esc);
+    var fr = _qbFrameWrap(content, width, height, _frame, options.frameText, options.color, options.background, _esc, _rise);
     outW = fr.w; outH = fr.h; content = fr.content;
   }
 
@@ -689,7 +962,7 @@ QRCode.prototype.svg = function(opt) {
       svg += content + '</svg>';
       break;
     case 'svg-viewbox':
-      svg += '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" viewBox="0 0 ' + outW + ' ' + outH + '">' + EOL;
+      svg += '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" viewBox="0 0 ' + outW + ' ' + outH + '"' + _rootAttrs + '>' + EOL;
       svg += content + '</svg>';
       break;
     case 'g':
@@ -717,9 +990,9 @@ function _esc(s) {
 // it, and the QR silently blanks with no explanation.
 function _errorSvg(note) {
   return '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="100%" height="100%" viewBox="0 0 600 600">'
-    + '<rect x="0" y="0" width="600" height="600" fill="#fff5f5"/>'
-    + '<text x="300" y="286" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="28" font-weight="700" fill="#bd3314">QR code unavailable</text>'
-    + '<text x="300" y="326" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="20" fill="#111111">' + _esc(note) + '</text>'
+    + '<rect x="0" y="0" width="600" height="600" fill="' + _qbAlert.card + '"/>'
+    + '<text x="300" y="286" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="28" font-weight="700" fill="' + _qbAlert.title + '">QR code unavailable</text>'
+    + '<text x="300" y="326" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="20" fill="' + _qbAlert.body + '">' + _esc(note) + '</text>'
     + '</svg>';
 }
 
@@ -982,7 +1255,7 @@ function compute(args, host) {
   var eclRaised = hasLogo && eclInput !== 'H';
 
   // Scannability guardrail (WP-K1): pure checks over the styling that just ran.
-  var scanWarnings = _qbScanWarnings({
+  var scanOpts = {
     fg: fg,
     bg: _transparentBg ? '#ffffff' : bg,
     eyeColor: eyeColor,
@@ -992,7 +1265,7 @@ function compute(args, host) {
     logoScale: args.logoScale,
     logoPad: args.logoPad,
     ecl: eclEff,
-  });
+  };
 
   var result;
   if (!content) {
@@ -1023,10 +1296,15 @@ function compute(args, host) {
         bg:          _transparentBg ? '#ffffff' : bg,
         frame:       args.frame,         // WP-J - 'none' unless a frame is chosen
         frameText:   args.frameText,
+        motion:      args._motion || null,   // set by _run only when Motion is on
         width:       600,
         height:      600,
         pretty:      false,
       });
+      // The logo is counted on the symbol that was just built, with the plate the renderer draws.
+      if (hasLogo) scanOpts.logoLoad = _qbLogoLoad(qr.qrcode, _qbLogoPlate(args));
+      var scanChecks = _qbScanChecks(scanOpts);
+      var scanWarnings = scanChecks.map(function (c) { return c.text; });
       result = {
         svgContent: qr.svg({ container: 'svg-viewbox' }),
         qrError: '',
@@ -1036,7 +1314,9 @@ function compute(args, host) {
         qrEclRaised: eclRaised,   // WP-I - "raised to H for the logo", for the guardrail
         qrWarnings: scanWarnings, // WP-K1 - pure scannability warnings (editor-only)
         qrHasWarnings: scanWarnings.length > 0,
+        inputNotices: _qbScanNotices(scanChecks), // shown by the shell under each input, never drawn
       };
+      if (args._motion) { result.qrMotion = true; result.qrPlayLabel = _QB_PLAY_LABEL; }
     } catch (err) {
       var msg = (err && err.message) ? err.message : 'Could not generate QR code';
       var note = /too long|overflow/i.test(msg)
@@ -1396,19 +1676,19 @@ function errorSvg(note, hint) {
   var y = 140;
   for (var i = 0; i < lines.length; i++) {
     body += '<text x="300" y="' + (y + i * PANEL_LINE) + '" text-anchor="middle" font-family="' + _QB_FONT + '" '
-      + 'font-size="17" fill="#111111">' + _esc(lines[i]) + '</text>';
+      + 'font-size="17" fill="' + _qbAlert.body + '">' + _esc(lines[i]) + '</text>';
   }
   var last = y + (lines.length - 1) * PANEL_LINE;
   if (hint) {
     last += 36;
     body += '<text x="300" y="' + last + '" text-anchor="middle" font-family="' + _QB_MONO
-      + '" font-size="17" fill="#111111">' + _esc(hint) + '</text>';
+      + '" font-size="17" fill="' + _qbAlert.body + '">' + _esc(hint) + '</text>';
   }
   var h = Math.max(260, last + 60);
   return '<svg class="bc-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + PANEL_W + ' ' + h + '" '
     + 'preserveAspectRatio="xMidYMid meet" role="img" aria-label="Barcode unavailable">'
-    + '<rect x="0" y="0" width="' + PANEL_W + '" height="' + h + '" rx="12" fill="#fff5f5"/>'
-    + '<text x="300" y="96" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="26" font-weight="700" fill="#bd3314">Barcode unavailable</text>'
+    + '<rect x="0" y="0" width="' + PANEL_W + '" height="' + h + '" rx="12" fill="' + _qbAlert.card + '"/>'
+    + '<text x="300" y="96" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="26" font-weight="700" fill="' + _qbAlert.title + '">Barcode unavailable</text>'
     + body
     + '</svg>';
 }
@@ -1495,8 +1775,8 @@ var SYMBOLOGIES = ['auto', 'ean13', 'ean8', 'upca', 'code128'];
 function _fail(note, hint, kind) {
   return {
     svgContent: errorSvg(note, hint),
-    bgHex: '#fff5f5',
-    inkHex: '#111111',
+    bgHex: _qbAlert.card,
+    inkHex: _qbAlert.body,
     bcError: note,
     bcHint: hint || '',
     bcSymbology: kind,
@@ -1696,19 +1976,19 @@ var computeBwip = (function () {
     var y = 140;
     for (var i = 0; i < lines.length; i++) {
       body += '<text x="300" y="' + (y + i * 26) + '" text-anchor="middle" font-family="' + _QB_FONT + '" '
-        + 'font-size="17" fill="#111111">' + _esc(lines[i]) + '</text>';
+        + 'font-size="17" fill="' + _qbAlert.body + '">' + _esc(lines[i]) + '</text>';
     }
     var last = y + (lines.length - 1) * 26;
     if (hint) {
       last += 36;
       body += '<text x="300" y="' + last + '" text-anchor="middle" font-family="' + _QB_MONO + '" '
-        + 'font-size="17" fill="#111111">' + _esc(hint) + '</text>';
+        + 'font-size="17" fill="' + _qbAlert.body + '">' + _esc(hint) + '</text>';
     }
     var h = Math.max(260, last + 60);
     return '<svg class="bc-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 ' + h + '" '
       + 'preserveAspectRatio="xMidYMid meet" role="img" aria-label="Code unavailable">'
-      + '<rect x="0" y="0" width="600" height="' + h + '" rx="12" fill="#fff5f5"/>'
-      + '<text x="300" y="96" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="26" font-weight="700" fill="#bd3314">Code unavailable</text>'
+      + '<rect x="0" y="0" width="600" height="' + h + '" rx="12" fill="' + _qbAlert.card + '"/>'
+      + '<text x="300" y="96" text-anchor="middle" font-family="' + _QB_FONT + '" font-size="26" font-weight="700" fill="' + _qbAlert.title + '">Code unavailable</text>'
       + body
       + '</svg>';
   }
@@ -1874,8 +2154,8 @@ var computeBwip = (function () {
   function _fail(note, hint, sym) {
     return {
       svgContent: errorSvg(note, hint),
-      bgHex: '#fff5f5',
-      inkHex: '#111111',
+      bgHex: _qbAlert.card,
+      inkHex: _qbAlert.body,
       bcError: note,
       bcHint: hint || '',
       bcSymbology: sym,
@@ -2057,6 +2337,664 @@ async function brandFonts(host) {
 }
 // === /lolly:shared brandFonts ===
 
+// ─── The design system's alert colours and motion ────────────────────────────
+// The error panels and the warnings take the system's alert roles, and the
+// motion takes its durations and curve. Each has the value this tool always drew
+// as its fallback, so a host with no tokens draws what it drew before.
+var _QB_PLAY_LABEL = 'Play motion';
+var _QB_CLIP_FORMATS = ['mp4', 'webm', 'gif', 'apng', 'webp-anim'];
+var _qbMotionOn = false;
+var _qbMotionSeq = 0;
+var _QB_ALERT = { card: '#fff5f5', title: '#bd3314', body: '#111111', css: '' };
+var _qbAlert = _QB_ALERT;
+
+function _qbHex6(v) {
+  if (typeof v !== 'string') return '';
+  var h = v.trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(h)) return h;
+  if (/^#[0-9a-f]{8}$/.test(h)) return h.slice(0, 7);
+  if (/^#[0-9a-f]{3}$/.test(h)) return '#' + h[1] + h[1] + h[2] + h[2] + h[3] + h[3];
+  return '';
+}
+
+// The first candidate that clears `min` on `ground`, else whichever came closest.
+function _qbReadable(candidates, ground, min) {
+  var best = '', bestScore = -1;
+  for (var i = 0; i < candidates.length; i++) {
+    if (!candidates[i]) continue;
+    var score = _qbContrast(candidates[i], ground);
+    if (score == null) continue;
+    if (score >= min) return candidates[i];
+    if (score > bestScore) { best = candidates[i]; bestScore = score; }
+  }
+  return best;
+}
+
+function _qbDurationMs(v) {
+  var n = null, unit = 'ms';
+  if (typeof v === 'number') n = v;
+  else if (typeof v === 'string') {
+    var m = /^\s*(\d+(?:\.\d+)?|\.\d+)\s*(ms|s)\s*$/i.exec(v);
+    if (m) { n = Number(m[1]); unit = m[2].toLowerCase(); }
+  } else if (v && typeof v === 'object' && typeof v.value === 'number') {
+    n = v.value;
+    unit = v.unit === 's' ? 's' : 'ms';
+  }
+  if (n === null || !(n > 0)) return 0;
+  return Math.min(4000, unit === 's' ? n * 1000 : n);
+}
+
+function _qbCurveCss(value) {
+  var v = value;
+  if (v && typeof v === 'object' && !Array.isArray(v) && Array.isArray(v.timingFunction)) v = v.timingFunction;
+  if (!Array.isArray(v) || v.length !== 4) return '';
+  for (var i = 0; i < 4; i++) if (typeof v[i] !== 'number' || !Number.isFinite(v[i])) return '';
+  if (v[0] < 0 || v[0] > 1 || v[2] < 0 || v[2] > 1) return '';
+  return 'cubic-bezier(' + v.join(',') + ')';
+}
+
+async function _qbToken(host, ref) {
+  if (!host || !host.tokens || !host.tokens.resolve) return null;
+  try { return await host.tokens.resolve(ref); } catch (e) { return null; }
+}
+
+// The alert card and the inks that read on that card. The title is large type, so
+// 3:1 is enough. The body and the warning lines are small type and need 4.5:1.
+async function _qbReadAlert(host) {
+  var card = _qbHex6(await _qbToken(host, '{color.role.alert-card}'));
+  var ink = _qbHex6(await _qbToken(host, '{color.role.alert-ink}'));
+  if (!card || !ink) return _QB_ALERT;
+  var text = _qbHex6(await _qbToken(host, '{color.semantic.text}'));
+  var body = _qbReadable([text, ink, '#111111', '#ffffff'], card, 4.5);
+  var small = _qbReadable([ink, body], card, 4.5);
+  return {
+    card: card,
+    title: _qbReadable([ink, body], card, 3),
+    body: body,
+    css: '--qr-alert-card:' + card + ';--qr-alert-ink:' + small,
+  };
+}
+
+async function _qbReadMotion(host) {
+  return {
+    longMs: _qbDurationMs(await _qbToken(host, '{motion.duration.long}')),
+    mediumMs: _qbDurationMs(await _qbToken(host, '{motion.duration.medium}')),
+    ease: _qbCurveCss(await _qbToken(host, '{motion.curve.emphasised}')),
+  };
+}
+
+// The alert colours for the panels the stylesheet draws, when the system gave them.
+// A hook's result is laid over the last one, so a flag a result leaves out would keep
+// its old value: a barcode would keep the replay button of the QR code before. Each
+// flag the template reads is therefore stated on every result. The input notices are
+// stated the same way, so a fixed warning, a barcode and scan mode all clear them.
+var _QB_FLAGS = { qrNotes: false, qrMotion: false, qrHasWarnings: false, qrLiveScanFail: false, scanMiss: false };
+function _qbWithAlert(result) {
+  return result ? Object.assign({}, _QB_FLAGS, { inputNotices: {} }, result, { qrAlertStyle: _qbAlert.css }) : result;
+}
+
+// ═══ Scan mode (moved from community/scan-code) ═══════════════════════════════
+// Everything from here to the matching end line is the code reader: QR Code's
+// `mode` input set to `scan`. It reads a code from the camera, from an image or
+// from pasted text, and shows what the code carries with the safety checks.
+//
+// A scanned code is untrusted input wearing a friendly costume. This mode is a
+// READER, not an opener: it decodes, classifies, explains, and lets the user act
+// deliberately. Nothing is automatic - no auto-open, auto-join, auto-dial,
+// auto-import. The primary action is always Copy; "Open"/"Join"/"Add" are
+// explicit taps that first show exactly what will happen.
+//
+// Everything here is pure string work over a decoded value (host.scan does the
+// decoding, DOM-free, in the shell). The classifier is unit-tested through the
+// `paste` source, which runs the same safety analysis on a value typed in by hand.
+//
+// Sources of the value, in the order the hooks set `_scScanned`:
+//   - source `paste`: the `scanText` input, verbatim;
+//   - source `image`: host.raster.decode(scanImage) -> RGBA -> host.scan.detect (browser);
+//   - source `camera`: _scOnFrame -> host.scan.detect (browser).
+// The CLI has no canvas or camera, so it reads pasted text here, and `lolly scan`
+// reads an image.
+//
+// The helpers carry the prefix _sc where a name would meet one of QR Code's own.
+// `classify` and the _classify family are the reader's safety model and are kept
+// word for word: tests/qr-code-scan-mode.test.ts compares them with the retired
+// tool's copy.
+//
+// This file runs in a hook Worker (the manifest sets `isolate`), so nothing here
+// may reach for the page: a canvas is an OffscreenCanvas or there is none.
+//
+// The shell refuses host.raster.decode and host.raster.encode from a hook Worker
+// ("not permitted from an isolated hook"). Both helpers below ask the host first,
+// which answers when the hooks run in the page, and do the same work with the
+// Worker's own createImageBitmap and OffscreenCanvas when the host refuses.
+
+var _SC_NO_CANVAS_IMAGE = 'This browser cannot read a code from an image. Switch Source to Text and paste the code\'s text.';
+var _SC_NO_CANVAS_CAMERA = 'This browser cannot show the camera picture. A code held in front of the camera is still read.';
+// Whether the host has ever encoded a frame for this mount. Until it has, a host
+// that offers the method may still be one that refuses the call.
+var _scHostEncodes = false;
+// Set once the host has refused the call, so a camera frame is not sent to be refused again.
+var _scHostRefusesEncode = false;
+function _scCanEncode() {
+  return _scHostEncodes || typeof OffscreenCanvas !== 'undefined';
+}
+// The shell's own limit on a decoded picture (MAX_SOURCE_PIXELS in the web shell's
+// image-resize.ts), kept here for the pictures this file decodes itself.
+var _SC_MAX_PIXELS = 64 * 1024 * 1024;
+
+// ─── Safety helpers ──────────────────────────────────────────────────────────
+
+function _scEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// Mask a secret completely - reveal NO characters (not even the ends: a
+// six-char Wi-Fi PIN or a short 2FA seed is fully guessable from its ends).
+// The real value is shown only behind an explicit Reveal tap.
+function _mask(s) {
+  s = String(s == null ? '' : s);
+  if (!s.length) return '';
+  return '•'.repeat(Math.max(4, Math.min(12, s.length)));
+}
+
+// An IDN look-alike vector: a hostname with non-ASCII characters (a Unicode
+// homoglyph) OR one already in ACE/punycode form (an `xn--` label - the exact
+// encoding an attacker embeds to dodge a Unicode-only check).
+function _hasNonAscii(s) { return /[^\x00-\x7F]/.test(String(s || '')); }
+function _isIdnHost(s) { return _hasNonAscii(s) || /(^|\.)xn--/i.test(String(s || '')); }
+
+// Punycode-encode a unicode host label for the dual render (ASCII form), using
+// the platform URL parser where present; falls back to the raw string.
+function _asciiHost(host) {
+  try {
+    if (typeof URL === 'function') return new URL('http://' + host).hostname;
+  } catch (e) { /* fall through */ }
+  return host;
+}
+
+var _SHORTENERS = [
+  'bit.ly', 't.co', 'tinyurl.com', 'goo.gl', 'ow.ly', 'is.gd', 'buff.ly',
+  't.ly', 'rebrand.ly', 'cutt.ly', 'lnkd.in', 'rb.gy', 'shorturl.at', 'qr.link',
+];
+
+var _SAFE_SCHEMES = ['http', 'https'];
+// Schemes that must NEVER get a tappable "open" - they run code or reach the
+// device/filesystem. Rendered as inert text with a plain warning.
+var _DANGER_SCHEMES = ['javascript', 'data', 'file', 'intent', 'vbscript', 'blob', 'about'];
+
+// ─── URL scrutiny (safety item 2 - the full treatment) ───────────────────────
+
+function _classifyUrl(raw) {
+  var scheme = (String(raw).match(/^([a-z][a-z0-9+.\-]*):/i) || [])[1];
+  scheme = scheme ? scheme.toLowerCase() : '';
+  var warnings = [];
+  var out = { kind: 'url', label: 'Link', value: raw, scheme: scheme, openable: false, fields: [] };
+
+  if (_DANGER_SCHEMES.indexOf(scheme) >= 0) {
+    warnings.push('This is a "' + scheme + ':" link, which can run code or reach your device - it is shown as text and is never openable from here.');
+    out.warnings = warnings;
+    out.label = 'Link (' + scheme + ':)';
+    return out;
+  }
+
+  // The AUTHORITATIVE host is the platform URL parser's hostname - the site a
+  // browser would ACTUALLY open. The hand-rolled regex is a fallback only for
+  // schemes URL can't parse, and never overrides the parser: that was the
+  // backslash-@ authority-confusion bug (browsers normalise "\" to "/", ending
+  // the authority before an "@decoy", so a regex that treated "\" as an ordinary
+  // char read the decoy as the host and vouched for the wrong site). Warnings
+  // here are PLAIN text - _scViewModel escapes them once (no double-escaping).
+  var host = '', userinfo = '';
+  try {
+    if (typeof URL === 'function') {
+      var u = new URL(raw);
+      host = u.hostname;
+      userinfo = u.username || '';
+    }
+  } catch (e) { /* not a parseable absolute URL */ }
+  if (!host) {
+    var m = String(raw).match(/^[a-z][a-z0-9+.\-]*:\/\/([^\/?#\\]*)/i); // stop at "\" too
+    if (m) {
+      var auth = m[1];
+      var at = auth.lastIndexOf('@');
+      if (at >= 0) { userinfo = auth.slice(0, at); host = auth.slice(at + 1); }
+      else host = auth;
+      host = host.replace(/:\d+$/, '');
+    }
+  }
+  // A backslash anywhere in the authority is an authority-confusion trick.
+  var backslash = /^[a-z][a-z0-9+.\-]*:\/\/[^/?#]*\\/i.test(raw);
+
+  out.host = host;
+  out.openable = _SAFE_SCHEMES.indexOf(scheme) >= 0 && !backslash;
+
+  if (backslash) {
+    warnings.push('This link uses a backslash in its address, which makes browsers open a DIFFERENT site than it appears to (it would open "' + (host || 'an unclear host') + '"). It is shown as text and is not openable from here.');
+  }
+  if (userinfo) {
+    warnings.push('This link carries login info before the "@" (' + userinfo + '@…), a classic trick to make a strange site look familiar. A browser would open "' + (host || 'an unclear host') + '".');
+  }
+  if (scheme === 'http') {
+    warnings.push('This is a plain http:// link (not encrypted). Anything you send is in the clear.');
+  }
+  if (host && _isIdnHost(host)) {
+    out.hostAscii = host; // already ASCII/punycode - the honest form
+    warnings.push('This is an internationalised domain (punycode "' + host + '"). It can be made to LOOK like a familiar name in a browser - a look-alike is a common trick, so verify it carefully before opening.');
+  }
+  var bare = host.replace(/^www\./, '').toLowerCase();
+  if (_SHORTENERS.indexOf(bare) >= 0) {
+    warnings.push('This is a link shortener (' + bare + '); the real destination is unknown until it is opened.');
+  }
+  out.warnings = warnings;
+  return out;
+}
+
+// ─── Structured payloads (safety item 4) ─────────────────────────────────────
+
+function _kv(fields, label, value) { if (value != null && String(value) !== '') fields.push({ label: label, value: String(value) }); }
+
+// WIFI:S:ssid;T:WPA;P:pass;H:true;;  (password MASKED by default - item 3)
+function _classifyWifi(raw) {
+  var body = raw.slice(5);
+  var map = {};
+  // Fields are ;-separated key:value with \-escaped separators.
+  body.replace(/([A-Z]):((?:[^\\;]|\\.)*)/g, function (_, k, v) { map[k] = v.replace(/\\(.)/g, '$1'); return ''; });
+  var fields = [];
+  _kv(fields, 'Network', map.S);
+  _kv(fields, 'Security', map.T || 'nopass');
+  if (map.H === 'true') _kv(fields, 'Hidden', 'yes');
+  var out = { kind: 'wifi', label: 'Wi-Fi network', fields: fields, warnings: [] };
+  if (map.P) { out.secret = { label: 'Password', value: map.P, masked: _mask(map.P) }; }
+  return out;
+}
+
+// otpauth://totp/Label?secret=BASE32&issuer=...  (secret MASKED - item 3)
+function _classifyOtp(raw) {
+  var fields = [];
+  var q = {};
+  var qs = (raw.split('?')[1] || '');
+  qs.split('&').forEach(function (p) { var i = p.indexOf('='); if (i > 0) q[decodeURIComponent(p.slice(0, i))] = decodeURIComponent(p.slice(i + 1)); });
+  var labelPart = (raw.split('?')[0] || '').replace(/^otpauth:\/\/(totp|hotp)\//i, '');
+  _kv(fields, 'Type', /hotp/i.test(raw) ? 'HOTP' : 'TOTP');
+  _kv(fields, 'Account', decodeURIComponent(labelPart || ''));
+  _kv(fields, 'Issuer', q.issuer);
+  var out = { kind: 'otpauth', label: 'Authenticator key', fields: fields, warnings: ['This is a two-factor secret. Add it only to a device you trust - anyone with it can generate your codes.'] };
+  if (q.secret) out.secret = { label: 'Secret', value: q.secret, masked: _mask(q.secret) };
+  return out;
+}
+
+// MECARD:N:Last,First;TEL:...;EMAIL:...;URL:...;;
+function _classifyMecard(raw) {
+  var map = {};
+  raw.slice(7).replace(/([A-Z]+):((?:[^\\;]|\\.)*)/g, function (_, k, v) { map[k] = v.replace(/\\(.)/g, '$1'); return ''; });
+  var fields = [];
+  _kv(fields, 'Name', (map.N || '').split(',').reverse().join(' ').trim());
+  _kv(fields, 'Phone', map.TEL);
+  _kv(fields, 'Email', map.EMAIL);
+  _kv(fields, 'URL', map.URL);
+  return { kind: 'contact', label: 'Contact (MECARD)', fields: fields, warnings: [] };
+}
+
+// vCard 3.0/4.0
+function _classifyVcard(raw) {
+  var fields = [];
+  var get = function (re) { var m = raw.match(re); return m ? m[1].trim() : ''; };
+  _kv(fields, 'Name', get(/\nFN:(.+)/i) || get(/\nN:(.+)/i));
+  _kv(fields, 'Org', get(/\nORG:(.+)/i));
+  _kv(fields, 'Title', get(/\nTITLE:(.+)/i));
+  _kv(fields, 'Phone', get(/\nTEL[^:]*:(.+)/i));
+  _kv(fields, 'Email', get(/\nEMAIL[^:]*:(.+)/i));
+  _kv(fields, 'URL', get(/\nURL[^:]*:(.+)/i));
+  var out = { kind: 'contact', label: 'Contact card (vCard)', fields: fields, warnings: [] };
+  if (!fields.length) out.warnings.push('This looks like a vCard but carries no readable fields - it may be malformed.');
+  return out;
+}
+
+// VEVENT (inside a VCALENDAR)
+function _classifyEvent(raw) {
+  var fields = [];
+  var get = function (re) { var m = raw.match(re); return m ? m[1].trim() : ''; };
+  _kv(fields, 'Event', get(/\nSUMMARY:(.+)/i));
+  _kv(fields, 'Starts', get(/\nDTSTART[^:]*:(.+)/i));
+  _kv(fields, 'Ends', get(/\nDTEND[^:]*:(.+)/i));
+  _kv(fields, 'Where', get(/\nLOCATION:(.+)/i));
+  var out = { kind: 'event', label: 'Calendar event', fields: fields, warnings: [] };
+  if (!/BEGIN:VEVENT/i.test(raw) || !/DTSTART/i.test(raw)) out.warnings.push('Carried by the symbol, but not a valid calendar event (no start time).');
+  return out;
+}
+
+function _classifyGeo(raw) {
+  var m = raw.match(/^geo:(-?[\d.]+),(-?[\d.]+)/i);
+  var fields = [];
+  if (m) { _kv(fields, 'Latitude', m[1]); _kv(fields, 'Longitude', m[2]); }
+  var out = { kind: 'geo', label: 'Location', fields: fields, value: raw, warnings: [] };
+  if (!m) out.warnings.push('Carried by the symbol, but not a valid geo: coordinate.');
+  return out;
+}
+
+function _classifyTelLike(raw, scheme) {
+  // Strip the ACTUAL scheme prefix by the colon, not the mapped scheme's length -
+  // SMSTO: has a longer prefix than the 'sms' kind it maps to, and slicing by the
+  // mapped length leaked "O:" into the number (safety-parse finding).
+  var colon = raw.indexOf(':');
+  var body = (colon >= 0 ? raw.slice(colon + 1) : raw).split('?')[0];
+  var labels = { tel: 'Phone number', sms: 'Text message', mailto: 'Email address' };
+  var fields = [];
+  var val = body; try { val = decodeURIComponent(body); } catch (e) { /* keep raw on bad %-encoding */ }
+  _kv(fields, labels[scheme] ? labels[scheme].split(' ')[0] : scheme, val);
+  return { kind: scheme, label: labels[scheme] || scheme, value: raw, fields: fields,
+    warnings: ['Nothing is dialled, texted or emailed until you choose to. Check the ' + (labels[scheme] || scheme).toLowerCase() + ' first.'] };
+}
+
+// Matter (MT:...) pairing code - vendor/product/discriminator surfaced, setup
+// code masked (the home-automation case, safety item 4).
+function _classifyMatter(raw) {
+  return { kind: 'matter', label: 'Matter pairing code', fields: [{ label: 'Type', value: 'Smart-home device setup' }],
+    secret: { label: 'Setup code', value: raw, masked: _mask(raw) },
+    warnings: ['A device pairing code. Use it only in your own smart-home app; it lets a device onto your network.'] };
+}
+
+// GS1 element strings or a GS1 Digital Link URL -> a human table of AIs.
+var _GS1_AI = { '00': 'SSCC', '01': 'GTIN', '10': 'Batch/Lot', '11': 'Prod date', '17': 'Expiry', '21': 'Serial', '30': 'Count', '3103': 'Weight (kg)' };
+function _classifyGs1(raw) {
+  var fields = [];
+  var body = raw;
+  // Digital Link: https://id.example/01/09521.../10/LOT -> read the /AI/value pairs.
+  var dl = raw.match(/https?:\/\/[^/]+\/(01\/.*)$/i);
+  if (dl) {
+    dl[1].split('/').forEach(function (seg, i, a) { if (i % 2 === 0 && a[i + 1] != null && _GS1_AI[seg]) fields.push({ label: '(' + seg + ') ' + _GS1_AI[seg], value: a[i + 1] }); });
+  } else {
+    body.replace(/\((\d{2,4})\)([^(]*)/g, function (_, ai, val) { fields.push({ label: '(' + ai + ') ' + (_GS1_AI[ai] || 'AI ' + ai), value: val }); return ''; });
+  }
+  var out = { kind: 'gs1', label: 'GS1 product / logistics code', fields: fields, warnings: [] };
+  if (!fields.length) out.warnings.push('Looks like GS1 data but no application identifiers could be read.');
+  return out;
+}
+
+// ─── The classifier (safety item 1: nothing automatic; Copy is primary) ──────
+
+function classify(rawValue, format) {
+  var raw = String(rawValue == null ? '' : rawValue);
+  if (!raw) return { kind: 'empty', label: 'Nothing decoded', fields: [], warnings: [], copy: '' };
+
+  var lower = raw.toLowerCase();
+  var scheme = (raw.match(/^([a-z][a-z0-9+.\-]*):/i) || [])[1];
+  scheme = scheme ? scheme.toLowerCase() : '';
+
+  var r;
+  if (/^wifi:/i.test(raw)) r = _classifyWifi(raw);
+  else if (scheme === 'otpauth') r = _classifyOtp(raw);
+  else if (/^mecard:/i.test(raw)) r = _classifyMecard(raw);
+  else if (/^begin:vcard/i.test(raw)) r = _classifyVcard(raw);
+  else if (/begin:vevent/i.test(lower) || /begin:vcalendar/i.test(lower)) r = _classifyEvent(raw);
+  else if (scheme === 'geo') r = _classifyGeo(raw);
+  else if (scheme === 'tel' || scheme === 'sms' || scheme === 'smsto' || scheme === 'mailto') r = _classifyTelLike(raw, scheme === 'smsto' ? 'sms' : scheme);
+  else if (/^mt:/i.test(raw)) r = _classifyMatter(raw);
+  // GS1 ELEMENT STRINGS only (no scheme). A GS1 Digital Link is a URL and MUST
+  // keep its URL safety scrutiny - it is handled in the scheme branch below, where
+  // the AI table is appended WITHOUT losing the openable/host checks. (Routing
+  // "/01/<digit>" URLs straight to GS1 was a scrutiny bypass - safety-parse finding.)
+  else if (/^\(\d{2,4}\)/.test(raw)) r = _classifyGs1(raw);
+  else if (scheme) {
+    r = _classifyUrl(raw);
+    if (r.openable && /\/01\/\d/.test(raw)) {
+      var dl = _classifyGs1(raw);
+      if (dl.fields && dl.fields.length) { r.gs1 = true; r.fields = (r.fields || []).concat(dl.fields); }
+    }
+  }
+  else r = { kind: 'text', label: 'Plain text', value: raw, fields: [], warnings: [] };
+
+  // Credential guard (item 3): flag a scanned secret. Runs on free text AND on
+  // URLs (a key/token in a query string is the common case) - not just kind==='text'.
+  if ((r.kind === 'text' || r.kind === 'url') && /(?:password|passwd|api[_-]?key|secret|token|bearer|access[_-]?token)\b\s*[:=]\s*\S/i.test(raw)) {
+    r.warnings = (r.warnings || []).concat('This ' + (r.kind === 'url' ? 'link' : 'text') + ' looks like it contains a password or key. It is shown masked; reveal it only if you expect a secret here.');
+    r.looksSecret = true;
+  }
+
+  r.format = format || '';
+  r.raw = raw;
+  // What Copy puts on the clipboard: the exact payload, never a mask.
+  r.copy = raw;
+  r.warnings = r.warnings || [];
+  return r;
+}
+
+// ─── View model for the template ─────────────────────────────────────────────
+
+function _scViewModel(c) {
+  if (!c || c.kind === 'empty') {
+    // An image that was read and held no code says so where the prompt would stand.
+    return { scanKind: '', scanLabel: '', scanEmpty: true, scanMiss: !!(c && c.miss), scanFieldsHtml: '', scanWarnHtml: '', scanCopy: '', scanValueHtml: '', scanOpen: '', scanSummary: 'Nothing decoded yet' };
+  }
+  var fieldsHtml = (c.fields || []).map(function (f) {
+    return '<div class="sc-field"><span class="sc-field__k">' + _scEsc(f.label) + '</span><span class="sc-field__v">' + _scEsc(f.value) + '</span></div>';
+  }).join('');
+  if (c.secret) {
+    fieldsHtml += '<div class="sc-field sc-field--secret"><span class="sc-field__k">' + _scEsc(c.secret.label) + '</span>'
+      + '<span class="sc-field__v" data-secret="' + _scEsc(c.secret.value) + '" data-mask="' + _scEsc(c.secret.masked) + '">' + _scEsc(c.secret.masked) + '</span>'
+      + '<button type="button" class="sc-reveal" data-reveal data-open="0">Reveal</button></div>';
+  }
+  var warnHtml = (c.warnings || []).map(function (w) { return '<li>' + _scEsc(w) + '</li>'; }).join('');
+  // The value block: shown for url/text/geo (masked if it looks secret).
+  var valueHtml = '';
+  if (c.kind === 'url' || c.kind === 'text' || c.kind === 'geo') {
+    var shown = (c.looksSecret ? _mask(c.value || c.raw) : (c.value || c.raw));
+    valueHtml = '<div class="sc-value' + (c.looksSecret ? ' sc-value--secret' : '') + '">' + _scEsc(shown) + '</div>';
+    if (c.hostAscii) valueHtml += '<div class="sc-punycode">punycode: ' + _scEsc(c.hostAscii) + '</div>';
+  }
+  return {
+    scanKind: c.kind,
+    scanLabel: c.label,
+    scanEmpty: false,
+    scanFieldsHtml: fieldsHtml,
+    scanWarnHtml: warnHtml,
+    scanHasWarn: (c.warnings || []).length > 0,
+    scanCopy: c.copy,
+    scanValueHtml: valueHtml,
+    scanOpenUrl: c.openable ? (c.value || c.raw) : '',
+    scanFormat: c.format,
+    scanSummary: c.label + (c.host ? ' · ' + c.host : ''),
+  };
+}
+
+// ─── Hooks ───────────────────────────────────────────────────────────────────
+
+// The most recent decoded value, so _scOnInput (paste) and _scOnFrame (camera) share
+// one render path. Kept at module scope; the runtime re-runs hooks per change.
+var _scScanned = null;
+
+function _scResult(c) {
+  var vm = _scViewModel(c);
+  vm.a11yScan = vm.scanEmpty ? 'No code scanned yet.' : (c.label + '. ' + ((c.warnings || []).length ? (c.warnings.length + ' safety notes.') : 'No safety notes.'));
+  return vm;
+}
+
+// Can this host actually open a camera? getUserMedia only exists in a secure
+// context - https or localhost - so over plain http on a phone (a LAN-IP dev
+// server) the browser blocks the camera outright and never even prompts. The
+// viewfinder uses this to explain that dead-end and point at image/paste,
+// instead of an unactionable "turn the camera on".
+function _scCamReady(host) {
+  try { return !!(host && host.media && typeof host.media.isAvailable === 'function' && host.media.isAvailable()); }
+  catch (e) { return false; }
+}
+
+function _scOnInit({ model, host }) {
+  var args = _scArgs(model);
+  var vm = (args.source === 'paste' && _scStr(args.scanText)) ? _scResult(classify(args.scanText, 'manual')) : _scResult(_scScanned);
+  vm.scanCameraReady = _scCamReady(host);
+  vm.scanNotice = '';
+  return _scWithAlert(vm, host);
+}
+
+// The reader's warnings take the design system's alert role, as the maker's do.
+async function _scWithAlert(vm, host) {
+  _qbAlert = await _qbReadAlert(host);
+  return _qbWithAlert(vm);
+}
+
+async function _scOnInput({ model, host }) {
+  var args = _scArgs(model);
+  var vm = null;
+  var notice = '';
+  if (args.source === 'paste') {
+    vm = _scResult(_scStr(args.scanText) ? classify(args.scanText, 'manual') : null);
+  } else if (args.source === 'image' && args.scanImage && args.scanImage.bytes && host && host.scan) {
+    // An image is drawn to an OffscreenCanvas to read its pixels. Where the browser
+    // has none, the person is told, with the source that still works.
+    if (typeof OffscreenCanvas === 'undefined') notice = _SC_NO_CANVAS_IMAGE;
+    try {
+      var frame = await _scDecodeToFrame(args.scanImage.bytes, host);
+      if (frame) {
+        var formats = _scFormatsFilter(args.formats);
+        var hits = await host.scan.detect(frame, formats ? { formats: formats } : undefined);
+        vm = (hits && hits.length)
+          ? _scResult((_scScanned = classify(hits[0].rawValue, hits[0].format)))
+          : _scResult({ kind: 'empty', miss: true, label: 'No code found in this image', fields: [], warnings: [] });
+      }
+    } catch (e) { /* fall through to whatever was last scanned */ }
+  }
+  if (!vm) vm = _scResult(_scScanned);
+  vm.scanCameraReady = _scCamReady(host);
+  vm.scanNotice = notice;
+  return _scWithAlert(vm, host);
+}
+
+// Camera: the runtime hands one RGBA frame per tick (throttled; overlapping frames
+// dropped). Every frame is SHOWN so the user can line the code up in the viewfinder;
+// the decode is throttled separately (it's ~O(frame) and needn't run every frame),
+// and the last result + found-quad persist between decodes.
+var _scLastTickT = 0;       // last frame we did real work + re-rendered on
+var _scLastDecodeT = 0;
+var _scLastCorners = '';    // "x,y x,y x,y x,y" polygon points in frame coords, or ''
+async function _scOnFrame({ frame, model, host }) {
+  if (!host || !frame) return null;
+
+  // THROTTLE the whole loop to ~12fps. Encoding every camera frame to a JPEG data-URL and
+  // re-hydrating the viewfinder each tick saturated the phone's main thread: the preview
+  // flickered and taps on Home/back stopped registering, trapping the user in the tool
+  // (iOS, 2026-08). ~12fps is smooth to the eye and leaves the thread idle enough to stay
+  // responsive; the runtime already drops overlapping frames, so a sub-budget frame is a
+  // cheap early return. `frame.t` is a monotonic ms stamp - reset the gates if it restarts.
+  if (frame.t < _scLastTickT) { _scLastTickT = 0; _scLastDecodeT = 0; }
+  if (_scLastTickT && frame.t - _scLastTickT < 80) return null;
+  _scLastTickT = frame.t;
+  var args = _scArgs(model);
+
+  // Decode less often than we preview (~7/s): it is ~O(frame) and the last result +
+  // found-quad persist between decodes, so the panel stays put while the view updates.
+  if (host.scan && (!_scLastDecodeT || frame.t - _scLastDecodeT >= 140)) {
+    _scLastDecodeT = frame.t;
+    var formats = _scFormatsFilter(args.formats);
+    var hits = await host.scan.detect(frame, formats ? { formats: formats } : undefined);
+    if (hits && hits.length) {
+      _scScanned = classify(hits[0].rawValue, hits[0].format);
+      _scLastCorners = hits[0].corners ? _scCornerPoints(hits[0].corners) : '';
+    }
+  }
+  var src = await _scEncodeFrame(frame, host);
+  var vm = _scResult(_scScanned);      // last decode's result panel (persists between decodes)
+  // A failed encode must not replace the last visible frame with the start hint.
+  if (src) vm.scanFrameSrc = src;
+  // No picture can be drawn, and the code in view is still read from the frame.
+  vm.scanNotice = src || _scCanEncode() ? '' : _SC_NO_CANVAS_CAMERA;
+  vm.scanFrameW = frame.width;
+  vm.scanFrameH = frame.height;
+  vm.scanCorners = _scLastCorners;   // found-code quad overlay, in frame coords
+  vm.scanLive = true;
+  return vm;
+}
+
+// A found quad -> SVG polygon points in FRAME coordinates (the viewfinder SVG uses
+// the frame's viewBox, so no remapping is needed).
+function _scCornerPoints(corners) {
+  if (!Array.isArray(corners)) return '';
+  return corners.map(function (p) { return (p[0] | 0) + ',' + (p[1] | 0); }).join(' ');
+}
+
+// ─── small utils ─────────────────────────────────────────────────────────────
+
+function _scArgs(model) { return Object.fromEntries(model.map(function (i) { return [i.id, i.value]; })); }
+function _scStr(v) { return v == null ? '' : String(v).trim(); }
+function _scFormatsFilter(v) {
+  if (!v) return null;
+  var arr = Array.isArray(v) ? v : String(v).split(',');
+  arr = arr.map(function (s) { return String(s).trim(); }).filter(Boolean);
+  return arr.length ? arr : null;
+}
+
+// Decode an uploaded image's bytes to an RGBA frame for host.scan. Uses
+// host.raster (browser/Worker canvas) where present; returns null on the headless
+// CLI (which has no canvas - the CLI's `lolly scan` path decodes via sharp).
+// Encode a live RGBA frame to a data: URL so the template's viewfinder can show
+// it. Prefers host.raster.encode (DOM-free - works in a hook Worker); falls back
+// to an OffscreenCanvas where present. Returns '' if it can't (the template then
+// shows the "point the camera" hint, and _scOnFrame adds a notice when no encoder
+// exists at all). JPEG keeps the per-frame payload small.
+function _scB64(bytes) {
+  if (typeof btoa !== 'function') return '';
+  var s = '', chunk = 0x8000;
+  for (var i = 0; i < bytes.length; i += chunk) {
+    s += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunk, bytes.length)));
+  }
+  return btoa(s);
+}
+async function _scEncodeFrame(frame, host) {
+  try {
+    if (!_scHostRefusesEncode && host && host.raster && typeof host.raster.encode === 'function') {
+      try {
+        var r = await host.raster.encode({ data: frame.data, width: frame.width, height: frame.height }, { format: 'jpeg', quality: 0.55 });
+        if (r && r.bytes) { _scHostEncodes = true; return 'data:' + (r.mime || 'image/jpeg') + ';base64,' + _scB64(r.bytes); }
+      } catch (e) {
+        if (e && /not permitted/.test(String(e.message))) _scHostRefusesEncode = true;
+        // Refused from a hook Worker, or a frame the host could not encode. With a
+        // canvas of our own the frame is drawn below; without one there is no picture.
+        if (typeof OffscreenCanvas === 'undefined') return '';
+      }
+    }
+    if (typeof OffscreenCanvas !== 'undefined') {
+      var cv = new OffscreenCanvas(frame.width, frame.height);
+      var ctx = cv.getContext('2d');
+      var img = ctx.createImageData(frame.width, frame.height);
+      img.data.set(frame.data);
+      ctx.putImageData(img, 0, 0);
+      if (typeof cv.convertToBlob === 'function') {
+        var blob = await cv.convertToBlob({ type: 'image/jpeg', quality: 0.55 });
+        return 'data:image/jpeg;base64,' + _scB64(new Uint8Array(await blob.arrayBuffer()));
+      }
+    }
+  } catch (e) { /* no preview this frame */ }
+  return '';
+}
+
+async function _scDecodeToFrame(bytes, host) {
+  if (!host.raster || typeof host.raster.decode !== 'function') return null;
+  var bmp = null;
+  try { bmp = await host.raster.decode(bytes); }
+  catch (e) {
+    // Refused from a hook Worker. The Worker decodes the picture as the shell does
+    // for the types this input accepts: turned the way its EXIF says, and refused
+    // over the shell's pixel limit.
+    if (typeof createImageBitmap !== 'function') throw e;
+    bmp = await createImageBitmap(new Blob([bytes]), { imageOrientation: 'from-image' });
+    if (bmp.width * bmp.height > _SC_MAX_PIXELS) { if (bmp.close) bmp.close(); return null; }
+  }
+  if (!bmp || !bmp.width) return null;
+  var w = bmp.width, h = bmp.height;
+  // An OffscreenCanvas works in the page and in a hook Worker. A browser with
+  // none cannot read an image here; _scOnInput has already said that.
+  if (typeof OffscreenCanvas === 'undefined') return null;
+  var cv = new OffscreenCanvas(w, h);
+  var ctx = cv.getContext('2d');
+  if (!ctx) return null;
+  ctx.drawImage(bmp, 0, 0);
+  var img = ctx.getImageData(0, 0, w, h);
+  return { data: img.data, width: w, height: h };
+}
+// ═══ End of scan mode ════════════════════════════════════════════════════════
+
 async function _run(model, host) {
   var args = Object.fromEntries(model.map(function(i) { return [i.id, i.value]; }));
   var fonts = await brandFonts(host);
@@ -2065,6 +3003,13 @@ async function _run(model, host) {
   // In the args so every memo key changes with the design system's faces.
   args._fontBrand = fonts.brand;
   args._fontMono = fonts.mono;
+  _qbAlert = await _qbReadAlert(host);
+  // In the args for the same reason: an error panel is drawn in these colours.
+  if (_qbAlert.css) args._alert = _qbAlert.css + ';' + _qbAlert.title + ';' + _qbAlert.body;
+  return _qbWithAlert(await _runMake(args, host));
+}
+
+async function _runMake(args, host) {
   if (BARCODE_KINDS.indexOf(args.payload) >= 0) {
     args.symbology = args.payload;   // computeBarcode reads args.symbology (folded barcode, plans/147 T7a)
     return computeBarcode(args);
@@ -2075,7 +3020,13 @@ async function _run(model, host) {
   if (MATRIX_SHAPES.indexOf(args.symbology) >= 0) return computeBwip(args);
   try {
     args._logoUrl = await _qbLogoUrl(args.logo, host);   // WP-I - '' when no logo/shell support
+    // Motion belongs to the QR symbol, whose three eyes it starts from.
+    if (args.motion === 'rings') args._motion = await _qbReadMotion(host);
+    // The preview plays once each time Motion is switched on, so each switch gets a number.
+    if (args._motion && !_qbMotionOn) _qbMotionSeq++;
+    _qbMotionOn = !!args._motion;
     var result = compute(args, host);
+    if (result && result.qrMotion) result = Object.assign({}, result, { qrMotionKey: _qbMotionSeq, qrNotes: true });
     // WP-K2: the generator consuming the reader. For a BRANDED code, rasterise
     // the finished SVG and ask host.scan to decode it - the belt to WP-K1's pure
     // validators. Progressive enhancement: absent host.scan/host.raster (CLI,
@@ -2086,6 +3037,13 @@ async function _run(model, host) {
       var live = await _qbLiveScan(result.svgContent, result.qrPayload, host);
       if (live) {
         result = Object.assign({}, result, { qrLiveScan: live, qrLiveScanFail: live === 'fail' });
+        if (live === 'fail') {
+          var notices = Object.assign({}, result.inputNotices);
+          // A measured cause already under that input (the logo count) says more than the empty read.
+          var failAt = _qbReadFailInput(args);
+          if (!notices[failAt] || notices[failAt].tone !== 'error') notices[failAt] = { tone: 'error', text: _QB_READ_FAILED };
+          result = Object.assign({}, result, { inputNotices: notices });
+        }
       }
     }
     return result;
@@ -2095,12 +3053,27 @@ async function _run(model, host) {
   }
 }
 
+// Which of the tool's two modes the document is in. Anything but `scan` makes a
+// code, so a link, a session or a CLI call from before the mode existed is unchanged.
+function _isScan(model) {
+  for (var i = 0; i < (model || []).length; i++) if (model[i].id === 'mode') return model[i].value === 'scan';
+  return false;
+}
+
 function onInit({ model, host }) {
+  if (_isScan(model)) return _scOnInit({ model: model, host: host });
   return _run(model, host);
 }
 
 function onInput({ model, host }) {
+  if (_isScan(model)) return _scOnInput({ model: model, host: host });
   return _run(model, host);
+}
+
+// The camera serves scan mode only. A frame that arrives in make mode is dropped.
+function onFrame({ frame, model, host }) {
+  if (!_isScan(model)) return null;
+  return _scOnFrame({ frame: frame, model: model, host: host });
 }
 
 // The export refuses a code that carries nothing, on every shell: the web
@@ -2117,6 +3090,7 @@ function _exportRefusal(model) {
 }
 
 function beforeExport({ model, format, opts }) {
+  if (_isScan(model)) throw new Error('Scan mode reads a code and has nothing to export');
   var refusal = _exportRefusal(model);
   if (refusal) throw new Error(refusal);
   // Clear the container background for alpha-capable formats so the SVG's
@@ -2124,5 +3098,15 @@ function beforeExport({ model, format, opts }) {
   var alphaFormats = ['png', 'webp', 'avif'];
   if (_transparentBg && alphaFormats.includes(format)) {
     opts.background = 'transparent';
+  }
+  // A clip is a full frame, and a code with a call to action is taller than the
+  // frame is wide. The space left at the sides takes the code's own background.
+  if (_QB_CLIP_FORMATS.indexOf(format) >= 0 && opts && opts.background == null) {
+    var bg = null;
+    for (var i = 0; i < (model || []).length; i++) {
+      if (model[i].id === 'transparentBg' && model[i].value) return;
+      if (model[i].id === 'background') bg = _qbColour(model[i].value, '');
+    }
+    if (bg) opts.background = bg;
   }
 }

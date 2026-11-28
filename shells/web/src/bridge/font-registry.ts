@@ -20,11 +20,13 @@
  * **woff2 is not sfnt.** HarfBuzz cannot read it - feeding it a wOF2 blob yields
  * .notdef for every glyph (a silently blank export). Google Fonts serves woff2
  * to every browser and a browser cannot ask for anything else (`User-Agent` is a
- * forbidden fetch header), so we decompress on-device: `woff2-encoder/decompress`
- * is a lazily-imported ~127 KB-gz wasm module with the binary inlined as a data:
- * URI - no network, works offline, loads only when a vector export actually needs
- * it. The resulting sfnt is kept as an object URL for the session, never
- * persisted (it's ~2.5× the woff2 we already store).
+ * forbidden fetch header), so we decompress on-device through node-shell's
+ * `woff2.ts`, which checks the file's declared sizes before the Rust decoder module
+ * (wasm/woff2-kernel, ~123 KB gz, fetched and compiled once, each font decoded in
+ * a worker of its own) runs and checks the sfnt it returns - no network, works
+ * offline, loads only when a vector export actually needs a face. The resulting sfnt is kept as an
+ * object URL for the session, never persisted (it's ~2.5× the woff2 we already
+ * store).
  *
  * **Google's faces are variable and subsetted.** A family arrives as one file per
  * unicode subset, each carrying the whole `wght` axis - and the subsets are
@@ -363,7 +365,7 @@ async function faceUrl(face: RegistryFace): Promise<string> {
       || (bytes[0] === 0 && bytes[1] === 1 && bytes[2] === 0 && bytes[3] === 0);
     if (!isWoff2 && !isSfnt) throw new Error(`font-registry: ${cacheKey} is not an sfnt/woff2 (magic "${magic}")`);
     const sfnt = isWoff2
-      ? await (await import('woff2-encoder/decompress')).default(bytes)
+      ? await (await import('@lolly-tools/node-shell/woff2')).decodeWoff2(bytes)
       : bytes;
     const url = URL.createObjectURL(new Blob([sfnt as BlobPart], { type: 'font/otf' }));
     sfntUrls.set(cacheKey, url);

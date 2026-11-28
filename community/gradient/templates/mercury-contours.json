@@ -1,0 +1,18 @@
+{
+  "id": "mercury-contours",
+  "name": "Mercury contours",
+  "category": "Field",
+  "description": "Embossed contour lines over a shifting surface.",
+  "values": {
+    "mode": "field",
+    "effect": "liquid-contours",
+    "count": 3,
+    "color1": "{color.semantic.secondary}",
+    "color2": "{color.semantic.primary}",
+    "color3": "{color.semantic.secondary}",
+    "background": "{color.semantic.primary}",
+    "intensity": 65,
+    "density": 40,
+    "fieldSpeed": 70
+  }
+}

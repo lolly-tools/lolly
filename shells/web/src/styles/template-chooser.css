@@ -22,6 +22,9 @@
 .tmpl-chooser-panel {
   position: fixed;
   inset: 8vh 8vw;
+  /* Clear of a side the system holds: its bar is wider than this margin on a small screen. */
+  left: max(8vw, calc(var(--safe-left) + 8px));
+  right: max(8vw, calc(var(--safe-right) + 8px));
   z-index: 100002;
   background: color-mix(in srgb, var(--ui-color-surface-canvas) 70%, var(--ui-color-surface-raised));
   color: hsl(var(--popover-foreground));
@@ -63,20 +66,6 @@
 }
 .tmpl-chooser-search:focus { border-color: hsl(var(--primary)); }
 .tmpl-chooser-search::placeholder { color: hsl(var(--muted-foreground)); }
-
-.tmpl-chooser-close {
-  background: none;
-  border: none;
-  color: hsl(var(--muted-foreground));
-  font-size: 22px;
-  line-height: 1;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.tmpl-chooser-close:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 
 .tmpl-chooser-body {
   flex: 1;
@@ -359,11 +348,11 @@
 /* Keep responsive overrides AFTER the base rules they replace. The old block sat
    above them, so equal-specificity desktop declarations silently won on phones. */
 @media (max-width: 640px) {
-  .tmpl-chooser-panel { inset: max(8px, var(--safe-top, 0px)) 8px max(8px, var(--safe-bottom, 0px)); }
+  /* Each side reads its own inset: the panel stands beside a status column the system holds. */
+  .tmpl-chooser-panel { inset: max(8px, var(--safe-top, 0px)) max(8px, var(--safe-right)) max(8px, var(--safe-bottom, 0px)) max(8px, var(--safe-left)); }
   .tmpl-chooser-header { flex-wrap: wrap; padding: 10px 12px; }
   .tmpl-chooser-header h2 { flex: 1 1 auto; }
   .tmpl-chooser-search { order: 3; flex-basis: 100%; height: 44px; }
-  .tmpl-chooser-close { width: 44px; height: 44px; }
   .tmpl-chooser-body { padding: 10px  10px 16px; }
   .tmpl-chooser-filters {
     flex-wrap: nowrap;

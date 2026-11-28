@@ -70,3 +70,27 @@ test('a refused address is explained in the sheet, not in the parser\'s English'
   el.querySelector<HTMLButtonElement>('[data-act="connect-back"]')!.click();
   await closed;
 });
+
+test('choosing the bundled tools forgets an instance that was set aside for this page load', async () => {
+  const instance = await import('../lib/instance.ts');
+  const rows = new Map<string, unknown>([['instance-base', 'https://work.example'], ['instance-session', { origin: 'https://work.example', cookiePair: 'lw_session=one' }]]);
+  instance._setProfileDbForTests(async () => ({
+    get: async (_store: string, key: string) => rows.get(key),
+    put: async (_store: string, value: unknown, key: string) => { rows.set(key, value); return key; },
+    delete: async (_store: string, key: string) => { rows.delete(key); },
+  }) as never);
+  try {
+    await instance.initInstanceBase();
+    // The catalog did not verify, so the app is showing its own tools.
+    assert.equal(instance.suspendInstanceBase(), 'https://work.example');
+    void openInstanceSheet({} as Host);
+    const el = sheet();
+    el.querySelector<HTMLButtonElement>('[data-act="choose-bundled"]')!.click();
+    for (let i = 0; i < 50 && !el.querySelector('[data-act="import-done"]'); i++) await new Promise(r => setTimeout(r, 5));
+    assert.ok(el.querySelector('[data-act="import-done"]'), 'the sheet moved on');
+    assert.equal(rows.has('instance-base'), false, 'the saved choice is gone, so the next start does not ask that instance again');
+    assert.equal(rows.has('instance-session'), false);
+  } finally {
+    instance._setProfileDbForTests(null);
+  }
+});

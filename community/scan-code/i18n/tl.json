@@ -1,5 +1,4 @@
 {
   "name": "Scan",
-  "description": "Basahin ang mga QR code at barcode sa mismong device, walang ipinapadala sa kahit anong cloud. Isang reader, hindi isang opener: dine-decode nito, kina-classify at ipinapaliwanag kung ano ang laman ng isang code - link, Wi-Fi, contact, product code - at hinahayaan kang kumilos nang sinasadya. Ang Copy ay palaging ang unang aksyon; ang pagbukas, pag-join o pagdaragdag ay palaging malinaw at may kaalamang tap.",
-  "featured.blurb": "Basahin ang kahit anong code, ligtas at offline"
+  "description": "Basahin ang mga QR code at barcode sa mismong device. Ang Copy ay palaging ang unang aksyon; ang pagbukas, pag-join o pagdaragdag ay palaging malinaw at may kaalamang tap."
 }

@@ -42,6 +42,7 @@
  * authored metadata and stay as written until the template i18n sidecar ships.
  */
 
+import { closeButtonHtml } from '../lib/close-button.ts';
 import '../styles/template-chooser.css'; // async CSS chunk (lazy view - not on the landing)
 import { t, tRaw } from '../i18n.ts';
 import { escapeHtml } from '../lib/html.ts';
@@ -471,7 +472,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
         <header class="tmpl-chooser-header">
           <h2 id="tmpl-chooser-title">${escapeHtml(opts.title ?? tRaw('Start {tool}', { tool: opts.toolName }))}</h2>
           <input type="search" class="tmpl-chooser-search" placeholder="${escapeHtml(t('Search templates…'))}" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(t('Search templates'))}">
-          <button type="button" class="tmpl-chooser-close" aria-label="${escapeHtml(t('Close'))}">×</button>
+          ${closeButtonHtml({ className: 'tmpl-chooser-close' })}
         </header>
         <div class="tmpl-chooser-body">${bodyHtml()}</div>
       </div>

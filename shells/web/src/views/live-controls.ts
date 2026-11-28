@@ -37,6 +37,7 @@
 
 import { svgMarkupAnimated, precheckAnimatedRef, type AnimRefLike } from '../lib/anim-detect.ts';
 import type { AnimSourceSpec } from '../bridge/media.ts';
+import { matchesShowIf } from '@lolly/engine';
 
 /** Structural view of the runtime this module needs (tests stub it). */
 export interface LiveRuntimeLike {
@@ -44,8 +45,10 @@ export interface LiveRuntimeLike {
   isLive(): boolean;
   startLive(opts?: { source?: 'camera' | 'asset'; facingMode?: 'user' | 'environment' }): Promise<boolean>;
   stopLive(): void;
-  getModel(): Array<{ id: string; type?: string; value: unknown }>;
+  getModel(): Array<{ id: string; type?: string; value: unknown; showIf?: unknown }>;
   manifest: { id: string; render?: unknown };
+  /** The render block in effect (engine 1.356). A stand-in runtime may not answer. */
+  getRender?(): unknown;
 }
 
 /** Structural view of the host this module needs (tests stub it). */
@@ -106,16 +109,26 @@ export function createLiveControls(opts: LiveControlsOpts): LiveControls {
   const fetchSvg = opts.fetchSvgMarkup
     ?? (async (url: string) => (await import('./anim-svg-mount.ts')).fetchAnimSvg(url));
 
-  const enabled = Boolean(runtime.hasFrameHook && host.media);
+  // The render block in effect (`render.when`): `live: false` mounts no controls for
+  // a tool whose onFrame hook serves one mode only, and the camera settings are read
+  // from the same block. The tool view mounts again when the block changes.
+  const render = (runtime.getRender?.() ?? runtime.manifest.render) as
+    { live?: boolean; liveDefault?: string; liveFacing?: 'user' | 'environment'; liveCameraWhen?: { input: string; value: string } } | undefined;
+  const enabled = Boolean(runtime.hasFrameHook && host.media && render?.live !== false);
   const cameraAvailable = (): boolean => Boolean(host.media?.isAvailable?.());
   const arm = (src: AnimSourceSpec | null): void => host.media?.armAnimSource?.(src);
-  const liveDefault = (runtime.manifest.render as { liveDefault?: string } | undefined)?.liveDefault ?? null;
+  const liveDefault = render?.liveDefault ?? null;
 
   // The tool's image SOURCE input: the first declared asset input - the same slot
   // whose swap retires the runtime's live-capture flag, and the row the sidebar
   // buttons ride. Null when the tool has no asset input (stage fallback only).
+  // A tool whose render settings follow an input is mounted once per mode, so an
+  // asset input that mode hides is not the source: the controls then stand alone.
+  const byMode = Boolean((runtime.manifest.render as { when?: unknown } | undefined)?.when);
+  const shownNow = (i: { showIf?: unknown }): boolean => !byMode
+    || matchesShowIf(i.showIf as Parameters<typeof matchesShowIf>[0], Object.fromEntries(runtime.getModel().map(m => [m.id, m.value])));
   const sourceInputId = enabled
-    ? (runtime.getModel().find(i => i.type === 'asset')?.id ?? null)
+    ? (runtime.getModel().find(i => i.type === 'asset' && shownNow(i))?.id ?? null)
     : null;
 
   let mode: Mode = null;
@@ -123,7 +136,7 @@ export function createLiveControls(opts: LiveControlsOpts): LiveControls {
   // Which camera to open. Default from the tool's manifest (render.liveFacing -
   // a code reader wants 'environment', the rear camera); the flip control toggles
   // it. On a device with one camera the OS just ignores the preference.
-  const facingDefault = (runtime.manifest.render as { liveFacing?: 'user' | 'environment' } | undefined)?.liveFacing;
+  const facingDefault = render?.liveFacing;
   let facing: 'user' | 'environment' = facingDefault === 'environment' ? 'environment' : 'user';
 
   // Auto-camera binding (plans/162): a tool can tie the live camera to an input
@@ -131,7 +144,7 @@ export function createLiveControls(opts: LiveControlsOpts): LiveControls {
   // input holds the value (including on load) and OFF otherwise, so a reader like
   // scan-code needs no "turn on" tap - selecting Camera as the source, or just
   // opening the tool in camera mode, starts it. Handled in syncFromModel.
-  const camWhen = (runtime.manifest.render as { liveCameraWhen?: { input: string; value: string } } | undefined)?.liveCameraWhen;
+  const camWhen = render?.liveCameraWhen;
   let camDenied = false;  // the user actively declined the permission prompt: don't re-prompt
   let camUserOff = false; // the user tapped Stop while still in camera mode: respect it
   // iOS Safari won't open the camera from a bare page-load call - getUserMedia needs a

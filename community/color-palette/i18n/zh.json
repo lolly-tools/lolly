@@ -1,6 +1,6 @@
 {
   "name": "调色实验室",
-  "description": "从一个种子色生长出配色方案 - 和谐色调、感知均匀的 OKLab 渐变以及 WCAG/APCA 可读性标识,支持 DTCG 令牌和 CSV 导出。",
+  "description": "从一个种子色生长出配色方案 - 和谐色调、OKLab 渐变以及 WCAG/APCA 可读性标识，支持 DTCG 令牌和 CSV 导出。",
   "inputs.seed.label": "种子颜色",
   "inputs.seed.help": "整个色板由此颜色衍生而来 - 默认使用你的品牌主色。",
   "inputs.harmony.label": "和谐",

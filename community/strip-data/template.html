@@ -1,13 +1,19 @@
-<div class="exif">
+<div class="exif utility">
   {{#unless hasFile}}
-    <div class="exif-empty" data-file-pick>
-      <div class="exif-empty-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L7 20"/></svg>
+    <!-- The picture and the heading are the click-to-pick area. The tip sits
+         outside that area, so opening the tip never opens the file dialog. -->
+    <div class="exif-empty">
+      <div class="exif-drop" data-file-pick>
+        <div class="exif-empty-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L7 20"/></svg>
+        </div>
+        <h2>Inspect hidden data in an image, audio file, PDF or Office file</h2>
       </div>
-      <h2>Inspect hidden data in an image, audio file, PDF or Office file</h2>
-      <p>Choose a JPEG, PNG, SVG or PDF to remove metadata, or an M4A, WAV, MP3, FLAC or Opus file to remove its tags and Content Credentials. The audio itself is not changed. Choose a supported DOCX to remove selected core and custom properties, Company, Manager, Template, hyperlink base, application and statistics fields from a new copy. Other Office content remains inspect-only.</p>
-      <button type="button" class="exif-pick" data-file-pick>Choose a file…</button>
-      <p class="exif-empty-note">Everything happens in your browser. Your file is never uploaded.</p>
+      <div class="exif-pick-row help-tip-host">
+        <button type="button" class="btn btn--primary exif-pick" data-file-pick>Choose a file…</button>
+        <button type="button" class="help-tip-btn" aria-label="Which files work" aria-expanded="false" aria-controls="exif-tip-formats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button>
+        <span class="help-tip-pop" id="exif-tip-formats" hidden>Choose a JPEG, PNG, SVG or PDF to remove metadata, or an M4A, WAV, MP3, FLAC or Opus file to remove its tags and Content Credentials. The audio itself is not changed. Choose a supported DOCX to remove selected core and custom properties, Company, Manager, Template, hyperlink base, application and statistics fields from a new copy. Other Office content remains inspect-only.<button type="button" class="close-btn close-btn--sm close-btn--inherit help-tip-close" tabindex="-1" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+      </div>
     </div>
   {{/unless}}
 
@@ -16,7 +22,7 @@
       <div class="exif-head">
         <span class="exif-file" title="{{fileName}}">{{fileName}}</span>
         <span class="exif-kind">{{kind}} · {{fileSize}}</span>
-        <button type="button" class="exif-replace" data-file-pick>Replace</button>
+        <button type="button" class="btn btn--ghost btn--sm exif-replace" data-file-pick>Replace</button>
       </div>
 
       {{#unless supported}}
@@ -42,7 +48,7 @@
             <div class="exif-clean-state">
               {{#if inspectOnly}}<p class="exif-clean">No supported Office findings were reported. Check the inspection limits below.</p>{{else}}<p class="exif-clean">This {{kind}} is already clean - no hidden data found.</p>{{/if}}
               <p class="exif-note">{{cleanNote}}</p>
-              {{#unless inspectOnly}}<button type="button" class="exif-download" data-export-file data-busy-label="Saving…">Download copy{{#if cleanSize}} ({{cleanSize}}){{/if}}</button>{{/unless}}
+              {{#unless inspectOnly}}<button type="button" class="btn btn--primary exif-download" data-export-file data-busy-label="Saving…">Download copy{{#if cleanSize}} ({{cleanSize}}){{/if}}</button>{{/unless}}
             </div>
           {{/if}}
 
@@ -52,12 +58,13 @@
             <!-- Show details: a real (visually-hidden, keyboard-reachable) checkbox
                  drives the label; the actual embedded values stay hidden until it's
                  on. Default off - the user sees WHAT was found, not the values,
-                 until they ask. Pure CSS, so it works on the sidebar-less canvas. -->
-            <input type="checkbox" id="exif-show-details" class="exif-reveal-cb">
-            <label for="exif-show-details" class="exif-reveal-toggle">
-              <span class="exif-reveal-icon" aria-hidden="true"></span>
-              <span class="exif-reveal-show">Show details</span>
-              <span class="exif-reveal-hide">Hide details</span>
+                 until they ask. Pure CSS, so it works on the sidebar-less canvas.
+                 The arrow is the hairline one every fold in the app draws. -->
+            <input type="checkbox" id="exif-show-details" class="u-reveal-cb exif-reveal-cb">
+            <label for="exif-show-details" class="u-reveal exif-reveal-toggle">
+              <span class="u-reveal-show">Show details</span>
+              <span class="u-reveal-hide">Hide details</span>
+              <span class="u-arrow" aria-hidden="true"></span>
             </label>
 
             <ul class="exif-findings">
@@ -76,10 +83,11 @@
             </ul>
 
             {{#if officeMetadata}}
-              {{#if propertySelected}}<button type="button" class="exif-download" data-export-file data-busy-label="Removing properties…">Download DOCX copy</button>{{else}}<p class="exif-note">Select a property to remove. Unselected properties and other Office content are retained.</p>{{/if}}
+              {{#if propertySelected}}<button type="button" class="btn btn--primary exif-download" data-export-file data-busy-label="Removing properties…">Download DOCX copy</button>{{else}}<p class="exif-note">Select a property to remove. Unselected properties and other Office content are retained.</p>{{/if}}
             {{/if}}
 
-            {{#unless inspectOnly}}<button type="button" class="exif-download" data-export-file data-busy-label="Stripping data…">Download clean {{kind}}{{#if cleanSize}} ({{cleanSize}}){{/if}}</button>{{/unless}}
+            {{#if signedNote}}<p class="exif-note exif-signed" data-signed-note>{{signedLead}}<strong>digitally signed</strong>{{signedRest}}</p>{{/if}}
+            {{#unless inspectOnly}}<button type="button" class="btn btn--primary exif-download" data-export-file data-busy-label="Stripping data…">Download clean {{kind}}{{#if cleanSize}} ({{cleanSize}}){{/if}}</button>{{/unless}}
             <p class="exif-note">{{tailNote}}</p>
           {{/unless}}
 
@@ -105,3 +113,16 @@
     </div>
   {{/if}}
 </div>
+<script>
+(function(){
+  // The signed-PDF line is read out once. Each paint replaces the card, so the words go into a
+  // status region of their own only when they differ from the words last read out.
+  var cs=document.currentScript,root=cs&&cs.previousElementSibling;
+  if(!root||!root.classList||!root.classList.contains('exif')){var roots=document.querySelectorAll('.exif');root=roots[roots.length-1];}
+  var canvas=root&&root.closest('[data-lolly-canvas]');
+  if(!canvas)return;
+  var signedLine=root.querySelector('[data-signed-note]'),signedWords=signedLine?signedLine.textContent:'';
+  if(!signedWords)delete canvas.__stripSignedSaid;
+  else if(canvas.__stripSignedSaid!==signedWords){var said=document.createElement('span');said.className='visually-hidden';said.setAttribute('role','status');root.appendChild(said);setTimeout(function(){if(!said.isConnected)return;said.textContent=signedWords;canvas.__stripSignedSaid=signedWords;},150);}
+})();
+</script>

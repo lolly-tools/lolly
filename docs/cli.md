@@ -1,6 +1,6 @@
 # lolly CLI: create and process files
 
-Use `lolly` when you want a Lolly file without opening the app: in a build script, a CI job, a folder of files to process or an agent's tool call. It runs the same engine as the app, so the file matches the one the export panel would make.
+Use `lolly` to make a Lolly file without opening the app: in a build script, a CI job, a folder of files to process or an agent's tool call. The CLI runs the same engine as the app and makes the same file as the export panel.
 
 From the terminal you can:
 
@@ -9,7 +9,7 @@ From the terminal you can:
 - set up your design system for the terminal;
 - check, clean or convert files you already have.
 
-Every flag is a URL parameter by another name. `--url=https://example.com` is `?url=https://example.com` in a share link, which is why a link copied from the app renders the same here ([URL Mode](/info/url-mode.html)). To browse with the keyboard instead, run `lolly tui` ([TUI](/info/tui.html)).
+Every flag is a URL parameter: `--url=https://example.com` is `?url=https://example.com` in a share link. A link copied from the app renders the same here ([URL Mode](/info/url-mode.html)). To browse with the keyboard, run `lolly tui` ([TUI](/info/tui.html)).
 
 **Get started**, in four steps:
 
@@ -25,19 +25,19 @@ Every flag is a URL parameter by another name. `--url=https://example.com` is `?
 
 There are two routes to the same program.
 
-**The desktop app.** Lolly for macOS, Windows and Linux carries its own tools, catalog and this CLI, so installing the app is enough. On macOS the command is the app's own executable, `Lolly.app/Contents/MacOS/lolly-desktop`, with the same arguments. `run` uses the app's native off-screen WebView; the other verbs go to the bundled Node package.
+**The desktop app.** Lolly for macOS, Windows and Linux carries its own tools, catalog and this CLI. On macOS the command is the app's executable, `Lolly.app/Contents/MacOS/lolly-desktop`, with the same arguments. `run` uses the app's native off-screen WebView. The other verbs go to the bundled Node package.
 
 **A checkout.** In a clone of the Lolly source ([github.com/lolly-tools/lolly](https://github.com/lolly-tools/lolly)) the CLI is a package script.
 
 ::: note Before you start
-You need Node.js 22.18 or later and pnpm; if `pnpm --version` fails, run `npm install --global pnpm` ([What you need first](/info/contributing-setup.html#what-you-need-first)). Run `pnpm install` once at the repository root ([Clone and set up](/info/contributing-setup.html#clone-and-set-up)), then run every command from that root. Arguments go straight after the tool id, with no `--` in between.
+You need pnpm and Node.js 22.23.4 or later on Node 22, 24.22.1 or later on Node 24, or 26.12.1 or later. Older releases are refused because their Brotli decoder has a flaw (CVE-2026-111497). If `pnpm --version` fails, run `npm install --global pnpm` ([What you need first](/info/contributing-setup.html#what-you-need-first)). Run `pnpm install` once at the repository root ([Clone and set up](/info/contributing-setup.html#clone-and-set-up)), then run every command from that root. Arguments go straight after the tool id, with no `--` in between.
 :::
 
-In a checkout, `pnpm run cli` takes the place of `lolly`. Examples on these pages that start with `lolly` run as `pnpm run cli` followed by the same arguments.
+In a checkout, replace `lolly` in every example with `pnpm run cli` and keep the same arguments.
 
 ### A standalone CLI carries no tools and no catalog
 
-Tools and brand assets are content, not code, and the public set alone runs to hundreds of megabytes. A standalone `lolly` (the packaged CLI, see [Build the CLI and TUI](/info/build-terminal.html#standalone-binary)) carries none of it, so point it at a root:
+Tools and brand assets are content, not code, and the public set alone is hundreds of megabytes. A standalone `lolly` (the packaged CLI, see [Build the CLI and TUI](/info/build-terminal.html#standalone-binary)) carries none of this content. Point the CLI at a root:
 
 ```bash
 LOLLY_ROOT=/path/to/lolly lolly list
@@ -48,9 +48,9 @@ Two kinds of directory work:
 - a **checkout** of this repository, which holds `profiles.json` and the packs under `community/` and `brands/`;
 - a **materialized** root: a `tools/` directory of tool folders and a built `catalog/` with its generated index, which is what a `dist/` build, an RPM payload or a container image carries.
 
-A `LOLLY_ROOT` that holds neither is ignored, and the CLI falls back to looking upward from itself, then in the working directory. Build any pack's `tools/` and `catalog/` this way and every command (render, batch, smoke, assets) runs against it with no code change. The desktop app brings its own root, so it needs no pointing.
+The CLI ignores a `LOLLY_ROOT` that holds neither. The CLI then looks upward from itself, then in the working directory. Build any pack's `tools/` and `catalog/` this way, and every command (render, batch, smoke, assets) runs against that pack with no code change. The desktop app brings its own root.
 
-`lolly system import <pack.lolly>` is a different thing: it imports **your design system**, and it adds no tools, so it needs a root as well. Run a command that needs content without any, and the CLI lists these routes and exits `3`. It never downloads anything on its own.
+`lolly system import <pack.lolly>` imports **your design system** and adds no tools, so it needs a root as well. A command that needs content and finds none lists these routes and exits `3`. The CLI never downloads anything on its own.
 
 <!--i:eti-file-plus-->
 ## Make your first file
@@ -70,7 +70,7 @@ Recorded the design system: Lolly Starter. Pass --no-madewith to leave the recor
 In a checkout, a note that the catalog is unsigned comes first. That is expected for a local catalog.
 :::
 
-`qr.svg` is written to the current directory, replacing any file of that name. If your own address contains `?` or `&`, put it in quotes.
+`qr.svg` is written to the current directory and replaces any file of that name. If your own address contains `?` or `&`, put the address in quotes.
 
 The general form is `lolly <tool-id> [--input=value ...] [--export=fmt] [--output=file]`. With `--output`, the file is written and the byte count goes to stderr. Without it, the bytes go to **stdout**, so you can pipe them:
 
@@ -82,7 +82,7 @@ pnpm --silent run cli qr-code --url=https://example.com --export=png > qr.png
 Use `pnpm --silent run cli` whenever you redirect or pipe. pnpm can print a warning or a run banner on stdout before the CLI starts, and that line would end up inside your PNG. An installed `lolly` binary never prints them.
 :::
 
-The `--output` extension asks for a format, so a tool that cannot write it stops instead of writing other bytes under your name. [Render with the CLI](/info/cli-rendering.html#the-output-extension-is-a-format-request) explains that check, along with sizes, print options and video.
+The `--output` extension asks for a format. A tool that cannot write that format stops instead of writing other bytes under your file name. [Render with the CLI](/info/cli-rendering.html#the-output-extension-is-a-format-request) covers that check, sizes, print options and video.
 
 <!--i:eti-search-->
 ## Find tools, inputs and assets
@@ -97,16 +97,16 @@ lolly assets logo                # filter by text
 lolly assets --type=raster
 ```
 
-`describe` lists a tool's essential inputs with their defaults and a usage line; `--all` shows every input. Inputs that are not a plain value (`asset`, `blocks`, `vector`, `file`, `color`) get a `↳` line showing how to write one.
+`describe` lists a tool's essential inputs with their defaults and a usage line. `--all` shows every input. Inputs that are not a plain value (`asset`, `blocks`, `vector`, `file`, `color`) get a `↳` line that shows how to write one.
 
-`list --q=<words>` matches tool ids, names, descriptions, categories and formats, and `--limit=1..100` keeps an agent's answer short. With `--json`, either option adds `query`, `limit` and `total` to the result. `assets --type=` is checked against the catalog, so a typo is an error that lists the real types rather than an empty list:
+`list --q=<words>` matches tool ids, names, descriptions, categories and formats. `--limit=1..100` keeps an agent's answer short. With `--json`, either option adds `query`, `limit` and `total` to the result. `assets --type=` is checked against the catalog, so a typo is an error that lists the real types:
 
 ```bash
 $ lolly assets --type=rastor
 Error: No catalog asset has type "rastor". This catalog has: audio, data, lut, model, palette, raster, tokens, vector.
 ```
 
-Any asset id can fill an `asset` input, and so can a `lolly.tools` tool URL, which places that tool's render. To write a bare asset straight to a file, use the `asset-export` tool:
+An `asset` input takes any asset id or a `lolly.tools` tool URL, which places that tool's render. To write a bare asset to a file, use the `asset-export` tool:
 
 ```bash
 lolly asset-export --src=lolly/logo/primary --export=svg --output=logo.svg
@@ -136,7 +136,7 @@ Design-system commands: lolly system status | list | use | import | add | export
 
 Piped into another program, the same bare `lolly` lists the tools instead.
 
-A terminal design system is the colours, type and logos every render then uses. Build one from a single colour with `system init`, or bring one in with `system import`: a `.lolly` pack, a tokens file, a Penpot file, a token zip or an SVG. `system add` keeps fonts, logos and other source material with the system. `system status` shows which system is active, with its colour roles in its own words and what Lolly reads each as, `system use <id>` switches and `system export` writes the active one as a portable `.lolly` pack.
+A terminal design system sets the colours, type and logos every render uses. Build one from a single colour with `system init`, or bring one in with `system import`: a `.lolly` pack, a tokens file, a Penpot file, a token zip or an SVG. `system add` keeps fonts, logos and other source material with the system. `system status` shows the active system, its colour roles in its own words and what Lolly reads each role as. `system use <id>` switches systems. `system export` writes the active system as a portable `.lolly` pack.
 
 The CLI and the TUI share one store, so a system set up in one is active in the other. [Where saved sessions live](/info/cli-reference.html#where-saved-sessions-live) says which directory holds the store. [Token workflows](/info/token-workflows.html) covers `system inspect`, `diff`, `generate` and `sync`.
 
@@ -161,7 +161,7 @@ The **Batch** view in the app (`#/batch`) is the interactive counterpart to `lol
 <!--i:eti-keyboard-->
 ## Every command
 
-The first argument is either a **verb** or a **tool id**, and verbs win. `lolly run <tool-id>` and `lolly describe <tool-id>` are the unambiguous spellings; a bare `lolly <tool-id>` renders when flags follow and describes when none do. A pasted `lolly.tools` link can be the first argument too ([Run a share link](/info/cli-rendering.html#run-a-share-link)).
+The first argument is either a **verb** or a **tool id**, and verbs win. `lolly run <tool-id>` and `lolly describe <tool-id>` are the unambiguous forms. A bare `lolly <tool-id>` renders when flags follow and describes the tool when none do. A pasted `lolly.tools` link can be the first argument too ([Run a share link](/info/cli-rendering.html#run-a-share-link)).
 
 ::: details Every verb, grouped
 | Group | Verbs |
@@ -177,5 +177,5 @@ The first argument is either a **verb** or a **tool id**, and verbs win. `lolly 
 | Courses | `learning` ([Training courses](/info/training-creators.html)) |
 | Linux packaging | `icons` (a hicolor icon RPM), `pack` (a font RPM) |
 
-These words are reserved: a tool id may never take one. Otherwise a brand pack shipping a tool called `batch` could never be reached.
+These words are reserved: a tool id may never use one. Otherwise a brand pack tool called `batch` could never be reached.
 :::

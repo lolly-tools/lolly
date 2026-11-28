@@ -9,7 +9,7 @@
 .text-icon { width: 1.2em; height: 1.2em; flex: 0 0 auto; vertical-align: middle; }
 .text-workspace .btn, .text-action-dialog .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--ui-space-control-inline); min-height: var(--ui-size-target); white-space: nowrap; }
 .text-workspace .btn--ghost, .text-action-dialog .btn--ghost { box-shadow: none; }
-.text-workspace .text-icon-button { width: var(--ui-size-target); padding: var(--ui-space-control-inline); }
+.text-workspace .text-icon-button:not(.close-btn) { width: var(--ui-size-target); padding: var(--ui-space-control-inline); }
 .text-icon-button > span:empty { display: none; }
 .text-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ui-space-control-inline); }
 .text-row label { display: flex; align-items: center; gap: var(--ui-space-control-inline); }

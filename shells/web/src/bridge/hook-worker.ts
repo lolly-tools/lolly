@@ -20,7 +20,8 @@
  * mounts select strict mode: isolation failure rejects the mount, and a tool
  * declaring a DOM-node export hook is refused rather than compiled in-realm.
  */
-import { HOOK_BUDGET_MS, inRealmHookExecutor } from '@lolly/engine';
+import { HOOK_BUDGET_MS, createHookBudget, inRealmHookExecutor } from '@lolly/engine';
+import type { HookBudget } from '@lolly/engine';
 import type { HookExecutor, Hooks } from '@lolly/engine';
 import type { HostV1, TokensAPI } from '@lolly-tools/core/host-v1';
 import { geometryBackendOf, geometrySelectionIsStrict } from '@lolly-tools/node-shell/geometry-host';
@@ -59,7 +60,7 @@ const initWaiters = new Map<number, { resolve: (m: HookInitDoneMsg) => void; rej
 const invokeWaiters = new Map<string, {
   resolve: (v: unknown) => void;
   reject: (e: unknown) => void;
-  timer: ReturnType<typeof setTimeout>;
+  budget: HookBudget;
   report?: (patch: Record<string, unknown>, opts?: { ready?: boolean }) => void;
 }>(); // `runId:callId`
 
@@ -76,7 +77,7 @@ function resetRun(runId: number, reason: Error): void {
   }
   for (const [key, pending] of invokeWaiters) {
     if (!key.startsWith(`${runId}:`)) continue;
-    clearTimeout(pending.timer);
+    pending.budget.clear();
     pending.reject(reason);
     invokeWaiters.delete(key);
   }
@@ -110,7 +111,7 @@ function onMessage(boundRunId: number, source: Worker, m: HookWorkerOut): void {
     const p = invokeWaiters.get(key);
     if (!p) return;
     invokeWaiters.delete(key);
-    clearTimeout(p.timer);
+    p.budget.clear();
     if (m.ok) p.resolve(m.patch); else p.reject(new Error(m.error ?? 'hook failed'));
     return;
   }
@@ -135,13 +136,25 @@ async function dispatchHostCall(w: Worker, m: HookHostCallMsg): Promise<void> {
   const nsObj = (host as unknown as Record<string, Record<string, unknown>>)[ns];
   const fn = nsObj?.[method];
   if (typeof fn !== 'function') { reply(false, undefined, `no host.${m.method}`); return; }
+  // The run's hooks are waiting on this shell from here until the reply is sent.
+  const waiting = budgetsOf(m.runId);
+  for (const b of waiting) b.hostCallStarted();
   try {
     const args = mount.strict && ns === 'capture' ? isolatedCaptureArgs(nsObj ?? {}, method, m.args) : m.args;
     const value = await (fn as (...a: unknown[]) => unknown).apply(nsObj, args);
     reply(true, value);
   } catch (e) {
     reply(false, undefined, e instanceof Error ? e.message : String(e));
+  } finally {
+    for (const b of waiting) b.hostCallEnded();
   }
+}
+
+/** The budgets of every hook call one run has in flight. */
+function budgetsOf(runId: number): HookBudget[] {
+  const out: HookBudget[] = [];
+  for (const [key, pending] of invokeWaiters) if (key.startsWith(`${runId}:`)) out.push(pending.budget);
+  return out;
 }
 
 function forwardLogs(m: HookLogMsg): void {
@@ -292,13 +305,13 @@ function invokeInWorker(runId: number, name: WorkerHookName, ctx: unknown): Prom
   // ~0.1ms at the 480px default working edge (≤~1ms at the 1920 cap) - negligible
   // beside the worker's per-frame encode, and it can't corrupt the camera loop.
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
+    const budget = createHookBudget(WORKER_HOOK_BUDGET_MS[name], () => {
       if (!invokeWaiters.has(key)) return;
       resetRun(runId, new HookIsolationUnavailableError(
         `${name} exceeded its ${WORKER_HOOK_BUDGET_MS[name]}ms isolated execution budget`,
       ));
-    }, WORKER_HOOK_BUDGET_MS[name]);
-    invokeWaiters.set(key, { resolve, reject, timer, report });
+    });
+    invokeWaiters.set(key, { resolve, reject, budget, report });
     try {
       w.postMessage({ t: 'invoke', runId, callId, name, ctx: rest });
     } catch (error) {

@@ -1,6 +1,6 @@
 {
   "name": "Grafiek",
-  "description": "Grafieken van de eerste plakactie tot geavanceerde visualisatie - toegelichte data-aanbevelingen, expliciete veldtoewijzing, 35 klassieke vectorfamilies waaronder Pareto, bullet targets en bereikbalken, zestien statistische en redactionele vormen, echte 3D-scènes, cinematische vluchten, deterministische beweging, toegankelijke beschrijvingen en stijlen samengesteld uit de actieve huisstijl.",
+  "description": "Grafieken van de eerste plakactie tot geavanceerde visualisatie - 35 vectorfamilies, 3D-scènes, vluchten, beweging en stijlen uit het designsysteem.",
   "featured.blurb": "Plak een tabel - Grafiek maakt hem duidelijk, toegankelijk en overduidelijk in je huisstijl",
   "a11yLabel": "{{chartType}}-grafiek{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Grafiektype",

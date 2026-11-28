@@ -394,7 +394,7 @@ test('status words are translated; code reacts to activity() instead', async () 
 });
 
 test("an explicit save's picture comes from the Save action and lands even after the tool has closed (review S1)", async () => {
-  const attached: Array<[string, string]> = [];
+  const attached: Array<[string, unknown]> = [];
   let value = 1, captures = 0;
   const controller = createAutomaticHistory({
     toolId: 'qr-code', getSlot: () => 'qr-code:s', setSlot() {}, snapshot: () => ({ value }), initial: { head: 'h0', version: 'h0' },

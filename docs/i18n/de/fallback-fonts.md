@@ -1,84 +1,103 @@
 # Ersatzschriften
 
-Die Schriften eines Designsystems decken oft nur einen Teil der Schriftsysteme der Welt ab. Lolly Demo setzt Überschriften in Outfit und Text in SUSE, und keine der beiden Schriften hat kyrillische, griechische, arabische, hebräische, Devanagari-, bengalische, thailändische, chinesische, japanische oder koreanische Buchstaben. Enthält ein Dokument Buchstaben, die die Schriften seines Designsystems nicht zeichnen können, zeichnet Lolly diese Buchstaben mit einer offenen Noto-Schrift. So behält der Export sie als Vektorumrisse, statt die Wörter in ein Bild zu verwandeln.
+Wenn die Schriften eines Designsystems einen Buchstaben nicht zeichnen können, zeichnet Lolly ihn mit einer offenen Noto-Schrift, sodass der Export den Buchstaben als Vektorumriss statt als Bild erhält. Die Schriften von Lolly Demo, Outfit für Überschriften und SUSE für Text, haben keine kyrillischen, griechischen, arabischen, hebräischen, Devanagari-, bengalischen, thailändischen, chinesischen, japanischen oder koreanischen Buchstaben.
 
-Die Schriften des Designsystems haben immer Vorrang, in der Reihenfolge, in der das Designsystem sie aufführt. Outfit hat keine vietnamesischen Buchstaben, daher holt sich eine vietnamesische Überschrift diese aus SUSE, der nächsten Schrift in der Liste von Lolly Demo. Eine Ersatzschrift zeichnet nur die Zeichen, die keine dieser Schriften zeichnen kann. Eine Markenschrift behält also jeden Buchstaben, jede Ziffer und jedes Zeichen, das sie hat, sogar innerhalb eines Wortes in einer anderen Schrift. Hat eine Markenschrift ein chinesisches Zeichen, behält sie auch dieses.
+Die Schriften des Designsystems kommen immer zuerst, in ihrer aufgelisteten Reihenfolge. Outfit hat keine vietnamesischen Buchstaben, daher übernimmt eine vietnamesische Überschrift diese aus SUSE, der nächsten Schrift in der Liste von Lolly Demo. Eine Ersatzschrift zeichnet nur die Zeichen, die keine dieser Schriften zeichnen kann. Eine Markenschrift behält jeden Buchstaben, jede Ziffer und jedes Zeichen, die sie enthält, einschließlich chinesischer Zeichen, auch innerhalb eines Wortes in einem anderen Schriftsystem.
 
+<!--i:eti-package-->
 ## Was mitgeliefert wird
 
-Fünfzehn Schriften, alle von Google Fonts bei einem festgelegten Commit und alle unter der SIL Open Font License 1.1. Jede Datei steht mit ihrer Downloadgröße da.
+Fünfzehn Schriften, alle von Google Fonts aus einem festgelegten Commit. Jede Datei wird mit ihrer Downloadgröße angezeigt.
 
 | Schriftsystem | Schrift | Version | Download |
 |---|---|---|---|
-| Arabisch, einschließlich der Buchstaben für Urdu und Persisch | Noto Sans Arabic | 2.012 | 211 KB |
+| Arabisch, einschließlich Urdu- und persischer Buchstaben | Noto Sans Arabic | 2.012 | 211 KB |
 | Hebräisch | Noto Sans Hebrew | 3.001 | 37 KB |
 | Devanagari (Hindi, Marathi, Nepali) | Noto Sans Devanagari | 2.007 | 151 KB |
 | Bengalisch | Noto Sans Bengali | 3.011 | 139 KB |
-| Thai | Noto Sans Thai | 2.002 | 62 KB |
+| Thailändisch | Noto Sans Thai | 2.002 | 62 KB |
 | Kyrillisch | Noto Sans, kyrillische Buchstaben | 2.015 | 115 KB, kursiv 132 KB |
 | Griechisch | Noto Sans, griechische Buchstaben | 2.015 | 77 KB, kursiv 83 KB |
-| Lateinisch, einschließlich Vietnamesisch und anderer Buchstaben mit Akzent | Noto Sans, lateinische Buchstaben | 2.015 | 316 KB, kursiv 350 KB |
+| Lateinisch, einschließlich vietnamesischer und anderer akzentuierter Buchstaben | Noto Sans, lateinische Buchstaben | 2.015 | 316 KB, kursiv 350 KB |
 | Vereinfachtes Chinesisch, die GB-2312-Zeichen | Noto Sans SC | 2.004 | 2,0 MB |
 | Traditionelles Chinesisch, die Big5-Zeichen | Noto Sans TC | 2.004 | 3,8 MB |
 | Japanisch, die Shift_JIS-Zeichen | Noto Sans JP | 2.004 | 2,2 MB |
 | Koreanisch, jede Hangul-Silbe und die KS-X-1001-Zeichen | Noto Sans KR | 2.004 | 2,5 MB |
 
-Die Gewichtsachse jeder Schrift bleibt vollständig erhalten, daher wird jedes Gewicht, das ein Design verlangt, weiterhin gezeichnet, und eine fette chinesische, japanische oder koreanische Überschrift ist fett. Die Breitenachse der Noto-Sans-Schriften ist auf normal festgelegt, was jede Datei halbiert; die chinesischen, japanischen und koreanischen Schriften haben keine Breitenachse. Noto Sans ist nach Schriftsystem aufgeteilt, daher lädt ein kyrillisches Wort nur die kyrillischen Buchstaben herunter. Die Umrisse sind die unveränderten Umrisse des Originals.
+Jede Schrift behält alle Strichstärken auf ihrer Strichstärkenachse, sodass eine fette chinesische, japanische oder koreanische Überschrift fett ist. Bei den Noto Sans-Schriften ist die Breitenachse auf Normal festgelegt, was jede Datei halbiert. Die chinesischen, japanischen und koreanischen Schriften haben keine Breitenachse. Noto Sans ist nach Schriftsystem aufgeteilt, sodass ein kyrillisches Wort nur die kyrillischen Buchstaben herunterlädt. Die Umrisse sind gegenüber dem Original unverändert.
 
-Die Schriften liegen in einem gemeinsamen Ordner, `community/fallback-fonts`, der jedem Designsystem unter `/catalog/packs/fallback-fonts/` bereitgestellt wird, genau wie die Emoji-Sets gemeinsam genutzt werden. `scripts/import-fallback-fonts.ts` baut die Dateien aus den Originalschriften, die in `scripts/data/fallback-fonts.json` festgelegt sind, prüft jede Originaldatei gegen ihren erfassten SHA-256 und schreibt die Lizenztexte neben die Schriften.
+::: details Wo die Schriften liegen und wie sie erstellt werden
+Die Schriften liegen in einem gemeinsamen Ordner, `community/fallback-fonts`, und werden wie die Emoji-Sets unter `/catalog/packs/fallback-fonts/` an jedes Designsystem ausgeliefert. `scripts/import-fallback-fonts.ts` erstellt die Dateien aus den in `scripts/data/fallback-fonts.json` festgelegten Originalschriften, prüft jede Originaldatei gegen ihren festgehaltenen SHA-256 und schreibt die Lizenztexte neben die Schriften.
+:::
 
+<!--i:eti-globe-->
 ## Chinesisch, Japanisch und Koreanisch
 
-Eine vollständige chinesische, japanische oder koreanische Schrift ist 9,6 MB bis 17,8 MB groß. Deshalb wird jede dieser Schriften auf den nationalen Zeichensatz zugeschnitten, den ihre Leserinnen und Leser täglich verwenden, dazu die Satzzeichen, Kana, Vollbreitenformen und Symbole des laufenden Textes:
+Eine ungekürzte chinesische, japanische oder koreanische Schrift ist 9,6 MB bis 17,8 MB groß. Jede wird auf ihren nationalen Zeichensatz gekürzt, ergänzt um die Satzzeichen, Kana, vollbreiten Formen und Symbole von Fließtext:
 
 - Vereinfachtes Chinesisch: GB 2312, die 6.763 gebräuchlichen Hanzi und seine Symbole, insgesamt 7.522 Zeichen.
-- Traditionelles Chinesisch: Big5, seine 13.053 Hanzi und seine Symbole, insgesamt 13.629 Zeichen. Der Hong Kong Supplementary Character Set ist nicht enthalten.
-- Japanisch: Shift_JIS, wie Windows und das Web es lesen, also JIS X 0208 mit den Ergänzungen von NEC und IBM, die Namen wie 髙 und 﨑 brauchen, dazu jedes Kana und das halbbreite Katakana, insgesamt 7.432 Zeichen.
+- Traditionelles Chinesisch: Big5, seine 13.053 Hanzi und seine Symbole, insgesamt 13.629 Zeichen. Das Hong Kong Supplementary Character Set ist nicht enthalten.
+- Japanisch: Shift_JIS, wie Windows und das Web es lesen, also JIS X 0208 mit den NEC- und IBM-Ergänzungen, die Namen wie 髙 und 﨑 benötigen, allen Kana und den halbbreiten Katakana, insgesamt 7.432 Zeichen.
 - Koreanisch: alle 11.172 Hangul-Silben und KS X 1001 mit seinen 4.888 Hanja, insgesamt 17.082 Zeichen.
 
-Lateinische, griechische und kyrillische Buchstaben fehlen in diesen vier Schriften, weil die Schriften des Designsystems und die oben genannten Schriften sie zeichnen. Die Zeichensätze werden aus den Indexdateien des Encoding Standard bei einem festgelegten Commit gelesen, daher ergibt ein erneuter Build dieselben Dateien.
+Diese vier Schriften lassen lateinische, griechische und kyrillische Buchstaben weg, die von den Schriften des Designsystems und den oben genannten Schriften gezeichnet werden. Die Zeichensätze stammen aus den Indexdateien des Encoding Standard aus einem festgelegten Commit, sodass ein erneuter Build dieselben Dateien erzeugt.
 
-Chinesisch, Japanisch und Koreanisch teilen die meisten ihrer Zeichen, zeichnen aber viele davon unterschiedlich. Dasselbe Zeichen 直 wird auf Chinesisch auf die eine Weise geschrieben und auf Japanisch auf eine andere. Deshalb nimmt ein Textabschnitt alle seine gemeinsamen Zeichen aus einer dieser Schriften, nie aus zweien, und Lolly wählt diese Schrift in dieser Reihenfolge:
+Chinesisch, Japanisch und Koreanisch teilen die meisten ihrer Zeichen, zeichnen viele davon aber unterschiedlich. 直 etwa wird im Chinesischen anders geschrieben als im Japanischen. Ein Textabschnitt bezieht alle seine gemeinsamen Zeichen aus einer dieser Schriften, niemals aus zweien. Lolly wählt diese Schrift in folgender Reihenfolge:
 
-1. Die Sprache des Textabschnitts, aus dem `lang` seines Elements oder des nächsten umgebenden Elements im Dokument. Die Spracheinstellung eines Tools, etwa die Language des Zertifikats, legt sie fest. Die Sprache von Lollys eigener Oberfläche und die Sprache des Designsystems zählen nicht, daher wird ein Dokument für alle gleich exportiert.
-2. Das Schriftsystem des Textabschnitts: Kana bedeutet Japanisch und Hangul bedeutet Koreanisch. Hat der Abschnitt selbst keines von beiden, wird das ganze Dokument gelesen, daher wird eine Überschrift nur aus Kanji in einem japanischen Dokument auf Japanisch gezeichnet. Ein Dokument, das Kana und Hangul enthält, entscheidet hier nichts.
-3. Ein Zeichen, das nur im traditionellen Chinesisch vorkommt, etwa 體 oder 說, im Abschnitt oder sonst im Dokument, bedeutet traditionelles Chinesisch, es sei denn, derselbe Text enthält auch eines, das nur im vereinfachten Chinesisch vorkommt.
+1. Die Sprache des Textabschnitts, aus dem `lang` seines Elements oder des nächstgelegenen umgebenden Elements im Dokument. Die Spracheinstellung eines Tools, etwa Language beim Zertifikat, legt dies fest. Die Sprache von Lollys eigener Oberfläche und die Sprache des Designsystems zählen nicht, sodass ein Dokument für alle gleich exportiert wird.
+2. Das Schriftsystem des Textabschnitts: Kana bedeutet Japanisch und Hangul bedeutet Koreanisch. Enthält der Abschnitt keines von beiden, liest Lolly das Dokument, sodass eine Überschrift nur aus Kanji in einem japanischen Dokument japanisch gezeichnet wird. Ein Dokument mit Kana und Hangul führt in diesem Schritt zu keiner Entscheidung.
+3. Ein Zeichen, das nur das traditionelle Chinesisch verwendet, etwa 體 oder 說, im Textabschnitt oder andernfalls im Dokument bedeutet traditionelles Chinesisch, sofern derselbe Text nicht auch eines enthält, das nur das vereinfachte Chinesisch verwendet.
 4. Andernfalls vereinfachtes Chinesisch.
 
-Ein Zeichen, das die gewählte Schrift nicht hat, wird nie aus einer der drei anderen genommen. Es bleibt ein Bild, wie unten beschrieben. Kana oder Hangul, die der gewählten Schrift fehlen, etwa koreanische Wörter in einer als Japanisch markierten Zeile, können weiterhin aus der japanischen oder koreanischen Schrift kommen, aber nur, wenn diese Schrift kein gemeinsames Zeichen der Zeile zeichnen würde.
+Ein Zeichen, das der gewählten Schrift fehlt, wird nie aus einer der anderen drei übernommen. Es bleibt ein Bild. Kana oder Hangul, die der gewählten Schrift fehlen, etwa koreanische Wörter in einer als japanisch markierten Zeile, können weiterhin aus der japanischen oder koreanischen Schrift stammen, aber nur, wenn diese Schrift kein gemeinsames Zeichen der Zeile zeichnen würde.
 
-Auf der Seite führt eine Arbeitsfläche mit zwei dieser Sprachen beide Schriften auf, und der Browser zeichnet die gemeinsamen Zeichen mit der ersten. Der Export zeichnet jeden Textabschnitt mit seiner eigenen.
+Auf der Seite listet eine Arbeitsfläche mit zwei dieser Sprachen beide Schriften auf, und der Browser zeichnet die gemeinsamen Zeichen mit der ersten. Der Export zeichnet jeden Textabschnitt mit seiner eigenen.
 
+<!--i:eti-download-->
 ## Wann eine Schrift heruntergeladen wird
 
-Nichts wird heruntergeladen, bis ein Dokument ein Zeichen enthält, das keine Schrift seines Designsystems zeichnen kann. Ein Dokument auf Englisch oder in einer anderen Sprache, die sein Designsystem abdeckt, lädt nie eine Ersatzschrift herunter. Ein Symbol in einer englischen Zeile, etwa ★ oder ※, lädt nie eine chinesische, japanische oder koreanische Schrift herunter.
+Nichts wird heruntergeladen, bis ein Dokument ein Zeichen enthält, das keine Schrift seines Designsystems zeichnen kann. Ein Symbol in einer englischen Zeile, etwa ★ oder ※, lädt nie eine chinesische, japanische oder koreanische Schrift herunter.
 
-Beim ersten Mal, wenn ein Dokument eine braucht, lädt Lolly diese eine Schrift für dieses eine Schriftsystem herunter und behält sie auf Ihrem Gerät. Ein japanisches Dokument lädt allein die japanische Schrift herunter, 2,2 MB, ein traditionell chinesisches die traditionelle Schrift mit 3,8 MB. Von da an wird das Schriftsystem offline gezeichnet, und die Schrift bleibt erhalten, wenn der Katalog aufgeräumt wird. Die Schrift wird bei den eigenen Dateien des Katalogs aufbewahrt, nie unter den Schriften, die Sie hochgeladen haben, daher erscheint sie nicht in der Schriftenliste Ihrer Marke.
+Wenn ein Dokument zum ersten Mal eine Ersatzschrift benötigt, lädt Lolly diese eine Schrift herunter und behält sie auf Ihrem Gerät. Ein japanisches Dokument lädt nur die japanische Schrift mit 2,2 MB herunter, ein traditionell chinesisches die traditionelle Schrift mit 3,8 MB. Von da an wird das Schriftsystem offline gezeichnet, und die Schrift bleibt erhalten, wenn der Katalog aufgeräumt wird. Die Schrift wird bei den Katalogdateien aufbewahrt, nie bei Ihren hochgeladenen Schriften, und erscheint nicht in der Schriftliste Ihrer Marke.
 
-Die Kommandozeile, die Terminal-App und der MCP-Server lesen dieselben Dateien von der Festplatte, daher brauchen sie keinen Download.
+Die Befehlszeile, die Terminal-App und der MCP-Server lesen dieselben Dateien vom Datenträger und benötigen deshalb keinen Download.
 
+<!--i:eti-eye-->
 ## Auf der Seite und im Export
 
-Die Seite nutzt dieselbe Ersatzschrift wie der Export. Ohne das zeichnet ein Browser solche Buchstaben in einer Systemschrift, während der Export Noto verwendet, und eine Zeile, die sie enthält, ändert zwischen beiden ihre Breite. Lolly hängt die Ersatzschrift nur auf dieser Arbeitsfläche ans Ende der Schriftenliste des Designsystems an, nach den eigenen Schriften des Designsystems und vor jeder Systemschrift. Ein Tool, das eine eigene Schriftenliste setzt, in seinen Stilen oder an seinen Elementen, bekommt die Ersatzschrift an derselben Stelle: nach den Schriften, die die Liste nennt, und vor jeder Systemschrift. Eine Arbeitsfläche, die das Designsystem abdeckt, behält ihre Schriftenliste genau wie zuvor.
+Die Seite verwendet dieselbe Ersatzschrift wie der Export, sodass eine Zeile mit solchen Buchstaben in beiden dieselbe Breite hat. Nur auf dieser Arbeitsfläche fügt Lolly die Ersatzschrift nach den eigenen Schriften des Designsystems und vor jeder Systemschrift ein. Ein Tool, das in seinen Styles oder auf seinen Elementen eine eigene Schriftliste festlegt, erhält die Ersatzschrift an derselben Stelle. Eine Arbeitsfläche, die das Designsystem abdeckt, behält ihre Schriftliste unverändert.
 
-Die Seite lässt eine Schriftenliste unverändert, wenn sie mit einer Systemschrift beginnt, etwa `system-ui` oder Helvetica, weil der Export diesen Text mit den Schriften des Designsystems zeichnet und die Seite nicht.
+Die Seite lässt eine Schriftliste unverändert, wenn sie mit einer Systemschrift wie `system-ui` oder Helvetica beginnt, weil der Export diesen Text mit den Schriften des Designsystems zeichnet, die Seite aber nicht.
 
-In einem PDF werden die Wörter zu Umrissen, die mit der Ersatzschrift gezeichnet sind, welche Texteinstellung Sie auch wählen, denn Live-Text im PDF kann kein Schriftsystem tragen, das der eingebettete Font nicht hat. In SVG, EMF, EPS, DXF und WMF werden sie zu Umrissen, wann immer Text in Umrisse umgewandelt wird; bleibt der Text live, zeichnen die eigenen Schriften der Leserin oder des Lesers ihn wie bisher. Hat eine Ersatzschrift einen Teil eines Exports gezeichnet, zeigt das Export-Panel einen Hinweis wie diesen:
+In einem PDF werden die Wörter bei jeder Texteinstellung zu Umrissen in der Ersatzschrift, weil Live-Text in PDF kein Schriftsystem enthalten kann, das der eingebetteten Schrift fehlt. In SVG, EMF, EPS, DXF und WMF werden sie zu Umrissen, sobald Text in Umrisse umgewandelt wird. Bleibt Text als Live-Text erhalten, zeichnen ihn die eigenen Schriften des Betrachters. Wenn eine Ersatzschrift einen Teil eines Exports gezeichnet hat, zeigt das Export-Panel einen Hinweis wie diesen:
 
-> Japanischer Text wird mit Noto Sans JP gezeichnet, weil die Schriften dieses Designsystems diese Buchstaben nicht haben.
+> Japanischer Text wird mit Noto Sans JP gezeichnet, weil die Schriften dieses Designsystems diese Buchstaben nicht enthalten.
 
-Die Kommandozeile gibt denselben Satz als Hinweis aus.
+Die Befehlszeile gibt denselben Satz als Hinweis aus.
 
+<!--i:eti-image-->
 ## Was ein Bild bleibt
 
-Für ein Zeichen außerhalb der vier nationalen Zeichensätze gibt es keine Ersatzschrift. Seltene Zeichen wie 𠮷, die für Hongkong ergänzten Zeichen des Supplementary Character Set und Schriftsysteme ohne Ersatzschrift, etwa Tamil, Äthiopisch oder Syrisch, werden alle gleich behandelt. In einem PDF kommt die Zeile, die eines enthält, als Bild mit 300 dpi hinein, und das Export-Panel listet die Schriftsysteme auf. In einem SVG bleibt der Textabschnitt Live-Text, den die eigenen Schriften der Leserin oder des Lesers zeichnen.
+Ein Zeichen außerhalb der vier nationalen Zeichensätze, etwa 𠮷 oder ein Hongkonger Ergänzungszeichen, hat keine Ersatzschrift. Seltene Zeichen wie 𠮷, die für Hongkong durch seinen Ergänzungszeichensatz hinzugefügten Zeichen und Schriftsysteme ohne Ersatzschrift wie Tamil, Äthiopisch oder Syrisch werden alle gleich behandelt. Auch ein Schriftsystem wie Tamil, Äthiopisch oder Syrisch hat keine Ersatzschrift. In einem PDF wird die Zeile mit solchem Text als Bild mit 300 dpi eingefügt, und das Export-Panel listet die Schriftsysteme auf. In einem SVG bleibt der Abschnitt Live-Text, den die eigenen Schriften des Betrachters zeichnen.
 
+::: details In EPS-, WMF- und EMF-Exporten
+Ein EPS, WMF oder EMF mit eingeschaltetem **Outline fonts** kann nicht auf Live-Text zurückgreifen, daher wird der Textabschnitt ebenfalls als Bild mit 300 dpi eingefügt. Das Bild zeichnet die Textfarbe nur dort, wo die Buchstaben sind, sodass der Hintergrund durchscheint. Das Export-Panel listet die Schriftsysteme auf. Ein Bild wird nur aufrecht gezeichnet, daher stoppt ein gedrehter oder geneigter Textabschnitt den Export mit einer Meldung, die den Abschnitt zitiert. In einem WMF oder EMF besteht das Bild aus zwei Bitmap-Operationen, einer Maske und einem Farbauftrag. Microsoft Office und LibreOffice zeichnen sie wie vorgesehen. Eine App, die sie ignoriert, etwa Inkscape, zeigt die Wörter auf einem weißen Rechteck.
+
+Ein EMF mit ausgeschaltetem **Outline fonts** behält einen solchen Abschnitt als Live-Text, den die eigenen Schriften des Betrachters zeichnen. Die Ausnahme ist ein Abschnitt, den Live-Text in EMF nicht abbilden kann, etwa Text mit Zeichenabstand. Lolly wandelt diesen Abschnitt in Umrisse um, sodass ein Abschnitt, den keine Schrift zeichnen kann, auch dort als Bild eingefügt wird.
+:::
+
+::: warning Ein DXF-Export stoppt bei Text, den keine Schrift zeichnen kann
+Ein DXF geht an Schneidemaschinen und CAD-Software, die Umrisse benötigen. Daher stoppt ein Textabschnitt, den keine Schrift zeichnen kann, einen DXF-Export. Die Meldung zitiert den Abschnitt und nennt sein Schriftsystem. Fügen Sie eine Schrift mit diesen Buchstaben hinzu oder exportieren Sie SVG oder PDF.
+:::
+
+<!--i:eti-checklist-->
 ## Die Prüfung vor dem Export
 
-Die Karte **Before you export** von Lolly Design und die `render`-Prüfungen von `lolly check` melden Text, den keine Schrift zeichnen kann. Sie zählen die Ersatzschriften so wie ein Export, anhand derselben Listen der Zeichen, die jede Schrift hat, daher wird Text, den eine Ersatzschrift zeichnet, nicht gemeldet. Ein Schriftsystem ohne Ersatzschrift, etwa Tamil, und ein chinesisches, japanisches oder koreanisches Zeichen außerhalb der nationalen Zeichensätze werden weiterhin gemeldet, weil der Export sie als Bild oder als Live-Text zeichnet. Die Prüfung liest diese Listen aus dem Katalog und lädt keine Schrift herunter.
+Die Karte **Before you export** von Lolly Design und die `render`-Prüfungen von `lolly check` melden Text, den keine Schrift zeichnen kann. Sie berücksichtigen die Ersatzschriften wie ein Export anhand derselben Zeichenlisten pro Schrift, sodass Text, den eine Ersatzschrift zeichnet, nicht gemeldet wird. Ein Schriftsystem ohne Ersatzschrift, etwa Tamil, und ein chinesisches, japanisches oder koreanisches Zeichen außerhalb der nationalen Zeichensätze werden weiterhin gemeldet, weil der Export sie als Bild oder Live-Text zeichnet und ein DXF-Export bei ihnen stoppt. Die Prüfung liest diese Listen aus dem Katalog und lädt keine Schrift herunter.
 
-## Lizenzen und Credits
+<!--i:eti-stamp-->
+## Lizenzen und Urheberangaben
 
-Jede Ersatzschrift steht unter der SIL Open Font License 1.1, und jeder Katalogeintrag erfasst diese Lizenz mit einem Hash des Lizenztextes, daher liest das Regelwerk zu Rechten in [Kreativrechte und Credits](/info/creative-rights.html) die Lizenz wie die jeder anderen Schrift. Die Lizenztexte liegen neben den Schriften. Die Noto-Sans-Dateien deklarieren keinen Reserved Font Name. Die chinesischen, japanischen und koreanischen Schriften stammen von Adobe und reservieren den Namen Source; die zugeschnittenen Dateien behalten ihre Noto-Namen, die diesen Namen nicht verwenden.
+Jede Ersatzschrift steht unter der SIL Open Font License 1.1. Jeder Katalogeintrag hält diese Lizenz mit einem Hash des Lizenztexts fest, sodass die Rechteregeln unter [Rechte an kreativen Werken und Quellenangaben](/info/creative-rights.html) die Lizenz wie die jeder anderen Schrift lesen. Die Lizenztexte liegen neben den Schriften. Die Noto Sans-Dateien geben keinen Reserved Font Name an. Die chinesischen, japanischen und koreanischen Schriften stammen von Adobe und reservieren den Namen Source. Die gekürzten Dateien behalten ihre Noto-Namen, die diesen Namen nicht verwenden.
 
-Die Lizenz sagt, dass ihre Bedingungen nicht für Dokumente gelten, die mit den Schriften erstellt wurden. Ein Export enthält nur die gezeichneten Umrisse der verwendeten Buchstaben, wie bei den eigenen Schriften des Designsystems, und Lolly fügt für eine Ersatzschrift kein Schriftprogramm, keine Credit-Zeile und keinen neuen Content-Credentials-Eintrag hinzu.
+Die Lizenz besagt, dass ihre Bedingungen nicht für Dokumente gelten, die mit den Schriften erstellt wurden. Ein Export enthält nur die Umrisse der verwendeten Buchstaben, wie bei den eigenen Schriften des Designsystems. Lolly fügt für eine Ersatzschrift kein Schriftprogramm, keine Urheberzeile und keinen neuen Eintrag im Content Credential hinzu.

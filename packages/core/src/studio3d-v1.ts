@@ -37,6 +37,10 @@ export interface StudioFinishSpec {
 }
 
 export interface StudioSourceV1 {
+  /**
+   * `glb` is a glTF 2.0 model in either container: the binary .glb, or a .gltf whose
+   * buffers and images are all embedded. The host reads which from the bytes.
+   */
   kind: 'svg' | 'glb' | 'stl' | '3mf' | 'primitive' | 'text';
   id: string;
   url: string;
@@ -52,6 +56,19 @@ export interface StudioSourceV1 {
     lineHeight: number;
     align: 'left' | 'center' | 'right';
   };
+  /**
+   * Play one of a glTF model's baked animation clips. `index` counts from zero and wraps
+   * round the number of clips the file holds. Absent, the model holds the pose it was
+   * imported in, which is how every recipe made before clips could play reads. Only a
+   * `glb` source carries one, and a file with no clips ignores the request.
+   */
+  clip?: { index: number };
+}
+
+/** One baked animation clip a model file holds: its own name and its length in seconds. */
+export interface StudioClipInfo {
+  name: string;
+  seconds: number;
 }
 
 /** One subject inside an arrangement. Its id is stable across edits so saved overrides survive reordering. */
@@ -243,13 +260,17 @@ export interface StudioSceneV1 {
    * A camera path for motion: with `kind: 'keys'` and two or more keys the camera
    * travels through them over the loop; `still` keeps the live camera. `flow` passes
    * through every key with continuous velocity, `smooth` eases each leg, `linear` does not.
+   * `standard`, `emphasised` and `exit` ease each leg on the design system's curve of that
+   * name, and `gentle` and `bouncy` on its spring, with a fixed value where the system
+   * has none. A spring runs in real time, so a long leg arrives early and holds the key.
    * The other kinds are camera moves made from the live view: their rows are written
    * into `keys` when the recipe is built, so one evaluator draws every move, and
-   * `amount` (0.25 to 2, default 1) scales how far the move travels.
+   * `amount` (0.25 to 2, default 1) scales how far the move travels. `orbit` is one
+   * whole turn of the camera about the target and ignores `amount`.
    */
   cameraMotion?: {
-    kind: 'still' | 'keys' | 'sweep' | 'pushin' | 'dolly' | 'reveal' | 'crane';
-    ease: 'linear' | 'smooth' | 'flow';
+    kind: 'still' | 'keys' | 'sweep' | 'pushin' | 'dolly' | 'reveal' | 'crane' | 'orbit';
+    ease: 'linear' | 'smooth' | 'flow' | 'standard' | 'emphasised' | 'exit' | 'gentle' | 'bouncy';
     loop: boolean;
     amount?: number;
     keys: StudioCameraKeyV1[];
@@ -290,6 +311,10 @@ export interface StudioSourceInfo {
    * drawn to fit and carry no size of their own.
    */
   bounds?: { x: number; y: number; z: number; span: number };
+  /** The baked animation clips a glTF model holds, in file order; absent when there are none. */
+  clips?: StudioClipInfo[];
+  /** The index in `clips` of the clip this source plays; absent when the model holds its pose. */
+  playing?: number;
 }
 
 /**

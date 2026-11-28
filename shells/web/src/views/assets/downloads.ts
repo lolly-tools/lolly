@@ -25,7 +25,7 @@ import type { DerivedSignInputs } from '../../lib/derived-asset.ts';
 import type { AssetRef, IngredientCredential } from '@lolly-tools/core/host-v1';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
 import type { IconTheme } from '../../../../../engine/src/icon-theme.ts';
-import { CAT_ICONS, ORIGINAL_THEME, ZOOM_IN_ICON, ZOOM_OUT_ICON, blobToDataUrl, cropSvg, downloadName, isThemable, isVector, stripC2paManifest, svgAspect, svgTextToDataUrl, svgToPng, svgToRaster, svgViewBox } from './shared.ts';
+import { CAT_ICONS, ORIGINAL_THEME, ZOOM_IN_ICON, ZOOM_OUT_ICON, blobToDataUrl, cropSvg, downloadName, iconThemeById, isThemable, isVector, stripC2paManifest, svgAspect, svgTextToDataUrl, svgToPng, svgToRaster, svgViewBox } from './shared.ts';
 import type { AssetDownloadAppearance, CropDeliver, CropSource, CropTransform } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 
@@ -90,7 +90,7 @@ export function gridDownloadAppearance(cat: CatCtx, ref: AssetRef): AssetDownloa
   const treatmentId = group
     ? group.querySelector<HTMLElement>('.cat-dl-treat[aria-pressed="true"]')?.dataset.treatment
     : cat.catPhotoTreatment;
-  const theme = isThemable(ref) ? cat.iconThemes.find(th => th.id === themeId) : null;
+  const theme = isThemable(ref) ? iconThemeById(cat, themeId) : null;
   const treatment = ref.type === 'raster' && !ref.meta?.animated ? cat.photoTreatments.find(tr => tr.id === treatmentId) : null;
   return { theme: theme ? { ...theme } : null, treatment: treatment ? { ...treatment } : null };
 }
@@ -276,7 +276,7 @@ export async function prepCropSource(cat: CatCtx, ref: AssetRef, modifier: strin
     catch { return null; }
     origSvg = svgText;
     if (isThemable(ref) && modifier && modifier !== ORIGINAL_THEME) {
-      const th = cat.iconThemes.find(x => x.id === modifier);
+      const th = iconThemeById(cat, modifier);
       const out = th && restyleIconTheme(svgText, th);
       if (out && out !== svgText) { svgText = stripC2paManifest(out); theme = th ?? null; }
     }
@@ -551,7 +551,7 @@ export async function openDownloadDialog(cat: CatCtx, ref: AssetRef, initialThem
 
   const currentSvg = (): string => {
     if (!themable || themeId === ORIGINAL_THEME || !themeId) return baseSvg;
-    const t = cat.iconThemes.find(x => x.id === themeId);
+    const t = iconThemeById(cat, themeId);
     const out = (t && restyleIconTheme(baseSvg, t)) || baseSvg;
     // A recolour changes the bytes, breaking any embedded credential's byte
     // binding - strip it here; the download re-signs the file with the
@@ -617,7 +617,7 @@ export async function openDownloadDialog(cat: CatCtx, ref: AssetRef, initialThem
     if (target.closest('.cat-dl-cancel')) { closeDownloadDialog(cat); return; }
     if (target.closest('.cat-dl-go')) {
       const svg = currentSvg();
-      const theme = themable && themeId && themeId !== ORIGINAL_THEME ? cat.iconThemes.find(x => x.id === themeId) : null;
+      const theme = themable && themeId && themeId !== ORIGINAL_THEME ? iconThemeById(cat, themeId) : null;
       const recoloured = Boolean(theme) && svg !== baseSvg;
       // The transform history + detail for the signed download. The original
       // (untouched SVG) is the one path that stays byte-exact and unsigned.

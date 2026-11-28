@@ -25,6 +25,7 @@
  * link to its tool, so the whole feature degrades to "a scrollable row of links".
  */
 
+import { hasPicture, previewImg, type PictureSource } from './preview-image.ts';
 import { CoverflowGesture, CoverflowMotion, coverflowHaptics, coverflowWheel, type CoverflowGrid } from '../lib/coverflow-motion.ts';
 import { mountCoverflow, type CoverflowHandle } from './coverflow.ts';
 import { showOpenAtRest } from '../lib/coverflow-open-rest.ts';
@@ -35,9 +36,10 @@ import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { startupMotionHeld } from '../lib/startup-motion.ts';
 import { perfUiOn, subscribePerfUi } from '../feature-flags.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
-import { renderFeaturedVariant, renderMissingLook, isManifestLook, displayFormatOf } from '../lib/featured-render.ts';
+import { renderFeaturedVariant, renderMissingLook, isManifestLook, displayFormatOf, storedFeaturedVariant } from '../lib/featured-render.ts';
 import { toolSeedHref } from '../lib/seed-url.ts';
-import { galleryLookHref, heldGalleryLook, renderGalleryLook } from '../lib/gallery-preview.ts';
+import { DRAW_PRIORITY, galleryLookHref, heldGalleryLook, renderGalleryLook, storedGalleryLook } from '../lib/gallery-preview.ts';
+import { drawsEverywhere, lookDrawReach } from '../lib/preview-work-gate.ts';
 import { bakedCoverSet } from '../lib/gallery-covers.ts';
 import { playSfx } from '../lib/sfx.ts';
 import { dragTravel, type DragTravel } from '../lib/pointer-wrap.ts';
@@ -45,7 +47,6 @@ import { currentTheme } from '../theme.ts';
 import { icon } from '../lib/icons.ts';
 import { tRaw } from '../i18n.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import type { PreviewsAPI } from '../bridge/previews.ts';
 
 export interface FeaturedVariant {
   motion?: import('../lib/template-motion.ts').TemplateMotion;
@@ -75,6 +76,9 @@ export interface FeaturedEntry {
   id: string;
   name: string;
   preview?: string;
+  /** A saved session's own picture (a stored reference or a legacy data URL), read
+   *  through components/preview-image.ts. Wins over `preview` when it has one. */
+  picture?: PictureSource;
   /** The tool's inlined icon SVG - shown as the tile's fallback art when no preview/
    *  variant has loaded (and revealed if one errors), hidden once real art is ready. */
   icon?: string;
@@ -101,7 +105,7 @@ export function resolveExamples(src: { examples?: FeaturedVariant[]; featured?: 
   return src?.examples ?? src?.featured?.variants ?? [];
 }
 
-type FeaturedHost = HostV1 & { previews?: PreviewsAPI };
+type FeaturedHost = HostV1;
 
 /** One queued look: the tool plus the example to paint. `index` is the look's ORIGINAL
  *  manifest position (not its position after the theme filter), so it keys the render
@@ -179,9 +183,11 @@ function tileMarkup(entry: FeaturedEntry, eager = false, menu = false): string {
   // priority - `loading="lazy"` on the hero delays LCP (the browser defers the very
   // image LCP measures). Off-screen tiles (index > 0) keep lazy.
   const loadAttrs = eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
-  const base = entry.preview
-    ? `<img class="ftile-img is-active" data-base src="${escape(entry.preview)}" alt="" aria-hidden="true" draggable="false" ${loadAttrs}>`
-    : '';
+  const base = hasPicture(entry.picture)
+    ? previewImg(entry.picture, `class="ftile-img is-active" data-base alt="" aria-hidden="true" draggable="false" ${loadAttrs}`)
+    : entry.preview
+      ? `<img class="ftile-img is-active" data-base src="${escape(entry.preview)}" alt="" aria-hidden="true" draggable="false" ${loadAttrs}>`
+      : '';
   // The tool's own icon is the always-present fallback: it shows until a real preview/
   // variant decodes (so a missing or slow image is never a blank/broken box), and it's
   // hidden the instant art is ready (`.ftile.has-art` - a transparent preview would
@@ -193,7 +199,7 @@ function tileMarkup(entry: FeaturedEntry, eager = false, menu = false): string {
   // (large, bold, brand-hued) instead of the faint loading ghost, and pairs it
   // with the name in a pill so icon + title read as ONE centred object: for a
   // utility the name identifies it faster than the glyph does.
-  const iconHero = !entry.preview && resolveExamples(entry).length === 0;
+  const iconHero = !entry.preview && !hasPicture(entry.picture) && resolveExamples(entry).length === 0;
   // The pill lives inside the (aria-hidden) stage, so it's decoration - the
   // link's aria-label still carries the name, and nothing is announced twice.
   // Its visible twin in .ftile-meta is hidden by CSS on these tiles.
@@ -1201,6 +1207,13 @@ export function mountFeaturedRow(
         .catch((e) => host.log?.('warn', `Featured look missing and re-render failed for ${job.id}`, { error: String((e as { message?: unknown })?.message ?? e) }));
     };
 
+    /** Put a finished look on its tile: replace a held cover in place (the tile and its
+     *  wrap copies), or add the look. */
+    const showJob = async (job: VariantJob, thumb: string): Promise<void> => {
+      const stale = [...track.querySelectorAll<HTMLImageElement>(`.ftile[data-tool="${CSS.escape(job.id)}"] .ftile-img[data-held="${job.index}"]`)];
+      for (const img of stale) { img.src = thumb; delete img.dataset.held; }
+      if (!stale.length) await addVariantImage(job, thumb);
+    };
     const renderJob = async (job: VariantJob): Promise<void> => {
       if (destroyed) return;
       try {
@@ -1208,13 +1221,20 @@ export function mountFeaturedRow(
           ? renderGalleryLook(host, job.tool, job.index, job.look)
           : renderFeaturedVariant(host, job.id, job.formats, job.index, job.values));
         if (destroyed) return;
-        // Replace a held cover in place (the tile and its wrap copies), or add the look.
-        const stale = [...track.querySelectorAll<HTMLImageElement>(`.ftile[data-tool="${CSS.escape(job.id)}"] .ftile-img[data-held="${job.index}"]`)];
-        for (const img of stale) { img.src = thumb; delete img.dataset.held; }
-        if (!stale.length) await addVariantImage(job, thumb);
+        await showJob(job, thumb);
       } catch (e) {
         host.log?.('warn', `Featured variant failed for ${job.id}`, { error: String(e) });
       }
+    };
+    /** Show the look if it is stored; false when it still has to be drawn. */
+    const readJob = async (job: VariantJob): Promise<boolean> => {
+      if (destroyed) return true;
+      const thumb = await (job.tool?.galleryPreview && job.look
+        ? storedGalleryLook(host, job.tool, job.index, job.look)
+        : storedFeaturedVariant(host, job.id, job.formats, job.values)).catch(() => null);
+      if (!thumb) return false;
+      if (!destroyed) await showJob(job, thumb);
+      return true;
     };
     // A cover drawn earlier in this visit stands in until its new one is ready
     // (lib/gallery-preview.ts): a design system or theme change recolours tile by tile.
@@ -1233,14 +1253,43 @@ export function mountFeaturedRow(
         return renderJob(job);
       };
       const coverJobs: VariantJob[] = [];
+      // A stored look is read on the queue's next idle moment; a missing one is drawn
+      // later, while the page is at rest (the queue's draw gate). An extra look is read
+      // and drawn only while its own tile is on the screen: Cover Flow shows a few tiles
+      // of a long row, and a swipe holds the queue and wakes it when it settles, so the
+      // tiles that come into view are next. A capture or a cover bake draws every
+      // look at once, as before.
+      const everywhere = drawsEverywhere(captureNeutralPinned());
+      const queue = opts.previewQueue;
+      const tileOnScreen = (id: string): boolean => {
+        for (const tile of track.querySelectorAll<HTMLElement>(`.ftile[data-tool="${CSS.escape(id)}"]`)) {
+          // Cover Flow tucks the covers past its fan behind the centre and hides them.
+          if (tile.style.visibility === 'hidden') continue;
+          const r = tile.getBoundingClientRect();
+          if (r.width > 0 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth) return true;
+        }
+        return false;
+      };
       for (const job of jobs) {
         const cover = !firstByTool.has(job.id);
         firstByTool.add(job.id);
         if (cover) coverJobs.push(job);
-        opts.previewQueue.add({
-          priority: () => perfUiOn() || !visible ? null : cover ? (onScreen ? 0 : 1) : onScreen ? 2 : null,
+        const base = (): number | null => (perfUiOn() || !visible ? null : cover ? (onScreen ? 0 : 1) : onScreen && tileOnScreen(job.id) ? 2 : null);
+        const drawAt = (): number | null => {
+          const at = base();
+          const reach = lookDrawReach();
+          if (at === null || !onScreen || reach === 'none') return null;
+          if (reach === 'screen' && !tileOnScreen(job.id)) return null;
+          return DRAW_PRIORITY + at;
+        };
+        queue.add({
+          priority: base,
           stale: () => destroyed || started.has(job),
-          run: () => startJob(job),
+          run: async () => {
+            if (everywhere) { await startJob(job); return; }
+            if (await readJob(job)) { started.add(job); return; }
+            queue.add({ draw: true, priority: drawAt, stale: () => destroyed || started.has(job), run: () => startJob(job) });
+          },
         });
       }
       // A cover with a baked file is a plain picture, so it goes on at once and does not

@@ -15,8 +15,6 @@
 
   .bp-head { display: flex; align-items: start; justify-content: space-between; gap: var(--sp-5); padding: var(--ui-space-panel) var(--ui-space-page); }
   .bp-intro { margin: var(--sp-2) 0 0; font-size: var(--ui-type-body); color: var(--ui-color-text-muted); }
-  .bp-close { display: grid; place-items: center; width: var(--ui-size-target); height: var(--ui-size-target); flex-shrink: 0; border: 0; border-radius: var(--ui-radius-control); background: none; color: inherit; cursor: pointer; }
-  .bp-close:hover { background: var(--ui-color-surface-muted); }
 
   /* The page is the hero: everything else fits in the column beside it. */
   .bp-body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: var(--ui-space-panel); padding: 0 var(--ui-space-page); }

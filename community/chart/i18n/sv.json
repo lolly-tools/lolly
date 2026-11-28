@@ -1,6 +1,6 @@
 {
   "name": "Diagram",
-  "description": "Diagram från första inklistring till avancerad visualisering - förklarade datarekommendationer, tydlig fältmappning, 35 klassiska vektorfamiljer inklusive Pareto, bullet targets och range bars, sexton statistiska och redaktionella uttrycksformer, riktiga 3D-scener med z-djup, filmiska flygningar, deterministisk rörelse, tillgängliga beskrivningar och stilar sammanställda från det aktiva designsystemet.",
+  "description": "Diagram från första inklistring till avancerad visualisering - 35 vektorfamiljer, 3D-scener, flygningar, rörelse och stilar från designsystemet.",
   "featured.blurb": "Klistra in en tabell - Chart gör den tydlig, tillgänglig och omisskännligt i linje med designsystemet",
   "a11yLabel": "{{chartType}}-diagram{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Diagramtyp",

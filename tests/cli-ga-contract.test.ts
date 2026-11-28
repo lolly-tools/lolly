@@ -23,6 +23,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
+import { writeBrowserFreeFixture } from './helpers/browser-free-fixture.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const root = await mkdtemp(join(tmpdir(), 'lolly-ga-contract-'));
@@ -112,7 +113,8 @@ const TOOLS: Array<[string, string, string]> = [
     hooks: { exportFile: true },
     inputs: [{ id: 'source', type: 'file', label: 'File' }],
   })],
-  ['busy-tool', BUSY_TEMPLATE, manifest('busy-tool')],
+  // Its render size is its drawing's, so the browser-free route places it as the page does (resvg-admission.ts).
+  ['busy-tool', BUSY_TEMPLATE, manifest('busy-tool', { render: { width: 240, height: 160, formats: ['svg', 'png'] } })],
   // A PAGED document - three [data-pdf-page] frames with real ids - for the `s=`
   // still-export slide filter (plan 112 section 10). Each page is its own <svg>, so a
   // filtered export has a CLI-native vector path while the unfiltered whole (three
@@ -146,6 +148,9 @@ await writeFile(join(root, 'tools', 'xform-tool', 'hooks.js'),
   '  return { bytes: new TextEncoder().encode(text), filename: "shouted.txt", mime: "text/plain" };\n' +
   '}\n');
 
+// The fixtures whose PNGs these assertions check carry the record that admits them to the
+// browser-free route, written last so the digest is over their final files.
+for (const id of ['vec-tool', 'busy-tool', 'text-tool']) writeBrowserFreeFixture(join(root, 'tools', id));
 process.env.LOLLY_ROOT = root;
 process.env.LOLLY_WEB_DIST = join(root, 'no-such-dist');
 delete process.env.LOLLY_WEB_BASE;
@@ -462,13 +467,21 @@ test('a bare --s is a usage error, not slide 1', () => {
 
 test('reserved params the CLI cannot honour warn instead of vanishing (B6)', async () => {
   assert.deepEqual(
-    unsupportedReservedParams({ copy: '1', slot: 'a', full: '1', iframe: '1', options: '1', nostage: '1', _v: '2', width: '10' }).sort(),
-    ['_v', 'copy', 'full', 'iframe', 'nostage', 'options', 'slot'],
+    unsupportedReservedParams({ copy: '1', slot: 'a', full: '1', iframe: '1', options: '1', nostage: '1', _v: '2', kiosk: '1', template: 'poster', preset: 'story', width: '10' }).sort(),
+    ['_v', 'copy', 'full', 'iframe', 'kiosk', 'nostage', 'options', 'preset', 'slot', 'template'],
   );
   const out = outPath('svg');
   const { stderr } = await run({ toolId: 'vec-tool', params: { copy: '1' }, outputPath: out, format: 'svg' });
   assert.match(stderr, /--copy is not supported by the CLI/);
   assert.equal(existsSync(out), true, 'an unsupported reserved param warns; it does not fail the render');
+});
+
+test('a link that picks a template says the CLI did not apply the template', async () => {
+  const out = outPath('svg');
+  const { stderr } = await run({ toolId: 'vec-tool', params: { template: 'poster', preset: 'story' }, outputPath: out, format: 'svg' });
+  assert.match(stderr, /--template is not supported by the CLI/);
+  assert.match(stderr, /--preset is not supported by the CLI/);
+  assert.equal(existsSync(out), true);
 });
 
 test('--strict promotes those warnings to exit 2', async () => {

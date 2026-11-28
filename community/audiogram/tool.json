@@ -1,9 +1,9 @@
 {
   "id": "audiogram",
   "name": "Audiogram",
-  "description": "Turn a voice clip or song into a video in your design system's colours that actually moves with the sound - bars, spectrum, ring, ridgeline or scope, ready for social.",
+  "description": "Turn a voice clip or song into a video in your design system's colours that moves with the sound.",
   "a11yLabel": "Audiogram card for {{default title \"an audio clip\"}} with a waveform animated from the audio",
-  "version": "2.8.0",
+  "version": "2.10.0",
   "engineVersion": ">=1.261.0 <2.0.0",
   "status": "community",
   "category": "everyone",
@@ -92,6 +92,7 @@
   "render": {
     "sectionIcons": {
       "Playback": "play",
+      "Recording": "mic",
       "Captions": "transcript",
       "Colour": "palette"
     },
@@ -720,6 +721,27 @@
       "help": "Adds a pulse on each detected beat. Has no effect on speech or ambient audio, where there is no steady tempo to find."
     },
     {
+      "id": "targetLevel",
+      "section": "Recording",
+      "label": "Target level",
+      "type": "select",
+      "default": "normal",
+      "help": "What counts as 'just right' for the coaching prompts.",
+      "options": [
+        { "value": "soft", "label": "Soft · close mic" },
+        { "value": "normal", "label": "Normal · speech" },
+        { "value": "loud", "label": "Loud · room" }
+      ]
+    },
+    {
+      "id": "showTips",
+      "section": "Recording",
+      "label": "Coaching tips",
+      "type": "boolean",
+      "default": true,
+      "help": "Live prompts like 'get closer' or 'ease off'."
+    },
+    {
       "id": "captions",
       "section": "Captions",
       "label": "Captions",
@@ -768,6 +790,33 @@
       "label": "Background",
       "type": "color",
       "default": "{color.semantic.primary}"
+    },
+    {
+      "id": "titleMotion",
+      "label": "Title motion",
+      "type": "select",
+      "default": "none",
+      "display": "segmented",
+      "help": "Video, GIF and APNG open with the title rising in word by word during the first second, on the design system's timing, while the visual plays as usual. PNG and other stills show the finished title.",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "rise",
+          "label": "Rise in"
+        }
+      ],
+      "showIf": {
+        "layout": [
+          "bottom",
+          "center",
+          "overlay",
+          "overlay-top",
+          "overlay-center"
+        ]
+      }
     }
   ]
 }

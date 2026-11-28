@@ -27,7 +27,7 @@ async function fixture(options: { scope?: string } = {}) {
     put(`/tools/${id}/tool.json`, toolJson(id), 'public-revalidate');
   }
   const preview = '<svg><rect/></svg>', previewHash = sha(preview);
-  const resources = { [`/catalog/previews/alpha.${previewHash.slice(0, 16)}.svg`]: previewHash, '/catalog/previews/alpha.svg': previewHash, '/catalog/previews/bundle.json': sha('{}') };
+  const resources = { [`/catalog/previews/alpha.${previewHash.slice(0, 16)}.svg`]: previewHash, '/catalog/previews/alpha.svg': previewHash, '/catalog/previews/covers.json': sha('{}') };
   put(`/catalog/previews/alpha.${previewHash.slice(0, 16)}.svg`, preview, 'public-immutable');
   put('/catalog/previews/alpha.svg', preview, 'public-revalidate');
   const logo = '<svg><circle/></svg>', logoUrl = `/catalog/assets/demo/logo.${sha(logo).slice(0, 16)}.svg`;
@@ -83,7 +83,7 @@ test('signed catalog samples cover hashed indexes, tool trees, previews and asse
   assert.equal(by('/tools/alpha/tool.json')?.cls, 'public-revalidate');
   assert.equal(samples.filter(sample => sample.path.startsWith('/tools/') && sample.status !== 404).length, 4, 'two tools, hashed and legacy');
   assert.ok(by('/catalog/previews/alpha.svg'), 'the unhashed preview name revalidates to the same bytes');
-  assert.equal(by('/catalog/previews/bundle.json'), undefined, 'mutable resources have no hashed address');
+  assert.equal(by('/catalog/previews/covers.json'), undefined, 'mutable resources have no hashed address');
   assert.equal(by(logoUrl)?.sha256, sha('<svg><circle/></svg>'));
   assert.equal(samples.some(sample => sample.path.includes('huge') || sample.path.includes('elsewhere')), false, 'oversized and unsafe assets are skipped');
   const missing = samples.filter(sample => sample.status === 404);

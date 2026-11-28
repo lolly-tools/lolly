@@ -1,6 +1,6 @@
 {
   "name": "Audiogramm",
-  "description": "Verwandelt eine Sprachaufnahme oder einen Song in ein Video in den Farben Ihres Designsystems, das sich wirklich zum Klang bewegt - Balken, Spektrum, Ring, Ridgeline oder Scope, bereit für Social Media.",
+  "description": "Verwandelt eine Sprachaufnahme oder einen Song in ein Video in den Farben Ihres Designsystems, das sich zum Klang bewegt.",
   "a11yLabel": "Audiogramm-Karte für {{default title \"an audio clip\"}} mit animierter Wellenform",
   "inputs.audio.label": "Audio",
   "inputs.audio.help": "Wählen Sie einen Titel aus Ihrer Bibliothek oder laden Sie einen Clip hoch. Er wird auf Ihrem Gerät dekodiert, um die Wellenform zu zeichnen - das Audio verlässt den Browser nie. Leer lassen für eine Platzhalter-Wellenform. Um es im Export zu hören, wählen Sie \"Audio dieses Tools\" als Audiospur in den Download-Optionen.",
@@ -18,5 +18,12 @@
   "inputs.size.options.story": "Story (9:16)",
   "inputs.accent.label": "Wellenform-Farbe",
   "inputs.ink.label": "Textfarbe",
-  "inputs.bg.label": "Hintergrund"
+  "inputs.bg.label": "Hintergrund",
+  "inputs.targetLevel.label": "Zielpegel",
+  "inputs.targetLevel.help": "Was für die Coaching-Hinweise als „genau richtig\" gilt.",
+  "inputs.targetLevel.options.soft": "Leise · Nahmikrofon",
+  "inputs.targetLevel.options.normal": "Normale Sprache",
+  "inputs.targetLevel.options.loud": "Laut · Raum",
+  "inputs.showTips.label": "Coaching-Hinweise",
+  "inputs.showTips.help": "Live-Hinweise wie „näher herangehen\" oder „Sie übersteuern\"."
 }

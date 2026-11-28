@@ -108,8 +108,11 @@ export type {
   CanvasSyncAdapter,
 } from './canvas-op-v1.ts';
 
-export { defineTool, defineHooks } from './define-tool.ts';
+export { defineTool, defineHooks, INPUT_NOTICES_KEY, INPUT_NOTICE_TONES, INPUT_NOTICE_TEXT_MAX } from './define-tool.ts';
 export type {
+  InputNotice,
+  InputNotices,
+  InputNoticeTone,
   CanvasSize,
   HookContext,
   HookModelItem,
@@ -195,7 +198,7 @@ export type { LiveMethodV1, LiveRequestV1, LiveReplyV1, LiveHelloResultV1, LiveD
 export type { AgentPresence, AgentChange, AgentChangeTarget } from './agent-presence-v1.ts';
 
 export type { LearningRichNode, LearningQuiz, LearningProgressEventV1, LearningTarget, LearningSource, LearningBlock, LearningLesson, LearningModule, LearningFile, LearningContentBlock, LearningContent, LearningAttempt, LearningFinding, LearningRelease } from './learning-v1.ts';
-export type { StudioSceneV1, StudioSourceV1, StudioObjectV1, StudioCameraKeyV1, StudioMaterialV1, StudioLightV1, StudioSurfaceInfo, StudioSourceInfo, StudioVector3, StudioProjection, StudioFinish, StudioFinishSpec, StudioLookScopeV1, StudioLinkV1, StudioMotionKind, StudioPoseV1 } from './studio3d-v1.ts';
+export type { StudioSceneV1, StudioSourceV1, StudioObjectV1, StudioCameraKeyV1, StudioMaterialV1, StudioLightV1, StudioSurfaceInfo, StudioSourceInfo, StudioClipInfo, StudioVector3, StudioProjection, StudioFinish, StudioFinishSpec, StudioLookScopeV1, StudioLinkV1, StudioMotionKind, StudioPoseV1 } from './studio3d-v1.ts';
 
 export * from './text-v1.ts';
 

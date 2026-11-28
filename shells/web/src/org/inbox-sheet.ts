@@ -27,11 +27,11 @@
  * Every instance-supplied string (titles, bodies, names) reaches the page through
  * textContent; only the dialog's frame, built from this file's own strings, is markup.
  */
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { announce } from '../a11y.ts';
 import { approvalWork } from '../lib/approval-request.ts';
 import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { t, tRaw } from '../i18n.ts';
-import { icon } from '../lib/icons.ts';
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { relTime } from '../lib/rel-time.ts';
 import { escape as escapeHtml, safeHref } from '../utils.ts';
@@ -192,7 +192,7 @@ export function openInboxSheet(opts: InboxSheetOptions = {}): void {
           <h2 class="modal-title" id="${uid}-h" data-inbox-title tabindex="-1" style="margin:0;outline:none">${escapeHtml(t('Inbox'))}</h2>
           ${workspace ? `<p style="margin:.2rem 0 0;font-size:var(--fs-sm);${MUTED}">${t('Messages from {workspace}', { workspace })}</p>` : ''}
         </div>
-        <button type="button" class="save-dialog-close" data-inbox-close aria-label="${escapeHtml(t('Close'))}" style="display:inline-flex;align-items:center;justify-content:center;width:var(--ui-size-target);height:var(--ui-size-target)">${icon('close', { size: 18 })}</button>
+        ${closeButtonHtml({ className: 'save-dialog-close', attrs: { 'data-inbox-close': true } })}
       </div>
       <div data-inbox-body style="flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:8px 22px 22px"></div>
     </div>`,

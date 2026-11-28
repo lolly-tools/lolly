@@ -89,9 +89,18 @@ async function openOptions(page: Page): Promise<void> {
   await page.locator('#filter-popover').waitFor({ state: 'visible' });
 }
 
-/** Move the card-size slider the way a keyboard user does: Home, then step right. */
+/**
+ * Move the card-size slider the way a keyboard user does: Home, then step right.
+ *
+ * The popover's range input becomes the app's own slider on the first idle moment
+ * after load (components/custom-slider.ts, `installRangeUpgrader`), and the upgrade
+ * hides the input. On a busy CI runner that moment can come while this function is
+ * sending keys; a key aimed at the input then goes to the page and the step never
+ * changes. So the keys wait for the slider in its final form.
+ */
 async function setStep(page: Page, step: number): Promise<void> {
   await openOptions(page);
+  await page.locator('#filter-popover .view-options-size .custom-slider[data-cs-for-range]').waitFor();
   const slider = page.locator('#filter-popover').getByRole('slider', { name: 'Card size' });
   await slider.focus();
   await slider.press('Home');

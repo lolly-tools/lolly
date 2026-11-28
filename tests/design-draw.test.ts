@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { CompiledFrameV1, DesignBoxRowV1 } from '@lolly-tools/core';
-import { DESIGN_DRAW_VERSION, compileDesignDraw, compileDesignRow, describeDesignDrawPictures, designDrawFindings, layoutDesignDrawText, outlineDesignDrawText, pictureRect, type DrawPicture, type DrawShapeOp, type DrawTextToPath } from '../engine/src/design-draw.ts';
+import { DESIGN_DRAW_VERSION, compileDesignDraw, compileDesignRow, describeDesignDrawPictures, designDrawFindings, designRowInstants, layoutDesignDrawText, outlineDesignDrawText, pictureRect, type DrawPicture, type DrawShapeOp, type DrawTextToPath } from '../engine/src/design-draw.ts';
 import { designDrawSvg } from '../engine/src/design-draw-svg.ts';
 import { designDrawPdf } from '../engine/src/design-draw-pdf.ts';
 import { drawDesignText, measureDesignText, type TextShaperV1 } from '../engine/src/design-text-measure.ts';
@@ -435,4 +435,80 @@ test('the named Lottie compatibility reading preserves its legacy geometry witho
   assert.equal(preview.compatibility, undefined);
   assert.throws(() => compileDesignRow(row, { x: 0, y: 0 }, { semantics: 'lottie-compat' }), /needs resolved paints/);
   assert.throws(() => compileDesignDraw([row], { width: 100, height: 100 }, { semantics: 'lottie-compat' }), /sequence owns page selection/);
+});
+
+/** The video template's shape: scenery, then two sequence rows of three seconds each. */
+function timedPage(extra: DesignBoxRowV1[] = []): DesignBoxRowV1[] {
+  return [
+    { id: 'scene', kind: 'frame', x: 0, y: 0, w: 400, h: 300, bg: '#ffffff' },
+    { id: 'ground', kind: 'box', x: 0, y: 200, w: 400, h: 100, bg: '#222222', frame: 'scene' },
+    { id: 'hook', kind: 'box', x: 10, y: 10, w: 100, h: 40, bg: '#ff0000', frame: 'scene', lane: 'seq', start: 0, dur: 3 },
+    { id: 'cta', kind: 'box', x: 10, y: 60, w: 100, h: 40, bg: '#0000ff', frame: 'scene', lane: 'seq', start: 3, dur: 3 },
+    ...extra,
+  ];
+}
+const opIds = (rows: DesignBoxRowV1[], opts: Parameters<typeof compileDesignDraw>[2] = {}) =>
+  compileDesignDraw(rows, { width: 400, height: 300 }, opts).ops.map((op) => op.id);
+
+test('a still draws the timed rows the sequence shows at its instant, 0 when it names none', () => {
+  assert.deepEqual(opIds(timedPage()), ['ground', 'hook'], 'at 0 the row that starts at 3 s is not on screen');
+  assert.deepEqual(opIds(timedPage(), { at: 0 }), ['ground', 'hook']);
+  assert.deepEqual(opIds(timedPage(), { at: 3 }), ['ground', 'cta'], 'half-open: at 3 s the first row has handed over');
+  assert.deepEqual(opIds(timedPage(), { at: 5.999 }), ['ground', 'cta']);
+  assert.deepEqual(opIds(timedPage(), { at: 6 }), ['ground'], 'past the end of the sequence only scenery is left');
+  assert.deepEqual(opIds(timedPage(), { at: null }), ['ground', 'hook', 'cta'], 'null draws every row at rest, as a page export of a deck does');
+  assert.deepEqual(opIds(timedPage(), { at: 6, semantics: 'preview' }), ['ground', 'hook', 'cta'], 'the preview reading is untouched');
+  assert.deepEqual(compileDesignDraw(timedPage(), { width: 400, height: 300 }).findings, []);
+});
+
+test('the instant follows the renderer: set-aside clips close up, open-ended rows run to the sequence end', () => {
+  // A set-aside first clip moves the next sequence clip back to 0; an overlay keeps its start.
+  const ignored = timedPage([{ id: 'over', kind: 'box', x: 0, y: 0, w: 5, h: 5, bg: '#00ff00', frame: 'scene', start: 3, dur: 2 }]);
+  ignored[2] = { ...ignored[2]!, ignored: true };
+  assert.deepEqual(opIds(ignored, { at: 0 }), ['ground', 'cta']);
+  assert.deepEqual(opIds(ignored, { at: 3 }), ['ground', 'over']);
+  // An open-ended row runs to the end of the whole document's sequence, rows on other frames included.
+  const open = timedPage([{ id: 'tail', kind: 'box', x: 0, y: 0, w: 5, h: 5, bg: '#00ff00', frame: 'scene', start: 1 }]);
+  assert.deepEqual(opIds(open, { at: 5 }), ['ground', 'cta', 'tail']);
+  assert.deepEqual(opIds(open, { at: 6 }), ['ground']);
+  const elsewhere = [{ id: 'late', kind: 'box', x: 0, y: 0, w: 5, h: 5, frame: 'other', lane: 'seq', start: 6, dur: 4 }] as DesignBoxRowV1[];
+  assert.deepEqual(opIds(open, { at: 7, timeline: [...open, ...elsewhere] }), ['ground', 'tail']);
+  // A hidden row carries no time, so it does not lengthen the sequence an open-ended row runs to.
+  const hiddenLong = timedPage([{ id: 'tail', kind: 'box', x: 0, y: 0, w: 5, h: 5, bg: '#00ff00', frame: 'scene', start: 1 },
+    { id: 'long', kind: 'box', x: 0, y: 0, w: 5, h: 5, bg: '#00ff00', frame: 'scene', start: 0, dur: 10, hidden: true }]);
+  assert.deepEqual(opIds(hiddenLong, { at: 6 }), ['ground']);
+  // With timing but no duration anywhere, the sequence is five seconds long.
+  const lone = [{ id: 'f', kind: 'frame', x: 0, y: 0, w: 10, h: 10 }, { id: 'a', kind: 'box', x: 0, y: 0, w: 5, h: 5, bg: '#000000', start: 2 }] as DesignBoxRowV1[];
+  assert.deepEqual(designRowInstants(lone, 4.9)(lone[1]!), 'shown');
+  assert.deepEqual(designRowInstants(lone, 5)(lone[1]!), 'off');
+});
+
+test('a row part way through its enter or exit at the instant is a finding, not a guessed pose', () => {
+  const entering = timedPage();
+  entering[2] = { ...entering[2]!, enter: 'fade', enterMs: 500 };
+  const at0 = compileDesignDraw(entering, { width: 400, height: 300 });
+  assert.deepEqual(at0.findings, [{ id: 'hook', feature: 'timed-transition' }]);
+  assert.deepEqual(compileDesignDraw(entering, { width: 400, height: 300 }, { at: 0.5 }).findings, [], 'at rest once the enter is over');
+  const leaving = timedPage();
+  leaving[2] = { ...leaving[2]!, exit: 'slide-left', exitMs: 400 };
+  assert.deepEqual(compileDesignDraw(leaving, { width: 400, height: 300 }, { at: 2.7 }).findings, [{ id: 'hook', feature: 'timed-transition' }]);
+  // A fade-out may hand over to a fade-in, which keeps the outgoing clip on screen past its cut.
+  const handover = timedPage();
+  handover[2] = { ...handover[2]!, exit: 'fade' };
+  handover[3] = { ...handover[3]!, enter: 'fade' };
+  assert.deepEqual(compileDesignDraw(handover, { width: 400, height: 300 }, { at: 3.1 }).findings,
+    [{ id: 'hook', feature: 'timed-transition' }, { id: 'cta', feature: 'timed-transition' }]);
+  // A lone fade-out has no clip to hand over to: past its end it is simply gone.
+  const lone = timedPage();
+  lone[3] = { ...lone[3]!, exit: 'fade' };
+  assert.deepEqual(compileDesignDraw(lone, { width: 400, height: 300 }, { at: 6.1 }).findings, []);
+  // Text that arrives a word at a time with no enter of its own still moves until the last unit is in.
+  const typed = timedPage();
+  typed[2] = { ...typed[2]!, kind: 'text', text: 'one two three', split: 'word', stagger: 200 };
+  assert.deepEqual(designRowInstants(typed, 0.1)(typed[2]!), 'moving');
+  assert.deepEqual(designRowInstants(typed, 2.5)(typed[2]!), 'shown');
+  // A sequenced frame is a scene; a still of one off its span is not the clock's to draw.
+  const scene = timedPage();
+  scene[0] = { ...scene[0]!, lane: 'seq', start: 2, dur: 2 };
+  assert.deepEqual(compileDesignDraw(scene, { width: 400, height: 300 }).findings.map((f) => f.feature), ['timed-frame']);
 });

@@ -1,5 +1,5 @@
 {
   "name": "Filtru",
-  "description": "Un singur instrument pentru efecte foto: alege halftone, scanline, posterizare, voronoi, dither sau artă ASCII (vector), sau duotone, pixel-stretch, misprint sau glitch (raster). Suprapuneri din sistemul de design, cameră live și exporturi în câte formate suportă fiecare efect.",
+  "description": "Efecte foto: halftone, scanline, posterizare, voronoi, dither sau artă ASCII (vector), sau duotone, pixel-stretch, misprint sau glitch (raster).",
   "featured.blurb": "Zece efecte foto, vector sau raster, într-un singur instrument"
 }

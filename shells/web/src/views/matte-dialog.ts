@@ -31,6 +31,7 @@
  *     by default (or WebP/AVIF if chosen). Never a silent JPEG-with-a-white-box.
  */
 
+import { closeButtonHtml } from '../lib/close-button.ts';
 import '../styles/matte.css';
 import { mountModal } from '../components/modal.ts';
 import { fmtBytes } from '../lib/format.ts';
@@ -145,7 +146,7 @@ export function openMatteDialog(host: MatteHost, opts: MatteDialogOpts = {}): Pr
       <div class="matte-panel">
         <header class="matte-head">
           <span>${t('Remove background')}</span>
-          <button type="button" class="matte-close" aria-label="${escapeHtml(t('Close'))}">&times;</button>
+          ${closeButtonHtml({ className: 'matte-close' })}
         </header>
         <div class="matte-body">
           <label class="matte-choose" data-choose data-file-drop data-drop-label="${escapeHtml(t('Drop to use this photo'))}" hidden>

@@ -25,6 +25,7 @@ import type {
   ToolHookFlags as ToolHookFlagsBase,
   ToolManifest as ToolManifestBase,
 } from '@lolly-tools/core';
+import { INPUT_NOTICES_KEY } from '@lolly-tools/core';
 import { TEXT_TEMPLATE_EXTS, verifyEnvelopeSignature, verifyToolFile } from './catalog-integrity.ts';
 import type { CatalogSignatureEnvelope, IntegrityResult } from './catalog-integrity.ts';
 import type { Lang } from './lang.ts';
@@ -373,6 +374,14 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
   // JSON trust boundary: ajv just enforced schemas/tool.schema.json, which is
   // the source of the ToolManifest shape. This assertion records that fact.
   const manifest = parsed as ToolManifest;
+  // `inputNotices` is the one reserved key of a hook result (v1.358). An input
+  // with that id could never be patched by a hook, so the manifest is refused.
+  if ((manifest.inputs ?? []).some(input => input.id === INPUT_NOTICES_KEY)) {
+    throw new ToolLoadError(
+      `"${toolId}" declares an input with the id "${INPUT_NOTICES_KEY}", which is reserved for hook notices`,
+      [],
+    );
+  }
   if (manifest.id !== toolId) {
     throw new ToolLoadError(
       `Manifest id "${manifest.id}" doesn't match directory "${toolId}"`,

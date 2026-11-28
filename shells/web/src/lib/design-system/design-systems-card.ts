@@ -430,6 +430,14 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): () =>
           return;
         } catch (e) {
           announce(body, e instanceof Error ? e.message : String(e));
+          // An instance behind a sign-in is connected to, not copied from: the connect
+          // step has the sign-in, and it opens with the address the person typed.
+          const { InstanceSignInNeeded } = await import('./hosted.ts');
+          if (e instanceof InstanceSignInNeeded) {
+            const { openInstanceSheet } = await import('../../components/instance-sheet.ts');
+            // The sheet reads the registry and the asset store from the same object the card holds.
+            await openInstanceSheet({ ...host, log: () => {} }, { start: 'connect', url: e.base });
+          }
         }
       }
       if (act === 'file') {

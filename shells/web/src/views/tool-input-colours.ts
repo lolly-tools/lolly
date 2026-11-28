@@ -62,10 +62,25 @@ export function blockColourFieldHtml(fieldId: string, value: string, field: { de
 const emptyByDefault = (input: { default?: unknown }): boolean =>
   input.default === undefined || input.default === null || input.default === '';
 
-function fieldNaming(input: { default?: unknown; label?: string }): { label?: string; auto?: ColorFieldAuto } {
+/** A design-token reference, `{color.semantic.primary}`. */
+const TOKEN_REF = /^\{[^{}]+\}$/;
+
+/**
+ * True when the input's default links a token the active design system does not have:
+ * the default is a reference and no colour came of it, so the value is still empty (or
+ * still the reference). The tool draws its own fallback there, so the field reads as
+ * automatic, as an input that is empty by default does, and never as black.
+ */
+const unresolvedDefault = (input: { default?: unknown; value?: unknown }): boolean => {
+  if (typeof input.default !== 'string' || !TOKEN_REF.test(input.default.trim())) return false;
+  const value = input.value;
+  return value === undefined || value === null || (typeof value === 'string' && (value.trim() === '' || TOKEN_REF.test(value.trim())));
+};
+
+function fieldNaming(input: { default?: unknown; label?: string; value?: unknown }): { label?: string; auto?: ColorFieldAuto } {
   return {
     ...(input.label ? { label: input.label } : {}),
-    ...(emptyByDefault(input) ? { auto: {} } : {}),
+    ...(emptyByDefault(input) || unresolvedDefault(input) ? { auto: {} } : {}),
   };
 }
 

@@ -10,6 +10,8 @@
  * was noted for, so a stale note can never name a different document.
  */
 
+import { heldObjectUrl } from './preview-urls.ts';
+
 export interface OpenIntent {
   slot: string;
   name?: string;
@@ -28,6 +30,9 @@ export interface OpenIntentRow {
   label?: string | null;
   filename?: string | null;
   thumb?: string | null;
+  /** A stored picture's reference: its tile has just read it, so its source is at
+   *  hand without another read (lib/preview-urls.ts). */
+  preview?: { key: string } | null;
 }
 
 /**
@@ -36,7 +41,8 @@ export interface OpenIntentRow {
  * the note by hand, so every list gives a document the same name.
  */
 export function noteSessionOpen(slot: string, row: OpenIntentRow | undefined, fallbackName?: string): void {
-  noteOpenIntent({ slot, name: row?.label || row?.filename || fallbackName || undefined, thumb: row?.thumb });
+  const held = row?.preview ? heldObjectUrl(row.preview.key) : null;
+  noteOpenIntent({ slot, name: row?.label || row?.filename || fallbackName || undefined, thumb: row?.thumb ?? held });
 }
 
 /** The note for `slot`, or null. Always spends the note, matching or not. */

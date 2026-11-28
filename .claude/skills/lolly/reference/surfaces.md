@@ -25,7 +25,9 @@ Contract (`services/mcp/src/render-get.ts`):
   existence leak.
 - **Browser-free formats only**, the `TIER_A` set: `svg`, `emf`, `eps`,
   `eps-cmyk`, `dxf`, `exr`, `hdr`, `penpot`, `html`, `md`, `txt`, `json`, `csv`,
-  `ics`, `vcf`. Plus `png` for SVG-native tools (a tool whose formats include
+  `ics`, `vcf`, and the caption and palette files `srt`, `vtt`, `ttml`, `scc`,
+  `css`, `scss`, `gpl` (for a tool that declares them, such as `captions` and
+  `color-palette`). Plus `png` for SVG-native tools (a tool whose formats include
   `svg`). Any other format returns a 400 telling you to use the app or
   `lolly_render`.
 - **Content Credentials are off here**, always, so the vector and PNG output is
@@ -86,7 +88,7 @@ the tools described under **Scoped file tools** below.
 | `lolly_package` | `document`, or `toolId: "design"` | A Design document as a `.lolly` the app reopens as the same document, with its pictures and its name: `assets` carries the bytes of each placeholder picture (base64, by the `image` value that draws it), `source` a deck whose pictures resolve `user/media/<sha256>` refs and the `photo:<12 hex>` keys `lolly_compose` suggests, `label` the name. Every other picture must be a catalog id; anything unresolved is refused unless `allowMissingMedia`. Returns the file and a report of what was carried and read back. A compiled document of another tool is packaged as before (`legacy: true`). |
 | `lolly_build_url` | `toolId` | Build a shareable, editable link plus a raw render URL, without rendering. |
 | `lolly_render` | `toolId` | Render to an asset (PNG/SVG/PDF/…). Returns the image plus an editable link. |
-| `lolly_transform` | `toolId`, `file` | Run an on-device file utility (`strip-data`, `compress-pdf`). Never watermarked. |
+| `lolly_transform` | `toolId`, `file` | Run an on-device file utility (`strip-data`, `pages`). Never watermarked. |
 | `lolly_rebrand` | `stage` | Renovate a `.pptx` deck into the design system in stages: `capabilities`, `plan`, `compile` (to a `.lolly`, optionally a `.pptx`) and `inspect`. A hosted server receives the file. |
 | `lolly_read` | `file` | What a deck says (`.pptx`, PDF, `.psd`), slide by slide: text in reading order with role and runs, notes with paragraphs and line breaks kept apart, pictures by hash with placement and crop, tables, charts, the class of every object. `media: "inline"` adds the picture bytes. A hosted server receives the file. |
 | `lolly_check` | `file`, `toolId` or `document` | Every check in one findings list: `structure`, `render`, `brand` (with house rules), `verify`, and `fidelity` with `source` or `inventory`. Each finding: stable `code`, `severity`, `layerId`, the app's message, a safe `fix`. `theme` checks one token theme; `themes` (a list, or `"all"`) runs the render, brand and Verify families in each theme (structure and fidelity once), and each of those findings names its `theme`. `exitCode` as `lolly check`. |
@@ -199,7 +201,7 @@ Read-only context, no render:
   `lolly_check` checks against; the CLI tries `--file` and the terminal's active
   system first. Read it before composing anything on-brand.
 - `lolly://tool/{id}` and `lolly://tool/{id}/preview`: one tool's schema, or its
-  preview SVG.
+  gallery preview (SVG, or a WebP or PNG blob).
 - `lolly://asset/{id}`: one asset's bytes.
 
 ### Prompts

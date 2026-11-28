@@ -1,4 +1,3 @@
-# Lolly - text för landningssidan
+# Lolly - Text för landningssida
 
-Gör färdiga filer. Behåll kontrollen över ditt innehåll.
-Grafik, dokument, video och tryck i dina egna färger och typsnitt: inget konto, inget kort, privat och med öppen källkod.
+Skapa färdig grafik, dokument, video och trycksaker i dina egna färger och typsnitt. Privat, öppen källkod, inget konto behövs.

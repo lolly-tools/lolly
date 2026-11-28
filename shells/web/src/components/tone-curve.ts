@@ -27,6 +27,7 @@
  * - Reset returns to the straight line.
  */
 import { t } from '../i18n.ts';
+import { svgEl } from '../lib/svg-el.ts';
 import {
   TONE_CURVE_MAX_POINTS,
   formatToneCurve,
@@ -36,10 +37,6 @@ import {
   type ToneCurvePoint,
 } from '../../../../engine/src/tone-curve.ts';
 import '../styles/parts/tone-curve.css';
-
-const NS = 'http://www.w3.org/2000/svg';
-const svgEl = <K extends keyof SVGElementTagNameMap>(name: K): SVGElementTagNameMap[K] =>
-  document.createElementNS(NS, name);
 
 /* Plot geometry in SVG user units: the 0..255 square with a margin, so a point on
    the edge keeps its whole hit circle inside the drawing. */

@@ -29,6 +29,7 @@
  * numbers, at most 900 characters), so a manifest that skipped validation still
  * cannot write markup through one.
  */
+import { closeButtonHtml } from './close-button.ts';
 import { mountBodyPopover, type BodyPopoverHandle, type PopoverAnchor } from '../components/body-popover.ts';
 import { t } from '../i18n.ts';
 import { hasIcon, icon } from './icons.ts';
@@ -177,7 +178,7 @@ export function pickerPanelHtml(spec: PickerSpec, sheet: boolean): string {
   }).join('');
   const header = sheet
     ? `<div class="option-picker-head"><span class="option-picker-title">${escapeHtml(spec.label)}</span>`
-      + `<button type="button" class="option-picker-close" data-picker-close aria-label="${escapeHtml(t('Close'))}">${icon('close')}</button></div>`
+      + `${closeButtonHtml({ className: 'option-picker-close', attrs: { 'data-picker-close': true } })}</div>`
     : '';
   return `${sheet ? '<div class="option-picker-scrim" data-picker-scrim aria-hidden="true"></div>' : ''}`
     + `<div class="option-picker-surface">${header}`

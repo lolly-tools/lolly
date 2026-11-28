@@ -1,50 +1,53 @@
-# Lolly karşılaştırması, araç araç
+# Araç araç Lolly karşılaştırması
 
-Başka bir ürün kullanıyorsan bu sayfalar Lolly'nin o ürünün yerini alıp almadığını, onunla birlikte çalışıp çalışmadığını veya işine uymayıp uymadığını söyler. Her biri diğer ürünün neyi daha iyi yaptığıyla başlar.
+Bu sayfalar Lolly'nin başka bir ürünün yerini alıp almadığını, o ürünle birlikte çalışıp çalışmadığını veya işine uygun olup olmadığını anlatır. Her sayfa diğer ürünün daha iyi yaptığı şeylerle başlar.
 
-_Son kontrol: 28 Eylül 2026._
+_Son denetim: 28 Eylül 2026._
 
+<!--i:eti-grid-->
 ## Ürüne göre karşılaştır
 
-- [Lolly ve Canva](/info/compare-canva.html) - şablonlar, gündelik tasarım ve paylaşılan marka üretimi.
+- [Lolly ve Canva](/info/compare-canva.html) - şablonlar, günlük tasarım ve ortak marka üretimi.
 - [Lolly ve Adobe](/info/compare-adobe.html) - düzenleme, dönüştürme, profesyonel çıktı ve Content Credentials.
-- [Lolly ve Figma](/info/compare-figma.html) - tasarım, canlı iş birliği ve yeniden kullanılabilir varlık üretimi.
-- [Lolly ve Penpot](/info/compare-penpot.html) - açık kaynaklı tasarım, paylaşılan token'lar ve kuruluş işi.
+- [Lolly ve Figma](/info/compare-figma.html) - tasarım, canlı işbirliği ve yeniden kullanılabilir varlık üretimi.
+- [Lolly ve Penpot](/info/compare-penpot.html) - açık kaynak tasarım, ortak token'lar ve kuruluş çalışmaları.
 - [Lolly ve marka portalları](/info/compare-brand-portals.html) - onaylı kitaplıklar, kilitli şablonlar, kimlik, inceleme ve raporlama.
-- [Lolly ve render API'leri](/info/compare-render-apis.html) - cihazında, CI'da veya kendi sunucunda otomatik üretim ve Bannerbear veya Placid'den [nasıl geçilir](/info/work-move-from-render-api.html).
-- [Lolly ve çevrimiçi dosya dönüştürücüleri](/info/compare-converters.html) - kendi cihazında biçim dönüştürme.
+- [Lolly ve render API'leri](/info/compare-render-apis.html) - cihazında, CI'da veya kendi sunucunda otomatik üretim ve Bannerbear veya Placid'den [nasıl geçiş yapılacağı](/info/work-move-from-render-api.html).
+- [Lolly ve çevrimiçi dosya dönüştürücüler](/info/compare-converters.html) - kendi cihazında biçim dönüştürme.
 
-Özellik özellik karşılaştırma için [Lolly nasıl karşılaştırılır](/info/positioning.html) sayfasına bakın. Her karşılaştırma tarihlidir; artık iki üründen birine uymayan bir ifadenin düzeltilmesi gerekir.
+[Lolly'nin diğerleriyle karşılaştırması](/info/positioning.html) sayfasında yetenekler tek tek karşılaştırılır. Her karşılaştırma tarihlidir. Artık ürünlerden biriyle örtüşmeyen bir iddianın düzeltilmesi gerekir.
 
+<!--i:eti-map-pin-->
 ## Ne nerede çalışır
 
-Her karşılaştırma tek bir açık kaynak projesinin iki parçasını kapsar. **Lolly** motor, uygulamalar ve araçlardır. **Lolly Work**, [lolly-work deposunda](https://github.com/lolly-tools/lolly-work) sürdürülen kuruluş sunucusudur. İkisi de MPL-2.0'dır ve bir kuruluş hangi Lolly Work hizmetlerinin açılacağına karar verir.
+Her karşılaştırma, tek bir açık kaynak projenin iki parçasını kapsar. **Lolly** motor, uygulamalar ve araçlardır. **Lolly Work**, [lolly-work deposunda](https://github.com/lolly-tools/lolly-work) sürdürülen kuruluş sunucusudur. İkisi de MPL-2.0 lisanslıdır ve hangi Lolly Work hizmetlerinin açılacağına kuruluş karar verir.
 
 ::: cols
 ## Cihazında: Lolly
 
-- Bağımsız kullanım için hesap yok
-- Yapma, düzenleme, dönüştürme ve dışa aktarma
-- İhtiyaç duyduğu araçlar ve varlıklar kaydedildikten sonra çevrimdışı çalışır
+- Bağımsız kullanım için hesap gerekmez
+- Üretme, düzenleme, dönüştürme ve dışa aktarma
+- Gereken araçlar ve varlıklar kaydedildikten sonra çevrimdışı çalışır
 - Cihazda imzalanan Content Credentials
-- İki cihaz arasında, sunucusuz özel collab'lar
+- İki cihaz arasında, sunucusuz özel işbirlikleri
 
 ## Kuruluşunun sunucusunda: Lolly Work
 
-- Çoklu oturum açma (SSO), SCIM hesap sağlama, roller ve politikalar
-- Paylaşılan kataloglar, team projects ve work collab'lar
-- Onaylar, kullanım raporlama ve denetim kayıtları
-- Sunucu render'ı, kurtarılabilir işler ve onaylı teslimat
-- Kuruluşun kimliğiyle sunucu imzalama
+- Tek oturum açma, SCIM ile sağlama, roller ve politikalar
+- Paylaşılan kataloglar, ekip projeleri ve ekip işbirlikleri
+- Onaylar, kullanım raporları ve denetim kayıtları
+- Sunucuda render, kurtarılabilir işler ve onaylı teslimat
+- Kuruluşun kimliğiyle sunucuda imzalama
 :::
 
-Bağımsız kullanım dosyaları cihazda tutar. Paylaşılan projeler, bir work collab, bir sunucu render'ı veya teslimat seçmek, o özelliğin ihtiyaç duyduğu veriyi kuruluşunun sunucusuna gönderir.
+Bağımsız kullanım dosyaları cihazda tutar. Paylaşılan projeler, ekip işbirliği, sunucuda render veya teslimatı seçmek, o özelliğin ihtiyaç duyduğu verileri kuruluşunun sunucusuna gönderir.
 
-## Her karşılaştırmanın varsaydığı
+<!--i:eti-info-->
+## Her karşılaştırmanın varsayımları
 
-Bu sınırlar bu kümedeki her sayfa için geçerlidir; bu yüzden burada bir kez belirtilir:
+Bu sınırlar bu dizideki her sayfa için geçerlidir:
 
-- **Lolly Work collab'lar bugün tek bir sunucu düğümünde çalışır.** Ölçekleri ve işletim geçmişleri köklü barındırılan ürünlerden farklıdır. [Lolly Work status and roadmap](/info/work-status.html) güncel sınırları kaydeder.
-- **[lolly.work](https://lolly.work) sitesi bir demo kum havuzudur.** Kalıcı bir kuruluş dağıtımı kalıcı depolama ve bir işletme gerektirir; ikisini de [Install Lolly Work](/info/work-install.html) kapsar.
-- Lolly veya kendi sunucusunda barındırılan bir Lolly Work için **koltuk başına yazılım lisansı ücreti yoktur**. Barındırma, depolama ve işletme yine de para tutar.
-- **Bir imza güvenilen bir imzalayan değildir.** Bir doğrulayıcı, imzalayanı güvenilen olarak göstermeden önce bir dosyayı imzalayan sertifikaya güvenmelidir; nasıl olduğunu [Content Credentials Identity](/info/content-credentials-identity.html) açıklar.
+- **Lolly Work işbirlikleri bugün tek bir sunucu düğümünde çalışır.** Ölçekleri ve işletim geçmişleri, uzun süredir var olan barındırılan ürünlerden farklıdır. [Lolly Work durumu ve yol haritası](/info/work-status.html) güncel sınırları kaydeder.
+- **[lolly.work](https://lolly.work) adresindeki site bir demo deneme ortamıdır.** Kalıcı bir kuruluş kurulumu, kalıcı depolama ve bir işletmeci gerektirir. [Lolly Work'ü kur](/info/work-install.html) ikisini de kapsar.
+- Lolly veya kendi sunucunda barındırdığın Lolly Work için **kullanıcı başına yazılım lisans ücreti yoktur**. Barındırma, depolama ve işletim yine de maliyetlidir.
+- **İmza, güvenilir imzalayan anlamına gelmez.** Bir doğrulayıcı, imzalayanı yalnızca dosyayı imzalayan sertifikaya güvendiğinde güvenilir olarak gösterir. [Content Credentials kimliği](/info/content-credentials-identity.html) bunun nasıl olduğunu açıklar.

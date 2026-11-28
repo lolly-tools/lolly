@@ -42,7 +42,7 @@ function fingerprint(bars: unknown): number {
  *  place of the coin that ended the breakdown's last phrase, so that coin is gone; every
  *  other note is as it was. */
 const FINGERPRINTS: Record<string, number> = {
-  'sugar.2024': 2077140644, 'sugar.2654435761': 3925230420, 'chiptune.2024': 3361767685, 'chiptune.2654435761': 2547177282,
+  'sugar.2024': 2077140644, 'sugar.2654435761': 3925230420, 'chiptune.2024': 912753587, 'chiptune.2654435761': 1547362000,
   'kpop.2024': 1245126060, 'kpop.2654435761': 1409581692,
   'jazz.2024': 4242884971, 'jazz.2654435761': 1166250726, 'sings.2024': 2251072788, 'sings.2654435761': 419362352,
   'warm.2024': 3837958448, 'warm.2654435761': 1921851039,
@@ -66,7 +66,7 @@ test('a station plays one tune after another, each seed following from the last'
 });
 
 test('the dance genres: their tempo, a build with a riser and a roll, then a drop that opens on a crash', () => {
-  const BPM = { sugar: [116, 130], sherbert: [136, 150], chiptune: [128, 150], nudisco: [115, 124], synthwave: [92, 118], acid: [122, 130], electro: [118, 126], dubstep: [138, 142], brostep: [145, 150], dnb: [170, 176] } as const;
+  const BPM = { sugar: [116, 130], sherbert: [130, 160], chiptune: [128, 150], nudisco: [115, 124], synthwave: [92, 118], acid: [122, 130], electro: [118, 126], dubstep: [138, 142], brostep: [145, 150], dnb: [170, 176] } as const;
   for (const mood of ['sugar', 'sherbert', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb'] as const) for (const seed of SEEDS.slice(0, 6)) {
     const bars = composeLofiTune(seed, mood);
     const t = bars[0]!.tune;
@@ -121,7 +121,7 @@ test('sherbert: half-time future bass, an 808 in every drop, chords that bend an
     const bars = composeLofiTune(seed, 'sherbert');
     const st = bars[0]!.tune.style;
     const where = `sherbert ${seed}`;
-    assert.ok(bars[0]!.tune.bpm >= 136 && bars[0]!.tune.bpm <= 150, `${where}: ${bars[0]!.tune.bpm} bpm`);
+    assert.ok(bars[0]!.tune.bpm >= 130 && bars[0]!.tune.bpm <= 160, `${where}: ${bars[0]!.tune.bpm} bpm`);
     assert.equal(st.groove, 'halfStep', `${where}: half-time`);
     const drops = bars.filter(b => b.section === 'drop');
     assert.ok(drops.every(b => (b.voices?.bass ?? st.bass) === 'eight'), `${where}: the 808 under every drop`);
@@ -399,7 +399,7 @@ test('every note is playable', () => {
         // The dance basses sit lower (a sub register), and a slap bass pops up to a twelfth above.
         // Salsa's montuno is the grand piano's two hands in octaves, up to a B5. Straya's
         // didgeridoo plays its drone's pitch in every role.
-        const [lo, hi] = n.voice === 'bass' || n.voice === 'didge' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? (mood === 'salsa' ? [52, 84] : [52, 76]) : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' || n.voice === 'tag' ? [55, 66] : n.voice === 'soar' ? [40, 60]
+        const [lo, hi] = n.voice === 'bass' || n.voice === 'didge' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? (mood === 'salsa' ? [52, 84] : mood === 'chiptune' ? [52, 88] : [52, 76]) : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' || n.voice === 'tag' ? [55, 66] : n.voice === 'soar' ? [40, 60]
           : n.voice === 'bwah' ? [28, 60] : n.voice === 'layer' ? [28, 66] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96]
           // A scratch's record is heard at a chord tone: a bass's low, a voice's or a horn's middle (a break's carries no pitch, 0).
           : n.voice === 'scratch' ? [0, 73]
@@ -783,8 +783,8 @@ test('the croak is laid over a bass and never plays on its own: never a bass sty
   }
 });
 
-test('a dubstep or brostep drop trades its bass phrase by phrase; drum and bass keeps its reese', () => {
-  for (const [mood, pool, lo, hi] of [['dubstep', ['wobble', 'growl', 'screech'], 0.25, 0.6], ['brostep', ['growl', 'screech', 'wobble'], 0.35, 0.8]] as const) {
+test('a dubstep or brostep drop trades its bass phrase by phrase; drum and bass keeps its reese and is answered', () => {
+  for (const [mood, pool, lo, hi] of [['dubstep', ['wobble', 'growl', 'screech', 'fog'], 0.25, 0.6], ['brostep', ['growl', 'screech', 'wobble', 'fog'], 0.35, 0.8]] as const) {
     let changes = 0, barsSeen = 0, two = 0, drops = 0;
     for (const seed of PHRASE_SEEDS_40) {
       const bars = composeLofiTune(seed, mood);
@@ -808,9 +808,20 @@ test('a dubstep or brostep drop trades its bass phrase by phrase; drum and bass 
     assert.ok(rate >= lo && rate <= hi, `${mood}: the bass changes ${rate.toFixed(2)} times a bar`);
     assert.ok(two >= drops * 0.75, `${mood}: most drops have a bass answering their own (${two} of ${drops})`);
   }
-  for (const seed of PHRASE_SEEDS_40.slice(0, 12)) {
-    assert.ok(composeLofiTune(seed, 'dnb').filter(b => b.section === 'drop').every(b => bassOf(b) === 'reese'), `dnb ${seed}: the reese holds every drop`);
+  // Drum and bass keeps its reese for most of a drop: jump-up stabs or a foghorn answer in
+  // a phrase's second half at most, and never open a drop.
+  let reese = 0, dnbBars = 0, answered = 0;
+  for (const seed of PHRASE_SEEDS_40) {
+    const drop = composeLofiTune(seed, 'dnb').filter(b => b.section === 'drop');
+    for (const b of drop) {
+      assert.ok(['reese', 'jump', 'fog'].includes(bassOf(b)), `dnb ${seed} bar ${b.index}: a reese, jump-up stabs or a foghorn`);
+      dnbBars++;
+      if (bassOf(b) === 'reese') reese++;
+    }
+    if (drop.some(b => bassOf(b) !== 'reese')) answered++;
   }
+  assert.ok(reese >= dnbBars * 0.6, `dnb: the reese holds most of every drop (${reese} of ${dnbBars} bars)`);
+  assert.ok(answered >= 20, `dnb: most tunes have an answer to the reese (${answered} of 40)`);
 });
 
 test('lofi house: a soft kick on every beat that comes in full at the drop, a filter that opens and closes, a loud bass on the offbeats, and a quiet, sparse lead', () => {
@@ -872,7 +883,9 @@ test('adding lofi house changed no other style: its draws come from a stream of 
   // agreed D&B tunes may change: lofi-breaks.ts dnbKitBar), so its pin moved then; every
   // other note of it is as it was. Amapiano's drew the soft lead, retired on 2026-11-14
   // (RETIRED_LEADS): its vibes play in its place.
-  const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 1275618927, 'jazz.7': 3436312216, 'dnb.7': 1758158366, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
+  // Drum and bass's drops gained their answers on 2026-11-21 (BASS_PLANS.dnb: jump-up stabs
+  // or a foghorn in a phrase's second half), so its pin moved again.
+  const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 1275618927, 'jazz.7': 3436312216, 'dnb.7': 1629253665, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
   for (const [key, want] of Object.entries(before)) {
     const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
     assert.equal(fingerprint(withoutPhrases(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);
@@ -1016,8 +1029,12 @@ test('the shouts come from a stream of their own: the rest of every tune compose
   // phrases, each tune is unchanged.
   const before: Record<string, number> = {
     'punk.7': 2506933748, 'rock.7': 2592240155, 'metal.7': 864814450, 'funk.7': 2782109403, 'soul.7': 123733926, 'hiphop.7': 307798947,
-    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 1758158366, 'dubstep.7': 2238141904, 'brostep.7': 1362639215, 'sherbert.7': 3954562497,
+    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 1629253665, 'dubstep.7': 1198571479, 'brostep.7': 1216733133, 'sherbert.7': 1787953580,
   };
+  // The same day drum and bass gained chopped voices among its leads and a bass attack
+  // into its drops, and Sherbert a wider tempo and more chop voices: both pins moved.
+  // The foghorn joined dubstep's and brostep's trades on 2026-11-21 and drum and bass gained
+  // its answers (jump-up stabs or a foghorn), so those three pins moved again that day.
   // Dubstep's and brostep's drops trade their bass now (BASS_PLANS, 2026-11-13): a partner's
   // bars play its own figure and the stabs fall in its gaps, so those two pins moved with them.
   // Drum and bass's drops edit their kick and snare bar by bar (2026-11-14), so its pin moved too.
@@ -1171,3 +1188,60 @@ test('a slash chord transposes with its bass, and a six-nine keeps its nine', ()
   assert.equal(transposeChordName('Am6/9', -2), 'Gm6/9');
 });
 
+
+test('drum and bass: chopped voices answer the bass in a drop, and the bass attacks into the drop', () => {
+  let withVox = 0, attacks = 0, tunes = 0;
+  for (const mood of ['dnb', 'dnbJump', 'dnbDark', 'dnbLiquid', 'dnbDeep', 'dnbRave'] as const) for (const seed of SEEDS.slice(0, 8)) {
+    const bars = composeLofiTune(seed, mood);
+    tunes++;
+    const vox = bars.flatMap(b => b.notes.filter(n => n.voice === 'vox').map(n => [b, n] as const));
+    if (vox.length) withVox++;
+    for (const [b, n] of vox) {
+      assert.equal(b.section, 'drop', `${mood} ${seed}: a chop only in a drop`);
+      assert.ok(n.midi >= 64 && n.midi <= 76, `${mood} ${seed}: a chop sung at ${n.midi}`);
+      assert.ok(!String(b.voices?.lead ?? b.tune.style.lead).startsWith('chop'), `${mood} ${seed}: no chop layer over a chopped lead`);
+    }
+    // The attack: bass shots in a build's last two bars, none in its last half bar.
+    const builds = bars.filter(b => b.section === 'build');
+    const shots = builds.flatMap(b => b.notes.filter(n => n.voice === 'bwah'));
+    if (shots.length) attacks++;
+    bars.forEach((b, k) => {
+      if (b.section !== 'build' || bars[k + 1]?.section === 'build') return;
+      for (const n of b.notes) if (n.voice === 'bwah') assert.ok(n.beat < 2, `${mood} ${seed}: the bass stops half a bar before the drop`);
+    });
+    if (mood === 'dnbLiquid' || mood === 'dnbDeep') assert.equal(shots.length, 0, `${mood}: no attack in the soaring and deep flavours`);
+  }
+  assert.ok(withVox >= tunes * 0.25, `chopped voices in ${withVox} of ${tunes} tunes`);
+  assert.ok(attacks >= 24, `the bass attacks in ${attacks} tunes`);
+  // Other styles have neither.
+  for (const mood of ['dubstep', 'jungle', 'sherbert'] as const) assert.ok(composeLofiTune(7, mood).every(b => b.notes.every(n => n.voice !== 'vox')), `${mood}: no chop layer`);
+});
+
+test('Italo disco: a sequenced bass in octaves and synth toms running into every fourth bar of a drop', () => {
+  for (const seed of SEEDS.slice(0, 6)) {
+    const bars = composeLofiTune(seed, 'italo');
+    assert.ok(bars[0]!.tune.bpm >= 116 && bars[0]!.tune.bpm <= 128, `italo ${seed}: ${bars[0]!.tune.bpm} bpm`);
+    const drop = bars.filter(b => b.section === 'drop');
+    assert.ok(drop.some(b => b.notes.filter(n => n.voice === 'tom').length >= 3), `italo ${seed}: a tom run`);
+    const bass = drop.flatMap(b => b.notes.filter(n => n.voice === 'bass'));
+    assert.ok(bass.length > 60, `italo ${seed}: a running bass`);
+  }
+});
+
+test('chiptune: a drop\'s arpeggio runs faster than its verses, in one of four figures that changes for the second drop', () => {
+  const figures = new Set<string>();
+  for (const seed of SEEDS.slice(0, 12)) {
+    const bars = composeLofiTune(seed, 'chiptune');
+    if (bars[0]!.tune.style.keys !== 'chiparp') continue;
+    const count = (b: LofiBar): number => b.notes.filter(n => n.voice === 'keys').length;
+    const drops = bars.filter(b => b.section === 'drop' && count(b) > 0);
+    assert.ok(drops.length > 0, `chiptune ${seed}: an arpeggio in the drop`);
+    for (const b of drops) {
+      assert.ok(count(b) >= 16, `chiptune ${seed} bar ${b.index}: ${count(b)} notes`);
+      figures.add(`${count(b)}:${b.notes.filter(n => n.voice === 'keys').slice(0, 4).map(n => Math.round(n.beat * 8)).join(',')}`);
+    }
+    assert.ok(drops.some(b => count(b) > 16) || drops.some(b => b.notes.some(n => n.voice === 'keys' && n.midi > 76)), `chiptune ${seed}: faster or wider than the sixteenths`);
+    for (const b of bars) for (const n of b.notes) if (n.voice === 'keys') assert.ok(n.midi <= 88, `chiptune ${seed}: an arpeggio note at ${n.midi}`);
+  }
+  assert.ok(figures.size >= 3, `the figures vary from tune to tune (${figures.size})`);
+});

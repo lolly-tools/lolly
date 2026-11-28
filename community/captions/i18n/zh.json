@@ -1,6 +1,6 @@
 {
   "name": "字幕",
-  "description": "为视频片段生成字幕 - 在设备上转录，或直接导入 SRT/VTT 文件，设置字幕样式，然后导出烧录字幕的画面，以及干净的 .srt 和 .vtt 文件。",
+  "description": "为视频片段生成字幕 - 在设备上转录，或直接导入 SRT/VTT 文件，然后导出烧录字幕的画面，以及 .srt 和 .vtt 文件。",
   "inputs.style.section": "字幕",
   "inputs.position.section": "字幕",
   "inputs.fontSize.section": "字幕",

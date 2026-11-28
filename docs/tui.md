@@ -1,6 +1,6 @@
 # TUI
 
-The TUI (text user interface) is Lolly in your terminal. You browse tools, fill in inputs, save projects, edit your profile and export finished files, all from the keyboard and without opening a browser. It runs the same engine and the same render path as the web app and the CLI, so its files match theirs.
+The TUI (text user interface) is Lolly in your terminal: browse tools, fill in inputs, save projects, edit your profile and export files from the keyboard, without a browser. The TUI uses the same engine and render path as the web app and the CLI, so its files match theirs.
 
 From a checkout:
 
@@ -8,21 +8,21 @@ From a checkout:
 pnpm run tui
 ```
 
-For an accessible terminal renderer, use `lolly tui --screen-reader` (or `INK_SCREEN_READER=true`). This keeps the normal terminal buffer and uses Ink's screen-reader output. Plain `lolly list`, `describe`, `projects` and `--json` remain useful for linear workflows.
+For an accessible terminal renderer, use `lolly tui --screen-reader` (or `INK_SCREEN_READER=true`). This mode keeps the normal terminal buffer and uses Ink's screen-reader output. Plain `lolly list`, `describe`, `projects` and `--json` also suit linear workflows.
 
-With a standalone `lolly` binary, `lolly tui` and `lolly-tui` start the same thing. See [Install](/info/cli.html#install) for the two ways to get the command.
+With a standalone `lolly` binary, `lolly tui` and `lolly-tui` both start the TUI. [Install](/info/cli.html#install) gives the two ways to get the command.
 
 The TUI takes over the whole screen, like `vim` or `htop`, and restores your terminal when you quit.
 
 ::: note Needs an interactive terminal
-The TUI needs a real interactive terminal (a TTY); with its output piped, it says so and stops.
+The TUI needs an interactive terminal (a TTY). With its output piped, the TUI says so and stops.
 :::
 
 ::: figure tui-start
 The first time it runs, the TUI opens on Start. Every later session opens on Tools, with the five views on the number keys.
 :::
 
-**Start** offers five choices: **Make a QR code**, **One colour**, **Bring a file**, **Mix resources** and **Explore tools first**. Pick one with its number or `Enter`. None of them is a required step.
+**Start** offers five choices: **Make a QR code**, **One colour**, **Bring a file**, **Mix resources** and **Explore tools first**. Pick one with its number or `Enter`. None of them is a required step. None is required.
 
 <!--i:eti-keyboard-->
 ## A first session
@@ -40,13 +40,13 @@ Every view moves with `hjkl` or the arrow keys, opens with `Enter` and goes back
 <!--i:eti-grid-->
 ## The five views
 
-Switch views with the number keys: **1** Tools, **2** Projects, **3** Profile, **4** Assets and **5** System. The layout follows the web app's, fitted to a terminal: a narrow terminal stacks the two-pane tool view into one column, as the web app does on a phone.
+Switch views with the number keys: **1** Tools, **2** Projects, **3** Profile, **4** Assets and **5** System. The layout follows the web app's. A narrow terminal stacks the two-pane tool view into one column, as the web app does on a phone.
 
-**Tools** (`1`) is a card grid of every tool, with search, favourites, sorting and category filters. You can also open a pasted `lolly.tools` link already configured (a link says what to draw, never which files to read, so one whose inputs point at a file on this computer is refused and nothing opens), or import a PDF or `.ai` file from disk, with page and fidelity warnings reviewed before saving. Saved `.lolly` and exported project JSON files can also open here; documents carrying media/fonts need web or desktop import. The TUI hides only the tools that need a live device the headless browser cannot open, such as microphone and camera recording.
+**Tools** (`1`) is a card grid of every tool, with search, favourites, sorting and category filters. You can also open a pasted `lolly.tools` link already configured. A link says what to draw, never which files to read: a link whose inputs point at a file on this computer is refused and nothing opens. You can also import a PDF or `.ai` file from disk and review its page and fidelity warnings before saving. Saved `.lolly` and exported project JSON files open here too; documents carrying media or fonts need the web or desktop import. The TUI hides only the tools that need a live device the headless browser cannot open, such as microphone and camera recording.
 
-**Projects** (`2`) holds your saved sessions in nested folders. Create folders, move sessions into them, open and delete them, and [batch](#batch) them into one `.zip`.
+**Projects** (`2`) holds your saved sessions in nested folders. Create folders, move sessions into them, open or delete sessions and [batch](#batch) them into one `.zip`.
 
-**Profile** (`3`) edits the details tools fill in for you (`bindToProfile`): name, email, phone and company. It also holds **Embed my details in exports**, the opt-in that puts your name and contact details into an export's provenance, and **Trust anchors**, the PEM certificate files the Content Credentials report trusts. Two actions live here as well: back up and render everything, and check a file's Content Credentials on the device.
+**Profile** (`3`) edits the details tools fill in for you (`bindToProfile`): name, email, phone and company. It also holds **Embed my details in exports**, the opt-in that puts your name and contact details into an export's provenance, and **Trust anchors**, the PEM certificate files the Content Credentials report trusts. Its two actions back up and render everything, and check a file's Content Credentials on the device.
 
 **Assets** (`4`) browses every asset. Favourite or hide one, or export it to any format through the `asset-export` tool.
 
@@ -78,9 +78,9 @@ Switch views with the number keys: **1** Tools, **2** Projects, **3** Profile, *
 
 ### The tool view
 
-The tool view puts an **Inputs** panel beside an **Export** panel and a preview. Every input type the engine models is editable from the keyboard: text, numbers, booleans and selects; repeating **`blocks`** (drill into a block, its rows and its fields to add, delete, reorder and nest); **`file`** inputs, where you give a path and the bytes are read locally for on-device utilities such as `strip-data`; and **`asset`** inputs, with a catalog picker on `Enter` or a typed id such as `lolly/logo/primary` or a pasted `lolly.tools` tool link, resolved to an embedded render.
+The tool view has an **Inputs** panel, an **Export** panel and a preview. Every input type the engine models is editable from the keyboard: text, numbers, booleans and selects; repeating **`blocks`** (drill into a block, its rows and its fields to add, delete, reorder and nest); **`file`** inputs, where you give a path and the bytes are read locally for on-device utilities such as `strip-data`; and **`asset`** inputs, with a catalog picker on `Enter` or a typed id such as `lolly/logo/primary` or a pasted `lolly.tools` tool link, resolved to an embedded render.
 
-`i` on a `blocks` input imports its rows from a CSV or JSON file, and on a table from a CSV, TSV or Markdown file. A picture column in that file, such as a logo wall's logos, takes paths, catalog ids or links: a path is tried from the working folder, then beside the file, and the status line counts any picture not found. A path to a file that is not a picture refuses the whole import.
+`i` on a `blocks` input imports its rows from a CSV or JSON file, and on a table from a CSV, TSV or Markdown file. A picture column in that file, such as a logo wall's logos, takes paths, catalog ids or links. A path is tried from the working folder, then from the file's folder. The status line counts any picture not found. A path to a file that is not a picture refuses the whole import.
 
 ::: details Keys in the tool view
 | Key | Does |
@@ -100,10 +100,10 @@ The tool view puts an **Inputs** panel beside an **Export** panel and a preview.
 | `i` | Import rows into a `blocks` input or a table from a file |
 :::
 
-**The preview.** For a design tool the preview is opt-in (`p`): the TUI rasterises the tool's SVG and draws it as a truecolor half-block image in the terminal cells, with no external image protocol. For a utility, where the output is the point, the preview is the main pane and appears by itself, even on a narrow terminal:
+**The preview.** For a design tool the preview is opt-in (`p`). The TUI rasterises the tool's SVG and draws a truecolor half-block image in the terminal cells, with no external image protocol. For a utility the preview is the main pane and appears on its own, even on a narrow terminal:
 
-- a **text or interactive** utility (`color-palette`, `text-helper`, …) shows its rendered content as terminal text. The TUI walks the rendered page into structured, coloured lines, with headings, tabs, buttons and colour swatches drawn as blocks in their actual colour, read from the tool's own CSS;
-- a **file transform** (`strip-data`, `compress-pdf`) shows a result summary with the size before and after;
+- a **text or interactive** utility (`color-palette`, `text-helper`, …) shows its rendered content as terminal text. The TUI turns the rendered page into structured, coloured lines, with headings, tabs, buttons and colour swatches drawn as blocks in their colour from the tool's own CSS;
+- a **file transform** (`strip-data`, `pages`) shows a result summary with the size before and after;
 - **`url-shot`** shows its capture settings: URL, size, crop and recolour.
 
 ### Saving, sharing and actions
@@ -112,59 +112,58 @@ The tool view puts an **Inputs** panel beside an **Export** panel and a preview.
 These actions arrived in Lolly 1.2.0. A packaged TUI from an earlier release does not have them.
 :::
 
-**Saving.** An opened project's `s` updates its saved slot; `S` makes a copy. Leaving changed
-inputs/export settings asks you to save or discard. If another app changed the record,
-reopen that record or use Save as. Export passwords stay out of saved/share queries.
+**Saving.** In an opened project, `s` updates its saved slot and `S` makes a copy. Leaving with changed
+inputs or export settings asks you to save or discard. If another app changed the record,
+reopen that record or use Save as. Export passwords stay out of saved and share queries.
 A password-locked `pdf` or `zip` is read back before it is written. A password on any other
-format, or on a `pdf` with bleed or print marks, reports why in the status line and writes
-no file.
-Loaded binary file inputs cannot be saved as JSON projects here; use the original
-file path with the CLI or export the transformed result. This avoids expanding bytes
-into a broken JSON representation.
+format, or on a `pdf` with bleed or print marks, writes no file, and the status line says why.
+Loaded binary file inputs cannot be saved as JSON projects here. Use the original
+file path with the CLI, or export the transformed result. This avoids expanding bytes
+into broken JSON.
 
-**Links.** Encrypted links ask for a masked password before mounting the tool. Sharing personal
-fields presents a review choice; omission is the default. A generated share link is
-shown on screen without an automatic link-file write.
+**Links.** An encrypted link asks for a masked password before the tool mounts. Sharing personal
+fields asks you to review them; leaving them out is the default. A generated share link is
+shown on screen and is not written to a file automatically.
 
 **The action palette.** The `?` action palette offers document colourways, help, renderer readiness and logs.
-Terminal light/dark/default appearance is separate from the document's colours. The active system supplies the accent, and a document's colourway follows you into its tool view. A compact palette strip shows the brand and choices; action rows show each colourway's lead colour before you choose. Low-contrast accents keep their hue while lightness adjusts for the selected terminal backdrop. Use light or dark appearance when the automatic backdrop guess differs from your terminal. Brand accents can be disabled from the action palette.
+The terminal's light, dark or default appearance is separate from the document's colours. The active system supplies the accent, and a document's colourway follows you into its tool view. A compact strip shows the brand and choices, and each colourway row shows its lead colour before you choose. A low-contrast accent keeps its hue and adjusts its lightness for the terminal backdrop. Choose light or dark appearance when the automatic backdrop guess is wrong for your terminal. Brand accents can be turned off from the action palette.
 
 The palette action lists exact colour values and can copy them as JSON. This terminal styling changes no authored colours. `NO_COLOR` removes UI colour and keeps the brand/colourway names. A private Bash/Zsh CLI recipe keeps values on stdin.
 
-**External editing.** External editing uses `VISUAL` or `EDITOR`, validates the returned JSON and shows
-changes before applying. Windows editor configuration takes an executable path.
+**External editing.** The TUI opens `VISUAL` or `EDITOR`, validates the returned JSON and shows
+the changes before applying them. On Windows, the editor setting takes an executable path.
 
 <!--i:eti-search-->
 ## Local workflows
 
-Press `?` from Tools to search existing terminal workflows: installed models, file inspection/conversion, document checks, learning checks/builds and slide composition. Fill in the requested paths, review the exact command, then press Enter to run. Commands run in a separate process, and their full JSON results are scrollable. `c` cancels a running operation. No model downloads start from this screen.
+Press `?` from Tools to search terminal workflows: installed models, file inspection/conversion, document checks, learning checks/builds and slide composition. Fill in the paths, review the command, then press Enter to run. Commands run in a separate process, and their full JSON results scroll. `c` cancels a running operation. No model downloads start from this screen.
 
 <a id="prepare-rebrand-and-import"></a>
 <!--i:eti-refresh-->
 ## Prepare, Lolly Rebrand and import
 
-Two more screens open from Tools. `p` opens **Prepare for sharing**, which inspects files for hidden data and personal values, lets you choose replacements and saves cleaned copies, all on the device (see [Lolly Utilities](/info/utilities.html)). `r` opens **Lolly Rebrand**, which reads a `.pptx` or `.pdf` deck, shows the plan as a checklist where you keep, replace or remove each item, then compiles the result to a folder (see [Rebrand a deck](/info/rebrand.html)).
+From Tools, `p` opens **Prepare for sharing**. It inspects files for hidden data and personal values, lets you choose replacements and saves cleaned copies on the device (see [Lolly Utilities](/info/utilities.html)). `r` opens **Lolly Rebrand**, which reads a `.pptx` or `.pdf` deck, shows the plan as a checklist where you keep, replace or remove each item, then compiles the result to a folder (see [Rebrand a deck](/info/rebrand.html)).
 
 <!--i:eti-download-->
 ## Export
 
-The Export panel has **Format · Width · Height · Unit · DPI · Filename · Folder · Design system · C2PA · Imprint · Durable · Password · Bleed · Print marks · Press profile · Spot inks**, with the output path worked out for you. Exports go to `~/Desktop` by default, and the folder is editable per export.
+The Export panel has **Format · Width · Height · Unit · DPI · Filename · Folder · Design system · C2PA · Imprint · Durable · Password · Bleed · Print marks · Press profile · Spot inks**, and works out the output path. Exports go to `~/Desktop` by default; you can change the folder per export.
 
 - **Design system** shows the exact words the export will record about its [design system and colourway](/info/exporting.html#the-design-system-record) in the chosen format, or says when the format carries no metadata. Cycle it to `off` to leave the record out.
 - **C2PA** adds a [Content Credential](/info/exporting.html) and sets its certificate lifetime. At `off` the file holds none, on every format, and an SVG that inlines credentialed artwork loses that artwork's credential too.
 - **Imprint** adds the pixel watermark; it reads `no pixels to mark` on a vector or data format.
 - **Durable** adds the opt-in neural credential on the raster formats.
 - **Password** locks a rendered PDF or zip.
-- **Spot inks** prints a design system's spot inks with the four process inks in a CMYK export, as `--spots=process` does on the CLI ([Preflight an export](/info/cli-automation.html#preflight-an-export-lolly-preflight)). A finish keeps its own plate. It is off by default.
+- **Spot inks** prints a design system's spot inks with the four process inks in a CMYK export, as `--spots=process` does on the CLI ([Preflight an export](/info/cli-automation.html#preflight-an-export-lolly-preflight)). A finish keeps its own plate. Off by default.
 
-**C2PA** and **Imprint** start on, as they do in the app and the CLI, and the same tool declarations turn them off: a tool that sets `render.c2pa:false`, and any on-device privacy utility, opens with both off and keeps them off. All three surfaces read one policy in the engine. **Durable** starts off, because it is a neural encode and a model download. Turn both C2PA and Imprint off for byte-reproducible output; [what provenance costs](/info/cli-automation.html#what-provenance-costs) has the measured cost of leaving them on, which applies here because the terminal exports through the same engine path.
+**C2PA** and **Imprint** start on, as in the app and the CLI, and the same tool declarations turn them off: a tool that sets `render.c2pa:false`, and any on-device privacy utility, opens with both off and keeps them off. All three surfaces read one policy in the engine. **Durable** starts off because it is a neural encode and a model download. Turn both C2PA and Imprint off for byte-reproducible output. The terminal exports through the same engine path, so the measured cost of leaving them on in [what provenance costs](/info/cli-automation.html#what-provenance-costs) applies here.
 
 ### What it can render
 
-The TUI picks one of two tiers per format, and shares the CLI's renderer selection, so [What the CLI can render](/info/cli-rendering.html#what-the-cli-can-render) is the full list:
+The TUI picks one of two tiers per format and shares the CLI's renderer selection. [What the CLI can render](/info/cli-rendering.html#what-the-cli-can-render) has the full list:
 
-- **No browser needed:** SVG and the other vector formats, the data formats, a Lolly Design document's Lottie, IDML and Premiere XML exports, and a PNG or JPEG XL from a tool that draws in SVG, which the TUI rasterises with resvg, Imprint included. A PNG that asks for the Durable mark, bleed or printer's marks still goes to the browser tier.
-- **The browser tier**, on demand: the other raster formats, PDF, video, live-URL capture and TXT, which is the rendered page serialised to plain text, so the page has to be laid out first. A scoped headless Chromium drives a built copy of the web app, so the bytes match a download from the app. The browser launches only when you first export one of these formats. When a Lolly desktop app is running or installed, the TUI renders through the app instead and needs no Chromium.
+- **No browser needed:** SVG and the other vector formats, the data formats and a Lolly Design document's Lottie, IDML and Premiere XML exports. Also a PNG or JPEG XL from a tool that draws in SVG, which the TUI rasterises with resvg, Imprint included. A PNG that asks for the Durable mark, bleed or printer's marks still goes to the browser tier.
+- **The browser tier**, on demand: the other raster formats, PDF, video, live-URL capture and TXT. TXT is the rendered page as plain text, so the page must be laid out first. A scoped headless Chromium drives a built copy of the web app, so the bytes match a download from the app. The browser launches only when you first export one of these formats. When a Lolly desktop app is running or installed, the TUI renders through the app and needs no Chromium.
 
 Set the browser tier up once:
 
@@ -175,18 +174,18 @@ pnpm run install:browser   # downloads Chromium into .browsers at the repo root
 pnpm run build:web         # a built web shell for full-fidelity raster/pdf/video
 ```
 
-Without Chromium or the built shell, those formats fail with a one-line message that gives the command to run. The TUI does not switch to another format: choose HTML yourself when you want an HTML file. SVG and the data formats never need either.
+Without Chromium or the built shell, those formats fail with a one-line message giving the command to run. The TUI does not switch to another format; choose HTML yourself if you want an HTML file. SVG and the data formats never need either.
 
 <a id="url-screenshot-url-shot-in-the-terminal"></a>
 ::: details Lolly URL Screenshot (`url-shot`) in the terminal
-`url-shot` captures a live web page on the browser tier. It drives Chromium straight at the URL:
+`url-shot` captures a live web page on the browser tier, pointing Chromium at the URL:
 
-- **Formats:** **PNG / JPG** (a real screenshot), **PDF** (a true vector print, with selectable text and crisp at any zoom) and **SVG** (the high-DPI shot in a scalable container).
+- **Formats:** **PNG / JPG** (a screenshot), **PDF** (a vector print with selectable text, crisp at any zoom) and **SVG** (the high-DPI shot in a scalable container).
 - **Crop:** trim in from each edge (top, right, bottom, left) as a 0–0.9 fraction.
-- **Recolour:** recolour the whole page before capture: invert, grayscale, sepia, a hue shift or a **tint** in a colour of your choice.
+- **Recolour:** recolour the page before capture: invert, grayscale, sepia, a hue shift or a **tint** in a colour you choose.
 - The scroll-depth, settle-delay and custom-CSS controls.
 
-The crop and recolour controls are ordinary tool inputs, so you edit them from the keyboard like any other. The desktop app's capture also crops and recolours, and its vector capture produces a true vector SVG.
+The crop and recolour controls are ordinary tool inputs, edited from the keyboard. The desktop app's capture also crops and recolours, and its vector capture produces a true vector SVG.
 :::
 
 <!--i:eti-layers-->
@@ -201,34 +200,34 @@ The Projects export menu also makes one zip on your Desktop, optionally password
 - a **CSV or TSV file** (`c`), in the same row format the CLI's `batch` subcommand reads: a `toolId` column, optional per-row `format`, `width`, `height`, `unit` and `dpi`, plus a column per input.
 
 ::: note Batch files carry no design-system record
-A batch shows no **Design system** row, so its files carry no [design-system record](/info/exporting.html#the-design-system-record), and neither does the Profile view's render-everything zip. Export one file from the tool view to record the design system with the file.
+A batch shows no **Design system** row, so its files carry no [design-system record](/info/exporting.html#the-design-system-record). Neither does the Profile view's render-everything zip. To record the design system, export one file from the tool view.
 :::
 
-The Profile view's **back up and render everything** (`b`) writes two zips with a live progress panel: a portable data backup, and every saved project rendered out. Both land on your Desktop, or in your home directory if there is no Desktop folder.
+The Profile view's **back up and render everything** (`b`) writes two zips, with a live progress panel: a portable data backup and every saved project rendered. Both go to your Desktop, or to your home directory if there is no Desktop folder.
 
-The dependency report in Actions is separate from content preflight; an installed
-renderer is not a guarantee that every document will render.
+The dependency report in Actions is separate from content preflight. An installed
+renderer does not guarantee that every document will render.
 
 <!--i:eti-folder-shared-->
 ## Where your work is saved
 
-Unlike a CLI render, which saves no session, the TUI keeps saved sessions, project folders and your profile on disk. It uses the same directory as the desktop app and the CLI, chosen in this order:
+A CLI render saves no session. The TUI keeps saved sessions, project folders and your profile on disk, in the same directory as the desktop app and the CLI, chosen in this order:
 
 1. `$LOLLY_STATE_DIR`, when you set one.
-2. `$LOLLY_TUI_DIR`, the old name for the same thing. It still works, and prints a one-line note pointing you to `LOLLY_STATE_DIR`.
+2. `$LOLLY_TUI_DIR`, the old name for the same setting. It still works and prints a one-line note pointing you to `LOLLY_STATE_DIR`.
 3. The desktop app's own data directory, when the app is installed: `~/Library/Application Support/tools.lolly.Desktop` on macOS, `$XDG_DATA_HOME/tools.lolly.Desktop` (or `~/.local/share/...`) on Linux and `%APPDATA%\tools.lolly.Desktop` on Windows.
 4. `~/.lolly`.
 
-Saved projects live in `saved-state/<slot>.json`, in the record the desktop app writes, so a project you saved in the app is in the terminal's Projects list, and a project you save here opens in the app. Each record keeps both halves of its state: the tool's serialised URL state, which reopens through the same parser the web app and the CLI use, and the resolved input values, which is what a session saved in the app carries.
+Saved projects live in `saved-state/<slot>.json`, in the record the desktop app writes. A project saved in the app appears in the terminal's Projects list, and a project saved here opens in the app. Each record keeps two parts of its state: the tool's serialised URL state, which reopens through the parser the web app and the CLI use, and the resolved input values, which a session saved in the app carries.
 
-Projects the TUI saved before this layout sat in `sessions/<slot>.json`. They are copied into the shared layout the first time you open Projects, with their names and dates intact. The old files stay where they were, and a marker beside the new ones stops the copy running twice.
+Projects the TUI saved before this layout sat in `sessions/<slot>.json`. The first time you open Projects, they are copied into the shared layout with their names and dates. The old files stay where they were, and a marker next to the new files stops the copy running twice.
 
-Project folders and your profile stay in terminal-only files beside them, `folders.json` and `profile.json`. The app keeps both in its browser database, so there is nothing on disk to share yet.
+Project folders and your profile stay in terminal-only files in the same directory, `folders.json` and `profile.json`. The app keeps both in its browser database, so nothing on disk is shared yet.
 
 <!--i:eti-help-->
 ## TUI or CLI?
 
-The TUI is the CLI's host under an interactive transport. It reuses the CLI's implementation as is: the same headless DOM (jsdom), the same filesystem asset access and the same export path. The one difference is that the TUI owns the screen, so log output goes to an in-app buffer instead of stdout.
+The TUI is the CLI's host under an interactive transport. It reuses the CLI's headless DOM (jsdom), filesystem asset access and export path unchanged. The one difference: the TUI owns the screen, so log output goes to an in-app buffer instead of stdout.
 
 |  | [CLI](/info/cli.html) | TUI |
 |---|---|---|
@@ -238,7 +237,7 @@ The TUI is the CLI's host under an interactive transport. It reuses the CLI's im
 | Engine and output | Same engine, same bytes | Same engine, same bytes |
 | State | Design systems and explicit `projects` access to saved sessions on disk | Sessions, folders, profile and design systems on disk (see [Where your work is saved](#where-your-work-is-saved)) |
 
-If you can express a job as a URL, prefer the CLI: it is reproducible and pipeable. Reach for the TUI when you want to see and adjust a tool the way you would in the web app, from a terminal.
+If you can express a job as a URL, prefer the CLI: it is reproducible and pipeable. Use the TUI to see and adjust a tool as in the web app, from a terminal.
 
 <!--i:eti-link-->
 ## Related

@@ -1,6 +1,6 @@
 # Build the desktop app
 
-This page is for a developer who wants to run the desktop app from source or package it for macOS, Windows or Linux. The desktop app is a Tauri shell around the web app's own code (see [One source, three apps](/info/build-guide.html#one-source-three-apps)), so you need a checkout from [Get the source](/info/contributing-setup.html) plus a Rust toolchain.
+Run the desktop app from source, or package the app for macOS, Windows or Linux. The desktop app is a Tauri shell around the web app's code ([One source, three apps](/info/build-guide.html#one-source-three-apps)), so you need a checkout from [Get the source](/info/contributing-setup.html) plus a Rust toolchain.
 
 **What you'll do**, in three steps:
 
@@ -43,7 +43,7 @@ Tauri keeps the full list at <https://tauri.app/start/prerequisites/>.
 pnpm run dev:desktop
 ```
 
-Tauri opens a native window with the Vite dev server running behind it, and hot reload works. Storage uses the filesystem override (`bridge-overrides/state.ts`): saved work goes to `<AppData>/saved-state/`, where `<AppData>` is the app's data directory for the identifier `tools.lolly.Desktop`, for example `~/Library/Application Support/tools.lolly.Desktop/` on macOS.
+Tauri opens a native window over the Vite dev server, with hot reload. Storage uses the filesystem override (`bridge-overrides/state.ts`). Saved work goes to `<AppData>/saved-state/`, where `<AppData>` is the app's data directory for the identifier `tools.lolly.Desktop`, such as `~/Library/Application Support/tools.lolly.Desktop/` on macOS.
 
 <!--i:eti-package-->
 ## Production build
@@ -88,7 +88,7 @@ Public builds, workflows, download buckets and package services use the public b
 :::
 
 ::: details A private build from the SUSE pack
-For an authorised private SUSE build, mount `brands/suse` and set `LOLLY_PROFILE=suse` with `LOLLY_EMBED_CATALOG=profile`. Use a separate app identifier, such as `tools.lolly.SUSE.Desktop`, so its state and cached CLI catalog do not share the public edition's directory, and match the Quick Look extension identifiers to it on macOS. RPM source preparation also needs `rpm/make-sources.sh --private --out <private-build-directory>` and CLI resources built for the target Linux architecture. Source archives leave out macOS extended-attribute files. Keep the sources and packages in private storage.
+For an authorised private SUSE build, mount `brands/suse` and set `LOLLY_PROFILE=suse` with `LOLLY_EMBED_CATALOG=profile`. Use a separate app identifier, such as `tools.lolly.SUSE.Desktop`, so its state and cached CLI catalog do not share the public edition's directory. On macOS, match the Quick Look extension identifiers to that identifier. RPM source preparation also needs `rpm/make-sources.sh --private --out <private-build-directory>` and CLI resources built for the target Linux architecture. Source archives leave out macOS extended-attribute files. Keep the sources and packages in private storage.
 :::
 
 <!--i:eti-cpu-->
@@ -114,8 +114,6 @@ npx @tauri-apps/cli icon path/to/icon-1024.png
 That writes every required size and format (`32x32.png`, `128x128.png`, `128x128@2x.png`, `icon.icns`, `icon.ico` and the rest) to `src-tauri/icons/`. The macOS bundle also carries a branded asset catalog and document icon; keep them consistent with any replacement artwork.
 
 ::: details What the desktop app guards at runtime
-These are behaviours of the built app rather than build steps.
-
 - **Website reads.** The Website source reads public HTTP and HTTPS pages anonymously. It resolves and pins public addresses for each page, redirect, stylesheet and image read, and refuses local and private addresses. A page redirect stays with the same party. A missing resource can leave a partial import, while a refused network address stops the import. Signed-in screen capture is a separate feature.
 - **Hot folders.** File events keep an open descriptor until the client consumes the file. Files must be regular, direct children of the selected folder; links and files outside it are refused. Custody and event queues hold at most 256 entries, and each file has a 256 MiB read limit. Replacing a folder with invalid settings keeps the previous watcher running.
 - **Renderer adverts.** The app writes the advert that tells local clients where its renderer listens through a private temporary file and an atomic replace. Node clients accept only a bounded, regular advert owned by the current user, with owner-only permissions on Unix. A stale or unsuitable advert is ignored, and normal renderer selection continues.

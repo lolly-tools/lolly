@@ -226,6 +226,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Put a CDN in front of Lolly Work | [work/edge-cdn.md](work/edge-cdn.md) |
 | Run Lolly Work on AWS or MulgaDC Spinifex | [work/aws-compatible.md](work/aws-compatible.md) |
 | WebAssembly and Kubewarden choices | [work/wasm-deployment.md](work/wasm-deployment.md) |
+| How Lolly uses Kubewarden | [work/kubewarden.md](work/kubewarden.md) |
 | Admission policy with Kubewarden | [work/admission-policy.md](work/admission-policy.md) |
 | Configure connector origins | [connector-origins.md](connector-origins.md) |
 | Set up enterprise identity | [work/enterprise-identity.md](work/enterprise-identity.md) |
@@ -268,6 +269,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Verify It Yourself | [verify-yourself.md](verify-yourself.md) |
 | Privacy Policy | [privacy.md](privacy.md) |
 | Inclusive Design | [inclusive-design.md](inclusive-design.md) |
+| Lolly without AI | [without-ai.md](without-ai.md) |
 | Our AI Stance | [ai-stance.md](ai-stance.md) |
 | Generated once, rendered the same | [ai-features.md](ai-features.md) |
 | AI marking and the EU AI Act | [eu-ai-act.md](eu-ai-act.md) |

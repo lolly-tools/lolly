@@ -1,6 +1,6 @@
 # Configure connector origins
 
-This page is for an operator who needs Lolly to reach the organisation's own storage or services, such as a SharePoint tenant, an S3 bucket or a WebDAV server. The job is short: list the exact origins, rebuild the frontend and deploy the web server header that carries them.
+This page is for an operator who needs Lolly to reach the organisation's own storage or services, such as a SharePoint tenant, an S3 bucket or a WebDAV server. List the exact origins, rebuild the frontend and deploy the web server header that contains them.
 
 <!--i:eti-shield-check-->
 ## What is allowed by default
@@ -32,7 +32,7 @@ Choosing an endpoint in Settings does not approve its origin; only this list doe
 
 ::: timeline
 - <!--i:sliders--> **Set the variable** on the frontend build.
-- <!--i:box--> **Rebuild and sign the frontend.** Native builds carry the list inside the app, so a native policy change needs a newly built and signed frontend; it never changes an installed app's permissions at runtime.
+- <!--i:box--> **Rebuild and sign the frontend.** Native builds include the list inside the app, so a native policy change needs a newly built and signed frontend; it never changes an installed app's permissions at runtime.
 - <!--i:document--> **Render the web server's header file.** Run `node scripts/configure-connector-origins.ts INPUT OUTPUT` with the variable set. It accepts any configuration file that declares a `connect-src` policy and changes only `connect-src`. Review the rendered file.
 - <!--i:server--> **Deploy the rendered file and reload the server.** Setting the build variable alone does not change the headers a host sends. Validate the configuration before reloading. The app's files and their signed receipt stay unchanged.
 - <!--i:globe--> **Save local work and reopen the app,** because a browser keeps the policy it loaded with the page.

@@ -1,5 +1,5 @@
 {
   "name": "ফিল্টার",
-  "description": "ফটো ইফেক্টের জন্য একটি টুল: বেছে নিন halftone, scanline, posterize, voronoi, dither বা ASCII আর্ট (ভেক্টর), অথবা duotone, pixel-stretch, misprint বা glitch (রাস্টার)। ডিজাইন সিস্টেম ওভারলে, লাইভ ক্যামেরা, এবং প্রতিটি ইফেক্ট যতগুলো ফরম্যাট সমর্থন করে ততগুলোতেই এক্সপোর্ট।",
+  "description": "ফটো ইফেক্ট: halftone, scanline, posterize, voronoi, dither বা ASCII আর্ট (ভেক্টর), অথবা duotone, pixel-stretch, misprint বা glitch (র‍্যাস্টার)।",
   "featured.blurb": "দশটি ফটো এফেক্ট, ভেক্টর বা রাস্টার, এক টুলে"
 }

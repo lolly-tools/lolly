@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "darkroom",
-  "toolVersion": "2.6.0",
-  "toolVersionRange": "2.6.0",
+  "toolVersion": "2.7.0",
+  "toolVersionRange": "2.7.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,12 +11,12 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "7b64f006ea581c7671b73e11a7d398670609874e82358b8972a20ab70a7e38e7",
-      "bytes": 5127
+      "sha256": "89bd8b0fab8dd8061e0f9ba8f59eb22ff83382ab26b0fc2c6f3909251f62e45a",
+      "bytes": 5067
     },
     "reference/inputs.json": {
-      "sha256": "757f85e72ac348a34b5978051e1c3185d4e4fb9c9129a4083331270fb4e0a77f",
-      "bytes": 46565
+      "sha256": "727ba0a7e23711029710b4e97989ad0e65c7edf2830923114a5f5fbd012be7be",
+      "bytes": 46937
     },
     "reference/examples.json": {
       "sha256": "f9f31fe503e7c17584c1f134d003e1b82e98cd6fc75c396b8f5f909d33349147",

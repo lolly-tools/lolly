@@ -18,10 +18,10 @@
 set -euo pipefail
 
 # ── config ──────────────────────────────────────────────────────────────────────
-# Node must run TypeScript sources directly (the repo's scripts are `node foo.ts`),
-# which needs unflagged type-stripping: Node 22.18+ (22 LTS) or 24+. `.nvmrc` pins 22.
-NODE_MIN_MAJOR=22
-NODE_MIN_MINOR_ON_22=18
+# Node must carry the Brotli fix for CVE-2026-111497 (package.json engines): 22.23.4 or
+# later on Node 22, 24.22.1 or later on Node 24, or 26.12.1 or later. Every one of those
+# also runs the repo's TypeScript sources directly. `.nvmrc` selects 26.
+NODE_FLOOR_WORDS="22.23.4+ on Node 22, 24.22.1+ on Node 24, or 26.12.1+"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 WITH_SUSE=0
@@ -101,23 +101,29 @@ fi
 # ── 2. Node ───────────────────────────────────────────────────────────────────────
 node_major() { node -v 2>/dev/null | sed 's/^v//' | cut -d. -f1; }
 node_minor() { node -v 2>/dev/null | sed 's/^v//' | cut -d. -f2; }
+node_patch() { node -v 2>/dev/null | sed 's/^v//' | cut -d. -f3; }
+# At or past MIN.PATCH within the running major.
+node_at_least() { [ "$1" -gt "$3" ] || { [ "$1" -eq "$3" ] && [ "$2" -ge "$4" ]; }; }
 node_ok() {
   have node || return 1
-  local maj min; maj="$(node_major)"; min="$(node_minor)"
-  [ "$maj" -gt "$NODE_MIN_MAJOR" ] && return 0
-  [ "$maj" -eq "$NODE_MIN_MAJOR" ] && [ "$min" -ge "$NODE_MIN_MINOR_ON_22" ] && return 0
-  return 1
+  local maj min pat; maj="$(node_major)"; min="$(node_minor)"; pat="$(node_patch)"
+  case "$maj" in
+    22) node_at_least "$min" "$pat" 23 4 ;;
+    24) node_at_least "$min" "$pat" 22 1 ;;
+    26) node_at_least "$min" "$pat" 12 1 ;;
+    *) [ "$maj" -gt 26 ] ;;
+  esac
 }
 
 if [ "$SKIP_NODE" -eq 1 ]; then
   step "Node (skipped - --skip-node)"
-  node_ok || warn "current node ($(node -v 2>/dev/null || echo none)) may be too old - need >=22.18 or >=24"
+  node_ok || warn "current node ($(node -v 2>/dev/null || echo none)) is not accepted - need $NODE_FLOOR_WORDS"
 else
-  step "Checking Node (need >=22.18 for TypeScript sources; .nvmrc pins 22)"
+  step "Checking Node (need $NODE_FLOOR_WORDS; .nvmrc selects 26)"
   if node_ok; then
     ok "node $(node -v)"
   else
-    if have node; then warn "node $(node -v) is too old - upgrading"; else warn "node missing - installing"; fi
+    if have node; then warn "node $(node -v) is not accepted - upgrading"; else warn "node missing - installing"; fi
     pkg_install node@22 nodejs22 npm22 || warn "could not install Node via $PKG"
     # Homebrew's node@22 is keg-only - expose it for this session.
     if [ "$PKG" = "brew" ] && ! node_ok; then
@@ -127,9 +133,9 @@ else
     if node_ok; then
       ok "node $(node -v)"
     else
-      die "Node is still too old ($(node -v 2>/dev/null || echo none)). Easiest fix - nvm honours .nvmrc:
+      die "Node $(node -v 2>/dev/null || echo none) is still not accepted (need $NODE_FLOOR_WORDS). Easiest fix - nvm honours .nvmrc:
        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-       # reopen the shell, then:  nvm install   (reads .nvmrc → 22)
+       # reopen the shell, then:  nvm install   (reads .nvmrc → 26)
      Then re-run ./setup.sh --skip-node"
     fi
   fi

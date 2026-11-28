@@ -7,6 +7,7 @@
 import { escape } from '../utils.ts';
 import { t, docsAppHref } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { jellyActive } from '../lib/jelly.ts';
 import { privacyNoticeAcknowledged } from '../views/privacy-notice.ts';
 
@@ -62,7 +63,7 @@ export function gallerySearchBox(opts: { placeholder: string; ariaLabel: string;
     <div class="gallery-search-box">
       <span class="gallery-search-icon" aria-hidden="true">${NAV_ICONS.search}</span>
       ${field}
-      <button type="button" class="gallery-search-clear" data-search-clear aria-label="${escape(opts.clearLabel ?? t('Clear search'))}"${value ? '' : ' hidden'}>✕</button>
+      ${closeButtonHtml({ size: 'sm', className: 'gallery-search-clear', label: opts.clearLabel ?? t('Clear search'), attrs: { 'data-search-clear': true, hidden: !value } })}
       ${kbd}
     </div>
   </div>`;

@@ -1,6 +1,6 @@
 {
   "name": "Paletlab",
-  "description": "Laat een palet groeien uit één basiskleur - harmonie-accenten, perceptuele OKLab-verlopen en WCAG/APCA-leesbaarheidsbadges, met DTCG-tokens en CSV-export.",
+  "description": "Laat een palet groeien uit één basiskleur - harmonie-accenten, OKLab-verlopen en WCAG/APCA-leesbaarheidsbadges, met DTCG-tokens en CSV-export.",
   "inputs.seed.label": "Basiskleur",
   "inputs.seed.help": "De kleur waaruit het hele palet groeit - standaard je primaire merkkleur.",
   "inputs.harmony.label": "Harmonie",

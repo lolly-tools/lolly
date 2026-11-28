@@ -1,6 +1,6 @@
 {
   "name": "Claim",
-  "description": "Claim je naam op elke media die je al gemaakt hebt - afbeelding, PDF, video of audio. Stempel je auteur, copyright en licentie als Content Credentials (ook een duurzame raster-Imprint), met behoud van elke credential die al in het bestand zit - allemaal op je eigen apparaat, voordat je het ergens uploadt.",
+  "description": "Claim je naam op elke media - afbeelding, PDF, video of audio. Stempel je auteur, copyright en licentie als Content Credentials, op je eigen apparaat.",
   "a11yLabel": "Credentials insluiten in je afbeelding",
   "inputs.creator.label": "Artiest / auteur",
   "inputs.creator.help": "Je naam - ingebed als de auteur/maker van de afbeelding (EXIF Artist, XMP dc:creator, en de Content Credential).",

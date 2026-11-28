@@ -661,7 +661,7 @@ function registerProfile(args: Args): void {
  *  profiles.json and every command can address it by name - so this builds and
  *  validates its catalog, which is what the flag was always really for. */
 function activateProfile(name: string): void {
-  const steps = ['build-catalog-index.ts', 'checksum-assets.ts', 'build-preview-bundle.ts', 'validate-catalog.ts'];
+  const steps = ['build-catalog-index.ts', 'checksum-assets.ts', 'validate-catalog.ts'];
   for (const script of steps) {
     const cmdArgs = [join(ROOT, 'scripts', script), `--profile=${name}`];
     const r = spawnSync(process.execPath, cmdArgs, { stdio: 'inherit', cwd: ROOT });

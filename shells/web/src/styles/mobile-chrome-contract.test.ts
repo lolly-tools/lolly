@@ -20,7 +20,7 @@
  *      button are the two fixed surfaces that hang off the TOP edge; without
  *      var(--safe-top) they sit under the notch / Dynamic Island.
  *   4. COARSE-POINTER FLOORS - the job toast's ✕ and an undo toast's action are
- *      the only cancel/undo for their operation. Both are small text controls, so
+ *      the only cancel/undo for their operation. Both are small controls, so
  *      they carry the 44px HIG floor on a coarse pointer.
  *   5. SHEET CLAMPS - the two draggable bottom sheets size themselves in dvh,
  *      which does NOT shrink for the keyboard. Without the calc(100dvh -
@@ -287,6 +287,67 @@ test('the two top-anchored fixed surfaces clear the notch', () => {
         `${file}:${rule.line}: "${rule.selector}" sets top: ${value} without var(--safe-top) - ${what} then sits under the notch / Dynamic Island on a cover-fit viewport (plans/132)`);
     }
   }
+});
+
+test('every full-screen layer keeps its first row below the status bar', () => {
+  // Each of these covers the whole screen (inset: 0, or pinned to top: 0) and
+  // opens with a row of controls. Found on an iPhone 17 simulator with the back
+  // button, the language button or the close button behind the clock.
+  const layers = [
+    { cls: 'pro-wrap', file: 'styles/parts/base.css', prop: 'padding', what: 'the Batch header' },
+    { cls: 'pro-blocks-panel', file: 'pro/pro.css', prop: 'padding-top', what: 'the Batch blocks panel header' },
+    { cls: 'tr-panel', file: 'styles/parts/transcript.css', prop: 'padding-top', what: 'the transcript panel header' },
+    { cls: 'lab-back', file: 'styles/parts/color-lab.css', prop: 'padding', what: "the Colour Lab's sticky back row" },
+    { cls: 'ms-viz-bar', file: 'styles/parts/music-studio.css', prop: 'top', what: "the music visualiser's full-screen controls" },
+    { cls: 'write-distraction', file: 'views/text/writing-layout.css', prop: 'padding', what: 'the full-screen writing bar' },
+    { cls: 'app-history-detail', file: 'views/history.css', prop: 'padding-top', what: 'the History detail sheet' },
+    { cls: 'is-immersive', file: 'styles/parts/asset-shared.css', prop: 'padding-top', what: 'the full-screen audio cover controls' },
+    { cls: 'embed-editor-panel', file: 'styles/parts/tool.css', prop: 'top', what: 'the embedded tool editor' },
+  ];
+  for (const { cls, file, prop, what } of layers) {
+    const clear = rules(read(file)).filter((rule) => targets(rule, cls) && SAFE_TOP.test(decl(rule, prop) ?? ''));
+    assert.ok(clear.length > 0,
+      `${file}: no rule on .${cls} sets ${prop} with var(--safe-top) - ${what} then sits under the status bar on a cover-fit viewport`);
+  }
+  // A rule that restates the row's padding for phones must carry the inset too,
+  // or the phone is the one width left without the inset.
+  for (const rule of rules(read('styles/parts/color-lab.css')).filter((r) => targets(r, 'lab-back') && decl(r, 'padding') !== undefined)) {
+    assert.match(decl(rule, 'padding')!, SAFE_TOP, `styles/parts/color-lab.css:${rule.line}: "${rule.selector}" restates padding without var(--safe-top)`);
+  }
+});
+
+test('every view that pads for the floating back row adds the status bar inset', () => {
+  // The back row floats at --chrome-top, which carries var(--safe-top). These views
+  // clear it with a fixed distance of their own, tuned where the inset is 0; in the
+  // iPhone app the row moved down 62px and each title stayed behind, under the row.
+  // EVERY rule that states the distance must carry the inset, the phone restatement
+  // included.
+  const views = [
+    { cls: 'convert-view', file: 'styles/parts/convert.css', prop: 'padding' },
+    { cls: 'platform-layout', file: 'styles/parts/pdf-extract.css', prop: 'padding' },
+    { cls: 'platform-layout', file: 'styles/parts/read-extract.css', prop: 'padding' },
+    { cls: 'scriptst-layout', file: 'styles/parts/script-studio.css', prop: 'padding' },
+    { cls: 'ask-layout', file: 'styles/parts/ask.css', prop: 'padding' },
+    { cls: 'compare-page', file: 'components/compare.css', prop: 'margin' },
+    { cls: 'prepare-view', file: 'components/prepare/prepare.css', prop: 'padding' },
+    { cls: 'rb-top', file: 'styles/parts/rebrand-top.css', prop: 'padding' },
+    { cls: 'ms-page', file: 'styles/parts/music-studio.css', prop: 'padding' },
+  ];
+  for (const { cls, file, prop } of views) {
+    const stated = rules(read(file)).filter((rule) => targets(rule, cls) && decl(rule, prop) !== undefined);
+    assert.ok(stated.length > 0, `${file}: no rule sets ${prop} on .${cls} any more - update the table in this test`);
+    for (const rule of stated) {
+      assert.match(decl(rule, prop)!, SAFE_TOP,
+        `${file}:${rule.line}: "${rule.selector}" sets ${prop}: ${decl(rule, prop)} without var(--safe-top) - its first row then sits under the floating back row in the iPhone app`);
+    }
+  }
+});
+
+test('the music page clears a top row that grows with the text size', () => {
+  const page = rules(read('styles/parts/music-studio.css')).find((rule) => targets(rule, 'ms-page') && /--ui-size-target/.test(decl(rule, 'padding') ?? ''));
+  assert.ok(page, 'styles/parts/music-studio.css: .ms-page no longer pads for the floating top row - update this test');
+  assert.match(decl(page, 'padding')!, /var\(\s*--chrome-grow\b/,
+    'the row of back and home buttons grows with the text size, and the genre button slides under it unless the padding adds --chrome-grow');
 });
 
 // ── 4. Coarse-pointer floors ─────────────────────────────────────────────────

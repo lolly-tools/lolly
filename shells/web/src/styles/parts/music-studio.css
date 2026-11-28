@@ -42,8 +42,11 @@
     --ms-cap: calc(var(--ui-size-target) + 12px);
     position: relative;
     margin: 0;
-    /* Clear of the back and home buttons, which float over the page's corner. */
-    padding: calc(var(--ui-size-target) + var(--sp-6) * 2) var(--sp-4) var(--sp-4);
+    /* Clear of the back and home buttons, which float over the page's corner. That row
+       sits below the status bar and grows with the text size, so both are added (each is
+       0 on a desktop at the default size); without them the genre button sat under the
+       row, and under the clock, in the iPhone app. */
+    padding: calc(var(--ui-size-target) + var(--sp-6) * 2 + var(--chrome-grow) + var(--safe-top)) var(--sp-4) var(--sp-4);
     display: grid;
     /* One column as wide as the screen: a wide child scrolls inside it rather than
        widening the page. */
@@ -310,6 +313,9 @@
   @keyframes ms-kick-back { from { transform: rotate(-40deg); } }
   @keyframes ms-kick-on { from { transform: rotate(40deg); } }
 
+  /* Lofi's flavours: one row of chips under the bar, scrolling sideways when it runs out of width. */
+  .ms-flavours { display: flex; gap: var(--sp-1); overflow-x: auto; scrollbar-width: none; padding: var(--sp-2) 2px 2px; }
+  .ms-flavours[hidden] { display: none; }
   .ms-bar-end { margin-inline-start: auto; display: inline-flex; align-items: center; gap: var(--sp-2); }
   .ms-icon { display: inline-flex; align-items: center; justify-content: center; min-width: var(--ui-size-target); min-height: var(--ui-size-target); padding-inline: var(--sp-1); }
 
@@ -493,6 +499,9 @@
   .ms-stage:fullscreen { height: 100vh; border-radius: 0; background: #000; }
   .ms-stage.is-layered { position: fixed; inset: 0; z-index: var(--z-top); height: 100dvh; border-radius: 0; background: #000; }
   .ms-stage.is-full .ms-viz-bar { top: var(--sp-3); right: var(--sp-3); opacity: 0; pointer-events: none; transition: opacity var(--ui-motion-feedback); }
+  /* The layer covers the whole screen, status bar included, so its controls start
+     below the status bar (0 where there is no inset). */
+  .ms-stage.is-layered .ms-viz-bar { top: calc(var(--sp-3) + var(--safe-top)); right: calc(var(--sp-3) + var(--safe-right)); }
   .ms-stage.is-full.show-bar .ms-viz-bar, .ms-stage.is-full .ms-viz-bar:focus-within { opacity: 1; pointer-events: auto; }
   @media (prefers-reduced-motion: reduce) { .ms-stage.is-full .ms-viz-bar { transition: none; } }
   /* The settings: the mode, and for MilkDrop the preset, a shuffle and the cycle. */

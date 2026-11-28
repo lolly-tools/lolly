@@ -123,3 +123,25 @@ test('choosing a heading or a section in the sheet closes it', () => {
   assert.equal((d.getElementById('docContentsPanel') as HTMLElement).hidden, true);
   off();
 });
+
+test('pressing a link in the sheet in WebKit, where focus goes to the view around the bar, leaves the sheet open for the click', () => {
+  const { d, article } = page({ one: 50, 'one-a': 200, two: 900 });
+  // The app's view: a focusable box that holds the bar.
+  const view = d.createElement('div');
+  view.tabIndex = -1;
+  view.append(...Array.from(d.body.childNodes));
+  d.body.append(view);
+  const outside = d.createElement('button');
+  d.body.append(outside);
+  const off = enhanceDocsContents({ article, root: d });
+  const btn = d.querySelector('.doc-contents-btn') as HTMLButtonElement;
+  const panel = d.querySelector('.doc-contents-panel') as HTMLElement;
+  const control = d.querySelector('[data-doc-contents]') as HTMLElement;
+  btn.click();
+  assert.equal(panel.hidden, false);
+  control.dispatchEvent(new w.FocusEvent('focusout', { bubbles: true, relatedTarget: view }));
+  assert.equal(panel.hidden, false, 'focus on the view around the bar is not focus leaving');
+  control.dispatchEvent(new w.FocusEvent('focusout', { bubbles: true, relatedTarget: outside }));
+  assert.equal(panel.hidden, true, 'focus on a control elsewhere still closes the sheet');
+  off();
+});
