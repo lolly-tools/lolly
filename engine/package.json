@@ -35,8 +35,8 @@
     "handlebars": "^4.7.10",
     "prettier": "^3.10.1",
     "smol-toml": "^1.9.1",
-    "sql-formatter": "^15.9.1",
-    "terser": "^5.51.2",
+    "sql-formatter": "^15.10.0",
+    "terser": "^5.51.4",
     "yaml": "2.9.1"
   },
   "devDependencies": {
