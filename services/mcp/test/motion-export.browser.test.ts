@@ -29,7 +29,7 @@ test('MCP exports the requested movie dimensions, duration, frame rate and codec
       '-v', 'error', '-count_frames', '-show_streams', '-show_format', '-of', 'json', file,
     ], { encoding: 'utf8' })) as {
       format: { duration: string };
-      streams: Array<{ codec_type: string; codec_name: string; width: number; height: number; avg_frame_rate: string; nb_read_frames: string }>;
+      streams: Array<{ codec_type: string; codec_name: string; width: number; height: number; r_frame_rate: string; nb_read_frames: string }>;
     };
     const video = probe.streams.find(stream => stream.codec_type === 'video');
     assert.ok(video);
@@ -37,7 +37,11 @@ test('MCP exports the requested movie dimensions, duration, frame rate and codec
     assert.equal(video.width, 320);
     assert.equal(video.height, 320);
     assert.equal(Number(video.nb_read_frames), 30);
-    assert.equal(video.avg_frame_rate, '24/1');
+    // r_frame_rate, not avg_frame_rate: WebM keeps frame times in whole milliseconds,
+    // and with the last block's 42 ms BlockDuration as its only duration FFmpeg
+    // estimates avg_frame_rate as 1000/42, rounded to 143/6. Thirty frames over 1.25 s,
+    // each on the 24 fps grid, pin the rate exactly (packages/node-shell/src/motion-inspect.ts).
+    assert.equal(video.r_frame_rate, '24/1');
     assert.ok(Math.abs(Number(probe.format.duration) - 1.25) < 0.05);
     const pixels = execFileSync('ffmpeg', [
       '-v', 'error', '-i', file, '-frames:v', '1', '-f', 'rawvideo', '-pix_fmt', 'rgb24', 'pipe:1',

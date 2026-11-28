@@ -47,6 +47,28 @@ export const afterInputSummary = (log: string): string => {
   return at < 0 ? log : log.slice(at + 1);
 };
 
+/**
+ * The video frame rate from ffprobe's two estimates. avg_frame_rate, except where a
+ * Matroska or WebM file cannot state it more finely than its timestamps allow.
+ * Matroska keeps frame times in whole milliseconds, and a track with no
+ * DefaultDuration leaves FFmpeg to estimate avg_frame_rate from whatever
+ * BlockDurations it meets. A writer that gives the last block of each cluster its
+ * duration (mediabunny from 1.63 on) leaves a short 24 fps clip with one 42 ms
+ * duration, which FFmpeg reads as 1000/42 and rounds to 143/6 (23.83). r_frame_rate
+ * is fitted to every frame's timestamp, and FFmpeg itself copies it into
+ * avg_frame_rate when such a track carries no durations at all. So when the two
+ * frame intervals differ by no more than half a millisecond, which is as far as
+ * rounding to whole milliseconds can move a duration, r_frame_rate is the reading; a
+ * larger gap (a variable frame rate) keeps avg_frame_rate.
+ */
+export function videoFrameRate(video: { avg_frame_rate?: string; r_frame_rate?: string } | undefined, formatName: string | undefined): number | undefined {
+  const avg = rate(video?.avg_frame_rate ?? '0');
+  const real = rate(video?.r_frame_rate ?? '0');
+  const matroska = /(^|,)(matroska|webm)(,|$)/.test(formatName ?? '');
+  if (matroska && avg && real && Math.abs(1 / avg - 1 / real) <= 0.0005) return real;
+  return avg;
+}
+
 export async function inspectMotionBytes(bytes: Uint8Array, target: MotionTarget = {}, binaries = { probe: 'ffprobe', decode: 'ffmpeg' }, options: { signal?: AbortSignal; timeoutMs?: number; strict?: boolean } = {}): Promise<MotionReport> {
   options.signal?.throwIfAborted();
   if (!bytes.length || bytes.length > 256 * 1024 * 1024) throw new Error('Motion inspection accepts 1 byte to 256 MiB.');
@@ -54,12 +76,12 @@ export async function inspectMotionBytes(bytes: Uint8Array, target: MotionTarget
   const facts: MotionFacts = {}, checks: MotionCheck[] = [];
   try {
     await writeFile(path, bytes);
-    let streams: { codec_type?: string; width?: number; height?: number; avg_frame_rate?: string; duration?: string }[];
+    let streams: { codec_type?: string; width?: number; height?: number; avg_frame_rate?: string; r_frame_rate?: string; duration?: string }[];
     try {
       const { stdout } = await run(binaries.probe, ['-v', 'error', '-protocol_whitelist', 'file,pipe', '-show_streams', '-show_format', '-of', 'json', path], { signal: options.signal, timeout: Math.min(options.timeoutMs ?? 30_000, 30_000), maxBuffer: 2 * 1024 * 1024 });
       const parsed = JSON.parse(stdout); streams = parsed.streams ?? [];
       const video = streams.find(stream => stream.codec_type === 'video');
-      facts.width = video?.width; facts.height = video?.height; facts.fps = rate(video?.avg_frame_rate ?? '0');
+      facts.width = video?.width; facts.height = video?.height; facts.fps = videoFrameRate(video, parsed.format?.format_name);
       const seconds = Number(parsed.format?.duration ?? video?.duration);
       if (Number.isFinite(seconds) && seconds > 0) facts.seconds = seconds;
       facts.audio = streams.some(stream => stream.codec_type === 'audio');
