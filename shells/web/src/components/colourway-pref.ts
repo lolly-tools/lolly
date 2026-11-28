@@ -23,7 +23,7 @@ import type { DocumentThemeGroup, DocumentThemePort } from '../lib/document-them
 import { documentThemeGroups } from '../lib/document-theme.ts';
 import { colourwayAxis } from '../../../../engine/src/colourway.ts';
 import { modeAxis, readTokenAxes } from '../../../../engine/src/token-axes.ts';
-import { activeSystemId, personalColourway, setPersonalColourway, type ColourwayPrefHost } from '../lib/colourway-pref.ts';
+import { activeSystemId, COLOURWAY_PREF_CHANGED_EVENT, personalColourway, setPersonalColourway, type ColourwayPrefHost } from '../lib/colourway-pref.ts';
 import { mountThemeChoices, type ThemeChoices } from './theme-choices.ts';
 import { t, tRaw } from '../i18n.ts';
 
@@ -140,6 +140,8 @@ export function mountColourwayPref(el: HTMLElement, opts: ColourwayPrefOpts): Co
   const onRefresh = (): void => { void refresh(); };
   const onLook = (): void => { notify(); };
   window.addEventListener('lolly:design-system-changed', onRefresh);
+  // A choice saved by another control (the design system menu, or Settings).
+  window.addEventListener(COLOURWAY_PREF_CHANGED_EVENT, onRefresh);
   window.addEventListener('jelly-theme-change', onLook);
 
   return {
@@ -149,6 +151,7 @@ export function mountColourwayPref(el: HTMLElement, opts: ColourwayPrefOpts): Co
       destroyed = true;
       listeners.clear();
       window.removeEventListener('lolly:design-system-changed', onRefresh);
+      window.removeEventListener(COLOURWAY_PREF_CHANGED_EVENT, onRefresh);
       window.removeEventListener('jelly-theme-change', onLook);
       control.destroy();
     },

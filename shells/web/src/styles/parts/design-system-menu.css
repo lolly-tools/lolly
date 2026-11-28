@@ -9,5 +9,16 @@
     background: var(--ui-color-selection-surface);
     box-shadow: inset 0 0 0 2px var(--ui-color-selection-border);
   }
+  /* The active system's colourways (components/colourway-pref.ts), set in from the
+     menu's edge by the same inline padding as the row above it, so the dots start
+     under the system's name. */
+  .design-system-menu-colourway { padding: var(--ui-space-control-inline); padding-block-start: var(--sp-2); }
+  /* Under the active system the dots say what they are, and each carries its
+     colourway's name. The row's label still names the group for a screen reader;
+     the tip lives in Settings, where the same control explains itself. */
+  .design-system-menu-colourway .theme-choice-label {
+    position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  .design-system-menu-colourway .help-tip-btn { display: none; }
   .design-system-menu [role="status"] { padding: var(--ui-space-control-inline); color: var(--ui-color-text-muted); }
 }
