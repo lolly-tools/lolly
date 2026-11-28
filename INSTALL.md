@@ -56,13 +56,16 @@ The script installs these for you when it can; here's what it needs and how to g
 |---|---|---|
 | **Package manager** | [Homebrew](https://brew.sh) | `zypper` (built in) |
 | **git** | `brew install git` (or Xcode CLT) | `sudo zypper install git` |
-| **Node** ≥ 22.18 (or ≥ 24) | `brew install node@22` | `sudo zypper install nodejs22 npm22` |
+| **Node** 22.23.4+, 24.22.1+ or 26.12.1+ | `brew install node@22` | `sudo zypper install nodejs22 npm22` |
 
-**Why Node 22.18+?** The repo's scripts run TypeScript sources directly (`node scripts/foo.ts`),
-which relies on Node's unflagged type-stripping - added in Node **22.18** (the 22 LTS line)
-and **24**. `.nvmrc` selects **26** for development and primary CI. Node 24 remains supported; the package minimum is still 22.18. Node 20 and early 22.x will fail `pnpm install`.
+**Why these releases?** Node's own Brotli decoder, which `fetch` uses on compressed
+responses, had an out-of-bounds write (CVE-2026-111497). It is fixed in Node **22.23.4**,
+**24.22.1** and **26.12.1**, and Lolly no longer accepts an older release of any line: the
+packages' `engines` field is `^22.23.4 || ^24.22.1 || >=26.12.1`, `pnpm install` refuses
+anything outside it, and the CLI, the TUI and the MCP server refuse to start. Nodes 23 and
+25 never got the fix. `.nvmrc` selects **26** for development and primary CI.
 
-If your distro's packaged Node is older than 22.18, use [**nvm**](https://github.com/nvm-sh/nvm),
+If your distro's packaged Node is older than that, use [**nvm**](https://github.com/nvm-sh/nvm),
 which honours `.nvmrc`:
 
 ```bash
@@ -99,7 +102,7 @@ nvm install                # reads .nvmrc → installs + selects Node 26
 If you'd rather not run the script, or you're on a distro it doesn't cover:
 
 ```bash
-# 1. prerequisites - git + Node 22.18+ (see the table above)
+# 1. prerequisites - git + Node 22.23.4+, 24.22.1+ or 26.12.1+ (see the table above)
 
 # 2. SUSE devs with access to the private brand pack, opt in (skip otherwise):
 git submodule update --init --checkout brands/suse
@@ -145,8 +148,9 @@ pnpm test                                                          # engine + sh
 
 ## Troubleshooting
 
-- **`pnpm install` fails with a syntax error in a `.ts` file** → your Node is too old for
-  type-stripping. Need ≥ 22.18 or ≥ 24 (`node -v`); use nvm (above).
+- **`pnpm install` stops with `ERR_PNPM_UNSUPPORTED_ENGINE`, or a syntax error in a `.ts`
+  file** → your Node is older than the release with the Brotli fix. Need 22.23.4+, 24.22.1+
+  or 26.12.1+ (`node -v`); use nvm (above).
 - **`brands/suse` won't clone** → it's private (github.com/lolly-tools/suse-lolly). Without
   access, drop `--suse`; you'll build on lolly-start and everything still works.
 - **Homebrew's `node@22` isn't on PATH** → it's keg-only.

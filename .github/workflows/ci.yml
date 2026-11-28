@@ -96,7 +96,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
       - name: Classify with trusted base policy
         id: scope
@@ -190,7 +190,7 @@ jobs:
           run_install: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
       - name: Install pinned dependencies
         timeout-minutes: 5
@@ -222,7 +222,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
 
       # Pinned to the last verified release: 8.30.1 has a confirmed silent
@@ -277,7 +277,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26' # includes the entryFile field required by the skip reporter
+          node-version: '^26.12.1' # includes the entryFile field required by the skip reporter
           cache: pnpm
 
       - name: Install (workspaces)
@@ -824,7 +824,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
 
       # Takes the newest report of each partition in this run, so after "Re-run
@@ -859,7 +859,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
 
       - name: Install (workspaces)
@@ -988,7 +988,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
 
       - name: Install (workspaces)
@@ -1025,7 +1025,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
 
       - name: Install (workspaces)
@@ -1055,7 +1055,7 @@ jobs:
           run_install: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
       # This job builds the creative web shell in release mode, and that shell
       # requires WebGPU. Its explicit web scope requires published browser
@@ -1100,7 +1100,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
 
       - name: Install (workspaces)
@@ -1144,7 +1144,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
 
       - name: Install (workspaces)
@@ -1249,7 +1249,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           cache: pnpm
 
       - name: Install (workspaces)
@@ -1494,7 +1494,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
@@ -1536,7 +1536,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
@@ -1587,7 +1587,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:

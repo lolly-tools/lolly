@@ -5,7 +5,7 @@ By default, `lolly` signs each export's Content Credential with a **fresh, anony
 Set up a terminal to sign with a **real identity**, so a recipient who pins your root reads **Verified** with your address. Every output shown here comes from a real run. Where a step needs a CA, a self-signed version you can run now is given.
 
 ::: note Before you start
-You need the CLI in a checkout of the Lolly source ([Install](/info/cli.html#install)) and Node 22.18 or later. Signing, verification and trust anchors are plain Node, so every example works without a browser. The captures come from engine 1.281.0; yours will report a higher number. A checkout also prints a `catalog integrity: unsigned catalog` note first, which the captures leave out.
+You need the CLI in a checkout of the Lolly source ([Install](/info/cli.html#install)) and Node 22.23.4 or later on Node 22, 24.22.1 or later on Node 24, or 26.12.1 or later. Signing, verification and trust anchors are plain Node, so every example works without a browser. The captures come from engine 1.281.0; yours will report a higher number. A checkout also prints a `catalog integrity: unsigned catalog` note first, which the captures leave out.
 :::
 
 The organisation's server signs renders submitted to Lolly Work, so no personal key is copied to each caller. See its [Content Credentials guide](/info/work-c2pa.html) for the server identity and trust roots, and [Organisation jobs](/info/cli-automation.html#organisation-jobs-with-lolly-work) for that render path.

@@ -21,7 +21,7 @@
 import { argv } from 'node:process';
 import { readFile } from 'node:fs/promises';
 import { INTENT_BOOL_FLAGS, INTENT_VALUE_FLAGS, parseArgs, globalFlags, isOn, textMode, resolvePassword, RESERVED_SUBCOMMANDS, isMlSubcommand, REBRAND_VALUE_FLAGS, READ_VALUE_FLAGS, CHECK_VALUE_FLAGS, READ_BOOL_FLAGS, CHECK_BOOL_FLAGS, MEASURE_VALUE_FLAGS, MEASURE_BOOL_FLAGS, COMPOSE_VALUE_FLAGS, COMPOSE_BOOL_FLAGS, refuseUnknownFlags } from '../src/args.ts';
-import { EXIT, exitCodeFor, usageError } from '../src/exit-codes.ts';
+import { EXIT, exitCodeFor, unavailableHere, usageError } from '../src/exit-codes.ts';
 import { configureOutput, strictExitCode, note, writeOut, keepConsoleOffStdout } from '../src/output.ts';
 import { beginCommand, emitError, jsonRequested, envelopeEmitted } from '../src/envelope.ts';
 import { assertContentRoot, needsContentRoot } from '../src/content-root.ts';
@@ -487,15 +487,14 @@ beginCommand(
 // The stderr writer the error printer uses, captured BEFORE --quiet can replace it: a
 // quiet run still prints errors, and it must not print them into a sink.
 const writeErr = process.stderr.write.bind(process.stderr);
-// A Node older than the Brotli fix for CVE-2026-111497 on its line: one line to stderr,
-// never stdout, unless --quiet. Not a recorded warning: --strict does not turn this line
-// into a failure.
-if (!args.some(a => /^--quiet(?:=(?!0$|false$|off$|no$).*)?$/i.test(a))) {
-  const { warnIfUnpatchedNode } = await import('@lolly-tools/node-shell/node-patch-level');
-  warnIfUnpatchedNode(line => writeErr(`${line}\n`));
-}
-
 try {
+  // A Node older than the Brotli fix for CVE-2026-111497 on its line is refused before any
+  // work, --version and --help included: exit 3 (not possible in this installation), the
+  // message on stderr, and under --json the failure envelope on stdout.
+  const { unsupportedNodeMessage } = await import('@lolly-tools/node-shell/node-patch-level');
+  const nodeRefusal = unsupportedNodeMessage(process.versions.node);
+  if (nodeRefusal) throw unavailableHere(nodeRefusal, 'NODE_UNSUPPORTED');
+
   // --help / -h / --version / -v are recognised ANYWHERE in argv, before anything treats
   // the token as a tool id (`lolly --help` used to print "Tool not found: --help").
   if (args.some(a => a === '--help' || a === '-h' || a === 'help')) {

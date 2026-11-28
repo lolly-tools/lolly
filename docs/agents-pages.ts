@@ -537,7 +537,7 @@ Lolly makes on-brand files (SVG, PNG, PDF, PPTX, video and more) from tool templ
 
 ## 2. The CLI: for larger work
 
-For every format, large files, batches and heavy automation, run Lolly on the user's own machine, with no limits. It needs Node.js 22.18 or later and pnpm.
+For every format, large files, batches and heavy automation, run Lolly on the user's own machine, with no limits. It needs pnpm and Node.js 22.23.4 or later on Node 22, 24.22.1 or later on Node 24, or 26.12.1 or later.
 
 \`\`\`bash
 git clone ${SOURCE_URL}.git

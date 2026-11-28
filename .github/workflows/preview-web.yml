@@ -94,7 +94,7 @@ jobs:
           submodules: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
       - name: Require a clean ancestor of main
         run: |
@@ -181,7 +181,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '26'
+          node-version: '^26.12.1'
           package-manager-cache: false
 
       - name: Require the reviewed source and the preview pin

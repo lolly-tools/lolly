@@ -5611,7 +5611,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.360.0";
+    ENGINE_VERSION = "1.361.0";
   }
 });
 
@@ -130070,6 +130070,65 @@ function designBool(value2, fallback) {
 function designFlag(row, key2) {
   return designBool(row[key2], false);
 }
+function timeNumber(value2) {
+  if (value2 === null || value2 === void 0 || value2 === "") return null;
+  const n7 = typeof value2 === "number" ? value2 : Number.parseFloat(String(value2));
+  return Number.isFinite(n7) ? n7 : null;
+}
+function designRowInstants(timeline, atSeconds) {
+  const timed = (row) => rowStr2(row, "lane") === "seq" || timeNumber(row.start) !== null;
+  const ignored = (row) => designBool(row.ignored, false);
+  const hidden5 = (row) => designBool(row.hidden, false) || row.__offPage === true;
+  const startS = (row) => clampTime(timeNumber(row.start) ?? 0, 0, MAX_TIME_S);
+  const durS = (row) => {
+    const d = timeNumber(row.dur);
+    return d === null ? null : clampTime(d, 0.1, MAX_TIME_S);
+  };
+  const playedFrom = (rows2) => {
+    const spans = rows2.filter((row) => ignored(row) && rowStr2(row, "lane") === "seq" && durS(row) !== null).map((row) => ({ s: startS(row), d: durS(row) }));
+    return (row) => {
+      const s = startS(row);
+      if (rowStr2(row, "lane") !== "seq" || rowStr2(row, "kind") === "frame") return s;
+      let removed = 0;
+      for (const span2 of spans) if (span2.s < s - 1e-6) removed += span2.d;
+      return Math.max(0, s - removed);
+    };
+  };
+  const playedS = playedFrom(timeline);
+  const stage = timeline.filter((row) => !hidden5(row));
+  const stagePlayed = playedFrom(stage);
+  const playing = stage.filter((row) => timed(row) && !ignored(row));
+  const bounded3 = playing.filter((row) => durS(row) !== null);
+  const seqMs = bounded3.length ? Math.round(Math.max(...bounded3.map((row) => (stagePlayed(row) + durS(row)) * 1e3))) : playing.length ? 5e3 : 0;
+  const t = atSeconds * 1e3;
+  const transitionMs = (row, key2) => Math.round(clampTime(timeNumber(row[key2]) ?? 400, 100, 3e3));
+  const span = (row) => {
+    const start = Math.round(playedS(row) * 1e3);
+    const d = durS(row);
+    const dur = d === null ? null : Math.round(d * 1e3);
+    return { start, dur, end: dur !== null ? start + dur : Math.max(start, seqMs > 0 ? seqMs : start) };
+  };
+  const tail = /* @__PURE__ */ new Map();
+  const clips2 = stage.filter((row) => !ignored(row) && timed(row) && (rowStr2(row, "lane") === "seq" || rowStr2(row, "kind") === "frame") && span(row).dur !== null).map((row, index2) => ({ row, index: index2, ...span(row) })).sort((a, b) => a.start - b.start || a.index - b.index);
+  for (let i = 0; i + 1 < clips2.length; i++) {
+    const a = clips2[i], b = clips2[i + 1];
+    if (rowStr2(a.row, "exit") !== "fade" || rowStr2(b.row, "enter") !== "fade" || Math.abs(a.end - b.start) > 1) continue;
+    tail.set(a.row, Math.min(transitionMs(a.row, "exitMs"), transitionMs(b.row, "enterMs"), b.dur));
+  }
+  return (row) => {
+    if (!timed(row)) return "shown";
+    if (ignored(row)) return "off";
+    const { start, dur, end } = span(row);
+    const throughout = dur === null && !(seqMs > 0);
+    if (!throughout && (t < start || t >= end)) return t >= end && t < end + (tail.get(row) ?? 0) ? "moving" : "off";
+    const split = SPLIT_TIERS.has(rowStr2(row, "split")) && rowStr2(row, "kind") !== "frame";
+    const stagger = split ? Math.round(clampTime(timeNumber(row.stagger) ?? 60, 0, 2e3)) * Math.max(0, Math.min([...rowStr2(row, "text")].length, 240) - 1) : 0;
+    const enterMs = TRANSITIONS.has(rowStr2(row, "enter")) ? transitionMs(row, "enterMs") : 0;
+    if ((enterMs > 0 || stagger > 0) && t - start < enterMs + stagger) return "moving";
+    if (TRANSITIONS.has(rowStr2(row, "exit")) && dur !== null && end - t < transitionMs(row, "exitMs") + stagger) return "moving";
+    return "shown";
+  };
+}
 function outlineOf2(row, box4, semantics = "design") {
   const name = rowStr2(row, "shape");
   const radius = rowNum2(row, "radius");
@@ -130217,6 +130276,8 @@ function compileDesignDraw(rows2, size, opts = {}) {
   const design = opts.semantics !== "preview";
   const hidden5 = (row) => design ? designFlag(row, "hidden") : rowFlag(row, "hidden");
   if (framed && design && hidden5(head2)) return page3;
+  const instant = design && opts.at !== null ? designRowInstants(opts.timeline ?? rows2, opts.at ?? 0) : null;
+  if (framed && instant && instant(head2) !== "shown") page3.findings.push({ id: rowStr2(head2, "id"), feature: "timed-frame" });
   if (framed && design) {
     framePaint(head2, page3, opts);
     const dashed = rowStr2(head2, "stroke") && strokeWidest(head2) > 0 && /^(dashed|dotted)$/.test(rowStr2(head2, "strokeDash"));
@@ -130232,7 +130293,10 @@ function compileDesignDraw(rows2, size, opts = {}) {
       continue;
     }
     if (kind === "frame" || hidden5(row)) continue;
+    const when = instant?.(row) ?? "shown";
+    if (when === "off") continue;
     if (design && (kind === "audio" || kind === "camera")) continue;
+    if (when === "moving") page3.findings.push({ id: rowStr2(row, "id"), feature: "timed-transition" });
     if (design && kind === "path" && (rowStr2(row, "bindStart") || rowStr2(row, "bindEnd"))) {
       page3.findings.push({ id: rowStr2(row, "id"), feature: "bound-path" });
       continue;
@@ -130418,7 +130482,7 @@ async function describeDesignDrawPictures(page3, describe4) {
   for (const op of page3.ops) if (await settle2(op)) kept2.push(op);
   page3.ops = kept2;
 }
-var DESIGN_DRAW_VERSION, authoredColor, strokeWidest, NON_STATIC, DEFAULT_FONT_SIZE, FITS2, OBJPOS, BLENDS2, clampTo2, runFace;
+var DESIGN_DRAW_VERSION, authoredColor, strokeWidest, NON_STATIC, DEFAULT_FONT_SIZE, FITS2, OBJPOS, BLENDS2, clampTo2, MAX_TIME_S, TRANSITIONS, SPLIT_TIERS, clampTime, runFace;
 var init_design_draw = __esm({
   "engine/src/design-draw.ts"() {
     "use strict";
@@ -130461,6 +130525,10 @@ var init_design_draw = __esm({
     ]);
     BLENDS2 = /* @__PURE__ */ new Set(["multiply", "screen", "overlay", "darken", "lighten", "color-dodge", "color-burn", "hard-light", "soft-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"]);
     clampTo2 = (v, a, b) => v < a ? a : v > b ? b : v;
+    MAX_TIME_S = 3600;
+    TRANSITIONS = /* @__PURE__ */ new Set(["fade", "pop", "grow", "rise", "drop", "slide-left", "slide-right", "slide-up", "slide-down", "zoom-in", "zoom-out", "tilt", "swoop", "spin", "drift"]);
+    SPLIT_TIERS = /* @__PURE__ */ new Set(["line", "word", "letter"]);
+    clampTime = (n7, lo, hi) => Math.min(hi, Math.max(lo, n7));
     runFace = (face) => JSON.stringify([face.family, face.weight, face.italic, face.file, face.variations ?? null]);
   }
 });
@@ -140608,8 +140676,8 @@ function layerLabel(row, id3) {
   return id3 || "Layer";
 }
 function timingOf(rows2) {
-  const startOf = (row) => clamp7(designNum(row.start, 0), 0, MAX_TIME_S);
-  const durOf = (row) => clamp7(designNum(row.dur, 0), 0.1, MAX_TIME_S);
+  const startOf = (row) => clamp7(designNum(row.start, 0), 0, MAX_TIME_S2);
+  const durOf = (row) => clamp7(designNum(row.dur, 0), 0.1, MAX_TIME_S2);
   const spans = rows2.filter((r5) => designBool2(r5.ignored, false) && r5.lane === "seq" && designHasNum(r5.dur)).map((r5) => ({ s: startOf(r5), d: durOf(r5) })).sort((a, b) => a.s - b.s);
   const removed = [0];
   for (const sp of spans) removed.push(removed[removed.length - 1] + sp.d);
@@ -140918,7 +140986,7 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
   if (dropped) said.push({ code: "findings-limit", count: dropped, limit: MAX_FINDINGS });
   return { findings, checked: { marks: marks.length, rules: checkedRules }, unmeasured: said, notMeasured: said.map(guestUnmeasuredText) };
 }
-var MAX_ROWS3, MAX_FINDINGS, MAX_TIME_S, MAX_WORK2, NOT_ON_PAGE, MODELLED_KINDS, TREATMENT_WORDS, GUEST_MARK_FIELDS, record29, designNum, num14, designHasNum, designBool2, isSet, keyOf3, clamp7, imageId, hidden2, opacityOf, turnedRow, strokeWidths, stroked, shadowed, shapeOf, blended, MAX_ROW_FIELDS, PROTOTYPE_KEYS, pxText, mmText, marksText, inflate2, mirrored, NUMBER_FIELDS, EPS4, overlaps2, together, samePlace2;
+var MAX_ROWS3, MAX_FINDINGS, MAX_TIME_S2, MAX_WORK2, NOT_ON_PAGE, MODELLED_KINDS, TREATMENT_WORDS, GUEST_MARK_FIELDS, record29, designNum, num14, designHasNum, designBool2, isSet, keyOf3, clamp7, imageId, hidden2, opacityOf, turnedRow, strokeWidths, stroked, shadowed, shapeOf, blended, MAX_ROW_FIELDS, PROTOTYPE_KEYS, pxText, mmText, marksText, inflate2, mirrored, NUMBER_FIELDS, EPS4, overlaps2, together, samePlace2;
 var init_partner_kit_check = __esm({
   "engine/src/partner-kit-check.ts"() {
     "use strict";
@@ -140933,7 +141001,7 @@ var init_partner_kit_check = __esm({
     init_design_hierarchy();
     MAX_ROWS3 = 5e3;
     MAX_FINDINGS = 200;
-    MAX_TIME_S = 3600;
+    MAX_TIME_S2 = 3600;
     MAX_WORK2 = 2e5;
     NOT_ON_PAGE = /* @__PURE__ */ new Set(["frame", "audio", "camera"]);
     MODELLED_KINDS = /* @__PURE__ */ new Set(["box", "image", "text", "frame", "group"]);
@@ -184511,6 +184579,9 @@ async function designPageDrawing(values, frameId, host, opts = {}) {
   const page3 = compileDesignDraw(frame.rows, { width: frame.width, height: frame.height }, {
     effects: true,
     colors: "resolved",
+    // The still's instant (0 when the export names none), against the whole document's sequence.
+    ...opts.at !== void 0 ? { at: opts.at } : {},
+    ...Array.isArray(values.boxes) ? { timeline: values.boxes } : {},
     ...host.resolveColor ? { resolveColor: host.resolveColor } : {},
     ...host.fonts ? { fonts: host.fonts } : {}
   });
@@ -184542,7 +184613,10 @@ async function designPageDrawing(values, frameId, host, opts = {}) {
   return { frame, page: page3, pictures, findings: page3.findings };
 }
 async function designPageSvg(values, frameId, host, opts = {}) {
-  const { frame, page: page3, pictures } = await designPageDrawing(values, frameId, host, opts.dpi === void 0 ? {} : { dpi: opts.dpi });
+  const { frame, page: page3, pictures } = await designPageDrawing(values, frameId, host, {
+    ...opts.dpi === void 0 ? {} : { dpi: opts.dpi },
+    ...opts.at === void 0 ? {} : { at: opts.at }
+  });
   const hrefs = new Map([...pictures].map(([ref2, p]) => [ref2, dataUrl(p.bytes, p.mime)]));
   let svg = designDrawSvg(page3, {
     assetHref: (ref2) => hrefs.get(ref2),
@@ -184567,7 +184641,10 @@ async function designPagesPdf(values, frameIds, host, opts = {}) {
   const pages = [];
   const findings = [];
   for (const id3 of ids2) {
-    const drawing = await designPageDrawing(values, id3, host, opts.dpi === void 0 ? {} : { dpi: opts.dpi });
+    const drawing = await designPageDrawing(values, id3, host, {
+      ...opts.dpi === void 0 ? {} : { dpi: opts.dpi },
+      ...opts.at === void 0 ? {} : { at: opts.at }
+    });
     findings.push(...drawing.findings, ...designDrawPdfFindings(drawing.page, drawing.pictures));
     const placed2 = opts.place?.(drawing.frame) ?? { size: { w: drawing.frame.width * 0.75, h: drawing.frame.height * 0.75 } };
     pages.push({ page: drawing.page, pictures: drawing.pictures, size: placed2.size, ...placed2.artwork ? { artwork: placed2.artwork } : {} });
@@ -189556,7 +189633,7 @@ var package_default = {
   type: "module",
   main: "src/index.ts",
   engines: {
-    node: ">=22.18.0"
+    node: "^22.23.4 || ^24.22.1 || >=26.12.1"
   },
   bin: {
     "lolly-mcp": "./bin/lolly-mcp.ts"

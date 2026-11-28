@@ -30,7 +30,7 @@ There are two routes to the same program.
 **A checkout.** In a clone of the Lolly source ([github.com/lolly-tools/lolly](https://github.com/lolly-tools/lolly)) the CLI is a package script.
 
 ::: note Before you start
-You need Node.js 22.18 or later and pnpm. If `pnpm --version` fails, run `npm install --global pnpm` ([What you need first](/info/contributing-setup.html#what-you-need-first)). Run `pnpm install` once at the repository root ([Clone and set up](/info/contributing-setup.html#clone-and-set-up)), then run every command from that root. Arguments go straight after the tool id, with no `--` in between.
+You need pnpm and Node.js 22.23.4 or later on Node 22, 24.22.1 or later on Node 24, or 26.12.1 or later. Older releases are refused because their Brotli decoder has a flaw (CVE-2026-111497). If `pnpm --version` fails, run `npm install --global pnpm` ([What you need first](/info/contributing-setup.html#what-you-need-first)). Run `pnpm install` once at the repository root ([Clone and set up](/info/contributing-setup.html#clone-and-set-up)), then run every command from that root. Arguments go straight after the tool id, with no `--` in between.
 :::
 
 In a checkout, replace `lolly` in every example with `pnpm run cli` and keep the same arguments.

@@ -21,7 +21,7 @@ import type { DesignRasterEvaluation } from '../../../../engine/src/design-draw-
 import type { DesignRasterResult } from '../lib/webgpu/design-page.ts';
 import { exportRouteChoice } from '../feature-flags.ts';
 import { _host, exportDims, type ExportOpts } from './export-shared.ts';
-import { pageHost } from './export-design-ops.ts';
+import { liveStillInstant, pageHost } from './export-design-ops.ts';
 import { rasterStyle } from './export-raster-style.ts';
 import { encodePngCanvas } from './export-raster-finish.ts';
 
@@ -80,8 +80,10 @@ async function gpuPixels(node: Element, opts: ExportOpts, deps: StillRouteDeps, 
   // Pictures read while compiling may carry credentials; they join the export's only if this route draws the page.
   const ingredients: NonNullable<ExportOpts['_ingredientSink']> = [];
   const compileOpts: ExportOpts = { ...opts, convertPaths: true, ...(opts._ingredientSink ? { _ingredientSink: ingredients } : {}) };
+  const instant = await liveStillInstant([node]);
+  if ('reason' in instant) return { reasons: [instant.reason] };
   const { designPageDrawing } = await import('../../../../engine/src/design-page-svg.ts');
-  const drawing = await designPageDrawing(values, frameId, pageHost(node, compileOpts, text, assets), { dpi: size.dpi });
+  const drawing = await designPageDrawing(values, frameId, pageHost(node, compileOpts, text, assets), { dpi: size.dpi, at: instant.at });
   if (Math.abs(drawing.frame.width - size.nodeWidth) > 0.5 || Math.abs(drawing.frame.height - size.nodeHeight) > 0.5) return { reasons: ['the page on screen is not at its authored size'] };
   const { prepareDesignRaster } = await import('../../../../engine/src/design-draw-raster.ts');
   const admitted = prepareDesignRaster(drawing.page, { width: size.width, height: size.height, dpi: size.dpi });

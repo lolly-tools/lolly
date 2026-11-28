@@ -539,3 +539,73 @@ test('removing the last family clears font.brand (back to platform default)', as
   await removeUserFont(host, inter!);
   assert.equal(await primaryFontFamily(host), '');
 });
+
+// ── Which design system an installed face belongs to ─────────────────────────
+
+/** memoryHost plus an in-memory design-system registry, with `active` on, a primary
+ *  font already standing (so no only-font promotion moves the pointer), and the
+ *  shipped brand unlocked unless `locked`. */
+function registryHost(active: string, opts: { locked?: boolean } = {}): UserFontsHost & { store: Map<string, any>; activeNow(): string } {
+  const host = memoryHost() as UserFontsHost & { store: Map<string, any>; activeNow(): string };
+  const record = (id: string, extra: Record<string, unknown> = {}) => ({
+    id, label: id, headId: id === 'shipped' ? 'lolly/tokens/demo' : id === 'default' ? 'user/tokens/brand' : `user/ds/${id}/tokens/brand`,
+    ns: id === 'shipped' ? '' : id === 'default' ? 'user/' : `user/ds/${id}/`,
+    source: { kind: id === 'shipped' ? 'shipped' : 'local' }, locked: false, createdAt: 0, lastUsedAt: 0, ...extra,
+  });
+  const rows = new Map<string, any>([['shipped', record('shipped', { locked: !!opts.locked })], ['acme', record('acme')]]);
+  let activeId = active;
+  host.activeNow = () => activeId;
+  (host as any).designSystems = {
+    async activeId() { return activeId; },
+    async get(id: string) { return rows.get(id) ?? null; },
+    async active() { return rows.get(activeId); },
+    async list() { return [...rows.values()]; },
+    async put(r: any) { rows.set(r.id, r); },
+    async setActive(id: string) { activeId = id; },
+  };
+  host.tokens!.resolve = async (ref: string) => (ref === '{font.brand}' ? ['Brand Face'] : undefined);
+  host.tokens!.isLocked = async () => !!opts.locked;
+  return host;
+}
+
+test('an upload with a named design system active is stored in that system and listed there', async () => {
+  const host = registryHost('acme');
+  const fam = await installFontFromBytes(host, outfitBytes(), { filename: 'Outfit[wght].ttf' });
+  assert.deepEqual(fam?.assetIds, ['user/ds/acme/fonts/outfit/0']);
+  assert.ok(host.store.has('user/ds/acme/fonts/outfit/0'));
+  assert.equal(host.store.has(`${USER_FONT_PREFIX}outfit/0`), false, 'not in the default system');
+  assert.deepEqual((await listUserFonts(host)).map(f => f.family), ['Outfit']);
+  assert.equal(host.activeNow(), 'acme');
+});
+
+test('an upload with the shipped system active starts the person\'s copy and lands there', async () => {
+  const host = registryHost('shipped');
+  const fam = await installFontFromBytes(host, outfitBytes());
+  assert.equal(host.activeNow(), 'default', 'the copy is made and made active, as for any other edit');
+  assert.deepEqual(fam?.assetIds, [`${USER_FONT_PREFIX}outfit/0`]);
+  assert.deepEqual((await listUserFonts(host)).map(f => f.family), ['Outfit']);
+  assert.ok(host.store.has('user/tokens/brand'), 'the copy has a head of its own');
+});
+
+test('a Google font installed with a named design system active is stored in that system', async () => {
+  const host = registryHost('acme');
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async (url: string | URL) => {
+    const u = String(url);
+    if (u.startsWith('https://fonts.googleapis.com/')) return new Response('@font-face{font-family:\'Outfit\';font-style:normal;font-weight:400;src:url(https://fonts.gstatic.com/s/outfit/v1/a.ttf) format(\'truetype\');}', { status: 200, headers: { 'content-type': 'text/css' } });
+    return new Response(outfitBytes(), { status: 200, headers: { 'content-type': 'font/ttf' } });
+  }) as typeof fetch;
+  try {
+    const fam = await installGoogleFont(host, 'Outfit', { neverPrimary: true });
+    assert.ok(fam.assetIds.every(id => id.startsWith('user/ds/acme/fonts/outfit/')), fam.assetIds.join(', '));
+  } finally { globalThis.fetch = realFetch; }
+});
+
+test('a locked shipped brand: the face goes to the default folder and the pointer stays', async () => {
+  const host = registryHost('shipped', { locked: true });
+  const fam = await installFontFromBytes(host, outfitBytes());
+  assert.deepEqual(fam?.assetIds ?? [`${USER_FONT_PREFIX}outfit/0`], [`${USER_FONT_PREFIX}outfit/0`]);
+  assert.ok(host.store.has(`${USER_FONT_PREFIX}outfit/0`));
+  assert.equal(host.activeNow(), 'shipped');
+  assert.equal(host.store.has('user/tokens/brand'), false, 'no copy of a locked brand');
+});
