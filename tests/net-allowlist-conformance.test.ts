@@ -207,7 +207,9 @@ const NET_REEXPORT = 'shells/web/src/bridge/net.ts';
 // tauri-shared is not a shell: it's the parent-repo composition point both Tauri
 // shells' bridge-overrides call into (state-fs only today). It defines no
 // host.net - the definer/hand-rolled scans below cover it like everything else.
-const KNOWN_SHELLS = ['chrome-extension', 'cli', 'tauri-desktop', 'tauri-mobile', 'tauri-shared', 'tui', 'web'];
+// linux-browser-app holds a desktop entry and a README, no code: the launcher is the
+// CLI's `lolly app`, which serves the built web shell, so the web bridge's host.net applies.
+const KNOWN_SHELLS = ['chrome-extension', 'cli', 'linux-browser-app', 'tauri-desktop', 'tauri-mobile', 'tauri-shared', 'tui', 'web'];
 
 const SKIP_DIR = new Set(['node_modules', 'dist', 'target', '.git', 'gen', 'lib', 'vendor']);
 const SCAN_EXT = ['.ts', '.tsx', '.js', '.mjs'];
