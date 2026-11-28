@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:106c2408-dcb9-48a1-88a1-0428e2c88625",
+  "serialNumber": "urn:uuid:5163c29e-8f81-419b-8876-0779a64e0fb3",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-28T01:27:08.333Z",
+    "timestamp": "2026-11-28T01:54:56.299Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -24960,10 +24960,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40mediabunny/flac-encoder@1.66.4",
+      "bom-ref": "pkg:npm/%40mediabunny/flac-encoder@1.62.1",
       "name": "@mediabunny/flac-encoder",
-      "version": "1.66.4",
-      "purl": "pkg:npm/%40mediabunny/flac-encoder@1.66.4",
+      "version": "1.62.1",
+      "purl": "pkg:npm/%40mediabunny/flac-encoder@1.62.1",
       "scope": "required",
       "licenses": [
         {
@@ -24975,7 +24975,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "227a07052da3621a9d3a9097ecc87d619e77dd202d72a66cd0985ca07f87eca9cafe1dbc601e9a1fe392fbeb0066ba339a5c249b87c5f8fa8e6e71489f289723"
+          "content": "eb2d89ae39e25badf7ead70cd54084637794e3b4666646fbf813eb6f6ae77bec67ce0414842542312335d86aa66d04df6e65587d98e2bb6550a8d7196226a83f"
         }
       ]
     },
@@ -32385,10 +32385,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/mediabunny@1.66.4",
+      "bom-ref": "pkg:npm/mediabunny@1.62.1",
       "name": "mediabunny",
-      "version": "1.66.4",
-      "purl": "pkg:npm/mediabunny@1.66.4",
+      "version": "1.62.1",
+      "purl": "pkg:npm/mediabunny@1.62.1",
       "scope": "required",
       "licenses": [
         {
@@ -32400,7 +32400,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "5483f0c1a5696399949dff6600e2650628b83f59c72b4e57f3ffef7918c9add767e75e0148eb9868cad4cb551178b31556c9bce6277a78cbb4cf92bbd4a91ffa"
+          "content": "958cde7ab0f0a3d40b8410a2a6a4035ce495ec89ef68816996595942f88f3b9acfc07f8852bf0cd6ebee9a4d689485203111a43e222746b8afdb958512b52033"
         }
       ]
     },

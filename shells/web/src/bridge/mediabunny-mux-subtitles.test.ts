@@ -3,7 +3,7 @@
  * The muxer's subtitle-track seam, against a FAKE mediabunny (plans/180 M-B).
  *
  * bridge/subtitle-track.test.ts already proves the finished bytes carry a `wvtt` /
- * `D_WEBVTT/SUBTITLES` track when a VTT is threaded through, and none when it isn't.
+ * `S_TEXT/WEBVTT` track when a VTT is threaded through, and none when it isn't.
  * What a byte scan cannot see is the ORDER, and the order is the whole contract
  * mediabunny imposes:
  *

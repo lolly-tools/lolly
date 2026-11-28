@@ -191,7 +191,7 @@ export interface MuxSpec {
   rotation?: Rotation;
   /**
    * WP-F soft subtitles. A WebVTT document to embed as a player-toggleable subtitle
-   * track (mp4 `wvtt`, WebM `D_WEBVTT/SUBTITLES`), IN ADDITION to any burned-in captions.
+   * track (mp4 `wvtt`, WebM `S_TEXT/WEBVTT`), IN ADDITION to any burned-in captions.
    * Added ONLY when this is a NON-EMPTY string AND the container's OutputFormat lists
    * 'webvtt' in getSupportedSubtitleCodecs() (both mp4 and WebM do). Absent/empty ⇒ no
    * subtitle track and the container bytes are byte-for-byte identical to today - the
