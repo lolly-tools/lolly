@@ -13,7 +13,7 @@
  * only surfaces video+audio tracks (its ISOBMFF reader handles handlerType 'vide'/'soun'
  * only, and the Matroska reader has no subtitle path), so a round-tripped subtitle track
  * comes back invisible. The container's own codec identifier is the ground truth instead:
- * ISOBMFF writes a `wvtt` sample-entry box, Matroska/WebM a `S_TEXT/WEBVTT` CodecID.
+ * ISOBMFF writes a `wvtt` sample-entry box, WebM a `D_WEBVTT/SUBTITLES` CodecID (WebM names WebVTT with its own id; mediabunny 1.66 writes that one where 1.62 wrote the Matroska `S_TEXT/WEBVTT`).
  *
  * The DETERMINISM GUARD (red-team trap 3) is the point of the without-transcript cases:
  * the sequence-render browser goldens carry no transcript, so the mux must add NO
@@ -37,7 +37,7 @@ Second cue
 `;
 
 /** The container codec identifier a real WebVTT track leaves in the bytes. */
-const WEBVTT_MARKER: Record<'mp4' | 'webm', string> = { mp4: 'wvtt', webm: 'S_TEXT/WEBVTT' };
+const WEBVTT_MARKER: Record<'mp4' | 'webm', string> = { mp4: 'wvtt', webm: 'D_WEBVTT/SUBTITLES' };
 
 const PICK: Record<'mp4' | 'webm', EncodePick> = {
   mp4: { container: 'mp4', codec: 'avc1.42001f', muxCodec: 'avc' },
