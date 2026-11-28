@@ -39,6 +39,9 @@ test('Work uses one avatar and Settings link with readable account actions and b
       });
       window.workProfileFixture = { calls, unread(count) { for (const listener of listeners) listener(count); } };
     ` }, bundle: true, write: false, platform: 'browser', format: 'iife', loader: { '.css': 'empty' },
+    // The design system menu's colourway row reaches the token inspector through a lazy
+    // import that this fixture never runs; its text and layout engines do not bundle as iife.
+    external: ['*/components/token-workspace.ts'],
     define: { 'import.meta.env': '{}' }, logLevel: 'silent',
   });
   const css = ['styles/tokens.css', 'styles/parts/base.css', 'styles/parts/buttons.css', 'styles/parts/components.css',
