@@ -823,7 +823,7 @@ ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
 PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 ```
 
-### mediabunny 1.62.1
+### mediabunny 1.66.4
 
 - SPDX-License-Identifier: `MPL-2.0 (elected from "MPL-2.0")`
 - Copyright: (c) under Patent Claims infringed by Covered Software in the absence of
@@ -1204,7 +1204,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 ```
 
-### @mediabunny/flac-encoder 1.62.1
+### @mediabunny/flac-encoder 1.66.4
 
 - SPDX-License-Identifier: `MPL-2.0 (elected from "MPL-2.0")`
 - Copyright: (c) under Patent Claims infringed by Covered Software in the absence of

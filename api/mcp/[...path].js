@@ -185891,13 +185891,21 @@ var motion_inspect_exports = {};
 __export(motion_inspect_exports, {
   FRAME_LOG_ARGS: () => FRAME_LOG_ARGS,
   afterInputSummary: () => afterInputSummary,
-  inspectMotionBytes: () => inspectMotionBytes
+  inspectMotionBytes: () => inspectMotionBytes,
+  videoFrameRate: () => videoFrameRate
 });
 import { execFile } from "node:child_process";
 import { promisify as promisify2 } from "node:util";
 import { mkdtemp, writeFile as writeFile4, rm as rm3 } from "node:fs/promises";
 import { tmpdir as tmpdir2 } from "node:os";
 import { join as join33 } from "node:path";
+function videoFrameRate(video, formatName) {
+  const avg = rate(video?.avg_frame_rate ?? "0");
+  const real = rate(video?.r_frame_rate ?? "0");
+  const matroska = /(^|,)(matroska|webm)(,|$)/.test(formatName ?? "");
+  if (matroska && avg && real && Math.abs(1 / avg - 1 / real) <= 5e-4) return real;
+  return avg;
+}
 async function inspectMotionBytes(bytes2, target2 = {}, binaries = { probe: "ffprobe", decode: "ffmpeg" }, options2 = {}) {
   options2.signal?.throwIfAborted();
   if (!bytes2.length || bytes2.length > 256 * 1024 * 1024) throw new Error("Motion inspection accepts 1 byte to 256 MiB.");
@@ -185913,7 +185921,7 @@ async function inspectMotionBytes(bytes2, target2 = {}, binaries = { probe: "ffp
       const video = streams.find((stream) => stream.codec_type === "video");
       facts2.width = video?.width;
       facts2.height = video?.height;
-      facts2.fps = rate(video?.avg_frame_rate ?? "0");
+      facts2.fps = videoFrameRate(video, parsed.format?.format_name);
       const seconds3 = Number(parsed.format?.duration ?? video?.duration);
       if (Number.isFinite(seconds3) && seconds3 > 0) facts2.seconds = seconds3;
       facts2.audio = streams.some((stream) => stream.codec_type === "audio");

@@ -2,13 +2,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { inspectMotionBytes } from '../src/motion-inspect.ts';
+import { inspectMotionBytes, videoFrameRate } from '../src/motion-inspect.ts';
 import { motionReport } from '../../../engine/src/motion-report.ts';
 
 test('missing decoders produce explicit unchecked results', async () => {
   const report = await inspectMotionBytes(new Uint8Array([1]), { audio: true }, { probe: '/nonexistent/ffprobe', decode: '/nonexistent/ffmpeg' });
   assert.equal(report.ok, null);
   assert.ok(report.checks.every(check => check.status === 'not-run'));
+});
+test('a Matroska frame rate is read at the precision its millisecond timestamps allow', () => {
+  // One 42 ms BlockDuration on a 24 fps clip: FFmpeg estimates 1000/42 and rounds to 143/6.
+  assert.equal(videoFrameRate({ avg_frame_rate: '143/6', r_frame_rate: '24/1' }, 'matroska,webm'), 24);
+  // A 41 ms duration cannot be a rounded 41.667 ms frame, so FFmpeg's average stands.
+  assert.equal(videoFrameRate({ avg_frame_rate: '293/12', r_frame_rate: '24/1' }, 'matroska,webm'), 293 / 12);
+  // A variable frame rate keeps its average.
+  assert.equal(videoFrameRate({ avg_frame_rate: '45/2', r_frame_rate: '30/1' }, 'matroska,webm'), 22.5);
+  // Other containers state their own durations, so avg_frame_rate is used as before.
+  assert.equal(videoFrameRate({ avg_frame_rate: '143/6', r_frame_rate: '24/1' }, 'mov,mp4,m4a,3gp,3g2,mj2'), 143 / 6);
+  assert.equal(videoFrameRate({ avg_frame_rate: '0/0', r_frame_rate: '24/1' }, 'matroska,webm'), undefined);
+  assert.equal(videoFrameRate(undefined, 'matroska,webm'), undefined);
 });
 test('delivery targets fail independently; review candidates do not fail intentional holds', () => {
   const report = motionReport({ width: 320, height: 180, seconds: 2, fps: 30, audio: false, truePeak: -0.2 }, { audio: true, truePeakMax: -1 }, [{ id: 'frozen-spans', status: 'review', measured: [{ from: 1 }] }]);

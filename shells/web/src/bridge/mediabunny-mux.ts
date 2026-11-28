@@ -131,6 +131,63 @@ export function mapAudioCodec(muxCodec: string): AudioCodec {
   return c;
 }
 
+/**
+ * The Opus pre-skip, in seconds, from an encoder's chunk metadata, or null when the
+ * metadata carries no OpusHead. The OpusHead (RFC 7845) is the decoderConfig
+ * description WebCodecs hands over with the first chunk: the magic "OpusHead", a
+ * version byte, a channel count, then the pre-skip as a little-endian uint16 counted
+ * at 48 kHz whatever the input rate.
+ */
+export function opusPreSkipSeconds(meta: unknown): number | null {
+  const desc = (meta as EncodedAudioChunkMetadata | undefined)?.decoderConfig?.description;
+  if (!desc) return null;
+  const bytes = desc instanceof ArrayBuffer || (typeof SharedArrayBuffer !== 'undefined' && desc instanceof SharedArrayBuffer)
+    ? new Uint8Array(desc)
+    : new Uint8Array((desc as ArrayBufferView).buffer, (desc as ArrayBufferView).byteOffset, (desc as ArrayBufferView).byteLength);
+  if (bytes.length < 12) return null;
+  for (let i = 0; i < 8; i++) if (bytes[i] !== 'OpusHead'.charCodeAt(i)) return null;
+  return (bytes[10]! | (bytes[11]! << 8)) / 48_000;
+}
+
+/**
+ * Rewrites raw WebCodecs Opus packet timestamps into the timing mediabunny (1.63 on)
+ * reads and writes: a packet's timestamp INCLUDES the pre-skip, so the first packet of
+ * a stream starts at minus the pre-skip. The WebCodecs encoder stamps its packets with
+ * the input time and states the pre-skip only in the OpusHead. mediabunny's own
+ * encoder makes the same correction (AudioEncoderWrapper in its media-source.ts), but
+ * these paths drive the encoder themselves and hand mediabunny finished packets, so
+ * the correction is ours to make.
+ *
+ * Without it every Opus file read back through mediabunny comes out one pre-skip
+ * (6.5 ms) late: the WebM carries no CodecDelay and the Ogg granule positions are
+ * offset by the pre-skip. WebKit's own decoder plays such a WebM late as well. With
+ * it the WebM gains a CodecDelay equal to the pre-skip (FFmpeg writes the same) over
+ * unchanged block times, the Ogg granule positions match what mediabunny 1.62 wrote,
+ * and Chromium, WebKit and mediabunny all decode the first sample at zero
+ * (mediabunny to the nearest millisecond in WebM, whose timestamps are whole ms).
+ *
+ * Firefox stamps only its first packet in input time, so upstream shifts only that
+ * one there; this mirrors that rule. Each shifted timestamp is snapped back to the
+ * sample grid, as upstream does.
+ */
+export function opusTimestampFixer(): (packet: EncodedPacket, meta: unknown) => EncodedPacket {
+  const firefox = typeof navigator !== 'undefined' && (navigator.userAgent ?? '').includes('Firefox');
+  let shift = 0;
+  let rate = 48_000;
+  return (packet, meta) => {
+    const preSkip = opusPreSkipSeconds(meta);
+    if (preSkip !== null) {
+      shift = preSkip;
+      const declared = (meta as EncodedAudioChunkMetadata).decoderConfig?.sampleRate;
+      if (declared && declared > 0) rate = declared;
+    }
+    if (!shift) return packet;
+    const fixed = packet.clone({ timestamp: Math.round((packet.timestamp - shift) * rate) / rate });
+    if (firefox) shift = 0;
+    return fixed;
+  };
+}
+
 /** The sync-add / async-finalize surface the encode paths drive. Effectively a
  *  drop-in for the old muxers, except finalize is now a Promise. */
 export interface MediabunnyMuxer {
@@ -191,7 +248,7 @@ export interface MuxSpec {
   rotation?: Rotation;
   /**
    * WP-F soft subtitles. A WebVTT document to embed as a player-toggleable subtitle
-   * track (mp4 `wvtt`, WebM `S_TEXT/WEBVTT`), IN ADDITION to any burned-in captions.
+   * track (mp4 `wvtt`, WebM `D_WEBVTT/SUBTITLES`), IN ADDITION to any burned-in captions.
    * Added ONLY when this is a NON-EMPTY string AND the container's OutputFormat lists
    * 'webvtt' in getSupportedSubtitleCodecs() (both mp4 and WebM do). Absent/empty ⇒ no
    * subtitle track and the container bytes are byte-for-byte identical to today - the
@@ -221,6 +278,12 @@ export async function buildMediabunnyMux(spec: MuxSpec): Promise<BuiltMediabunny
     ? new MB.Mp4OutputFormat({ fastStart: useOpfs ? false : 'in-memory' })   // stream mdat, moov backpatched at end
     : new MB.WebMOutputFormat();                                             // WebM already streams
   const output = new MB.Output({ format, target });
+  // No creation time. mediabunny stamps the current time into every MP4 (mvhd, tkhd,
+  // mdhd) and, from 1.65 on, into every WebM (Info DateUTC) unless creationTime is
+  // null. A wall-clock stamp would make two renders of the same document differ by
+  // those bytes alone, and the Worker and in-thread exports could never match. This
+  // is also what the strip-data utility removes (engine/src/strip-audio.ts).
+  output.setMetadataTags({ creationTime: null });
 
   // Validate the declared codecs up front so an unknown one throws here, not
   // mid-drain. Track dimensions / rate / decoder config are NOT needed at
@@ -230,6 +293,9 @@ export async function buildMediabunnyMux(spec: MuxSpec): Promise<BuiltMediabunny
 
   const vQ: Array<{ packet: EncodedPacket; meta: unknown }> = [];
   const aQ: Array<{ packet: EncodedPacket; meta: unknown }> = [];
+  // Opus packets move back by the pre-skip before they are queued, so the interleave
+  // below orders them by the time mediabunny will write (see opusTimestampFixer).
+  const fixOpus = audioCodec === 'opus' ? opusTimestampFixer() : null;
 
   // A single frame's duration, in seconds. Chromium's VideoEncoder does not carry
   // the source VideoFrame's `duration` onto the emitted EncodedVideoChunk, so
@@ -342,7 +408,7 @@ export async function buildMediabunnyMux(spec: MuxSpec): Promise<BuiltMediabunny
     // packet. Guarded so a post-start call (or a video export that never sets tags)
     // is inert - the interleave/goldens are untouched.
     setMetadataTags(tags) {
-      if (!startPromise) output.setMetadataTags(tags);
+      if (!startPromise) output.setMetadataTags({ ...tags, creationTime: tags.creationTime ?? null });
     },
     // fromEncodedChunk copies the chunk's bytes out immediately, so buffering the
     // packet does not pin the (closeable) WebCodecs chunk.
@@ -368,7 +434,8 @@ export async function buildMediabunnyMux(spec: MuxSpec): Promise<BuiltMediabunny
       kick();
     },
     addAudioChunk(chunk, meta) {
-      const packet = MB.EncodedPacket.fromEncodedChunk(chunk as EncodedAudioChunk);
+      let packet = MB.EncodedPacket.fromEncodedChunk(chunk as EncodedAudioChunk);
+      if (fixOpus) packet = fixOpus(packet, meta);
       aQ.push({ packet, meta });
       if (packet.timestamp > aHigh) aHigh = packet.timestamp;
       kick();

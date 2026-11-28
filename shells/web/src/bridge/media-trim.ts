@@ -226,6 +226,7 @@ const DISCARD_PHRASES: Record<DiscardedTrack['reason'], string> = {
   undecodable_source_codec: 'this browser cannot decode it',
   no_encodable_target_codec: 'this browser cannot encode a codec the container carries',
   cannot_copy: 'it cannot be copied',
+  unknown_maximum_packet_count: 'a live source gives the container no length to plan for',
 };
 
 type CutMode = NonNullable<MediaTrimOpts['cut']>;

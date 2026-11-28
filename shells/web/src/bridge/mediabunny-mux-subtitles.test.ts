@@ -3,7 +3,7 @@
  * The muxer's subtitle-track seam, against a FAKE mediabunny (plans/180 M-B).
  *
  * bridge/subtitle-track.test.ts already proves the finished bytes carry a `wvtt` /
- * `S_TEXT/WEBVTT` track when a VTT is threaded through, and none when it isn't.
+ * `D_WEBVTT/SUBTITLES` track when a VTT is threaded through, and none when it isn't.
  * What a byte scan cannot see is the ORDER, and the order is the whole contract
  * mediabunny imposes:
  *
@@ -61,7 +61,7 @@ export class Output {
   addVideoTrack() { log().push(['track', 'video']); }
   addAudioTrack() { log().push(['track', 'audio']); }
   addSubtitleTrack() { log().push(['track', 'subtitle']); }
-  setMetadataTags() { log().push(['tags']); }
+  setMetadataTags(tags) { log().push(['tags', tags]); }
   async start() { log().push(['start']); }
   async finalize() { log().push(['finalize']); }
 }
@@ -105,7 +105,7 @@ const webm = { container: 'webm' as const, video: 'V_VP9' };
 test('a subtitle track is declared before start(), and the VTT is fed once after it', async () => {
   const log = await run({ ...mp4, subtitlesVtt: VTT });
   const names = log.map((e) => `${e[0]}${e[0] === 'track' ? `:${e[1]}` : ''}`);
-  assert.deepEqual(names, ['track:video', 'subtitle-source', 'track:subtitle', 'start', 'subtitle-add', 'finalize'],
+  assert.deepEqual(names, ['tags', 'track:video', 'subtitle-source', 'track:subtitle', 'start', 'subtitle-add', 'finalize'],
     'declare the track before start, feed the document after it, then finalize');
   const added = log.filter((e) => e[0] === 'subtitle-add');
   assert.equal(added.length, 1, 'the whole document goes in one add, not one cue at a time');
@@ -140,5 +140,16 @@ test('a container that lists no webvtt codec gets no track, however loudly it wa
 test('an audio-only export can carry captions too (no video track declared)', async () => {
   const log = await run({ container: 'webm', audio: 'A_OPUS', subtitlesVtt: VTT });
   const names = log.map((e) => `${e[0]}${e[0] === 'track' ? `:${e[1]}` : ''}`);
-  assert.deepEqual(names, ['track:audio', 'subtitle-source', 'track:subtitle', 'start', 'subtitle-add', 'finalize']);
+  assert.deepEqual(names, ['tags', 'track:audio', 'subtitle-source', 'track:subtitle', 'start', 'subtitle-add', 'finalize']);
+});
+
+test('every output is told to write no creation time, before it starts', async () => {
+  // mediabunny stamps the current time into MP4 and (from 1.65) WebM unless
+  // creationTime is null, and refuses tags once the output has started.
+  for (const spec of [{ ...mp4 }, { ...webm }, { container: 'webm' as const, audio: 'A_OPUS' }]) {
+    const log = await run(spec);
+    const tags = log.findIndex((e) => e[0] === 'tags');
+    assert.ok(tags >= 0 && tags < log.findIndex((e) => e[0] === 'start'), `tags precede start: ${JSON.stringify(spec)}`);
+    assert.deepEqual(log[tags]![1], { creationTime: null });
+  }
 });

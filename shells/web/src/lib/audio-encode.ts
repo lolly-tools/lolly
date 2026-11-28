@@ -52,7 +52,7 @@ import type { MetadataTags } from 'mediabunny';
 import { concatBytes } from '../../../../engine/src/bytes.ts';
 import { packWav, type WavAudio, type WavSampleFormat } from '../../../../engine/src/wav.ts';
 import { audioChunkSchedule } from '../bridge/video-mime.ts';
-import { buildMediabunnyMux } from '../bridge/mediabunny-mux.ts';
+import { buildMediabunnyMux, opusTimestampFixer } from '../bridge/mediabunny-mux.ts';
 
 /** Planar PCM: one Float32Array per channel, samples in -1..1, plus its rate.
  *  Structurally the engine's WavAudio, so packWav takes it directly. */
@@ -293,6 +293,9 @@ async function buildAudioOnlyMux(
   const output = new MB.Output({ format, target });
   const src = new MB.EncodedAudioPacketSource(codec);
   output.addAudioTrack(src);
+  // Ogg-Opus granule positions count from the pre-skip, so raw WebCodecs timestamps
+  // need the same correction the shared muxer makes (opusTimestampFixer).
+  const fixOpus = codec === 'opus' ? opusTimestampFixer() : null;
 
   let started: Promise<void> | null = null;
   const ensureStarted = (): Promise<void> => (started ??= output.start());
@@ -305,7 +308,8 @@ async function buildAudioOnlyMux(
     // Vorbis comments; ADTS carries them in an ID3 header.
     setMetadataTags(tags) { output.setMetadataTags(tags); },
     addAudioChunk(chunk, meta) {
-      const packet = MB.EncodedPacket.fromEncodedChunk(chunk as EncodedAudioChunk);
+      let packet = MB.EncodedPacket.fromEncodedChunk(chunk as EncodedAudioChunk);
+      if (fixOpus) packet = fixOpus(packet, meta);
       chain = chain
         .then(async () => { await ensureStarted(); await src.add(packet, meta as EncodedAudioChunkMetadata | undefined); })
         .catch((e) => { err ??= e; });
