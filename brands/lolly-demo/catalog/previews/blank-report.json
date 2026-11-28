@@ -951,6 +951,26 @@
       "sparse": false
     },
     {
+      "file": "quote-card.svg",
+      "bytes": 3578,
+      "sha": "aa3c3b7d547c297a",
+      "stddev": 37.324,
+      "inkRatio": 0.05351,
+      "ground": "white",
+      "grounds": {
+        "white": {
+          "stddev": 37.324,
+          "inkRatio": 0.05351
+        },
+        "black": {
+          "stddev": 37.324,
+          "inkRatio": 0.05351
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
       "file": "quote.svg",
       "bytes": 8359,
       "sha": "34484c8c47102908",
