@@ -1,0 +1,19 @@
+# DRAFT. Not built into any package yet, and not tested on a Linux desktop.
+# The launcher entry for Lolly running in the installed browser (`lolly app`).
+# See README.md in this directory.
+[Desktop Entry]
+Type=Application
+Name=Lolly
+Comment=Generate on-brand creative assets from simple inputs
+# `lolly app` serves the packaged web app on 127.0.0.1 and opens that address as an app
+# window in Chrome, Chromium, Edge or Brave. A package sets the real path of the command
+# and of the web app directory.
+Exec=lolly app
+Icon=tools.lolly.Desktop
+Terminal=false
+Categories=Graphics;2DGraphics;
+Keywords=brand;design;qr;svg;pdf;chart;template;
+# The launcher passes --class=tools.lolly.Desktop to the browser, so the desktop pairs
+# the browser window with this entry and shows Lolly's icon, not the browser's.
+StartupWMClass=tools.lolly.Desktop
+StartupNotify=true

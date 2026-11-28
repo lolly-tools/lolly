@@ -135,6 +135,7 @@ fn is_sidecar_verb(value: &str) -> bool {
             | "read"
             | "check"
             | "compose"
+            | "app"
     )
 }
 
@@ -624,6 +625,7 @@ mod tests {
             "install-browser", "completion", "help", "version", "models", "speak", "transcribe",
             "mix", "upscale", "matte", "ocr", "detect-ai", "reword", "depth", "icons", "pack",
             "tui", "files", "prepare", "rebrand", "read", "check", "compose", "projects", "reports",
+            "app",
         ];
         for verb in reserved {
             if answered_here.contains(&verb) {

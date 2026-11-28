@@ -287,6 +287,10 @@ Subcommands:
                                            trusted - the bare-trust check
   lolly install-browser [--with-deps]      one-time Chromium download for the full render
                                            tier (also needs \`pnpm run build:web\`)
+  lolly app [--dir=<web app>] [--port=47474]
+                                           open Lolly as an app window in your installed
+                                           Chrome, Chromium, Edge or Brave, served from
+                                           this machine; app --help for details
   lolly models ls                          which on-device model files are here
   lolly models fetch <family> [--yes]      download one model family (prints the size
                                            first and asks; --yes answers in advance).
@@ -478,7 +482,7 @@ process.stdout.on('error', (err: NodeJS.ErrnoException) => {
 // A raw argv scan is enough: `--json` has one spelling and no bare-value trap. The
 // command name is re-set accurately by main() once the parse succeeds; this pre-set is
 // only the fallback for a failure that happens before that.
-const RAW_VERBS = new Set(['intent', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'reports', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
+const RAW_VERBS = new Set(['intent', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'reports', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose', 'app']);
 const rawFirst = args.find(a => !a.startsWith('-'));
 beginCommand(
   RAW_VERBS.has(rawFirst ?? '') ? rawFirst! : 'lolly',
@@ -504,6 +508,7 @@ try {
     else if (rawFirst === 'adobe') { const { ADOBE_HELP } = await import('../src/adobe.ts'); await writeOut(ADOBE_HELP); }
     else if (rawFirst === 'prepare') { const { prepareCli } = await import('../src/prepare.ts'); await prepareCli([], { help: '1' }); }
     else if (rawFirst === 'compose') { const { COMPOSE_HELP } = await import('../src/compose.ts'); await writeOut(COMPOSE_HELP); }
+    else if (rawFirst === 'app') { const { APP_HELP } = await import('../src/app.ts'); await writeOut(APP_HELP); }
     else {
       // read, check, package, measure and run on a session file have help of their own.
       const { verbHelp } = await import('../src/verb-help.ts');
@@ -568,7 +573,7 @@ async function main(): Promise<void> {
   // before any work, so the top-level catch can name the command in a failure envelope
   // even when the throw happened before the command function was reached. A bare tool
   // id reports as `describe`/`run` - the verb it is sugar for - not as its own name.
-  const VERBS = new Set(['import', 'intent', 'learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'reports', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose']);
+  const VERBS = new Set(['import', 'intent', 'learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'reports', 'projects', 'tui', 'rebrand', 'look', 'sample', 'trace', 'read', 'check', 'compose', 'app']);
   beginCommand(cmd === 'adobe' || cmd === 'affinity' || cmd === 'dxf' || VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
 
   // Content-free binary (plans/131): the published CLI ships no tools and no catalog.
@@ -988,6 +993,13 @@ async function main(): Promise<void> {
   if (cmd === 'projects') {
     const { projectsCli } = await import('../src/projects.ts');
     await projectsCli(positionals.slice(1), flags, g.json);
+    return;
+  }
+  // `app`: serve a built web app on one local address and open it in the installed
+  // browser. Runs until that browser closes.
+  if (cmd === 'app') {
+    const { appCli } = await import('../src/app.ts');
+    process.exitCode = await appCli(positionals.slice(1), flags);
     return;
   }
   if (cmd === 'tui') {
